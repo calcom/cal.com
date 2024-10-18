@@ -18,6 +18,7 @@ vi.mock("../InitialConfig", () => ({
       is_not_empty: {},
       between: {},
       not_between: {},
+      multiselect_some_in: {},
     },
   },
 }));
@@ -138,6 +139,7 @@ describe("getQueryBuilderConfig", () => {
     expect(config.operators).not.toHaveProperty("is_not_empty");
     expect(config.operators).not.toHaveProperty("between");
     expect(config.operators).not.toHaveProperty("not_between");
+    expect(config.operators).not.toHaveProperty("multiselect_some_in");
     expect(config.operators.__calReporting).toBe(true);
   });
 
@@ -148,6 +150,8 @@ describe("getQueryBuilderConfig", () => {
     expect(config.operators).toHaveProperty("is_not_empty");
     expect(config.operators).toHaveProperty("between");
     expect(config.operators).toHaveProperty("not_between");
+    expect(config.operators).toHaveProperty("multiselect_some_in");
+
     expect(config.operators.__calReporting).toBeUndefined();
   });
 

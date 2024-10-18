@@ -75,7 +75,8 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     // Empty and Not empty doesn't work well with JSON querying in prisma. Try to implement these when we desperately need these operators.
     delete initialConfigCopy.operators.is_empty;
     delete initialConfigCopy.operators.is_not_empty;
-
+    delete initialConfigCopy.operators.multiselect_some_in;
+    
     // Between and Not between aren't directly supported by prisma. So, we need to update jsonLogicToPrisma to generate gte and lte query for between. It can be implemented later.
     delete initialConfigCopy.operators.between;
     delete initialConfigCopy.operators.not_between;

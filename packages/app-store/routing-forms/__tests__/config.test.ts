@@ -60,12 +60,9 @@ describe("Query Builder Config", () => {
       assertCommonStructure(FormFieldsBaseConfig);
     });
 
-    it("should not support multiselect_some_in and multiselect_not_some_in - because they are not supported in Prisma for reporting(probably)", () => {
-      expect(FormFieldsBaseConfig.types.multiselect.widgets.multiselect.operators).not.toContain(
+    it("should support multiselect_some_in - Reporting is handled in getQueryBuilderConfigForFormFields", () => {
+      expect(FormFieldsBaseConfig.types.multiselect.widgets.multiselect.operators).toContain(
         "multiselect_some_in"
-      );
-      expect(FormFieldsBaseConfig.types.multiselect.widgets.multiselect.operators).not.toContain(
-        "multiselect_not_some_in"
       );
     });
 
