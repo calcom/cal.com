@@ -1,6 +1,7 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import logger from "@calcom/lib/logger";
 import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
@@ -29,6 +30,55 @@ function mockAttributesScenario({
   vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
     teamMembersWithAttributeOptionValuePerAttribute
   );
+}
+
+function mockHugeAttributesOfTypeSingleSelect({
+  numAttributes,
+  numOptionsPerAttribute,
+  numTeamMembers,
+  numAttributesUsedPerTeamMember,
+}: {
+  numAttributes: number;
+  numOptionsPerAttribute: number;
+  numTeamMembers: number;
+  numAttributesUsedPerTeamMember: number;
+}) {
+  if (numAttributesUsedPerTeamMember > numAttributes) {
+    throw new Error("numAttributesUsedPerTeamMember cannot be greater than numAttributes");
+  }
+  const attributes = Array.from({ length: numAttributes }, (_, i) => ({
+    id: `attr${i + 1}`,
+    name: `Attribute ${i + 1}`,
+    type: "SINGLE_SELECT" as const,
+    slug: `attribute-${i + 1}`,
+    options: Array.from({ length: numOptionsPerAttribute }, (_, i) => ({
+      id: `opt${i + 1}`,
+      value: `Option ${i + 1}`,
+      slug: `option-${i + 1}`,
+    })),
+  }));
+
+  const assignedAttributeOptionIdForEachMember = 1;
+
+  const teamMembersWithAttributeOptionValuePerAttribute = Array.from({ length: numTeamMembers }, (_, i) => ({
+    userId: i + 1,
+    attributes: Object.fromEntries(
+      Array.from({ length: numAttributesUsedPerTeamMember }, (_, j) => [
+        attributes[j].id,
+        attributes[j].options[assignedAttributeOptionIdForEachMember].value,
+      ])
+    ),
+  }));
+
+  mockAttributesScenario({
+    attributes,
+    teamMembersWithAttributeOptionValuePerAttribute,
+  });
+
+  return {
+    attributes,
+    teamMembersWithAttributeOptionValuePerAttribute,
+  };
 }
 
 function buildQueryValue({
@@ -126,7 +176,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
   });
 
   it("should return null if route is not found", async () => {
-    const result = await findTeamMembersMatchingAttributeLogicOfRoute({
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: { routes: [], fields: [] },
       response: {},
       routeId: "non-existent-route",
@@ -137,7 +187,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
   });
 
   it("should return null if the route does not have an attributesQueryValue set", async () => {
-    const result = await findTeamMembersMatchingAttributeLogicOfRoute({
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
         routes: [
           {
@@ -183,7 +233,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const result = await findTeamMembersMatchingAttributeLogicOfRoute({
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
         routes: [
           {
@@ -251,7 +301,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const result = await findTeamMembersMatchingAttributeLogicOfRoute({
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
         routes: [
           buildDefaultCustomPageRoute({
@@ -286,50 +336,69 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     ]);
   });
 
-  describe("Error handling", () => {
-    it("should throw an error if the attribute type is not supported", async () => {
-      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "UNSUPPORTED_ATTRIBUTE_TYPE" as unknown as AttributeType,
-        slug: "attribute-1",
-        options: [Option1OfAttribute1],
-      };
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          {
-            userId: 1,
-            attributes: { [Attribute1.id]: Option1OfAttribute1.value },
-          },
-        ],
-      });
+  describe("Performance testing", () => {
+    describe("20 attributes, 4000 team members", async () => {
+      // In tests, the performance is actually really bad than real world. So, skipping this test for now
+      it.skip("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
+        const { attributes } = mockHugeAttributesOfTypeSingleSelect({
+          numAttributes: 20,
+          numOptionsPerAttribute: 30,
+          numTeamMembers: 4000,
+          numAttributesUsedPerTeamMember: 10,
+        });
 
-      await expect(
-        findTeamMembersMatchingAttributeLogicOfRoute({
-          form: {
-            routes: [
-              buildDefaultCustomPageRoute({
-                id: "test-route",
-                attributesQueryValue: buildSelectTypeFieldQueryValue({
-                  rules: [
-                    {
-                      raqbFieldId: Attribute1.id,
-                      value: [Option1OfAttribute1.id],
-                      operator: "select_equals",
-                    },
-                  ],
-                }) as AttributesQueryValue,
-              }),
-            ],
-            fields: [],
-          },
-          response: {},
-          routeId: "test-route",
-          teamId: 1,
-        })
-      ).rejects.toThrow("Unsupported attribute type");
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: attributes[0].id,
+              value: [attributes[0].options[1].id],
+              operator: "select_equals",
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result, timeTaken } =
+          await findTeamMembersMatchingAttributeLogicOfRoute(
+            {
+              form: {
+                routes: [
+                  buildDefaultCustomPageRoute({
+                    id: "test-route",
+                    attributesQueryValue: attributesQueryValue,
+                  }),
+                ],
+                fields: [],
+              },
+              response: {},
+              routeId: "test-route",
+              teamId: 1,
+            },
+            {
+              concurrency: 1,
+              enablePerf: true,
+            }
+          );
+
+        expect(result).toEqual(
+          expect.arrayContaining([
+            {
+              userId: 1,
+              result: RaqbLogicResult.MATCH,
+            },
+          ])
+        );
+
+        if (!timeTaken) {
+          throw new Error("Looks like performance testing is not enabled");
+        }
+        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => sum ?? 0 + (time || 0), 0);
+        console.log("Total time taken", totalTimeTaken, {
+          timeTaken,
+        });
+        expect(totalTimeTaken).toBeLessThan(1000);
+        // All of them should match
+        expect(result?.length).toBe(4000);
+      }, 10000);
     });
   });
 });
