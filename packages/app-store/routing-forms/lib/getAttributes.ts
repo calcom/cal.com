@@ -53,35 +53,6 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
 }
 
 async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number }) {
-  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
-
-  const whereClauseForAttributesAssignedToMembersOfTeam = {
-    options: {
-      some: {
-        assignedUsers: {
-          some: {
-            member: {
-              user: {
-                teams: {
-                  some: {
-                    teamId,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  log.debug(
-    safeStringify({
-      teamId,
-      whereClauseForAttributesAssignedToMembersOfTeam,
-    })
-  );
-
   const membersOfTeam = await prisma.membership.findMany({
     where: {
       teamId: teamId,
