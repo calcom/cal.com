@@ -2,6 +2,7 @@ import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { AttributeType } from "@calcom/prisma/enums";
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
@@ -141,7 +142,7 @@ function buildRoute({
 }: {
   id: string;
   action: {
-    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    type: RouteActionType;
     value: string;
   };
   queryValue: FormFieldsQueryValue;
@@ -164,7 +165,7 @@ function buildDefaultCustomPageRoute({
 }) {
   return buildRoute({
     id,
-    action: { type: "customPageMessage", value: "test" },
+    action: { type: RouteActionType.CustomPageMessage, value: "test" },
     queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
     attributesQueryValue,
   });
@@ -193,7 +194,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           {
             id: "test-route",
             queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
-            action: { type: "customPageMessage", value: "test" },
+            action: { type: RouteActionType.CustomPageMessage, value: "test" },
           },
         ],
         fields: [],
@@ -238,7 +239,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         routes: [
           {
             id: "test-route",
-            action: { type: "customPageMessage", value: "test" },
+            action: { type: RouteActionType.CustomPageMessage, value: "test" },
             queryValue: {
               type: "group",
             } as unknown as FormFieldsQueryValue,

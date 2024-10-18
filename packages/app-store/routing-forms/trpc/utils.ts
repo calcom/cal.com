@@ -19,7 +19,7 @@ import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
 import type { SerializableField, OrderedResponses, AttributesQueryValue } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
-import { acrossQueryValueCompatiblity } from "./raqbUtils";
+import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
 
 const {
   getAttributesData: getAttributes,
@@ -201,7 +201,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     })
   );
 
-  if (!attributesQueryValue) {
+  if (raqbQueryValueUtils.isQueryValueEmpty(attributesQueryValue)) {
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: {
