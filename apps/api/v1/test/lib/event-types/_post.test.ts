@@ -95,6 +95,87 @@ describe("POST /api/event-types", () => {
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res._getData()).message).toBe("`userId` or `teamId` required");
     });
+    test("should throw 400 if parentId and teamId is present in request", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "Tennis class",
+          slug: "tennis-class-{{$guid}}",
+          length: 60,
+          hidden: true,
+          parentId: 9999,
+          teamId: 9999,
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res._getData()).message).toBe(
+        "`parentId` and `teamId` both cannot be present in the request"
+      );
+    });
+    test("should throw 400 if teamId and userId is present in request", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "Tennis class",
+          slug: "tennis-class-{{$guid}}",
+          length: 60,
+          hidden: true,
+          userId: 9999,
+          teamId: 9999,
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res._getData()).message).toBe(
+        "`teamId` and `userId` both cannot be present in the request"
+      );
+    });
+    test("should throw 400 if schedulingType is present for non team events", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "Tennis class",
+          slug: "tennis-class-{{$guid}}",
+          length: 60,
+          hidden: true,
+          userId: 9999,
+          schedulingType: "ROUND_ROBIN",
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res._getData()).message).toBe("schedulingType is applicable only for team events");
+    });
+    test("should throw 401 if organization has locked event type creation", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "test title",
+          slug: "test-slug",
+          length: 60,
+          hidden: true,
+        },
+      });
+
+      req.userId = adminUserId;
+      prismaMock.user.findUnique.mockResolvedValueOnce({ organizationId: 2 });
+      prismaMock.organizationSettings.findUnique.mockResolvedValueOnce({
+        lockEventTypeCreationForUsers: true,
+      });
+
+      await handler(req, res);
+      const data = JSON.parse(res._getData());
+
+      expect(res.statusCode).toBe(401);
+      expect(data.message).toBe("ADMIN required, eventType creation for this organization has been locked");
+    });
   });
 
   describe("Success", () => {
@@ -108,10 +189,8 @@ describe("POST /api/event-types", () => {
           hidden: true,
           userId: memberUserId,
           parentId: 9999,
-          teamId: 9999,
         },
       });
-      req.isSystemWideAdmin = true;
       req.userId = adminUserId;
 
       vi.mocked(canUserAccessTeamWithRole).mockImplementationOnce(async () => false);
@@ -130,8 +209,6 @@ describe("POST /api/event-types", () => {
           slug: "test-slug",
           length: 60,
           hidden: true,
-          userId: memberUserId,
-          parentId: 9999,
           teamId: 9999,
         },
       });
