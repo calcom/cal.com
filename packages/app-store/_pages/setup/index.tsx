@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { DynamicComponent } from "../../_components/DynamicComponent";
 
 export const AppSetupMap = {
+  adyen: dynamic(() => import("../../adyen/pages/setup")),
   alby: dynamic(() => import("../../alby/pages/setup")),
   "apple-calendar": dynamic(() => import("../../applecalendar/pages/setup")),
   exchange: dynamic(() => import("../../exchangecalendar/pages/setup")),

@@ -229,6 +229,7 @@
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
     "AB_TEST_BUCKET_PROBABILITY",
+    "ADYEN_LIVE_ENVIRONMENT",
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
     "API_KEY_PREFIX",

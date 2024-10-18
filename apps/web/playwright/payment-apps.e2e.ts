@@ -9,6 +9,42 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Payment app", () => {
+  test("Should be able to edit adyen price, currency", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    expect(paymentEvent).not.toBeNull();
+    await prisma.credential.create({
+      data: {
+        type: "adyen",
+        appId: "adyen",
+        userId: user.id,
+        key: {},
+      },
+    });
+
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await page.locator("#event-type-form").getByRole("switch").click();
+    await page.getByTestId("adyen-currency-select").click();
+    await page.getByTestId("select-option-usd").click();
+
+    await page.getByTestId("adyen-price-input").click();
+    await page.getByTestId("adyen-price-input").fill("350");
+    await page.getByTestId("update-eventtype").click();
+
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
+
+    // expect 200 sats to be displayed in page
+    expect(await page.locator("text=350").first()).toBeTruthy();
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    expect(await page.locator("text=350").first()).toBeTruthy();
+
+    // go to /event-types and check if the price is 200 sats
+    await page.goto(`event-types/`);
+    expect(await page.locator("text=350").first()).toBeTruthy();
+  });
+
   test("Should be able to edit alby price, currency", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -140,6 +176,33 @@ test.describe("Payment app", () => {
     // go to /event-types and check if the price is 150
     await page.goto(`event-types/`);
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+  });
+
+  test("Should display App is not setup already for adyen", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    expect(paymentEvent).not.toBeNull();
+    await prisma.credential.create({
+      data: {
+        type: "adyen",
+        appId: "adyen",
+        userId: user.id,
+        key: {},
+      },
+    });
+
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+
+    await page.locator("#event-type-form").getByRole("switch").click();
+
+    // expect text "This app has not been setup yet" to be displayed
+    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+
+    await page.getByRole("button", { name: "Setup" }).click();
+
+    // Expect "Connect with Alby" to be displayed
+    expect(await page.locator("text=Connect with Adyen").first()).toBeTruthy();
   });
 
   test("Should display App is not setup already for alby", async ({ page, users }) => {

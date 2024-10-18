@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "license": "AGPLv3 (see LICENSE file)",
+  "name": "@calcom/adyen",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "scripts": {
+    "downgrade": "ts-node ./downgrade.ts"
+  },
+  "dependencies": {
+    "@adyen/adyen-web": "6.2.0",
+    "@adyen/api-library": "^19.4.0",
+    "@calcom/app-store": "*",
+    "@calcom/features": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "uuid": "^10.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@calcom/types": "*",
+    "ts-node": "^10.9.1"
+  }
+}
