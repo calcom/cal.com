@@ -8,14 +8,8 @@ import {
   convertFromSmallestToPresentableCurrencyUnit,
   convertToSmallestCurrencyUnit,
 } from "../../_utils/payments/currencyConversions";
+import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
-
-export const paymentOptions = [
-  {
-    label: "on_booking_option",
-    value: "ON_BOOKING",
-  },
-];
 
 type Option = { value: string; label: string };
 
