@@ -111,7 +111,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
         data: {
           isRecorded: true,
-          actorUserId,
+          actorUserId: userId,
         },
       });
 
