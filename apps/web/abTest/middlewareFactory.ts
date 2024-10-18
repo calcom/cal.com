@@ -12,7 +12,6 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/settings/my-account/:path*", process.env.APP_ROUTER_SETTINGS_MY_ACCOUNT_ENABLED === "1"] as const,
   ["/settings/platform/:path*", process.env.APP_ROUTER_SETTINGS_PLATFORM_ENABLED === "1"] as const,
   ["/settings/organizations/:path*", process.env.APP_ROUTER_SETTINGS_ORG_ENABLED === "1"] as const,
-  ["/apps/installed/:category", process.env.APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED === "1"] as const,
   ["/apps/:slug", process.env.APP_ROUTER_APPS_SLUG_ENABLED === "1"] as const,
   ["/apps/:slug/setup", process.env.APP_ROUTER_APPS_SLUG_SETUP_ENABLED === "1"] as const,
   ["/apps/categories", process.env.APP_ROUTER_APPS_CATEGORIES_ENABLED === "1"] as const,
