@@ -2653,10 +2653,25 @@ checksums:
     salesforce_if_account_does_not_exist: ff7ce8c176eaa2ed8a7e6fe09327e830
     salesforce_create_new_contact_under_account: 929d1effb813cc09b87f79fee1cb699d
     mass_assign_attributes: 92df3a9cc0a1d55a616c014517c5bee5
+    reroute_preview_custom_message: 4f049f09f79b30cbd9594934ed5d4494
+    reroute_preview_external_redirect: db7340a28a89f755d92fe2f37c67a3ee
+    reroute_preview_possible_host: d9afb2621fb3f8809d2d4df6c012bb19
+    current_routing_status: 3407ebb397e41be73c7db91664f6e885
+    reroute_booking: c369ff6dcdd73c7624625d81f93de63f
+    reroute_booking_description: e3b1dc5a3a2a351562ad06d22a6eb419
+    verify_new_route: b544c001afeb6d48fa0fba26536e88da
+    reroute: d94c2dd8cf9fd4970b110fcb7e6b059f
+    new_routing_status: 16a03500a3a91cc6c0a9d47435ecf45a
     salesforce_book_directly_with_attendee_owner: 32527f7bc50272de1cb81401e0bf17a9
     salesforce_check_owner_of: f9e2369739fa3b659b86ed78c1937b11
     account: 01215c12fb1cdb93bd0c84c1382bef56
     choose_hosts_schedule: b5405848d78c8bbf891764eb85ad6c78
     hosts_schedule_description: 9fbda99f7028e2cc126d158c903af652
     no_hosts_description: e9b5a1e85244a43ee254ded46c81f1ec
+    reschedule_with_same_timeslot: 48b6411da3040a7cb6d1e51922155ae3
+    reschedule_with_same_timeslot_of_new_event: de384b584b07281248c4d736abad0a59
+    reschedule_to_the_new_event_with_different_timeslot: 340767653b1c28da54fbae04f12a823c
+    reschedule_with_different_timeslot: cedbdabd15cfdd1caefaf04992a63b0f
+    we_dont_have_id_for_the_new_event: 55c3fb8891e8b93a22590f723e19e24c
+    rerouted_booking_successfully_redirecting_to_booking_page: 7fef68e0677cd52170230f5567262211
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
