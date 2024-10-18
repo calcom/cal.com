@@ -126,7 +126,12 @@ const EventType = ({
       <></>
     ),
     availability: tabs.includes("availability") ? (
-      <EventAvailabilityTabPlatformWrapper eventType={eventType} isTeamEvent={!!team} user={user?.data} />
+      <EventAvailabilityTabPlatformWrapper
+        eventType={eventType}
+        isTeamEvent={!!team}
+        user={user?.data}
+        teamId={team?.id}
+      />
     ) : (
       <></>
     ),
