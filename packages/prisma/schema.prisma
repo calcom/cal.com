@@ -193,6 +193,7 @@ model Credential {
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
+  @@index([invalid])
 }
 
 enum IdentityProvider {
