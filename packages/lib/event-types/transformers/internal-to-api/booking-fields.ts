@@ -220,6 +220,7 @@ const CustomFieldsSchema = z.object({
   name: z.string(),
   type: CustomFieldTypeEnum,
   label: z.string(),
+  labelAsSafeHtml: z.string().optional(),
   sources: z.array(
     z.object({
       id: z.literal("user"),

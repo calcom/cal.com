@@ -59,6 +59,26 @@ function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | C
     };
   }
 
+  if (field.type === "boolean") {
+    return {
+      name: field.slug,
+      type: field.type,
+      label: field.label,
+      labelAsSafeHtml: `<p>${field.label}</p>\n`,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: field.required,
+      disableOnPrefill: field.disableOnPrefill,
+    };
+  }
+
   return {
     name: field.slug,
     type: field.type,
