@@ -18,7 +18,10 @@
       "memory": 768
     },
     "pages/api/trpc/slots/[trpc].ts": {
-      "memory": 768
+      "memory": 2048
+    },
+    "pages/api/trpc/appRoutingForms/[trpc].ts": {
+      "memory": 2048
     }
   }
 }
