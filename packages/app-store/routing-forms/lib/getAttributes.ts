@@ -53,37 +53,41 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
 }
 
 async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number }) {
-  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
+  const membersOfTeam = await prisma.membership.findMany({
+    where: {
+      teamId: teamId,
+    },
+    select: {
+      userId: true,
+    },
+  });
 
-  const whereClauseForAttributesAssignedToMembersOfTeam = {
-    options: {
-      some: {
-        assignedUsers: {
-          some: {
-            member: {
-              user: {
-                teams: {
-                  some: {
-                    teamId,
-                  },
-                },
+  const assignedUsers = await prisma.attributeToUser.findMany({
+    where: {
+      member: {
+        userId: {
+          in: membersOfTeam.map((member) => member.userId),
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  const attributesToUser = await prisma.attribute.findMany({
+    where: {
+      options: {
+        some: {
+          assignedUsers: {
+            some: {
+              id: {
+                in: assignedUsers.map((user) => user.id),
               },
             },
           },
         },
       },
     },
-  };
-
-  log.debug(
-    safeStringify({
-      teamId,
-      whereClauseForAttributesAssignedToMembersOfTeam,
-    })
-  );
-
-  const attributesToUser = await prisma.attribute.findMany({
-    where: whereClauseForAttributesAssignedToMembersOfTeam,
     select: {
       id: true,
       name: true,
