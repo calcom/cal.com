@@ -134,7 +134,7 @@ async function saveBooking(
   paymentAppData: PaymentAppData,
   organizerUser: CreateBookingParams["eventType"]["organizerUser"]
 ) {
-  const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdataDataForCancellation } =
+  const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
     bookingAndAssociatedData;
   const createBookingObj = {
     include: {
@@ -169,8 +169,8 @@ async function saveBooking(
    * Reschedule(Cancellation + Creation) with an update of reroutingFormResponse should be atomic
    */
   return prisma.$transaction(async (tx) => {
-    if (originalBookingUpdataDataForCancellation) {
-      await tx.booking.update(originalBookingUpdataDataForCancellation);
+    if (originalBookingUpdateDataForCancellation) {
+      await tx.booking.update(originalBookingUpdateDataForCancellation);
     }
 
     const booking = await tx.booking.create(createBookingObj);
@@ -264,7 +264,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     newBookingData.recurringEventId = reqBody.recurringEventId;
   }
 
-  let originalBookingUpdataDataForCancellation: Prisma.BookingUpdateArgs | undefined = undefined;
+  let originalBookingUpdateDataForCancellation: Prisma.BookingUpdateArgs | undefined = undefined;
 
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
@@ -292,7 +292,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     }
 
     if (!evt.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
-      originalBookingUpdataDataForCancellation = {
+      originalBookingUpdateDataForCancellation = {
         where: {
           id: originalRescheduledBooking.id,
         },
@@ -308,7 +308,7 @@ function buildNewBookingData(params: CreateBookingParams) {
   return {
     newBookingData,
     reroutingFormResponseUpdateData,
-    originalBookingUpdataDataForCancellation,
+    originalBookingUpdateDataForCancellation,
   };
 
   function getReroutingFormResponseUpdateData({
