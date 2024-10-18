@@ -231,7 +231,6 @@ function getAttributesQueryValue({
     return acc;
   }, {} as Record<string, Attribute>);
 
-  console.log({ attributesMap });
   const attributesQueryValueCompatibleForMatchingWithFormField: AttributesQueryValue = JSON.parse(
     replaceFieldTemplateVariableWithOptionLabel({
       queryValueString: replaceAttributeOptionIdsWithOptionLabel({
