@@ -55,7 +55,7 @@ export async function upsertBookingField(
   fieldToAdd: Omit<Field, "required">,
   source: NonNullable<Field["sources"]>[number],
   eventTypeId: EventType["id"],
-  actorUserId?: number | null
+  actorUserId?: number
 ) {
   const eventType = await getEventType(eventTypeId);
   let fieldFound = false;

@@ -86,7 +86,7 @@ async function updateBookingLocationInDb({
   };
   evt: Ensure<CalendarEvent, "location">;
   referencesToCreate: Prisma.BookingReferenceCreateInput[];
-  actorUserId: number | null;
+  actorUserId?: number;
 }) {
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),

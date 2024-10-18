@@ -47,7 +47,7 @@ type CreateBookingParams = {
   };
   evt: CalendarEvent;
   originalRescheduledBooking: OriginalRescheduledBooking;
-  actorUserId: number | null;
+  actorUserId?: number;
 };
 
 function updateEventDetails(
