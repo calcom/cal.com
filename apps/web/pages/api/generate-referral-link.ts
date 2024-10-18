@@ -27,9 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { id: referralLinkId, shortLink } = await dub.links.create({
     domain: "refer.cal.com",
     key: session.user.username,
-    url: "https://cal.com",
-    externalId: session.user.id.toString(), // @see https://d.to/externalId
-    trackConversion: true, // enable conversion tracking @see https://d.to/conversions
+    url: `https://cal.com?referral=${session.user.username}`,
+    identifier: session.user.username,
   });
 
   /*
