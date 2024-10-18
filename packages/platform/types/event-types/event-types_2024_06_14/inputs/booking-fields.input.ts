@@ -557,7 +557,9 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
           `Duplicate bookingFields slug '${slug}' found. All bookingFields slugs must be unique.`
         );
       }
-      slugs.push(slug);
+      if (notSystemEditableField) {
+        slugs.push(slug);
+      }
 
       const ClassType = this.classTypeMap[type];
       if (!ClassType) {

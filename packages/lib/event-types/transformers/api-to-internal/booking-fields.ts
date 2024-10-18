@@ -31,10 +31,21 @@ export function transformBookingFieldsApiToInternal(
 
 function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | CustomField {
   if (field.type === "name") {
+    const systemName = { ...systemBeforeFieldName };
+    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
+      systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
+    }
+
+    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
+      systemName.variantsConfig.variants.fullName.fields[0].placeholder = field.placeholder;
+    }
+    // note(Lauris): we attach top level label and placeholder for easier access when converting database event type
+    // to v2 response event type even though form builder uses label and placeholder from variantsConfig.
+    systemName.label = field.label;
+    systemName.placeholder = field.placeholder;
+
     return {
-      ...systemBeforeFieldName,
-      label: field.label,
-      placeholder: field.placeholder,
+      ...systemName,
       disableOnPrefill: field.disableOnPrefill,
     };
   }

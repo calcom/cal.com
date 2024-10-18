@@ -228,7 +228,7 @@ const CustomFieldsSchema = z.object({
       fieldRequired: z.literal(true),
     })
   ),
-  editable: z.literal("user"),
+  editable: z.enum(["user", "user-readonly"]),
   required: z.boolean(),
   placeholder: z.string().optional(),
   options: z
@@ -288,6 +288,24 @@ const NameSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("name"),
   type: z.literal("name"),
   required: z.literal(true),
+  variant: z.literal("fullName").optional(),
+  variantsConfig: z
+    .object({
+      variants: z.object({
+        fullName: z.object({
+          fields: z.array(
+            z.object({
+              name: z.literal("fullName"),
+              type: z.literal("text"),
+              label: z.string().optional(),
+              required: z.literal(true),
+              placeholder: z.string().optional(),
+            })
+          ),
+        }),
+      }),
+    })
+    .optional(),
 });
 
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
@@ -363,6 +381,7 @@ export const systemBeforeFieldName: NameSystemField = {
   editable: "system",
   defaultLabel: "your_name",
   required: true,
+  variant: "fullName",
   sources: [
     {
       label: "Default",
@@ -370,21 +389,19 @@ export const systemBeforeFieldName: NameSystemField = {
       type: "default",
     },
   ],
-};
-
-export const systemBeforeFieldNameReadOnly: NameSystemField = {
-  type: "name",
-  name: "name",
-  editable: "user-readonly",
-  defaultLabel: "your_name",
-  required: true,
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
+  variantsConfig: {
+    variants: {
+      fullName: {
+        fields: [
+          {
+            name: "fullName",
+            type: "text",
+            required: true,
+          },
+        ],
+      },
     },
-  ],
+  },
 };
 
 export const systemBeforeFieldEmail: EmailSystemField = {
@@ -393,21 +410,6 @@ export const systemBeforeFieldEmail: EmailSystemField = {
   name: "email",
   required: true,
   editable: "system",
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
-    },
-  ],
-};
-
-export const systemBeforeFieldEmailReadOnly: EmailSystemField = {
-  defaultLabel: "email_address",
-  type: "email",
-  name: "email",
-  required: true,
-  editable: "user-readonly",
   sources: [
     {
       label: "Default",
