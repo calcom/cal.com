@@ -138,6 +138,10 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
  * Utilities to handle compatiblity when attribute's type changes
  */
 const attributeChangeCompatibility = {
+  /**
+   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
+   * So, don't use it till that is fixed.
+   */
   getRaqbFieldTypeCompatibleWithQueryValue: function getRaqbFieldTypeCompatibleWithQueryValue({
     attributesQueryValue,
     raqbField,
@@ -163,6 +167,8 @@ const attributeChangeCompatibility = {
   },
   /**
    * Ensure the attribute value if of type same as the valueType in queryValue
+   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
+   * So, don't use it till that is fixed.
    */
   ensureAttributeValueToBeOfRaqbFieldValueType: function ensureAttributeValueToBeOfRaqbFieldValueType({
     attributeValue,
@@ -197,11 +203,14 @@ function getAttributesData({
     const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
 
     // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
-    acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
-      attributeValue: compatibleValueForAttributeAndFormFieldMatching,
-      attributesQueryValue,
-      attributeId,
-    });
+    // acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
+    //   attributeValue: compatibleValueForAttributeAndFormFieldMatching,
+    //   attributesQueryValue,
+    //   attributeId,
+    // });
+
+    // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
+    acc[attributeId] = compatibleValueForAttributeAndFormFieldMatching;
 
     return acc;
   }, {} as Record<string, string | string[]>);
@@ -262,11 +271,14 @@ function getAttributesQueryBuilderConfig({
 
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
-      const raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
-        attributesQueryValue,
-        raqbField,
-        raqbFieldId,
-      });
+      // const raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
+      //   attributesQueryValue,
+      //   raqbField,
+      //   raqbFieldId,
+      // });
+
+      // Right now we can't trust getRaqbFieldTypeCompatibleWithQueryValue to give us the correct type
+      const raqbFieldType = raqbField.type;
 
       return [
         raqbFieldId,
