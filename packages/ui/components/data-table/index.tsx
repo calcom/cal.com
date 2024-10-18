@@ -1,100 +1,42 @@
 "use client";
 
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  Row,
-  SortingState,
-  VisibilityState,
-  Table as TableType,
-} from "@tanstack/react-table";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useState } from "react";
+import type { Row } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
+import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
 
+import Icon from "../icon/Icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
-import type { ActionItem } from "./DataTableSelectionBar";
-import { DataTableSelectionBar } from "./DataTableSelectionBar";
-import type { FilterableItems } from "./DataTableToolbar";
-import { DataTableToolbar } from "./DataTableToolbar";
+
+// Export DataTable components under a common namespace for better clarity
+export { DataTableToolbar } from "./DataTableToolbar";
+export { DataTableFilters } from "./filters";
 
 export interface DataTableProps<TData, TValue> {
+  table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  searchKey?: string;
-  onSearch?: (value: string) => void;
-  filterableItems?: FilterableItems;
-  selectionOptions?: ActionItem<TData>[];
-  renderAboveSelection?: (table: TableType<TData>) => React.ReactNode;
-  tableCTA?: React.ReactNode;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
-  CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
+  children?: React.ReactNode;
   hideHeader?: boolean;
 }
-
 export function DataTable<TData, TValue>({
-  columns,
-  data,
-  filterableItems,
-  tableCTA,
-  searchKey,
-  selectionOptions,
+  table,
   tableContainerRef,
   isPending,
-  tableOverlay,
   variant,
-  renderAboveSelection,
-  /** This should only really be used if you dont have actions in a row. */
-  onSearch,
   onRowMouseclick,
   onScroll,
+  children,
   hideHeader,
   ...rest
-}: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = useState({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-    },
-    enableRowSelection: true,
-    debugTable: true,
-    manualPagination: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-  });
-
+}: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtual({
@@ -108,83 +50,95 @@ export function DataTable<TData, TValue>({
     virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
-    <div className="relative space-y-4">
-      <DataTableToolbar
-        table={table}
-        filterableItems={filterableItems}
-        searchKey={searchKey}
-        onSearch={onSearch}
-        tableCTA={tableCTA}
-      />
-      <div ref={tableContainerRef} onScroll={onScroll} data-testid={rest["data-testid"] ?? "data-table"}>
-        <Table data-testid="">
-          {!hideHeader && (
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
+    <div
+      className={classNames(
+        "grid h-[75dvh]", // Set a fixed height for the container
+        rest.className
+      )}
+      style={{
+        gridTemplateRows: "auto 1fr auto",
+        gridTemplateAreas: "'header' 'body' 'footer'",
+        ...rest.style,
+      }}
+      data-testid={rest["data-testid"] ?? "data-table"}>
+      <div className="overflow-hidden" style={{ gridArea: "body" }}>
+        <div ref={tableContainerRef} onScroll={onScroll} className="scrollbar-thin h-full overflow-y-auto">
+          <div className="inline-block min-w-full align-middle">
+            <Table>
+              <TableHeader className="sticky top-0 z-10">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={classNames(
+                          header.column.getCanSort() ? "cursor-pointer select-none" : ""
+                        )}>
+                        <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getIsSorted() && (
+                            <Icon
+                              name="arrow-up"
+                              className="ml-2 h-4 w-4"
+                              style={{
+                                transform:
+                                  header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                                transition: "transform 0.2s ease-in-out",
+                              }}
+                            />
+                          )}
+                        </div>
                       </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-          )}
-          <TableBody>
-            {paddingTop > 0 && (
-              <tr>
-                <td style={{ height: `${paddingTop}px` }} />
-              </tr>
-            )}
-            {virtualRows && !isPending ? (
-              virtualRows.map((virtualRow) => {
-                const row = rows[virtualRow.index] as Row<TData>;
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                    className={classNames(
-                      onRowMouseclick && "hover:cursor-pointer",
-                      variant === "compact" && "!border-0"
-                    )}>
-                    {row.getVisibleCells().map((cell) => {
-                      return (
-                        <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      );
-                    })}
+                    ))}
                   </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-            {paddingBottom > 0 && (
-              <tr>
-                <td style={{ height: `${paddingBottom}px` }} />
-              </tr>
-            )}
-          </TableBody>
-          {tableOverlay && tableOverlay}
-        </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {paddingTop > 0 && (
+                  <tr>
+                    <td style={{ height: `${paddingTop}px` }} />
+                  </tr>
+                )}
+                {virtualRows && !isPending ? (
+                  virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index] as Row<TData>;
+                    return (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                        onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                        className={classNames(
+                          onRowMouseclick && "hover:cursor-pointer",
+                          variant === "compact" && "!border-0"
+                        )}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {paddingBottom > 0 && (
+                  <tr>
+                    <td style={{ height: `${paddingBottom}px` }} />
+                  </tr>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
-      {/* <DataTablePagination table={table} /> */}
-      <DataTableSelectionBar
-        table={table}
-        actions={selectionOptions}
-        renderAboveSelection={renderAboveSelection}
-      />
+      {children}
     </div>
   );
 }

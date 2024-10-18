@@ -219,6 +219,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
       await owner.apiLogin();
 
       await markPhoneNumberAsRequiredField(page, teamEvent.id);
@@ -235,7 +236,7 @@ test.describe("Bookings", () => {
             page,
             team,
             event: teamEvent,
-            teamMatesObj,
+            teamMatesObj: eventHostsObj,
             opts: { attendeePhoneNumber: "+918888888888" },
           });
 

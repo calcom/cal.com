@@ -25,7 +25,7 @@ test.describe("Team", () => {
         username: "rick",
         domain: `domain-${Date.now()}.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
       const inviteLink = await expectInvitationEmailToBeReceived(
@@ -48,7 +48,7 @@ test.describe("Team", () => {
       const context = await browser.newContext();
       const newPage = await context.newPage();
       await newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
+      await expect(newPage.locator("text=Create your account")).toBeVisible();
 
       // Check required fields
       const button = newPage.locator("button[type=submit][disabled]");
@@ -74,7 +74,8 @@ test.describe("Team", () => {
         email: `user-invite-${Date.now()}@domain.com`,
         password: "P4ssw0rd!",
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+
+      await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
@@ -105,7 +106,7 @@ test.describe("Team", () => {
         username: "rick",
         domain: `example.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
       await expectInvitationEmailToBeReceived(

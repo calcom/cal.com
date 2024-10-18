@@ -1,8 +1,6 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
-import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
@@ -36,6 +34,7 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetBookingOutput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
   CreateBookingInput,
@@ -66,7 +65,7 @@ export class BookingsController_2024_08_13 {
 
   @Post("/")
   @ApiOperation({
-    summary: "Create booking",
+    summary: "Create a booking",
     description: `
       POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:
       If eventTypeId in the request body is id of a regular event, then regular booking is created.
@@ -76,7 +75,7 @@ export class BookingsController_2024_08_13 {
       Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.
 
       For team event types it is possible to create instant meeting. To do that just pass \`"instant": true\` to the request body.
-      
+
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
       `,
   })
@@ -118,13 +117,13 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid")
   @UseGuards(BookingUidGuard)
   @ApiOperation({
-    summary: "Get booking",
+    summary: "Get a booking",
     description: `\`:bookingUid\` can be
-      
+
       1. uid of a normal booking
-      
+
       2. uid of one of the recurring booking recurrences
-      
+
       3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).`,
   })
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
@@ -145,6 +144,7 @@ export class BookingsController_2024_08_13 {
     required: true,
   })
   @Permissions([BOOKING_READ])
+  @ApiOperation({ summary: "Get all bookings" })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
     @GetUser() user: User
@@ -160,7 +160,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/reschedule")
   @UseGuards(BookingUidGuard)
   @ApiOperation({
-    summary: "Reschedule booking",
+    summary: "Reschedule a booking",
     description:
       "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
   })
@@ -181,6 +181,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/cancel")
   @UseGuards(BookingUidGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Cancel a booking" })
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
@@ -204,6 +205,7 @@ export class BookingsController_2024_08_13 {
       "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
     required: true,
   })
+  @ApiOperation({ summary: "Mark a booking absence" })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13,

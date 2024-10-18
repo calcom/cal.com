@@ -259,6 +259,7 @@ const TeamListCollapsible = () => {
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -372,6 +373,12 @@ const TeamListCollapsible = () => {
                           />
                         </>
                       ) : null}
+                      <VerticalTabItem
+                        name={t("booking_limits")}
+                        href={`/settings/teams/${team.id}/bookingLimits`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        disableChevron
+                      />
                     </>
                   )}
                 </CollapsibleContent>
@@ -418,6 +425,7 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -654,6 +662,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export type SettingsLayoutProps = {
   children: React.ReactNode;
   hideHeader?: boolean;
+  containerClassName?: string;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayout({ children, hideHeader, ...rest }: SettingsLayoutProps) {
@@ -699,7 +708,8 @@ export default function SettingsLayout({ children, hideHeader, ...rest }: Settin
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
+        <div
+          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           {!hideHeader && <ShellHeader />}
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>

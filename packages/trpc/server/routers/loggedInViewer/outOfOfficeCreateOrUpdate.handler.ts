@@ -33,9 +33,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const inputStartTime = dayjs(startDate).startOf("day");
   const inputEndTime = dayjs(endDate).endOf("day");
-  const offset = dayjs(inputStartTime).utcOffset();
-  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
-  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   // If start date is after end date throw error
   if (inputStartTime.isAfter(inputEndTime)) {
@@ -43,14 +40,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   }
 
   // If start date is before to today throw error
-  // Since this validation is done using server tz, we need to account for the offset
-  if (
-    inputStartTime.isBefore(
-      dayjs()
-        .startOf("day")
-        .subtract(Math.abs(offset) * 60, "minute")
-    )
-  ) {
+  if (inputStartTime.isBefore(dayjs().startOf("day").subtract(1, "day"))) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 

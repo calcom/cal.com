@@ -18,6 +18,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -50,7 +51,13 @@ const bookingSelect = {
   references: true,
 };
 
-export const roundRobinReassignment = async ({ bookingId }: { bookingId: number }) => {
+export const roundRobinReassignment = async ({
+  bookingId,
+  orgId,
+}: {
+  bookingId: number;
+  orgId: number | null;
+}) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
@@ -94,6 +101,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         priority: 2,
         weight: 100,
         weightAdjustment: 0,
+        schedule: null,
       }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
@@ -465,6 +473,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
     const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
 
+    const bookerUrl = await getBookerBaseUrl(orgId);
+
     for (const workflowReminder of workflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
@@ -475,6 +485,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
             ...evt,
             metadata: workflowEventMetadata,
             eventType,
+            bookerUrl,
           },
           action: WorkflowActions.EMAIL_HOST,
           triggerEvent: workflow.trigger,
@@ -538,7 +549,12 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     await scheduleWorkflowReminders({
       workflows: newEventWorkflows,
       smsReminderNumber: null,
-      calendarEvent: { ...evt, metadata: workflowEventMetadata, eventType: { slug: eventType.slug } },
+      calendarEvent: {
+        ...evt,
+        metadata: workflowEventMetadata,
+        eventType: { slug: eventType.slug },
+        bookerUrl,
+      },
       hideBranding: !!eventType?.owner?.hideBranding,
     });
   }
