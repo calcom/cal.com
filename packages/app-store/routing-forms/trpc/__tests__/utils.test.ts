@@ -1,7 +1,6 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import logger from "@calcom/lib/logger";
 import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
@@ -86,7 +85,7 @@ function buildQueryValue({
 }: {
   rules: {
     raqbFieldId: string;
-    value: string | number | string[];
+    value: string | number | string[] | [string[]];
     operator: string;
     valueSrc: NonNullable<BaseWidget["valueSrc"]>[];
     valueType: string[];
@@ -118,8 +117,9 @@ function buildSelectTypeFieldQueryValue({
 }: {
   rules: {
     raqbFieldId: string;
-    value: string | number | string[];
+    value: string | number | string[] | [string[]];
     operator: string;
+    valueType?: string[];
   }[];
 }) {
   return buildQueryValue({
@@ -128,7 +128,7 @@ function buildSelectTypeFieldQueryValue({
       value: rule.value,
       operator: rule.operator,
       valueSrc: ["value"],
-      valueType: ["select"],
+      valueType: rule.valueType ?? ["select"],
     })),
   }) as AttributesQueryValue;
 }
@@ -336,6 +336,125 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     ]);
   });
 
+  it("should return matching team members with a SINGLE_SELECT attribute when 'Any in' option is selected", async () => {
+    const Option1OfAttribute1HumanReadableValue = "Option 1";
+    const Option1OfField1HumanReadableValue = Option1OfAttribute1HumanReadableValue;
+    const Field1Id = "field-1";
+
+    const Option1OfAttribute1 = {
+      id: "attr-1-opt-1",
+      value: Option1OfAttribute1HumanReadableValue,
+      slug: "option-1",
+    };
+
+    const Option2OfAttribute1 = {
+      id: "attr-1-opt-2",
+      value: "Option 2",
+      slug: "option-2",
+    };
+
+    const Option3OfAttribute1 = {
+      id: "attr-1-opt-3",
+      value: "Option 3",
+      slug: "option-3",
+    };
+
+    const Attribute1 = {
+      id: "attr1",
+      name: "Attribute 1",
+      type: "SINGLE_SELECT" as const,
+      slug: "attribute-1",
+      options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+    };
+
+    mockAttributesScenario({
+      attributes: [Attribute1],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: Attribute1.id,
+          value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
+          operator: "select_any_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
+      form: {
+        routes: [
+          buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: attributesQueryValue,
+          }),
+        ],
+        fields: [],
+      },
+      response: {},
+      routeId: "test-route",
+      teamId: 1,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  describe("Error handling", () => {
+    it("should throw an error if the attribute type is not supported", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "UNSUPPORTED_ATTRIBUTE_TYPE" as unknown as AttributeType,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1],
+      };
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          {
+            userId: 1,
+            attributes: { [Attribute1.id]: Option1OfAttribute1.value },
+          },
+        ],
+      });
+
+      await expect(
+        findTeamMembersMatchingAttributeLogicOfRoute({
+          form: {
+            routes: [
+              buildDefaultCustomPageRoute({
+                id: "test-route",
+                attributesQueryValue: buildSelectTypeFieldQueryValue({
+                  rules: [
+                    {
+                      raqbFieldId: Attribute1.id,
+                      value: [Option1OfAttribute1.id],
+                      operator: "select_equals",
+                    },
+                  ],
+                }) as AttributesQueryValue,
+              }),
+            ],
+            fields: [],
+          },
+          response: {},
+          routeId: "test-route",
+          teamId: 1,
+        })
+      ).rejects.toThrow("Unsupported attribute type");
+    });
+  });
+
   describe("Performance testing", () => {
     describe("20 attributes, 4000 team members", async () => {
       // In tests, the performance is actually really bad than real world. So, skipping this test for now
@@ -346,7 +465,6 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           numTeamMembers: 4000,
           numAttributesUsedPerTeamMember: 10,
         });
-
         const attributesQueryValue = buildSelectTypeFieldQueryValue({
           rules: [
             {
