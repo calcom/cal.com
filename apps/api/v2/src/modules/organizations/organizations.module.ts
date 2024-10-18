@@ -100,6 +100,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksService,
     WebhooksRepository,
     WebhooksService,
+    OrganizationsEventTypesService,
   ],
   controllers: [
     OrganizationsTeamsController,
