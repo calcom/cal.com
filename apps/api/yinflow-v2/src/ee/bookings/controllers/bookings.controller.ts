@@ -5,7 +5,6 @@ import {
   Headers,
   HttpException,
   InternalServerErrorException,
-  Logger,
   NotFoundException,
   Param,
   Post,
@@ -19,17 +18,14 @@ import dayjs from "dayjs";
 import { Request } from "express";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { BookingResponse, HttpError, handleMarkNoShow } from "@calcom/platform-libraries";
+import { BookingResponse, HttpError } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platform-types";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { supabase } from "../../../config/supabase";
 import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
-import { GetUser } from "../../../modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "../../../modules/auth/guards/api-auth/api-auth.guard";
-import { OAuthClientRepository } from "../../../modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "../../../modules/oauth-clients/services/oauth-flow.service";
 import { CreateBookingInput, RescheduleBookingInput } from "../inputs/create-booking.input";
 import { MarkNoShowInput } from "../inputs/mark-no-show.input";
 import { GetBookingOutput } from "../outputs/get-booking.output";
@@ -39,38 +35,12 @@ import { MarkNoShowOutput } from "../outputs/mark-no-show.output";
 type BookingRequest = Request & {
   userId?: number;
 };
-
-type OAuthRequestParams = {
-  platformClientId: string;
-  platformRescheduleUrl: string;
-  platformCancelUrl: string;
-  platformBookingUrl: string;
-  platformBookingLocation?: string;
-  arePlatformEmailsEnabled: boolean;
-};
-
-const DEFAULT_PLATFORM_PARAMS = {
-  platformClientId: "",
-  platformCancelUrl: "",
-  platformRescheduleUrl: "",
-  platformBookingUrl: "",
-  arePlatformEmailsEnabled: false,
-  platformBookingLocation: undefined,
-};
-
 @Controller({
   path: "/v2/bookings",
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Bookings")
 export class BookingsController {
-  private readonly logger = new Logger("BookingsController");
-
-  constructor(
-    private readonly oAuthFlowService: OAuthFlowService,
-    private readonly oAuthClientRepository: OAuthClientRepository
-  ) {}
-
   @Get("/")
   @UseGuards(ApiAuthGuard)
   async getBookings(@Query() queryParams: GetBookingsInput): Promise<GetBookingsOutput> {
