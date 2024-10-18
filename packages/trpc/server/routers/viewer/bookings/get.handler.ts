@@ -241,7 +241,6 @@ export async function getBookings({
           select: {
             id: true,
             name: true,
-            members: true,
             slug: true,
           },
         },
