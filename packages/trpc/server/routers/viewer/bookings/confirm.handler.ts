@@ -135,6 +135,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
       data: {
         status: BookingStatus.ACCEPTED,
+        actorUserId: ctx.user.id,
       },
     });
 
@@ -269,6 +270,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       prisma,
       bookingId,
       booking,
+      actorUserId: ctx.user.id,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -283,6 +285,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
+          actorUserId: ctx.user.id,
         },
       });
     } else {
@@ -364,6 +367,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
+          actorUserId: ctx.user.id,
         },
       });
     }

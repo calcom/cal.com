@@ -155,6 +155,8 @@ model EventType {
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+  //This is used to pass session dependent actorUserId for AuditLogger Client Extension. It is always null.
+  actorUserId      Int?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -632,6 +634,8 @@ model Booking {
   /// @zod.email()
   rescheduledBy                String?
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
+  //This is used to pass session dependent actorUserId for AuditLogger Client Extension. It is always null.
+  actorUserId                  Int?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1577,4 +1581,30 @@ model AttributeToUser {
   attributeOptionId String
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum CRUD {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+enum ActionType {
+  EventTypeCreate
+  EventTypeUpdate
+  EventTypeDelete
+  BookingCreate
+  BookingUpdate
+  BookingDelete
+}
+
+model AuditLog {
+  id         Int        @id @default(autoincrement())
+  actionType ActionType
+  actorUser  Json
+  target     Json
+  crud       CRUD
+  createdAt  DateTime   @default(now())
+  targetTeam Json
 }
