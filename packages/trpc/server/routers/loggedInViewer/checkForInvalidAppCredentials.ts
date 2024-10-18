@@ -24,7 +24,7 @@ export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredent
   const apps = await prisma.$queryRaw<AppType[]>`
     SELECT "Credential"."id", "Credential"."appId"
     FROM "Credential"
-    WHERE "Credential"."userId" = ${userId} AND "Credential"."invalid" = false
+    WHERE "Credential"."userId" = ${userId} AND "Credential"."invalid" = true
     UNION
     SELECT "Credential"."id", "Credential"."appId"
     FROM "Credential"
@@ -33,7 +33,7 @@ export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredent
     WHERE "m"."userId" = ${userId} AND "m"."accepted" = true AND "m"."role" IN
           (CAST('MEMBER'::text AS "MembershipRole"),CAST('ADMIN'::text AS "MembershipRole"))
           AND "m"."teamId" IS NOT NULL AND "t"."id" IS NOT NULL
-      AND "Credential"."invalid" = false`;
+      AND "Credential"."invalid" = true`;
 
   const appNamesAndSlugs: InvalidAppCredentialBannerProps[] = [];
   for (const app of apps) {
