@@ -268,7 +268,7 @@ export async function upsertSmsReminderFieldForEventTypes({
         isSmsReminderNumberRequired,
       }),
       eventTypeId,
-      actorUserId ?? null
+      actorUserId
     );
   }
 }
