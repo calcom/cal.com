@@ -2,9 +2,10 @@ import type { Prisma } from "@prisma/client";
 
 import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
+import { getAppsBySlug } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
-type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
+export type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
 /**
  *
@@ -19,9 +20,10 @@ const getEnabledAppsFromCredentials = async (
   options?: {
     where?: Prisma.AppWhereInput;
     filterOnCredentials?: boolean;
+    filterOnAppSlug?: string;
   }
 ) => {
-  const { where: _where = {}, filterOnCredentials = false } = options || {};
+  const { where: _where = {}, filterOnCredentials = false, filterOnAppSlug } = options || {};
   const filterOnIds = {
     credentials: {
       some: {
@@ -29,6 +31,7 @@ const getEnabledAppsFromCredentials = async (
       },
     },
   } satisfies Prisma.AppWhereInput;
+  let apps = getApps(credentials, filterOnCredentials);
 
   if (filterOnCredentials) {
     const userIds: number[] = [],
@@ -42,6 +45,10 @@ const getEnabledAppsFromCredentials = async (
     if (teamIds.length) filterOnIds.credentials.some.OR.push({ teamId: { in: teamIds } });
   }
 
+  if (!!filterOnAppSlug) {
+    apps = getAppsBySlug(credentials, filterOnAppSlug, filterOnCredentials);
+  }
+
   const where: Prisma.AppWhereInput = {
     enabled: true,
     ..._where,
@@ -52,7 +59,7 @@ const getEnabledAppsFromCredentials = async (
     where,
     select: { slug: true, enabled: true },
   });
-  const apps = getApps(credentials, filterOnCredentials);
+
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
     if (appDbQuery?.enabled || app.isGlobal) {

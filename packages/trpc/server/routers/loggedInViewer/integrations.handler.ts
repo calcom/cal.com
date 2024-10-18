@@ -1,18 +1,14 @@
-import type { Prisma } from "@prisma/client";
-
-import appStore from "@calcom/app-store";
-import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import type { TeamQuery } from "@calcom/ee/teams/teams.repository";
+import checkAppSetupStatus from "@calcom/lib/apps/checkAppSetupStatus";
+import constructUserTeams from "@calcom/lib/apps/constructUserTeams";
+import getAppDependencyData from "@calcom/lib/apps/getAppDependencyData";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
-import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
+import mergeUserAndTeamAppCredentials from "@calcom/lib/apps/mergeUserAndTeamAppCredentials";
+import transformAppsBasedOnInput from "@calcom/lib/apps/transformAppsBasedOnInput";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import type { CredentialPayload } from "@calcom/types/Credential";
-import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
 
@@ -22,26 +18,6 @@ type IntegrationsOptions = {
   };
   input: TIntegrationsInputSchema;
 };
-
-type TeamQuery = Prisma.TeamGetPayload<{
-  select: {
-    id: true;
-    credentials: {
-      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
-    };
-    name: true;
-    logoUrl: true;
-    members: {
-      select: {
-        role: true;
-      };
-    };
-  };
-}>;
-
-// type TeamQueryWithParent = TeamQuery & {
-//   parent?: TeamQuery | null;
-// };
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
@@ -55,82 +31,14 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     sortByMostPopular,
     appId,
   } = input;
+  const isUserPartOfTeam = includeTeamInstalledApps || teamId;
+
   let credentials = await getUsersCredentials(user);
   let userTeams: TeamQuery[] = [];
 
-  if (includeTeamInstalledApps || teamId) {
-    const teamsQuery = await prisma.team.findMany({
-      where: {
-        members: {
-          some: {
-            userId: user.id,
-            accepted: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-        name: true,
-        logoUrl: true,
-        members: {
-          where: {
-            userId: user.id,
-          },
-          select: {
-            role: true,
-          },
-        },
-        parent: {
-          select: {
-            id: true,
-            credentials: {
-              select: credentialForCalendarServiceSelect,
-            },
-            name: true,
-            logoUrl: true,
-            members: {
-              where: {
-                userId: user.id,
-              },
-              select: {
-                role: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    // If a team is a part of an org then include those apps
-    // Don't want to iterate over these parent teams
-    const filteredTeams: TeamQuery[] = [];
-    const parentTeams: TeamQuery[] = [];
-    // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
-    if (teamId) {
-      teamsQuery.forEach((team) => {
-        if (team?.parent) {
-          const { parent, ...filteredTeam } = team;
-          filteredTeams.push(filteredTeam);
-          // Only add parent team if it's not already in teamsQuery
-          if (!teamsQuery.some((t) => t.id === parent.id)) {
-            parentTeams.push(parent);
-          }
-        }
-      });
-    }
-
-    userTeams = [...teamsQuery, ...parentTeams];
-
-    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
-      return teamApp.credentials ? teamApp.credentials.flat() : [];
-    });
-    if (!includeTeamInstalledApps || teamId) {
-      credentials = teamAppCredentials;
-    } else {
-      credentials = credentials.concat(teamAppCredentials);
-    }
+  if (isUserPartOfTeam) {
+    userTeams = await getUserAvailableTeams(user.id, teamId);
+    credentials = mergeUserAndTeamAppCredentials(userTeams, credentials, includeTeamInstalledApps);
   }
 
   const enabledApps = await getEnabledAppsFromCredentials(credentials, {
@@ -144,56 +52,21 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
-      const teams = await Promise.all(
-        credentials
-          .filter((c) => c.appId === app.slug && c.teamId)
-          .map(async (c) => {
-            const team = userTeams.find((team) => team.id === c.teamId);
-            if (!team) {
-              return null;
-            }
-            return {
-              teamId: team.id,
-              name: team.name,
-              logoUrl: team.logoUrl,
-              credentialId: c.id,
-              isAdmin:
-                team.members[0].role === MembershipRole.ADMIN ||
-                team.members[0].role === MembershipRole.OWNER,
-            };
-          })
+      const teams = await constructUserTeams(credentials, app.slug, userTeams);
+      const dependencyData = getAppDependencyData(enabledApps, app.dependencies);
+      const isSetupAlready = await checkAppSetupStatus(
+        credential,
+        app.categories.includes("payment"),
+        app.dirName
       );
+
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
         name: user.name,
         avatar: user.avatar,
       };
 
-      // We need to know if app is payment type
-      // undefined it means that app don't require app/setup/page
-      let isSetupAlready = undefined;
-      if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
-        if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
-          const PaymentService = paymentApp.lib.PaymentService;
-          const paymentInstance = new PaymentService(credential);
-          isSetupAlready = paymentInstance.isSetupAlready();
-        }
-      }
-
-      let dependencyData: TDependencyData = [];
-      if (app.dependencies?.length) {
-        dependencyData = app.dependencies.map((dependency) => {
-          const dependencyInstalled = enabledApps.some(
-            (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-          );
-          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-          const dependencyName = getAppFromSlug(dependency)?.name;
-          return { name: dependencyName, installed: dependencyInstalled };
-        });
-      }
-
-      return {
+      const appData = {
         ...app,
         ...(teams.length && {
           credentialOwner,
@@ -205,46 +78,15 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         isSetupAlready,
         ...(app.dependencies && { dependencyData }),
       };
+
+      return appData;
     })
   );
 
-  if (variant) {
-    // `flatMap()` these work like `.filter()` but infers the types correctly
-    apps = apps
-      // variant check
-      .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
-  }
-
-  if (exclude) {
-    // exclusion filter
-    apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
-  }
-
-  if (onlyInstalled) {
-    apps = apps.flatMap((item) =>
-      item.userCredentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
-    );
-  }
-
-  if (extendsFeature) {
-    apps = apps
-      .filter((app) => app.extendsFeature?.includes(extendsFeature))
-      .map((app) => ({
-        ...app,
-        isInstalled: !!app.userCredentialIds?.length || !!app.teams?.length || app.isGlobal,
-      }));
-  }
-
-  if (sortByMostPopular) {
-    const installCountPerApp = await getInstallCountPerApp();
-
-    // sort the apps array by the most popular apps
-    apps.sort((a, b) => {
-      const aCount = installCountPerApp[a.slug] || 0;
-      const bCount = installCountPerApp[b.slug] || 0;
-      return bCount - aCount;
-    });
-  }
+  apps = await transformAppsBasedOnInput({
+    apps,
+    input: { exclude, extendsFeature, onlyInstalled, sortByMostPopular, variant },
+  });
 
   return {
     items: apps,
