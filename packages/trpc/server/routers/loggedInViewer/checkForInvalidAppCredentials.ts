@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import { prisma } from "@calcom/prisma";
@@ -11,6 +13,7 @@ type checkInvalidAppCredentialsOptions = {
 
 type AppType = Prisma.CredentialGetPayload<{
   select: {
+    id: true;
     appId: true;
   };
 }>;
@@ -18,17 +21,18 @@ type AppType = Prisma.CredentialGetPayload<{
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
   const userId = ctx.user.id;
 
-  const apps = await prisma.$queryRaw<BaseAppType[]>`
+  const apps = await prisma.$queryRaw<AppType[]>`
     SELECT "Credential"."id", "Credential"."appId"
     FROM "Credential"
-    WHERE "Credential"."userId" = 681047 AND "Credential"."invalid" = false
+    WHERE "Credential"."userId" = ${userId} AND "Credential"."invalid" = false
     UNION
     SELECT "Credential"."id", "Credential"."appId"
     FROM "Credential"
     INNER JOIN "Team" AS "t" ON "t"."id" = "Credential"."teamId"
     INNER JOIN "Membership" AS "m" ON "m"."teamId" = "t"."id"
-    WHERE "m"."userId" = 681047 AND "m"."accepted" = true AND "m"."role" IN
-          (CAST('MEMBER'::text AS "MembershipRole"),CAST('ADMIN'::text AS "MembershipRole")) AND "m"."teamId" IS NOT NULL AND "t"."id" IS NOT NULL
+    WHERE "m"."userId" = ${userId} AND "m"."accepted" = true AND "m"."role" IN
+          (CAST('MEMBER'::text AS "MembershipRole"),CAST('ADMIN'::text AS "MembershipRole"))
+          AND "m"."teamId" IS NOT NULL AND "t"."id" IS NOT NULL
       AND "Credential"."invalid" = false`;
 
   const appNamesAndSlugs: InvalidAppCredentialBannerProps[] = [];
