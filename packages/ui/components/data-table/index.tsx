@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
+                  const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
                   return (
                     <TableHead
                       key={header.id}
@@ -123,7 +123,7 @@ export function DataTable<TData, TValue>({
                     )}>
                     {row.getVisibleCells().map((cell) => {
                       const column = table.getColumn(cell.column.id);
-                      const meta = column?.columnDef.meta;
+                      const meta = column?.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
                       return (
                         <TableCell
                           key={cell.id}
