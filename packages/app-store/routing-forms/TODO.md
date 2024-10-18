@@ -8,7 +8,7 @@
 - [x] Connect Form Response to Booking
 - [x] Test with non option based attributes and form field input
 - [ ] Switching from Select to MultiSelect in attribute 
-    - [x] It immediately makes the Routing logic to not work. Fix it.
+    - [ ] It immediately makes the Routing logic to not work. Fix it.
     - [ ] It removes the selected option from Routing. Fix it.
     - [ ] Warnings are needed with recommendation to create new attribute instead in unsupported scenarios. We need to test for more such changes to Attribute types.
 - [ ] When choosing 'Value of Field' option in RAQB, show a warning somewhere if all options of the Form field aren't present in the attribute option.
