@@ -132,9 +132,10 @@ function getWidgets(_configFor: ConfigFor) {
 function getTypes(configFor: ConfigFor) {
   const multiSelectOperators = BasicConfig.types.multiselect.widgets.multiselect.operators || [];
 
-  if (configFor === ConfigFor.Attributes) {
+  if (configFor === ConfigFor.Attributes || configFor === ConfigFor.FormFields) {
     // Attributes don't need reporting at the moment. So, we can support multiselect_some_in operator for attributes.
     // We could probably use them in FormFields later once they are supported through Prisma query as well
+    // We add it here but in getQueryBuilderConfigForFormFields, we delete the operator after detecting 'reporting' mode
     multiSelectOperators.push("multiselect_some_in");
   }
 
