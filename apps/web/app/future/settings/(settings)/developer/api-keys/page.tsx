@@ -1,8 +1,10 @@
-import { getFixedT, _generateMetadata } from "app/_utils";
+import { getFixedT, _generateMetadata, revalidateCache } from "app/_utils";
+import { notFound } from "next/navigation";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
+import { ApiKeysRepository } from "@calcom/lib/server/repository/apiKeys";
 
 import ApiKeysView from "~/settings/developer/api-keys-view";
 import NewApiKeyButton from "~/settings/developer/components/CreateApiKeyButton";
@@ -18,16 +20,30 @@ const Page = async () => {
   const session = await getServerSessionForAppDir();
 
   const t = await getFixedT(session?.user.locale || "en");
+  const revalidate = async () => {
+    "use server";
+    revalidateCache("SETTINGS_DEVELOPER_API_KEYS");
+  };
+  const userId = session?.user?.id;
+  if (!userId) {
+    notFound();
+  }
 
-  return (
-    <SettingsHeader
-      title={t("api_keys")}
-      description={t("create_first_api_key_description", { appName: APP_NAME })}
-      CTA={<NewApiKeyButton />}
-      borderInShellHeader={true}>
-      <ApiKeysView isAppDir={true} />
-    </SettingsHeader>
-  );
+  try {
+    const apiKeysList = await ApiKeysRepository.getApiKeys({ userId });
+
+    return (
+      <SettingsHeader
+        title={t("api_keys")}
+        description={t("create_first_api_key_description", { appName: APP_NAME })}
+        CTA={<NewApiKeyButton />}
+        borderInShellHeader={true}>
+        <ApiKeysView ssrProps={{ apiKeysList }} revalidateCache={revalidate} isAppDir={true} />
+      </SettingsHeader>
+    );
+  } catch (error) {
+    notFound();
+  }
 };
 
 export default Page;

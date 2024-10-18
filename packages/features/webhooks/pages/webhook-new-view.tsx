@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppRepository } from "@calcom/lib/server/repository/app";
+import type { WebhookRepository } from "@calcom/lib/server/repository/webhook";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
@@ -24,7 +26,15 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
     </SkeletonContainer>
   );
 };
-export const NewWebhookView = () => {
+
+export type PageProps = {
+  ssrProps?: {
+    webhooks?: Awaited<ReturnType<typeof WebhookRepository.getWebhooks>>;
+    installedApps?: Awaited<ReturnType<typeof AppRepository.getInstalledApps>>;
+  };
+};
+
+export const NewWebhookView = ({ ssrProps }: PageProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -34,17 +44,21 @@ export const NewWebhookView = () => {
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
   const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
 
-  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
+  const { data: _installedApps, isPending: isPendingInstalledApps } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
       enabled: session.status === "authenticated",
     }
   );
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
+  const installedApps = ssrProps?.installedApps ?? _installedApps;
+  const isPending = ssrProps?.installedApps ? false : isPendingInstalledApps;
+
+  const { data: _webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: session.status === "authenticated",
+    enabled: ssrProps?.webhooks ? false : session.status === "authenticated",
   });
+  const webhooks = ssrProps?.webhooks ?? _webhooks;
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
