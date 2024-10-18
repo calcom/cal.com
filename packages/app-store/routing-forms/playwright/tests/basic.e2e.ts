@@ -128,7 +128,7 @@ test.describe("Routing Forms", () => {
         await expect(page.locator('[data-testid="field"]')).toHaveCount(3);
         await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
       });
-      todo("Create relationship by using duplicate with live connect");
+      //Todo: Add test-"Create relationship by using duplicate with live connect"
     });
 
     test("should be able to submit a prefilled form with all types of fields", async ({ page }) => {
@@ -205,7 +205,7 @@ test.describe("Routing Forms", () => {
     });
   });
 
-  todo("should be able to duplicate form");
+  // Todo: Add test-"should be able to duplicate form"
 
   test.describe("Seeded Routing Form ", () => {
     test.beforeEach(async ({ page }) => {
