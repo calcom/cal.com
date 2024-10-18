@@ -1,3 +1,5 @@
+import type { TFunction } from "next-i18next";
+
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
@@ -23,7 +25,10 @@ export default class FeedbackEmail extends BaseEmail {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: process.env.SEND_FEEDBACK_EMAIL,
       subject: `User Feedback`,
-      html: await renderEmail("FeedbackEmail", this.feedback),
+      html: await renderEmail("FeedbackEmail", {
+        feedback: this.feedback,
+        t: ((key: string, _replacements?: Record<string, string | number>) => key) as TFunction,
+      }),
       text: this.getTextBody(),
     };
   }
