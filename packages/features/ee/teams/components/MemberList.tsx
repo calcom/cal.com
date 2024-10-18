@@ -21,7 +21,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
 import { useFetchMoreOnBottomReached } from "@calcom/features/users/components/UserTable/useFetchMoreOnBottomReached";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
+import { formatLocalizedDateTime, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -387,10 +387,12 @@ export default function MemberList(props: Props) {
           return (
             <div>
               {lastLogin
-                ? formatLocalizedDateTime(lastLogin, {
-                    dateStyle: "full",
-                    timeStyle: "long",
-                  })
+                ? `${formatLocalizedDateTime(lastLogin)}, ${formatToLocalizedTime(
+                    lastLogin,
+                    undefined,
+                    "short",
+                    true
+                  ).toUpperCase()}`
                 : "N/A"}
             </div>
           );
