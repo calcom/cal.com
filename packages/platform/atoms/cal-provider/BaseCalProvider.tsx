@@ -113,7 +113,7 @@ export function BaseCalProvider({
       let translation =
         labels?.[resolvedKey as keyof typeof labels] ?? String(getTranslation(resolvedKey, language) ?? "");
       if (!translation) {
-        return "";
+        return key;
       }
       if (values) {
         const valueKeys = Object.keys(values) as (keyof typeof values)[];

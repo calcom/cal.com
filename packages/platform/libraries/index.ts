@@ -125,7 +125,12 @@ export {
   systemAfterFieldRescheduleReason,
 } from "@calcom/lib/event-types/transformers";
 
-export type { SystemField, CustomField } from "@calcom/lib/event-types/transformers";
+export type {
+  SystemField,
+  CustomField,
+  NameSystemField,
+  EmailSystemField,
+} from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 
