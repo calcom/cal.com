@@ -340,9 +340,7 @@ export default function Success(props: PageProps) {
       const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase/EventType`;
       const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase/Booking`;
 
-      fetch(getEventTypeSlugUrl, {
-        headers: { Authorization: process.env.V2_API_KEY! },
-      })
+      fetch(getEventTypeSlugUrl, { mode: "no-cors", headers: { Authorization: process.env.V2_API_KEY! } })
         .then((data) => {
           data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
             const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
