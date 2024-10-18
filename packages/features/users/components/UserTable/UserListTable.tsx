@@ -9,6 +9,7 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
+import type { ColumnMeta } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -44,6 +45,11 @@ import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
 import { useFetchMoreOnBottomReached } from "./useFetchMoreOnBottomReached";
+
+type CustomColumnMeta<TData, TValue> = ColumnMeta<TData, TValue> & {
+  sticky?: boolean;
+  stickLeft?: number;
+};
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -189,7 +195,7 @@ export function UserListTable() {
         meta: {
           sticky: true,
           stickLeft: 0,
-        },
+        } as CustomColumnMeta<UserTableUser, unknown>,
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -217,7 +223,7 @@ export function UserListTable() {
         meta: {
           sticky: true,
           stickyLeft: 24,
-        },
+        } as CustomColumnMeta<UserTableUser, unknown>,
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
