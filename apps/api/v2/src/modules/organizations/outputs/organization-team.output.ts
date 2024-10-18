@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { MembershipRole } from "@prisma/client";
 import { Expose, Type } from "class-transformer";
 import { IsEnum, IsString, ValidateNested } from "class-validator";
 
@@ -9,6 +10,14 @@ export class OrgMeTeamOutputDto extends OrgTeamOutputDto {
   @IsString()
   @Expose()
   readonly accepted!: boolean;
+
+  @ApiProperty({
+    example: MembershipRole.MEMBER,
+    enum: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+  })
+  @IsEnum([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @Expose()
+  readonly role!: MembershipRole;
 }
 
 export class OrgTeamsOutputResponseDto {
