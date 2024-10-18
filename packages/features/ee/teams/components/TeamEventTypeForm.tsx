@@ -62,7 +62,7 @@ export const TeamEventTypeForm = ({
         {urlPrefix && urlPrefix.length >= 21 ? (
           <div>
             <TextField
-              label={`${t("url")}: ${urlPrefix}`}
+              label={isPlatform ? "Slug" : `${t("url")}: ${urlPrefix}`}
               required
               addOnLeading={
                 !isPlatform ? (
@@ -79,14 +79,14 @@ export const TeamEventTypeForm = ({
               }}
             />
 
-            {isManagedEventType && (
+            {isManagedEventType && !isPlatform && (
               <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
             )}
           </div>
         ) : (
           <div>
             <TextField
-              label={t("url")}
+              label={isPlatform ? "Slug" : t("url")}
               required
               addOnLeading={
                 !isPlatform ? (
@@ -105,7 +105,7 @@ export const TeamEventTypeForm = ({
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
               }}
             />
-            {isManagedEventType && (
+            {isManagedEventType && !isPlatform && (
               <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
             )}
           </div>
