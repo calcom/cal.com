@@ -117,17 +117,22 @@ describe("transformBookingFieldsApiToInternal", () => {
       placeholder: "123456789",
       disableOnPrefill: true,
     };
-
     const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: SystemField[] = [
-      {
-        ...systemBeforeFieldName,
-        label: "Your name number",
-        placeholder: "123456789",
-        disableOnPrefill: true,
-      },
-    ];
+    const expectedField = {
+      ...systemBeforeFieldName,
+      label: "Your name number",
+      placeholder: "123456789",
+      disableOnPrefill: true,
+    };
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expectedField.variantsConfig.variants.fullName.fields[0].label = "Your name number";
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expectedField.variantsConfig.variants.fullName.fields[0].placeholder = "123456789";
+
+    const expectedOutput: SystemField[] = [expectedField];
 
     const result = transformBookingFieldsApiToInternal(input);
 
