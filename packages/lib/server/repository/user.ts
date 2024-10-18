@@ -672,4 +672,15 @@ export class UserRepository {
     }
     return user;
   }
+
+  static async updateUserLastLogin(userId: number) {
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { lastLogin: new Date() },
+      });
+    } catch (error) {
+      console.error(`Failed to update lastLogin for user ${userId}:`, error);
+    }
+  }
 }
