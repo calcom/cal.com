@@ -1,6 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 import async from "async";
-import os from "os";
+import { Config, Utils as QbUtils } from "react-awesome-query-builder";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -10,13 +10,14 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import { evaluateRaqbLogic, RaqbLogicResult } from "../lib/evaluateRaqbLogic";
+import { RaqbLogicResult } from "../lib/evaluateRaqbLogic";
 import {
   getTeamMembersWithAttributeOptionValuePerAttribute,
   getAttributesForTeam,
 } from "../lib/getAttributes";
 import isRouter from "../lib/isRouter";
-import type { SerializableField, OrderedResponses } from "../types/types";
+import jsonLogic from "../lib/jsonLogic";
+import type { SerializableField, OrderedResponses, AttributesQueryValue } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity } from "./raqbUtils";
 
@@ -117,6 +118,37 @@ function perf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] 
   return [result, end - start];
 }
 
+function getJsonLogic({
+  attributesQueryValue,
+  attributesQueryBuilderConfig,
+}: {
+  attributesQueryValue: AttributesQueryValue;
+  attributesQueryBuilderConfig: Config;
+}) {
+  const state = {
+    tree: QbUtils.checkTree(
+      QbUtils.loadTree(attributesQueryValue),
+      // We know that attributesQueryBuilderConfig is a Config because getAttributesQueryBuilderConfig returns a Config. So, asserting it.
+      attributesQueryBuilderConfig as unknown as Config
+    ),
+    config: attributesQueryBuilderConfig as unknown as Config,
+  };
+
+  const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
+  const logic = jsonLogicQuery.logic;
+  if (!logic) {
+    if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
+      throw new Error("Couldn't build the logic from the query value");
+    }
+    console.log(
+      "No logic found",
+      safeStringify({ attributesQueryValue, queryBuilderConfigFields: attributesQueryBuilderConfig.fields })
+    );
+  }
+  console.log("Using LOGIC", safeStringify(logic));
+  return logic;
+}
+
 export async function findTeamMembersMatchingAttributeLogicOfRoute(
   {
     form,
@@ -206,6 +238,24 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
   ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
 
+  const logic = getJsonLogic({
+    attributesQueryValue,
+    attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
+  });
+
+  if (!logic) {
+    return {
+      teamMembersMatchingAttributeLogic: [],
+      timeTaken: {
+        gAtr: getAttributesForTeamTimeTaken,
+        gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
+        gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
+        lgcFrMbrs: null,
+        gQryVal: getAttributesQueryValueTimeTaken,
+      },
+    };
+  }
+
   const [_, teamMembersMatchingAttributeLogicTimeTaken] = await aPf(async () => {
     return await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
       teamMembersWithAttributeOptionValuePerAttribute,
@@ -215,30 +265,15 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
           attributesData: member.attributes,
           attributesQueryValue,
         });
-        moduleLogger.debug(
-          `Checking team member ${member.userId} with attributes logic`,
-          safeStringify({ attributes: attributesData, attributesQueryValue })
-        );
-        const result = evaluateRaqbLogic(
-          {
-            queryValue: attributesQueryValue,
-            queryBuilderConfig: attributesQueryBuilderConfig,
-            data: attributesData,
-            beStrictWithEmptyLogic: true,
-          },
-          {
-            // This logic runs too many times as it is per team member and we don't want to spam the console with logs. It might also take a performance hit otherwise
-            logLevel: 2,
-          }
-        );
 
-        if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
-          moduleLogger.debug(`Team member ${member.userId} matches attributes logic`);
-          teamMembersMatchingAttributeLogicMap.set(member.userId, result);
-        } else {
-          moduleLogger.debug(`Team member ${member.userId} does not match attributes logic`);
+        const result = !!jsonLogic.apply(logic as any, attributesData)
+          ? RaqbLogicResult.MATCH
+          : RaqbLogicResult.NO_MATCH;
+
+        if (result !== RaqbLogicResult.MATCH) {
           return;
         }
+        teamMembersMatchingAttributeLogicMap.set(member.userId, result);
       }
     );
   });

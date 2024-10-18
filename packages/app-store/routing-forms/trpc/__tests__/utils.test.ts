@@ -458,7 +458,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
   describe("Performance testing", () => {
     describe("20 attributes, 4000 team members", async () => {
       // In tests, the performance is actually really bad than real world. So, skipping this test for now
-      it.skip("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
+      it("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
         const { attributes } = mockHugeAttributesOfTypeSingleSelect({
           numAttributes: 20,
           numOptionsPerAttribute: 30,
@@ -503,13 +503,30 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               userId: 1,
               result: RaqbLogicResult.MATCH,
             },
+            {
+              userId: 2,
+              result: RaqbLogicResult.MATCH,
+            },
+            {
+              userId: 3,
+              result: RaqbLogicResult.MATCH,
+            },
+            {
+              userId: 2000,
+              result: RaqbLogicResult.MATCH,
+            },
+            // Last Item
+            {
+              userId: 4000,
+              result: RaqbLogicResult.MATCH,
+            },
           ])
         );
 
         if (!timeTaken) {
           throw new Error("Looks like performance testing is not enabled");
         }
-        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => sum ?? 0 + (time || 0), 0);
+        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => (sum ?? 0) + (time ?? 0), 0);
         console.log("Total time taken", totalTimeTaken, {
           timeTaken,
         });
