@@ -88,6 +88,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       eventData: {
+        eventTypeId: eventData.id,
         entity: eventData.entity,
         length: eventData.length,
         metadata: eventData.metadata,
