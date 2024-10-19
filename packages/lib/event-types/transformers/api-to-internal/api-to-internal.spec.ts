@@ -533,6 +533,7 @@ describe("transformBookingFieldsApiToInternal", () => {
         name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
+        labelAsSafeHtml: `<p>${bookingField.label}</p>\n`,
         sources: [
           {
             id: "user",
@@ -543,7 +544,6 @@ describe("transformBookingFieldsApiToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
       },
     ];
 

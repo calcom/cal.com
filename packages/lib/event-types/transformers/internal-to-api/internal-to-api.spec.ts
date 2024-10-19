@@ -144,19 +144,29 @@ describe("transformBookingFieldsInternalToApi", () => {
   });
 
   it("should reverse transform modified name default field", () => {
-    const nameField = { ...systemBeforeFieldName };
-    nameField.placeholder = "custom placeholder";
-    nameField.disableOnPrefill = true;
-    nameField.label = "custom label";
+    const nameField = {
+      ...systemBeforeFieldName,
+      placeholder: "custom placeholder",
+      disableOnPrefill: true,
+      label: "custom label",
+      variantsConfig: {
+        variants: {
+          fullName: {
+            fields: [
+              {
+                name: "fullName",
+                label: "custom label",
+                placeholder: "custom placeholder",
+                type: "text",
+                required: true,
+              },
+            ],
+          },
+        },
+      },
+    };
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    nameField.variantsConfig.variants.fullName.fields[0].label = "custom label";
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    nameField.variantsConfig.variants.fullName.fields[0].placeholder = "custom placeholder";
-
-    const transformedField: SystemField[] = [systemBeforeFieldName];
+    const transformedField: SystemField[] = [nameField];
 
     const expectedOutput = [
       {
@@ -609,7 +619,6 @@ describe("transformBookingFieldsInternalToApi", () => {
         ],
         editable: "user",
         required: true,
-        placeholder: "",
       },
     ];
 
