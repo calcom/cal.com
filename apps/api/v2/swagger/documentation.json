@@ -2005,7 +2005,7 @@
     "/v2/organizations/{orgId}/teams/me": {
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
-        "summary": "Get team membership for user",
+        "summary": "Get teams membership for user",
         "parameters": [
           {
             "name": "orgId",
