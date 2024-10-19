@@ -560,8 +560,8 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
 }
 
 const enrichHostsInBatches = async (event) => {
-  const batchSize = 20; // Set the batch size to 20
   const enrichedHosts = [];
+  const batchSize = 20;
 
   const processBatch = async (batch) => {
     const enrichedBatch = await Promise.all(
@@ -571,17 +571,16 @@ const enrichHostsInBatches = async (event) => {
         });
         return {
           ...host,
-          user: enrichedUser, // Update user in the host object
+          user: enrichedUser,
         };
       })
     );
     enrichedHosts.push(...enrichedBatch);
   };
 
-  // Process the hosts in batches of 20
   for (let i = 0; i < event.hosts.length; i += batchSize) {
-    const batch = event.hosts.slice(i, i + batchSize); // Get the current batch
-    await processBatch(batch); // Enrich the batch of hosts
+    const batch = event.hosts.slice(i, i + batchSize);
+    await processBatch(batch);
   }
 
   return enrichedHosts;
@@ -591,7 +590,6 @@ async function enrichUsersInBatches(users) {
   const usersWithUserProfile = [];
   const batchSize = 20;
 
-  // Function to process a batch
   const processBatch = async (batch) => {
     const enrichedUsers = await Promise.all(
       batch.map(async (user) => {
@@ -609,10 +607,9 @@ async function enrichUsersInBatches(users) {
     usersWithUserProfile.push(...enrichedUsers);
   };
 
-  // Loop through the users array in batches
   for (let i = 0; i < users.length; i += batchSize) {
     const batch = users.slice(i, i + batchSize);
-    await processBatch(batch); // process each batch sequentially
+    await processBatch(batch);
   }
 
   return usersWithUserProfile;
