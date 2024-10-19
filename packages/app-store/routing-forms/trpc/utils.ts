@@ -1,12 +1,13 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 import async from "async";
-import { Config, Utils as QbUtils } from "react-awesome-query-builder";
+import type { ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import type { Config } from "react-awesome-query-builder/lib";
+import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -17,7 +18,7 @@ import {
 } from "../lib/getAttributes";
 import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
-import type { SerializableField, OrderedResponses, AttributesQueryValue } from "../types/types";
+import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
 
@@ -118,12 +119,38 @@ function perf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] 
   return [result, end - start];
 }
 
+function getErrorsFromImmutableTree(tree: ImmutableTree) {
+  const validatedQueryValue = QbUtils.getTree(tree);
+  if (!raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue)) {
+    return [];
+  }
+
+  if (!validatedQueryValue.children1) {
+    return [];
+  }
+
+  const errors: string[][] = [];
+  Object.values(validatedQueryValue.children1).map((rule) => {
+    if (rule.type !== "rule") {
+      return;
+    }
+    const valueError = rule.properties.valueError;
+    if (valueError) {
+      // Sometimes there are null values in it.
+      errors.push(valueError.filter((value) => !!value));
+    }
+  });
+  return errors;
+}
+
 function getJsonLogic({
   attributesQueryValue,
   attributesQueryBuilderConfig,
+  isPreview,
 }: {
-  attributesQueryValue: AttributesQueryValue;
+  attributesQueryValue: JsonTree;
   attributesQueryBuilderConfig: Config;
+  isPreview: boolean;
 }) {
   const state = {
     tree: QbUtils.checkTree(
@@ -136,17 +163,33 @@ function getJsonLogic({
 
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
-  if (!logic) {
-    if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
-      throw new Error("Couldn't build the logic from the query value");
+
+  // We error only in preview mode to communicate any problem.
+  // In live mode, we don't error and instead prefer to let no members match which then causes all of the assignes of the team event to be used.
+  if (isPreview) {
+    const errors = getErrorsFromImmutableTree(state.tree).flat();
+    if (errors.length) {
+      throw new Error(errors.toString());
     }
-    console.log(
-      "No logic found",
-      safeStringify({ attributesQueryValue, queryBuilderConfigFields: attributesQueryBuilderConfig.fields })
-    );
+    if (!logic) {
+      // Empty children1 is normal where it means that no rules are added by user.
+      if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
+        // Possible reasons for this
+        // 1. The attribute option value used is not in the options list. Happens if 'Value of field' value is chosen and that field's response value doesn't exist in attribute options list.
+        throw new Error("There is some error building the logic, please check the routes.");
+      }
+    }
   }
-  console.log("Using LOGIC", safeStringify(logic));
+
   return logic;
+}
+
+export const enum TroubleshooterCase {
+  EMPTY_QUERY_VALUE = "empty-query-value",
+  IS_A_ROUTER = "is-a-router",
+  NO_LOGIC_FOUND = "no-logic-found",
+  MATCH_RESULTS_READY = "match-results-ready",
+  NO_ROUTE_FOUND = "no-route-found",
 }
 
 export async function findTeamMembersMatchingAttributeLogicOfRoute(
@@ -155,26 +198,36 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     response,
     routeId,
     teamId,
+    isPreview,
   }: {
     form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
     response: FormResponse;
     routeId: string;
     teamId: number;
+    isPreview?: boolean;
   },
   config: {
     enablePerf?: boolean;
     concurrency?: number;
+    enableTroubleshooter?: boolean;
   } = {}
 ) {
   const route = form.routes?.find((route) => route.id === routeId);
-
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2 } = config;
+  const { enablePerf = false, concurrency = 2, enableTroubleshooter } = config;
 
   if (!route) {
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: null,
+      troubleshooter: enableTroubleshooter
+        ? {
+            type: TroubleshooterCase.NO_ROUTE_FOUND,
+            data: {
+              routeId,
+            },
+          }
+        : null,
     };
   }
 
@@ -182,6 +235,14 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: null,
+      troubleshooter: enableTroubleshooter
+        ? {
+            type: TroubleshooterCase.IS_A_ROUTER,
+            data: {
+              routeId,
+            },
+          }
+        : null,
     };
   }
 
@@ -211,6 +272,14 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
         gMbrWtAtr: null,
         lgcFrMbrs: null,
       },
+      troubleshooter: enableTroubleshooter
+        ? {
+            type: TroubleshooterCase.EMPTY_QUERY_VALUE,
+            data: {
+              attributesQueryValue,
+            },
+          }
+        : null,
     };
   }
 
@@ -222,30 +291,20 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     })
   );
 
-  moduleLogger.debug(
-    "Finding team members matching attribute logic",
-    safeStringify({
-      form,
-      response,
-      routeId,
-      teamId,
-      attributesQueryBuilderConfigFields: attributesQueryBuilderConfig.fields,
-    })
-  );
-
   const [
     teamMembersWithAttributeOptionValuePerAttribute,
     getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
   ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
 
   const logic = getJsonLogic({
-    attributesQueryValue,
+    attributesQueryValue: attributesQueryValue as JsonTree,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
+    isPreview: !!isPreview,
   });
 
   if (!logic) {
     return {
-      teamMembersMatchingAttributeLogic: [],
+      teamMembersMatchingAttributeLogic: null,
       timeTaken: {
         gAtr: getAttributesForTeamTimeTaken,
         gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
@@ -253,8 +312,20 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
         lgcFrMbrs: null,
         gQryVal: getAttributesQueryValueTimeTaken,
       },
+      troubleshooter: enableTroubleshooter
+        ? {
+            type: TroubleshooterCase.NO_LOGIC_FOUND,
+            data: {
+              attributesQueryValue,
+              attributesQueryBuilderConfig,
+              teamMembersWithAttributeOptionValuePerAttribute,
+            },
+          }
+        : null,
     };
   }
+
+  const attributesDataPerUser = new Map<number, ReturnType<typeof getAttributes>>();
 
   const [_, teamMembersMatchingAttributeLogicTimeTaken] = await aPf(async () => {
     return await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
@@ -265,6 +336,10 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
           attributesData: member.attributes,
           attributesQueryValue,
         });
+
+        if (enableTroubleshooter) {
+          attributesDataPerUser.set(member.userId, attributesData);
+        }
 
         const result = !!jsonLogic.apply(logic as any, attributesData)
           ? RaqbLogicResult.MATCH
@@ -290,6 +365,18 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       lgcFrMbrs: teamMembersMatchingAttributeLogicTimeTaken,
       gQryVal: getAttributesQueryValueTimeTaken,
     },
+    troubleshooter: enableTroubleshooter
+      ? {
+          type: TroubleshooterCase.MATCH_RESULTS_READY,
+          data: {
+            attributesDataPerUser,
+            attributesQueryValue,
+            attributesQueryBuilderConfig,
+            logic,
+            attributesForTeam,
+          },
+        }
+      : null,
   };
 
   function pf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] {
