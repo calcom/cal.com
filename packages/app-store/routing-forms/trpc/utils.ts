@@ -164,8 +164,8 @@ function getJsonLogic({
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
 
-  // We error only in previews to communicate any problem.
-  // In production, we don't error and instead prefer to let no members match which then causes all of the assignes of the team event to be used.
+  // We error only in preview mode to communicate any problem.
+  // In live mode, we don't error and instead prefer to let no members match which then causes all of the assignes of the team event to be used.
   if (isPreview) {
     const errors = getErrorsFromImmutableTree(state.tree).flat();
     if (errors.length) {
