@@ -356,16 +356,7 @@ export const getPublicEvent = async (
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const hosts = [];
-  for (const host of event.hosts) {
-    hosts.push({
-      ...host,
-      user: await UserRepository.enrichUserWithItsProfile({
-        user: host.user,
-      }),
-    });
-  }
-
+  const hosts = await enrichHostsInBatches(event);
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
@@ -558,24 +549,73 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
     },
   });
   if (!users.length) return null;
-  const usersWithUserProfile = [];
-  for (const user of users) {
-    const { profile } = await UserRepository.enrichUserWithItsProfile({
-      user: user,
-    });
-    usersWithUserProfile.push({
-      ...user,
-      organizationId: profile?.organization?.id ?? null,
-      organization: profile?.organization,
-      profile,
-    });
-  }
+
+  const usersWithUserProfile = enrichUsersInBatches(users);
   return [
     {
       ...usersWithUserProfile[0],
       bookerUrl: getBookerBaseUrlSync(usersWithUserProfile[0].organization?.slug ?? null),
     },
   ];
+}
+
+const enrichHostsInBatches = async (event) => {
+  const batchSize = 20; // Set the batch size to 20
+  const enrichedHosts = [];
+
+  const processBatch = async (batch) => {
+    const enrichedBatch = await Promise.all(
+      batch.map(async (host) => {
+        const enrichedUser = await UserRepository.enrichUserWithItsProfile({
+          user: host.user,
+        });
+        return {
+          ...host,
+          user: enrichedUser, // Update user in the host object
+        };
+      })
+    );
+    enrichedHosts.push(...enrichedBatch);
+  };
+
+  // Process the hosts in batches of 20
+  for (let i = 0; i < event.hosts.length; i += batchSize) {
+    const batch = event.hosts.slice(i, i + batchSize); // Get the current batch
+    await processBatch(batch); // Enrich the batch of hosts
+  }
+
+  return enrichedHosts;
+};
+
+async function enrichUsersInBatches(users) {
+  const usersWithUserProfile = [];
+  const batchSize = 20;
+
+  // Function to process a batch
+  const processBatch = async (batch) => {
+    const enrichedUsers = await Promise.all(
+      batch.map(async (user) => {
+        const { profile } = await UserRepository.enrichUserWithItsProfile({
+          user: user,
+        });
+        return {
+          ...user,
+          organizationId: profile?.organization?.id ?? null,
+          organization: profile?.organization,
+          profile,
+        };
+      })
+    );
+    usersWithUserProfile.push(...enrichedUsers);
+  };
+
+  // Loop through the users array in batches
+  for (let i = 0; i < users.length; i += batchSize) {
+    const batch = users.slice(i, i + batchSize);
+    await processBatch(batch); // process each batch sequentially
+  }
+
+  return usersWithUserProfile;
 }
 
 function mapHostsToUsers(host: {
