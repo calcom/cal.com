@@ -356,7 +356,7 @@ export const getPublicEvent = async (
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const hosts = await enrichHostsInBatches(event);
+  const hosts = await enrichHostsInBatches(event.hosts);
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
@@ -374,6 +374,7 @@ export const getPublicEvent = async (
   if (users === null) {
     throw new Error("Event has no owner");
   }
+
   //In case the event schedule is not defined ,use the event owner's default schedule
   if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
     const eventOwnerDefaultSchedule = await prisma.schedule.findUnique({
@@ -550,7 +551,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   });
   if (!users.length) return null;
 
-  const usersWithUserProfile = enrichUsersInBatches(users);
+  const usersWithUserProfile = await enrichUsersInBatches(users);
   return [
     {
       ...usersWithUserProfile[0],
@@ -559,11 +560,17 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   ];
 }
 
-const enrichHostsInBatches = async (event) => {
-  const enrichedHosts = [];
+const enrichHostsInBatches = async <InputHost extends { user: { id: number; username: string | null } }>(
+  hosts: InputHost[]
+) => {
+  type InputHostWithoutUser = Omit<InputHost, "user">;
+  const enrichedHosts = [] as unknown as InputHostWithoutUser &
+    {
+      user: InputHost["user"] & Awaited<ReturnType<typeof UserRepository.enrichUserWithItsProfile>>;
+    }[];
   const batchSize = 20;
 
-  const processBatch = async (batch) => {
+  const processBatch = async (batch: InputHost[]) => {
     const enrichedBatch = await Promise.all(
       batch.map(async (host) => {
         const enrichedUser = await UserRepository.enrichUserWithItsProfile({
@@ -578,19 +585,27 @@ const enrichHostsInBatches = async (event) => {
     enrichedHosts.push(...enrichedBatch);
   };
 
-  for (let i = 0; i < event.hosts.length; i += batchSize) {
-    const batch = event.hosts.slice(i, i + batchSize);
+  for (let i = 0; i < hosts.length; i += batchSize) {
+    const batch = hosts.slice(i, i + batchSize);
     await processBatch(batch);
   }
 
   return enrichedHosts;
 };
 
-async function enrichUsersInBatches(users) {
-  const usersWithUserProfile = [];
+async function enrichUsersInBatches<InputUser extends { id: number; username: string | null }>(
+  users: InputUser[]
+) {
+  type EnrichedUser = Awaited<ReturnType<typeof UserRepository.enrichUserWithItsProfile>>;
+  type Profile = EnrichedUser["profile"];
+  const usersWithUserProfile = [] as (InputUser & {
+    organizationId: number | null;
+    organization: Profile["organization"] | null;
+    profile: Profile;
+  })[];
   const batchSize = 20;
 
-  const processBatch = async (batch) => {
+  const processBatch = async (batch: InputUser[]) => {
     const enrichedUsers = await Promise.all(
       batch.map(async (user) => {
         const { profile } = await UserRepository.enrichUserWithItsProfile({
