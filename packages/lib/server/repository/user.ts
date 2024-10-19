@@ -390,32 +390,35 @@ export class UserRepository {
       }
     >
   > {
+    if (users.length === 0) return [];
+
     const userIds = users.map((user) => user.id);
     const profiles = await ProfileRepository.findManyForUsers(userIds);
-    // Organize profiles by userId for easier lookup
-    const profilesByUserId = profiles.reduce<Record<number, UserProfile[]>>((acc, profile) => {
-      const userId = profile.userId;
-      if (!acc[userId]) {
-        acc[userId] = [];
+
+    // Create a Map for faster lookups, preserving arrays of profiles per user
+    const profileMap = new Map<number, UserProfile[]>();
+    profiles.forEach((profile) => {
+      if (!profileMap.has(profile.userId)) {
+        profileMap.set(profile.userId, []);
       }
-      acc[userId].push(profile);
-      return acc;
-    }, {});
+      profileMap.get(profile.userId)!.push(profile);
+    });
+
     // Precompute personal profiles for all users
-    const personalProfiles = users.reduce<Record<number, UserProfile>>((acc, user) => {
-      acc[user.id] = ProfileRepository.buildPersonalProfileFromUser({ user });
-      return acc;
-    }, {});
+    const personalProfileMap = new Map<number, UserProfile>();
+    users.forEach((user) => {
+      personalProfileMap.set(user.id, ProfileRepository.buildPersonalProfileFromUser({ user }));
+    });
 
     return users.map((user) => {
-      const userProfiles = profilesByUserId[user.id] || [];
+      const userProfiles = profileMap.get(user.id) || [];
       if (userProfiles.length > 0) {
         const profile = userProfiles[0];
         if (profile?.organization?.isPlatform) {
           return {
             ...user,
             nonProfileUsername: user.username,
-            profile: personalProfiles[user.id],
+            profile: personalProfileMap.get(user.id)!,
           };
         }
 
@@ -431,7 +434,7 @@ export class UserRepository {
       return {
         ...user,
         nonProfileUsername: user.username,
-        profile: personalProfiles[user.id],
+        profile: personalProfileMap.get(user.id)!,
       };
     });
   }
