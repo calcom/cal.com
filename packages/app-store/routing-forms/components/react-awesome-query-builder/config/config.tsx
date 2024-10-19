@@ -54,7 +54,7 @@ function getSettings(_configFor: ConfigFor) {
     groupActionsPosition: "bottomCenter",
     // TODO: Test it and then enable it. It might allow us to show better error messages.
     // But it doesn't detect every kind of error like an operator gone missing e.g. what happened in https://github.com/calcom/cal.com/pull/17102
-    // showErrorMessage: true,
+    showErrorMessage: true,
     // Disable groups
     maxNesting: 1,
   };

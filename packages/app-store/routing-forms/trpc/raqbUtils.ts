@@ -36,7 +36,7 @@ function compatibleForAttributeAndFormFieldMatch<T extends string | string[]>(
   ) as T extends string[] ? string[] : string;
 }
 
-const raqbQueryValueUtils = {
+export const raqbQueryValueUtils = {
   isQueryValueARuleGroup: function isQueryValueARuleGroup(queryValue: JsonTree): queryValue is JsonGroup {
     return queryValue.type === "group";
   },
@@ -77,6 +77,12 @@ const raqbQueryValueUtils = {
 
       return raqbFieldValueType;
     },
+  isQueryValueEmpty: function isQueryValueEmpty(queryValue: JsonTree | null): queryValue is null {
+    if (!queryValue) {
+      return true;
+    }
+    return !queryValue.children1;
+  },
 };
 
 /**
@@ -138,6 +144,10 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
  * Utilities to handle compatiblity when attribute's type changes
  */
 const attributeChangeCompatibility = {
+  /**
+   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
+   * So, don't use it till that is fixed.
+   */
   getRaqbFieldTypeCompatibleWithQueryValue: function getRaqbFieldTypeCompatibleWithQueryValue({
     attributesQueryValue,
     raqbField,
@@ -163,6 +173,8 @@ const attributeChangeCompatibility = {
   },
   /**
    * Ensure the attribute value if of type same as the valueType in queryValue
+   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
+   * So, don't use it till that is fixed.
    */
   ensureAttributeValueToBeOfRaqbFieldValueType: function ensureAttributeValueToBeOfRaqbFieldValueType({
     attributeValue,
@@ -197,11 +209,14 @@ function getAttributesData({
     const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
 
     // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
-    acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
-      attributeValue: compatibleValueForAttributeAndFormFieldMatching,
-      attributesQueryValue,
-      attributeId,
-    });
+    // acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
+    //   attributeValue: compatibleValueForAttributeAndFormFieldMatching,
+    //   attributesQueryValue,
+    //   attributeId,
+    // });
+
+    // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
+    acc[attributeId] = compatibleValueForAttributeAndFormFieldMatching;
 
     return acc;
   }, {} as Record<string, string | string[]>);
@@ -231,7 +246,6 @@ function getAttributesQueryValue({
     return acc;
   }, {} as Record<string, Attribute>);
 
-  console.log({ attributesMap });
   const attributesQueryValueCompatibleForMatchingWithFormField: AttributesQueryValue = JSON.parse(
     replaceFieldTemplateVariableWithOptionLabel({
       queryValueString: replaceAttributeOptionIdsWithOptionLabel({
@@ -263,11 +277,14 @@ function getAttributesQueryBuilderConfig({
 
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
-      const raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
-        attributesQueryValue,
-        raqbField,
-        raqbFieldId,
-      });
+      // const raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
+      //   attributesQueryValue,
+      //   raqbField,
+      //   raqbFieldId,
+      // });
+
+      // Right now we can't trust getRaqbFieldTypeCompatibleWithQueryValue to give us the correct type
+      const raqbFieldType = raqbField.type;
 
       return [
         raqbFieldId,
