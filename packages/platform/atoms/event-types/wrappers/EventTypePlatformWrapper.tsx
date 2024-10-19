@@ -24,6 +24,7 @@ import EventAvailabilityTabPlatformWrapper from "./EventAvailabilityTabPlatformW
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
+import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
 
@@ -35,6 +36,9 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
+  customClassNames?: {
+    atomsWrapper?: string;
+  };
 };
 
 const EventType = ({
@@ -45,6 +49,7 @@ const EventType = ({
   onDeleteError,
   id,
   allowDelete = true,
+  customClassNames,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -84,7 +89,7 @@ const EventType = ({
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
-      props.onSuccess?.(currentValues);
+      onSuccess?.(currentValues);
     },
     async onSettled() {
       return;
@@ -93,11 +98,15 @@ const EventType = ({
       const currentValues = form.getValues();
       const message = err?.message;
       toast({ description: message ? t(message) : t(err.message) });
-      props.onError?.(currentValues, err);
+      onError?.(currentValues, err);
     },
+    teamId: team?.id,
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: (data) => updateMutation.mutate(data),
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
@@ -121,7 +130,11 @@ const EventType = ({
     ) : (
       <></>
     ),
-    team: <></>,
+    team: tabs.includes("team") ? (
+      <EventTeamAssignmentTabPlatformWrapper team={team} eventType={eventType} teamMembers={teamMembers} />
+    ) : (
+      <></>
+    ),
     advanced: tabs.includes("advanced") ? (
       <EventAdvancedPlatformWrapper
         eventType={eventType}
@@ -185,7 +198,7 @@ const EventType = ({
     tabs,
   });
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <EventTypeComponent
         {...props}
         tabMap={tabMap}
@@ -228,6 +241,7 @@ export const EventTypePlatformWrapper = ({
   onDeleteSuccess,
   onDeleteError,
   allowDelete = true,
+  customClassNames,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -258,6 +272,7 @@ export const EventTypePlatformWrapper = ({
       onDeleteSuccess={onDeleteSuccess}
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
+      customClassNames={customClassNames}
     />
   );
 };

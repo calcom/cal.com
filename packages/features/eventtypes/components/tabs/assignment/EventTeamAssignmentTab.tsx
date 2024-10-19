@@ -21,6 +21,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
 
+export type EventTeamAssignmentTabBaseProps = Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">;
+
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
   slug: string,
@@ -427,11 +429,7 @@ const Hosts = ({
   );
 };
 
-export const EventTeamAssignmentTab = ({
-  team,
-  teamMembers,
-  eventType,
-}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
+export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
