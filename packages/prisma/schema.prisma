@@ -633,6 +633,7 @@ model Booking {
   cancelledBy                  String?
   /// @zod.email()
   rescheduledBy                String?
+  // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
   //This is used to pass session dependent actorUserId for AuditLogger Client Extension. It is always null.
   actorUserId                  Int?

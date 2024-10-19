@@ -36,7 +36,7 @@ function compatibleForAttributeAndFormFieldMatch<T extends string | string[]>(
   ) as T extends string[] ? string[] : string;
 }
 
-const raqbQueryValueUtils = {
+export const raqbQueryValueUtils = {
   isQueryValueARuleGroup: function isQueryValueARuleGroup(queryValue: JsonTree): queryValue is JsonGroup {
     return queryValue.type === "group";
   },
@@ -77,6 +77,12 @@ const raqbQueryValueUtils = {
 
       return raqbFieldValueType;
     },
+  isQueryValueEmpty: function isQueryValueEmpty(queryValue: JsonTree | null): queryValue is null {
+    if (!queryValue) {
+      return true;
+    }
+    return !queryValue.children1;
+  },
 };
 
 /**
