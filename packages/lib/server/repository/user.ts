@@ -380,6 +380,62 @@ export class UserRepository {
     };
   }
 
+  static async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    const userIds = users.map((user) => user.id);
+    const profiles = await ProfileRepository.findManyForUsers(userIds);
+    // Organize profiles by userId for easier lookup
+    const profilesByUserId = profiles.reduce<Record<number, UserProfile[]>>((acc, profile) => {
+      const userId = profile.userId;
+      if (!acc[userId]) {
+        acc[userId] = [];
+      }
+      acc[userId].push(profile);
+      return acc;
+    }, {});
+    // Precompute personal profiles for all users
+    const personalProfiles = users.reduce<Record<number, UserProfile>>((acc, user) => {
+      acc[user.id] = ProfileRepository.buildPersonalProfileFromUser({ user });
+      return acc;
+    }, {});
+
+    return users.map((user) => {
+      const userProfiles = profilesByUserId[user.id] || [];
+      if (userProfiles.length > 0) {
+        const profile = userProfiles[0];
+        if (profile?.organization?.isPlatform) {
+          return {
+            ...user,
+            nonProfileUsername: user.username,
+            profile: personalProfiles[user.id],
+          };
+        }
+
+        return {
+          ...user,
+          username: profile.username,
+          nonProfileUsername: user.username,
+          profile,
+        };
+      }
+
+      // If no organization profile exists, use the precomputed personal profile
+      return {
+        ...user,
+        nonProfileUsername: user.username,
+        profile: personalProfiles[user.id],
+      };
+    });
+  }
+
   static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
