@@ -132,6 +132,7 @@ export type IconName =
   | "users"
   | "venetian-mask"
   | "video"
+  | "waypoints"
   | "webhook"
   | "x"
   | "zap";
