@@ -1,6 +1,7 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -47,10 +48,8 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
 
   const userProfile = ctx.user.profile;
   const profile = await ProfileRepository.findByUpId(userProfile.upId);
-  const parentOrgHasLockedEventTypes =
-    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
-  const [profileMemberships, profileEventTypes] = await Promise.all([
+  const [profileMemberships, profileEventTypes, organization] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
         upId: userProfile.upId,
@@ -83,11 +82,17 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
             ],
           }
         ),
+    ctx.user.organizationId
+      ? OrganizationRepository.findCurrentOrg({ userId: ctx.user.id, orgId: ctx.user.organizationId })
+      : undefined,
   ]);
 
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
+
+  const parentOrgHasLockedEventTypes =
+    organization?.organizationSettings.lockEventTypeCreationForUsers || false;
 
   const memberships = profileMemberships.map((membership) => ({
     ...membership,

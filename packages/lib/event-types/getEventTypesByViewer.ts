@@ -11,6 +11,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -39,8 +40,7 @@ export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer
 export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
   const userProfile = user.profile;
   const profile = await ProfileRepository.findByUpId(userProfile.upId);
-  const parentOrgHasLockedEventTypes =
-    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
+
   const isFilterSet = filters && hasFilter(filters);
   const isUpIdInFilter = filters?.upIds?.includes(userProfile.upId);
 
@@ -50,7 +50,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   if (isFilterSet && filters?.upIds && !isUpIdInFilter) {
     shouldListUserEvents = true;
   }
-  const [profileMemberships, profileEventTypes] = await Promise.all([
+  const [profileMemberships, profileEventTypes, organization] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
         upId: userProfile.upId,
@@ -82,7 +82,14 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           }
         )
       : [],
+    // only fire if in organization
+    user.organizationId
+      ? OrganizationRepository.findCurrentOrg({ userId: user.id, orgId: user.organizationId })
+      : undefined,
   ]);
+
+  const parentOrgHasLockedEventTypes =
+    organization?.organizationSettings.lockEventTypeCreationForUsers || false;
 
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });

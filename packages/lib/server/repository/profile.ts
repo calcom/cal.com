@@ -372,14 +372,6 @@ export class ProfileRepository {
             bannerUrl: true,
             isPrivate: true,
             isPlatform: true,
-            organizationSettings: {
-              select: {
-                lockEventTypeCreationForUsers: true,
-              },
-            },
-            members: {
-              select: membershipSelect,
-            },
           },
         },
       },

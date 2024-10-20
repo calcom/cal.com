@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -71,7 +72,33 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       allowDynamicBooking: true,
       allowSEOIndexing: true,
       receiveMonthlyDigestEmail: true,
-      profiles: true,
+      profiles: {
+        select: {
+          id: true,
+          uid: true,
+          // the following _count figures out efficiently if the currently logged in user is a ADMIN/OWNER of the
+          // organization.
+          organization: {
+            select: {
+              _count: {
+                select: {
+                  members: {
+                    where: {
+                      userId: session.user.id,
+                      role: {
+                        in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          username: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
     },
   });
 
@@ -103,23 +130,16 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const locale = user?.locale ?? ctx.locale;
 
-  const isOrgAdmin = !!user.profile?.organization?.members.filter(
-    (member) => (member.role === "ADMIN" || member.role === "OWNER") && member.userId === user.id
-  ).length;
-
+  const isOrgAdmin = userFromDb.profiles ? userFromDb.profiles[0].organization._count.members >= 1 : false;
   if (isOrgAdmin) {
     logger.debug("User is an org admin", safeStringify({ userId: user.id }));
   } else {
     logger.debug("User is not an org admin", safeStringify({ userId: user.id }));
   }
-  // Want to reduce the amount of data being sent
-  if (isOrgAdmin && user.profile?.organization?.members) {
-    user.profile.organization.members = [];
-  }
 
   const organization = {
     ...user.profile?.organization,
-    id: user.profile?.organization?.id ?? null,
+    id: user.profile?.organizationId ?? null,
     isOrgAdmin,
     metadata: orgMetadata,
     requestedSlug: orgMetadata?.requestedSlug ?? null,

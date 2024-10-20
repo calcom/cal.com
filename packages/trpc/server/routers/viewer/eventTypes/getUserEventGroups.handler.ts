@@ -5,6 +5,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 // import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import type { PrismaClient } from "@calcom/prisma";
@@ -35,8 +36,8 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
 
   const userProfile = user.profile;
   const profile = await ProfileRepository.findByUpId(userProfile.upId);
-  const parentOrgHasLockedEventTypes =
-    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
+
+  //   profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = filters && hasFilter(filters);
   const isUpIdInFilter = filters?.upIds?.includes(userProfile.upId);
 
@@ -46,20 +47,28 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     shouldListUserEvents = true;
   }
 
-  const profileMemberships = await MembershipRepository.findAllByUpIdIncludeTeam(
-    {
-      upId: userProfile.upId,
-    },
-    {
-      where: {
-        accepted: true,
-      },
-    }
-  );
-
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
+
+  const [profileMemberships, organization] = await Promise.all([
+    MembershipRepository.findAllByUpIdIncludeTeam(
+      {
+        upId: userProfile.upId,
+      },
+      {
+        where: {
+          accepted: true,
+        },
+      }
+    ),
+    ctx.user.organization
+      ? OrganizationRepository.findCurrentOrg({ userId: ctx.user.id, orgId: ctx.user.organization.id })
+      : undefined,
+  ]);
+
+  const parentOrgHasLockedEventTypes =
+    organization?.organizationSettings.lockEventTypeCreationForUsers || false;
 
   const memberships = profileMemberships.map((membership) => ({
     ...membership,
