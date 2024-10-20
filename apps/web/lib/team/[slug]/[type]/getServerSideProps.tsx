@@ -55,6 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: true,
       hideBranding: true,
       parent: true,
+      name: true,
       slug: true,
       eventTypes: {
         where: {
@@ -95,8 +96,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
-          orgSlug: team.parent?.slug,
-          teamSlug: team.slug,
+          orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+          teamSlug: team.slug ?? null,
+          name: team.parent?.name ?? team.name ?? null,
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
