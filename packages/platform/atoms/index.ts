@@ -1,3 +1,5 @@
+import PaymentForm from "./event-types/payments/PaymentForm";
+
 export { CalProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
@@ -26,3 +28,4 @@ export { CalendarSettingsPlatformWrapper as CalendarSettings } from "./calendar-
 export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
 export { EventTypePlatformWrapper as EventTypeSettings } from "./event-types/wrappers/EventTypePlatformWrapper";
 export { StripeConnect } from "./connect/stripe/StripeConnect";
+export { PaymentForm };

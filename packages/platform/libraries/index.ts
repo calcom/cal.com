@@ -5,6 +5,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
@@ -12,6 +13,7 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
@@ -145,3 +147,6 @@ export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { IcsFeedCalendarService };
 export { validateCustomEventName } from "@calcom/core/event";
+
+export { paymentDataSelect };
+export { getClientSecretFromPayment };
