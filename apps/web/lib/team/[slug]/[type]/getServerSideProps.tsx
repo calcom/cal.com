@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -25,6 +26,7 @@ const paramsSchema = z.object({
 // 1. Check if team exists, to show 404
 // 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const transaction = Sentry.startTransaction({ name: "Team Booking Page" });
   const { req, params, query } = context;
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
@@ -42,6 +44,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
 
     if (redirect) {
+      transaction.finish();
       return redirect;
     }
   }
@@ -58,6 +61,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   if (!team) {
+    transaction.finish();
     return {
       notFound: true,
     } as const;
@@ -80,10 +84,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   if (!eventData) {
+    transaction.finish();
     return {
       notFound: true,
     } as const;
   }
+
+  transaction.finish();
 
   return {
     props: {
