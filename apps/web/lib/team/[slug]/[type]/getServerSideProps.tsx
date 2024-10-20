@@ -87,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       eventData: {
+        eventTypeId: eventData.id,
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
