@@ -12,8 +12,9 @@ import {
   TUpdateEventTypeInputSchema,
   systemBeforeFieldEmail,
   getEventTypeById,
+  EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries";
-import { getClientSecretFromPayment, EventTypeMetaDataSchema } from "@calcom/platform-libraries-1.2.3";
+import { getClientSecretFromPayment } from "@calcom/platform-libraries-1.2.3";
 import { PrismaClient } from "@calcom/prisma/client";
 
 @Injectable()

@@ -108,7 +108,7 @@ const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
                           user={paymentInfo.user}
                           location={paymentInfo.booking.location}
                           booking={paymentInfo.booking}
-                          uid={uid}
+                          uid={paymentUid}
                         />
                       )}
                       {paymentInfo.payment.refunded && (
