@@ -3,6 +3,7 @@ import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-quer
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { AttributeType } from "@calcom/prisma/enums";
 
 import type { AttributesQueryBuilderConfigWithRaqbFields } from "../lib/getQueryBuilderConfig";
 import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig";
@@ -202,10 +203,17 @@ function getAttributesData({
   attributesData,
   attributesQueryValue,
 }: {
-  attributesData: Record<string, string | string[]>;
+  attributesData: Record<
+    string,
+    {
+      value: string | string[];
+      type: Attribute["type"];
+    }
+  >;
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
-  return Object.entries(attributesData).reduce((acc, [attributeId, value]) => {
+  console.log({ attributesData: JSON.stringify(attributesData) });
+  return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
     const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
 
     // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
@@ -216,7 +224,10 @@ function getAttributesData({
     // });
 
     // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
-    acc[attributeId] = compatibleValueForAttributeAndFormFieldMatching;
+    acc[attributeId] =
+      attributeType === AttributeType.MULTI_SELECT
+        ? ensureArray(compatibleValueForAttributeAndFormFieldMatching)
+        : compatibleValueForAttributeAndFormFieldMatching;
 
     return acc;
   }, {} as Record<string, string | string[]>);

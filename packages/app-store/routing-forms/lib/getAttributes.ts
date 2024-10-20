@@ -107,7 +107,10 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
 }
 
 type AttributeId = string;
-type AttributeOptionValue = string | string[];
+type AttributeOptionValueWithType = {
+  type: Attribute["type"];
+  value: string | string[];
+};
 
 export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
   const attributesToUser = await getAttributeToUserWithMembershipAndAttributesForTeam({ teamId });
@@ -121,19 +124,25 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
     }
 
     const attributes = acc[userId].attributes;
-    const attributeValue = attributes[attribute.id];
+    const attributeValue = attributes[attribute.id]?.value;
     if (attributeValue instanceof Array) {
       // Push to existing array
       attributeValue.push(value);
     } else if (attributeValue) {
       // Make it an array
-      attributes[attribute.id] = [attributeValue, value];
+      attributes[attribute.id] = {
+        type: attribute.type,
+        value: [attributeValue, value],
+      };
     } else {
       // Set it as a string
-      attributes[attribute.id] = value;
+      attributes[attribute.id] = {
+        type: attribute.type,
+        value,
+      };
     }
     return acc;
-  }, {} as Record<number, { userId: number; attributes: Record<AttributeId, AttributeOptionValue> }>);
+  }, {} as Record<number, { userId: number; attributes: Record<AttributeId, AttributeOptionValueWithType> }>);
 
   return Object.values(teamMembers);
 }

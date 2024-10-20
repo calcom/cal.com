@@ -22,13 +22,24 @@ function mockAttributesScenario({
   teamMembersWithAttributeOptionValuePerAttribute,
 }: {
   attributes: Awaited<ReturnType<typeof getAttributesModule.getAttributesForTeam>>;
-  teamMembersWithAttributeOptionValuePerAttribute: Awaited<
-    ReturnType<typeof getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute>
-  >;
+  teamMembersWithAttributeOptionValuePerAttribute: {
+    userId: number;
+    attributes: Record<string, string | string[]>;
+  }[];
 }) {
   vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
   vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
-    teamMembersWithAttributeOptionValuePerAttribute
+    teamMembersWithAttributeOptionValuePerAttribute.map((member) => ({
+      ...member,
+      attributes: Object.fromEntries(
+        Object.entries(member.attributes).map(([attributeId, value]) => {
+          return [
+            attributeId,
+            { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
+          ];
+        })
+      ),
+    }))
   );
 }
 
@@ -342,7 +353,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     ]);
   });
 
-  it("should return matching team members with a SINGLE_SELECT attribute when 'Any in' option is selected", async () => {
+  it("should return matching team members with a SINGLE_SELECT attribute when 'Any in'(select_any_in) option is selected", async () => {
     const Option1OfAttribute1HumanReadableValue = "Option 1";
 
     const Option1OfAttribute1 = {
@@ -384,6 +395,149 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           raqbFieldId: Attribute1.id,
           value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
           operator: "select_any_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
+      form: {
+        routes: [
+          buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: attributesQueryValue,
+          }),
+        ],
+        fields: [],
+      },
+      response: {},
+      routeId: "test-route",
+      teamId: 1,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should return matching team members with a MULTI_SELECT attribute when 'Any in'(multiselect_some_in) option is selected and just one option is used in attribute for the user", async () => {
+    const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+    const Option1OfAttribute1 = {
+      id: "attr-1-opt-1",
+      value: Option1OfAttribute1HumanReadableValue,
+      slug: "option-1",
+    };
+
+    const Option2OfAttribute1 = {
+      id: "attr-1-opt-2",
+      value: "Option 2",
+      slug: "option-2",
+    };
+
+    const Option3OfAttribute1 = {
+      id: "attr-1-opt-3",
+      value: "Option 3",
+      slug: "option-3",
+    };
+
+    const Attribute1 = {
+      id: "attr1",
+      name: "Attribute 1",
+      type: "MULTI_SELECT" as const,
+      slug: "attribute-1",
+      options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+    };
+
+    mockAttributesScenario({
+      attributes: [Attribute1],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: Attribute1.id,
+          value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
+          operator: "multiselect_some_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
+      form: {
+        routes: [
+          buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: attributesQueryValue,
+          }),
+        ],
+        fields: [],
+      },
+      response: {},
+      routeId: "test-route",
+      teamId: 1,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should return matching team members with a MULTI_SELECT attribute when 'Any in'(multiselect_some_in) option is selected and more than one option is used in attribute for the user", async () => {
+    const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+    const Option1OfAttribute1 = {
+      id: "attr-1-opt-1",
+      value: Option1OfAttribute1HumanReadableValue,
+      slug: "option-1",
+    };
+
+    const Option2OfAttribute1 = {
+      id: "attr-1-opt-2",
+      value: "Option 2",
+      slug: "option-2",
+    };
+
+    const Option3OfAttribute1 = {
+      id: "attr-1-opt-3",
+      value: "Option 3",
+      slug: "option-3",
+    };
+
+    const Attribute1 = {
+      id: "attr1",
+      name: "Attribute 1",
+      type: "MULTI_SELECT" as const,
+      slug: "attribute-1",
+      options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+    };
+
+    mockAttributesScenario({
+      attributes: [Attribute1],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        {
+          userId: 1,
+          attributes: { [Attribute1.id]: [Option2OfAttribute1.value, Option1OfAttribute1.value] },
+        },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: Attribute1.id,
+          value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
+          operator: "multiselect_some_in",
           valueType: ["multiselect"],
         },
       ],
