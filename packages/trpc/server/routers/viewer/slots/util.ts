@@ -228,6 +228,20 @@ export async function getEventType(
               ...availabilityUserSelect,
             },
           },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
+            },
+          },
         },
       },
       users: {
@@ -341,6 +355,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  troubleshooter?: any;
 }
 
 /**
@@ -385,6 +400,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -444,9 +460,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  const eventHosts =
+  const eventHosts: {
+    isFixed: boolean;
+    email: string;
+    user: (typeof eventType.hosts)[number]["user"];
+  }[] =
     eventType.hosts?.length && eventType.schedulingType
-      ? eventType.hosts
+      ? eventType.hosts.map((host) => ({
+          isFixed: host.isFixed,
+          email: host.user.email,
+          user: host.user,
+        }))
       : eventType.users.map((user) => {
           return {
             isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
@@ -895,8 +919,30 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   }
 
+  const troubleshooterData = enableTroubleshooter
+    ? {
+        troubleshooter: {
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing
+          usedContactOwner: contactOwnerEmail,
+          routedHosts: routedHostsWithContactOwnerAndFixedHosts.map((host) => {
+            return {
+              email: host.email,
+              user: host.user.id,
+            };
+          }),
+          hosts: eventHosts.map((host) => ({
+            email: host.email,
+            user: host.user.id,
+          })),
+        },
+      }
+    : null;
+
   return {
     slots: withinBoundsSlotsMappedToDate,
+    ...troubleshooterData,
   };
 }
 
