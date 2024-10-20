@@ -355,6 +355,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  troubleshooter?: any;
 }
 
 /**
@@ -399,6 +400,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const { _enableTroubleshooter: enableTroubleshooter = true } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -917,8 +919,30 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   }
 
+  const troubleshooterData = enableTroubleshooter
+    ? {
+        troubleshooter: {
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing
+          usedContactOwner: contactOwnerEmail,
+          routedHosts: routedHostsWithContactOwnerAndFixedHosts.map((host) => {
+            return {
+              email: host.email,
+              user: host.user.id,
+            };
+          }),
+          hosts: eventHosts.map((host) => ({
+            email: host.email,
+            user: host.user.id,
+          })),
+        },
+      }
+    : null;
+
   return {
     slots: withinBoundsSlotsMappedToDate,
+    ...troubleshooterData,
   };
 }
 
