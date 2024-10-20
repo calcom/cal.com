@@ -168,13 +168,15 @@ vi.mock("@calcom/trpc/react", () => ({
           useMutation: vi.fn(({ onSuccess }) => {
             return {
               mutate: vi.fn(() => {
-                onSuccess([
-                  {
-                    id: 1,
-                    name: "Matching User 1",
-                    email: "matching-user-1@example.com",
-                  },
-                ]);
+                onSuccess({
+                  result: [
+                    {
+                      id: 1,
+                      name: "Matching User 1",
+                      email: "matching-user-1@example.com",
+                    },
+                  ],
+                });
               }),
             };
           }),
