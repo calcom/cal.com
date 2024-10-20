@@ -14,6 +14,7 @@ import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
@@ -150,3 +151,4 @@ export { validateCustomEventName } from "@calcom/core/event";
 
 export { paymentDataSelect };
 export { getClientSecretFromPayment };
+export { EventTypeMetaDataSchema };
