@@ -14,7 +14,7 @@ export function findMatchingRoute({
   form,
   response,
 }: {
-  form: SerializableForm<App_RoutingForms_Form>;
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
   response: Record<string, Pick<FormResponse[string], "value">>;
 }) {
   const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);

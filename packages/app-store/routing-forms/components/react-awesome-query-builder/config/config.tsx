@@ -52,7 +52,9 @@ function getSettings(_configFor: ConfigFor) {
     renderProvider: (props) => renderComponent(props, Provider),
 
     groupActionsPosition: "bottomCenter",
-
+    // TODO: Test it and then enable it. It might allow us to show better error messages.
+    // But it doesn't detect every kind of error like an operator gone missing e.g. what happened in https://github.com/calcom/cal.com/pull/17102
+    showErrorMessage: true,
     // Disable groups
     maxNesting: 1,
   };
@@ -127,7 +129,15 @@ function getWidgets(_configFor: ConfigFor) {
   return widgets;
 }
 
-function getTypes(_configFor: ConfigFor) {
+function getTypes(configFor: ConfigFor) {
+  const multiSelectOperators = BasicConfig.types.multiselect.widgets.multiselect.operators || [];
+
+  if (configFor === ConfigFor.Attributes) {
+    // Attributes don't need reporting at the moment. So, we can support multiselect_some_in and multiselect_not_some_in operators for attributes.
+    // We could probably use them in FormFields later once they are supported through Prisma query as well
+    multiSelectOperators.push("multiselect_some_in", "multiselect_not_some_in");
+  }
+
   const types: Types = {
     ...BasicConfig.types,
     phone: {
@@ -148,12 +158,7 @@ function getTypes(_configFor: ConfigFor) {
         ...BasicConfig.types.multiselect.widgets,
         multiselect: {
           ...BasicConfig.types.multiselect.widgets.multiselect,
-          operators: [
-            ...(BasicConfig.types.multiselect.widgets.multiselect.operators || []),
-            // TODO: First verify the definition of multiselect_contains and multiselect_not_contains and then uncomment these operators
-            // "multiselect_contains",
-            // "multiselect_not_contains",
-          ],
+          operators: [...multiSelectOperators],
         },
       },
     },
@@ -165,57 +170,6 @@ function getOperators(configFor: ConfigFor) {
   // Clone to avoid mutating the original object
   const operators: Operators = {
     ...BasicConfig.operators,
-    // Attributes don't need reporting at the moment. So, we can support contains and not contains operators for attributes.
-    ...(configFor === ConfigFor.Attributes
-      ? {
-          multiselect_contains: {
-            label: "Contains",
-            labelForFormat: "CONTAINS",
-            reversedOp: "multiselect_not_contains",
-            // jsonLogic2: "some-in",
-            jsonLogic: function (e, t, r) {
-              return {
-                some: [
-                  e,
-                  {
-                    in: [
-                      {
-                        var: "",
-                      },
-                      r,
-                    ],
-                  },
-                ],
-              };
-            },
-          },
-          multiselect_not_contains: {
-            isNotOp: !0,
-            label: "Not contains",
-            labelForFormat: "NOT CONTAINS",
-            reversedOp: "multiselect_contains",
-            // jsonLogic2: "!some-in",
-            jsonLogic: function (e, t, r) {
-              return {
-                "!": {
-                  some: [
-                    e,
-                    {
-                      in: [
-                        {
-                          var: "",
-                        },
-                        r,
-                      ],
-                    },
-                  ],
-                },
-              };
-            },
-            _jsonLogicIsExclamationOp: !0,
-          },
-        }
-      : {}),
   };
 
   return operators;
