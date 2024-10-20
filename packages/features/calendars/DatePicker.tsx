@@ -358,7 +358,7 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-left"
-              aria-label="Next Month"
+              aria-label="Previous Month"
             />
             <Button
               className={classNames(
@@ -370,7 +370,7 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-right"
-              aria-label="Previous Month"
+              aria-label="Next Month"
             />
           </div>
         </div>
