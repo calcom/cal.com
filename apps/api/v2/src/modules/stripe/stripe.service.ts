@@ -119,10 +119,9 @@ export class StripeService {
     const stripeAccount = await stripeInstance.accounts.retrieve(stripeKeyObject?.stripe_user_id);
 
     // both of these should be true for an account to be fully active
-    // need to comment this out while in local
-    // if (!stripeAccount.payouts_enabled || !stripeAccount.charges_enabled) {
-    //   throw new BadRequestException("Stripe account is not an active account");
-    // }
+    if (!stripeAccount.payouts_enabled || !stripeAccount.charges_enabled) {
+      throw new BadRequestException("Stripe account is not an active account");
+    }
 
     return {
       status: SUCCESS_STATUS,

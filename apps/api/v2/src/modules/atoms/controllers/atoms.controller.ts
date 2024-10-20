@@ -50,26 +50,6 @@ export class AtomsController {
     };
   }
 
-  @Get("event-types-app/:appSlug")
-  @Version(VERSION_NEUTRAL)
-  @UseGuards(ApiAuthGuard)
-  async getAtomEventTypeApp(
-    @GetUser() user: UserWithProfile,
-    @Param("appSlug") appSlug: string,
-    @Query() queryParams: EventTypesAppInput
-  ): Promise<ApiResponse<unknown>> {
-    const { teamId } = queryParams;
-
-    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, user.id, user.name, teamId);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: {
-        app,
-      },
-    };
-  }
-
   @Get("payment/:uid")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
