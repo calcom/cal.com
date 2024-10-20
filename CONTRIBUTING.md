@@ -108,10 +108,10 @@ To develop locally:
    nvm use
    ```
 
-   You first might need to install the specific version and then use it:
+   You first might need to install the specific version:
 
    ```sh
-   nvm install && nvm use
+   nvm install
    ```
 
    You can install nvm from [here](https://github.com/nvm-sh/nvm).
