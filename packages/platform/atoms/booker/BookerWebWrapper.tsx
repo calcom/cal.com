@@ -133,7 +133,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     selectedDate,
     teamMemberEmail: props.teamMemberEmail,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
-    isTeamEvent: props.isTeamEvent,
+    isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
   });
   const bookings = useBookings({
     event,
