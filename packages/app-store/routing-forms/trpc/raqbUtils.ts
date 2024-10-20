@@ -212,7 +212,6 @@ function getAttributesData({
   >;
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
-  console.log({ attributesData: JSON.stringify(attributesData) });
   return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
     const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
 
@@ -225,6 +224,8 @@ function getAttributesData({
 
     // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
     acc[attributeId] =
+      // multiselect attribute's value must be an array as all the operators multiselect_some_in, multiselect_all_in and their respective not operators expect an array
+      // If we add an operator that doesn't expect an array, we need to somehow make it operator based.
       attributeType === AttributeType.MULTI_SELECT
         ? ensureArray(compatibleValueForAttributeAndFormFieldMatching)
         : compatibleValueForAttributeAndFormFieldMatching;

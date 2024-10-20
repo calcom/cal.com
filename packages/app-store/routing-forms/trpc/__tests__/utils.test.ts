@@ -455,6 +455,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
+        // user 1 has only one option selected for the attribute
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
       ],
     });
@@ -527,6 +528,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       teamMembersWithAttributeOptionValuePerAttribute: [
         {
           userId: 1,
+          // user 1 has two options selected for the attribute
           attributes: { [Attribute1.id]: [Option2OfAttribute1.value, Option1OfAttribute1.value] },
         },
       ],

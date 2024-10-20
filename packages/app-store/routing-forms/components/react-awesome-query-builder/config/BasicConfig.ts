@@ -189,6 +189,10 @@ const operators: Operators = {
       };
     },
   },
+  multiselect_not_some_in: {
+    label: "Not any in",
+    reversedOp: "multiselect_some_in",
+  },
   multiselect_equals: {
     label: "All in",
     reversedOp: "multiselect_not_equals",
