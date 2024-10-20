@@ -400,7 +400,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const { _enableTroubleshooter: enableTroubleshooter = true } = input;
+  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,

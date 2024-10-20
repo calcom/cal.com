@@ -297,7 +297,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   )[0];
 
   const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-
+    
+  // TODO: It uses default timezone of user. Should we use timezone of team ?
   const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
   
   const fallbackSchedule = {
@@ -310,6 +311,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       },
     ],
     id: 0,
+
     timeZone: fallbackTimezoneIfScheduleIsMissing
   };
 
