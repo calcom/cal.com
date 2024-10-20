@@ -112,14 +112,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
 async function getTeamMemberEmail(
   eventData: {
-    schedulingType: SchedulingType | null;
     id: number;
+    schedulingType: SchedulingType | null;
+    metadata: z.infer<typeof EventTypeMetaDataSchema> | null;
   },
   email?: string
 ): Promise<string | null> {
   // Pre-requisites
   if (!eventData || !email || eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
-  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.id);
+  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
   if (!crmContactOwnerEmail) return null;
   // Determine if the contactOwner is a part of the event type
   const contactOwnerQuery = await prisma.user.findFirst({

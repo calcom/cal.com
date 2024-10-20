@@ -7,20 +7,13 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export async function getCRMContactOwnerForRRLeadSkip(
   bookerEmail: string,
-  eventTypeId: number
+  eventTypeMetadata: z.infer<typeof EventTypeMetaDataSchema>
 ): Promise<string | undefined> {
-  const eventTypeMetadataQuery = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: { metadata: true },
-  });
+  const parsedEventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventTypeMetadata);
 
-  const eventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventTypeMetadataQuery?.metadata);
+  if (!parsedEventTypeMetadata.success || !parsedEventTypeMetadata.data?.apps) return;
 
-  if (!eventTypeMetadata.success || !eventTypeMetadata.data?.apps) return;
-
-  const crm = await getCRMManagerWithRRLeadSkip(eventTypeMetadata.data.apps);
+  const crm = await getCRMManagerWithRRLeadSkip(parsedEventTypeMetadata.data.apps);
 
   if (!crm) return;
 
