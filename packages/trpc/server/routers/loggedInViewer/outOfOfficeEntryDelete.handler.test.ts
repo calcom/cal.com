@@ -10,7 +10,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../trpc";
-import { setupAndTeardown } from "./outOfOffice.test.utils";
+import { getFutureDateUTC, setupAndTeardown, TimeOfDay } from "./outOfOffice.test.utils";
 import { outOfOfficeEntryDelete } from "./outOfOfficeEntryDelete.handler";
 import { type TOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
 
@@ -71,12 +71,12 @@ describe("outOfOfficeEntryDelete.handler", () => {
       data: {
         userId: users[1].id,
         uuid,
-        start: new Date("2024-09-28T00:00:00.000Z"),
-        end: new Date("2024-10-03T23:59:59.999Z"),
+        start: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        end: new Date(getFutureDateUTC(7, TimeOfDay.END)),
         notes: "",
         reasonId: 1,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -156,12 +156,12 @@ describe("outOfOfficeEntryDelete.handler", () => {
       data: {
         userId: users[1].id,
         uuid,
-        start: new Date("2024-09-28T00:00:00.000Z"),
-        end: new Date("2024-10-03T23:59:59.999Z"),
+        start: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        end: new Date(getFutureDateUTC(7, TimeOfDay.END)),
         notes: "",
         reasonId: 1,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 

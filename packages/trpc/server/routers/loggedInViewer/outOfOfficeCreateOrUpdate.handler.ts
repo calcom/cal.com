@@ -33,6 +33,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const inputStartTime = dayjs(startDate).startOf("day");
   const inputEndTime = dayjs(endDate).endOf("day");
+  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
+  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   // If start date is after end date throw error
   if (inputStartTime.isAfter(inputEndTime)) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Trans } from "next-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
@@ -16,6 +16,7 @@ import {
   Avatar,
   Button,
   DataTable,
+  DataTableToolbar,
   EmptyScreen,
   Icon,
   showToast,
@@ -26,6 +27,7 @@ import {
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
+import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -46,11 +48,6 @@ interface OutOfOfficeEntry {
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
 }
 
-export enum OutOfOfficeTab {
-  MINE = "mine",
-  TEAM = "team",
-}
-
 export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: number }) => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +57,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
     { value: OutOfOfficeRecordType.CURRENT, label: t("current") },
     { value: OutOfOfficeRecordType.PREVIOUS, label: t("previous") },
   ];
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -78,7 +75,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
-        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? debouncedSearchTerm : undefined,
+        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
         recordType: recordType,
       },
       {
@@ -90,169 +87,164 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
   useEffect(() => {
     refetch();
     if (selectedTab === OutOfOfficeTab.MINE) {
-      setDebouncedSearchTerm("");
+      setSearchTerm("");
     }
   }, [oooEntriesAdded, oooEntriesUpdated, deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
-  //Flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(
-    () => data?.pages?.flatMap((page) => page.rows) ?? [],
-    [data]
+    () =>
+      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
+    [data, selectedTab, isPending, isFetching, searchTerm]
   ) as OutOfOfficeEntry[];
   const totalFetched = flatData.length;
 
-  const columns: ColumnDef<OutOfOfficeEntry>[] = [];
-  if (selectedTab === OutOfOfficeTab.TEAM) {
-    columns.push({
-      id: "member",
-      header: `Member`,
-      cell: ({ row }) => {
-        if (!row.original || !row.original.user || isPending || isFetching) {
-          return <SkeletonText className="h-8 w-full" />;
-        }
-        const { avatarUrl, username, email, name } = row.original.user;
-        const memberName =
-          name ||
-          (() => {
-            const emailName = email.split("@")[0];
-            return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-          })();
-        return (
-          <div className="flex items-center gap-2">
-            <Avatar
-              size="sm"
-              alt={username || email}
-              imageSrc={getUserAvatarUrl({
-                avatarUrl,
-              })}
-            />
-            <div className="">
-              <div
-                data-testid={`ooo-member-${username}-username`}
-                className="text-emphasis text-sm font-medium leading-none">
-                {memberName}
-              </div>
-              <div
-                data-testid={`ooo-member-${username}-email`}
-                className="text-subtle mt-1 text-sm leading-none">
-                {email}
+  const memoColumns = useMemo(() => {
+    const columns: ColumnDef<OutOfOfficeEntry>[] = [];
+    if (selectedTab === OutOfOfficeTab.TEAM) {
+      columns.push({
+        id: "member",
+        header: `Member`,
+        cell: ({ row }) => {
+          if (!row.original || !row.original.user || isPending || isFetching) {
+            return <SkeletonText className="h-8 w-full" />;
+          }
+          const { avatarUrl, username, email, name } = row.original.user;
+          const memberName =
+            name ||
+            (() => {
+              const emailName = email.split("@")[0];
+              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+            })();
+          return (
+            <div className="flex items-center gap-2">
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
+              <div className="">
+                <div
+                  data-testid={`ooo-member-${username}-username`}
+                  className="text-emphasis text-sm font-medium leading-none">
+                  {memberName}
+                </div>
+                <div
+                  data-testid={`ooo-member-${username}-email`}
+                  className="text-subtle mt-1 text-sm leading-none">
+                  {email}
+                </div>
               </div>
             </div>
-          </div>
+          );
+        },
+      });
+    }
+    columns.push({
+      id: "outOfOffice",
+      header: `${t("out_of_office")} (${totalDBRowCount})`,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <>
+            {row.original && !isPending && !isFetching ? (
+              <div className="flex flex-row justify-between p-2">
+                <div className="flex flex-row items-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
+                    {item?.reason?.emoji || "🏝️"}
+                  </div>
+
+                  <div className="ml-2 flex flex-col">
+                    <p className="px-2 font-bold">
+                      {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+                    </p>
+                    <p className="px-2">
+                      {item.toUser?.username ? (
+                        <Trans
+                          i18nKey="ooo_forwarding_to"
+                          values={{
+                            username: item.toUser?.username,
+                          }}
+                          components={{
+                            span: <span className="text-subtle font-bold" />,
+                          }}
+                        />
+                      ) : (
+                        <>{t("ooo_not_forwarding")}</>
+                      )}
+                    </p>
+                    {item.notes && (
+                      <p className="px-2">
+                        <span className="text-subtle">{t("notes")}: </span>
+                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+                          {item.notes}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-row items-center gap-x-2">
+                  <Tooltip content={t("edit")}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
+                      StartIcon="pencil"
+                      onClick={() => {
+                        const outOfOfficeEntryData: BookingRedirectForm = {
+                          uuid: item.uuid,
+                          dateRange: {
+                            startDate: item.start,
+                            endDate: dayjs(item.end).subtract(1, "d").toDate(),
+                          },
+                          offset: dayjs().utcOffset(),
+                          toTeamUserId: item.toUserId,
+                          reasonId: item.reason?.id ?? 1,
+                          notes: item.notes ?? undefined,
+                          forUserId: item.user?.id || null,
+                        };
+                        editOutOfOfficeEntry(outOfOfficeEntryData);
+                      }}
+                      disabled={isPending || isFetching}
+                    />
+                  </Tooltip>
+                  <Tooltip content={t("delete")}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
+                      StartIcon="trash-2"
+                      onClick={() => {
+                        deleteOutOfOfficeEntryMutation.mutate({
+                          outOfOfficeUid: item.uuid,
+                          userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
+                        });
+                      }}
+                    />
+                  </Tooltip>
+                </div>
+              </div>
+            ) : (
+              <SkeletonText className="h-8 w-full" />
+            )}
+          </>
         );
       },
     });
-  }
-  columns.push({
-    id: "outOfOffice",
-    header: `${t("out_of_office")} (${totalDBRowCount})`,
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <>
-          {row.original && !isPending && !isFetching ? (
-            <div className="flex flex-row justify-between p-2">
-              <div className="flex flex-row items-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
-                  {item?.reason?.emoji || "🏝️"}
-                </div>
+    return columns;
+  }, [selectedTab, isPending, isFetching]);
 
-                <div className="ml-2 flex flex-col">
-                  <p className="px-2 font-bold">
-                    {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
-                  </p>
-                  <p className="px-2">
-                    {item.toUser?.username ? (
-                      <Trans
-                        i18nKey="ooo_forwarding_to"
-                        values={{
-                          username: item.toUser?.username,
-                        }}
-                        components={{
-                          span: <span className="text-subtle font-bold" />,
-                        }}
-                      />
-                    ) : (
-                      <>{t("ooo_not_forwarding")}</>
-                    )}
-                  </p>
-                  {item.notes && (
-                    <p className="px-2">
-                      <span className="text-subtle">{t("notes")}: </span>
-                      <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
-                        {item.notes}
-                      </span>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-row items-center gap-x-2">
-                <Tooltip content={t("edit")}>
-                  <Button
-                    className="self-center rounded-lg border"
-                    type="button"
-                    color="minimal"
-                    variant="icon"
-                    data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
-                    StartIcon="pencil"
-                    onClick={() => {
-                      const outOfOfficeEntryData: BookingRedirectForm = {
-                        uuid: item.uuid,
-                        dateRange: {
-                          startDate: item.start,
-                          endDate: dayjs(item.end).subtract(1, "d").toDate(),
-                        },
-                        offset: dayjs().utcOffset(),
-                        toTeamUserId: item.toUserId,
-                        reasonId: item.reason?.id ?? 1,
-                        notes: item.notes ?? undefined,
-                        forUserId: item.user?.id || null,
-                      };
-                      editOutOfOfficeEntry(outOfOfficeEntryData);
-                    }}
-                    disabled={isPending || isFetching}
-                  />
-                </Tooltip>
-                <Tooltip content={t("delete")}>
-                  <Button
-                    className="self-center rounded-lg border"
-                    type="button"
-                    color="minimal"
-                    variant="icon"
-                    disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
-                    StartIcon="trash-2"
-                    onClick={() => {
-                      deleteOutOfOfficeEntryMutation.mutate({
-                        outOfOfficeUid: item.uuid,
-                        userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
-                      });
-                    }}
-                  />
-                </Tooltip>
-              </div>
-            </div>
-          ) : (
-            <SkeletonText className="h-8 w-full" />
-          )}
-        </>
-      );
-    },
-  });
-
-  if (tableContainerRef.current) {
-    tableContainerRef.current.style.height = "736px";
-    tableContainerRef.current.style.overflowAnchor = "none";
-    tableContainerRef.current.classList.add("overflow-auto");
-  }
-
-  //called on scroll to fetch more data as the user scrolls and reaches bottom of table
   const fetchMoreOnBottomReached = useCallback(
     (containerRefElement?: HTMLDivElement | null) => {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        //once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
         if (scrollHeight - scrollTop - clientHeight < 100 && !isFetching && totalFetched < totalDBRowCount) {
           fetchNextPage();
         }
@@ -265,6 +257,15 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
     },
     [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
   );
+
+  const table = useReactTable({
+    data: flatData,
+    columns: memoColumns,
+    enableRowSelection: false,
+    debugTable: true,
+    manualPagination: true,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   useEffect(() => {
     fetchMoreOnBottomReached(tableContainerRef.current);
@@ -283,7 +284,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
 
   return (
     <>
-      <div className="mt-4 flex justify-start">
+      <div className="mb-2 mt-2 flex justify-start">
         <ToggleGroup
           className="hidden md:block"
           defaultValue={recordType}
@@ -292,7 +293,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
         />
       </div>
       {data === null ||
-      (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && debouncedSearchTerm === "") ||
+      (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && searchTerm === "") ||
       (data === undefined && !isPending) ? (
         <EmptyScreen
           className="mt-6"
@@ -335,16 +336,16 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
           <DataTable
             hideHeader={selectedTab === OutOfOfficeTab.MINE}
             data-testid="ooo-list-data-table"
-            onSearch={
-              selectedTab === OutOfOfficeTab.TEAM ? (value) => setDebouncedSearchTerm(value) : undefined
-            }
+            table={table}
             tableContainerRef={tableContainerRef}
-            columns={columns}
-            data={
-              isPending || (isFetching && debouncedSearchTerm !== "") ? new Array(5).fill(null) : flatData
-            }
-            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-          />
+            isPending={isPending}
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+            {selectedTab === OutOfOfficeTab.TEAM && (
+              <DataTableToolbar.Root>
+                <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+              </DataTableToolbar.Root>
+            )}
+          </DataTable>
           {openModal && (
             <CreateOrEditOutOfOfficeEntryModal
               openModal={openModal}
@@ -354,7 +355,6 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
               }}
               currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
               setOOOEntriesUpdated={setOOOEntriesUpdated}
-              setOOOEntriesAdded={null}
             />
           )}
         </div>

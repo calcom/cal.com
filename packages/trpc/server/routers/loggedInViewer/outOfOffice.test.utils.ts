@@ -31,12 +31,12 @@ export function setupAndTeardown() {
   });
 }
 
-enum TimeOfDay {
+export enum TimeOfDay {
   START = "start",
   END = "end",
 }
 
-function getFutureDateUTC(incrementDays: number, timeOfDay: TimeOfDay) {
+export function getFutureDateUTC(incrementDays: number, timeOfDay: TimeOfDay) {
   const currentDate = new Date();
 
   const updatedDate = new Date(currentDate);

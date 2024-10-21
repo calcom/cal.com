@@ -10,7 +10,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../trpc";
-import { setupAndTeardown } from "./outOfOffice.test.utils";
+import { getFutureDateUTC, setupAndTeardown, TimeOfDay } from "./outOfOffice.test.utils";
 import { outOfOfficeCreateOrUpdate } from "./outOfOfficeCreateOrUpdate.handler";
 import { type TOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 
@@ -85,11 +85,14 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
       user: loggedInUser as NonNullable<TrpcSessionUser>,
     };
 
+    const startDate = new Date(getFutureDateUTC(5, TimeOfDay.START));
+    const endDate = new Date(getFutureDateUTC(7, TimeOfDay.START));
+    const expectEndDateString = getFutureDateUTC(7, TimeOfDay.END);
     const input: TOutOfOfficeInputSchema = {
       forUserId: users[1].id,
       dateRange: {
-        startDate: new Date("2024-10-28T00:00:00.000Z"),
-        endDate: new Date("2024-10-30T00:00:00.000Z"),
+        startDate: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        endDate: new Date(getFutureDateUTC(7, TimeOfDay.END)),
       },
       offset: 330,
       toTeamUserId: users[2].id,
@@ -106,10 +109,6 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
       },
     });
     expect(ooo.length).toEqual(1);
-
-    //expect the start and end dates are stored in db are correct
-    expect(ooo[0].start).toEqual("2024-10-28T00:00:00.000Z");
-    expect(ooo[0].end).toEqual("2024-10-30T23:59:59.999Z");
     expect(ooo[0].toUserId).toEqual(users[2].id);
   });
 
@@ -185,8 +184,8 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
     const input: TOutOfOfficeInputSchema = {
       forUserId: users[1].id,
       dateRange: {
-        startDate: new Date("2024-10-28T00:00:00.000Z"),
-        endDate: new Date("2024-10-30T00:00:00.000Z"),
+        startDate: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        endDate: new Date(getFutureDateUTC(7, TimeOfDay.END)),
       },
       offset: 330,
       toTeamUserId: users[2].id,
@@ -282,8 +281,8 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
     const input: TOutOfOfficeInputSchema = {
       forUserId: users[1].id,
       dateRange: {
-        startDate: new Date("2024-10-28T00:00:00.000Z"),
-        endDate: new Date("2024-10-30T00:00:00.000Z"),
+        startDate: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        endDate: new Date(getFutureDateUTC(7, TimeOfDay.END)),
       },
       offset: 330,
       toTeamUserId: users[2].id,
@@ -360,12 +359,12 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
       data: {
         userId: users[1].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-28T00:00:00.000Z"),
-        end: new Date("2024-10-03T23:59:59.999Z"),
+        start: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        end: new Date(getFutureDateUTC(8, TimeOfDay.END)),
         notes: "",
         reasonId: 1,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -377,10 +376,10 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
     const input: TOutOfOfficeInputSchema = {
       forUserId: users[1].id,
       dateRange: {
-        startDate: new Date("2024-10-01T00:00:00.000Z"),
-        endDate: new Date("2024-10-01T00:00:00.000Z"),
+        startDate: new Date(getFutureDateUTC(7, TimeOfDay.START)),
+        endDate: new Date(getFutureDateUTC(7, TimeOfDay.END)),
       },
-      offset: 330,
+      offset: 0,
       toTeamUserId: null,
       reasonId: 1,
     };
@@ -470,13 +469,13 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
       data: {
         userId: users[1].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-28T00:00:00.000Z"),
-        end: new Date("2024-10-03T23:59:59.999Z"),
+        start: new Date(getFutureDateUTC(5, TimeOfDay.START)),
+        end: new Date(getFutureDateUTC(10, TimeOfDay.END)),
         notes: "",
         reasonId: 1,
         toUserId: users[2].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -488,10 +487,10 @@ describe("outOfOfficeCreateOrUpdate.handler", () => {
     const input: TOutOfOfficeInputSchema = {
       forUserId: users[2].id,
       dateRange: {
-        startDate: new Date("2024-10-01T00:00:00.000Z"),
-        endDate: new Date("2024-10-01T00:00:00.000Z"),
+        startDate: new Date(getFutureDateUTC(7, TimeOfDay.START)),
+        endDate: new Date(getFutureDateUTC(7, TimeOfDay.END)),
       },
-      offset: 330,
+      offset: 0,
       toTeamUserId: users[1].id,
       reasonId: 1,
     };

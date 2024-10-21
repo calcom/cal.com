@@ -65,36 +65,40 @@ export function DataTable<TData, TValue>({
         <div ref={tableContainerRef} onScroll={onScroll} className="scrollbar-thin h-full overflow-y-auto">
           <div className="inline-block min-w-full align-middle">
             <Table>
-              <TableHeader className="sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        className={classNames(
-                          header.column.getCanSort() ? "cursor-pointer select-none" : ""
-                        )}>
-                        <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getIsSorted() && (
-                            <Icon
-                              name="arrow-up"
-                              className="ml-2 h-4 w-4"
-                              style={{
-                                transform:
-                                  header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                                transition: "transform 0.2s ease-in-out",
-                              }}
-                            />
-                          )}
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
+              {!hideHeader && (
+                <TableHeader className="sticky top-0 z-10">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className={classNames(
+                            header.column.getCanSort() ? "cursor-pointer select-none" : ""
+                          )}>
+                          <div
+                            className="flex items-center"
+                            onClick={header.column.getToggleSortingHandler()}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                            {header.column.getIsSorted() && (
+                              <Icon
+                                name="arrow-up"
+                                className="ml-2 h-4 w-4"
+                                style={{
+                                  transform:
+                                    header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                                  transition: "transform 0.2s ease-in-out",
+                                }}
+                              />
+                            )}
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+              )}
               <TableBody>
                 {paddingTop > 0 && (
                   <tr>

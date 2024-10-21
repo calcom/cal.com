@@ -22,7 +22,7 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
-import { OutOfOfficeTab } from "./OutOfOfficeEntriesList";
+import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
@@ -46,8 +46,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
-  setOOOEntriesUpdated: Dispatch<SetStateAction<number>> | null;
-  setOOOEntriesAdded: Dispatch<SetStateAction<number>> | null;
+  setOOOEntriesUpdated?: Dispatch<SetStateAction<number>> | undefined;
+  setOOOEntriesAdded?: Dispatch<SetStateAction<number>> | undefined;
 }) => {
   const { t } = useLocale();
 
@@ -57,7 +57,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const { data: listMembers } = trpc.viewer.teams.legacyListMembers.useQuery({});
 
   const me = useMeQuery();
-  const forwardingToMemberListOptions: {
+  const forwardingMemberListOptions: {
     value: number;
     label: string;
   }[] =
@@ -70,7 +70,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         label: member.name || "",
       })) || [];
 
-  const oooForMemberListOptions: {
+  const oooMemberListOptions: {
     value: number;
     label: string;
   }[] =
@@ -181,10 +181,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     <Select<Option>
                       name="oooForUsername"
                       data-testid="oooFor_username_select"
-                      value={oooForMemberListOptions.find((member) => member.value === value)}
+                      value={oooMemberListOptions.find((member) => member.value === value)}
                       placeholder={t("select_team_member")}
                       isSearchable
-                      options={oooForMemberListOptions}
+                      options={oooMemberListOptions}
                       onChange={(selectedOption) => {
                         if (selectedOption?.value) {
                           onChange(selectedOption.value);
@@ -288,10 +288,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Select<Option>
                           name="toTeamUsername"
                           data-testid="team_username_select"
-                          value={forwardingToMemberListOptions.find((member) => member.value === value)}
+                          value={forwardingMemberListOptions.find((member) => member.value === value)}
                           placeholder={t("select_team_member")}
                           isSearchable
-                          options={forwardingToMemberListOptions.filter(
+                          options={forwardingMemberListOptions.filter(
                             (option) => option.value !== getValues("forUserId")
                           )}
                           onChange={(selectedOption) => {

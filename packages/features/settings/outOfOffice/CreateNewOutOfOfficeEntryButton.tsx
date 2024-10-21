@@ -1,9 +1,9 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
+import type { SetStateAction, Dispatch } from "react";
 import { useState, useEffect } from "react";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon } from "@calcom/ui";
 
@@ -12,19 +12,19 @@ import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModa
 const CreateNewOutOfOfficeEntry = ({
   setOOOEntriesAdded,
 }: {
-  setOOOEntriesAdded: Dispatch<SetStateAction<number>> | null;
+  setOOOEntriesAdded: Dispatch<SetStateAction<number>>;
 }) => {
   const { t } = useLocale();
 
-  const params = useSearchParams();
-  const openModalOnStart = !!params?.get("om");
+  const searchParams = useCompatSearchParams();
+  const [openModal, setOpenModal] = useState(false);
+
+  const openModalOnStart = !!searchParams?.get("om");
   useEffect(() => {
     if (openModalOnStart) {
       setOpenModal(true);
     }
   }, [openModalOnStart]);
-
-  const [openModal, setOpenModal] = useState(false);
 
   return (
     <>
@@ -42,7 +42,6 @@ const CreateNewOutOfOfficeEntry = ({
             setOpenModal(false);
           }}
           currentlyEditingOutOfOfficeEntry={null}
-          setOOOEntriesUpdated={null}
           setOOOEntriesAdded={setOOOEntriesAdded}
         />
       )}
