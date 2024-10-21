@@ -116,6 +116,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
 
       if (res.locale) {
         window.calNewLocale = res.locale;
+        document.cookie = `calNewLocale=${res.locale}; path=/`;
       }
       await revalidatePage();
     },
