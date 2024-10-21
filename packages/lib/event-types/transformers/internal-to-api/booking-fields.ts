@@ -416,6 +416,11 @@ export const systemBeforeFieldLocation: LocationReasonSystemField = {
       required: true,
       placeholder: "",
     },
+    somewhereElse: {
+      type: "text",
+      required: true,
+      placeholder: "",
+    },
   },
   sources: [
     {
