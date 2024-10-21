@@ -5,7 +5,6 @@ const turndownService = new TurndownService();
 function turndown(html: string | TurndownService.Node): string {
   let result = turndownService.turndown(html);
   result = result.replaceAll("[<p><br></p>]", "");
-  result = result.replace(/\\_/g, "_");
 
   if (result === "<p><br></p>") {
     result = "";
