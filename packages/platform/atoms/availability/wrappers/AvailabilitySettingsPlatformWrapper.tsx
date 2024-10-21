@@ -33,6 +33,8 @@ type AvailabilitySettingsPlatformWrapperProps = {
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
   onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
+  allowDelete?: boolean;
+  allowSetToDefault?: boolean;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -45,6 +47,8 @@ export const AvailabilitySettingsPlatformWrapper = ({
   disableEditableHeading = false,
   enableOverrides = false,
   onBeforeUpdate,
+  allowDelete,
+  allowSetToDefault,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -142,6 +146,8 @@ export const AvailabilitySettingsPlatformWrapper = ({
         backPath=""
         isPlatform={true}
         customClassNames={customClassNames}
+        allowDelete={allowDelete}
+        allowSetToDefault={allowSetToDefault}
       />
     </AtomsWrapper>
   );

@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -36,7 +36,7 @@ export type AttendeeInBookingInfo = {
 
 export type BookingInfo = {
   uid?: string | null;
-  bookerUrl?: string;
+  bookerUrl: string;
   attendees: AttendeeInBookingInfo[];
   organizer: {
     language: { locale: string };
@@ -46,8 +46,8 @@ export type BookingInfo = {
     timeFormat?: TimeFormat;
     username?: string;
   };
-  eventType: {
-    slug?: string;
+  eventType?: {
+    slug: string;
     recurringEvent?: RecurringEvent | null;
   };
   startTime: string;
@@ -158,8 +158,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
+      cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
     };
     const customMessage = customTemplate(smsMessage, variables, locale, evt.organizer.timeFormat);
     smsMessage = customMessage.text;
