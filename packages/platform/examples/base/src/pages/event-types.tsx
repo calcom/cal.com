@@ -98,7 +98,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
               allowDelete={true}
               id={eventTypeId}
-              tabs={["setup", "limits", "recurring", "advanced", "availability", "team"]}
+              tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
               onSuccess={(eventType) => {
                 setEventTypeId(null);
                 refetch();

@@ -31,6 +31,7 @@ import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  NameFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -199,6 +200,13 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: false,
+      };
+
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class",
         slug: "coding-class",
@@ -220,6 +228,7 @@ describe("Event types Endpoints", () => {
           },
         ],
         bookingFields: [
+          nameBookingField,
           {
             type: "select",
             label: "select which language you want to learn",
@@ -227,6 +236,7 @@ describe("Event types Endpoints", () => {
             required: true,
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
+            disableOnPrefill: true,
           },
         ],
         scheduleId: firstSchedule.id,
@@ -313,14 +323,16 @@ describe("Event types Endpoints", () => {
           );
           expect(createdEventType.color).toEqual(body.color);
 
-          const responseBookingFields = body.bookingFields || [];
+          const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
-            { isDefault: true, required: true, slug: "name", type: "name" },
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
             { isDefault: true, required: true, slug: "email", type: "email" },
             // note(Lauris): location booking field is added if multiple locations are passed
             { isDefault: true, required: false, slug: "location", type: "radioInput" },
             { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
-            ...responseBookingFields.map((field) => ({ isDefault: false, ...field })),
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
@@ -641,11 +653,30 @@ describe("Event types Endpoints", () => {
     });
 
     it("should update event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: true,
+      };
+
       const newTitle = "Coding class in Italian!";
 
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
+        bookingFields: [
+          nameBookingField,
+          {
+            type: "select",
+            label: "select which language you want to learn",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+            disableOnPrefill: false,
+          },
+        ],
         bookingLimitsCount: {
           day: 4,
           week: 10,
@@ -705,7 +736,19 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
-          expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
+
+          const requestBookingFields = body.bookingFields || [];
+          const expectedBookingFields = [
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
+            { isDefault: true, required: true, slug: "email", type: "email" },
+            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
+          ];
+
+          expect(updatedEventType.bookingFields).toEqual(expectedBookingFields);
+
           expect(updatedEventType.ownerId).toEqual(user.id);
           expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
           expect(updatedEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
@@ -743,6 +786,7 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.color = updatedEventType.color;
+          eventType.bookingFields = updatedEventType.bookingFields;
         });
     });
 
