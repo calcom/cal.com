@@ -1797,6 +1797,7 @@
   "wrong_code": "验证码错误",
   "not_verified": "尚未验证",
   "no_availability_in_month": "在 {{month}}不可预约",
+  "view_previous_month": "查看上个月",
   "view_next_month": "查看下个月",
   "send_code": "发送代码",
   "number_verified": "号码已验证",

@@ -1797,6 +1797,7 @@
   "wrong_code": "Yanlış doğrulama kodu",
   "not_verified": "Henüz doğrulanmadı",
   "no_availability_in_month": "{{month}} ayında müsaitlik yok",
+  "view_previous_month": "Önceki ayı görüntüle",
   "view_next_month": "Sonraki ayı görüntüle",
   "send_code": "Kod gönder",
   "number_verified": "Numara Doğrulandı",

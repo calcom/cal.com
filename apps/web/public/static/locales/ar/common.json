@@ -1797,6 +1797,7 @@
   "wrong_code": "رمز التحقق غير صحيح",
   "not_verified": "لم يتم التحقق منه بعد",
   "no_availability_in_month": "غير متاح في شهر {{month}}",
+  "view_previous_month": "عرض الشهر السابق",
   "view_next_month": "عرض الشهر التالي",
   "send_code": "إرسال الرمز",
   "number_verified": "تم التحقق من الرقم",

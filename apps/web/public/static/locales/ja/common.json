@@ -1797,6 +1797,7 @@
   "wrong_code": "確認コードが間違っています",
   "not_verified": "まだ確認されていません",
   "no_availability_in_month": "{{month}} は参加できません",
+  "view_previous_month": "前月を表示",
   "view_next_month": "来月を表示",
   "send_code": "コードを送信",
   "number_verified": "番号が確認されました",

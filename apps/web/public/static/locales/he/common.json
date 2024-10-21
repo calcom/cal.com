@@ -1797,6 +1797,7 @@
   "wrong_code": "קוד האימות שגוי",
   "not_verified": "האימות עדיין לא בוצע",
   "no_availability_in_month": "אין זמינות ב{{month}}",
+  "view_previous_month": "צפה בחודש הקודם",
   "view_next_month": "צפייה בחודש הבא",
   "send_code": "שליחת קוד",
   "number_verified": "המספר אומת",

@@ -1797,6 +1797,7 @@
   "wrong_code": "Pogrešan kôd za verifikaciju",
   "not_verified": "Nije još verifikovano",
   "no_availability_in_month": "Nije raspoloživo za mesec {{month}}",
+  "view_previous_month": "Прикажи претходни месец",
   "view_next_month": "Prikaži naredni mesec",
   "send_code": "Pošalji kod",
   "number_verified": "Broj je verifikovan",
