@@ -18,7 +18,8 @@
         "height": 800.0,
         "minWidth": 1000.0,
         "minHeight": 800.0,
-        "title": "Cal"
+        "hiddenTitle": true,
+        "titleBarStyle": "Transparent"
       }
     ],
     "singleInstance": true,
