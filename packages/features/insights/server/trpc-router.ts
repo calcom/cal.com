@@ -288,8 +288,8 @@ export const insightsRouter = router({
       const baseWhereCondition = {
         ...whereConditional,
         createdAt: {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
         },
       };
 
@@ -416,9 +416,8 @@ export const insightsRouter = router({
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-
-      const startDate = dayjs(startDateString);
-      const endDate = dayjs(endDateString);
+      const startDate = dayjs.utc(startDateString).startOf("day");
+      const endDate = dayjs.utc(endDateString).endOf("day");
       const user = ctx.user;
 
       if (selfUserId && user?.id !== selfUserId) {
@@ -450,54 +449,59 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: whereConditional } = r;
+      const { whereCondition: whereConditional } = r;
+      const timeline = await EventsInsights.getTimeLine(timeView, startDate, endDate);
 
-      // Get timeline data
-      const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
-
-      // iterate timeline and fetch data
       if (!timeline) {
         return [];
       }
 
       const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-      const result = [];
 
-      for (const date of timeline) {
+      const dateRanges = timeline.map((date) => {
+        let startDate = dayjs(date).startOf(timeView);
+        let endDate = dayjs(date).endOf(timeView);
+
+        if (timeView === "week") {
+          startDate = dayjs(date).startOf("day");
+          endDate = dayjs(date).add(6, "day").endOf("day");
+        }
+
+        return {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          formattedDate: dayjs(date).format(dateFormat), // keep formatted date for later
+        };
+      });
+
+      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
+        whereConditional,
+        startDate,
+        endDate,
+        timeView
+      );
+      const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
-          Month: dayjs(date).format(dateFormat),
+          Month: formattedDate,
           Created: 0,
           Completed: 0,
           Rescheduled: 0,
           Cancelled: 0,
           "No-Show (Host)": 0,
         };
-        const startOfEndOf = timeView;
-        let startDate = dayjs(date).startOf(startOfEndOf);
-        let endDate = dayjs(date).endOf(startOfEndOf);
-        if (timeView === "week") {
-          startDate = dayjs(date).startOf("day");
-          endDate = dayjs(date).add(6, "day").endOf("day");
+
+        // Access counts directly using the formattedDate as a key in countsByStatus
+        const countsForDateRange = countsByStatus[formattedDate];
+
+        if (countsForDateRange) {
+          EventData["Created"] = countsForDateRange["_all"] || 0;
+          EventData["Completed"] = countsForDateRange["completed"] || 0;
+          EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+          EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+          EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
         }
-
-        whereConditional = {
-          ...whereConditional,
-          createdAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
-          },
-        };
-
-        const countsByStatus = await EventsInsights.countGroupedByStatus(whereConditional);
-
-        EventData["Created"] = countsByStatus["_all"];
-        EventData["Completed"] = countsByStatus["completed"];
-        EventData["Rescheduled"] = countsByStatus["rescheduled"];
-        EventData["Cancelled"] = countsByStatus["cancelled"];
-        EventData["No-Show (Host)"] = countsByStatus["noShowHost"];
-        result.push(EventData);
-      }
-
+        return EventData;
+      });
       return result;
     }),
   popularEventTypes: userBelongsToTeamProcedure
@@ -771,7 +775,6 @@ export const insightsRouter = router({
 
       bookingWhere = {
         ...bookingWhere,
-        teamId,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -863,8 +866,6 @@ export const insightsRouter = router({
 
       bookingWhere = {
         ...bookingWhere,
-        teamId,
-        eventTypeId,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),

@@ -39,7 +39,7 @@ export const DateSelect = () => {
         endDate = dayjs().endOf("day");
         break;
       case "w": // Last 7 days
-        startDate = dayjs().subtract(7, "day").startOf("day");
+        startDate = dayjs().subtract(1, "week").startOf("day");
         endDate = dayjs().endOf("day");
         break;
       case "t": // Last 30 days
