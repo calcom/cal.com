@@ -42,7 +42,6 @@ const assertSelectOperators = (config: any) => {
   expect(config.types.select.widgets.multiselect.operators).not.toContain("select_equals");
   expect(config.types.select.widgets.multiselect.operators).not.toContain("select_not_equals");
 
-
   expect(config.types.select.widgets.select.operators).toContain("select_equals");
   expect(config.types.select.widgets.select.operators).toContain("select_not_equals");
 
@@ -61,9 +60,13 @@ describe("Query Builder Config", () => {
       assertCommonStructure(FormFieldsBaseConfig);
     });
 
-    it("should not support multiselect_contains and multiselect_not_contains - because they are not supported in Prisma for reporting(probably)", () => {
-      expect(FormFieldsBaseConfig.operators).not.toHaveProperty("multiselect_contains");
-      expect(FormFieldsBaseConfig.operators).not.toHaveProperty("multiselect_not_contains");
+    it("should not support multiselect_some_in and multiselect_not_some_in - because they are not supported in Prisma for reporting(probably)", () => {
+      expect(FormFieldsBaseConfig.types.multiselect.widgets.multiselect.operators).not.toContain(
+        "multiselect_some_in"
+      );
+      expect(FormFieldsBaseConfig.types.multiselect.widgets.multiselect.operators).not.toContain(
+        "multiselect_not_some_in"
+      );
     });
 
     it("should support select_any_in, select_not_any_in, select_equals, select_not_equals - Verify both types.widgets and operators", () => {
@@ -84,9 +87,26 @@ describe("Query Builder Config", () => {
       assertCommonStructure(AttributesBaseConfig);
     });
 
-    it("should support multiselect_contains and multiselect_not_contains operators", () => {
-      expect(AttributesBaseConfig.operators).toHaveProperty("multiselect_contains");
-      expect(AttributesBaseConfig.operators).toHaveProperty("multiselect_not_contains");
+    it("should support multiselect_some_in and multiselect_not_some_in operators for multiselect", () => {
+      expect(AttributesBaseConfig.types.multiselect.widgets.multiselect.operators).toContain(
+        "multiselect_some_in"
+      );
+      expect(AttributesBaseConfig.types.multiselect.widgets.multiselect.operators).toContain(
+        "multiselect_not_some_in"
+      );
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const jsonLogic = AttributesBaseConfig.operators.multiselect_some_in.jsonLogic(
+        ["A"],
+        "multiselect_some_in",
+        ["A", "B"]
+      );
+
+      // Verifies that it is using some-in implementation
+      expect(jsonLogic).toEqual({
+        some: [["A"], { in: [{ var: "" }, ["A", "B"]] }],
+      });
     });
 
     it("should support select_any_in, select_not_any_in, select_equals, select_not_equals - Verify both types.widgets and operators", () => {

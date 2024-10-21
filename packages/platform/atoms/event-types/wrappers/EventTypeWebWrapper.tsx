@@ -45,11 +45,7 @@ const EventAvailabilityTab = dynamic(() =>
   import("./EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
-const EventTeamAssignmentTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab").then(
-    (mod) => mod.EventTeamAssignmentTab
-  )
-);
+const EventTeamAssignmentTab = dynamic(() => import("./EventTeamAssignmentTabWebWrapper").then((mod) => mod));
 
 const EventLimitsTab = dynamic(() =>
   // import web wrapper when it's ready
@@ -160,7 +156,7 @@ const EventTypeWeb = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: loggedInUser, isPending: isLoggedInUserPending } = useMeQuery();
+  const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const telemetry = useTelemetry();
@@ -245,7 +241,7 @@ const EventTypeWeb = ({
       <EventAvailabilityTab
         eventType={eventType}
         isTeamEvent={!!team}
-        loggedInUser={loggedInUser}
+        user={user}
         teamMembers={teamMembers}
       />
     ),
@@ -255,7 +251,7 @@ const EventTypeWeb = ({
       <EventAdvancedTab
         eventType={eventType}
         team={team}
-        user={loggedInUser}
+        user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
       />
