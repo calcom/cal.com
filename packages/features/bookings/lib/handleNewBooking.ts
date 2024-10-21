@@ -948,6 +948,7 @@ async function handler(
       },
       evt,
       originalRescheduledBooking,
+      actorUserId: userId,
     });
 
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
@@ -1343,6 +1344,7 @@ async function handler(
             },
             data: {
               iCalUID: evt.iCalUID || booking.iCalUID,
+              actorUserId: userId,
             },
           });
         }
@@ -1608,6 +1610,7 @@ async function handler(
             data: referencesToCreate,
           },
         },
+        actorUserId: userId,
       },
     });
   } catch (error) {

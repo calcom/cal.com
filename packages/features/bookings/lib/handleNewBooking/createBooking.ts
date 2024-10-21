@@ -51,6 +51,7 @@ type CreateBookingParams = {
   };
   evt: CalendarEvent;
   originalRescheduledBooking: OriginalRescheduledBooking;
+  actorUserId?: number;
 };
 
 function updateEventDetails(
@@ -85,6 +86,7 @@ export async function createBooking({
   routingFormResponseId,
   reroutingFormResponses,
   rescheduledBy,
+  actorUserId,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) {
   updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer);
   const associatedBookingForFormResponse = routingFormResponseId
@@ -101,6 +103,7 @@ export async function createBooking({
     input,
     evt,
     originalRescheduledBooking,
+    actorUserId,
   });
 
   return await saveBooking(
@@ -211,6 +214,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     routingFormResponseId,
     reroutingFormResponses,
     rescheduledBy,
+    actorUserId,
   } = params;
 
   const attendeesData = getAttendeesData(evt);
@@ -258,6 +262,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     routedFromRoutingFormReponse: routingFormResponseId
       ? { connect: { id: routingFormResponseId } }
       : undefined,
+    actorUserId,
   };
 
   if (reqBody.recurringEventId) {
