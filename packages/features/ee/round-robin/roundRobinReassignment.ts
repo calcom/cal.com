@@ -9,6 +9,7 @@ import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSM
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import {
   scheduleEmailReminder,
@@ -32,7 +33,6 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
-import { validateAndFetchBookingAndEventType } from "./utils/validate";
 
 export const roundRobinReassignment = async ({
   bookingId,
@@ -45,15 +45,36 @@ export const roundRobinReassignment = async ({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
 
-  const validatedBookingAndEventType = await validateAndFetchBookingAndEventType({
-    bookingId,
-    logger: roundRobinReassignLogger,
+  let booking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: bookingSelect,
   });
 
-  const { eventType } = validatedBookingAndEventType;
-  let booking = validatedBookingAndEventType.booking;
+  if (!booking) {
+    logger.error(`Booking ${bookingId} not found`);
+    throw new Error("Booking not found");
+  }
 
-  const eventTypeId = eventType.id;
+  if (!booking.user) {
+    logger.error(`No user associated with booking ${bookingId}`);
+    throw new Error("Booking not found");
+  }
+
+  const eventTypeId = booking.eventTypeId;
+
+  if (!eventTypeId) {
+    logger.error(`Booking ${bookingId} does not have an event type id`);
+    throw new Error("Event type not found");
+  }
+
+  const eventType = await getEventTypesFromDB(eventTypeId);
+
+  if (!eventType) {
+    logger.error(`Event type ${eventTypeId} not found`);
+    throw new Error("Event type not found");
+  }
 
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
