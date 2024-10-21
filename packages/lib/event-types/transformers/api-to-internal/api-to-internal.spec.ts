@@ -19,6 +19,9 @@ import type {
   CreateEventTypeInput_2024_06_14,
   SeatOptionsTransformedSchema,
   SeatOptionsDisabledSchema,
+  AttendeeAddressLocation_2024_06_14,
+  AttendeePhoneLocation_2024_06_14,
+  AttendeeDefinedLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { CustomField } from "../internal-to-api/booking-fields";
@@ -100,6 +103,45 @@ describe("transformLocationsApiToInternal", () => {
 
     const result = transformLocationsApiToInternal(input);
 
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee address", () => {
+    const input: AttendeeAddressLocation_2024_06_14[] = [
+      {
+        type: "attendeeAddress",
+      },
+    ];
+
+    const expectedOutput = [{ type: "attendeeInPerson" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee phone", () => {
+    const input: AttendeePhoneLocation_2024_06_14[] = [
+      {
+        type: "attendeePhone",
+      },
+    ];
+
+    const expectedOutput = [{ type: "phone" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee defined", () => {
+    const input: AttendeeDefinedLocation_2024_06_14[] = [
+      {
+        type: "attendeeDefined",
+      },
+    ];
+
+    const expectedOutput = [{ type: "somewhereElse" }];
+
+    const result = transformLocationsApiToInternal(input);
     expect(result).toEqual(expectedOutput);
   });
 });
