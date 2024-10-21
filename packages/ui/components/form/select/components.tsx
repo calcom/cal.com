@@ -23,6 +23,7 @@ export const InputComponent = <
         inputClassName
       )}
       {...props}
+      aria-label="Timezone Selection"
     />
   );
 };
