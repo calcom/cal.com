@@ -41,6 +41,7 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: {
     atomsWrapper?: string;
   };
+  disableToasts?: boolean;
 };
 
 const EventType = ({
@@ -52,6 +53,7 @@ const EventType = ({
   id,
   allowDelete = true,
   customClassNames,
+  disableToasts = false,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -129,7 +131,9 @@ const EventType = ({
   const slug = form.watch("slug") ?? eventType.slug;
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
-    toast({ description: message });
+    if (!disableToasts) {
+      toast({ description: message });
+    }
   };
 
   const tabMap = {

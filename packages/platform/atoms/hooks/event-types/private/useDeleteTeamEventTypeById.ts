@@ -9,10 +9,15 @@ import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-delete-team-event-by-id";
 export type UseDeleteTeamEventTypeProps = {
-  onSuccess?: () => void;
+  onSuccess?: (data: ResponseDataType) => void;
   onError?: (err: Error) => void;
   onSettled?: () => void;
 };
+
+export type ResponseDataType = NonNullable<
+  Pick<EventType, "id" | "slug" | "title"> & { lengthInMinutes: number }
+>;
+
 export const useDeleteTeamEventTypeById = ({
   onSuccess,
   onError,
@@ -30,9 +35,9 @@ export const useDeleteTeamEventTypeById = ({
       if (!organizationId) throw new Error("organization id is required");
 
       const pathname = `/organizations/${organizationId}/teams/${teamId}/${V2_ENDPOINTS.eventTypes}/${eventTypeId}`;
-      return http?.delete<ApiResponse<EventType>>(pathname).then((res) => {
+      return http?.delete<ApiResponse<ResponseDataType>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return (res.data as ApiSuccessResponse<EventType>).data;
+          return (res.data as ApiSuccessResponse<ResponseDataType>).data;
         }
         throw new Error(res.data.error.message);
       });
