@@ -36,8 +36,6 @@ const webServer: PlaywrightTestConfig["webServer"] = [
 ];
 
 if (IS_EMBED_TEST) {
-  ensureAppServerIsReadyToServeEmbed(webServer[0]);
-
   webServer.push({
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
@@ -47,8 +45,6 @@ if (IS_EMBED_TEST) {
 }
 
 if (IS_EMBED_REACT_TEST) {
-  ensureAppServerIsReadyToServeEmbed(webServer[0]);
-
   webServer.push({
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
