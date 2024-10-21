@@ -1,7 +1,9 @@
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -20,6 +22,8 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
+import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
   offset: number;
@@ -27,6 +31,7 @@ export type BookingRedirectForm = {
   reasonId: number;
   notes?: string;
   uuid?: string | null;
+  forUserId: number | null;
 };
 
 type Option = { value: number; label: string };
@@ -35,19 +40,37 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
   currentlyEditingOutOfOfficeEntry,
+  setOOOEntriesUpdated,
+  setOOOEntriesAdded,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
+  setOOOEntriesUpdated?: Dispatch<SetStateAction<number>> | undefined;
+  setOOOEntriesAdded?: Dispatch<SetStateAction<number>> | undefined;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
+
+  const searchParams = useCompatSearchParams();
+  const oooType = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const { data: listMembers } = trpc.viewer.teams.legacyListMembers.useQuery({});
 
   const me = useMeQuery();
+  const forwardingMemberListOptions: {
+    value: number;
+    label: string;
+  }[] =
+    listMembers
+      ?.filter((member) =>
+        oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
+      )
+      .map((member) => ({
+        value: member.id,
+        label: member.name || "",
+      })) || [];
 
-  const memberListOptions: {
+  const oooMemberListOptions: {
     value: number;
     label: string;
   }[] =
@@ -75,6 +98,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     control,
     register,
     formState: { isSubmitting },
+    getValues,
   } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
       ? currentlyEditingOutOfOfficeEntry
@@ -86,6 +110,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
           reasonId: 1,
+          forUserId: null,
         },
   });
 
@@ -97,7 +122,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      utils.viewer.outOfOfficeEntriesList.invalidate();
+      if (setOOOEntriesUpdated) {
+        setOOOEntriesUpdated((previousValue) => previousValue + 1);
+      }
+      if (setOOOEntriesAdded && !currentlyEditingOutOfOfficeEntry) {
+        setOOOEntriesAdded((previousValue) => previousValue + 1);
+      }
       closeModal();
     },
     onError: (error) => {
@@ -125,9 +155,48 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           <div className="h-full px-1">
             <DialogHeader
               title={
-                currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")
+                currentlyEditingOutOfOfficeEntry
+                  ? t("edit_an_out_of_office")
+                  : oooType === "team"
+                  ? t("create_ooo_dialog_team_title")
+                  : t("create_an_out_of_office")
+              }
+              subtitle={
+                oooType === "team"
+                  ? currentlyEditingOutOfOfficeEntry
+                    ? t("edit_ooo_dialog_team_subtitle")
+                    : t("create_ooo_dialog_team_subtitle")
+                  : undefined
               }
             />
+
+            {/* In case of Team, Select Member for whom OOO is created */}
+            {oooType === "team" && (
+              <div className="mb-3 mt-4 h-16">
+                <p className="text-emphasis mb-1 block text-sm font-medium">{t("team_member")}</p>
+                <Controller
+                  control={control}
+                  name="forUserId"
+                  render={({ field: { onChange, value } }) => (
+                    <Select<Option>
+                      name="oooForUsername"
+                      data-testid="oooFor_username_select"
+                      value={oooMemberListOptions.find((member) => member.value === value)}
+                      placeholder={t("select_team_member")}
+                      isSearchable
+                      options={oooMemberListOptions}
+                      onChange={(selectedOption) => {
+                        if (selectedOption?.value) {
+                          onChange(selectedOption.value);
+                        }
+                      }}
+                      isDisabled={!!currentlyEditingOutOfOfficeEntry}
+                    />
+                  )}
+                />
+              </div>
+            )}
+
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
@@ -211,7 +280,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               {profileRedirect && (
                 <div className="mt-4">
                   <div className="h-16">
-                    <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+                    <p className="text-emphasis mb-1 block text-sm font-medium">{t("team_member")}</p>
                     <Controller
                       control={control}
                       name="toTeamUserId"
@@ -219,10 +288,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Select<Option>
                           name="toTeamUsername"
                           data-testid="team_username_select"
-                          value={memberListOptions.find((member) => member.value === value)}
+                          value={forwardingMemberListOptions.find((member) => member.value === value)}
                           placeholder={t("select_team_member")}
                           isSearchable
-                          options={memberListOptions}
+                          options={forwardingMemberListOptions.filter(
+                            (option) => option.value !== getValues("forUserId")
+                          )}
                           onChange={(selectedOption) => {
                             if (selectedOption?.value) {
                               onChange(selectedOption.value);

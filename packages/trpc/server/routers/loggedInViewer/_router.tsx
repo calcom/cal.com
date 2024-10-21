@@ -14,7 +14,9 @@ import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLi
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
-import { ZOutOfOfficeInputSchema, ZOutOfOfficeDelete } from "./outOfOffice.schema";
+import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
+import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
+import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
 import { me } from "./procedures/me";
 import { platformMe } from "./procedures/platformMe";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
@@ -57,9 +59,9 @@ type AppsRouterHandlerCache = {
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
-  outOfOfficeCreateOrUpdate?: typeof import("./outOfOffice.handler").outOfOfficeCreateOrUpdate;
-  outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
-  outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
+  outOfOfficeCreateOrUpdate?: typeof import("./outOfOfficeCreateOrUpdate.handler").outOfOfficeCreateOrUpdate;
+  outOfOfficeEntriesList?: typeof import("./outOfOfficeEntriesList.handler").outOfOfficeEntriesList;
+  outOfOfficeEntryDelete?: typeof import("./outOfOfficeEntryDelete.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
   getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
   outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
@@ -429,7 +431,7 @@ export const loggedInViewerRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
         UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate = (
-          await import("./outOfOffice.handler")
+          await import("./outOfOfficeCreateOrUpdate.handler")
         ).outOfOfficeCreateOrUpdate;
       }
 
@@ -440,10 +442,10 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate({ ctx, input });
     }),
-  outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
+  outOfOfficeEntriesList: authedProcedure.input(ZOutOfOfficeEntriesListSchema).query(async (opts) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
       UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (
-        await import("./outOfOffice.handler")
+        await import("./outOfOfficeEntriesList.handler")
       ).outOfOfficeEntriesList;
     }
 
@@ -452,12 +454,12 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList({ ctx });
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList(opts);
   }),
   outOfOfficeEntryDelete: authedProcedure.input(ZOutOfOfficeDelete).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete) {
       UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete = (
-        await import("./outOfOffice.handler")
+        await import("./outOfOfficeEntryDelete.handler")
       ).outOfOfficeEntryDelete;
     }
 
