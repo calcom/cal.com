@@ -1,0 +1,5 @@
+services:
+  stripe-mock-server:
+    image: stripe/stripe-mock:latest
+    ports:
+      - "12111-12112:12111-12112"

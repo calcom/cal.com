@@ -18,4 +18,7 @@ function setEnvVariablesThatAreUsedBeforeSetup() {
   process.env.DAILY_API_KEY = "MOCK_DAILY_API_KEY";
   // With same env variable, we can test both non org and org booking scenarios
   process.env.NEXT_PUBLIC_WEBAPP_URL = "http://app.cal.local:3000";
+  // To mock stripe calls
+  process.env.STRIPE_MOCK_HOST = "localhost";
+  process.env.STRIPE_MOCK_PORT = 12111;
 }
