@@ -1797,6 +1797,7 @@
   "wrong_code": "잘못된 인증 코드",
   "not_verified": "아직 인증되지 않음",
   "no_availability_in_month": "{{month}}에 이용 불가",
+  "view_previous_month": "이전 달 보기",
   "view_next_month": "다음 달 보기",
   "send_code": "코드 전송",
   "number_verified": "번호 인증됨",

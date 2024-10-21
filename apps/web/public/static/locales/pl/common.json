@@ -1797,6 +1797,7 @@
   "wrong_code": "Nieprawidłowy kod weryfikacyjny",
   "not_verified": "Jeszcze nie zweryfikowano",
   "no_availability_in_month": "Brak dostępności w danym miesiącu ({{month}})",
+  "view_previous_month": "Zobacz poprzedni miesiąc",
   "view_next_month": "Wyświetl następny miesiąc",
   "send_code": "Wyślij kod",
   "number_verified": "Numer zweryfikowany",

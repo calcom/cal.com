@@ -1797,6 +1797,7 @@
   "wrong_code": "Forkert bekræftelseskode",
   "not_verified": "Endnu ikke bekræftet",
   "no_availability_in_month": "Ingen tilgængelighed i {{month}}",
+  "view_previous_month": "Se forrige måned",
   "view_next_month": "Vis næste måned",
   "send_code": "Send kode",
   "number_verified": "Nummer Bekræftet",

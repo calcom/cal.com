@@ -1797,6 +1797,7 @@
   "wrong_code": "កូដផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវ",
   "not_verified": "មិនទាន់បានផ្ទៀងផ្ទាត់",
   "no_availability_in_month": "គ្មានភាពអាចប្រើបានក្នុងខែ {{month}}",
+  "view_previous_month": "មើលខែមុន",
   "view_next_month": "មើលខែក្រោយ",
   "send_code": "ផ្ញើកូដ",
   "number_verified": "លេខបានផ្ទៀងផ្ទាត់",
