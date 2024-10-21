@@ -7,13 +7,17 @@ import type { EventType } from "@calcom/prisma/client";
 import http from "../../../lib/http";
 import { useAtomsContext } from "../../useAtomsContext";
 
-export const QUERY_KEY = "use-delete-team- event-by-id";
-export type UseDeleteEventTypeProps = {
+export const QUERY_KEY = "use-delete-team-event-by-id";
+export type UseDeleteTeamEventTypeProps = {
   onSuccess?: () => void;
   onError?: (err: Error) => void;
   onSettled?: () => void;
 };
-export const useDeleteTeamEventTypeById = ({ onSuccess, onError, onSettled }: UseDeleteEventTypeProps) => {
+export const useDeleteTeamEventTypeById = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: UseDeleteTeamEventTypeProps) => {
   const { organizationId } = useAtomsContext();
 
   return useMutation({
