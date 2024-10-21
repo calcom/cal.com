@@ -322,6 +322,11 @@ const nextConfig = {
         source: "/login",
         destination: "/auth/login",
       },
+      // Setup reverse proxy for dub analytics
+      {
+        source: "/_proxy/dub/track/click",
+        destination: "https://api.dub.co/track/click",
+      },
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(isOrganizationsEnabled
         ? [
