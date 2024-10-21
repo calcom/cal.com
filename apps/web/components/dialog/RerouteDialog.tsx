@@ -27,7 +27,6 @@ import type { Ensure } from "@calcom/types/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 import { Button, Tooltip } from "@calcom/ui";
 import { showToast } from "@calcom/ui/components/toast";
-import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
 const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
@@ -599,9 +598,9 @@ const NewRoutingManager = ({
   }
 
   function reroutingCTAs() {
-    if(chosenRoute.action.type !== RouteActionType.EventTypeRedirectUrl) {
+    if (chosenRoute.action.type !== RouteActionType.EventTypeRedirectUrl) {
       // There are no actions to perform if the new chosen route isn't an event type redirect
-      return null
+      return null;
     }
     const shouldDisableCTAs = teamMembersMatchingAttributeLogic.isPending || createBookingMutation.isPending;
     return (
@@ -766,7 +765,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
       onSuccess(data) {
-        setTeamMembersMatchingAttributeLogic(data);
+        setTeamMembersMatchingAttributeLogic(data.result);
       },
     });
 
