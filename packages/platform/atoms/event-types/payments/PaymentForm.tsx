@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense } from "react";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -7,7 +7,8 @@ import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { isBrowserLocale24h, getIs24hClockFromLocalStorage } from "@calcom/lib/timeFormat";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { localStorage } from "@calcom/lib/webstorage";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
@@ -15,23 +16,18 @@ import { useAtomsEventTypePaymentInfo } from "../hooks/useAtomEventTypePaymentIn
 
 const StripePaymentForm = React.lazy(() => import("./StripePaymentForm"));
 
-const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
+export const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
   const { t, i18n } = useLocale();
+
   const { data: paymentInfo, isLoading } = useAtomsEventTypePaymentInfo(paymentUid);
 
-  const [is24h, setIs24h] = useState(isBrowserLocale24h());
-  const [date, setDate] = useState(dayjs.utc(paymentInfo?.booking.startTime));
-  const [timezone, setTimezone] = useState<string | null>(null);
   const paymentAppData = getPaymentAppData(paymentInfo?.eventType);
   const eventName = paymentInfo?.booking.title;
 
-  useEffect(() => {
-    const _timezone =
-      localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
-    setTimezone(_timezone);
-    setDate(date.tz(_timezone));
-    setIs24h(!!getIs24hClockFromLocalStorage());
-  }, []);
+  const is24h = isBrowserLocale24h();
+  const timezone =
+    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
+  const date = dayjs.utc(paymentInfo?.booking.startTime).tz(timezone);
 
   if (isLoading) return <>Loading...</>;
 
@@ -134,5 +130,3 @@ const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
     </AtomsWrapper>
   );
 };
-
-export default PaymentForm;
