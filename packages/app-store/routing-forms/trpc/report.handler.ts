@@ -52,13 +52,18 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
       formId: input.formId,
       ...prismaWhere,
     },
+    include: {
+      routedToBooking: {
+        include: { user: true },
+      },
+    },
     take,
     skip,
   });
 
   const fields = serializedForm?.fields || [];
   const { responses, headers } = buildResponsesForReporting({
-    responsesFromDb: rows.map((r) => r.response),
+    responsesFromDb: rows,
     fields,
   });
 
@@ -76,10 +81,12 @@ export function buildResponsesForReporting({
   responsesFromDb,
   fields,
 }: {
-  responsesFromDb: App_RoutingForms_FormResponse["response"][];
+  responsesFromDb: App_RoutingForms_FormResponse[];
   fields: Pick<z.infer<typeof zodFieldView>, "id" | "options" | "label" | "deleted">[];
 }) {
   const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
+  headers.push("Routed To");
+  headers.push("Booked At");
   const responses: string[][] = [];
   responsesFromDb.forEach((r) => {
     const rowResponses: string[] = [];
@@ -100,6 +107,8 @@ export function buildResponsesForReporting({
         rowResponses.push(transformedValue);
       }
     });
+    rowResponses.push(r.routedToBooking?.user.name);
+    rowResponses.push(r.routedToBooking?.createdAt);
   });
 
   return { responses, headers };
