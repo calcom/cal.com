@@ -1,6 +1,7 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
@@ -21,13 +22,24 @@ function mockAttributesScenario({
   teamMembersWithAttributeOptionValuePerAttribute,
 }: {
   attributes: Awaited<ReturnType<typeof getAttributesModule.getAttributesForTeam>>;
-  teamMembersWithAttributeOptionValuePerAttribute: Awaited<
-    ReturnType<typeof getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute>
-  >;
+  teamMembersWithAttributeOptionValuePerAttribute: {
+    userId: number;
+    attributes: Record<string, string | string[]>;
+  }[];
 }) {
   vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
   vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
-    teamMembersWithAttributeOptionValuePerAttribute
+    teamMembersWithAttributeOptionValuePerAttribute.map((member) => ({
+      ...member,
+      attributes: Object.fromEntries(
+        Object.entries(member.attributes).map(([attributeId, value]) => {
+          return [
+            attributeId,
+            { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
+          ];
+        })
+      ),
+    }))
   );
 }
 
@@ -141,7 +153,7 @@ function buildRoute({
 }: {
   id: string;
   action: {
-    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    type: RouteActionType;
     value: string;
   };
   queryValue: FormFieldsQueryValue;
@@ -164,7 +176,7 @@ function buildDefaultCustomPageRoute({
 }) {
   return buildRoute({
     id,
-    action: { type: "customPageMessage", value: "test" },
+    action: { type: RouteActionType.CustomPageMessage, value: "test" },
     queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
     attributesQueryValue,
   });
@@ -175,15 +187,17 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     vi.resetAllMocks();
   });
 
-  it("should return null if route is not found", async () => {
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: { routes: [], fields: [] },
-      response: {},
-      routeId: "non-existent-route",
-      teamId: 1,
-    });
+  it("should return null if route is not found and troubleshooter should also be null by default", async () => {
+    const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
+      await findTeamMembersMatchingAttributeLogicOfRoute({
+        form: { routes: [], fields: [] },
+        response: {},
+        routeId: "non-existent-route",
+        teamId: 1,
+      });
 
     expect(result).toBeNull();
+    expect(troubleshooter).toBeNull();
   });
 
   it("should return null if the route does not have an attributesQueryValue set", async () => {
@@ -193,7 +207,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           {
             id: "test-route",
             queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
-            action: { type: "customPageMessage", value: "test" },
+            action: { type: RouteActionType.CustomPageMessage, value: "test" },
           },
         ],
         fields: [],
@@ -206,7 +220,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     expect(result).toBeNull();
   });
 
-  it("should return matching team members with a SINGLE_SELECT attribute when a static option is selected", async () => {
+  it("should return matching team members with a SINGLE_SELECT attribute when a static option is selected and troubleshooter should be null by default", async () => {
     const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
     const Attribute1 = {
       id: "attr1",
@@ -233,24 +247,25 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: {
-        routes: [
-          {
-            id: "test-route",
-            action: { type: "customPageMessage", value: "test" },
-            queryValue: {
-              type: "group",
-            } as unknown as FormFieldsQueryValue,
-            attributesQueryValue: attributesQueryValue,
-          },
-        ],
-        fields: [],
-      },
-      response: {},
-      routeId: "test-route",
-      teamId: 1,
-    });
+    const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
+      await findTeamMembersMatchingAttributeLogicOfRoute({
+        form: {
+          routes: [
+            {
+              id: "test-route",
+              action: { type: RouteActionType.CustomPageMessage, value: "test" },
+              queryValue: {
+                type: "group",
+              } as unknown as FormFieldsQueryValue,
+              attributesQueryValue: attributesQueryValue,
+            },
+          ],
+          fields: [],
+        },
+        response: {},
+        routeId: "test-route",
+        teamId: 1,
+      });
 
     expect(result).toEqual([
       {
@@ -258,6 +273,8 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         result: RaqbLogicResult.MATCH,
       },
     ]);
+
+    expect(troubleshooter).toBeNull();
   });
 
   it("should return matching team members with a SINGLE_SELECT attribute when 'Value of Field' option is selected", async () => {
@@ -336,10 +353,8 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     ]);
   });
 
-  it("should return matching team members with a SINGLE_SELECT attribute when 'Any in' option is selected", async () => {
+  it("should return matching team members with a SINGLE_SELECT attribute when 'Any in'(select_any_in) option is selected", async () => {
     const Option1OfAttribute1HumanReadableValue = "Option 1";
-    const Option1OfField1HumanReadableValue = Option1OfAttribute1HumanReadableValue;
-    const Field1Id = "field-1";
 
     const Option1OfAttribute1 = {
       id: "attr-1-opt-1",
@@ -380,6 +395,151 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           raqbFieldId: Attribute1.id,
           value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
           operator: "select_any_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
+      form: {
+        routes: [
+          buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: attributesQueryValue,
+          }),
+        ],
+        fields: [],
+      },
+      response: {},
+      routeId: "test-route",
+      teamId: 1,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should return matching team members with a MULTI_SELECT attribute when 'Any in'(multiselect_some_in) option is selected and just one option is used in attribute for the user", async () => {
+    const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+    const Option1OfAttribute1 = {
+      id: "attr-1-opt-1",
+      value: Option1OfAttribute1HumanReadableValue,
+      slug: "option-1",
+    };
+
+    const Option2OfAttribute1 = {
+      id: "attr-1-opt-2",
+      value: "Option 2",
+      slug: "option-2",
+    };
+
+    const Option3OfAttribute1 = {
+      id: "attr-1-opt-3",
+      value: "Option 3",
+      slug: "option-3",
+    };
+
+    const Attribute1 = {
+      id: "attr1",
+      name: "Attribute 1",
+      type: "MULTI_SELECT" as const,
+      slug: "attribute-1",
+      options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+    };
+
+    mockAttributesScenario({
+      attributes: [Attribute1],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        // user 1 has only one option selected for the attribute
+        { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: Attribute1.id,
+          value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
+          operator: "multiselect_some_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
+      form: {
+        routes: [
+          buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: attributesQueryValue,
+          }),
+        ],
+        fields: [],
+      },
+      response: {},
+      routeId: "test-route",
+      teamId: 1,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should return matching team members with a MULTI_SELECT attribute when 'Any in'(multiselect_some_in) option is selected and more than one option is used in attribute for the user", async () => {
+    const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+    const Option1OfAttribute1 = {
+      id: "attr-1-opt-1",
+      value: Option1OfAttribute1HumanReadableValue,
+      slug: "option-1",
+    };
+
+    const Option2OfAttribute1 = {
+      id: "attr-1-opt-2",
+      value: "Option 2",
+      slug: "option-2",
+    };
+
+    const Option3OfAttribute1 = {
+      id: "attr-1-opt-3",
+      value: "Option 3",
+      slug: "option-3",
+    };
+
+    const Attribute1 = {
+      id: "attr1",
+      name: "Attribute 1",
+      type: "MULTI_SELECT" as const,
+      slug: "attribute-1",
+      options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+    };
+
+    mockAttributesScenario({
+      attributes: [Attribute1],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        {
+          userId: 1,
+          // user 1 has two options selected for the attribute
+          attributes: { [Attribute1.id]: [Option2OfAttribute1.value, Option1OfAttribute1.value] },
+        },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: Attribute1.id,
+          value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
+          operator: "multiselect_some_in",
           valueType: ["multiselect"],
         },
       ],
@@ -453,12 +613,164 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         })
       ).rejects.toThrow("Unsupported attribute type");
     });
+
+    it("should not throw error in live (non-preview) mode but should throw in preview mode", async () => {
+      const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+      const Option1OfAttribute1 = {
+        id: "attr-1-opt-1",
+        value: Option1OfAttribute1HumanReadableValue,
+        slug: "option-1",
+      };
+
+      const Option2OfAttribute1 = {
+        id: "attr-1-opt-2",
+        value: "Option 2",
+        slug: "option-2",
+      };
+
+      const Option3OfAttribute1 = {
+        id: "attr-1-opt-3",
+        value: "Option 3",
+        slug: "option-3",
+      };
+
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [["NON_EXISTING_OPTION_1", "NON_EXISTING_OPTION_2"]],
+            operator: "select_any_in",
+            valueType: ["multiselect"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      async function runInMode({ mode }: { mode: "preview" | "live" }) {
+        const { teamMembersMatchingAttributeLogic: result } =
+          await findTeamMembersMatchingAttributeLogicOfRoute({
+            form: {
+              routes: [
+                buildDefaultCustomPageRoute({
+                  id: "test-route",
+                  attributesQueryValue: attributesQueryValue,
+                }),
+              ],
+              fields: [],
+            },
+            response: {},
+            routeId: "test-route",
+            teamId: 1,
+            isPreview: mode === "preview" ? true : false,
+          });
+        return result;
+      }
+
+      await (async function liveMode() {
+        const result = await runInMode({ mode: "live" });
+        expect(result).toEqual([]);
+      })();
+
+      await (async function previewMode() {
+        expect(() => runInMode({ mode: "preview" })).rejects.toThrow(
+          /Value NON_EXISTING_OPTION_1 is not in list of values/
+        );
+      })();
+    });
+
+    it("should not throw error if children1 is empty", async () => {
+      const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+      const Option1OfAttribute1 = {
+        id: "attr-1-opt-1",
+        value: Option1OfAttribute1HumanReadableValue,
+        slug: "option-1",
+      };
+
+      const Option2OfAttribute1 = {
+        id: "attr-1-opt-2",
+        value: "Option 2",
+        slug: "option-2",
+      };
+
+      const Option3OfAttribute1 = {
+        id: "attr-1-opt-3",
+        value: "Option 3",
+        slug: "option-3",
+      };
+
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const attributesQueryValue = buildQueryValue({
+        rules: [],
+      }) as AttributesQueryValue;
+
+      expect(attributesQueryValue.children1).toEqual({});
+
+      async function runInMode({ mode }: { mode: "preview" | "live" }) {
+        const { teamMembersMatchingAttributeLogic: result } =
+          await findTeamMembersMatchingAttributeLogicOfRoute({
+            form: {
+              routes: [
+                buildDefaultCustomPageRoute({
+                  id: "test-route",
+                  attributesQueryValue: attributesQueryValue,
+                }),
+              ],
+              fields: [],
+            },
+            response: {},
+            routeId: "test-route",
+            teamId: 1,
+            isPreview: mode === "preview" ? true : false,
+          });
+        return result;
+      }
+
+      await (async function liveMode() {
+        const result = await runInMode({ mode: "live" });
+        expect(result).toEqual(null);
+      })();
+
+      await (async function previewMode() {
+        const result = await runInMode({ mode: "preview" });
+        expect(result).toEqual(null);
+      })();
+    });
   });
 
   describe("Performance testing", () => {
     describe("20 attributes, 4000 team members", async () => {
       // In tests, the performance is actually really bad than real world. So, skipping this test for now
-      it.skip("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
+      it("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
         const { attributes } = mockHugeAttributesOfTypeSingleSelect({
           numAttributes: 20,
           numOptionsPerAttribute: 30,
@@ -503,13 +815,30 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               userId: 1,
               result: RaqbLogicResult.MATCH,
             },
+            {
+              userId: 2,
+              result: RaqbLogicResult.MATCH,
+            },
+            {
+              userId: 3,
+              result: RaqbLogicResult.MATCH,
+            },
+            {
+              userId: 2000,
+              result: RaqbLogicResult.MATCH,
+            },
+            // Last Item
+            {
+              userId: 4000,
+              result: RaqbLogicResult.MATCH,
+            },
           ])
         );
 
         if (!timeTaken) {
           throw new Error("Looks like performance testing is not enabled");
         }
-        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => sum ?? 0 + (time || 0), 0);
+        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => (sum ?? 0) + (time ?? 0), 0);
         console.log("Total time taken", totalTimeTaken, {
           timeTaken,
         });
@@ -517,6 +846,85 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         // All of them should match
         expect(result?.length).toBe(4000);
       }, 10000);
+    });
+  });
+
+  describe("Troubleshooter", () => {
+    it("troubleshooter data should be there when enableTroubleshooter is true", async () => {
+      const Option1OfAttribute1HumanReadableValue = "Option 1";
+
+      const Option1OfAttribute1 = {
+        id: "attr-1-opt-1",
+        value: Option1OfAttribute1HumanReadableValue,
+        slug: "option-1",
+      };
+
+      const Option2OfAttribute1 = {
+        id: "attr-1-opt-2",
+        value: "Option 2",
+        slug: "option-2",
+      };
+
+      const Option3OfAttribute1 = {
+        id: "attr-1-opt-3",
+        value: "Option 3",
+        slug: "option-3",
+      };
+
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [[Option1OfAttribute1.id, Option2OfAttribute1.id]],
+            operator: "select_any_in",
+            valueType: ["multiselect"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
+        await findTeamMembersMatchingAttributeLogicOfRoute(
+          {
+            form: {
+              routes: [
+                buildDefaultCustomPageRoute({
+                  id: "test-route",
+                  attributesQueryValue: attributesQueryValue,
+                }),
+              ],
+              fields: [],
+            },
+            response: {},
+            routeId: "test-route",
+            teamId: 1,
+          },
+          {
+            enableTroubleshooter: true,
+          }
+        );
+
+      expect(result).toEqual([
+        {
+          userId: 1,
+          result: RaqbLogicResult.MATCH,
+        },
+      ]);
+      expect(troubleshooter).not.toBeNull();
     });
   });
 });

@@ -297,10 +297,26 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   )[0];
 
   const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+    
+  // TODO: It uses default timezone of user. Should we use timezone of team ?
+  const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
+  
+  const fallbackSchedule = {
+    availability: [
+      {
+        startTime: new Date("1970-01-01T09:00:00Z"),
+        endTime: new Date("1970-01-01T17:00:00Z"),
+        days: [1, 2, 3, 4, 5], // Monday to Friday
+        date: null,
+      },
+    ],
+    id: 0,
 
-  const schedule = eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule;
+    timeZone: fallbackTimezoneIfScheduleIsMissing
+  };
 
-  const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
+  const schedule = (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ?? fallbackSchedule
+  const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);

@@ -25,7 +25,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { prisma, user } = ctx;
-  const { formId, response, routeId, _enablePerf, _concurrency } = input;
+  const { formId, response, routeId, isPreview, _enablePerf, _concurrency } = input;
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
@@ -53,34 +53,47 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     timeTaken: teamMembersMatchingAttributeLogicTimeTaken,
+    troubleshooter,
   } = await findTeamMembersMatchingAttributeLogicOfRoute(
     {
       response,
       routeId,
       form: serializableForm,
       teamId: form.teamId,
+      isPreview: !!isPreview,
     },
     {
       enablePerf: _enablePerf,
+      // Reuse same flag for enabling troubleshooter. We would normall use them together
+      enableTroubleshooter: _enablePerf,
       concurrency: _concurrency,
     }
   );
 
   if (!matchingTeamMembersWithResult) {
-    return null;
+    return {
+      troubleshooter,
+      result: null,
+    };
   }
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
   const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
 
+  console.log("_enablePerf, _concurrency", _enablePerf, _concurrency);
   if (_enablePerf) {
-    ctx.res?.setHeader("Server-Timing", getServerTimingHeader(teamMembersMatchingAttributeLogicTimeTaken));
+    const serverTimingHeader = getServerTimingHeader(teamMembersMatchingAttributeLogicTimeTaken);
+    ctx.res?.setHeader("Server-Timing", serverTimingHeader);
+    console.log("Server-Timing", serverTimingHeader);
   }
 
-  return matchingTeamMembers.map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-  }));
+  return {
+    troubleshooter,
+    result: matchingTeamMembers.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    })),
+  };
 };
 
 function getServerTimingHeader(timeTaken: {
@@ -90,14 +103,16 @@ function getServerTimingHeader(timeTaken: {
   lgcFrMbrs: number | null;
   gQryVal: number | null;
 }) {
-  const headerParts = Object.entries(timeTaken).map(([key, value]) => {
-    if (value !== null) {
-      return `${key};dur=${value}`;
-    }
-    return null;
-  }).filter(Boolean);
+  const headerParts = Object.entries(timeTaken)
+    .map(([key, value]) => {
+      if (value !== null) {
+        return `${key};dur=${value}`;
+      }
+      return null;
+    })
+    .filter(Boolean);
 
-  return headerParts.join(', ');
+  return headerParts.join(", ");
 }
 
 export default findTeamMembersMatchingAttributeLogicHandler;
