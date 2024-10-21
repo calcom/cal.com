@@ -24,6 +24,7 @@ import EventAvailabilityTabPlatformWrapper from "./EventAvailabilityTabPlatformW
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
+import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
 
@@ -99,9 +100,13 @@ const EventType = ({
       toast({ description: message ? t(message) : t(err.message) });
       onError?.(currentValues, err);
     },
+    teamId: team?.id,
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: (data) => updateMutation.mutate(data),
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
@@ -121,11 +126,20 @@ const EventType = ({
       <></>
     ),
     availability: tabs.includes("availability") ? (
-      <EventAvailabilityTabPlatformWrapper eventType={eventType} isTeamEvent={!!team} user={user?.data} />
+      <EventAvailabilityTabPlatformWrapper
+        eventType={eventType}
+        isTeamEvent={!!team}
+        user={user?.data}
+        teamId={team?.id}
+      />
     ) : (
       <></>
     ),
-    team: <></>,
+    team: tabs.includes("team") ? (
+      <EventTeamAssignmentTabPlatformWrapper team={team} eventType={eventType} teamMembers={teamMembers} />
+    ) : (
+      <></>
+    ),
     advanced: tabs.includes("advanced") ? (
       <EventAdvancedPlatformWrapper
         eventType={eventType}

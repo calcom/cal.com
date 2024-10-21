@@ -2005,7 +2005,7 @@
     "/v2/organizations/{orgId}/teams/me": {
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
-        "summary": "Get team membership for user",
+        "summary": "Get teams membership for user",
         "parameters": [
           {
             "name": "orgId",
@@ -2409,6 +2409,38 @@
         },
         "tags": [
           "Orgs / Teams / Memberships"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
+        "summary": "Get schedules of a team member",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Schedules",
+          "Orgs / Teams / Users / Schedules"
         ]
       }
     },
@@ -10447,6 +10479,26 @@
           "data"
         ]
       },
+      "MembershipUserOutputDto": {
+        "type": "object",
+        "properties": {
+          "avatarUrl": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
       "OrgTeamMembershipOutputDto": {
         "type": "object",
         "properties": {
@@ -10472,6 +10524,9 @@
           },
           "disableImpersonation": {
             "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
           }
         },
         "required": [
@@ -10479,7 +10534,8 @@
           "id",
           "userId",
           "teamId",
-          "accepted"
+          "accepted",
+          "user"
         ]
       },
       "OrgTeamMembershipsOutputResponseDto": {
@@ -12223,6 +12279,12 @@
               "type": "string"
             }
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
           "location": {
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
@@ -12234,6 +12296,11 @@
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurrenceCount": {
+            "type": "number",
+            "description": "The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than\n    event type recurrence count",
+            "example": 5
           }
         },
         "required": [
