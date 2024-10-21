@@ -1,4 +1,4 @@
-## 0.0.50
+## 0.0.51
 Released to support PR https://github.com/calcom/cal.com/pull/17224 which enabled attendee specified location during booking.
 
 ## 0.0.41

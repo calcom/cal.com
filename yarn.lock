@@ -4125,7 +4125,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.50"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.51"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -5132,14 +5132,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.50":
-  version: 0.0.50
-  resolution: "@calcom/platform-libraries@npm:0.0.50"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.51":
+  version: 0.0.51
+  resolution: "@calcom/platform-libraries@npm:0.0.51"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 76be5cec0a3bae9cb8ab7216c140d391fcbe0c067745fcfe103772b0537a0feff00a45a51e701e974bfd5ce6eaa8bf9e65d9dd51ca58455d612531bc880397f3
+  checksum: f7b97302730da01067e7417da94aa3e1a3e0e967698516edd15d72be1f2d57f40c382f5b70401aa3758a46f3a9a5a4f29e0fc4b7c8565a9cb4a4ff10ed4b5dc2
   languageName: node
   linkType: hard
 
