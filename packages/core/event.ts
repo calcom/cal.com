@@ -2,6 +2,7 @@ import type { TFunction } from "next-i18next";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -28,7 +29,12 @@ export type EventNameObjectType = {
   t: TFunction;
 };
 
-export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
+export function getEventName(
+  eventNameObj: EventNameObjectType,
+  forAttendeeView = false,
+  startTime: string | undefined = undefined,
+  endTime: string | undefined = undefined
+) {
   const attendeeName = parseName(eventNameObj.attendeeName);
 
   if (!eventNameObj.eventName)
@@ -53,6 +59,11 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     eventName = eventName.replace("{LOCATION}", locationString);
   }
 
+  const duration =
+    startTime && endTime
+      ? `${dayjs(endTime).diff(dayjs(startTime), "minute")} mins`
+      : `${String(eventNameObj.eventDuration)} mins`;
+
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
     .replaceAll("{Event type title}", eventNameObj.eventType)
@@ -63,7 +74,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
-    .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`);
+    .replaceAll("{Event duration}", `${duration}`);
 
   const { bookingFields } = eventNameObj || {};
   const { name } = bookingFields || {};
@@ -126,7 +137,7 @@ export const validateCustomEventName = (value: string, bookingFields?: Prisma.Js
     "{ATTENDEE}",
     "{USER}",
   ]);
-  const matches = value.match(/\{([^}]+)\}/g);
+  const matches = value.match(/\{([^}]+)}/g);
   if (matches?.length) {
     for (const item of matches) {
       if (!validVariables.includes(item)) {
