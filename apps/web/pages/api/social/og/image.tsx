@@ -1,24 +1,18 @@
-import { ImageResponse } from "@vercel/og";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
+import fs from "node:fs/promises";
+import path from "node:path";
+import React from "react";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 
-const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
-  res.arrayBuffer()
-);
-
-const interFont = fetch(new URL("../../../../public/fonts/Inter-Regular.ttf", import.meta.url)).then((res) =>
-  res.arrayBuffer()
-);
-
-const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf", import.meta.url)).then(
-  (res) => res.arrayBuffer()
-);
+const calFont = fs.readFile(path.join(process.cwd(), "apps/web/public/fonts/cal.ttf"));
+const interFont = fs.readFile(path.join(process.cwd(), "apps/web/public/fonts/Inter-Regular.ttf"));
+const interFontMedium = fs.readFile(path.join(process.cwd(), "apps/web/public/fonts/Inter-Medium.ttf"));
 
 export const config = {
-  runtime: "edge",
+  runtime: "nodejs",
 };
 
 const meetingSchema = z.object({
@@ -43,9 +37,9 @@ const genericSchema = z.object({
   description: z.string(),
 });
 
-export default async function handler(req: NextApiRequest) {
-  const { searchParams } = new URL(`${req.url}`);
-  const imageType = searchParams.get("type");
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const searchParams = req.query;
+  const imageType = searchParams["type"];
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([
     calFont,
@@ -63,59 +57,64 @@ export default async function handler(req: NextApiRequest) {
     ] as SatoriOptions["fonts"],
   };
 
-  switch (imageType) {
-    case "meeting": {
-      const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
-        names: searchParams.getAll("names"),
-        usernames: searchParams.getAll("usernames"),
-        title: searchParams.get("title"),
-        meetingProfileName: searchParams.get("meetingProfileName"),
-        meetingImage: searchParams.get("meetingImage"),
-        imageType,
-      });
+  const { ImageResponse } = await import("@vercel/og");
 
-      const img = new ImageResponse(
-        (
-          <Meeting
-            title={title}
-            profile={{ name: meetingProfileName, image: meetingImage }}
-            users={names.map((name, index) => ({ name, username: usernames[index] }))}
-          />
-        ),
-        ogConfig
-      ) as { body: Buffer };
+  try {
+    let img;
+    switch (imageType) {
+      case "meeting": {
+        const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
+          names: searchParams["names"] ?? [],
+          usernames: searchParams["usernames"] ?? [],
+          title: searchParams["title"],
+          meetingProfileName: searchParams["meetingProfileName"],
+          meetingImage: searchParams["meetingImage"],
+          imageType,
+        });
 
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
+        img = new ImageResponse(
+          (
+            <Meeting
+              title={title}
+              profile={{ name: meetingProfileName, image: meetingImage }}
+              users={names.map((name, index) => ({ name, username: usernames[index] }))}
+            />
+          ),
+          ogConfig
+        );
+
+        break;
+      }
+      case "app": {
+        const { name, description, slug } = appSchema.parse({
+          name: searchParams["name"],
+          description: searchParams["description"],
+          slug: searchParams["slug"],
+          imageType,
+        });
+
+        img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
+        break;
+      }
+      case "generic": {
+        const { title, description } = genericSchema.parse({
+          title: searchParams["title"],
+          description: searchParams["description"],
+          imageType,
+        });
+
+        img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
+        break;
+      }
+      default:
+        res.status(404).send("What you're looking for is not here..");
+        return;
     }
-    case "app": {
-      const { name, description, slug } = appSchema.parse({
-        name: searchParams.get("name"),
-        description: searchParams.get("description"),
-        slug: searchParams.get("slug"),
-        imageType,
-      });
-      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig) as {
-        body: Buffer;
-      };
 
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
-    }
-
-    case "generic": {
-      const { title, description } = genericSchema.parse({
-        title: searchParams.get("title"),
-        description: searchParams.get("description"),
-        imageType,
-      });
-
-      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
-        body: Buffer;
-      };
-
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
-    }
-
-    default:
-      return new Response("What you're looking for is not here..", { status: 404 });
+    res.setHeader("Content-Type", "image/png");
+    res.status(200).send(img.body);
+  } catch (error) {
+    console.error("Error generating image:", error);
+    res.status(500).send("Error generating image");
   }
 }
