@@ -419,6 +419,11 @@ Cal("init", "routingFormAuto", {
   origin: origin,
 });
 
+Cal("init", "routingFormHeadlessRouter", {
+  debug: true,
+  origin: origin,
+});
+
 Cal.ns.routingFormAuto("on", {
   action: "routed",
   callback: (e) => {
@@ -469,7 +474,7 @@ if (only === "all" || only == "ns:monthView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-monthView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-monthView-iframe",
@@ -494,7 +499,7 @@ if (only === "all" || only == "ns:weekView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-weekView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-weekView-iframe",
@@ -523,7 +528,7 @@ if (only === "all" || only == "ns:columnView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-columnView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-columnView-iframe",
@@ -533,7 +538,42 @@ if (only === "all" || only == "ns:columnView") {
       },
     }
   );
+
   Cal.ns.columnView("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "columnViewHideEventTypeDetails", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.columnViewHideEventTypeDetails(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-columnViewHideEventTypeDetails .place",
+      calLink: "free/30min",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-columnView-iframe",
+        },
+        "flag.coep": "true",
+        layout: "column_view",
+      },
+    }
+  );
+
+  Cal.ns.columnViewHideEventTypeDetails("ui", {
+    hideEventTypeDetails: true,
+  });
+  
+  Cal.ns.columnViewHideEventTypeDetails("on", {
     action: "*",
     callback,
   });

@@ -31,13 +31,18 @@ import {
   transformEventTypeColorsInternalToApi,
   transformSeatsInternalToApi,
 } from ".";
-import type { CustomField } from "./booking-fields";
+import {
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
+  type CustomField,
+  type SystemField,
+} from "./booking-fields";
 
 describe("transformLocationsInternalToApi", () => {
   it("should reverse transform address location", () => {
     const transformedLocation = [
       {
-        type: "inPerson",
+        type: "inPerson" as const,
         address: "1234 Main St",
         displayLocationPublicly: true,
       },
@@ -59,7 +64,7 @@ describe("transformLocationsInternalToApi", () => {
   it("should reverse transform link location", () => {
     const transformedLocation = [
       {
-        type: "link",
+        type: "link" as const,
         link: "https://example.com",
         displayLocationPublicly: true,
       },
@@ -81,7 +86,7 @@ describe("transformLocationsInternalToApi", () => {
   it("should reverse transform phone location", () => {
     const transformedLocation = [
       {
-        type: "userPhone",
+        type: "userPhone" as const,
         hostPhoneNumber: "123456789",
         displayLocationPublicly: true,
       },
@@ -103,7 +108,7 @@ describe("transformLocationsInternalToApi", () => {
   it("should reverse transform integration location", () => {
     const transformedLocation = [
       {
-        type: "integrations:daily",
+        type: "integrations:daily" as const,
       },
     ];
 
@@ -121,6 +126,109 @@ describe("transformLocationsInternalToApi", () => {
 });
 
 describe("transformBookingFieldsInternalToApi", () => {
+  it("should reverse transform not modified name default field", () => {
+    const transformedField: SystemField[] = [systemBeforeFieldName];
+
+    const expectedOutput = [
+      {
+        type: "name",
+        slug: "name",
+        isDefault: true,
+        required: true,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform modified name default field", () => {
+    const nameField = {
+      ...systemBeforeFieldName,
+      placeholder: "custom placeholder",
+      disableOnPrefill: true,
+      label: "custom label",
+      variantsConfig: {
+        variants: {
+          fullName: {
+            fields: [
+              {
+                name: "fullName",
+                label: "custom label",
+                placeholder: "custom placeholder",
+                type: "text",
+                required: true,
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const transformedField: SystemField[] = [nameField];
+
+    const expectedOutput = [
+      {
+        type: "name",
+        slug: "name",
+        isDefault: true,
+        required: true,
+        placeholder: "custom placeholder",
+        disableOnPrefill: true,
+        label: "custom label",
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform not modified email default field", () => {
+    const transformedField: SystemField[] = [systemBeforeFieldEmail];
+
+    const expectedOutput = [
+      {
+        type: "email",
+        slug: "email",
+        isDefault: true,
+        required: true,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform modified email default field", () => {
+    const transformedField: SystemField[] = [
+      {
+        ...systemBeforeFieldEmail,
+        placeholder: "custom placeholder",
+        disableOnPrefill: true,
+        label: "custom label",
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        type: "email",
+        slug: "email",
+        isDefault: true,
+        required: true,
+        placeholder: "custom placeholder",
+        disableOnPrefill: true,
+        label: "custom label",
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should reverse transform phone field", () => {
     const transformedField: CustomField[] = [
       {
@@ -511,7 +619,6 @@ describe("transformBookingFieldsInternalToApi", () => {
         ],
         editable: "user",
         required: true,
-        placeholder: "",
       },
     ];
 
@@ -733,7 +840,7 @@ describe("transformRequiresConfirmationInternalToApi", () => {
     };
     const result = transformRequiresConfirmationInternalToApi(
       transformedField.requiresConfirmation,
-      !!undefined,
+      false,
       undefined
     );
 

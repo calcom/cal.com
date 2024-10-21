@@ -162,6 +162,7 @@ describe("Organizations Team Endpoints", () => {
           const responseBody: ApiSuccessResponse<OrgMeTeamOutputDto[]> = response.body;
           expect(responseBody.data.find((t) => t.id === teamCreatedViaApi.id)).toBeDefined();
           expect(responseBody.data.some((t) => t.accepted)).toBeTruthy();
+          expect(responseBody.data.find((t) => t.id === teamCreatedViaApi.id)?.role).toBe("OWNER");
         });
     });
 
