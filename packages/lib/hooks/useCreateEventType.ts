@@ -13,12 +13,7 @@ import { trpc } from "@calcom/trpc/react";
 
 export type CreateEventTypeFormValues = z.infer<typeof createEventTypeInput>;
 
-export const useCreateEventType = (
-  onSuccessMutation: (eventType: EventType) => void,
-  onErrorMutation: (message: string) => void
-) => {
-  const utils = trpc.useUtils();
-  const { t } = useLocale();
+export const useCreateEventTypeForm = () => {
   const form = useForm<CreateEventTypeFormValues>({
     defaultValues: {
       length: 15,
@@ -36,6 +31,17 @@ export const useCreateEventType = (
       form.setValue("metadata", null);
     }
   }, [schedulingTypeWatch]);
+
+  return { form, isManagedEventType };
+};
+
+export const useCreateEventType = (
+  onSuccessMutation: (eventType: EventType) => void,
+  onErrorMutation: (message: string) => void
+) => {
+  const utils = trpc.useUtils();
+  const { t } = useLocale();
+  const { form, isManagedEventType } = useCreateEventTypeForm();
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
