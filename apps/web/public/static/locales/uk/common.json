@@ -1797,6 +1797,7 @@
   "wrong_code": "Неправильний код перевірки",
   "not_verified": "Ще не перевірено",
   "no_availability_in_month": "Недоступний(-а) у такому місяці: {{month}}",
+  "view_previous_month": "Переглянути попередній місяць",
   "view_next_month": "Показати наступний місяць",
   "send_code": "Надіслати код",
   "number_verified": "Номер перевірено",

@@ -1797,6 +1797,7 @@
   "wrong_code": "Nesprávný ověřovací kód",
   "not_verified": "Zatím neověřeno",
   "no_availability_in_month": "Žádná dostupnost pro {{month}}",
+  "view_previous_month": "Zobrazit předchozí měsíc",
   "view_next_month": "Zobrazit další měsíc",
   "send_code": "Odeslat kód",
   "number_verified": "Číslo ověřeno",

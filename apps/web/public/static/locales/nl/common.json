@@ -1797,6 +1797,7 @@
   "wrong_code": "Onjuiste verificatiecode",
   "not_verified": "Nog niet geverifieerd",
   "no_availability_in_month": "Geen beschikbaarheid in {{month}}",
+  "view_previous_month": "Vorige maand bekijken",
   "view_next_month": "Volgende maand weergeven",
   "send_code": "Code verzenden",
   "number_verified": "Nummer geverifieerd",

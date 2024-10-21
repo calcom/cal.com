@@ -1799,6 +1799,7 @@ checksums:
     wrong_code: 38edf077b2ff6b64c11d537f0b71e81c
     not_verified: 702985645b380ed947d9a0e2653ff96d
     no_availability_in_month: 2550fb427301f1029a7272781cabe8c4
+    view_previous_month: 309181f7f5e17bc1e8da744bc5e7b8bc
     view_next_month: 8ef4e7245d6863295078abe3657dcd10
     send_code: 3604a3bd89c33a995b7dc7c695772947
     number_verified: 8853b69d7f63ea9f5f6e3e38995bd583

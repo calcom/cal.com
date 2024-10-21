@@ -1797,6 +1797,7 @@
   "wrong_code": "Vale kinnituskood",
   "not_verified": "Pole veel kinnitatud",
   "no_availability_in_month": "Pole saadaval {{kuus}}",
+  "view_previous_month": "Vaata eelmist kuud",
   "view_next_month": "Vaata järgmist kuud",
   "send_code": "Saada kood",
   "number_verified": "Number kinnitatud",

@@ -1797,6 +1797,7 @@
   "wrong_code": "驗證碼錯誤",
   "not_verified": "尚未驗證",
   "no_availability_in_month": "{{month}}不開放預約",
+  "view_previous_month": "查看上個月",
   "view_next_month": "檢視下個月",
   "send_code": "傳送驗證碼",
   "number_verified": "號碼已驗證",
