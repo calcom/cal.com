@@ -119,7 +119,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
         <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
           <RadioArea.Group
             onValueChange={(val) => {
-              form.setValue("reassignType", val);
+              form.setValue("reassignType", val as "team_member" | "round_robin");
             }}
             className={classNames("mt-1 flex flex-col gap-4")}>
             <RadioArea.Item
