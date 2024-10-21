@@ -101,6 +101,7 @@ export const roundRobinReassignment = async ({
         priority: 2,
         weight: 100,
         weightAdjustment: 0,
+        schedule: null,
       }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);

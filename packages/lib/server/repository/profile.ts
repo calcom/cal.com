@@ -437,6 +437,39 @@ export class ProfileRepository {
     return profiles;
   }
 
+  static async findManyForUsers(userIds: number[]) {
+    const profiles = await prisma.profile.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+      },
+    });
+
+    return profiles.map((profile) => {
+      const parsedOrganization = getParsedTeam(profile.organization);
+
+      return normalizeProfile({
+        username: profile.username,
+        id: profile.id,
+        userId: profile.userId,
+        uid: profile.uid,
+        name: parsedOrganization.name,
+        organizationId: profile.organizationId,
+        organization: {
+          ...parsedOrganization,
+          requestedSlug: parsedOrganization.metadata?.requestedSlug ?? null,
+          metadata: parsedOrganization.metadata,
+        },
+      });
+    });
+  }
+
   static async findManyForUser(user: { id: number }) {
     const profiles = (
       await prisma.profile.findMany({

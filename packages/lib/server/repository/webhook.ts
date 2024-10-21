@@ -174,6 +174,8 @@ export class WebhookRepository {
         teamId: true,
         userId: true,
         platform: true,
+        time: true,
+        timeUnit: true,
       },
     });
   }
