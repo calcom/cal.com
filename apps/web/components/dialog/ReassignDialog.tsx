@@ -40,7 +40,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     easing: "ease-in-out",
   });
   // Were using legacy list members here because we don't currently have an easy way to paginate a select via infinite scroll
-  const teamMembers = trpc.viewer.teams.legacyListMembers.useQuery({ teamIds: [teamId] });
+  const teamMembers = trpc.viewer.teams.getRoundRobinHostsToReassign.useQuery({
+    bookingId,
+    exclude: "fixedHosts",
+  });
 
   const teamMemberOptions = useMemo(() => {
     if (teamMembers.isLoading)
@@ -88,13 +91,12 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
         showToast(t("no_available_hosts"), "error");
       } else {
-        showToast(t("unexpected_error_try_again"), "error");
+        showToast(t(error.message), "error");
       }
     },
   });
 
   const handleSubmit = (values: FormValues) => {
-    console.log(values);
     if (values.reassignType === "round_robin") {
       roundRobinReassignMutation.mutate({ teamId, bookingId });
     } else {

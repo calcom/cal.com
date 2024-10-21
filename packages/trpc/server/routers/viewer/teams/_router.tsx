@@ -23,6 +23,7 @@ import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
+import { ZGetRoundRobinHostsToReassignInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
@@ -188,6 +189,15 @@ export const viewerTeamsRouter = router({
       const handler = await importHandler(
         namespaced("roundRobinManualReassign"),
         () => import("./roundRobin/roundRobinManualReassign.handler")
+      );
+      return handler(opts);
+    }),
+  getRoundRobinHostsToReassign: authedProcedure
+    .input(ZGetRoundRobinHostsToReassignInputSchema)
+    .query(async (opts) => {
+      const handler = await importHandler(
+        namespaced("getRoundRobinHostsToReassign"),
+        () => import("./roundRobin/getRoundRobinHostsToReasign.handler")
       );
       return handler(opts);
     }),

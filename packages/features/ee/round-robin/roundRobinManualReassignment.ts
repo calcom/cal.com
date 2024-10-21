@@ -31,6 +31,11 @@ import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
 
+enum ErrorCode {
+  InvalidRoundRobinHost = "invalid_round_robin_host",
+  UserIsFixed = "user_is_round_robin_fixed",
+}
+
 export const roundRobinManualReassignment = async ({
   bookingId,
   newUserId,
@@ -83,11 +88,12 @@ export const roundRobinManualReassignment = async ({
   );
   const newUserHost = eventTypeHosts.find((host) => host.user.id === newUserId);
 
-  if (!newUserHost || newUserHost.isFixed) {
-    roundRobinReassignLogger.error(
-      `New user ${newUserId} is not a valid round-robin host for this event type`
-    );
-    throw new Error("New user is not a valid round-robin host for this event type");
+  if (!newUserHost) {
+    throw new Error(ErrorCode.InvalidRoundRobinHost);
+  }
+
+  if (newUserHost.isFixed) {
+    throw new Error(ErrorCode.UserIsFixed);
   }
 
   const originalOrganizer = booking.user;
