@@ -9,13 +9,13 @@ export class RequestIdMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const requestId = uuid();
     req.headers["X-Request-Id"] = requestId;
-    const { method, url, headers, body: requestBody } = req;
+    const { method, headers, body: requestBody, baseUrl } = req;
 
     this.logger.log(
       JSON.stringify({
         requestId,
         method,
-        url,
+        url: baseUrl,
         headers,
         requestBody,
         timestamp: new Date().toISOString(),
