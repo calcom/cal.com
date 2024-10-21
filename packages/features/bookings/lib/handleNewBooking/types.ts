@@ -6,6 +6,7 @@ import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
+import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { Booking } from "./createBooking";
@@ -29,6 +30,10 @@ export type OrganizerUser = LoadedUsers[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
 };
+
+export type BookingTypeWithAppsStatus =
+  | (Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number })
+  | null;
 
 export type Invitee = {
   email: string;
