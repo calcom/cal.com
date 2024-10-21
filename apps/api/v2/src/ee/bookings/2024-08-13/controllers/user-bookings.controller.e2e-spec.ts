@@ -662,7 +662,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(responseBody.data).toBeDefined();
             const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
             expect(data.length).toEqual(2);
-            console.log("asap data", JSON.stringify(data, null, 2));
             expect(data[0].start).toEqual(createdBooking.start);
             expect(data[1].start).toEqual(bookingInThePast.startTime.toISOString());
           });
