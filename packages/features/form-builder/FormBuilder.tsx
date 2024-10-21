@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import TurndownService from "turndown";
 import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -30,6 +31,7 @@ import {
   Switch,
 } from "@calcom/ui";
 
+import FormFieldIdentifier from "./FormFieldIdentifier";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
@@ -423,6 +425,25 @@ function Options({
     </div>
   );
 }
+function customTurndown(html: string | TurndownService.Node): string {
+  const turndownService = new TurndownService();
+  turndownService.addRule("ignoreAnchorTag", {
+    filter: "a",
+    replacement: function (content) {
+      return content;
+    },
+  });
+  turndownService.addRule("ignoreParagraphTag", {
+    filter: "p",
+    replacement: function (content) {
+      return content;
+    },
+  });
+
+  const result = turndownService.turndown(html);
+
+  return result.toLowerCase();
+}
 
 const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
   const { t } = useLocale();
@@ -434,6 +455,9 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
         getText={() => md.render(fieldForm.getValues("label") || "")}
         setText={(value: string) => {
           fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+          fieldForm.setValue("name", getFieldIdentifier(customTurndown(value)), {
+            shouldDirty: true,
+          });
         }}
         excludedToolbarItems={["blockType", "bold", "italic"]}
         disableLists
@@ -481,6 +505,10 @@ function FieldEditDialog({
   const fieldType = getCurrentFieldType(fieldForm);
 
   const variantsConfig = fieldForm.watch("variantsConfig");
+  const fieldIdentifier = fieldForm.watch("name");
+  const [isEditing, setIsEditing] = useState(false);
+  const isFieldDisabled =
+    fieldForm.getValues("editable") === "system" || fieldForm.getValues("editable") === "system-but-optional";
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
@@ -497,10 +525,7 @@ function FieldEditDialog({
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
               id="test-field-type"
-              isDisabled={
-                fieldForm.getValues("editable") === "system" ||
-                fieldForm.getValues("editable") === "system-but-optional"
-              }
+              isDisabled={isFieldDisabled}
               onChange={(e) => {
                 const value = e?.value;
                 if (!value) {
@@ -516,25 +541,6 @@ function FieldEditDialog({
               if (!variantsConfig) {
                 return (
                   <>
-                    <InputField
-                      required
-                      {...fieldForm.register("name")}
-                      containerClassName="mt-6"
-                      onChange={(e) => {
-                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""), {
-                          shouldDirty: true,
-                        });
-                      }}
-                      disabled={
-                        fieldForm.getValues("editable") === "system" ||
-                        fieldForm.getValues("editable") === "system-but-optional"
-                      }
-                      label={t("identifier")}
-                    />
-                    <CheckboxField
-                      description={t("disable_input_if_prefilled")}
-                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-                    />
                     <div>
                       {formFieldType === "boolean" ? (
                         <CheckboxFieldLabel fieldForm={fieldForm} />
@@ -548,6 +554,13 @@ function FieldEditDialog({
                           placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                           containerClassName="mt-6"
                           label={t("label")}
+                          onChange={(e) => {
+                            if (!isFieldDisabled) {
+                              fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
+                                shouldDirty: true,
+                              });
+                            }
+                          }}
                         />
                       )}
                     </div>
@@ -593,6 +606,36 @@ function FieldEditDialog({
                         );
                       }}
                     />
+                    {!isEditing ? (
+                      <FormFieldIdentifier
+                        fieldIdentifier={fieldIdentifier}
+                        setIsEditing={setIsEditing}
+                        disabled={isFieldDisabled}
+                      />
+                    ) : (
+                      <>
+                        <InputField
+                          required
+                          {...fieldForm.register("name")}
+                          containerClassName="mt-6"
+                          onChange={(e) => {
+                            fieldForm.setValue(
+                              "name",
+                              getFieldIdentifier(e.target.value.toLowerCase() || ""),
+                              {
+                                shouldDirty: true,
+                              }
+                            );
+                          }}
+                          disabled={isFieldDisabled}
+                          label={t("identifier")}
+                        />
+                        <CheckboxField
+                          description={t("disable_input_if_prefilled")}
+                          {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                        />
+                      </>
+                    )}
                   </>
                 );
               }
@@ -736,7 +779,8 @@ function VariantFields({
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
 
   const defaultVariant = fieldTypeConfigVariantsConfig.defaultVariant;
-
+  const fieldIdentifier = fieldForm.watch("name");
+  const [isEditing, setIsEditing] = useState(false);
   const variantNames = Object.keys(variantsConfig.variants);
   const otherVariants = variantNames.filter((v) => v !== defaultVariant);
   if (otherVariants.length > 1 && variantToggleLabel) {
@@ -751,6 +795,8 @@ function VariantFields({
   const isSimpleVariant = variantFields.length === 1;
   const isDefaultVariant = variantName === defaultVariant;
   const supportsVariantToggle = variantNames.length === 2;
+  const isFieldDisabled =
+    fieldForm.getValues("editable") === "system" || fieldForm.getValues("editable") === "system-but-optional";
   return (
     <>
       {supportsVariantToggle ? (
@@ -767,22 +813,6 @@ function VariantFields({
       ) : (
         <VariantSelector />
       )}
-
-      <InputField
-        required
-        {...fieldForm.register("name")}
-        containerClassName="mt-6"
-        disabled={
-          fieldForm.getValues("editable") === "system" ||
-          fieldForm.getValues("editable") === "system-but-optional"
-        }
-        label={t("identifier")}
-      />
-
-      <CheckboxField
-        description={t("disable_input_if_prefilled")}
-        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-      />
 
       <ul
         className={classNames(
@@ -806,10 +836,16 @@ function VariantFields({
               )}
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
-                value={f.label || ""}
                 placeholder={t(appUiFieldConfig?.defaultLabel || "")}
                 containerClassName="mt-6"
                 label={t("label")}
+                onChange={(e) => {
+                  if (!isFieldDisabled) {
+                    fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
+                      shouldDirty: true,
+                    });
+                  }
+                }}
               />
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.placeholder`)}
@@ -837,6 +873,27 @@ function VariantFields({
                   );
                 }}
               />
+              {!isEditing ? (
+                <FormFieldIdentifier
+                  fieldIdentifier={fieldIdentifier}
+                  setIsEditing={setIsEditing}
+                  disabled={isFieldDisabled}
+                />
+              ) : (
+                <>
+                  <InputField
+                    required
+                    {...fieldForm.register("name")}
+                    containerClassName="mt-6"
+                    disabled={isFieldDisabled}
+                    label={t("identifier")}
+                  />
+                  <CheckboxField
+                    description={t("disable_input_if_prefilled")}
+                    {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                  />
+                </>
+              )}
             </li>
           );
         })}
