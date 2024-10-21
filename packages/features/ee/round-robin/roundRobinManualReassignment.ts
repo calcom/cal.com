@@ -8,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -29,7 +30,6 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
-import { validateAndFetchBookingAndEventType } from "./utils/validate";
 
 export const roundRobinManualReassignment = async ({
   bookingId,
@@ -44,64 +44,75 @@ export const roundRobinManualReassignment = async ({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
   });
 
-  const validatedBookingAndEventType = await validateAndFetchBookingAndEventType({
-    bookingId,
-    logger: roundRobinReassignLogger,
-  });
-  const { eventType } = validatedBookingAndEventType;
-  let booking = validatedBookingAndEventType.booking;
-
-  const eventTypeId = eventType.id;
-
-  const newUser = await prisma.user.findUnique({
-    where: {
-      id: newUserId,
-    },
-    select: {
-      locale: true,
-      name: true,
-      email: true,
-      timeZone: true,
-      username: true,
-      timeFormat: true,
-    },
+  let booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: bookingSelect,
   });
 
-  if (!newUser) {
-    roundRobinReassignLogger.error(`New user ${newUserId} not found`);
-    throw new Error("New user not found");
+  if (!booking || !booking.user) {
+    roundRobinReassignLogger.error(`Booking ${bookingId} not found or has no associated user`);
+    throw new Error("Booking not found or has no associated user");
+  }
+
+  const eventTypeId = booking.eventTypeId;
+  if (!eventTypeId) {
+    roundRobinReassignLogger.error(`Booking ${bookingId} does not have an event type id`);
+    throw new Error("Event type not found");
+  }
+
+  const eventType = await getEventTypesFromDB(eventTypeId);
+  if (!eventType) {
+    roundRobinReassignLogger.error(`Event type ${eventTypeId} not found`);
+    throw new Error("Event type not found");
+  }
+
+  const eventTypeHosts = eventType.hosts.length
+    ? eventType.hosts
+    : eventType.users.map((user) => ({
+        user,
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+        weightAdjustment: 0,
+        schedule: null,
+      }));
+
+  const fixedHost = eventTypeHosts.find((host) => host.isFixed);
+  const currentRRHost = booking.attendees.find((attendee) =>
+    eventTypeHosts.some((host) => !host.isFixed && host.user.email === attendee.email)
+  );
+  const newUserHost = eventTypeHosts.find((host) => host.user.id === newUserId);
+
+  if (!newUserHost || newUserHost.isFixed) {
+    roundRobinReassignLogger.error(
+      `New user ${newUserId} is not a valid round-robin host for this event type`
+    );
+    throw new Error("New user is not a valid round-robin host for this event type");
   }
 
   const originalOrganizer = booking.user;
+  const hasOrganizerChanged = !fixedHost && booking.userId !== newUserId;
 
+  const newUser = newUserHost.user;
   const newUserT = await getTranslation(newUser.locale || "en", "common");
   const originalOrganizerT = await getTranslation(originalOrganizer.locale || "en", "common");
 
-  const hasOrganizerChanged = booking.userId !== newUserId;
-
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
-
     const responseSchema = getBookingResponsesSchema({
       bookingFields: eventType.bookingFields,
       view: "reschedule",
     });
-
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
-
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
     let bookingLocation = booking.location;
-
     if (eventType.locations.includes({ type: OrganizerDefaultConferencingAppType })) {
       const newUserMetadataSafeParse = userMetadataSchema.safeParse(newUser.metadata);
-
       const defaultLocationUrl = newUserMetadataSafeParse.success
         ? newUserMetadataSafeParse?.data?.defaultConferencingApp?.appLink
         : undefined;
-
       const currentBookingLocation = booking.location || "integrations:daily";
-
       bookingLocation =
         defaultLocationUrl ||
         getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
@@ -122,14 +133,23 @@ export const roundRobinManualReassignment = async ({
     const newBookingTitle = getEventName(eventNameObject);
 
     booking = await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
+      where: { id: bookingId },
       data: {
         userId: newUserId,
         title: newBookingTitle,
       },
       select: bookingSelect,
+    });
+  } else if (currentRRHost) {
+    // Update the round-robin host attendee
+    await prisma.attendee.update({
+      where: { id: currentRRHost.id },
+      data: {
+        name: newUser.name || "",
+        email: newUser.email,
+        timeZone: newUser.timeZone,
+        locale: newUser.locale,
+      },
     });
   }
 
@@ -141,34 +161,23 @@ export const roundRobinManualReassignment = async ({
   });
 
   const teamMembers = await getTeamMembers({
-    eventTypeHosts: eventType.hosts,
+    eventTypeHosts,
     attendees: booking.attendees,
     organizer: newUser,
     previousHost: originalOrganizer,
     reassignedHost: newUser,
   });
 
-  // If changed owner, also change destination calendar
-  const previousHostDestinationCalendar = hasOrganizerChanged
-    ? await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: originalOrganizer.id,
-        },
-      })
-    : null;
-
-  const attendeePromises = booking.attendees.map(async (attendee) => {
-    return {
-      email: attendee.email,
-      name: attendee.name,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-      phoneNumber: attendee.phoneNumber || undefined,
-    };
-  });
+  const attendeePromises = booking.attendees.map(async (attendee) => ({
+    email: attendee.email,
+    name: attendee.name,
+    timeZone: attendee.timeZone,
+    language: {
+      translate: await getTranslation(attendee.locale ?? "en", "common"),
+      locale: attendee.locale ?? "en",
+    },
+    phoneNumber: attendee.phoneNumber || undefined,
+  }));
 
   const attendeeList = await Promise.all(attendeePromises);
 
@@ -200,19 +209,17 @@ export const roundRobinManualReassignment = async ({
   };
 
   const credentials = await prisma.credential.findMany({
-    where: {
-      userId: newUser.id,
-    },
-    include: {
-      user: {
-        select: {
-          email: true,
-        },
-      },
-    },
+    where: { userId: newUser.id },
+    include: { user: { select: { email: true } } },
   });
 
   const eventManager = new EventManager({ ...newUser, credentials });
+  const previousHostDestinationCalendar = hasOrganizerChanged
+    ? await prisma.destinationCalendar.findFirst({
+        where: { userId: originalOrganizer.id },
+      })
+    : null;
+
   const results = await eventManager.reschedule(
     evt,
     booking.uid,
@@ -264,131 +271,156 @@ export const roundRobinManualReassignment = async ({
     );
 
     // Handle changing workflows with organizer
-    const workflowReminders = await prisma.workflowReminder.findMany({
-      where: {
-        bookingUid: booking.uid,
-        method: WorkflowMethods.EMAIL,
-        workflowStep: {
-          action: WorkflowActions.EMAIL_HOST,
-          workflow: {
-            trigger: {
-              in: [
-                WorkflowTriggerEvents.BEFORE_EVENT,
-                WorkflowTriggerEvents.NEW_EVENT,
-                WorkflowTriggerEvents.AFTER_EVENT,
-              ],
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        workflowStep: {
-          select: {
-            template: true,
-            workflow: {
-              select: {
-                trigger: true,
-                time: true,
-                timeUnit: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
-
-    const bookerUrl = await getBookerBaseUrl(orgId);
-
-    for (const workflowReminder of workflowReminders) {
-      const workflowStep = workflowReminder?.workflowStep;
-      const workflow = workflowStep?.workflow;
-
-      if (workflowStep && workflow) {
-        await scheduleEmailReminder({
-          evt: {
-            ...evt,
-            metadata: workflowEventMetadata,
-            eventType,
-            bookerUrl,
-          },
-          action: WorkflowActions.EMAIL_HOST,
-          triggerEvent: workflow.trigger,
-          timeSpan: {
-            time: workflow.time,
-            timeUnit: workflow.timeUnit,
-          },
-          sendTo: newUser.email,
-          template: workflowStep.template,
-        });
-      }
-
-      await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
-    }
-
-    // Send new event workflows to new organizer
-    const newEventWorkflows = await prisma.workflow.findMany({
-      where: {
-        trigger: WorkflowTriggerEvents.NEW_EVENT,
-        OR: [
-          {
-            isActiveOnAll: true,
-            teamId: eventType?.teamId,
-          },
-          {
-            activeOn: {
-              some: {
-                eventTypeId: eventTypeId,
-              },
-            },
-          },
-          ...(eventType?.teamId
-            ? [
-                {
-                  activeOnTeams: {
-                    some: {
-                      teamId: eventType.teamId,
-                    },
-                  },
-                },
-              ]
-            : []),
-          ...(eventType?.team?.parentId
-            ? [
-                {
-                  isActiveOnAll: true,
-                  teamId: eventType.team.parentId,
-                },
-              ]
-            : []),
-        ],
-      },
-      include: {
-        steps: {
-          where: {
-            action: WorkflowActions.EMAIL_HOST,
-          },
-        },
-      },
-    });
-
-    await scheduleWorkflowReminders({
-      workflows: newEventWorkflows,
-      smsReminderNumber: null,
-      calendarEvent: {
-        ...evt,
-        metadata: workflowEventMetadata,
-        eventType: { slug: eventType.slug },
-        bookerUrl,
-      },
-      hideBranding: !!eventType?.owner?.hideBranding,
+    await handleWorkflowsUpdate({
+      booking,
+      newUser,
+      evt,
+      eventType,
+      orgId,
     });
   }
 
   return booking;
 };
+
+async function handleWorkflowsUpdate({
+  booking,
+  newUser,
+  evt,
+  eventType,
+  orgId,
+}: {
+  booking: NonNullable<Awaited<ReturnType<typeof prisma.booking.findUnique>>>;
+  newUser: {
+    id: number;
+    email: string;
+    locale?: string | null;
+  };
+  evt: CalendarEvent;
+  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+  orgId: number | null;
+}) {
+  const workflowReminders = await prisma.workflowReminder.findMany({
+    where: {
+      bookingUid: booking.uid,
+      method: WorkflowMethods.EMAIL,
+      workflowStep: {
+        action: WorkflowActions.EMAIL_HOST,
+        workflow: {
+          trigger: {
+            in: [
+              WorkflowTriggerEvents.BEFORE_EVENT,
+              WorkflowTriggerEvents.NEW_EVENT,
+              WorkflowTriggerEvents.AFTER_EVENT,
+            ],
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      referenceId: true,
+      workflowStep: {
+        select: {
+          template: true,
+          workflow: {
+            select: {
+              trigger: true,
+              time: true,
+              timeUnit: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+  const bookerUrl = await getBookerBaseUrl(orgId);
+
+  for (const workflowReminder of workflowReminders) {
+    const workflowStep = workflowReminder?.workflowStep;
+    const workflow = workflowStep?.workflow;
+
+    if (workflowStep && workflow) {
+      await scheduleEmailReminder({
+        evt: {
+          ...evt,
+          metadata: workflowEventMetadata,
+          eventType,
+          bookerUrl,
+        },
+        action: WorkflowActions.EMAIL_HOST,
+        triggerEvent: workflow.trigger,
+        timeSpan: {
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
+        },
+        sendTo: newUser.email,
+        template: workflowStep.template,
+      });
+    }
+
+    await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+  }
+
+  // Send new event workflows to new organizer
+  const newEventWorkflows = await prisma.workflow.findMany({
+    where: {
+      trigger: WorkflowTriggerEvents.NEW_EVENT,
+      OR: [
+        {
+          isActiveOnAll: true,
+          teamId: eventType?.teamId,
+        },
+        {
+          activeOn: {
+            some: {
+              eventTypeId: eventType.id,
+            },
+          },
+        },
+        ...(eventType?.teamId
+          ? [
+              {
+                activeOnTeams: {
+                  some: {
+                    teamId: eventType.teamId,
+                  },
+                },
+              },
+            ]
+          : []),
+        ...(eventType?.team?.parentId
+          ? [
+              {
+                isActiveOnAll: true,
+                teamId: eventType.team.parentId,
+              },
+            ]
+          : []),
+      ],
+    },
+    include: {
+      steps: {
+        where: {
+          action: WorkflowActions.EMAIL_HOST,
+        },
+      },
+    },
+  });
+
+  await scheduleWorkflowReminders({
+    workflows: newEventWorkflows,
+    smsReminderNumber: null,
+    calendarEvent: {
+      ...evt,
+      metadata: workflowEventMetadata,
+      eventType: { slug: eventType.slug },
+      bookerUrl,
+    },
+    hideBranding: !!eventType?.owner?.hideBranding,
+  });
+}
 
 export default roundRobinManualReassignment;

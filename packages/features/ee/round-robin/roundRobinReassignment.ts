@@ -146,8 +146,8 @@ export const roundRobinReassignment = async ({
   const teamMembers = await getTeamMembers({
     eventTypeHosts: eventType.hosts,
     attendees: booking.attendees,
-    organizer,
-    previousHost: previousRRHost,
+    organizer: organizer,
+    previousHost: previousRRHost || null,
     reassignedHost: reassignedRRHost,
   });
 

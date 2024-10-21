@@ -158,7 +158,7 @@ describe("roundRobinManualReassignment test", () => {
     expectWorkflowToBeTriggered({ emailsToReceive: [newHost.email], emails });
   });
 
-  test.skip("Manually reassign round robin host with fixed host as organizer", async () => {
+  test("Manually reassign round robin host with fixed host as organizer", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     const EventManager = (await import("@calcom/core/EventManager")).default;
 
@@ -181,7 +181,6 @@ describe("roundRobinManualReassignment test", () => {
             trigger: "NEW_EVENT",
             action: "EMAIL_HOST",
             template: "REMINDER",
-            activeEventTypeId: 1,
           },
         ],
         eventTypes: [

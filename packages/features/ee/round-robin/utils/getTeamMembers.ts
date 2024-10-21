@@ -1,6 +1,29 @@
+import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { User, EventTypeHost } from "@calcom/prisma/client";
-import type { Attendee } from "@calcom/types/Calendar";
+
+type Attendee = {
+  name: string;
+  id: number;
+  email: string;
+  timeZone: string;
+  locale: string | null;
+  bookingId: number | null;
+  phoneNumber: string | null;
+  noShow: boolean | null;
+};
+
+type OrganizerType =
+  | getEventTypeResponse["hosts"][number]["user"]
+  | IsFixedAwareUser
+  | {
+      id: number;
+      email: string;
+      name: string | null;
+      locale: string | null;
+      timeZone: string;
+      username: string | null;
+    };
 
 export async function getTeamMembers({
   eventTypeHosts,
@@ -9,11 +32,11 @@ export async function getTeamMembers({
   previousHost,
   reassignedHost,
 }: {
-  eventTypeHosts: EventTypeHost[];
+  eventTypeHosts: getEventTypeResponse["hosts"];
   attendees: Attendee[];
-  organizer: User;
-  previousHost: User | null;
-  reassignedHost: User;
+  organizer: OrganizerType;
+  previousHost: getEventTypeResponse["hosts"][number]["user"] | null;
+  reassignedHost: IsFixedAwareUser;
 }) {
   const teamMemberPromises = eventTypeHosts
     .filter((host) => {
