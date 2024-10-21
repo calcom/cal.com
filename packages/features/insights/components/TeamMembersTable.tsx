@@ -8,13 +8,14 @@ import { CardInsights } from "./Card";
 import { LoadingInsight } from "./LoadingInsights";
 import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 
-export const LeastBookedTeamMembersTable = () => {
+export const TeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId, selectedTeamId: teamId, isAll, initialConfig } = filter;
+  const { dateRange, selectedEventTypeId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
+  const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastBookings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostBookings.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -36,8 +37,8 @@ export const LeastBookedTeamMembersTable = () => {
   if (!isSuccess || !startDate || !endDate || !teamId) return null;
 
   return (
-    <CardInsights>
-      <Title className="text-emphasis">{t("least_booked_members")}</Title>
+    <CardInsights className="shadow-none">
+      <Title className="text-emphasis">{t("team_members")}</Title>
       <TotalBookingUsersTable data={data} />
     </CardInsights>
   );
