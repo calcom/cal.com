@@ -93,6 +93,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               data-testid="stripe-currency-select"
               variant="default"
               options={currencyOptions}
+              innerClassNames={{
+                input: "stripe-currency-input",
+              }}
               value={selectedCurrency}
               className="text-black"
               defaultValue={selectedCurrency}

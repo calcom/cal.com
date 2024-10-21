@@ -52,7 +52,7 @@ function Type({
         eventSlug={slug}
         bookingData={booking}
         hideBranding={isBrandingHidden}
-        entity={eventData.entity}
+        entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
         durationConfig={eventData.metadata?.multipleDuration}
         orgBannerUrl={orgBannerUrl}
         /* TODO: Currently unused, evaluate it is needed-
