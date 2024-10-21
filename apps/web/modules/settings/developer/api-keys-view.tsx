@@ -8,6 +8,7 @@ import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDial
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { ApiKeysRepository } from "@calcom/lib/server/repository/apiKeys";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -39,10 +40,22 @@ const SkeletonLoader = ({
   );
 };
 
-const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
+interface ApiKeysViewProps {
+  ssrProps?: {
+    apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
+  };
+  revalidateCache?: () => Promise<void>;
+  isAppDir?: boolean;
+}
+
+export default function ApiKeysView({ ssrProps, revalidateCache, isAppDir }: ApiKeysViewProps) {
   const { t } = useLocale();
 
-  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
+  const { data: apiKeysList, isPending: isPendingList } = trpc.viewer.apiKeys.list.useQuery(undefined, {
+    enabled: !ssrProps?.apiKeysList,
+  });
+  const isPending = ssrProps?.apiKeysList ? false : isPendingList;
+  const data = ssrProps?.apiKeysList ?? apiKeysList;
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
@@ -97,6 +110,7 @@ const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
                       setApiKeyToEdit(apiKey);
                       setApiKeyModal(true);
                     }}
+                    onSuccess={revalidateCache}
                   />
                 ))}
               </div>
@@ -115,11 +129,13 @@ const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
       <Dialog open={apiKeyModal} onOpenChange={setApiKeyModal}>
         <DialogContent type="creation">
-          <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
+          <ApiKeyDialogForm
+            handleClose={() => setApiKeyModal(false)}
+            defaultValues={apiKeyToEdit}
+            onSuccess={revalidateCache}
+          />
         </DialogContent>
       </Dialog>
     </>
   );
-};
-
-export default ApiKeysView;
+}
