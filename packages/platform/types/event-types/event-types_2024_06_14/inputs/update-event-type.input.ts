@@ -51,6 +51,9 @@ import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
   AddressLocation_2024_06_14,
+  AttendeeAddressLocation_2024_06_14,
+  AttendeeDefinedLocation_2024_06_14,
+  AttendeePhoneLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
   LinkLocation_2024_06_14,
   PhoneLocation_2024_06_14,
@@ -84,7 +87,10 @@ import { Seats_2024_06_14 } from "./seats.input";
   BaseBookingLimitsDuration_2024_06_14,
   Recurrence_2024_06_14,
   BaseConfirmationPolicy_2024_06_14,
-  Seats_2024_06_14
+  Seats_2024_06_14,
+  AttendeeAddressLocation_2024_06_14,
+  AttendeePhoneLocation_2024_06_14,
+  AttendeeDefinedLocation_2024_06_14
 )
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -118,6 +124,9 @@ export class UpdateEventTypeInput_2024_06_14 {
       { $ref: getSchemaPath(LinkLocation_2024_06_14) },
       { $ref: getSchemaPath(IntegrationLocation_2024_06_14) },
       { $ref: getSchemaPath(PhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(AttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(AttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(AttendeeDefinedLocation_2024_06_14) },
     ],
     type: "array",
   })

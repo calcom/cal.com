@@ -4,6 +4,9 @@ import type {
   LinkLocation_2024_06_14,
   PhoneLocation_2024_06_14,
   Integration_2024_06_14,
+  AttendeePhoneLocation_2024_06_14,
+  AttendeeAddressLocation_2024_06_14,
+  AttendeeDefinedLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { transformLocationsApiToInternal } from "../api-to-internal";
@@ -32,6 +35,12 @@ export function transformLocationsInternalToApi(
         };
         return addressLocation;
       }
+      case "attendeeInPerson": {
+        const attendeeAddressLocation: AttendeeAddressLocation_2024_06_14 = {
+          type: "attendeeAddress",
+        };
+        return attendeeAddressLocation;
+      }
       case "link": {
         if (!location.link) {
           throw new Error("Link location must have a link");
@@ -53,6 +62,18 @@ export function transformLocationsInternalToApi(
           public: location.displayLocationPublicly,
         };
         return phoneLocation;
+      }
+      case "phone": {
+        const attendeePhoneLocation: AttendeePhoneLocation_2024_06_14 = {
+          type: "attendeePhone",
+        };
+        return attendeePhoneLocation;
+      }
+      case "somewhereElse": {
+        const attendeeDefinedLocation: AttendeeDefinedLocation_2024_06_14 = {
+          type: "attendeeDefined",
+        };
+        return attendeeDefinedLocation;
       }
       default: {
         const integrationType = reverseIntegrationsMapping[location.type];

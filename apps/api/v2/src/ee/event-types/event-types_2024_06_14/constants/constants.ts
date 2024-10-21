@@ -1,4 +1,4 @@
-import { IntegrationLocation } from "@calcom/lib";
+import { OrganizerIntegrationLocation } from "@calcom/lib";
 
 type BaseEventType = {
   length: number;
@@ -7,7 +7,7 @@ type BaseEventType = {
 };
 
 type EventTypeWithLocation = BaseEventType & {
-  locations: IntegrationLocation[];
+  locations: OrganizerIntegrationLocation[];
 };
 
 const thirtyMinutes: BaseEventType = {

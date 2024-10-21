@@ -280,6 +280,13 @@ const SystemFieldSchema = z.object({
         required: z.boolean(),
         placeholder: z.string(),
       }),
+      somewhereElse: z
+        .object({
+          type: z.literal("text"),
+          required: z.boolean(),
+          placeholder: z.string(),
+        })
+        .optional(),
     })
     .optional(),
   disableOnPrefill: z.boolean().optional(),
@@ -436,6 +443,11 @@ export const systemBeforeFieldLocation: LocationReasonSystemField = {
     },
     phone: {
       type: "phone",
+      required: true,
+      placeholder: "",
+    },
+    somewhereElse: {
+      type: "text",
       required: true,
       placeholder: "",
     },
