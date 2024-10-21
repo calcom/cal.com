@@ -100,6 +100,7 @@ import type {
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import { findContactOwnerInDb } from "./findContactOwnerInDb";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -307,7 +308,9 @@ async function handler(
 
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
   const skipContactOwner = reqBody.skipContactOwner ?? false;
-  const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+
+  const contactOwner = skipContactOwner ? null : await findContactOwnerInDb({ email: contactOwnerFromReq });
+  const contactOwnerEmail = contactOwner?.email ?? null;
 
   let users = await loadAndValidateUsers({
     req,

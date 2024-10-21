@@ -9,6 +9,7 @@ import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { findContactOwnerInDb } from "@calcom/features/bookings/lib/findContactOwnerInDb";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getRoutedHostsWithContactOwnerAndFixedHosts } from "@calcom/lib/bookings/getRoutedUsers";
@@ -481,8 +482,12 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
   const skipContactOwner = input.skipContactOwner;
-  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
 
+  const contactOwner = skipContactOwner
+    ? null
+    : await findContactOwnerInDb({ email: contactOwnerEmailFromInput });
+
+  const contactOwnerEmail = contactOwner?.email ?? null;
   let routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
     hosts: eventHosts,
     routedTeamMemberIds: input.routedTeamMemberIds ?? null,
