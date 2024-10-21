@@ -113,7 +113,7 @@ export function BaseCalProvider({
       let translation =
         labels?.[resolvedKey as keyof typeof labels] ?? String(getTranslation(resolvedKey, language) ?? "");
       if (!translation) {
-        return "";
+        return key;
       }
       if (values) {
         const valueKeys = Object.keys(values) as (keyof typeof values)[];
@@ -151,6 +151,7 @@ export function BaseCalProvider({
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
         organizationId: organizationId || stateOrgId || me?.data.organizationId || 0,
+        userId: me?.data.id,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>

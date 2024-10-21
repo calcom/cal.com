@@ -67,7 +67,7 @@ export class OrganizationsTeamsController {
   }
 
   @Get("/me")
-  @ApiOperation({ summary: "Get team membership for user" })
+  @ApiOperation({ summary: "Get teams membership for user" })
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   async getMyTeams(
@@ -84,13 +84,14 @@ export class OrganizationsTeamsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: teams.map((team) =>
-        plainToClass(
+      data: teams.map((team) => {
+        const me = team.members.find((member) => member.userId === user.id);
+        return plainToClass(
           OrgMeTeamOutputDto,
-          { ...team, accepted: team.members.find((member) => member.userId === user.id)?.accepted ?? false },
+          me ? { ...team, role: me.role, accepted: me.accepted } : team,
           { strategy: "excludeAll" }
-        )
-      ),
+        );
+      }),
     };
   }
 

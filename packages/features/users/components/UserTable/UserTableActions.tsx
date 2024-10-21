@@ -16,8 +16,7 @@ import {
   showToast,
 } from "@calcom/ui";
 
-import type { Action } from "./UserListTable";
-import type { User } from "./UserListTable";
+import type { UserTableUser, UserTableAction } from "./types";
 
 export function TableActions({
   user,
@@ -25,8 +24,8 @@ export function TableActions({
   dispatch,
   domain,
 }: {
-  user: User;
-  dispatch: React.Dispatch<Action>;
+  user: UserTableUser;
+  dispatch: React.Dispatch<UserTableAction>;
   domain: string;
   permissionsForUser: {
     canEdit: boolean;
