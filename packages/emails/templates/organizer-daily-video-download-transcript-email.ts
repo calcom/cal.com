@@ -5,6 +5,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
+import { parseVTT } from "../lib/parseVtt";
 import BaseEmail from "./_base-email";
 
 export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmail {
@@ -20,6 +21,8 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
     this.t = this.calEvent.organizer.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const transcripts = await Promise.all(this.transcriptDownloadLinks.map((link) => parseVTT(link)));
+
     return {
       to: `${this.calEvent.organizer.email}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
@@ -31,7 +34,7 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
       html: await renderEmail("DailyVideoDownloadTranscriptEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
-        transcriptDownloadLinks: this.transcriptDownloadLinks,
+        transcripts,
         language: this.t,
         name: this.calEvent.organizer.name,
       }),
