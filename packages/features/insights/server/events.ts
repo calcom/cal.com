@@ -70,7 +70,8 @@ class EventsInsights {
   static countGroupedByStatusForRanges = async (
     whereConditional: Prisma.BookingTimeStatusWhereInput,
     startDate,
-    endDate
+    endDate,
+    timeView
   ): Promise<AggregateResult> => {
     // Determine the date truncation and date range based on timeView
 
@@ -87,7 +88,7 @@ class EventsInsights {
     "noShowHost"
   FROM (
     SELECT
-      DATE_TRUNC('week', "createdAt") AS periodStart,
+      DATE_TRUNC(${timeView}, "createdAt") AS periodStart,
       "timeStatus",
       "noShowHost"
     FROM
@@ -268,24 +269,23 @@ class EventsInsights {
   }
 
   static getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    const now = dayjs();
-    const endOfDay = now.endOf("day");
-    let pivotDate = dayjs(startDate);
+    let pivotDate = dayjs(endDate);
     const dates: string[] = [];
 
-    while (pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) {
-      const pivotAdded = pivotDate.add(6, "day");
-      const weekEndDate = pivotAdded.isBefore(endOfDay) ? pivotAdded : endOfDay;
-      dates.push(pivotDate.format("YYYY-MM-DD"));
+    // Add the endDate as the last date in the timeline
+    dates.push(pivotDate.format("YYYY-MM-DD"));
 
-      if (pivotDate.isSame(endDate)) {
+    // Move backwards in 6-day increments until reaching or passing the startDate
+    while (pivotDate.isAfter(startDate)) {
+      pivotDate = pivotDate.subtract(7, "day");
+      if (pivotDate.isBefore(startDate)) {
         break;
       }
-
-      pivotDate = weekEndDate.add(1, "day");
+      dates.push(pivotDate.format("YYYY-MM-DD"));
     }
 
-    return dates;
+    // Reverse the array to have the timeline in ascending order
+    return dates.reverse();
   }
 
   static getMonthTimeline(startDate: Dayjs, endDate: Dayjs) {

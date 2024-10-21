@@ -416,8 +416,8 @@ export const insightsRouter = router({
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-      const startDate = dayjs(startDateString);
-      const endDate = dayjs(endDateString);
+      const startDate = dayjs.utc(startDateString).startOf("day");
+      const endDate = dayjs.utc(endDateString).endOf("day");
       const user = ctx.user;
 
       if (selfUserId && user?.id !== selfUserId) {
@@ -450,11 +450,8 @@ export const insightsRouter = router({
       });
 
       const { whereCondition: whereConditional } = r;
+      const timeline = await EventsInsights.getTimeLine(timeView, startDate, endDate);
 
-      // Get timeline data
-      const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
-
-      // iterate timeline and fetch data
       if (!timeline) {
         return [];
       }
@@ -476,13 +473,13 @@ export const insightsRouter = router({
           formattedDate: dayjs(date).format(dateFormat), // keep formatted date for later
         };
       });
-      // Step 2: Run a single query for all date ranges
+
       const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
         whereConditional,
         startDate,
-        endDate
+        endDate,
+        timeView
       );
-      // Step 3: Process results for each date range and status
       const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
           Month: formattedDate,
