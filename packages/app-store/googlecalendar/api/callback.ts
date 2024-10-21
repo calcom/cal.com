@@ -75,10 +75,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    const primaryCal = cals.data.items?.find((cal) => cal.primary);
-    // Primary calendar won't be null, this check satisfies typescript.
+    let primaryCal = cals.data.items?.find((cal) => cal.primary);
     if (!primaryCal?.id) {
-      throw new HttpError({ message: "Internal Error", statusCode: 500 });
+      // If the primary calendar is not set, set it to the first calendar
+      primaryCal = cals.data.items?.[0];
     }
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
@@ -94,6 +94,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         appId: "google-calendar",
       },
     });
+
+    // If we still don't have a primary calendar skip creating the selected calendar.
+    // It can be toggled on later.
+    if (!primaryCal?.id) {
+      res.redirect(
+        getSafeRedirectUrl(state?.returnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+      );
+      return;
+    }
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,

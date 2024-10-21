@@ -99,7 +99,7 @@ export class OrganizationsTeamsRepository {
         },
       },
       include: {
-        members: { select: { accepted: true, userId: true } },
+        members: { select: { accepted: true, userId: true, role: true } },
       },
       skip,
       take,

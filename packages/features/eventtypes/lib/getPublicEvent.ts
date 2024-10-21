@@ -356,15 +356,16 @@ export const getPublicEvent = async (
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const hosts = [];
-  for (const host of event.hosts) {
-    hosts.push({
-      ...host,
-      user: await UserRepository.enrichUserWithItsProfile({
-        user: host.user,
-      }),
-    });
-  }
+  const usersAsHosts = event.hosts.map((host) => host.user);
+
+  // Enrich users in a single batch call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+
+  // Map enriched users back to the hosts
+  const hosts = event.hosts.map((host, index) => ({
+    ...host,
+    user: enrichedUsers[index],
+  }));
 
   const eventWithUserProfiles = {
     ...event,
@@ -558,18 +559,18 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
     },
   });
   if (!users.length) return null;
-  const usersWithUserProfile = [];
-  for (const user of users) {
-    const { profile } = await UserRepository.enrichUserWithItsProfile({
-      user: user,
-    });
-    usersWithUserProfile.push({
-      ...user,
-      organizationId: profile?.organization?.id ?? null,
-      organization: profile?.organization,
-      profile,
-    });
-  }
+
+  // Batch enrich users in a single call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(users);
+
+  // Map the enriched users back to include the organization info
+  const usersWithUserProfile = enrichedUsers.map((user) => ({
+    ...user,
+    organizationId: user.profile?.organization?.id ?? null,
+    organization: user.profile?.organization,
+    profile: user.profile,
+  }));
+
   return [
     {
       ...usersWithUserProfile[0],
