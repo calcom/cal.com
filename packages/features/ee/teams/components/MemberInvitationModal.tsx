@@ -206,7 +206,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         type="creation"
         title={t("invite_team_member")}
         description={
-          IS_TEAM_BILLING_ENABLED_CLIENT ? (
+          IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
@@ -469,7 +469,8 @@ export const MemberInvitationModalWithoutMembers = ({
   teamId,
   token,
   onSettingsOpen,
-}: {
+  ...props
+}: Partial<MemberInvitationModalProps> & {
   hideInvitationModal: () => void;
   showMemberInvitationModal: boolean;
   teamId: number;
@@ -495,6 +496,7 @@ export const MemberInvitationModalWithoutMembers = ({
 
   return (
     <MemberInvitationModal
+      {...props}
       isPending={inviteMemberMutation.isPending || isOrgListLoading}
       isOpen={showMemberInvitationModal}
       orgMembers={orgMembersNotInThisTeam}
@@ -513,7 +515,7 @@ export const MemberInvitationModalWithoutMembers = ({
           {
             onSuccess: async (data) => {
               await utils.viewer.teams.get.invalidate();
-              await utils.viewer.teams.lazyLoadMembers.invalidate();
+              await utils.viewer.teams.listMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
               hideInvitationModal();
 

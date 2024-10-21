@@ -17,9 +17,11 @@ import {
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
+  NameFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14,
 } from "../inputs";
 
-export class NameDefaultFieldOutput_2024_06_14 {
+export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -45,7 +47,7 @@ export class NameDefaultFieldOutput_2024_06_14 {
   required!: true;
 }
 
-export class EmailDefaultFieldOutput_2024_06_14 {
+export class EmailDefaultFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
