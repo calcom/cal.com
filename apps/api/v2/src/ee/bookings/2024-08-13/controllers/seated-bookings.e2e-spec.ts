@@ -109,6 +109,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           seatsPerTimeSlot: 5,
           seatsShowAttendees: true,
           seatsShowAvailabilityCount: true,
+          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
         },
         user.id
       );
@@ -124,6 +125,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           seatsPerTimeSlot: 5,
           seatsShowAttendees: true,
           seatsShowAvailabilityCount: true,
+          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
         },
         user.id
       );
