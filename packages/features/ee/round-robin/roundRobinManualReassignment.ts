@@ -27,6 +27,7 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
@@ -296,7 +297,7 @@ async function handleWorkflowsUpdate({
   eventType,
   orgId,
 }: {
-  booking: NonNullable<Awaited<ReturnType<typeof prisma.booking.findUnique>>>;
+  booking: BookingSelectResult;
   newUser: {
     id: number;
     email: string;

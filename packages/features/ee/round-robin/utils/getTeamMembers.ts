@@ -2,6 +2,8 @@ import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleN
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
+import type { BookingSelectResult } from "./bookingSelect";
+
 type Attendee = {
   name: string;
   id: number;
@@ -13,6 +15,7 @@ type Attendee = {
   noShow: boolean | null;
 };
 
+// TODO: We have far too many differnt types here. Theyre all users or hosts at the end of the day.
 type OrganizerType =
   | getEventTypeResponse["hosts"][number]["user"]
   | IsFixedAwareUser
@@ -35,8 +38,8 @@ export async function getTeamMembers({
   eventTypeHosts: getEventTypeResponse["hosts"];
   attendees: Attendee[];
   organizer: OrganizerType;
-  previousHost: getEventTypeResponse["hosts"][number]["user"] | null;
-  reassignedHost: IsFixedAwareUser;
+  previousHost: BookingSelectResult["user"] | getEventTypeResponse["hosts"][number]["user"] | null;
+  reassignedHost: getEventTypeResponse["hosts"][number]["user"];
 }) {
   const teamMemberPromises = eventTypeHosts
     .filter((host) => {

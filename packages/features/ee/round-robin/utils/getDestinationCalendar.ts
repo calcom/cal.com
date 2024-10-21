@@ -1,5 +1,8 @@
+import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { prisma } from "@calcom/prisma";
-import type { DestinationCalendar, EventType, Booking, User } from "@calcom/prisma/client";
+import type { DestinationCalendar } from "@calcom/prisma/client";
+
+import type { BookingSelectResult } from "./bookingSelect";
 
 export async function getDestinationCalendar({
   eventType,
@@ -7,8 +10,8 @@ export async function getDestinationCalendar({
   newUserId,
   hasOrganizerChanged,
 }: {
-  eventType?: EventType & { destinationCalendar?: DestinationCalendar | null };
-  booking?: Booking & { user?: User & { destinationCalendar?: DestinationCalendar | null } };
+  eventType?: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+  booking?: BookingSelectResult;
   newUserId?: number;
   hasOrganizerChanged: boolean;
 }): Promise<DestinationCalendar[] | undefined> {

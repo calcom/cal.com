@@ -1,3 +1,5 @@
+import type { Prisma } from "@calcom/prisma/client";
+
 export const bookingSelect = {
   uid: true,
   title: true,
@@ -18,3 +20,7 @@ export const bookingSelect = {
   attendees: true,
   references: true,
 };
+
+export type BookingSelectResult = Prisma.BookingGetPayload<{
+  select: typeof bookingSelect;
+}>;

@@ -23,16 +23,24 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { id: input.bookingId },
     select: {
-      eventTypeId: true,
+      eventType: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
+
+  if (!booking?.eventType) {
+    throw new Error("Booking not found");
+  }
 
   // If input.exclude is "fixedHosts", exclude fixed hosts from the list
   const excludeFixedHosts = input.exclude === "fixedHosts";
 
   const eventTypeHosts = await prisma.host.findMany({
     where: {
-      eventTypeId: booking.eventTypeId,
+      eventTypeId: booking.eventType.id,
       isFixed: excludeFixedHosts ? false : undefined,
     },
     select: {
