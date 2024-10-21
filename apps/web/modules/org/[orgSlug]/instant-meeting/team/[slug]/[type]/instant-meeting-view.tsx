@@ -10,7 +10,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-function Type({ slug, user, booking, isEmbed, isBrandingHidden, entity, duration }: PageProps) {
+function Type({ slug, user, booking, isEmbed, isBrandingHidden, entity, eventTypeId, duration }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
@@ -29,7 +29,7 @@ function Type({ slug, user, booking, isEmbed, isBrandingHidden, entity, duration
         hideBranding={isBrandingHidden}
         isTeamEvent
         isInstantMeeting
-        entity={entity}
+        entity={{ ...entity, eventTypeId: eventTypeId }}
         duration={duration}
       />
     </main>

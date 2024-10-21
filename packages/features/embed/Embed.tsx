@@ -172,7 +172,7 @@ const EmailEmbed = ({
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug });
+  const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
