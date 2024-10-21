@@ -8,7 +8,6 @@ import {
   PathItemObject,
   PathsObject,
   OperationObject,
-  TagObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import "dotenv/config";
 import * as fs from "fs";
@@ -32,7 +31,7 @@ const run = async () => {
   try {
     bootstrap(app);
     const port = app.get(ConfigService<AppConfig, true>).get("api.port", { infer: true });
-    void generateSwagger(app);
+    await generateSwagger(app);
     await app.listen(port);
     logger.log(`Application started on port: ${port}`);
   } catch (error) {
@@ -69,32 +68,37 @@ function isOperationObject(obj: any): obj is OperationObject {
 }
 
 function groupAndSortPathsByFirstTag(paths: PathsObject): PathsObject {
-  const groupedPaths: { [key: string]: PathsObject } = {};
+  const groupedPaths = new Map<string, PathsObject>();
 
-  Object.keys(paths).forEach((pathKey) => {
-    const pathItem = paths[pathKey];
-
+  Object.entries(paths).forEach(([pathKey, pathItem]) => {
     HttpMethods.forEach((method) => {
       const operation = pathItem[method];
 
       if (isOperationObject(operation) && operation.tags && operation.tags.length > 0) {
         const firstTag = operation.tags[0];
 
-        if (!groupedPaths[firstTag]) {
-          groupedPaths[firstTag] = {};
+        if (!groupedPaths.has(firstTag)) {
+          groupedPaths.set(firstTag, {});
         }
 
-        groupedPaths[firstTag][pathKey] = pathItem;
+        const tagPaths = groupedPaths.get(firstTag);
+        if (tagPaths) {
+          tagPaths[pathKey] = pathItem;
+        }
       }
     });
   });
 
-  const sortedTags = Object.keys(groupedPaths).sort(customTagSort);
   const sortedPaths: PathsObject = {};
 
-  sortedTags.forEach((tag) => {
-    Object.assign(sortedPaths, groupedPaths[tag]);
-  });
+  Array.from(groupedPaths.keys())
+    .sort(customTagSort)
+    .forEach((tag) => {
+      const tagPaths = groupedPaths.get(tag);
+      if (tagPaths) {
+        Object.assign(sortedPaths, tagPaths);
+      }
+    });
 
   return sortedPaths;
 }
