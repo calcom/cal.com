@@ -209,6 +209,15 @@ describe("Event types Endpoints", () => {
             type: "integration",
             integration: "cal-video",
           },
+          {
+            type: "attendeePhone",
+          },
+          {
+            type: "attendeeAddress",
+          },
+          {
+            type: "attendeeDefined",
+          },
         ],
         bookingFields: [
           {
@@ -308,6 +317,8 @@ describe("Event types Endpoints", () => {
           const expectedBookingFields = [
             { isDefault: true, required: true, slug: "name", type: "name" },
             { isDefault: true, required: true, slug: "email", type: "email" },
+            // note(Lauris): location booking field is added if multiple locations are passed
+            { isDefault: true, required: false, slug: "location", type: "radioInput" },
             { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
             ...responseBookingFields.map((field) => ({ isDefault: false, ...field })),
           ];
