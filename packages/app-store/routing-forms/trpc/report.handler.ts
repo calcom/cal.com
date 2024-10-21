@@ -95,7 +95,7 @@ export function buildResponsesForReporting({
       if (!r) {
         return;
       }
-      const response = r as FormResponse;
+      const response = r.response as FormResponse;
       const value = response[field.id]?.value || "";
       if (field.options) {
         const optionIds = ensureStringOrStringArray(value);
