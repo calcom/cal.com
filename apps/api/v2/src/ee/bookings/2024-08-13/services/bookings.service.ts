@@ -18,7 +18,6 @@ import {
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
   CreateBookingInput,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
@@ -27,6 +26,10 @@ import {
   MarkAbsentBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  RescheduleBookingInput,
+  CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -54,8 +57,18 @@ export class BookingsService_2024_08_13 {
         return await this.createInstantBooking(request, body);
       }
 
-      if (await this.isRecurring(body)) {
+      const eventType = await this.eventTypesRepository.getEventTypeById(body.eventTypeId);
+      const isRecurring = !!eventType?.recurringEvent;
+      const isSeated = !!eventType?.seatsPerTimeSlot;
+
+      if (isRecurring && isSeated) {
+        return await this.createRecurringSeatedBooking(request, body);
+      }
+      if (isRecurring && !isSeated) {
         return await this.createRecurringBooking(request, body);
+      }
+      if (isSeated) {
+        return await this.createSeatedBooking(request, body);
       }
 
       return await this.createRegularBooking(request, body);
@@ -83,46 +96,70 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async isRecurring(body: CreateBookingInput) {
-    const eventType = await this.eventTypesRepository.getEventTypeById(body.eventTypeId);
-    return !!eventType?.recurringEvent;
-  }
-
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
-    const uid = bookings[0].recurringEventId;
-    if (!uid) {
-      throw new Error("Recurring booking was not created");
-    }
+    const ids = bookings.map((booking) => booking.id || 0);
+    return this.outputService.getOutputRecurringBookings(ids);
+  }
 
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
-    return this.outputService.getOutputRecurringBookings(recurringBooking);
+  async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
+    const bookings = await handleNewRecurringBooking(bookingRequest);
+    return this.outputService.getOutputCreateRecurringSeatedBookings(
+      bookings.map((booking) => ({ id: booking.id || 0, seatUid: booking.seatReferenceUid || "" }))
+    );
   }
 
   async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
     const booking = await handleNewBooking(bookingRequest);
 
-    if (!booking.id) {
-      throw new Error("Booking was not created");
+    if (!booking.uid) {
+      throw new Error("Booking missing uid");
     }
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(booking.id);
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
     if (!databaseBooking) {
-      throw new Error(`Booking with id=${booking.id} was not found in the database`);
+      throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
     }
 
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
+  async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createBookingRequest(request, body);
+    const booking = await handleNewBooking(bookingRequest);
+
+    if (!booking.uid) {
+      throw new Error("Booking missing uid");
+    }
+
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(
+      booking.uid
+    );
+    if (!databaseBooking) {
+      throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
+    }
+
+    return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+  }
+
   async getBooking(uid: string) {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(uid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
-      if (isRecurring) {
+      const isSeated = !!booking.eventType?.seatsPerTimeSlot;
+
+      if (isRecurring && !isSeated) {
         return this.outputService.getOutputRecurringBooking(booking);
+      }
+      if (isRecurring && isSeated) {
+        return this.outputService.getOutputRecurringSeatedBooking(booking);
+      }
+      if (isSeated) {
+        return this.outputService.getOutputSeatedBooking(booking);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -131,8 +168,13 @@ export class BookingsService_2024_08_13 {
     if (!recurringBooking.length) {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
+    const ids = recurringBooking.map((booking) => booking.id);
+    const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
+    if (isRecurringSeated) {
+      return this.outputService.getOutputRecurringSeatedBookings(ids);
+    }
 
-    return this.outputService.getOutputRecurringBookings(recurringBooking);
+    return this.outputService.getOutputRecurringBookings(ids);
   }
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
@@ -151,12 +193,17 @@ export class BookingsService_2024_08_13 {
     // note(Lauris): fetchedBookings don't have attendees information and responses and i don't want to add them to the handler query,
     // because its used elsewhere in code that does not need that information, so i get ids, fetch bookings and then return them formatted in same order as ids.
     const ids = fetchedBookings.bookings.map((booking) => booking.id);
-    const bookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(ids);
+    const bookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(ids);
 
     const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
     const orderedBookings = ids.map((id) => bookingMap.get(id));
 
-    const formattedBookings: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = [];
+    const formattedBookings: (
+      | BookingOutput_2024_08_13
+      | RecurringBookingOutput_2024_08_13
+      | GetSeatedBookingOutput_2024_08_13
+      | GetRecurringSeatedBookingOutput_2024_08_13
+    )[] = [];
     for (const booking of orderedBookings) {
       if (!booking) {
         continue;
@@ -172,8 +219,13 @@ export class BookingsService_2024_08_13 {
       };
 
       const isRecurring = !!formatted.recurringEventId;
-      if (isRecurring) {
+      const isSeated = !!formatted.eventType?.seatsPerTimeSlot;
+      if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
+      } else if (isRecurring && isSeated) {
+        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
+      } else if (isSeated) {
+        formattedBookings.push(this.outputService.getOutputSeatedBooking(formatted));
       } else {
         formattedBookings.push(this.outputService.getOutputBooking(formatted));
       }
@@ -182,7 +234,7 @@ export class BookingsService_2024_08_13 {
     return formattedBookings;
   }
 
-  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput_2024_08_13) {
+  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
     try {
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
@@ -190,17 +242,33 @@ export class BookingsService_2024_08_13 {
         body
       );
       const booking = await handleNewBooking(bookingRequest);
-      if (!booking.id) {
-        throw new Error("Booking was not created");
+      if (!booking.uid) {
+        throw new Error("Booking missing uid");
       }
 
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(booking.id);
+      const databaseBooking =
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
-        throw new Error(`Booking with id=${booking.id} was not found in the database`);
+        throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
-      if (databaseBooking.recurringEventId) {
+      const isRecurring = !!databaseBooking.recurringEventId;
+      const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
+
+      if (isRecurring && !isSeated) {
         return this.outputService.getOutputRecurringBooking(databaseBooking);
+      }
+      if (isRecurring && isSeated) {
+        return this.outputService.getOutputCreateRecurringSeatedBooking(
+          databaseBooking,
+          booking?.seatReferenceUid || ""
+        );
+      }
+      if (isSeated) {
+        return this.outputService.getOutputCreateSeatedBooking(
+          databaseBooking,
+          booking.seatReferenceUid || ""
+        );
       }
       return this.outputService.getOutputBooking(databaseBooking);
     } catch (error) {
@@ -213,7 +281,7 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput_2024_08_13) {
+  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
     return this.getBooking(bookingUid);
@@ -249,7 +317,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async billBooking(booking: CreatedBooking) {
-    const hostId = booking.hosts[0].id;
+    const hostId = booking.hosts?.[0]?.id;
     if (!hostId) {
       this.logger.error(`Booking with uid=${booking.uid} has no host`);
       return;
