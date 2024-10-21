@@ -153,6 +153,8 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     platformOAuthClientId: null,
+    time: null,
+    timeUnit: null,
     ...webhook,
     platform: false,
   };

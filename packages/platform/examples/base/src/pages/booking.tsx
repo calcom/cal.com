@@ -90,7 +90,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
             <Booker
-              view="WEEK_VIEW"
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {
                 setBookingTitle(data.data.title ?? "");

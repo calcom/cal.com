@@ -73,6 +73,7 @@ export const schemaBookingReadPublic = Booking.extend({
   attendees: z
     .array(
       _AttendeeModel.pick({
+        id: true,
         email: true,
         name: true,
         timeZone: true,

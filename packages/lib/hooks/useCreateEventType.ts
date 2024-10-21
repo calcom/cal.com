@@ -11,13 +11,10 @@ import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 
-export const useCreateEventType = (
-  onSuccessMutation: (eventType: EventType) => void,
-  onErrorMutation: (message: string) => void
-) => {
-  const utils = trpc.useUtils();
-  const { t } = useLocale();
-  const form = useForm<z.infer<typeof createEventTypeInput>>({
+export type CreateEventTypeFormValues = z.infer<typeof createEventTypeInput>;
+
+export const useCreateEventTypeForm = () => {
+  const form = useForm<CreateEventTypeFormValues>({
     defaultValues: {
       length: 15,
     },
@@ -34,6 +31,17 @@ export const useCreateEventType = (
       form.setValue("metadata", null);
     }
   }, [schedulingTypeWatch]);
+
+  return { form, isManagedEventType };
+};
+
+export const useCreateEventType = (
+  onSuccessMutation: (eventType: EventType) => void,
+  onErrorMutation: (message: string) => void
+) => {
+  const utils = trpc.useUtils();
+  const { t } = useLocale();
+  const { form, isManagedEventType } = useCreateEventTypeForm();
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {

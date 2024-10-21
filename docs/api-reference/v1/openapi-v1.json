@@ -1346,6 +1346,10 @@
                           }
                         },
                         "description": "Meeting location"
+                      },
+                      "smsReminderNumber": {
+                        "type": "number",
+                        "description": "SMS reminder number"
                       }
                     }
                   },
@@ -1389,10 +1393,6 @@
                   "seatsShowAvailabilityCount": {
                     "type": "boolean",
                     "description": "Show the number of available seats"
-                  },
-                  "smsReminderNumber": {
-                    "type": "number",
-                    "description": "SMS reminder number"
                   }
                 }
               },
@@ -1405,15 +1405,18 @@
                     "responses": {
                       "name": "Hello Hello",
                       "email": "hello@gmail.com",
-                      "metadata": {},
-                      "location": "Calcom HQ"
+                      "smsReminderNumber": null,
+                      "location": {
+                        "value": "userPhone",
+                        "optionValue": ""
+                      }
                     },
                     "timeZone": "Europe/London",
                     "language": "en",
                     "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
                     "description": null,
                     "status": "PENDING",
-                    "smsReminderNumber": null
+                    "metadata": {}
                   }
                 }
               }
@@ -3934,6 +3937,139 @@
           },
           "401": {
             "description": "Authorization information is missing or invalid."
+          }
+        }
+      }
+    },
+    "/slots": {
+      "get": {
+        "summary": "Get all bookable slots between a datetime range",
+        "tags": ["slots"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apiKey",
+            "required": true,
+            "description": "Your API Key",
+            "schema": {
+              "type": "string",
+              "example": "cal_live_<unique_identifier>"
+            }
+          },
+          {
+            "in": "query",
+            "name": "eventTypeId",
+            "required": false,
+            "description": "The event type Id to fetch available slots against",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "startTime",
+            "required": true,
+            "description": "Start time of the slot lookup",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "endTime",
+            "required": true,
+            "description": "End time of the slot lookup",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "timeZone",
+            "description": "TimeZone for the slot lookup",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "usernameList",
+            "description": "An array of usernames, or team slug in case of a team event [To be used when not using eventTypeId]",
+            "example": ["user1", "user2", "user3"],
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "in": "query",
+            "name": "eventTypeSlug",
+            "description": "Slug of the event type to fetch available slots against [To be used when not using eventTypeId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orgSlug",
+            "description": "Slug of the organization that the user belongs to, in case the user belongs to an organization [To be used when not using eventTypeId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isTeamEvent",
+            "description": "True if the event is a team event",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "slots": {
+                      "2024-04-13": [
+                        {
+                          "time": "2024-04-13T11:00:00+04:00"
+                        },
+                        {
+                          "time": "2024-04-13T12:00:00+04:00"
+                        },
+                        {
+                          "time": "2024-04-13T13:00:00+04:00"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authorization information is missing or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Authorization information is missing or invalid."
+                }
+              }
+            }
           }
         }
       }

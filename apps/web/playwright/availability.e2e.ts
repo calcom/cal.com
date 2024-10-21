@@ -179,7 +179,7 @@ test.describe("Availablity", () => {
       .locator("svg")
       .click();
 
-    await page.locator("[id=timeZone-lg-viewport]").fill("bras");
+    await page.locator("[id=timeZone-lg-viewport]").fill("Braz");
     await page.getByTestId("select-option-America/Sao_Paulo").click();
     await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
