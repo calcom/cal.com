@@ -926,10 +926,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           askedContactOwner: contactOwnerEmailFromInput,
           // One that we used as per Routing
           usedContactOwner: contactOwnerEmail,
-          routedHosts: routedHostsWithContactOwnerAndFixedHosts.map((host) => {
+          routedHosts: usersWithCredentials.map((user) => {
             return {
-              email: host.email,
-              user: host.user.id,
+              email: user.email,
+              user: user.id,
             };
           }),
           hosts: eventHosts.map((host) => ({
