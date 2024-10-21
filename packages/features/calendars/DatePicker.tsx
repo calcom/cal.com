@@ -310,7 +310,7 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
-  const { i18n } = useLocale();
+  const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
 
