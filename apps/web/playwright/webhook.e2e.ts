@@ -490,7 +490,6 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
   }, _testInfo) => {
     const user = await users.create();
     await user.apiLogin();
-    const tomorrow = dayjs().add(1, "day");
     const [eventType] = user.eventTypes;
     bookings.create(user.id, user.name, eventType.id);
     bookings.create(user.id, user.name, eventType.id, { startTime: dayjs().add(2, "day").toDate() });
@@ -814,7 +813,7 @@ test.describe("OOO_CREATED", async () => {
       hasTeam: true,
     });
     await user.apiLogin();
-    const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
+    const { webhookReceiver } = await webhooks.createTeamReceiver();
 
     await page.goto("/settings/my-account/out-of-office");
 
