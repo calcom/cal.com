@@ -1,13 +1,12 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
-import type {
-  EventAvailabilityTabWebWrapperProps,
-  GetAllSchedulesByUserIdQueryType,
-} from "@calcom/atoms/event-types/wrappers/EventAvailabilityTabWebWrapper";
+import type { GetAllSchedulesByUserIdQueryType } from "@calcom/atoms/event-types/wrappers/EventAvailabilityTabWebWrapper";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -27,26 +26,54 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
+type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+
 type EventTypeScheduleDetailsProps = {
-  scheduleQueryData?: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+  scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly"> & {
+    schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+  };
   isSchedulePending?: boolean;
-  loggedInUser?: RouterOutputs["viewer"]["me"];
+  user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
 };
 
+type HostSchedulesQueryType =
+  | GetAllSchedulesByUserIdQueryType
+  | (({ userId }: { userId: number }) => UseQueryResult<
+      {
+        schedules: {
+          id: number;
+          name: string;
+          isDefault: boolean;
+          userId: number;
+          readOnly: boolean;
+        }[];
+      },
+      Error
+    >);
+
 type EventTypeTeamScheduleProps = {
-  hostSchedulesQuery: GetAllSchedulesByUserIdQueryType;
+  hostSchedulesQuery: HostSchedulesQueryType;
   hosts?: Host[];
 };
 
+type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
+
 type EventTypeScheduleProps = {
-  availabilityQueryData?: RouterOutputs["viewer"]["availability"]["list"];
-  isAvailabilityPending?: boolean;
+  schedulesQueryData?: Array<
+    Omit<RouterOutputs["viewer"]["availability"]["list"]["schedules"][number], "availability">
+  >;
+  isSchedulesPending?: boolean;
   eventType: EventTypeSetup;
+  teamMembers: TeamMember[];
 } & EventTypeScheduleDetailsProps &
   EventTypeTeamScheduleProps;
 
-type EventAvailabilityTabProps = EventAvailabilityTabWebWrapperProps & EventTypeScheduleProps;
+export type EventAvailabilityTabBaserProps = {
+  isTeamEvent: boolean;
+};
+
+type EventAvailabilityTabProps = EventAvailabilityTabBaserProps & EventTypeScheduleProps;
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
   const { label, isDefault, isManaged = false } = props.data;
@@ -99,16 +126,16 @@ const EventTypeScheduleDetails = memo(
   ({
     scheduleQueryData,
     isSchedulePending,
-    loggedInUser,
+    user,
     editAvailabilityRedirectUrl,
   }: EventTypeScheduleDetailsProps) => {
-    const timeFormat = loggedInUser?.timeFormat;
+    const timeFormat = user?.timeFormat;
     const { t, i18n } = useLocale();
 
-    const weekStart = weekStartNum(loggedInUser?.weekStart);
+    const weekStart = weekStartNum(user?.weekStart);
 
     const filterDays = (dayNum: number) =>
-      scheduleQueryData?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+      scheduleQueryData?.schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
 
     return (
       <div>
@@ -157,7 +184,6 @@ const EventTypeScheduleDetails = memo(
             !scheduleQueryData.readOnly &&
             !!editAvailabilityRedirectUrl && (
               <Button
-                // href={`/availability/${scheduleQueryData.id}`}
                 href={editAvailabilityRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
@@ -177,8 +203,8 @@ EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
 const EventTypeSchedule = ({
   eventType,
-  availabilityQueryData,
-  isAvailabilityPending,
+  schedulesQueryData,
+  isSchedulesPending,
   ...rest
 }: EventTypeScheduleProps) => {
   const { t } = useLocale();
@@ -191,25 +217,21 @@ const EventTypeSchedule = ({
 
   useEffect(() => {
     // after data is loaded.
-    if (availabilityQueryData && scheduleId !== 0 && !scheduleId) {
-      const newValue = isManagedEventType
-        ? 0
-        : availabilityQueryData.schedules.find((schedule) => schedule.isDefault)?.id;
+    if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
+      const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       if (!newValue && newValue !== 0) return;
       setValue("schedule", newValue, {
         shouldDirty: true,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, availabilityQueryData]);
+  }, [scheduleId, schedulesQueryData]);
 
-  if (isAvailabilityPending || !availabilityQueryData) {
+  if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
   }
 
-  const schedules = availabilityQueryData.schedules;
-
-  const options = schedules.map((schedule) => ({
+  const options = schedulesQueryData.map((schedule) => ({
     value: schedule.id,
     label: schedule.name,
     isDefault: schedule.isDefault,
@@ -227,7 +249,11 @@ const EventTypeSchedule = ({
   }
   // We are showing a managed event for a member and team owner selected their own schedule, so adding
   // the managed schedule option
-  if (isChildrenManagedEventType && scheduleId && !schedules.find((schedule) => schedule.id === scheduleId)) {
+  if (
+    isChildrenManagedEventType &&
+    scheduleId &&
+    !schedulesQueryData.find((schedule) => schedule.id === scheduleId)
+  ) {
     options.push({
       value: scheduleId,
       label: eventType.scheduleName ?? t("default_schedule_name"),
@@ -236,7 +262,7 @@ const EventTypeSchedule = ({
     });
   }
   // We push the selected schedule from the event type if it's not part of the list response. This happens if the user is an admin but not the schedule owner.
-  else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
+  else if (eventType.schedule && !schedulesQueryData.find((schedule) => schedule.id === eventType.schedule)) {
     options.push({
       value: eventType.schedule,
       label: eventType.scheduleName ?? t("default_schedule_name"),
@@ -295,10 +321,11 @@ const TeamMemberSchedule = ({
 }: {
   host: Host;
   index: number;
-  teamMembers: TeamMembers;
-  hostScheduleQuery: GetAllSchedulesByUserIdQueryType;
+  teamMembers: TeamMember[];
+  hostScheduleQuery: HostSchedulesQueryType;
 }) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
 
   const formMethods = useFormContext<FormValues>();
   const { getValues } = formMethods;
@@ -330,7 +357,8 @@ const TeamMemberSchedule = ({
   return (
     <>
       <div className="flex w-full items-center">
-        <Avatar size="sm" imageSrc={avatar} alt={label || ""} />
+        {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
+        {isPlatform && <Icon name="user" className="h-4 w-4" />}
         <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
       </div>
       <div className="flex w-full flex-col pt-2 ">
@@ -367,7 +395,7 @@ const TeamAvailability = ({
   hosts,
   teamMembers,
   hostSchedulesQuery,
-}: EventTypeTeamScheduleProps & { teamMembers: TeamMembers }) => {
+}: EventTypeTeamScheduleProps & { teamMembers: TeamMember[] }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
@@ -411,10 +439,7 @@ const TeamAvailability = ({
   );
 };
 
-const UseCommonScheduleSettingsToggle = ({
-  eventType,
-  ...rest
-}: Omit<EventAvailabilityTabProps, "isTeamEvent">) => {
+const UseCommonScheduleSettingsToggle = ({ eventType, ...rest }: EventTypeScheduleProps) => {
   const { t } = useLocale();
   const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
 

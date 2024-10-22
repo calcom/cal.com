@@ -380,6 +380,65 @@ export class UserRepository {
     };
   }
 
+  static async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    if (users.length === 0) return [];
+
+    const userIds = users.map((user) => user.id);
+    const profiles = await ProfileRepository.findManyForUsers(userIds);
+
+    // Create a Map for faster lookups, preserving arrays of profiles per user
+    const profileMap = new Map<number, UserProfile[]>();
+    profiles.forEach((profile) => {
+      if (!profileMap.has(profile.userId)) {
+        profileMap.set(profile.userId, []);
+      }
+      profileMap.get(profile.userId)!.push(profile);
+    });
+
+    // Precompute personal profiles for all users
+    const personalProfileMap = new Map<number, UserProfile>();
+    users.forEach((user) => {
+      personalProfileMap.set(user.id, ProfileRepository.buildPersonalProfileFromUser({ user }));
+    });
+
+    return users.map((user) => {
+      const userProfiles = profileMap.get(user.id) || [];
+      if (userProfiles.length > 0) {
+        const profile = userProfiles[0];
+        if (profile?.organization?.isPlatform) {
+          return {
+            ...user,
+            nonProfileUsername: user.username,
+            profile: personalProfileMap.get(user.id)!,
+          };
+        }
+
+        return {
+          ...user,
+          username: profile.username,
+          nonProfileUsername: user.username,
+          profile,
+        };
+      }
+
+      // If no organization profile exists, use the precomputed personal profile
+      return {
+        ...user,
+        nonProfileUsername: user.username,
+        profile: personalProfileMap.get(user.id)!,
+      };
+    });
+  }
+
   static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
