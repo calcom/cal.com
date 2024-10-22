@@ -1,7 +1,5 @@
 import type { z } from "zod";
 
-import type { ZTriggerFormSubmittedNoEventWebhookPayloadSchema } from "./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook";
-
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
   sendEmail: string;
@@ -13,7 +11,9 @@ type TaskPayloads = {
   triggerGuestNoShowWebhook: z.infer<
     typeof import("./tasks/triggerNoShow/schema").ZSendNoShowWebhookPayloadSchema
   >;
-  triggerFormSubmittedNoEventWebhook: z.infer<typeof ZTriggerFormSubmittedNoEventWebhookPayloadSchema>;
+  triggerFormSubmittedNoEventWebhook: z.infer<
+    typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").ZTriggerFormSubmittedNoEventWebhookPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;

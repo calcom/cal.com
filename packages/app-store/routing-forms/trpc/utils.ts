@@ -45,7 +45,7 @@ const {
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
-type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   string,
   {
     /**
