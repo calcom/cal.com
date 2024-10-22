@@ -1,4 +1,5 @@
 export type Reference = {
+  id: number;
   uid: string;
   type: string;
   meetingUrl: string | null;

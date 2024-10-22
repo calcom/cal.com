@@ -22,6 +22,7 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
       },
       role: MembershipRole.OWNER,
       team: {
+        isPlatform: false,
         parentId: null, // Since ORGS relay on their parent's subscription, we don't need to return them
       },
     },
@@ -33,7 +34,7 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
   /** We only need to return teams that don't have a `subscriptionId` on their metadata */
   teams = teams.filter((m) => {
     const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-    if (metadata.success && !metadata.data?.isOrganization) return false;
+    if (!m.team.isOrganization) return false;
     if (metadata.success && metadata.data?.subscriptionId) return false;
     return true;
   });

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 const passwordResetRequestSchema = z.object({
   password: z.string().refine(validPassword, () => ({
@@ -42,11 +43,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       data: {
         password: {
-          update: {
-            hash: hashedPassword,
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
           },
         },
         emailVerified: new Date(),
+        identityProvider: IdentityProvider.CAL,
+        identityProviderId: null,
       },
     });
   } catch (e) {

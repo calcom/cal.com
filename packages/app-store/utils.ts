@@ -12,7 +12,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
-type LocationOption = {
+export type LocationOption = {
   label: string;
   value: EventLocationType["type"];
   icon?: string;
@@ -47,7 +47,7 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  */
 function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
-    const appCredentials = credentials.filter((credential) => credential.type === appMeta.type);
+    const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 
     if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
 
@@ -162,9 +162,12 @@ export function doesAppSupportTeamInstall({
   );
 }
 
+export function isConferencing(appCategories: string[]) {
+  return appCategories.some((category) => category === "conferencing" || category === "video");
+}
 export const defaultVideoAppCategories: AppCategories[] = [
-  "conferencing",
   "messaging",
+  "conferencing",
   // Legacy name for conferencing
   "video",
 ];

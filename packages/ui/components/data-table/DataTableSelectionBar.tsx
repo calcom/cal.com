@@ -1,54 +1,46 @@
+"use client";
+
 import type { Table } from "@tanstack/react-table";
-import { motion, AnimatePresence } from "framer-motion";
-import { Fragment } from "react";
+import { forwardRef } from "react";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
+import { classNames } from "@calcom/lib";
 
-import { Button } from "../button";
+import type { IconName } from "../..";
 
 export type ActionItem<TData> =
   | {
       type: "action";
       label: string;
       onClick: () => void;
-      icon?: SVGComponent;
+      icon?: IconName;
+      needsXSelected?: number;
     }
   | {
       type: "render";
       render: (table: Table<TData>) => React.ReactNode;
+      needsXSelected?: number;
     };
 
-interface DataTableSelectionBarProps<TData> {
-  table: Table<TData>;
-  actions?: ActionItem<TData>[];
-}
-
-export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelectionBarProps<TData>) {
-  const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
-  const isVisible = numberOfSelectedRows > 0;
-
+const Root = forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { showSelectionCount?: boolean }
+>(({ children, ...props }, ref) => {
   return (
-    <AnimatePresence>
-      {isVisible ? (
-        <motion.div
-          initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: 20 }}
-          exit={{ opacity: 0, y: 0 }}
-          className="bg-brand-default text-brand item-center fixed bottom-6 left-1/4 hidden gap-4 rounded-lg p-2 md:flex lg:left-1/2">
-          <div className="text-brand-subtle my-auto px-2">{numberOfSelectedRows} selected</div>
-          {actions?.map((action, index) => (
-            <Fragment key={index}>
-              {action.type === "action" ? (
-                <Button aria-label={action.label} onClick={action.onClick} StartIcon={action.icon}>
-                  {action.label}
-                </Button>
-              ) : action.type === "render" ? (
-                action.render(table)
-              ) : null}
-            </Fragment>
-          ))}
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div
+      ref={ref}
+      className={classNames(
+        "bg-brand-default text-brand fixed bottom-4 left-1/2 flex w-fit -translate-x-1/2 transform items-center space-x-3 rounded-lg px-4 py-2",
+        props.className
+      )}
+      style={{ ...props.style }}
+      {...props}>
+      {children}
+    </div>
   );
-}
+});
+
+Root.displayName = "Root";
+
+export const DataTableSelectionBar = {
+  Root,
+};

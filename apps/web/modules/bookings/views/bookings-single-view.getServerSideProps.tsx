@@ -1,11 +1,14 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
+import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -62,62 +65,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const maybeBookingUidFromSeat = await maybeGetBookingUidFromSeat(prisma, uid);
   if (maybeBookingUidFromSeat.uid) uid = maybeBookingUidFromSeat.uid;
   if (maybeBookingUidFromSeat.seatReferenceUid) seatReferenceUid = maybeBookingUidFromSeat.seatReferenceUid;
-  const bookingInfoRaw = await prisma.booking.findFirst({
-    where: {
-      uid: uid,
-    },
-    select: {
-      title: true,
-      id: true,
-      uid: true,
-      description: true,
-      customInputs: true,
-      smsReminderNumber: true,
-      recurringEventId: true,
-      startTime: true,
-      endTime: true,
-      location: true,
-      status: true,
-      metadata: true,
-      cancellationReason: true,
-      responses: true,
-      rejectionReason: true,
-      userPrimaryEmail: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          username: true,
-          timeZone: true,
-        },
-      },
-      attendees: {
-        select: {
-          name: true,
-          email: true,
-          timeZone: true,
-        },
-      },
-      eventTypeId: true,
-      eventType: {
-        select: {
-          eventName: true,
-          slug: true,
-          timeZone: true,
-        },
-      },
-      seatsReferences: {
-        select: {
-          referenceUid: true,
-        },
-      },
-    },
-  });
+
+  const { bookingInfoRaw, bookingInfo } = await getBookingInfo(uid);
+
   if (!bookingInfoRaw) {
     return {
       notFound: true,
     } as const;
+  }
+
+  let rescheduledToUid: string | null = null;
+  if (bookingInfo.rescheduled) {
+    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+      originalBookingUid: bookingInfo.uid,
+    });
+    rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -133,7 +95,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     requiresLoginToUpdate = true;
   }
 
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
@@ -160,6 +121,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
+    bookingFields: eventTypeRaw.bookingFields.map((field) => {
+      return {
+        ...field,
+        label: field.type === "boolean" ? markdownToSafeHTML(field.label || "") : field.label || "",
+        defaultLabel:
+          field.type === "boolean" ? markdownToSafeHTML(field.defaultLabel || "") : field.defaultLabel || "",
+      };
+    }),
   };
 
   const profile = {
@@ -193,8 +162,26 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
+  const userId = session?.user?.id;
+  const isLoggedInUserHost =
+    userId &&
+    (eventType.users.some((user) => user.id === userId) ||
+      eventType.hosts.some(({ user }) => user.id === userId));
+
+  if (!isLoggedInUserHost) {
+    // Removing hidden fields from responses
+    for (const key in bookingInfo.responses) {
+      const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
+      if (field && !!field.hidden) {
+        delete bookingInfo.responses[key];
+      }
+    }
+  }
+
+  const { currentOrgDomain } = orgDomainConfig(context.req);
   return {
     props: {
+      orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
@@ -207,6 +194,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
+      rescheduledToUid,
     },
   };
 }

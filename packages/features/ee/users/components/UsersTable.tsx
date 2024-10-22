@@ -17,11 +17,11 @@ import {
   DialogContent,
   DialogFooter,
   DropdownActions,
+  Icon,
   showToast,
   Table,
   TextField,
 } from "@calcom/ui";
-import { Edit, Lock, Trash, User, VenetianMask } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -32,7 +32,7 @@ const FETCH_LIMIT = 25;
 function UsersTableBare() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -88,6 +88,12 @@ function UsersTableBare() {
     },
   });
 
+  const removeTwoFactor = trpc.viewer.admin.removeTwoFactor.useMutation({
+    onSuccess: () => {
+      showToast("2FA has been removed", "success");
+    },
+  });
+
   const lockUserAccount = trpc.viewer.admin.lockUserAccount.useMutation({
     onSuccess: ({ userId, locked }) => {
       showToast(locked ? "User was locked" : "User was unlocked", "success");
@@ -110,6 +116,7 @@ function UsersTableBare() {
           })),
         };
       });
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
@@ -144,7 +151,7 @@ function UsersTableBare() {
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (
-    <>
+    <div>
       <TextField
         placeholder="username or email"
         label="Search"
@@ -181,14 +188,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <span className="text-default">{user.name}</span>
-                      <span className="ml-3">/{user.username}</span>
-                      {user.locked && (
-                        <span className="ml-3">
-                          <Lock />
-                        </span>
-                      )}
-                      <br />
+                      <div className="flex flex-row">
+                        <span className="text-default">{user.name}</span>
+                        <span className="ml-3">/{user.username}</span>
+                        {user.locked && (
+                          <span className="ml-3">
+                            <Icon name="lock" />
+                          </span>
+                        )}
+                        <br />
+                      </div>
                       <span className="break-all">{user.email}</span>
                     </div>
                   </div>
@@ -207,25 +216,25 @@ function UsersTableBare() {
                           id: "edit",
                           label: "Edit",
                           href: `/settings/admin/users/${user.id}/edit`,
-                          icon: Edit,
+                          icon: "pencil",
                         },
                         {
                           id: "reset-password",
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
-                          icon: Lock,
+                          icon: "lock",
                         },
                         {
                           id: "impersonate-user",
                           label: "Impersonate User",
                           onClick: () => handleImpersonateUser(user?.username),
-                          icon: User,
+                          icon: "user",
                         },
                         {
                           id: "lock-user",
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
-                          icon: Lock,
+                          icon: "lock",
                         },
                         {
                           id: "impersonation",
@@ -234,14 +243,21 @@ function UsersTableBare() {
                             setSelectedUser(user.username);
                             setShowImpersonateModal(true);
                           },
-                          icon: VenetianMask,
+                          icon: "venetian-mask",
+                        },
+                        {
+                          id: "remove-2fa",
+                          label: "Remove 2FA",
+                          color: "destructive",
+                          onClick: () => removeTwoFactor.mutate({ userId: user.id }),
+                          icon: "shield",
                         },
                         {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
-                          icon: Trash,
+                          icon: "trash",
                         },
                       ]}
                     />
@@ -280,7 +296,7 @@ function UsersTableBare() {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 }
 

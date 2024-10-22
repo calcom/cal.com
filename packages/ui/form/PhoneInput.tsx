@@ -1,3 +1,5 @@
+"use client";
+
 import { isSupportedCountry } from "libphonenumber-js";
 import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
@@ -17,21 +19,11 @@ export type PhoneInputProps = {
   onChange: (value: string) => void;
 };
 
-function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps) {
-  useEffect(() => {
-    if (!rest.value) {
-      return;
-    }
-    const formattedValue = rest.value.trim().replace(/^\+?/, "+");
-    onChange(formattedValue);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const defaultCountry = useDefaultCountry();
+function BasePhoneInput({ name, className = "", onChange, value, ...rest }: PhoneInputProps) {
   return (
     <PhoneInput
       {...rest}
-      country={rest.value ? undefined : defaultCountry}
+      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
       inputProps={{

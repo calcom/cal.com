@@ -3,12 +3,16 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -16,20 +20,39 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
-import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
+import {
+  addWeightAdjustmentToNewHosts,
+  ensureUniqueBookingFields,
+  ensureEmailOrPhoneNumberIsPresent,
+  handleCustomInputs,
+  handlePeriodType,
+} from "./util";
+
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  username: SessionUser["username"];
+  profile: {
+    id: SessionUser["profile"]["id"] | null;
+  };
+  selectedCalendars: SessionUser["selectedCalendars"];
+};
 
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };
 
+export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
+
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     schedule,
+    instantMeetingSchedule,
     periodType,
     locations,
     bookingLimits,
@@ -37,23 +60,37 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     destinationCalendar,
     customInputs,
     recurringEvent,
+    eventTypeColor,
     users,
     children,
     assignAllTeamMembers,
     hosts,
     id,
-    hashedLink,
+    multiplePrivateLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
     userId,
     bookingFields,
     offsetStart,
+    secondaryEmailId,
+    aiPhoneCallConfig,
+    isRRWeightsEnabled,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      title: true,
+      isRRWeightsEnabled: true,
+      aiPhoneCallConfig: {
+        select: {
+          generalPrompt: true,
+          beginMessage: true,
+          enabled: true,
+          llmId: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -105,11 +142,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const teamId = input.teamId || eventType.team?.id;
 
   ensureUniqueBookingFields(bookingFields);
+  ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
+    isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
   if (periodType) {
@@ -194,6 +234,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
+  if (instantMeetingSchedule) {
+    data.instantMeetingSchedule = {
+      connect: {
+        id: instantMeetingSchedule,
+      },
+    };
+  } else if (schedule === null) {
+    data.instantMeetingSchedule = {
+      disconnect: true,
+    };
+  }
+
   if (users?.length) {
     data.users = {
       set: [],
@@ -219,22 +271,42 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         code: "FORBIDDEN",
       });
     }
+
+    // weights were already enabled or are enabled now
+    const isWeightsEnabled =
+      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
+
+    const hostsWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
+      hosts,
+      isWeightsEnabled,
+      eventTypeId: id,
+      prisma: ctx.prisma,
+    });
+
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => {
+      create: hostsWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
         return {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2, // default to medium priority
+          weight: host.weight ?? 100,
+          weightAdjustment: host.weightAdjustment,
         };
       }),
     };
   }
 
-  if (input.metadata?.disableStandardEmails) {
-    //check if user is allowed to disabled standard emails
+  if (input.metadata?.disableStandardEmails?.all) {
+    if (!eventType?.team?.parentId) {
+      input.metadata.disableStandardEmails.all.host = false;
+      input.metadata.disableStandardEmails.all.attendee = false;
+    }
+  }
 
+  if (input.metadata?.disableStandardEmails?.confirmation) {
+    //check if user is allowed to disabled standard emails
     const workflows = await ctx.prisma.workflow.findMany({
       where: {
         activeOn: {
@@ -250,21 +322,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (
-        !workflows.find(
-          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
-        )
-      ) {
+      if (!allowDisablingHostConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.host = false;
       }
     }
 
     if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (
-        !workflows.find(
-          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
-        )
-      ) {
+      if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.attendee = false;
       }
     }
@@ -279,47 +343,112 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-
-  const connectedLink = await ctx.prisma.hashedLink.findFirst({
+  const connectedLinks = await ctx.prisma.hashedLink.findMany({
     where: {
       eventTypeId: input.id,
     },
     select: {
       id: true,
+      link: true,
     },
   });
 
-  if (hashedLink) {
-    // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
-    if (!connectedLink) {
-      // create a hashed link
-      await ctx.prisma.hashedLink.upsert({
+  const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
+
+  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
+    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
+      (link) => !connectedMultiplePrivateLinks.includes(link)
+    );
+    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
+      (link) => !multiplePrivateLinks.includes(link)
+    );
+    if (singleLinksToBeDeleted.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
-        },
-        update: {
-          link: hashedLink,
-        },
-        create: {
-          link: hashedLink,
-          eventType: {
-            connect: { id: input.id },
+          link: {
+            in: singleLinksToBeDeleted,
           },
         },
       });
     }
+    if (multiplePrivateLinksToBeInserted.length > 0) {
+      await ctx.prisma.hashedLink.createMany({
+        data: multiplePrivateLinksToBeInserted.map((link) => {
+          return {
+            link: link,
+            eventTypeId: input.id,
+          };
+        }),
+      });
+    }
   } else {
-    // check if hashed connection exists. If it does, disconnect
-    if (connectedLink) {
-      await ctx.prisma.hashedLink.delete({
+    // Delete all the single-use links for this event.
+    if (connectedMultiplePrivateLinks.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
+          link: {
+            in: connectedMultiplePrivateLinks,
+          },
         },
       });
     }
   }
 
-  data.assignAllTeamMembers = assignAllTeamMembers ?? false;
+  if (assignAllTeamMembers !== undefined) {
+    data.assignAllTeamMembers = assignAllTeamMembers;
+  }
+
+  // Validate the secondary email
+  if (secondaryEmailId) {
+    const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+      where: {
+        id: secondaryEmailId,
+        userId: ctx.user.id,
+      },
+    });
+    // Make sure the secondary email id belongs to the current user and its a verified one
+    if (secondaryEmail && secondaryEmail.emailVerified) {
+      data.secondaryEmail = {
+        connect: {
+          id: secondaryEmailId,
+        },
+      };
+      // Delete the data if the user selected his original email to send the events to, which means the value coming will be -1
+    } else if (secondaryEmailId === -1) {
+      data.secondaryEmail = {
+        disconnect: true,
+      };
+    }
+  }
+
+  if (aiPhoneCallConfig) {
+    if (aiPhoneCallConfig.enabled) {
+      await ctx.prisma.aIPhoneCallConfiguration.upsert({
+        where: {
+          eventTypeId: id,
+        },
+        update: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+        },
+        create: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          eventTypeId: id,
+        },
+      });
+    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
+      await ctx.prisma.aIPhoneCallConfiguration.delete({
+        where: {
+          eventTypeId: id,
+        },
+      });
+    }
+  }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
@@ -341,18 +470,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     throw e;
   }
+  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      // @ts-expect-error Element implicitly has any type
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
-    hashedLink,
-    connectedLink,
     updatedEventType,
     children,
     profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
+    updatedValues,
   });
 
   const res = ctx.res as NextApiResponse;

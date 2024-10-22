@@ -1,7 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -9,6 +10,7 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -37,17 +39,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const flags = await getFeatureFlagMap(prisma);
-  const isOrganizationFeatureEnabled = flags["organizations"];
+  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
 
   log.debug("getServerSideProps", {
     isOrgProfile,
-    isOrganizationFeatureEnabled,
+    isOrganizationFeatureEnabled: organizationsEnabled,
     isValidOrgDomain,
     currentOrgDomain,
   });
 
   const team = await getTeamWithMembers({
+    // It only finds those teams that have slug set. So, if only requestedSlug is set, it won't get that team
     slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
@@ -73,50 +75,68 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization) ||
-    !isOrganizationFeatureEnabled
+    (!isValidOrgDomain && !!team?.isOrganization) ||
+    !organizationsEnabled
   ) {
     return { notFound: true } as const;
   }
 
-  if (!team || (team.parent && !team.parent.slug)) {
+  if (!team) {
+    // Because we are fetching by requestedSlug being set, it can either be an organization or a regular team. But it can't be a sub-team i.e.
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
-        ...(team?.parent
-          ? { id: team.parent.id }
-          : {
-              metadata: {
-                path: ["requestedSlug"],
-                equals: slug,
-              },
-            }),
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+      include: {
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            isPrivate: true,
+            isOrganization: true,
+            metadata: true,
+            logoUrl: true,
+          },
+        },
       },
     });
 
     if (!unpublishedTeam) return { notFound: true } as const;
-
+    const teamParent = unpublishedTeam.parent ? getTeamWithoutMetadata(unpublishedTeam.parent) : null;
     return {
       props: {
-        isUnpublished: true,
-        team: { ...unpublishedTeam, createdAt: null },
+        considerUnpublished: true,
+        team: {
+          ...unpublishedTeam,
+          parent: teamParent,
+          createdAt: null,
+        },
         trpcState: ssr.dehydrate(),
       },
     } as const;
   }
 
+  const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
+
   team.eventTypes =
     team.eventTypes?.map((type) => ({
       ...type,
-      users: type.users.map((user) => ({
-        ...user,
-        avatar: `/${user.username}/avatar.png`,
-      })),
+      users: !isTeamOrParentOrgPrivate
+        ? type.users.map((user) => ({
+            ...user,
+            avatar: getUserAvatarUrl(user),
+          }))
+        : [],
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
-  const members = !team.isPrivate
+  const members = !isTeamOrParentOrgPrivate
     ? team.members.map((member) => {
         return {
           name: member.name,
@@ -136,11 +156,34 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+  const serializableTeam = getSerializableTeam(team);
+
+  // For a team or Organization we check if it's unpublished
+  // For a subteam, we check if the parent org is unpublished. A subteam can't be unpublished in itself
+  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
+
+  const considerUnpublished = isUnpublished && !isARedirectFromNonOrgLink;
+
+  if (considerUnpublished) {
+    return {
+      props: {
+        considerUnpublished: true,
+        team: { ...serializableTeam },
+        trpcState: ssr.dehydrate(),
+      },
+    } as const;
+  }
 
   return {
     props: {
-      team: { ...serializableTeam, safeBio, members, metadata },
+      team: {
+        ...serializableTeam,
+        safeBio,
+        members,
+        metadata,
+        children: isTeamOrParentOrgPrivate ? [] : team.children,
+      },
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
@@ -149,3 +192,32 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   } as const;
 };
+
+/**
+ * Removes sensitive data from team and ensures that the object is serialiable by Next.js
+ */
+function getSerializableTeam(team: NonNullable<Awaited<ReturnType<typeof getTeamWithMembers>>>) {
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+
+  const teamParent = team.parent ? getTeamWithoutMetadata(team.parent) : null;
+
+  return {
+    ...serializableTeam,
+    parent: teamParent,
+  };
+}
+
+/**
+ * Removes metadata from team and just adds requestedSlug
+ */
+function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
+  const { metadata, ...rest } = team;
+  const teamMetadata = teamMetadataSchema.parse(metadata);
+  return {
+    ...rest,
+    // add requestedSlug if available.
+    ...(typeof teamMetadata?.requestedSlug !== "undefined"
+      ? { requestedSlug: teamMetadata?.requestedSlug }
+      : {}),
+  };
+}

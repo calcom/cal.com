@@ -6,6 +6,8 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.NEW_EVENT,
   WorkflowTriggerEvents.AFTER_EVENT,
   WorkflowTriggerEvents.RESCHEDULE_EVENT,
+  WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
 ] as const;
 
 export const WORKFLOW_ACTIONS = [
@@ -23,12 +25,19 @@ export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const
 export const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
+  WorkflowTemplates.RATING,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.RESCHEDULED,
 ] as const;
 
 export const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
+
+export const ATTENDEE_WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.CUSTOM,
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.RATING,
+] as const;
 
 export const WHATSAPP_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
@@ -53,6 +62,8 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "meeting_url",
   "cancel_url",
   "reschedule_url",
+  "rating_url",
+  "no_show_url",
 ];
 
 export const FORMATTED_DYNAMIC_TEXT_VARIABLES = ["event_date_", "event_time_", "event_end_time_"];

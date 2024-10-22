@@ -15,12 +15,13 @@ interface Props {
     bio?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;
+    logoUrl?: string | null;
     accepted: boolean;
   }[];
 }
 
 export default function TeamInviteList(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const [hideDropdown, setHideDropdown] = useState(false);
 

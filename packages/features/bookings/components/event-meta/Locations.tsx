@@ -1,29 +1,29 @@
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
-import { MapPin } from "@calcom/ui/components/icon";
 
-import type { PublicEvent } from "../../types";
 import { EventMetaBlock } from "./Details";
 
-export const EventLocations = ({ event }: { event: PublicEvent }) => {
+export const EventLocations = ({ event }: { event: BookerEvent }) => {
   const { t } = useLocale();
   const locations = event.locations;
 
   if (!locations?.length) return null;
 
-  const getLocationToDisplay = (location: PublicEvent["locations"][number]) => {
+  const getLocationToDisplay = (location: BookerEvent["locations"][number]) => {
     const eventLocationType = getEventLocationType(location.type);
     const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 
     return translatedLocation;
   };
   const eventLocationType = getEventLocationType(locations[0].type);
-  const icon = locations.length > 1 || !eventLocationType?.iconUrl ? MapPin : eventLocationType.iconUrl;
+  const iconUrl = locations.length > 1 || !eventLocationType?.iconUrl ? undefined : eventLocationType.iconUrl;
+  const icon = locations.length > 1 || !eventLocationType?.iconUrl ? "map-pin" : undefined;
 
   return (
-    <EventMetaBlock icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
+    <EventMetaBlock iconUrl={iconUrl} icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
       {locations.length === 1 && (
         <Tooltip content={getLocationToDisplay(locations[0])}>
           <div className="" key={locations[0].type}>

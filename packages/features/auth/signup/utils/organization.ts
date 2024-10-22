@@ -1,12 +1,19 @@
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import type { Team } from "@calcom/prisma/client";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 
 import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
 
-export async function joinAnyChildTeamOnOrgInvite({ userId, org }: { userId: number; org: Team }) {
+export async function joinAnyChildTeamOnOrgInvite({
+  userId,
+  org,
+}: {
+  userId: number;
+  org: Pick<Team, "id"> & {
+    organizationSettings: OrganizationSettings | null;
+  };
+}) {
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -16,10 +23,9 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, org }: { userId: num
     throw new Error("User not found");
   }
 
-  const orgMetadata = teamMetadataSchema.parse(org.metadata);
-
   const orgUsername =
-    user.username || getOrgUsernameFromEmail(user.email, orgMetadata?.orgAutoAcceptEmail ?? null);
+    user.username ||
+    getOrgUsernameFromEmail(user.email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
 
   await prisma.$transaction([
     // Simply remove this update when we remove the `organizationId` field from the user table

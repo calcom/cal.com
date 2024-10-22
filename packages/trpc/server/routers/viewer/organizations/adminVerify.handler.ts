@@ -1,6 +1,5 @@
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,10 +17,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
   const foundOrg = await prisma.team.findFirst({
     where: {
       id: input.orgId,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
     include: {
       members: {
@@ -43,17 +39,12 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
-  const existingMetadataParsed = teamMetadataSchema.parse(foundOrg.metadata);
-
-  await prisma.team.update({
+  await prisma.organizationSettings.update({
     where: {
-      id: input.orgId,
+      organizationId: input.orgId,
     },
     data: {
-      metadata: {
-        ...existingMetadataParsed,
-        isOrganizationVerified: true,
-      },
+      isOrganizationVerified: true,
     },
   });
 
@@ -72,12 +63,18 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       id: true,
       username: true,
       email: true,
+      profiles: {
+        where: {
+          organizationId: foundOrg.id,
+        },
+      },
     },
   });
 
   const users = foundUsersWithMatchingEmailDomain;
   const userIds = users.map((user) => user.id);
 
+  const usersNotHavingProfileWithTheOrg = users.filter((user) => user.profiles.length === 0);
   await prisma.$transaction([
     prisma.membership.updateMany({
       where: {
@@ -112,7 +109,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     }),
 
     ProfileRepository.createMany({
-      users: users.map((user) => {
+      users: usersNotHavingProfileWithTheOrg.map((user) => {
         return {
           id: user.id,
           username: user.username || user.email.split("@")[0],

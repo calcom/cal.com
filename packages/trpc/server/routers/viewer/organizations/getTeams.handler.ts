@@ -1,4 +1,3 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -13,16 +12,13 @@ type GetTeamsHandler = {
 
 export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
   const currentUser = ctx.user;
+  const currentUserOrgId = ctx.user.organizationId ?? currentUser.profiles[0].organizationId;
 
-  if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.organizationId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const allOrgTeams = await prisma.team.findMany({
     where: {
-      parentId: currentUser.organizationId,
+      parentId: currentUserOrgId,
     },
     select: {
       id: true,

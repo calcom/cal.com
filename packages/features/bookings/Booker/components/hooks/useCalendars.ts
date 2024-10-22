@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
@@ -12,7 +11,15 @@ import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
 export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
-export const useCalendars = () => {
+type UseCalendarsProps = {
+  hasSession: boolean;
+};
+export type ToggledConnectedCalendars = Set<{
+  credentialId: number;
+  externalId: string;
+}>;
+
+export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
@@ -23,8 +30,7 @@ export const useCalendars = () => {
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
-  const utils = trpc.useContext();
-  const { data: session } = useSession();
+  const utils = trpc.useUtils();
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
@@ -42,7 +48,7 @@ export const useCalendars = () => {
       })),
     },
     {
-      enabled: !!session && set.size > 0 && switchEnabled,
+      enabled: hasSession && set.size > 0 && switchEnabled,
     }
   );
 
@@ -63,7 +69,7 @@ export const useCalendars = () => {
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
     loadingConnectedCalendar: isPending,
-    onToggleCalendar: () => {
+    onToggleCalendar: (data: ToggledConnectedCalendars) => {
       utils.viewer.availability.calendarOverlay.reset();
     },
   };

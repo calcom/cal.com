@@ -2,11 +2,10 @@ import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
-import Script from "next/script";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { IconSprites } from "@calcom/ui";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
@@ -18,6 +17,7 @@ const calFont = localFont({
   variable: "--font-cal",
   preload: true,
   display: "block",
+  weight: "600",
 });
 
 export const generateMetadata = () =>
@@ -67,13 +67,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
-          // eslint-disable-next-line @next/next/no-sync-scripts
-          <Script
-            data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
-            src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
+        {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
+          <script
+            nonce={nonce}
+            id="injected-head-scripts"
+            dangerouslySetInnerHTML={{
+              __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
+            }}
           />
         )}
         <style>{`
@@ -82,9 +85,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
+        <IconSprites />
       </head>
       <body
-        className="dark:bg-darkgray-50 todesktop:!bg-transparent bg-subtle antialiased"
+        className="dark:bg-darkgray-50 bg-subtle antialiased"
         style={
           isEmbed
             ? {
@@ -97,6 +101,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
+          <script
+            nonce={nonce}
+            id="injected-head-scripts"
+            dangerouslySetInnerHTML={{
+              __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
+            }}
+          />
+        )}
         {children}
       </body>
     </html>

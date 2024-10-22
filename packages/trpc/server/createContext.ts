@@ -47,6 +47,11 @@ export type GetSessionFn =
     }) => Promise<Session | null>)
   | (() => Promise<Session | null>);
 
+export type InnerContext = CreateInnerContextOptions & {
+  prisma: typeof prisma;
+  insightsDb: typeof readonlyPrisma;
+};
+
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
  *
@@ -56,7 +61,7 @@ export type GetSessionFn =
  *
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
-export async function createContextInner(opts: CreateInnerContextOptions) {
+export async function createContextInner(opts: CreateInnerContextOptions): Promise<InnerContext> {
   return {
     prisma,
     insightsDb: readonlyPrisma,
@@ -64,11 +69,19 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
   };
 }
 
+type Context = InnerContext & {
+  req: CreateContextOptions["req"];
+  res: CreateContextOptions["res"];
+};
+
 /**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter?: GetSessionFn) => {
+export const createContext = async (
+  { req, res }: CreateContextOptions,
+  sessionGetter?: GetSessionFn
+): Promise<Context> => {
   const locale = await getLocale(req);
 
   // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.

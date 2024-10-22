@@ -1,45 +1,49 @@
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetInputSchema } from "./get.schema";
 
-type GetOptions = {
+type GetDataOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TGetInputSchema;
 };
 
-export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const team = await getTeamWithMembers({
+export const get = async ({ ctx, input }: GetDataOptions) => {
+  const teamMembership = await MembershipRepository.findFirstByUserIdAndTeamId({
+    userId: ctx.user.id,
+    teamId: input.teamId,
+  });
+
+  if (!teamMembership) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not a member of this team.",
+    });
+  }
+
+  const team = await getTeamWithoutMembers({
     id: input.teamId,
-    currentOrg: ctx.user.profile?.organization ?? null,
     userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
-    includeTeamLogo: input.includeTeamLogo,
     isOrgView: input?.isOrg,
   });
 
   if (!team) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Team not found",
+    });
   }
 
-  const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-
-  if (!membership) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Not a member of this team." });
-  }
-
-  return {
-    ...team,
-    safeBio: markdownToSafeHTML(team.bio),
-    membership: {
-      role: membership.role,
-      accepted: membership.accepted,
-    },
+  const membership = {
+    role: teamMembership.role,
+    accepted: teamMembership.accepted,
   };
+  return { ...team, membership };
 };
 
-export default getHandler;
+export default get;

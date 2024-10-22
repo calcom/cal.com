@@ -41,12 +41,14 @@ export type Person = {
   locale?: string | null;
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
+  phoneNumber?: string | null;
 };
 
 export type TeamMember = {
   id?: number;
   name: string;
   email: string;
+  phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
 };
@@ -75,6 +77,9 @@ export type NewCalendarEventType = {
   url: string;
   additionalInfo: AdditionalInfo;
   iCalUID?: string | null;
+  location?: string | null;
+  hangoutLink?: string | null;
+  conferenceData?: ConferenceData;
 };
 
 export type CalendarEventType = {
@@ -147,6 +152,7 @@ export type CalEventResponses = Record<
   {
     label: string;
     value: z.infer<typeof bookingResponse>;
+    isHidden?: boolean;
   }
 >;
 
@@ -165,6 +171,7 @@ export interface CalendarEvent {
   endTime: string;
   organizer: Person;
   attendees: Person[];
+  length?: number | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonObject | null;
   description?: string | null;
@@ -187,6 +194,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  hideCalendarEventDetails?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
@@ -204,6 +212,11 @@ export interface CalendarEvent {
 
   // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
   userFieldsResponses?: CalEventResponses | null;
+  platformClientId?: string | null;
+  platformRescheduleUrl?: string | null;
+  platformCancelUrl?: string | null;
+  platformBookingUrl?: string | null;
+  oneTimePassword?: string | null;
 }
 
 export interface EntryPoint {

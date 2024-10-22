@@ -9,9 +9,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
-import { ClipboardCheck, Clipboard } from "@calcom/ui/components/icon";
+import { Button, showToast } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 interface IAlbyPaymentComponentProps {
@@ -99,7 +97,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
                 color="secondary"
                 onClick={() => copyToClipboard(paymentRequest)}
                 className="text-subtle rounded-md"
-                StartIcon={isCopied ? ClipboardCheck : Clipboard}>
+                StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
                 Copy Invoice
               </Button>
               <Link target="_blank" href="https://getalby.com" className="link mt-4 text-sm underline">
@@ -132,7 +130,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
   // TODO: subscribe rather than polling
   const searchParams = useCompatSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
 
   useEffect(() => {
@@ -169,6 +167,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             successRedirectUrl: props.eventType.successRedirectUrl,
             query: params,
             booking: props.booking,
+            forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
           });
         }
       })();
@@ -182,6 +181,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
     props.booking.status,
     props.eventType.id,
     props.eventType.successRedirectUrl,
+    props.eventType.forwardParamsSuccessRedirect,
     props.payment.success,
     searchParams,
     t,

@@ -43,7 +43,6 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   const unparsedQuery = useRouterQuery();
   const pathname = usePathname();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
-
   let parsedQuery: Output = useMemo(() => {
     return {} as Output;
   }, []);

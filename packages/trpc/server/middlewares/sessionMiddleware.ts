@@ -45,14 +45,15 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       defaultScheduleId: true,
       bufferTime: true,
       theme: true,
+      appTheme: true,
       createdDate: true,
       hideBranding: true,
       twoFactorEnabled: true,
       disableImpersonation: true,
       identityProvider: true,
+      identityProviderId: true,
       brandColor: true,
       darkBrandColor: true,
-      away: true,
       movedToProfileId: true,
       selectedCalendars: {
         select: {
@@ -70,6 +71,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       allowDynamicBooking: true,
       allowSEOIndexing: true,
       receiveMonthlyDigestEmail: true,
+      profiles: true,
     },
   });
 

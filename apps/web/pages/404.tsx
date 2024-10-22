@@ -9,11 +9,10 @@ import {
   getOrgDomainConfigFromHostname,
   subdomainSuffix,
 } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, IS_CALCOM, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
-import { Discord } from "@calcom/ui/components/icon/Discord";
+import { Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -34,21 +33,21 @@ export default function Custom404() {
 
   const links = [
     {
-      title: "Enterprise",
+      title: t("enterprise"),
       description: "Learn more about organizations and subdomains in our enterprise plan.",
-      icon: Shield,
+      icon: "shield" as const,
       href: `${WEBSITE_URL}/enterprise`,
     },
     {
       title: t("documentation"),
       description: t("documentation_description"),
-      icon: FileText,
+      icon: "file-text" as const,
       href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
-      icon: BookOpen,
+      icon: "book-open" as const,
       href: `${WEBSITE_URL}/blog`,
     },
   ];
@@ -174,7 +173,7 @@ export default function Custom404() {
                     rel="noreferrer">
                     <div className="flex-shrink-0">
                       <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                        <Check className="h-6 w-6 text-green-500" aria-hidden="true" />
+                        <Icon name="check" className="h-6 w-6 text-green-500" aria-hidden="true" />
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -196,7 +195,7 @@ export default function Custom404() {
                       </p>
                     </div>
                     <div className="flex-shrink-0 self-center">
-                      <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                      <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
                     </div>
                   </a>
                 </li>
@@ -215,7 +214,7 @@ export default function Custom404() {
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                          <link.icon className="text-default h-6 w-6" aria-hidden="true" />
+                          <Icon name={link.icon} className="text-default h-6 w-6" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -228,34 +227,11 @@ export default function Custom404() {
                         <p className="text-subtle text-base">{link.description}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                        <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
                 ))}
-              <li className="px-4 py-2">
-                <a
-                  href={JOIN_DISCORD}
-                  className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                  <div className="flex-shrink-0">
-                    <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                      <Discord className="text-default h-6 w-6" />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-emphasis text-base font-medium">
-                      <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        Discord
-                      </span>
-                    </h3>
-                    <p className="text-subtle text-base">{t("join_our_community")}</p>
-                  </div>
-                  <div className="flex-shrink-0 self-center">
-                    <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
-                  </div>
-                </a>
-              </li>
             </ul>
             <div className="mt-8">
               <Link href={WEBSITE_URL} className="hover:text-subtle text-emphasis text-base font-medium">

@@ -18,9 +18,9 @@ jobs:
         run: |
           LAST_DAY=$(date -d tomorrow +%d)
           if [ "$LAST_DAY" == "01" ]; then
-            echo "::set-output name=is_last_day::true"
+            echo "is_last_day=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-output name=is_last_day::false"
+            echo "is_last_day=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: cURL request

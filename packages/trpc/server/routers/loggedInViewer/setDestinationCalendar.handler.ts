@@ -7,9 +7,15 @@ import { TRPCError } from "@trpc/server";
 
 import type { TSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  selectedCalendars: SessionUser["selectedCalendars"];
+};
+
 type SetDestinationCalendarOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
   };
   input: TSetDestinationCalendarInputSchema;
 };

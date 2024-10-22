@@ -1,26 +1,27 @@
 interface ThemeLabelProps {
   variant: "light" | "dark" | "system";
-  value?: "light" | "dark" | null;
+  value: "light" | "dark" | "system";
   label: string;
   defaultChecked?: boolean;
   register: any;
+  fieldName?: string;
 }
 
 export default function ThemeLabel(props: ThemeLabelProps) {
-  const { variant, label, value, defaultChecked, register } = props;
+  const { variant, label, value, defaultChecked, register, fieldName = "theme" } = props;
 
   return (
     <label
       className="relative mb-4 flex-1 cursor-pointer text-center last:mb-0 last:mr-0 sm:mb-0 sm:mr-4"
-      htmlFor={`theme-${variant}`}
-      data-testid={`theme-${variant}`}>
+      htmlFor={`${fieldName}-${variant}`}
+      data-testid={`${fieldName}-${variant}`}>
       <input
         className="peer absolute left-8 top-8"
         type="radio"
         value={value}
-        id={`theme-${variant}`}
+        id={`${fieldName}-${variant}`}
         defaultChecked={defaultChecked}
-        {...register("theme")}
+        {...register(fieldName)}
       />
       <div className="ring-inverted relative z-10 rounded-lg ring-offset-2 transition-all peer-checked:ring-2">
         <img

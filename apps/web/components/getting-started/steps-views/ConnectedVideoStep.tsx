@@ -1,8 +1,9 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { List } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Icon, List } from "@calcom/ui";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
@@ -18,12 +19,16 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
     onlyInstalled: false,
     sortByMostPopular: true,
   });
+  const { data } = useMeQuery();
   const { t } = useLocale();
+
+  const metadata = userMetadata.parse(data?.metadata);
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
 
+  const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
     <>
       {!isPending && (
@@ -37,9 +42,15 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                     <AppConnectionItem
                       type={item.type}
                       title={item.name}
+                      isDefault={item.slug === defaultConferencingApp}
                       description={item.description}
+                      dependencyData={item.dependencyData}
                       logo={item.logo}
+                      slug={item.slug}
                       installed={item.userCredentialIds.length > 0}
+                      defaultInstall={
+                        !defaultConferencingApp && item.appData?.location?.linkType === "dynamic"
+                      }
                     />
                   )}
                 </li>
@@ -59,7 +70,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         disabled={!hasAnyInstalledVideoApps}
         onClick={() => nextStep()}>
         {t("next_step_text")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
   );

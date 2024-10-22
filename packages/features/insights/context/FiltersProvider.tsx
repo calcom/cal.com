@@ -21,7 +21,7 @@ const querySchema = z.object({
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -58,9 +58,9 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
 
   const [configFilters, setConfigFilters] = useState<FilterContextType["filter"]>({
     dateRange: [
-      startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
+      startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "week"),
       endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
-      "t",
+      !startTimeParsed && !endTimeParsed ? "w" : null,
     ],
     selectedTimeView: "week",
     selectedUserId: userIdParsed || null,
@@ -131,8 +131,8 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setParamsIfDefined("userId", selectedUserId || initialConfig?.userId);
           setParamsIfDefined("eventTypeId", selectedEventTypeId);
           setParamsIfDefined("isAll", isAll || initialConfig?.isAll);
-          setParamsIfDefined("startTime", startTime?.toISOString());
-          setParamsIfDefined("endTime", endTime?.toISOString());
+          setParamsIfDefined("startTime", startTime?.format("YYYY-MM-DD"));
+          setParamsIfDefined("endTime", endTime?.format("YYYY-MM-DD"));
           setParamsIfDefined("filter", selectedFilter?.[0]);
           router.push(`${pathname}?${newSearchParams.toString()}`);
         },
@@ -150,7 +150,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             selectedTimeView: "week",
             selectedUserId: userId,
             isAll: !!initialConfig?.isAll,
-            dateRange: [dayjs().subtract(1, "month"), dayjs(), "t"],
+            dateRange: [dayjs().subtract(1, "week"), dayjs(), "w"],
             initialConfig,
           });
 

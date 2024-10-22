@@ -15,6 +15,11 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
+const ensureValidPhoneNumber = (value: string) => {
+  // + in URL could be replaced with space, so we need to replace it back
+  // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
+  return value.replace(/^ +/, "+");
+};
 export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
@@ -89,7 +94,14 @@ function preprocess<T extends z.ZodType>({
           try {
             parsedValue = JSON.parse(value);
           } catch (e) {}
+          const optionsInputs = field.optionsInputs;
+          const optionInputField = optionsInputs?.[parsedValue.value];
+          if (optionInputField && optionInputField.type === "phone") {
+            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+          }
           newResponses[field.name] = parsedValue;
+        } else if (field.type === "phone") {
+          newResponses[field.name] = ensureValidPhoneNumber(value);
         } else {
           newResponses[field.name] = value;
         }
@@ -105,6 +117,18 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
+
+      const attendeePhoneNumberField = bookingFields.find((field) => field.name === "attendeePhoneNumber");
+      const isAttendeePhoneNumberFieldHidden = attendeePhoneNumberField?.hidden;
+
+      const emailField = bookingFields.find((field) => field.name === "email");
+      const isEmailFieldHidden = !!emailField?.hidden;
+
+      // To prevent using user's session email as attendee's email, we set email to empty string
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+        responses["email"] = "";
+      }
+
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
@@ -139,7 +163,7 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
-          if (!emailSchema.safeParse(value).success) {
+          if (!bookingField.hidden && !emailSchema.safeParse(value).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),
@@ -170,6 +194,12 @@ function preprocess<T extends z.ZodType>({
           }
 
           if (!emailsParsed.success) {
+            // If additional guests are shown but all inputs are empty then don't show any errors
+            if (bookingField.name === "guests" && value.every((email: string) => email === "")) {
+              // reset guests to empty array, otherwise it adds "" for every input
+              responses[bookingField.name] = [];
+              continue;
+            }
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),
@@ -187,7 +217,18 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (bookingField.type === "checkbox" || bookingField.type === "multiselect") {
+        if (bookingField.type === "multiselect") {
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+          if (!stringSchema.array().safeParse(value).success) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+          }
+          continue;
+        }
+
+        if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
           }

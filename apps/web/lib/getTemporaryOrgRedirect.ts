@@ -45,7 +45,7 @@ export const getTemporaryOrgRedirect = async ({
 
   // Use the first redirect origin as the new origin as we aren't supposed to handle different org usernames in a group
   const newOrigin = new URL(redirects[0].toUrl).origin;
-  const query = currentQueryString ? `?${currentQueryString}` : "";
+  const query = currentQueryString ? `?${currentQueryString}&orgRedirection=true` : "?orgRedirection=true";
   // Use the same order as in input slugs - It is important from Dynamic Group perspective as the first user's settings are used for various things
   const newSlugs = slugs.map((slug) => {
     const redirect = redirects.find((redirect) => redirect.from === slug);

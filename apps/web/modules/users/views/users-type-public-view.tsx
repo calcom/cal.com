@@ -2,11 +2,16 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { Booker } from "@calcom/atoms";
+import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
-import { type PageProps } from "./users-type-public-view.getServerSideProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
+
+import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -18,16 +23,16 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-export default function Type({
+function Type({
   slug,
   user,
   isEmbed,
   booking,
-  away,
   isBrandingHidden,
   isSEOIndexable,
   rescheduleUid,
   eventData,
+  orgBannerUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -46,10 +51,10 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         hideBranding={isBrandingHidden}
-        entity={eventData.entity}
+        entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
         durationConfig={eventData.metadata?.multipleDuration}
+        orgBannerUrl={orgBannerUrl}
         /* TODO: Currently unused, evaluate it is needed-
          *       Possible alternative approach is to have onDurationChange.
          */
@@ -62,3 +67,7 @@ export default function Type({
     </main>
   );
 }
+
+Type.isBookingPage = true;
+
+export default Type;

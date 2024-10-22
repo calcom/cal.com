@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { test } from "../lib/fixtures";
-import { localize, getInviteLink } from "../lib/testUtils";
+import { getInviteLink, localize } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -19,17 +19,15 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.waitForLoadState("networkidle");
 
     await test.step("To the team by email (external user)", async () => {
       const invitedUserEmail = users.trackEmail({
         username: "rick",
         domain: `domain-${Date.now()}.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      await page.waitForLoadState("networkidle");
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -50,7 +48,7 @@ test.describe("Team", () => {
       const context = await browser.newContext();
       const newPage = await context.newPage();
       await newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
+      await expect(newPage.locator("text=Create your account")).toBeVisible();
 
       // Check required fields
       const button = newPage.locator("button[type=submit][disabled]");
@@ -66,7 +64,6 @@ test.describe("Team", () => {
       // Check newly invited member is not pending anymore
       await page.bringToFront();
       await page.goto(`/settings/teams/${team.id}/members`);
-      await page.waitForLoadState("networkidle");
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
@@ -77,8 +74,8 @@ test.describe("Team", () => {
         email: `user-invite-${Date.now()}@domain.com`,
         password: "P4ssw0rd!",
       });
-      await page.locator(`button:text("${t("add")}")`).click();
-      await page.locator(`[data-testid="copy-invite-link-button"]`).click();
+
+      await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
@@ -103,17 +100,15 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = users.trackEmail({
         username: "rick",
         domain: `example.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      await page.waitForLoadState("networkidle");
       await expectInvitationEmailToBeReceived(
         page,
         emails,

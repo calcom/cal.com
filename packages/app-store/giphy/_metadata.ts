@@ -17,6 +17,7 @@ export const metadata = {
   extendsFeature: "EventType",
   email: "help@cal.com",
   dirName: "giphy",
+  isOAuth: false,
 } as AppMeta;
 
 export default metadata;

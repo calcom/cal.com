@@ -19,7 +19,16 @@ const SAMLSSO = () => {
 
   const teamId = Number(params.id);
 
-  const { data: team, isPending, error } = trpc.viewer.teams.get.useQuery({ teamId });
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.get.useQuery(
+    { teamId },
+    {
+      enabled: !!teamId,
+    }
+  );
 
   useEffect(() => {
     if (!HOSTED_CAL_FEATURES) {
@@ -30,7 +39,7 @@ const SAMLSSO = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [error]

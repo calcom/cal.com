@@ -3,19 +3,20 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Icon,
   showToast,
 } from "@calcom/ui";
-import { Globe, MoreHorizontal, Trash, Star, Copy } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -30,6 +31,7 @@ export function ScheduleListItem({
   displayOptions?: {
     timeZone?: string;
     hour12?: boolean;
+    weekStart?: string;
   };
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
@@ -58,18 +60,23 @@ export function ScheduleListItem({
             <p className="text-subtle mt-1">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
-                .map((availability) => (
-                  <Fragment key={availability.id}>
-                    {availabilityAsString(availability, {
-                      locale: i18n.language,
-                      hour12: displayOptions?.hour12,
-                    })}
+                .map((availability) =>
+                  availabilityAsString(availability, {
+                    locale: i18n.language,
+                    hour12: displayOptions?.hour12,
+                  })
+                )
+                // sort the availability strings as per user's weekstart (settings)
+                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
+                .map((availabilityString, index) => (
+                  <Fragment key={index}>
+                    {availabilityString}
                     <br />
                   </Fragment>
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  <Globe className="h-3.5 w-3.5" />
+                  <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
@@ -84,7 +91,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={MoreHorizontal}
+              StartIcon="ellipsis"
             />
           </DropdownMenuTrigger>
           {!isPending && data && (
@@ -93,7 +100,7 @@ export function ScheduleListItem({
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
-                    StartIcon={Star}
+                    StartIcon="star"
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -108,7 +115,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   data-testid={`schedule-duplicate${schedule.id}`}
-                  StartIcon={Copy}
+                  StartIcon="copy"
                   onClick={() => {
                     duplicateFunction({
                       scheduleId: schedule.id,
@@ -121,7 +128,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={Trash}
+                  StartIcon="trash"
                   data-testid="delete-schedule"
                   onClick={() => {
                     if (!isDeletable) {

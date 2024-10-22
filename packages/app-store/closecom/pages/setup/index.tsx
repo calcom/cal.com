@@ -5,9 +5,10 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
+import { WebAppURL } from "@calcom/lib/WebAppURL";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
-import { Check, X } from "@calcom/ui/components/icon";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -16,6 +17,7 @@ const formSchema = z.object({
 export default function CloseComSetup() {
   const { t } = useLocale();
   const router = useRouter();
+  const query = useRouterQuery();
   const [testPassed, setTestPassed] = useState<boolean | undefined>(undefined);
   const [testLoading, setTestLoading] = useState<boolean>(false);
 
@@ -64,7 +66,10 @@ export default function CloseComSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/closecom/add", {
+                  const { returnTo } = query;
+                  const url = new WebAppURL("/api/integrations/closecom/add");
+                  if (returnTo) url.searchParams.append("returnTo", `${returnTo}`);
+                  const res = await fetch(url.href, {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -107,7 +112,7 @@ export default function CloseComSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? Check : X) : undefined}
+                    StartIcon={testPassed === undefined ? undefined : testPassed ? "check" : "x"}
                     className={
                       testPassed !== undefined
                         ? testPassed

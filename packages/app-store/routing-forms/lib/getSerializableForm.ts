@@ -2,15 +2,19 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import type { SerializableForm } from "../types/types";
+import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
 import type { zodRoutesView, zodFieldsView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
+import { getFieldWithOptions } from "./selectOptions";
 
+const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
 /**
  * Doesn't have deleted fields by default
  */
@@ -24,6 +28,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
+    log.error("Error parsing routes", safeStringify(routesParsed.error));
     throw new Error("Error parsing routes");
   }
 
@@ -57,7 +62,29 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     name: f.name,
     description: f.description,
   }));
-  const finalFields = fields;
+
+  const finalFields = fields.map((field) => getFieldWithOptions(field));
+
+  let teamMembers: SerializableFormTeamMembers[] = [];
+  if (form.teamId) {
+    teamMembers = await prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId: form.teamId,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        defaultScheduleId: true,
+      },
+    });
+  }
 
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
@@ -67,6 +94,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     routes,
     routers,
     connectedForms,
+    teamMembers,
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
   };

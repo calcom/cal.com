@@ -1,12 +1,8 @@
-import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
-import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-export function allowDisablingHostConfirmationEmails(
-  workflows: (Workflow & {
-    steps: WorkflowStep[];
-  })[]
-) {
+import type { Workflow } from "./types";
+
+export function allowDisablingHostConfirmationEmails(workflows: Workflow[]) {
   return !!workflows.find(
     (workflow) =>
       workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
@@ -14,14 +10,13 @@ export function allowDisablingHostConfirmationEmails(
   );
 }
 
-export function allowDisablingAttendeeConfirmationEmails(
-  workflows: (Workflow & {
-    steps: WorkflowStep[];
-  })[]
-) {
+export function allowDisablingAttendeeConfirmationEmails(workflows: Workflow[]) {
   return !!workflows.find(
     (workflow) =>
       workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-      !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+      !!workflow.steps.find(
+        (step) =>
+          step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.SMS_ATTENDEE
+      )
   );
 }

@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SheetClose, Button } from "@calcom/ui";
-import { Pencil } from "@calcom/ui/components/icon";
 
 import { useEditMode } from "./store";
 
@@ -14,14 +13,14 @@ function EditModeFooter() {
       <Button
         color="secondary"
         type="button"
-        className="justify-center md:w-1/5"
+        className="justify-center"
         onClick={() => {
           setEditMode(false);
         }}>
         {t("cancel")}
       </Button>
 
-      <Button type="submit" className="w-full justify-center" form="edit-user-form" loading={isPending}>
+      <Button type="submit" loading={isPending} className="justify-center">
         {t("update")}
       </Button>
     </>
@@ -35,19 +34,18 @@ function MoreInfoFooter() {
   return (
     <>
       <SheetClose asChild>
-        <Button color="secondary" type="button" className="w-full justify-center lg:w-1/5">
+        <Button color="secondary" type="button" className="justify-center">
           {t("close")}
         </Button>
       </SheetClose>
       <Button
         type="button"
+        className="justify-center"
         onClick={() => {
           setEditMode(true);
         }}
-        className="w-full justify-center gap-2"
-        variant="icon"
         key="EDIT_BUTTON"
-        StartIcon={Pencil}>
+        StartIcon="pencil">
         {t("edit")}
       </Button>
     </>

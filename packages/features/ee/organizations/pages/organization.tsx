@@ -1,32 +1,33 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { MembershipRole } from "@calcom/prisma/client";
 
 export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
   // Check if organizations are enabled
-  if (flags["organizations"] !== true) {
+  if (!organizationsEnabled) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Check if logged in user has an organization assigned
   const session = await getServerSession({ req, res });
-  if (!session?.user.org?.id) {
+
+  if (!session?.user.profile?.organizationId) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Check if logged in user has OWNER/ADMIN role in organization
   const membership = await prisma.membership.findFirst({
     where: {
       userId: session?.user.id,
-      teamId: session?.user.org.id,
+      teamId: session?.user.profile.organizationId,
     },
     select: {
       role: true,
@@ -35,7 +36,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   if (!membership?.role || membership?.role === MembershipRole.MEMBER) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Otherwise, all good

@@ -17,7 +17,7 @@ const MakeTeamPrivateSwitch = ({
 }) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -43,7 +43,7 @@ const MakeTeamPrivateSwitch = ({
           setTeamPrivate(checked);
           mutation.mutate({ id: teamId, isPrivate: checked });
         }}
-        switchContainerClassName="mt-6"
+        switchContainerClassName="my-6"
         data-testid="make-team-private-check"
       />
     </>

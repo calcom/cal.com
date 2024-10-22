@@ -1,0 +1,35 @@
+{
+  "name": "@calcom/sdk",
+  "version": "1.0.1",
+  "description": "Cal.com platform SDK.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c --bundleConfigAsCjs",
+    "release": "release-it --only-version",
+    "generate-types": "openapi-typescript http://localhost:5555/docs-yaml -o ./src/swagger-types.d.ts"
+  },
+  "packageManager": "yarn@3.4.1",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "openapi-typescript": "^6.7.5",
+    "release-it": "^17.1.1",
+    "rollup": "^4.12.0",
+    "rollup-plugin-bundle-size": "^1.0.3",
+    "ts-essentials": "^9.4.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "axios-retry": "^4.0.0",
+    "lodash": "^4.17.21",
+    "zod": "^3.22.4"
+  }
+}

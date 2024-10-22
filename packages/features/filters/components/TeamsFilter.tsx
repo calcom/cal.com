@@ -1,16 +1,14 @@
 import { useSession } from "next-auth/react";
-import type { ReactNode, InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, Tooltip, VerticalDivider } from "@calcom/ui";
-import { Layers, User } from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc/react";
+import { AnimatedPopover, Avatar, Divider, Icon, Tooltip, VerticalDivider } from "@calcom/ui";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 
@@ -33,11 +31,14 @@ export const TeamsFilter = ({
 }) => {
   const { t } = useLocale();
   const session = useSession();
+
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
+
   const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
   });
+
   const getCheckedOptionsNames = () => {
     const checkedOptions: string[] = [];
     const teamIds = query.teamIds;
@@ -51,7 +52,7 @@ export const TeamsFilter = ({
       if (selectedTeamsNames) {
         checkedOptions.push(...selectedTeamsNames);
       }
-      return `${t("team")}: ${checkedOptions.join(",")}`;
+      return `${checkedOptions.join(",")}`;
     }
     if (users) {
       return t("yours");
@@ -73,7 +74,7 @@ export const TeamsFilter = ({
         <FilterCheckboxFieldsContainer>
           <FilterCheckboxField
             id="all"
-            icon={<Layers className="h-4 w-4" />}
+            icon={<Icon name="layers" className="h-4 w-4" />}
             checked={!query.teamIds && !isUserInQuery}
             onChange={removeAllQueryParams}
             label={t("all")}
@@ -81,7 +82,7 @@ export const TeamsFilter = ({
 
           <FilterCheckboxField
             id="yours"
-            icon={<User className="h-4 w-4" />}
+            icon={<Icon name="user" className="h-4 w-4" />}
             checked={!!isUserInQuery}
             onChange={(e) => {
               if (e.target.checked) {
@@ -96,7 +97,7 @@ export const TeamsFilter = ({
           />
           <Divider />
           {teams
-            ?.filter((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization)
+            ?.filter((team) => !team?.isOrganization)
             .map((team) => (
               <FilterCheckboxField
                 key={team.id}
@@ -110,13 +111,7 @@ export const TeamsFilter = ({
                     removeItemByKeyAndValue("teamIds", team.id);
                   }
                 }}
-                icon={
-                  <Avatar
-                    alt={team?.name}
-                    imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                    size="xs"
-                  />
-                }
+                icon={<Avatar alt={team?.name} imageSrc={getOrgOrTeamAvatar(team)} size="xs" />}
               />
             ))}
         </FilterCheckboxFieldsContainer>
@@ -148,7 +143,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 
 export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label, icon, ...rest }, ref) => {
   return (
-    <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer">
+    <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
       <label className="flex w-full max-w-full items-center justify-between hover:cursor-pointer">
         <div className="flex items-center truncate">
           {icon && (
@@ -169,7 +164,7 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label,
             {...rest}
             ref={ref}
             type="checkbox"
-            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded transition hover:cursor-pointer"
           />
         </div>
       </label>

@@ -12,6 +12,7 @@ export type AvatarGroupProps = {
   }[];
   className?: string;
   truncateAfter?: number;
+  hideTruncatedAvatarsCount?: boolean;
 };
 
 export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
@@ -29,7 +30,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   return (
     <ul className={classNames("flex items-center", props.className)}>
       {displayedAvatars.map((item, idx) => (
-        <li key={idx} className="-mr-[4px] inline-block">
+        <li key={idx} className="-mr-1 inline-block">
           <Avatar
             data-testid="avatar"
             className="border-subtle"
@@ -44,15 +45,15 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       {numTruncatedAvatars > 0 && (
         <li
           className={classNames(
-            "bg-inverted relative -mr-[4px] mb-1 inline-flex justify-center overflow-hidden rounded-full",
+            "bg-inverted relative -mr-1 inline-flex justify-center  overflow-hidden rounded-full",
             props.size === "sm" ? "min-w-6 h-6" : "min-w-16 h-16"
           )}>
           <span
             className={classNames(
-              "text-inverted m-auto px-1 text-center",
+              " text-inverted m-auto flex h-full w-full items-center justify-center text-center",
               props.size === "sm" ? "text-[12px]" : "text-2xl"
             )}>
-            +{numTruncatedAvatars}
+            +{props.hideTruncatedAvatarsCount ? null : numTruncatedAvatars}
           </span>
         </li>
       )}

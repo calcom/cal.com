@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
@@ -8,7 +9,6 @@ import { localStorage } from "@calcom/lib/webstorage";
 
 import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
-import { useEvent } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
 
@@ -16,10 +16,14 @@ export const LargeCalendar = ({
   extraDays,
   schedule,
   isLoading,
+  event,
 }: {
   extraDays: number;
   schedule?: useScheduleForEventReturnType["data"];
   isLoading: boolean;
+  event: {
+    data?: Pick<BookerEvent, "length"> | null;
+  };
 }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -28,7 +32,6 @@ export const LargeCalendar = ({
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
-  const event = useEvent();
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   const availableSlots = useMemo(() => {
@@ -37,10 +40,14 @@ export const LargeCalendar = ({
     if (!schedule.slots) return availableTimeslots;
 
     for (const day in schedule.slots) {
-      availableTimeslots[day] = schedule.slots[day].map((slot) => ({
-        start: dayjs(slot.time).toDate(),
-        end: dayjs(slot.time).add(eventDuration, "minutes").toDate(),
-      }));
+      availableTimeslots[day] = schedule.slots[day].map((slot) => {
+        const { time, ...rest } = slot;
+        return {
+          start: dayjs(time).toDate(),
+          end: dayjs(time).add(eventDuration, "minutes").toDate(),
+          ...rest,
+        };
+      });
     }
 
     return availableTimeslots;

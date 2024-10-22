@@ -1,6 +1,6 @@
 import type { Team } from "@calcom/prisma/client";
 
-type OrganizationWithRequestedSlug = Pick<Team, "name" | "id" | "slug" | "calVideoLogo"> & {
+type OrganizationWithRequestedSlug = Pick<Team, "name" | "id" | "slug" | "calVideoLogo", "bannerUrl"> & {
   requestedSlug: string | null;
 };
 

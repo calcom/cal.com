@@ -1,12 +1,12 @@
 // eslint-disable-next-line no-restricted-imports
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
+import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
 
-import { refreshCredentials } from "../../handleNewBooking";
 import type { createLoggerWithEventDetails } from "../../handleNewBooking";
 import type {
   HandleSeatsResultBooking,
@@ -39,11 +39,14 @@ const rescheduleSeatedBooking = async (
     select: {
       id: true,
       uid: true,
+      iCalUID: true,
+      userId: true,
       attendees: {
         include: {
           bookingSeat: true,
         },
       },
+      references: true,
     },
   });
 
@@ -82,6 +85,7 @@ const rescheduleSeatedBooking = async (
     startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
     endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
     attendees: updatedBookingAttendees,
+    iCalUID: originalRescheduledBooking.iCalUID,
     // If the location is a video integration then include the videoCallData
     ...(videoReference && {
       videoCallData: {

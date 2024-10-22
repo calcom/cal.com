@@ -3,40 +3,18 @@
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
-import NoSSR from "@calcom/core/components/NoSSR";
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Meta,
-  DropdownActions,
-  showToast,
-  Table,
-  Badge,
-  ConfirmationDialogContent,
-  Dialog,
-} from "@calcom/ui";
-import { Check, CheckCheck, Trash, Edit, BookOpenCheck } from "@calcom/ui/components/icon";
+import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 
-import { getLayout } from "../../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
-function AdminOrgTable() {
+export function AdminOrgTable() {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
-  const verifyMutation = trpc.viewer.organizations.adminVerify.useMutation({
-    onSuccess: async (_data, variables) => {
-      showToast(t("org_has_been_processed"), "success");
-      await invalidateQueries(utils, variables);
-    },
-    onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
-    },
-  });
   const updateMutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onSuccess: async (_data, variables) => {
       showToast(t("org_has_been_processed"), "success");
@@ -45,8 +23,7 @@ function AdminOrgTable() {
       });
     },
     onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
+      showToast(err.message, "error");
     },
   });
 
@@ -80,14 +57,14 @@ function AdminOrgTable() {
         <Header>
           <ColumnTitle widthClassNames="w-auto">{t("organization")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("owner")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("verified")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("reviewed")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("admin_api")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">
             <span className="sr-only">{t("edit")}</span>
           </ColumnTitle>
         </Header>
-
         <Body>
           {data.map((org) => (
             <Row key={org.id}>
@@ -107,16 +84,16 @@ function AdminOrgTable() {
               </Cell>
               <Cell>
                 <div className="space-x-2">
-                  {!org.metadata?.isOrganizationVerified ? (
-                    <Badge variant="red">{t("unverified")}</Badge>
+                  {!org.organizationSettings?.isAdminReviewed ? (
+                    <Badge variant="red">{t("unreviewed")}</Badge>
                   ) : (
-                    <Badge variant="blue">{t("verified")}</Badge>
+                    <Badge variant="green">{t("reviewed")}</Badge>
                   )}
                 </div>
               </Cell>
               <Cell>
                 <div className="space-x-2">
-                  {org.metadata?.isOrganizationConfigured ? (
+                  {org.organizationSettings?.isOrganizationConfigured ? (
                     <Badge variant="blue">{t("dns_configured")}</Badge>
                   ) : (
                     <Badge variant="red">{t("dns_missing")}</Badge>
@@ -132,25 +109,37 @@ function AdminOrgTable() {
                   )}
                 </div>
               </Cell>
+              <Cell>
+                <div className="space-x-2">
+                  {!org.organizationSettings?.isAdminAPIEnabled ? (
+                    <Badge variant="red">{t("disabled")}</Badge>
+                  ) : (
+                    <Badge variant="green">{t("enabled")}</Badge>
+                  )}
+                </div>
+              </Cell>
               <Cell widthClassNames="w-auto">
                 <div className="flex w-full justify-end">
                   <DropdownActions
                     actions={[
-                      ...(!org.metadata?.isOrganizationVerified
+                      ...(!org.organizationSettings?.isAdminReviewed
                         ? [
                             {
-                              id: "verify",
-                              label: t("verify"),
+                              id: "review",
+                              label: t("review"),
                               onClick: () => {
-                                verifyMutation.mutate({
-                                  orgId: org.id,
+                                updateMutation.mutate({
+                                  id: org.id,
+                                  organizationSettings: {
+                                    isAdminReviewed: true,
+                                  },
                                 });
                               },
-                              icon: Check,
+                              icon: "check" as const,
                             },
                           ]
                         : []),
-                      ...(!org.metadata?.isOrganizationConfigured
+                      ...(!org.organizationSettings?.isOrganizationConfigured
                         ? [
                             {
                               id: "dns",
@@ -158,12 +147,12 @@ function AdminOrgTable() {
                               onClick: () => {
                                 updateMutation.mutate({
                                   id: org.id,
-                                  metadata: {
+                                  organizationSettings: {
                                     isOrganizationConfigured: true,
                                   },
                                 });
                               },
-                              icon: CheckCheck,
+                              icon: "check-check" as const,
                             },
                           ]
                         : []),
@@ -171,7 +160,7 @@ function AdminOrgTable() {
                         id: "edit",
                         label: t("edit"),
                         href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: Edit,
+                        icon: "pencil" as const,
                       },
                       ...(!org.slug
                         ? [
@@ -181,17 +170,32 @@ function AdminOrgTable() {
                               onClick: () => {
                                 publishOrg(org);
                               },
-                              icon: BookOpenCheck,
+                              icon: "book-open-check" as const,
                             },
                           ]
                         : []),
+                      {
+                        id: "api",
+                        label: org.organizationSettings?.isAdminAPIEnabled
+                          ? t("revoke_admin_api")
+                          : t("grant_admin_api"),
+                        onClick: () => {
+                          updateMutation.mutate({
+                            id: org.id,
+                            organizationSettings: {
+                              isAdminAPIEnabled: !org.organizationSettings?.isAdminAPIEnabled,
+                            },
+                          });
+                        },
+                        icon: "terminal" as const,
+                      },
                       {
                         id: "delete",
                         label: t("delete"),
                         onClick: () => {
                           setOrgToDelete(org);
                         },
-                        icon: Trash,
+                        icon: "trash" as const,
                       },
                     ]}
                   />
@@ -215,21 +219,7 @@ function AdminOrgTable() {
   );
 }
 
-const AdminOrgList = () => {
-  const { t } = useLocale();
-  return (
-    <LicenseRequired>
-      <Meta title={t("organizations")} description={t("orgs_page_description")} />
-      <NoSSR>
-        <AdminOrgTable />
-      </NoSSR>
-    </LicenseRequired>
-  );
-};
-
-AdminOrgList.getLayout = getLayout;
-
-export default AdminOrgList;
+export default AdminOrgTable;
 
 const DeleteOrgDialog = ({
   org,
@@ -277,7 +267,7 @@ const DeleteOrgDialog = ({
   );
 };
 
-async function invalidateQueries(utils: ReturnType<typeof trpc.useContext>, data: { orgId: number }) {
+async function invalidateQueries(utils: ReturnType<typeof trpc.useUtils>, data: { orgId: number }) {
   await utils.viewer.organizations.adminGetAll.invalidate();
   await utils.viewer.organizations.adminGet.invalidate({
     id: data.orgId,

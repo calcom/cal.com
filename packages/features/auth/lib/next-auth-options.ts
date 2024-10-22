@@ -1,5 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
-import type { AuthOptions, Session } from "next-auth";
+import { waitUntil } from "@vercel/functions";
+import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -7,11 +8,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HOSTED_CAL_FEATURES, IS_CALCOM } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -27,6 +30,7 @@ import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
+import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
@@ -41,7 +45,21 @@ const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
-
+const getDomainFromEmail = (email: string): string => email.split("@")[1];
+const getVerifiedOrganizationByAutoAcceptEmailDomain = async (domain: string) => {
+  const existingOrg = await prisma.team.findFirst({
+    where: {
+      organizationSettings: {
+        isOrganizationVerified: true,
+        orgAutoAcceptEmail: domain,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  return existingOrg?.id;
+};
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
@@ -67,20 +85,10 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
-      AND: [
-        {
-          metadata: {
-            path: ["isOrganizationVerified"],
-            equals: true,
-          },
-        },
-        {
-          metadata: {
-            path: ["orgAutoAcceptEmail"],
-            equals: apexDomain,
-          },
-        },
-      ],
+      organizationSettings: {
+        isOrganizationVerified: true,
+        orgAutoAcceptEmail: apexDomain,
+      },
     },
     select: {
       id: true,
@@ -123,13 +131,10 @@ const providers: Provider[] = [
         identifier: user.email,
       });
 
-      if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
-      }
-      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
+      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
-      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
+      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
@@ -232,6 +237,7 @@ const providers: Provider[] = [
         belongsToActiveTeam: hasActiveTeams,
         locale: user.locale,
         profile: user.allProfiles[0],
+        createdDate: user.createdDate,
       };
     },
   }),
@@ -278,11 +284,6 @@ if (isSAMLLoginEnabled) {
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
-      if (!user) {
-        throw new Error(ErrorCode.UserNotFound);
-      }
-
-      const [userProfile] = user.allProfiles;
       return {
         id: profile.id || 0,
         firstName: profile.firstName || "",
@@ -291,7 +292,7 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        profile: userProfile,
+        ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
     options: {
@@ -334,7 +335,6 @@ if (isSAMLLoginEnabled) {
         if (!access_token) {
           return null;
         }
-
         // Fetch user info
         const userInfo = await oauthController.userInfo(access_token);
 
@@ -342,14 +342,32 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { id, firstName, lastName, email } = userInfo;
-        const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
+        const { id, firstName, lastName } = userInfo;
+        const email = userInfo.email.toLowerCase();
+        let user = !email
+          ? undefined
+          : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
         if (!user) {
-          throw new Error(ErrorCode.UserNotFound);
+          const hostedCal = Boolean(HOSTED_CAL_FEATURES);
+          if (hostedCal && email) {
+            const domain = getDomainFromEmail(email);
+            const organizationId = await getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            if (organizationId) {
+              const createUsersAndConnectToOrgProps = {
+                emailsToCreate: [email],
+                organizationId,
+                identityProvider: IdentityProvider.SAML,
+                identityProviderId: email,
+              };
+              await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+              user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+                email: email,
+              });
+            }
+          }
+          if (!user) throw new Error(ErrorCode.UserNotFound);
         }
-
-        const [profile] = user.allProfiles;
-
+        const [userProfile] = user?.allProfiles;
         return {
           id: id as unknown as number,
           firstName,
@@ -357,7 +375,7 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
-          profile,
+          profile: userProfile,
         };
       },
     })
@@ -389,7 +407,12 @@ const mapIdentityProvider = (providerName: string) => {
   }
 };
 
-export const AUTH_OPTIONS: AuthOptions = {
+export const getOptions = ({
+  getDubId,
+}: {
+  /** so we can extract the Dub cookie in both pages and app routers */
+  getDubId: () => string | undefined;
+}): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
@@ -439,7 +462,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
-
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         return {
@@ -459,6 +481,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           select: {
             id: true,
             username: true,
+            avatarUrl: true,
             name: true,
             email: true,
             role: true,
@@ -494,6 +517,19 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
 
         const profileOrg = profile?.organization;
+        let orgRole: MembershipRole | undefined;
+        // Get users role of org
+        if (profileOrg) {
+          const membership = await prisma.membership.findUnique({
+            where: {
+              userId_teamId: {
+                teamId: profileOrg.id,
+                userId: existingUser.id,
+              },
+            },
+          });
+          orgRole = membership?.role;
+        }
 
         return {
           ...existingUserWithoutTeamsField,
@@ -503,15 +539,19 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
-          org: profileOrg
-            ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-              }
-            : null,
+          // platform org user don't need profiles nor domains
+          org:
+            profileOrg && !profileOrg.isPlatform
+              ? {
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
+              : null,
         } as JWT;
       };
       if (!user) {
@@ -589,7 +629,9 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const hasValidLicense = await checkLicense(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance();
+      const hasValidLicense = await licenseKeyService.checkLicense();
+
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
@@ -628,7 +670,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (account?.provider === "email") {
         return true;
       }
-
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       // Only if provider is not saml-idp
@@ -641,7 +682,6 @@ export const AUTH_OPTIONS: AuthOptions = {
           return false;
         }
       }
-
       if (!user.email) {
         return false;
       }
@@ -649,7 +689,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (!user.name) {
         return false;
       }
-
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -708,7 +747,11 @@ export const AUTH_OPTIONS: AuthOptions = {
             try {
               // If old user without Account entry we link their google account
               if (existingUser.accounts.length === 0) {
-                const linkAccountWithUserData = { ...account, userId: existingUser.id };
+                const linkAccountWithUserData = {
+                  ...account,
+                  userId: existingUser.id,
+                  providerEmail: user.email,
+                };
                 await calcomAdapter.linkAccount(linkAccountWithUserData);
               }
             } catch (error) {
@@ -745,6 +788,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         // If there's no existing user for this identity provider and id, create
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
+
         const existingUserWithEmail = await prisma.user.findFirst({
           where: {
             email: {
@@ -810,14 +854,12 @@ export const AUTH_OPTIONS: AuthOptions = {
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
-                password: {
-                  delete: true,
-                },
-                email: user.email,
+                email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
             });
+
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
@@ -825,6 +867,19 @@ export const AUTH_OPTIONS: AuthOptions = {
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
+            idP === IdentityProvider.SAML
+          ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              // also update email to the IdP email
+              data: {
+                email: user.email.toLowerCase(),
+                identityProvider: idP,
+                identityProviderId: account.providerAccountId,
+              },
+            });
           }
 
           return "/auth/error?error=use-identity-login";
@@ -854,7 +909,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           },
         });
 
-        const linkAccountNewUserData = { ...account, userId: newUser.id };
+        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         if (account.twoFactorEnabled) {
@@ -877,7 +932,43 @@ export const AUTH_OPTIONS: AuthOptions = {
       return baseUrl;
     },
   },
-};
+  events: {
+    async signIn(message) {
+      /* only run this code if:
+         - it's a hosted cal account
+         - DUB_API_KEY is configured
+         - it's a new user
+      */
+      const user = message.user as User & {
+        username: string;
+        createdDate: string;
+      };
+      // check if the user was created in the last 10 minutes
+      // this is a workaround – in the future once we move to use the Account model in the DB
+      // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
+      const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
+      if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
+        const clickId = getDubId();
+        // check if there's a clickId (dub_id) cookie set by @dub/analytics
+        if (clickId) {
+          // here we use waitUntil – meaning this code will run async to not block the main thread
+          waitUntil(
+            // if so, send a lead event to Dub
+            // @see https://d.to/conversions/next-auth
+            dub.track.lead({
+              clickId,
+              eventName: "Sign Up",
+              customerId: user.id.toString(),
+              customerName: user.name,
+              customerEmail: user.email,
+              customerAvatar: user.image,
+            })
+          );
+        }
+      }
+    },
+  },
+});
 
 /**
  * Identifies the profile the user should be logged into.

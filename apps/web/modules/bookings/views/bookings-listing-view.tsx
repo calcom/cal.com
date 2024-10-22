@@ -17,7 +17,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -79,7 +78,6 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
-
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
@@ -89,7 +87,6 @@ export default function Bookings() {
       },
     },
     {
-      // first render has status `undefined`
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
@@ -152,8 +149,8 @@ export default function Bookings() {
       hideHeadingOnMobile
       heading={t("bookings")}
       subtitle={t("bookings_description")}
-      title="Bookings"
-      description="Create events to share for people to book on your calendar.">
+      title={t("bookings")}
+      description={t("bookings_description")}>
       <div className="flex flex-col">
         <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />
@@ -241,7 +238,7 @@ export default function Bookings() {
             {query.status === "success" && isEmpty && (
               <div className="flex items-center justify-center pt-2 xl:pt-0">
                 <EmptyScreen
-                  Icon={Calendar}
+                  Icon="calendar"
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),

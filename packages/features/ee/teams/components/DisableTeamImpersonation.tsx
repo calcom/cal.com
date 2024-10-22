@@ -15,7 +15,7 @@ const DisableTeamImpersonation = ({
 }) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const query = trpc.viewer.teams.getMembershipbyUser.useQuery({ teamId, memberId });
 
@@ -40,7 +40,6 @@ const DisableTeamImpersonation = ({
           setAllowImpersonation(_allowImpersonation);
           mutation.mutate({ teamId, memberId, disableImpersonation: !_allowImpersonation });
         }}
-        switchContainerClassName="mt-6"
       />
     </>
   );

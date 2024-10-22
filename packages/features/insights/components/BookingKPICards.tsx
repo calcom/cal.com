@@ -11,6 +11,7 @@ import { KPICard } from "./KPICard";
 export const BookingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
+
   const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll, initialConfig } =
     filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
@@ -39,7 +40,7 @@ export const BookingKPICards = () => {
 
   const categories: {
     title: string;
-    index: "created" | "completed" | "rescheduled" | "cancelled";
+    index: "created" | "completed" | "rescheduled" | "cancelled" | "no_show" | "rating" | "csat";
   }[] = [
     {
       title: t("events_created"),
@@ -56,6 +57,18 @@ export const BookingKPICards = () => {
     {
       title: t("events_cancelled"),
       index: "cancelled",
+    },
+    {
+      title: t("event_ratings"),
+      index: "rating",
+    },
+    {
+      title: t("event_no_show"),
+      index: "no_show",
+    },
+    {
+      title: t("csat_score"),
+      index: "csat",
     },
   ];
 

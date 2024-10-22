@@ -225,7 +225,7 @@ export default class ExchangeCalendarService implements Calendar {
             }
           }
           return allFolders;
-        });
+        }) as Promise<IntegrationCalendar[]>;
     } catch (reason) {
       this.log.error(reason);
       throw reason;

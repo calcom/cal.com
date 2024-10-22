@@ -1,8 +1,10 @@
+import type { Auth } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { handleWatchCalendar } from "@calcom/features/calendar-cache/lib/handleWatchCalendar";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
@@ -15,8 +17,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { getCalendar } from "../../_utils/getCalendar";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
-import { scopes } from "./add";
 
 async function getWatchedCalendar(credential: Parameters<typeof getCalendar>[0], externalId: string) {
   const flags = await getFeatureFlagMap(prisma);
@@ -52,6 +54,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const { client_id, client_secret } = await getGoogleAppKeys();
+
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
@@ -60,33 +63,27 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
-    key = token.res?.data;
-
-    // Check that the has granted all permissions
-    const grantedScopes = key.scope;
-    for (const scope of scopes) {
-      if (!grantedScopes.includes(scope)) {
-        if (!state?.fromApp) {
-          throw new HttpError({
-            statusCode: 400,
-            message: "You must grant all permissions to use this integration",
-          });
-        } else {
-          res.redirect(
-            getSafeRedirectUrl(state.onErrorReturnTo) ??
-              getSafeRedirectUrl(state?.returnTo) ??
-              `${WEBAPP_URL}/apps/installed`
-          );
-          return;
-        }
+    key = token.tokens;
+    const grantedScopes = token.tokens.scope?.split(" ") ?? [];
+    // Check if we have granted all required permissions
+    const hasMissingRequiredScopes = REQUIRED_SCOPES.some((scope) => !grantedScopes.includes(scope));
+    if (hasMissingRequiredScopes) {
+      if (!state?.fromApp) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "You must grant all permissions to use this integration",
+        });
       }
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
+      return;
     }
 
     // Set the primary calendar as the first selected calendar
 
-    // We can ignore this type error because we just validated the key when we init oAuth2Client
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     oAuth2Client.setCredentials(key);
 
     const calendar = google.calendar({
@@ -95,10 +92,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    const primaryCal = cals.data.items?.find((cal) => cal.primary);
-    // Primary calendar won't be null, this check satisfies typescript.
+    let primaryCal = cals.data.items?.find((cal) => cal.primary);
     if (!primaryCal?.id) {
-      throw new HttpError({ message: "Internal Error", statusCode: 500 });
+      // If the primary calendar is not set, set it to the first calendar
+      primaryCal = cals.data.items?.[0];
+    }
+
+    // Only attempt to update the user's profile photo if the user has granted the required scope
+    if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
+      await updateProfilePhoto(oAuth2Client, req.session.user.id);
     }
 
     const credential = await prisma.credential.create({
@@ -110,14 +112,29 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       },
       select: credentialForCalendarServiceSelect,
     });
+
+    // If we still don't have a primary calendar skip creating the selected calendar.
+    // It can be toggled on later.
+    if (!primaryCal?.id) {
+      res.redirect(
+        getSafeRedirectUrl(state?.returnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+      );
+      return;
+    }
+
+    const selectedCalendarWhereUnique = {
+      userId: req.session.user.id,
+      externalId: primaryCal.id,
+      integration: "google_calendar",
+    };
+
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
       const watchedCalendar = await getWatchedCalendar(credential, primaryCal.id);
       await prisma.selectedCalendar.create({
         data: {
-          userId: req.session.user.id,
-          externalId: primaryCal.id,
           credentialId: credential.id,
           integration: "google_calendar",
           googleChannelId: watchedCalendar?.id,
@@ -125,14 +142,25 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           googleChannelResourceId: watchedCalendar?.resourceId,
           googleChannelResourceUri: watchedCalendar?.resourceUri,
           googleChannelExpiration: watchedCalendar?.expiration,
+          ...selectedCalendarWhereUnique,
         },
       });
     } catch (error) {
-      await prisma.credential.delete({ where: { id: credential.id } });
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          res.redirect(
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+          );
+          return;
+        }
+        // else
         errorMessage = "account_already_linked";
       }
+      await prisma.credential.delete({ where: { id: credential.id } });
       res.redirect(
         `${
           getSafeRedirectUrl(state?.onErrorReturnTo) ??
@@ -143,34 +171,63 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  if (state?.installGoogleVideo) {
-    const existingGoogleMeetCredential = await prisma.credential.findFirst({
-      where: {
-        userId: req.session.user.id,
-        type: "google_video",
-      },
-    });
+  // No need to install? Redirect to the returnTo URL
+  if (!state?.installGoogleVideo) {
+    res.redirect(
+      getSafeRedirectUrl(state?.returnTo) ??
+        getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+    );
+    return;
+  }
 
-    if (!existingGoogleMeetCredential) {
-      await prisma.credential.create({
+  const existingGoogleMeetCredential = await prisma.credential.findFirst({
+    where: {
+      userId: req.session.user.id,
+      type: "google_video",
+    },
+  });
+
+  // If the user already has a google meet credential, there's nothing to do in here
+  if (existingGoogleMeetCredential) {
+    res.redirect(
+      getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
+        getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
+    );
+    return;
+  }
+
+  // Create a new google meet credential
+  await prisma.credential.create({
+    data: {
+      type: "google_video",
+      key: {},
+      userId: req.session.user.id,
+      appId: "google-meet",
+    },
+  });
+
+  res.redirect(
+    getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
+      getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
+  );
+}
+
+async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: number) {
+  try {
+    const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    const userDetails = await oauth2.userinfo.get();
+    if (userDetails.data?.picture) {
+      // Using updateMany here since if the user already has a profile it would throw an error because no records were found to update the profile picture
+      await prisma.user.updateMany({
+        where: { id: userId, avatarUrl: null },
         data: {
-          type: "google_video",
-          key: {},
-          userId: req.session.user.id,
-          appId: "google-meet",
+          avatarUrl: userDetails.data.picture,
         },
       });
-
-      res.redirect(
-        getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
-          getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
-      );
     }
+  } catch (error) {
+    logger.error("Error updating avatarUrl from google calendar connect", error);
   }
-  res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ??
-      getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
-  );
 }
 
 export default defaultHandler({

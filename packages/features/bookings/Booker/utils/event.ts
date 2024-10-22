@@ -13,21 +13,38 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
 
 /**
  * Wrapper hook around the trpc query that fetches
- * the event curently viewed in the booker. It will get
+ * the event currently viewed in the booker. It will get
  * the current event slug and username from the booker store.
  *
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = () => {
-  const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
-  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
-  const org = useBookerStore((state) => state.org);
-
-  return trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
-    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
+export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
+  const [username, eventSlug, isTeamEvent, org] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
+    shallow
   );
+
+  const event = trpc.viewer.public.event.useQuery(
+    {
+      username: username ?? "",
+      eventSlug: eventSlug ?? "",
+      isTeamEvent,
+      org: org ?? null,
+      fromRedirectOfNonOrgLink: props?.fromRedirectOfNonOrgLink,
+    },
+    {
+      refetchOnWindowFocus: false,
+      enabled: Boolean(username) && Boolean(eventSlug),
+    }
+  );
+
+  return {
+    data: event?.data,
+    isSuccess: event?.isSuccess,
+    isError: event?.isError,
+    isPending: event?.isPending,
+  };
 };
 
 /**
@@ -52,6 +69,10 @@ export const useScheduleForEvent = ({
   monthCount,
   dayCount,
   selectedDate,
+  orgSlug,
+  teamMemberEmail,
+  fromRedirectOfNonOrgLink,
+  isTeamEvent,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -62,24 +83,26 @@ export const useScheduleForEvent = ({
   monthCount?: number;
   dayCount?: number | null;
   selectedDate?: string | null;
+  orgSlug?: string;
+  teamMemberEmail?: string | null;
+  fromRedirectOfNonOrgLink?: boolean;
+  isTeamEvent?: boolean;
 } = {}) => {
   const { timezone } = useTimePreferences();
-  const event = useEvent();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
+
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
   const pathname = usePathname();
 
-  const isTeam = !!event.data?.team?.parentId;
-
-  return useSchedule({
+  const schedule = useSchedule({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
-    eventId: event.data?.id ?? eventId,
+    eventId,
     timezone,
     selectedDate,
     prefetchNextMonth,
@@ -88,6 +111,16 @@ export const useScheduleForEvent = ({
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
-    isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
+    isTeamEvent,
+    orgSlug,
+    teamMemberEmail,
   });
+
+  return {
+    data: schedule?.data,
+    isPending: schedule?.isPending,
+    isError: schedule?.isError,
+    isSuccess: schedule?.isSuccess,
+    isLoading: schedule?.isLoading,
+  };
 };

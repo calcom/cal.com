@@ -1,6 +1,7 @@
 import type { WorkflowStep } from "@prisma/client";
+import { type TFunction } from "i18next";
 import type { Dispatch, SetStateAction } from "react";
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -9,12 +10,14 @@ import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { md } from "@calcom/lib/markdownIt";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { WorkflowTemplates, TimeUnit, WorkflowActions } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
+import turndown from "@calcom/lib/turndownService";
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
+  AddVariablesDropdown,
   Badge,
   Button,
   CheckboxField,
@@ -23,34 +26,33 @@ import {
   DialogContent,
   DialogFooter,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Editor,
   EmailField,
+  Icon,
+  Input,
   Label,
   PhoneInput,
   Select,
   showToast,
   TextArea,
   TextField,
-  Editor,
-  AddVariablesDropdown,
-  Input,
   Tooltip,
 } from "@calcom/ui";
-import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
 import {
+  getWhatsappTemplateForAction,
   isAttendeeAction,
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
-  getWhatsappTemplateForAction,
-  isTextMessageToAttendeeAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
+import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import { whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
@@ -69,9 +71,20 @@ type WorkflowStepProps = {
   readOnly: boolean;
 };
 
+const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
+  const triggerMap: Partial<Record<WorkflowTriggerEvents, string>> = {
+    [WorkflowTriggerEvents.AFTER_EVENT]: "how_long_after",
+    [WorkflowTriggerEvents.BEFORE_EVENT]: "how_long_before",
+    [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "how_long_after_hosts_no_show",
+    [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
+  };
+  if (!triggerMap[trigger]) return null;
+  return t(triggerMap[trigger]!);
+};
+
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { step, form, reload, setReload, teamId } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
@@ -79,9 +92,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { enabled: !!teamId }
   );
 
+  const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
+
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
+  const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
@@ -111,18 +127,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
-      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
-
-  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
-
-  const [isRequiresConfirmationNeeded, setIsRequiresConfirmationNeeded] = useState(
-    isTextMessageToAttendeeAction(step?.action)
-  );
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
@@ -163,13 +168,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
 
-  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = step
-    ? form.register(`steps.${step.stepNumber - 1}.reminderBody`)
-    : { ref: null, name: "" };
-
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
-
-  const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
   const getNumberVerificationStatus = () =>
     !!step &&
@@ -177,20 +176,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
     );
 
+  const getEmailVerificationStatus = () =>
+    !!step &&
+    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
+  const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-
-  const addVariableBody = (variable: string) => {
-    if (step) {
-      const currentMessageBody = refReminderBody?.current?.value || "";
-      const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
-      const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
-        .toUpperCase()
-        .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
-    }
-  };
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
@@ -216,6 +210,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
+      if (
+        step &&
+        form?.formState?.errors?.steps &&
+        form.formState.errors.steps[step.stepNumber - 1]?.sendTo &&
+        isVerified
+      ) {
+        form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      }
+
       utils.viewer.workflows.getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
@@ -227,6 +230,36 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
+  const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+    onSuccess() {
+      showToast(t("email_sent"), "success");
+    },
+    onError: () => {
+      showToast(t("email_not_sent"), "error");
+    },
+  });
+
+  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
+    onSuccess: (isVerified) => {
+      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+      setEmailVerified(true);
+      if (
+        step &&
+        form?.formState?.errors?.steps &&
+        form.formState.errors.steps[step.stepNumber - 1]?.sendTo &&
+        isVerified
+      ) {
+        form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      }
+      utils.viewer.workflows.getVerifiedEmails.invalidate();
+    },
+    onError: (err) => {
+      if (err.message === "invalid_code") {
+        showToast(t("code_provided_invalid"), "error");
+        setEmailVerified(false);
+      }
+    },
+  });
   /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
@@ -285,21 +318,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (
-                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
-                          val.value === WorkflowTriggerEvents.AFTER_EVENT
-                        ) {
-                          setShowTimeSection(true);
-                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
-                            setShowTimeSectionAfter(true);
+                        const newTimeSectionText = getTimeSectionText(val.value, t);
+                        if (newTimeSectionText) {
+                          setTimeSectionText(newTimeSectionText);
+                          if (
+                            val.value === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                            val.value === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                          ) {
+                            form.setValue("time", 5);
+                            form.setValue("timeUnit", TimeUnit.MINUTE);
                           } else {
-                            setShowTimeSectionAfter(false);
+                            form.setValue("time", 24);
+                            form.setValue("timeUnit", TimeUnit.HOUR);
                           }
-                          form.setValue("time", 24);
-                          form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
-                          setShowTimeSection(false);
-                          setShowTimeSectionAfter(false);
+                          setTimeSectionText(null);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -311,13 +344,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 );
               }}
             />
-            {showTimeSection && (
+            {!!timeSectionText && (
               <div className="mt-5">
-                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
-                <TimeTimeUnitInput form={form} disabled={props.readOnly} />
+                <Label>{timeSectionText}</Label>
+                <TimeTimeUnitInput disabled={props.readOnly} />
                 {!props.readOnly && (
                   <div className="mt-1 flex text-gray-500">
-                    <Info className="mr-1 mt-0.5 h-4 w-4" />
+                    <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
                     <p className="text-sm">{t("testing_workflow_info_message")}</p>
                   </div>
                 )}
@@ -336,7 +369,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsTeamsUpgrade: false,
-      needsOrgsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -350,7 +382,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="my-3 flex justify-center">
-          <ArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
+          <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
         </div>
         <div className="flex justify-center">
           <div className="min-w-80 bg-default border-subtle flex w-full rounded-md border p-7">
@@ -371,13 +403,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
+                        <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
                           <DropdownItem
                             type="button"
-                            StartIcon={Trash2}
+                            StartIcon="trash-2"
                             color="destructive"
                             onClick={() => {
                               const steps = form.getValues("steps");
@@ -454,12 +486,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            if (isTextMessageToAttendeeAction(val.value)) {
-                              setIsRequiresConfirmationNeeded(true);
-                            } else {
-                              setIsRequiresConfirmationNeeded(false);
-                            }
-
                             if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.REMINDER
@@ -532,20 +558,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           label: string;
                           value: WorkflowActions;
                           needsTeamsUpgrade: boolean;
-                          needsOrgsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
+                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
                 />
-                {isRequiresConfirmationNeeded ? (
-                  <div className="text-attention mb-3 mt-2 flex">
-                    <Info className="mr-1 mt-0.5 h-4 w-4" />
-                    <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
-                  </div>
-                ) : (
-                  <></>
-                )}
               </div>
               {isPhoneNumberNeeded && (
                 <div className="bg-muted mt-2 rounded-md p-4 pt-0">
@@ -641,10 +658,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {isSenderIsNeeded ? (
                     <>
                       <div className="pt-4">
-                        <div className="flex">
+                        <div className="flex items-center">
                           <Label>{t("sender_id")}</Label>
                           <Tooltip content={t("sender_id_info")}>
-                            <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            <span>
+                              <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            </span>
                           </Tooltip>
                         </div>
                         <Input
@@ -697,12 +716,94 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
               {isEmailAddressNeeded && (
                 <div className="bg-muted mt-5 rounded-md p-4">
-                  <EmailField
-                    required
-                    disabled={props.readOnly}
-                    label={t("email_address")}
-                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
-                  />
+                  <Label>{t("email_address")}</Label>
+                  <div className="block sm:flex">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.sendTo`}
+                      render={({ field: { value, onChange } }) => (
+                        <EmailField
+                          required
+                          containerClassName="w-full"
+                          className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                          placeholder={t("email_address")}
+                          value={value}
+                          disabled={props.readOnly}
+                          onChange={(val) => {
+                            const isAlreadyVerified = !!verifiedEmails
+                              ?.concat([])
+                              .find((email) => email === val.target.value);
+                            setEmailVerified(isAlreadyVerified);
+                            onChange(val);
+                          }}
+                        />
+                      )}
+                    />
+                    <Button
+                      color="secondary"
+                      disabled={emailVerified || props.readOnly || false}
+                      className={classNames(
+                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                        emailVerified ? "hidden" : "mt-3 sm:mt-0"
+                      )}
+                      onClick={() => {
+                        const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
+                        sendEmailVerificationCodeMutation.mutate({
+                          email,
+                          isVerifyingEmail: true,
+                        });
+                      }}>
+                      {t("send_code")}
+                    </Button>
+                  </div>
+
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                      </p>
+                    )}
+
+                  {emailVerified ? (
+                    <div className="mt-1">
+                      <Badge variant="green">{t("email_verified")}</Badge>
+                    </div>
+                  ) : (
+                    !props.readOnly && (
+                      <>
+                        <div className="mt-3 flex">
+                          <TextField
+                            className="rounded-r-none border-r-transparent"
+                            placeholder="Verification code"
+                            disabled={props.readOnly}
+                            value={verificationCode}
+                            onChange={(e) => {
+                              setVerificationCode(e.target.value);
+                            }}
+                            required
+                          />
+                          <Button
+                            color="secondary"
+                            className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
+                            disabled={verifyEmailCodeMutation.isPending || props.readOnly}
+                            onClick={() => {
+                              verifyEmailCodeMutation.mutate({
+                                code: verificationCode,
+                                email: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                                teamId,
+                              });
+                            }}>
+                            {t("verify")}
+                          </Button>
+                        </div>
+                        {form.formState.errors.steps &&
+                          form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                            </p>
+                          )}
+                      </>
+                    )
+                  )}
                 </div>
               )}
               <div className="mt-5">
@@ -740,6 +841,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   emailReminderTemplate(true, action, timeFormat).emailSubject
                                 );
                               }
+                            } else if (val.value === WorkflowTemplates.RATING) {
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.reminderBody`,
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailBody
+                              );
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.emailSubject`,
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailSubject
+                              );
                             } else {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
@@ -800,57 +910,35 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
 
-                {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                step.action !== WorkflowActions.SMS_NUMBER ? (
-                  <>
-                    <div className="mb-2 flex items-center pb-[1.5px]">
-                      <Label className="mb-0 flex-none ">
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                    </div>
-                    <Editor
-                      getText={() => {
-                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                      }}
-                      setText={(text: string) => {
-                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                        props.form.clearErrors();
-                      }}
-                      variables={DYNAMIC_TEXT_VARIABLES}
-                      height="200px"
-                      updateTemplate={updateTemplate}
-                      firstRender={firstRender}
-                      setFirstRender={setFirstRender}
-                      editable={!props.readOnly && !isWhatsappAction(step.action)}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center">
-                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                      {!props.readOnly && (
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableBody}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <TextArea
-                      ref={(e) => {
-                        reminderBodyFormRef?.(e);
-                        refReminderBody.current = e;
-                      }}
-                      className="my-0 h-24"
-                      disabled={props.readOnly}
-                      required
-                      {...restReminderBodyForm}
-                    />
-                  </>
-                )}
+                <div className="mb-2 flex items-center pb-1">
+                  <Label className="mb-0 flex-none ">
+                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                  </Label>
+                </div>
+                <Editor
+                  getText={() => {
+                    return md.render(props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "");
+                  }}
+                  setText={(text: string) => {
+                    if (isSMSOrWhatsappAction(step.action)) {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, turndown(text));
+                    } else {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                    }
+                    props.form.clearErrors();
+                  }}
+                  variables={DYNAMIC_TEXT_VARIABLES}
+                  addVariableButtonTop={isSMSAction(step.action)}
+                  height="200px"
+                  updateTemplate={updateTemplate}
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
+                  editable={!props.readOnly && !isWhatsappAction(step.action)}
+                  excludedToolbarItems={
+                    !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
+                  }
+                />
+
                 {form.formState.errors.steps &&
                   form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                     <p className="mt-1 text-sm text-red-500">
@@ -884,7 +972,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="text-default mt-2 flex text-sm">
-                        <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_booking_questions_as_variables")}</p>
                       </div>
                     </button>

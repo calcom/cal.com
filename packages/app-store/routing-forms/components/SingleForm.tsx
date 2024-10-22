@@ -5,10 +5,13 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   Alert,
   Badge,
@@ -29,19 +32,12 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import {
-  ExternalLink,
-  Link as LinkIcon,
-  Download,
-  Code,
-  Trash,
-  MessageCircle,
-} from "@calcom/ui/components/icon";
 
+import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
-import { processRoute } from "../lib/processRoute";
-import type { Response, Route, SerializableForm } from "../types/types";
+import { findMatchingRoute } from "../lib/processRoute";
+import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
@@ -87,7 +83,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={ExternalLink}
+            StartIcon="external-link"
           />
         </Tooltip>
         <FormAction
@@ -96,7 +92,7 @@ const Actions = ({
           color="secondary"
           variant="icon"
           type="button"
-          StartIcon={LinkIcon}
+          StartIcon="link"
           tooltip={t("copy_link_to_form")}
         />
 
@@ -108,7 +104,7 @@ const Actions = ({
             color="secondary"
             variant="icon"
             type="button"
-            StartIcon={Download}
+            StartIcon="download"
           />
         </Tooltip>
         <FormAction
@@ -116,7 +112,7 @@ const Actions = ({
           action="embed"
           color="secondary"
           variant="icon"
-          StartIcon={Code}
+          StartIcon="code"
           tooltip={t("embed")}
         />
         <DropdownMenuSeparator />
@@ -125,7 +121,7 @@ const Actions = ({
           action="_delete"
           // className="mr-3"
           variant="icon"
-          StartIcon={Trash}
+          StartIcon="trash"
           color="secondary"
           type="button"
           tooltip={t("delete")}
@@ -138,7 +134,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={LinkIcon}>
+              StartIcon="link">
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           </FormActionsDropdown>
@@ -154,7 +150,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={ExternalLink}>
+            StartIcon="external-link">
             {t("preview")}
           </FormAction>
           <FormAction
@@ -163,7 +159,7 @@ const Actions = ({
             routingForm={form}
             color="minimal"
             type="button"
-            StartIcon={LinkIcon}>
+            StartIcon="link">
             {t("copy_link_to_form")}
           </FormAction>
           <FormAction
@@ -172,7 +168,7 @@ const Actions = ({
             className="w-full"
             color="minimal"
             type="button"
-            StartIcon={Download}>
+            StartIcon="download">
             {t("download_responses")}
           </FormAction>
           <FormAction
@@ -181,7 +177,7 @@ const Actions = ({
             color="minimal"
             type="button"
             className="w-full"
-            StartIcon={Code}>
+            StartIcon="code">
             {t("embed")}
           </FormAction>
           {typeformApp ? (
@@ -191,7 +187,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={LinkIcon}>
+              StartIcon="link">
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
@@ -202,7 +198,7 @@ const Actions = ({
             className="w-full"
             type="button"
             color="destructive"
-            StartIcon={Trash}>
+            StartIcon="trash">
             {t("delete")}
           </FormAction>
           <div className="block sm:hidden">
@@ -212,7 +208,7 @@ const Actions = ({
               action="toggle"
               routingForm={form}
               label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
             />
           </div>
         </FormActionsDropdown>
@@ -233,20 +229,69 @@ type SingleFormComponentProps = {
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
+  enrichedWithUserProfileForm?: inferSSRProps<
+    typeof getServerSidePropsForSingleFormView
+  >["enrichedWithUserProfileForm"];
 };
 
-function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
-  const utils = trpc.useContext();
+function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
+  const utils = trpc.useUtils();
   const { t } = useLocale();
-
+  const isTeamForm = !!form.teamId;
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
-  const [response, setResponse] = useState<Response>({});
-  const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
+  const [response, setResponse] = useState<FormResponse>({});
+  const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [eventTypeUrl, setEventTypeUrl] = useState("");
+  const searchParams = useCompatSearchParams();
+  const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
+    | {
+        id: number;
+        name: string | null;
+        email: string;
+      }[]
+    | null
+  >([]);
+  const findTeamMembersMatchingAttributeLogicMutation =
+    trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
+      onSuccess(data) {
+        setTeamMembersMatchingAttributeLogic(data.result);
+      },
+      onError(e) {
+        if (e instanceof TRPCClientError) {
+          showToast(e.message, "error");
+        } else {
+          showToast(t("something_went_wrong"), "error");
+        }
+      },
+    });
 
   function testRouting() {
-    const action = processRoute({ form, response });
-    setDecidedAction(action);
+    const route = findMatchingRoute({ form, response });
+
+    if (route?.action?.type === "eventTypeRedirectUrl") {
+      setEventTypeUrl(
+        enrichedWithUserProfileForm
+          ? getAbsoluteEventTypeRedirectUrl({
+              eventTypeRedirectUrl: route.action.value,
+              form: enrichedWithUserProfileForm,
+              allURLSearchParams: new URLSearchParams(),
+            })
+          : ""
+      );
+    }
+
+    setChosenRoute(route || null);
+
+    if (!route) return;
+
+    findTeamMembersMatchingAttributeLogicMutation.mutate({
+      formId: form.id,
+      response,
+      routeId: route.id,
+      isPreview: true,
+      _enablePerf: searchParams.get("enablePerf") === "true",
+    });
   }
 
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
@@ -276,6 +321,9 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
 
+  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
+  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
+
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
@@ -292,6 +340,100 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     },
   });
   const connectedForms = form.connectedForms;
+
+  const testFormDialog = (() => {
+    const testResult = chosenRoute ? (
+      <div className="bg-subtle text-default mt-5 rounded-md p-3">
+        <div className="font-bold ">{t("route_to")}:</div>
+        <div className="mt-2">
+          {RoutingPages.map((page) => {
+            if (page.value !== chosenRoute.action.type) return null;
+            return (
+              <span key={page.value} data-testid="test-routing-result-type">
+                {page.label}
+              </span>
+            );
+          })}
+          :{" "}
+          {chosenRoute.action.type === "customPageMessage" ? (
+            <span className="text-default" data-testid="test-routing-result">
+              {chosenRoute.action.value}
+            </span>
+          ) : chosenRoute.action.type === "externalRedirectUrl" ? (
+            <span className="text-default underline">
+              <a
+                target="_blank"
+                data-testid="test-routing-result"
+                href={
+                  chosenRoute.action.value.includes("https://") ||
+                  chosenRoute.action.value.includes("http://")
+                    ? chosenRoute.action.value
+                    : `http://${chosenRoute.action.value}`
+                }
+                rel="noreferrer">
+                {chosenRoute.action.value}
+              </a>
+            </span>
+          ) : (
+            <div className="flex flex-col space-y-2">
+              <span className="text-default underline">
+                <a target="_blank" href={eventTypeUrl} rel="noreferrer" data-testid="test-routing-result">
+                  {chosenRoute.action.value}
+                </a>
+              </span>
+              {isTeamForm ? (
+                <div>
+                  <span>{t("matching_members")}:</span>{" "}
+                  {!findTeamMembersMatchingAttributeLogicMutation.isPending ? (
+                    <div>
+                      {teamMembersMatchingAttributeLogic?.map((member) => member.email).join(", ") ||
+                        t("no_matching_members")}
+                    </div>
+                  ) : (
+                    <div>Loading...</div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null;
+
+    return (
+      <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
+        <DialogContent enableOverflow>
+          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+          <div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                testRouting();
+              }}>
+              <div className="px-1">
+                {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+              </div>
+              <div>{testResult}</div>
+              <DialogFooter>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    setChosenRoute(null);
+                    setResponse({});
+                  }}>
+                  {t("close")}
+                </DialogClose>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  })();
 
   return (
     <>
@@ -339,26 +481,83 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   />
 
                   <div className="mt-6">
-                    <Controller
-                      name="settings.emailOwnerOnSubmission"
-                      control={hookForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        return (
-                          <SettingsToggle
-                            title={t("routing_forms_send_email_owner")}
-                            description={t("routing_forms_send_email_owner_description")}
-                            checked={value}
-                            onCheckedChange={(val) => onChange(val)}
-                          />
-                        );
-                      }}
-                    />
+                    {form.teamId ? (
+                      <div className="flex flex-col">
+                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                          {t("routing_forms_send_email_to")}
+                        </span>
+                        <AddMembersWithSwitch
+                          teamMembers={form.teamMembers.map((member) => ({
+                            value: member.id.toString(),
+                            label: member.name || member.email,
+                            avatar: member.avatarUrl || "",
+                            email: member.email,
+                            isFixed: true,
+                            defaultScheduleId: member.defaultScheduleId,
+                          }))}
+                          value={sendUpdatesTo.map((userId) => ({
+                            isFixed: true,
+                            userId: userId,
+                            priority: 2,
+                            weight: 100,
+                            weightAdjustment: 0,
+                            scheduleId: 1,
+                          }))}
+                          onChange={(value) => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              value.map((teamMember) => teamMember.userId),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          assignAllTeamMembers={sendToAll}
+                          setAssignAllTeamMembers={(value) => {
+                            hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                          }}
+                          automaticAddAllEnabled={true}
+                          isFixed={true}
+                          onActive={() => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              form.teamMembers.map((teamMember) => teamMember.id),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          placeholder={t("select_members")}
+                          containerClassName="!px-0 !pb-0 !pt-0"
+                        />
+                      </div>
+                    ) : (
+                      <Controller
+                        name="settings.emailOwnerOnSubmission"
+                        control={hookForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("routing_forms_send_email_owner")}
+                              description={t("routing_forms_send_email_owner_description")}
+                              checked={value}
+                              onCheckedChange={(val) => {
+                                onChange(val);
+                                hookForm.unregister("settings.sendUpdatesTo");
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    )}
                   </div>
 
                   {form.routers.length ? (
                     <div className="mt-6">
                       <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        Routers
+                        {t("routers")}
                       </div>
                       <p className="text-default -mt-1 text-xs leading-normal">
                         {t("modifications_in_fields_warning")}
@@ -421,7 +620,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         className="mt-2 px-4 py-3"
                         severity="neutral"
                         title={t("no_responses_yet")}
-                        CustomIcon={MessageCircle}
+                        CustomIcon="message-circle"
                       />
                     </>
                   )}
@@ -435,84 +634,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
           </ShellMain>
         </FormActionsProvider>
       </Form>
-      <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent enableOverflow>
-          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-          <div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                testRouting();
-              }}>
-              <div className="px-1">
-                {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-              </div>
-              <div>
-                {decidedAction && (
-                  <div className="bg-subtle text-default mt-5 rounded-md p-3">
-                    <div className="font-bold ">{t("route_to")}:</div>
-                    <div className="mt-2">
-                      {RoutingPages.map((page) => {
-                        if (page.value !== decidedAction.type) return null;
-                        return (
-                          <div key={page.value} data-testid="test-routing-result-type">
-                            {page.label}
-                          </div>
-                        );
-                      })}
-                      :{" "}
-                      {decidedAction.type === "customPageMessage" ? (
-                        <span className="text-default" data-testid="test-routing-result">
-                          {decidedAction.value}
-                        </span>
-                      ) : decidedAction.type === "externalRedirectUrl" ? (
-                        <span className="text-default underline">
-                          <a
-                            target="_blank"
-                            data-testid="test-routing-result"
-                            href={
-                              decidedAction.value.includes("https://") ||
-                              decidedAction.value.includes("http://")
-                                ? decidedAction.value
-                                : `http://${decidedAction.value}`
-                            }
-                            rel="noreferrer">
-                            {decidedAction.value}
-                          </a>
-                        </span>
-                      ) : (
-                        <span className="text-default underline">
-                          <a
-                            target="_blank"
-                            href={`/${decidedAction.value}`}
-                            rel="noreferrer"
-                            data-testid="test-routing-result">
-                            {decidedAction.value}
-                          </a>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <DialogClose
-                  color="secondary"
-                  onClick={() => {
-                    setIsTestPreviewOpen(false);
-                    setDecidedAction(null);
-                    setResponse({});
-                  }}>
-                  {t("close")}
-                </DialogClose>
-                <Button type="submit" data-testid="test-routing">
-                  {t("test_routing")}
-                </Button>
-              </DialogFooter>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {testFormDialog}
     </>
   );
 }

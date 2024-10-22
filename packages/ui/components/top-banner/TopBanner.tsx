@@ -1,12 +1,12 @@
 import classNames from "classnames";
-import type { ComponentType, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
-import type { LucideIcon, LucideProps } from "@calcom/ui/components/icon";
-import { AlertTriangle, Info } from "@calcom/ui/components/icon";
+
+import { Icon, type IconName } from "../..";
 
 export type TopBannerProps = {
-  Icon?: ComponentType<LucideProps> & LucideIcon;
+  icon?: IconName;
   text: string;
   variant?: keyof typeof variantClassName;
   actions?: ReactNode;
@@ -20,18 +20,17 @@ const variantClassName = {
 
 const defaultIconProps = {
   className: "text-emphasis h-4 w-4 stroke-[2.5px]",
-  "aria-hidden": "true",
-} as LucideProps;
+};
 
 export function TopBanner(props: TopBannerProps) {
-  const { Icon, variant = "default", text, actions } = props;
+  const { icon, variant = "default", text, actions } = props;
 
   const renderDefaultIconByVariant = () => {
     switch (variant) {
       case "error":
-        return <AlertTriangle {...defaultIconProps} data-testid="variant-error" />;
+        return <Icon {...defaultIconProps} name="triangle-alert" data-testid="variant-error" />;
       case "warning":
-        return <Info {...defaultIconProps} data-testid="variant-warning" />;
+        return <Icon {...defaultIconProps} name="info" data-testid="variant-warning" />;
       default:
         return null;
     }
@@ -48,7 +47,7 @@ export function TopBanner(props: TopBannerProps) {
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 px-1 py-0.5 lg:flex-row lg:items-center">
         <p className="text-emphasis flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 lg:flex-row lg:items-center">
-          {Icon ? <Icon data-testid="variant-default" {...defaultIconProps} /> : defaultIcon}
+          {icon ? <Icon {...defaultIconProps} name={icon} data-testid="variant-default" /> : defaultIcon}
           {text}
         </p>
         {actions && <div className="text-sm font-medium">{actions}</div>}

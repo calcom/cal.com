@@ -6,11 +6,8 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
-
-export const scopes = [
-  "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events",
-];
+import { SCOPES } from "../lib/constants";
+import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Google Calendar API
@@ -20,7 +17,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: scopes,
+    scope: SCOPES,
     // A refresh token is only returned the first time the user
     // consents to providing access.  For illustration purposes,
     // setting the prompt to 'consent' will force this consent

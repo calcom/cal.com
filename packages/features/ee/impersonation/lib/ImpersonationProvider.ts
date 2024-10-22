@@ -3,6 +3,7 @@ import type { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
+import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
@@ -198,6 +199,7 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
       role: true,
       organizationId: true,
       locale: true,
+      profiles: true,
       teams: {
         where: {
           accepted: true, // Ensure they are apart of the team and not just invited.
@@ -213,7 +215,10 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
 
   if (returningUser) {
     // Skip for none org users
-    if (returningUser.role !== "ADMIN" && !returningUser.organizationId) return;
+    const inOrg =
+      returningUser.organizationId || // Keep for backwards compatability
+      returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
+    if (returningUser.role !== "ADMIN" && !inOrg) return;
 
     const hasTeams = returningUser.teams.length >= 1;
 
@@ -277,7 +282,9 @@ const ImpersonationProvider = CredentialsProvider({
       );
     }
 
-    if (!teamId) throw new Error("You do not have permission to do this.");
+    await ensureOrganizationIsReviewed(session?.user.org?.id);
+
+    if (!teamId) throw new Error("Error-teamNotFound: You do not have permission to do this.");
 
     // Check session
     const sessionUserFromDb = await prisma.user.findUnique({
@@ -308,7 +315,7 @@ const ImpersonationProvider = CredentialsProvider({
     });
 
     if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
-      throw new Error("You do not have permission to do this.");
+      throw new Error("Error-UserHasNoTeams: You do not have permission to do this.");
     }
 
     // We find team by ID so we know there is only one team in the array
@@ -325,6 +332,7 @@ const ImpersonationProvider = CredentialsProvider({
 });
 
 export default ImpersonationProvider;
+
 async function findProfile(returningUser: { id: number; username: string | null }) {
   const allOrgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser({
     id: returningUser.id,

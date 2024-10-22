@@ -42,14 +42,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
     if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
 
-    if (!metadata.data?.requestedSlug) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Can't publish team/org without `requestedSlug`",
-      });
-    }
-
-    const { requestedSlug, ...newMetadata } = metadata.data;
+    const { requestedSlug, ...newMetadata } = metadata.data || {};
     /** We save the metadata first to prevent duplicate payments */
     team = await prisma.team.update({
       where: { id },
@@ -87,7 +80,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!session) return { message: "Team upgraded successfully" };
 
-  const redirectUrl = metadata?.data?.isOrganization
+  const redirectUrl = team?.isOrganization
     ? `${WEBAPP_URL}/settings/organizations/profile?upgraded=true`
     : `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`;
 

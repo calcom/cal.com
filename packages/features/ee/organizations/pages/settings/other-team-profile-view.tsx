@@ -5,11 +5,11 @@ import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,25 +20,24 @@ import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import {
   Avatar,
   Button,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
+  Editor,
   Form,
   ImageUploader,
   Label,
   LinkIconButton,
   Meta,
   showToast,
+  SkeletonContainer,
+  SkeletonText,
   TextField,
-  Editor,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Trash2 } from "@calcom/ui/components/icon";
 
-import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
@@ -51,14 +50,14 @@ const teamProfileFormSchema = z.object({
       message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
     })
     .min(1, { message: "Url cannot be left empty" }),
-  logo: z.string(),
+  logoUrl: z.string().nullable(),
   bio: z.string(),
 });
 
-const OtherTeamProfileView = () => {
+const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
 
@@ -94,7 +93,7 @@ const OtherTeamProfileView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [teamError]
@@ -105,7 +104,7 @@ const OtherTeamProfileView = () => {
       if (team) {
         form.setValue("name", team.name || "");
         form.setValue("slug", team.slug || "");
-        form.setValue("logo", team.logo || "");
+        form.setValue("logoUrl", team.logoUrl);
         form.setValue("bio", team.bio || "");
         if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
           form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
@@ -161,8 +160,8 @@ const OtherTeamProfileView = () => {
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
-        teamId: team.id,
-        memberId: session.data.user.id,
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
       });
   }
 
@@ -170,7 +169,7 @@ const OtherTeamProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} />
+      {!isAppDir ? <Meta title={t("profile")} description={t("profile_team_description")} /> : null}
       {!isPending ? (
         <>
           {isAdmin ? (
@@ -179,7 +178,7 @@ const OtherTeamProfileView = () => {
               handleSubmit={(values) => {
                 if (team) {
                   const variables = {
-                    logo: values.logo,
+                    logoUrl: values.logoUrl,
                     name: values.name,
                     slug: values.slug,
                     bio: values.bio,
@@ -193,18 +192,16 @@ const OtherTeamProfileView = () => {
               <div className="flex items-center">
                 <Controller
                   control={form.control}
-                  name="logo"
-                  render={({ field: { value } }) => (
+                  name="logoUrl"
+                  render={({ field: { value, onChange } }) => (
                     <>
-                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
+                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name)} size="lg" />
                       <div className="ms-4">
                         <ImageUploader
-                          target="avatar"
+                          target="logo"
                           id="avatar-upload"
                           buttonMsg={t("update")}
-                          handleAvatarChange={(newLogo) => {
-                            form.setValue("logo", newLogo);
-                          }}
+                          handleAvatarChange={onChange}
                           imageSrc={value}
                         />
                       </div>
@@ -218,15 +215,13 @@ const OtherTeamProfileView = () => {
               <Controller
                 control={form.control}
                 name="name"
-                render={({ field: { value } }) => (
+                render={({ field: { value, onChange } }) => (
                   <div className="mt-8">
                     <TextField
                       name="name"
                       label={t("team_name")}
                       value={value}
-                      onChange={(e) => {
-                        form.setValue("name", e?.target.value);
-                      }}
+                      onChange={(e) => onChange(e?.target.value)}
                     />
                   </div>
                 )}
@@ -234,7 +229,7 @@ const OtherTeamProfileView = () => {
               <Controller
                 control={form.control}
                 name="slug"
-                render={({ field: { value } }) => (
+                render={({ field: { value, onChange } }) => (
                   <div className="mt-8">
                     <TextField
                       name="slug"
@@ -245,7 +240,7 @@ const OtherTeamProfileView = () => {
                       }
                       onChange={(e) => {
                         form.clearErrors("slug");
-                        form.setValue("slug", slugify(e?.target.value, true));
+                        onChange(slugify(e?.target.value, true));
                       }}
                     />
                   </div>
@@ -260,13 +255,14 @@ const OtherTeamProfileView = () => {
                   disableLists
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
+                  height="80px"
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isPending}>
                 {t("update")}
               </Button>
-              {IS_TEAM_BILLING_ENABLED &&
+              {IS_TEAM_BILLING_ENABLED_CLIENT &&
                 team.slug === null &&
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
@@ -299,10 +295,10 @@ const OtherTeamProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
+                  <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon={LinkIcon}
+                  Icon="link"
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -318,7 +314,7 @@ const OtherTeamProfileView = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon={Trash2}>
+              <Button color="destructive" className="border" StartIcon="trash-2">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>
@@ -371,7 +367,5 @@ const OtherTeamProfileView = () => {
     </>
   );
 };
-
-OtherTeamProfileView.getLayout = getLayout;
 
 export default OtherTeamProfileView;

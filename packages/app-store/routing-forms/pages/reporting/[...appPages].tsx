@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import type {
   BuilderProps,
   Config,
@@ -22,14 +22,14 @@ import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import type QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
-import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
+import {
+  getQueryBuilderConfigForFormFields,
+  type FormFieldsQueryBuilderConfigWithRaqbFields,
+} from "../../lib/getQueryBuilderConfig";
 
 export { getServerSideProps };
-
-type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
 const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
   const { t } = useLocale();
@@ -129,10 +129,10 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   );
 };
 
-const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfig>) => {
+const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfigForFormFields>) => {
   const uuid = QbUtils.uuid();
   const queryValue: JsonTree = { id: uuid, type: "group" } as JsonTree;
-  const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config);
+  const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config as unknown as Config);
   return {
     state: { tree, config },
     queryValue,
@@ -140,17 +140,17 @@ const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfig>) => {
 };
 
 const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["form"] }) => {
-  const config = getQueryBuilderConfig(form, true);
+  const config = getQueryBuilderConfigForFormFields(form, true);
   const [query, setQuery] = useState(getInitialQuery(config));
   const [jsonLogicQuery, setJsonLogicQuery] = useState<JsonLogicResult | null>(null);
-  const onChange = (immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
+  const onChange = (immutableTree: ImmutableTree, config: FormFieldsQueryBuilderConfigWithRaqbFields) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setQuery(() => {
       const newValue = {
         state: { tree: immutableTree, config: config },
         queryValue: jsonTree,
       };
-      setJsonLogicQuery(QbUtils.jsonLogicFormat(newValue.state.tree, config));
+      setJsonLogicQuery(QbUtils.jsonLogicFormat(newValue.state.tree, config as unknown as Config));
       return newValue;
     });
   };
@@ -166,18 +166,16 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
     []
   );
   return (
-    <div className="flex flex-col-reverse md:flex-row">
-      <div className="cal-query-builder bg-default w-full ltr:mr-2 rtl:ml-2">
-        <Query
-          {...config}
-          value={query.state.tree}
-          onChange={(immutableTree, config) => {
-            onChange(immutableTree, config as QueryBuilderUpdatedConfig);
-          }}
-          renderBuilder={renderBuilder}
-        />
-        <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
-      </div>
+    <div className="cal-query-builder">
+      <Query
+        {...(config as unknown as Config)}
+        value={query.state.tree}
+        onChange={(immutableTree, config) => {
+          onChange(immutableTree, config as unknown as FormFieldsQueryBuilderConfigWithRaqbFields);
+        }}
+        renderBuilder={renderBuilder}
+      />
+      <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
     </div>
   );
 };
@@ -186,13 +184,22 @@ export default function ReporterWrapper({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // It isn't possible to render Reporter without hydration errors if it is rendered on the server.
+    // This is because the RAQB generates some dynamic ids on elements which change b/w client and server.
+    // This is a workaround to render the Reporter on the client only.
+    setIsClient(true);
+  }, []);
+
   return (
     <SingleForm
       form={form}
       appUrl={appUrl}
       Page={({ form }) => (
-        <div className="route-config">
-          <Reporter form={form} />
+        <div className="route-config bg-default fixed inset-0 w-full overflow-scroll pt-12 ltr:mr-2 rtl:ml-2 sm:pt-0">
+          {isClient && <Reporter form={form} />}
         </div>
       )}
     />

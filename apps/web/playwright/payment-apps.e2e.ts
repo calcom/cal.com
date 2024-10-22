@@ -17,6 +17,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "alby_payment",
+        appId: "alby",
         userId: user.id,
         key: {
           account_id: "random",
@@ -39,14 +40,14 @@ test.describe("Payment app", () => {
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
-    expect(await page.locator("text=200 sats").first()).toBeTruthy();
+    await expect(page.locator("text=200 sats").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
-    expect(await page.locator("text=200 sats").first()).toBeTruthy();
+    await expect(page.locator("text=200 sats").first()).toBeVisible();
 
     // go to /event-types and check if the price is 200 sats
     await page.goto(`event-types/`);
-    expect(await page.locator("text=200 sats").first()).toBeTruthy();
+    await expect(page.locator("text=200 sats").first()).toBeVisible();
   });
 
   test("Should be able to edit stripe price, currency", async ({ page, users }) => {
@@ -57,6 +58,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "stripe_payment",
+        appId: "stripe",
         userId: user.id,
         key: {
           scope: "read_write",
@@ -101,6 +103,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
+        appId: "paypal",
         userId: user.id,
         key: {
           client_id: "randomString",
@@ -118,7 +121,7 @@ test.describe("Payment app", () => {
     await page.getByPlaceholder("Price").fill("150");
 
     await page.getByTestId("paypal-currency-select").click();
-    await page.locator("#react-select-2-option-13").click();
+    await page.getByTestId("select-option-MXN").click();
 
     await page.getByTestId("paypal-payment-option-select").click();
 
@@ -147,6 +150,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "alby_payment",
+        appId: "alby",
         userId: user.id,
         key: {},
       },
@@ -173,6 +177,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
+        appId: "paypal",
         userId: user.id,
         key: {},
       },
@@ -234,6 +239,7 @@ test.describe("Payment app", () => {
       data: [
         {
           type: "paypal_payment",
+          appId: "paypal",
           userId: user.id,
           key: {
             client_id: "randomString",
@@ -243,6 +249,7 @@ test.describe("Payment app", () => {
         },
         {
           type: "stripe_payment",
+          appId: "stripe",
           userId: user.id,
           key: {
             scope: "read_write",
@@ -279,6 +286,7 @@ test.describe("Payment app", () => {
       data: [
         {
           type: "paypal_payment",
+          appId: "paypal",
           userId: user.id,
           key: {
             client_id: "randomString",
@@ -288,6 +296,7 @@ test.describe("Payment app", () => {
         },
         {
           type: "stripe_payment",
+          appId: "stripe",
           userId: user.id,
           key: {
             scope: "read_write",
@@ -305,13 +314,13 @@ test.describe("Payment app", () => {
 
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
 
-    await page.locator("[data-testid='paypal-app-switch']").click();
-    await page.locator("[data-testid='paypal-price-input']").fill("100");
-    await page.locator("[data-testid='paypal-currency-select']").first().click();
-    await page.locator("#react-select-2-option-13").click();
+    await page.getByTestId("paypal-app-switch").click();
+    await page.getByTestId("paypal-price-input").fill("100");
+    await page.getByTestId("paypal-currency-select").first().click();
+    await page.getByTestId("select-option-MXN").click();
     // await page.locator(".mb-1 > .bg-default > div > div:nth-child(2)").first().click();
     // await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
-    await page.locator("[data-testid='update-eventtype']").click();
+    await page.getByTestId("update-eventtype").click();
 
     // Need to wait for the DB to be updated
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
@@ -327,10 +336,10 @@ test.describe("Payment app", () => {
 
     expect(paypalPrice?.price).toEqual(10000);
 
-    await page.locator("[data-testid='paypal-app-switch']").click();
-    await page.locator("[data-testid='stripe-app-switch']").click();
-    await page.locator("[data-testid='stripe-price-input']").fill("200");
-    await page.locator("[data-testid='update-eventtype']").click();
+    await page.getByTestId("paypal-app-switch").click();
+    await page.getByTestId("stripe-app-switch").click();
+    await page.getByTestId("stripe-price-input").fill("200");
+    await page.getByTestId("update-eventtype").click();
 
     // Need to wait for the DB to be updated
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);

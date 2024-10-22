@@ -1,14 +1,6 @@
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { getBookerBaseUrlSync } from "./getBookerBaseUrlSync";
 
-export const getBookerBaseUrlSync = (
-  orgSlug: string | null,
-  options?: {
-    protocol: boolean;
-  }
-) => {
-  return getOrgFullOrigin(orgSlug ?? "", options);
-};
-
+export { getBookerBaseUrlSync } from "./getBookerBaseUrlSync";
 export const getTeamUrlSync = (
   {
     orgSlug,

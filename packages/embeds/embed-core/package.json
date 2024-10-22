@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-core",
-  "version": "1.3.2",
+  "version": "1.5.1",
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
@@ -15,12 +15,14 @@
     "embed-web-start": "yarn workspace @calcom/web start",
     "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
     "__dev": "yarn tailwind && vite build --mode development",
-    "build": "rm -rf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) yarn __build",
+    "build": "rm -rf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) NEXT_PUBLIC_EMBED_VERSION=$(node -p 'require(\"./package.json\").version') yarn __build",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "vite": "vite",
     "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css",
-    "buildWatchAndServer": "run-p '__dev' 'vite --port 3100 --strict-port --open'",
+    "buildWatchAndServer": "run-p '__dev' 'vite --port 3100 --strict-port --host --open'",
+    "buildWatchAndServer-https": "run-p '__dev' 'vite --port 3100 --strict-port --host --open --https'",
     "dev": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer'",
+    "dev-https": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer-https'",
     "dev-real": "vite dev --port 3100",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
@@ -44,12 +46,14 @@
     }
   },
   "devDependencies": {
-    "@playwright/test": "^1.31.2",
+    "@playwright/test": "^1.45.3",
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
     "autoprefixer": "^10.4.12",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
     "tailwindcss": "^3.3.3",
     "typescript": "^4.9.4",
-    "vite": "^4.1.2"
+    "vite": "^4.1.2",
+    "vite-plugin-environment": "^1.1.3"
   }
 }

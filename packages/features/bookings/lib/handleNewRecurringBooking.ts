@@ -6,7 +6,15 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 export const handleNewRecurringBooking = async (
-  req: NextApiRequest & { userId?: number }
+  req: NextApiRequest & {
+    userId?: number | undefined;
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+    platformBookingLocation?: string;
+    noEmail?: boolean;
+  }
 ): Promise<BookingResponse[]> => {
   const data: RecurringBookingCreateBody[] = req.body;
   const createdBookings: BookingResponse[] = [];
@@ -40,7 +48,7 @@ export const handleNewRecurringBooking = async (
     };
 
     const firstBookingResult = await handleNewBooking(recurringEventReq);
-    luckyUsers = firstBookingResult.luckyUsers?.map((user) => user.id);
+    luckyUsers = firstBookingResult.luckyUsers;
   }
 
   for (let key = isRoundRobin ? 1 : 0; key < data.length; key++) {
@@ -73,7 +81,7 @@ export const handleNewRecurringBooking = async (
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
-      noEmail: key !== 0,
+      noEmail: req.noEmail !== undefined ? req.noEmail : key !== 0,
       luckyUsers,
     };
 

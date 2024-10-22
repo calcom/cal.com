@@ -1,22 +1,23 @@
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
-import { debounce, noop } from "lodash";
+import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Input, Label } from "@calcom/ui";
-import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -71,17 +72,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
-  const debouncedApiCall = useMemo(
-    () =>
-      debounce(async (username: string) => {
-        // TODO: Support orgSlug
-        const { data } = await fetchUsername(username, null);
-        setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
-        setIsInputUsernamePremium(data.premium);
-        setUsernameIsAvailable(data.available);
-      }, 150),
-    [currentUsername]
-  );
+  // debounce the username input, set the delay to 600ms to be consistent with signup form
+  const debouncedUsername = useDebounce(inputUsernameValue, 600);
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
@@ -89,12 +81,22 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
-    if (!inputUsernameValue) {
-      debouncedApiCall.cancel();
-      return;
+    async function checkUsername(username: string | undefined) {
+      if (!username) {
+        setUsernameIsAvailable(false);
+        setMarkAsError(false);
+        setIsInputUsernamePremium(false);
+        return;
+      }
+
+      const { data } = await fetchUsername(username, null);
+      setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
+      setIsInputUsernamePremium(data.premium);
+      setUsernameIsAvailable(data.available);
     }
-    debouncedApiCall(inputUsernameValue);
-  }, [debouncedApiCall, inputUsernameValue]);
+
+    checkUsername(debouncedUsername);
+  }, [debouncedUsername, currentUsername]);
 
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
@@ -210,7 +212,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "border-l-1 mb-0 mt-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
+              "border-l-1 my-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
               isInputUsernamePremium
                 ? "border border-orange-400 focus:border focus:border-orange-400"
                 : "border focus:border",
@@ -239,9 +241,13 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-transparent" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarSolid className="mt-[2px] h-4 w-4 fill-orange-400" /> : <></>}
+              {isInputUsernamePremium ? (
+                <Icon name="star" className="mt-[2px] h-4 w-4 fill-orange-400" />
+              ) : (
+                <></>
+              )}
               {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Check className="mt-[2px] h-4 w-4" />
+                <Icon name="check" className="mt-[2px] h-4 w-4" />
               ) : (
                 <></>
               )}
@@ -256,11 +262,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         )}
       </div>
       {paymentMsg}
-      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon={Edit2}
+          Icon="pencil"
           title={t("confirm_username_change_dialog_title")}
           description={
             <>
@@ -274,7 +280,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="text-emphasis mt-1" data-testid="current-username">
+                  <p className="text-emphasis mt-1 break-all" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
@@ -282,7 +288,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis">{inputUsernameValue}</p>
+                  <p className="text-emphasis break-all">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>
@@ -297,7 +303,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <ExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

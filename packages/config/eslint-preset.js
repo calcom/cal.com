@@ -18,6 +18,7 @@ module.exports = {
       rootDir: ["apps/*/", "packages/*/"],
     },
   },
+  ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "**/.turbo/**"],
   rules: {
     "@next/next/no-img-element": "off",
     "@next/next/no-html-link-for-pages": "off",
@@ -68,6 +69,13 @@ module.exports = {
           rules: {
             "@typescript-eslint/no-unused-vars": "off",
             "no-undef": "off",
+          },
+        },
+        {
+          files: ["apps/website/**/*.{tsx,ts}"],
+          rules: {
+            /** TODO: Remove once website router is migrated  */
+            "@calcom/eslint/deprecated-imports-next-router": "off",
           },
         },
       ],

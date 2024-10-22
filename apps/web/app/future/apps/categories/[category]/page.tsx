@@ -1,34 +1,28 @@
-import CategoryPage, { type PageProps } from "@pages/apps/categories/[category]";
-import { Prisma } from "@prisma/client";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { APP_NAME } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 
 import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
+import CategoryPage, { type PageProps } from "~/apps/categories/[category]/category-view";
+
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => `${APP_NAME} | ${APP_NAME}`,
-    () => ""
+    (t) => t("app_store"),
+    (t) => t("app_store_description")
   );
 };
 
 export const generateStaticParams = async () => {
   const paths = Object.keys(AppCategories);
+  const isPrismaAvailable = await isPrismaAvailableCheck();
 
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-  } catch (e: unknown) {
-    if (e instanceof Prisma.PrismaClientInitializationError) {
-      // Database is not available at build time. Make sure we fall back to building these pages on demand
-      return [];
-    } else {
-      throw e;
-    }
+  if (!isPrismaAvailable) {
+    // Database is not available at build time. Make sure we fall back to building these pages on demand
+    return [];
   }
 
   return paths.map((category) => ({ category }));
