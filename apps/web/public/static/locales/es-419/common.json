@@ -1387,6 +1387,8 @@
   "event_limit_tab_description": "Con qué frecuencia puedes ser reservado",
   "event_advanced_tab_description": "Configuración del calendario y más...",
   "event_advanced_tab_title": "Avanzado",
+  "event_payments_tab_title": "Pagos",
+  "event_payments_tab_description": "Configurar pagos para el evento",
   "event_setup_multiple_duration_error": "Configuración del evento: Duraciones múltiples requieren al menos 1 opción.",
   "event_setup_multiple_duration_default_error": "Configuración del evento: Por favor selecciona una duración predeterminada válida.",
   "event_setup_booking_limits_error": "Los límites de reserva deben estar en orden ascendente. [día, semana, mes, año]",
