@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+// eslint-disable-next-line @calcom/eslint/avoid-prisma-client-import-for-enums
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
@@ -16,9 +18,44 @@ import { getFieldWithOptions } from "./selectOptions";
 
 const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
 
-const normalizeTeamMembers = (attributesToUser: any) =>
+const teamMemberSelect = Prisma.validator<Prisma.AttributeToUserDefaultArgs>()({
+  select: {
+    member: {
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            defaultScheduleId: true,
+          },
+        },
+      },
+    },
+    attributeOption: {
+      select: {
+        id: true,
+        value: true,
+        slug: true,
+        attribute: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            slug: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+type NormalizeTeamMembersInput = Prisma.AttributeToUserGetPayload<typeof teamMemberSelect>[];
+
+const normalizeTeamMembers = (attributesToUser: NormalizeTeamMembersInput) =>
   Object.values(
-    attributesToUser.reduce((acc, attributeToUser) => {
+    attributesToUser.reduce((acc: SerializableFormTeamMembers, attributeToUser) => {
       const { id: userId, email, avatarUrl, name, defaultScheduleId } = attributeToUser.member.user;
       const { attribute, value, slug, id: attributeOptionId } = attributeToUser.attributeOption;
 
@@ -51,7 +88,7 @@ const normalizeTeamMembers = (attributesToUser: any) =>
         };
       }
       return acc;
-    }, {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>)
+    }, {})
   );
 
 /**
@@ -104,7 +141,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 
   const finalFields = fields.map((field) => getFieldWithOptions(field));
 
-  let teamMembers: SerializableFormTeamMembers[] = [];
+  let teamMembers: SerializableFormTeamMembers = [];
   if (form.teamId) {
     teamMembers = normalizeTeamMembers(
       await prisma.attributeToUser.findMany({
@@ -120,31 +157,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
             },
           },
         },
-        select: {
-          member: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  avatarUrl: true,
-                  defaultScheduleId: true,
-                },
-              },
-            },
-          },
-          attributeOption: {
-            select: {
-              id: true,
-              value: true,
-              slug: true,
-              attribute: {
-                select: { id: true, name: true, type: true, slug: true },
-              },
-            },
-          },
-        },
+        ...teamMemberSelect,
       })
     );
   }
