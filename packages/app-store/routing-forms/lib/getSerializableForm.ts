@@ -55,7 +55,7 @@ type NormalizeTeamMembersInput = Prisma.AttributeToUserGetPayload<typeof teamMem
 
 const normalizeTeamMembers = (attributesToUser: NormalizeTeamMembersInput) =>
   Object.values(
-    attributesToUser.reduce((acc: SerializableFormTeamMembers, attributeToUser) => {
+    attributesToUser.reduce((acc: { [x: string]: SerializableFormTeamMembers[number] }, attributeToUser) => {
       const { id: userId, email, avatarUrl, name, defaultScheduleId } = attributeToUser.member.user;
       const { attribute, value, slug, id: attributeOptionId } = attributeToUser.attributeOption;
 
