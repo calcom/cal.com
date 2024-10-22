@@ -242,8 +242,10 @@ export const roundRobinManualReassignment = async ({
     newReferencesToCreate,
   });
 
+  const { cancellationReason, ...evtWithoutCancellationReason } = evt;
+
   // Send emails
-  await sendRoundRobinScheduledEmailsAndSMS(evt, [
+  await sendRoundRobinScheduledEmailsAndSMS(evtWithoutCancellationReason, [
     {
       ...newUser,
       name: newUser.name || "",
