@@ -253,30 +253,30 @@ export const roundRobinManualReassignment = async ({
     },
   ]);
 
+  // Send cancellation email to original organizer
+  const cancelledEvt = cloneDeep(evt);
+  cancelledEvt.organizer = {
+    email: originalOrganizer.email,
+    name: originalOrganizer.name || "",
+    timeZone: originalOrganizer.timeZone,
+    language: { translate: originalOrganizerT, locale: originalOrganizer.locale || "en" },
+  };
+
+  await sendRoundRobinCancelledEmailsAndSMS(
+    cancelledEvt,
+    [
+      {
+        ...originalOrganizer,
+        name: originalOrganizer.name || "",
+        username: originalOrganizer.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
+        language: { translate: originalOrganizerT, locale: originalOrganizer.locale || "en" },
+      },
+    ],
+    eventType?.metadata as EventTypeMetadata
+  );
+
   if (hasOrganizerChanged) {
-    // Send cancellation email to original organizer
-    const cancelledEvt = cloneDeep(evt);
-    cancelledEvt.organizer = {
-      email: originalOrganizer.email,
-      name: originalOrganizer.name || "",
-      timeZone: originalOrganizer.timeZone,
-      language: { translate: originalOrganizerT, locale: originalOrganizer.locale || "en" },
-    };
-
-    await sendRoundRobinCancelledEmailsAndSMS(
-      cancelledEvt,
-      [
-        {
-          ...originalOrganizer,
-          name: originalOrganizer.name || "",
-          username: originalOrganizer.username || "",
-          timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
-          language: { translate: originalOrganizerT, locale: originalOrganizer.locale || "en" },
-        },
-      ],
-      eventType?.metadata as EventTypeMetadata
-    );
-
     // Handle changing workflows with organizer
     await handleWorkflowsUpdate({
       booking,
