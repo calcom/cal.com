@@ -2679,5 +2679,8 @@
   "reschedule_with_different_timeslot": "Reschedule with different timeslot",
   "we_dont_have_id_for_the_new_event": "We don't have ID for the new event. Please go to the Routing Form and save it again.",
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rerouted booking successfully. Redirecting to booking page",
+  "on_booking_write_to_event_object": "On booking, write to event object",
+  "field_name": "Field name",
+  "add_new_field": "Add new field",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
