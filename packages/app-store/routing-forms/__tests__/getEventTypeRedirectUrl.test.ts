@@ -4,7 +4,6 @@ import { CAL_URL } from "@calcom/lib/constants";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 
-console.log({ CAL_URL });
 describe("getAbsoluteEventTypeRedirectUrl", () => {
   const defaultForm = {
     team: null,
@@ -69,7 +68,7 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
     expect(result).toBe("https://user.cal.com/user/event/embed?foo=bar&baz=qux");
   });
 
-  it.only("should throw an error if invalid team event redirect URL is provided", () => {
+  it("should throw an error if invalid team event redirect URL is provided", () => {
     expect(() =>
       getAbsoluteEventTypeRedirectUrl({
         ...defaultParams,

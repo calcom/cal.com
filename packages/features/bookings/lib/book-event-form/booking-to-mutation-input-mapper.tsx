@@ -70,7 +70,7 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const routingFormResponses = getRoutingFormResponsesFromSearchParams(searchParams);
-
+  const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
   return {
     ...values,
     user: username,
@@ -97,6 +97,8 @@ export const mapBookingToMutationInput = ({
     skipContactOwner,
     // TODO: We can retrieve it in handleNewBooking from routingFormResponseId. But it needs some transformation first, so let's do it later
     routingFormResponses,
+    // In case of rerouting, the form responses are actually the responses that we need to update.
+    reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
   };
 };
 

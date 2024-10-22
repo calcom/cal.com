@@ -155,7 +155,7 @@ export default class BiginCrmService implements CRM {
   /***
    * Finds existing Zoho Bigin Contact record based on email address. Returns a list of contacts objects that matched.
    */
-  async getContacts(emails: string | string[]) {
+  async getContacts({ emails }: { emails: string | string[] }) {
     const token = await this.auth.getToken();
     const emailsArray = Array.isArray(emails) ? emails : [emails];
 
@@ -287,6 +287,10 @@ export default class BiginCrmService implements CRM {
 
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }
 

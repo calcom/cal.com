@@ -55,6 +55,71 @@ const queryValueSchema = z.object({
   properties: z.any(),
 });
 
+export enum RouteActionType {
+  CustomPageMessage = "customPageMessage",
+  ExternalRedirectUrl = "externalRedirectUrl",
+  EventTypeRedirectUrl = "eventTypeRedirectUrl",
+}
+
+export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
+/**
+ * Stricter schema for validating before saving to DB
+ */
+export const queryValueSaveValidationSchema = queryValueSchema
+  .omit({ children1: true })
+  .merge(
+    z.object({
+      children1: z
+        .record(
+          z.object({
+            type: z.string().optional(),
+            properties: z
+              .object({
+                field: z.any().optional(),
+                operator: z.any().optional(),
+                value: z.any().optional(),
+              })
+              .optional(),
+          })
+        )
+        .optional()
+        // Be very careful and lenient here. Just ensure that the rule isn't invalid without breaking anything
+        .superRefine((children1, ctx) => {
+          if (!children1) return;
+          const isObject = (value: unknown): value is Record<string, unknown> =>
+            typeof value === "object" && value !== null;
+          Object.entries(children1).forEach(([, _rule]) => {
+            const rule = _rule as unknown;
+            if (!isObject(rule) || rule.type !== "rule") return;
+            if (!isObject(rule.properties)) return;
+
+            const value = rule.properties.value || [];
+            if (!(value instanceof Array)) {
+              return;
+            }
+
+            // MultiSelect array can be 2D array
+            const flattenedValues = value.flat();
+
+            const validValues = flattenedValues.filter((value: unknown) => {
+              // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
+              // Also, it is possible that RAQB has some requirements to support null or empty string values.
+              if (value === undefined) return false;
+              return true;
+            });
+
+            if (!validValues.length) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Looks like you are trying to create a rule with no value",
+              });
+            }
+          });
+        }),
+    })
+  )
+  .nullish();
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
   attributeRoutingConfig: z
@@ -74,12 +139,8 @@ export const zodNonRouterRoute = z.object({
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
-    // TODO: Make it a union type of "customPageMessage" and ..
-    type: z.union([
-      z.literal("customPageMessage"),
-      z.literal("externalRedirectUrl"),
-      z.literal("eventTypeRedirectUrl"),
-    ]),
+    type: routeActionTypeSchema,
+    eventTypeId: z.number().optional(),
     value: z.string(),
   }),
 });
@@ -112,3 +173,11 @@ export const zodRoutesView = z.union([z.array(zodRouteView), z.null()]).optional
 export const appDataSchema = z.any();
 
 export const appKeysSchema = z.object({});
+
+// This is different from FormResponse in types.d.ts in that it has label optional. We don't seem to be using label at this point, so we might want to use this only while saving the response when Routing Form is submitted
+export const routingFormResponseInDbSchema = z.record(
+  z.object({
+    label: z.string().optional(),
+    value: z.union([z.string(), z.number(), z.array(z.string())]),
+  })
+);

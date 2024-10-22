@@ -13,11 +13,13 @@ import type {
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -252,6 +254,11 @@ export const bookingCreateBodySchema = z.object({
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
   routingFormResponses: z.record(z.string()).nullish(),
+
+  /**
+   * Holds the corrected responses of the Form for a booking, provided during rerouting
+   */
+  reroutingFormResponses: routingFormResponseInDbSchema.optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -700,11 +707,12 @@ export const unlockedManagedEventTypeProps = {
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
 
+export const emailSchema = emailRegexSchema;
+
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
 // version that will include updates in the above PR.
 export const emailSchemaRefinement = (value: string) => {
-  const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
   return emailRegex.test(value);
 };
 
@@ -712,7 +720,7 @@ export const signupSchema = z.object({
   // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
   // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
   username: z.string().optional(),
-  email: z.string().email({ message: "Invalid email" }),
+  email: z.string().regex(emailRegex, { message: "Invalid email" }),
   password: z.string().superRefine((data, ctx) => {
     const isStrict = false;
     const result = isPasswordValid(data, true, isStrict);
@@ -731,7 +739,7 @@ export const signupSchema = z.object({
 });
 
 export const ZVerifyCodeInputSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   code: z.string(),
 });
 

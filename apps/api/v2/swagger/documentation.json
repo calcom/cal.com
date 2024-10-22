@@ -2005,7 +2005,7 @@
     "/v2/organizations/{orgId}/teams/me": {
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
-        "summary": "Get team membership for user",
+        "summary": "Get teams membership for user",
         "parameters": [
           {
             "name": "orgId",
@@ -2409,6 +2409,38 @@
         },
         "tags": [
           "Orgs / Teams / Memberships"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
+        "summary": "Get schedules of a team member",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Schedules",
+          "Orgs / Teams / Users / Schedules"
         ]
       }
     },
@@ -3542,6 +3574,121 @@
         ]
       }
     },
+    "/v2/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "ConferencingController_connect",
+        "summary": "Connect your conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing": {
+      "get": {
+        "operationId": "ConferencingController_listConferencingApps",
+        "summary": "List your conferencing applications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing/{app}/default": {
+      "post": {
+        "operationId": "ConferencingController_default",
+        "summary": "Set your default conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing/{app}/disconnect": {
+      "delete": {
+        "operationId": "ConferencingController_disconnect",
+        "summary": "Disconnect your conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
     "/v2/destination-calendars": {
       "put": {
         "operationId": "DestinationCalendarsController_updateDestinationCalendars",
@@ -4035,27 +4182,6 @@
         ]
       }
     },
-    "/health": {
-      "get": {
-        "operationId": "AppController_getHealth",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Health - development only"
-        ]
-      }
-    },
     "/v2/me": {
       "get": {
         "operationId": "MeController_getMe",
@@ -4246,204 +4372,6 @@
         "tags": [
           "OAuth",
           "Managed users"
-        ]
-      }
-    },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/managed-users": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
         ]
       }
     },
@@ -6049,6 +5977,10 @@
           },
           "placeholder": {
             "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6082,6 +6014,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 1234 Main St"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6115,6 +6051,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6148,6 +6088,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 100"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6181,6 +6125,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Detailed description here..."
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6224,6 +6172,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6264,6 +6216,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6297,6 +6253,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., example@example.com"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
           }
         },
         "required": [
@@ -6336,6 +6296,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
           }
         },
         "required": [
@@ -6375,6 +6339,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6403,6 +6371,9 @@
             "example": "Agree to terms?"
           },
           "required": {
+            "type": "boolean"
+          },
+          "disableOnPrefill": {
             "type": "boolean"
           }
         },
@@ -6947,6 +6918,37 @@
       "EmailDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "email",
+            "description": "only allowed value for type is `email`",
+            "default": "email"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6957,24 +6959,51 @@
             "type": "string",
             "default": "email"
           },
-          "type": {
-            "type": "string",
-            "default": "email"
-          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
+          "type",
           "isDefault",
           "slug",
-          "type",
           "required"
         ]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "name",
+            "description": "only allowed value for type is `name`",
+            "default": "name"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6985,18 +7014,14 @@
             "type": "string",
             "default": "name"
           },
-          "type": {
-            "type": "string",
-            "default": "name"
-          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
+          "type",
           "isDefault",
           "slug",
-          "type",
           "required"
         ]
       },
@@ -7146,6 +7171,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7177,6 +7204,10 @@
             "type": "string",
             "example": "e.g., 1234 Main St"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7198,6 +7229,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7225,6 +7258,9 @@
           "required": {
             "type": "boolean"
           },
+          "disableOnPrefill": {
+            "type": "boolean"
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7246,6 +7282,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7283,6 +7321,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7305,6 +7347,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7336,6 +7380,10 @@
             "type": "string",
             "example": "e.g., example@example.com"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7357,6 +7405,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7394,6 +7444,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7416,6 +7470,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7447,6 +7503,10 @@
             "type": "string",
             "example": "e.g., 100"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7468,6 +7528,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7497,6 +7559,10 @@
           "placeholder": {
             "type": "string"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7518,6 +7584,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7555,6 +7623,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7577,6 +7649,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7618,6 +7692,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7640,6 +7718,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7671,6 +7751,10 @@
             "type": "string",
             "example": "e.g., Detailed description here..."
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7692,6 +7776,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7722,6 +7808,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           },
           "isDefault": {
             "type": "object",
@@ -8628,6 +8718,9 @@
           },
           "bookingLimits": {
             "type": "string"
+          },
+          "includeManagedEventsInLimits": {
+            "type": "boolean"
           }
         }
       },
@@ -10548,6 +10641,26 @@
           "data"
         ]
       },
+      "MembershipUserOutputDto": {
+        "type": "object",
+        "properties": {
+          "avatarUrl": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
       "OrgTeamMembershipOutputDto": {
         "type": "object",
         "properties": {
@@ -10573,6 +10686,9 @@
           },
           "disableImpersonation": {
             "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
           }
         },
         "required": [
@@ -10580,7 +10696,8 @@
           "id",
           "userId",
           "teamId",
-          "accepted"
+          "accepted",
+          "user"
         ]
       },
       "OrgTeamMembershipsOutputResponseDto": {
@@ -11250,7 +11367,9 @@
               "RECORDING_READY",
               "INSTANT_MEETING",
               "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED"
+              "OOO_CREATED",
+              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
             ]
           },
           "active": {
@@ -11324,7 +11443,9 @@
               "RECORDING_READY",
               "INSTANT_MEETING",
               "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED"
+              "OOO_CREATED",
+              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
             ]
           },
           "active": {
@@ -12320,6 +12441,12 @@
               "type": "string"
             }
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
           "location": {
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
@@ -12331,6 +12458,11 @@
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurrenceCount": {
+            "type": "number",
+            "description": "The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than\n    event type recurrence count",
+            "example": 5
           }
         },
         "required": [
@@ -13215,6 +13347,94 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "ConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id of the conferencing app credentials"
+          },
+          "type": {
+            "type": "string",
+            "example": "google_video",
+            "description": "Type of conferencing app"
+          },
+          "userId": {
+            "type": "number",
+            "description": "Id of the user associated to the conferencing app"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true,
+            "description": "Whether if the connection is working or not."
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "userId"
+        ]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ConferencingAppsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       }
     }

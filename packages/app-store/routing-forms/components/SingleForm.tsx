@@ -8,8 +8,9 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   Alert,
@@ -242,6 +243,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
+  const searchParams = useCompatSearchParams();
   const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
     | {
         id: number;
@@ -253,7 +255,14 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
       onSuccess(data) {
-        setTeamMembersMatchingAttributeLogic(data);
+        setTeamMembersMatchingAttributeLogic(data.result);
+      },
+      onError(e) {
+        if (e instanceof TRPCClientError) {
+          showToast(e.message, "error");
+        } else {
+          showToast(t("something_went_wrong"), "error");
+        }
       },
     });
 
@@ -280,6 +289,8 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       formId: form.id,
       response,
       routeId: route.id,
+      isPreview: true,
+      _enablePerf: searchParams.get("enablePerf") === "true",
     });
   }
 
@@ -482,6 +493,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
+                            defaultScheduleId: member.defaultScheduleId,
                           }))}
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
@@ -489,6 +501,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             priority: 2,
                             weight: 100,
                             weightAdjustment: 0,
+                            scheduleId: 1,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(

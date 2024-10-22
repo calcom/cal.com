@@ -1,6 +1,8 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { prisma } from "@calcom/prisma";
+import { AttributeType, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
@@ -25,6 +27,59 @@ const Identifiers = {
   selectNewFormat: "test-select-new-format",
 };
 
+async function enableContactOwnerOverride(page: Page) {
+  await page.click("text=Contact owner will be the Round Robin host");
+}
+
+async function selectFirstAttributeOption({ fromLocator }: { fromLocator: Locator }) {
+  await selectOptionUsingLocator({
+    locator: fromLocator,
+    option: 1,
+  });
+}
+
+async function selectFirstValueForAttributeValue({
+  fromLocator,
+  option,
+}: {
+  fromLocator: Locator;
+  option: number;
+}) {
+  await selectOptionUsingLocator({
+    locator: fromLocator,
+    option,
+  });
+}
+
+async function addAttributeRoutingRule(page: Page) {
+  // TODO: Use a better selector maybe?
+  await page.locator('text="Add rule"').nth(1).click();
+  const attributeQueryBuilder = page.locator(".group-container").nth(1);
+  const attributeSelectorFirstRule = attributeQueryBuilder.locator(".rule--field").nth(0);
+  await selectFirstAttributeOption({
+    fromLocator: attributeSelectorFirstRule,
+  });
+
+  const attributeValueSelector = attributeQueryBuilder.locator(".rule--value").nth(0);
+  const numOfOptionsInAttribute = 3;
+  await selectFirstValueForAttributeValue({
+    fromLocator: attributeValueSelector,
+    // Select 'Value of Field Short Text' option
+    option: numOfOptionsInAttribute + 1,
+  });
+}
+
+async function selectFirstEventRedirectOption(page: Page) {
+  await selectOption({
+    selector: {
+      selector: ".data-testid-eventTypeRedirectUrl-select",
+      nth: 0,
+    },
+    option: 2,
+    page,
+  });
+}
+
 test.describe("Routing Forms", () => {
   test.describe("Zero State Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
@@ -45,7 +100,7 @@ test.describe("Routing Forms", () => {
       await expect(page.getByTestId(`404-page`)).toBeVisible();
     });
 
-    test("should be able to edit the form", async ({ page }) => {
+    test("should be able to edit a newly created form", async ({ page }) => {
       const formId = await addForm(page);
       const description = "Test Description";
 
@@ -432,6 +487,109 @@ test.describe("Routing Forms", () => {
       expect(route).toBe("Fallback Message");
     });
   });
+
+  test.describe("Form with Attribute Routing - Team Form", () => {
+    test.beforeEach(async ({ page, users }) => {
+      const userFixture = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+          isOrg: true,
+          hasSubteam: true,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const orgMembership = await userFixture.getOrgMembership();
+
+      const createdAttribute = await prisma.attribute.create({
+        data: {
+          teamId: orgMembership.teamId,
+          type: AttributeType.SINGLE_SELECT,
+          name: "Company Size",
+          slug: `company-size-orgId-${orgMembership.teamId}`,
+          options: {
+            create: [
+              {
+                slug: "large",
+                value: "large",
+              },
+              {
+                slug: "medium",
+                value: "medium",
+              },
+              {
+                slug: "small",
+                value: "small",
+              },
+            ],
+          },
+        },
+        include: {
+          options: true,
+        },
+      });
+
+      await prisma.attributeToUser.create({
+        data: {
+          member: {
+            connect: {
+              userId_teamId: {
+                userId: userFixture.id,
+                teamId: orgMembership.teamId,
+              },
+            },
+          },
+          attributeOption: {
+            connect: {
+              id: createdAttribute.options[0].id,
+            },
+          },
+        },
+      });
+      await userFixture.apiLogin();
+    });
+
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
+
+    test("should be able to add attribute routing to a newly created team form", async ({ page }) => {
+      const formId = await addForm(page, {
+        forTeam: true,
+      });
+
+      await addShortTextFieldAndSaveForm({
+        page,
+        formId,
+      });
+
+      await page.click('[href*="/route-builder/"]');
+      await selectNewRoute(page);
+      // This would select Round Robin event that we created above
+      await selectFirstEventRedirectOption(page);
+      await enableContactOwnerOverride(page);
+      await addAttributeRoutingRule(page);
+      await saveCurrentForm(page);
+
+      await (async function testPreviewWhereThereIsMatch() {
+        await page.click('[data-testid="test-preview"]');
+        await page.fill('[data-testid="form-field-short-text"]', "large");
+        await page.click('[data-testid="test-routing"]');
+        await page.waitForSelector("text=@example.com");
+        await page.click('[data-testid="dialog-rejection"]');
+      })();
+
+      await (async function testPreviewWhereThereIsNoMatch() {
+        await page.click('[data-testid="test-preview"]');
+        await page.fill('[data-testid="form-field-short-text"]', "medium");
+        await page.click('[data-testid="test-routing"]');
+        await page.waitForSelector("text=No matching members.");
+        await page.click('[data-testid="dialog-rejection"]');
+      })();
+    });
+  });
 });
 
 async function disableForm(page: Page) {
@@ -569,6 +727,15 @@ async function addAllTypesOfFieldsAndSaveForm(
   };
 }
 
+async function addShortTextFieldAndSaveForm({ page, formId }: { page: Page; formId: string }) {
+  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await page.click('[data-testid="add-field"]');
+  await page.locator(".data-testid-field-type").nth(0).click();
+  await page.fill(`[name="fields.0.label"]`, "Short Text");
+  await page.fill(`[name="fields.0.identifier"]`, "short-text");
+  await saveCurrentForm(page);
+}
+
 async function selectOption({
   page,
   selector,
@@ -584,6 +751,14 @@ async function selectOption({
   const locatorForSelect = page.locator(selector.selector).nth(selector.nth);
   await locatorForSelect.click();
   await locatorForSelect
+    .locator('[id*="react-select-"][aria-disabled]')
+    .nth(option - 1)
+    .click();
+}
+
+export async function selectOptionUsingLocator({ locator, option }: { locator: Locator; option: number }) {
+  await locator.click();
+  await locator
     .locator('[id*="react-select-"][aria-disabled]')
     .nth(option - 1)
     .click();

@@ -3,7 +3,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
 
-export const getRoutedHosts = <T extends { user: { id: number; email: string }; isFixed?: boolean }>({
+export const getRoutedHostsWithContactOwnerAndFixedHosts = <
+  T extends { user: { id: number; email: string }; isFixed?: boolean }
+>({
   routedTeamMemberIds,
   hosts,
   contactOwnerEmail,
@@ -28,7 +30,9 @@ export const getRoutedHosts = <T extends { user: { id: number; email: string }; 
   );
 };
 
-export const getRoutedUsers = <T extends { id: number; isFixed?: boolean; email: string }>({
+export const getRoutedUsersWithContactOwnerAndFixedUsers = <
+  T extends { id: number; isFixed?: boolean; email: string }
+>({
   routedTeamMemberIds,
   users,
   contactOwnerEmail,
