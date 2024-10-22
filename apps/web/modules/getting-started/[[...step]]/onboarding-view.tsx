@@ -3,13 +3,15 @@
 import { signOut } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { z } from "zod";
 
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -54,6 +56,17 @@ const OnboardingPage = (props: PageProps) => {
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
+  const addAppMutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      setIsLoading(false);
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      setIsLoading(false);
+    },
+  });
 
   const result = stepRouteSchema.safeParse({
     ...params,
@@ -107,6 +120,15 @@ const OnboardingPage = (props: PageProps) => {
   };
 
   const currentStepIndex = steps.indexOf(currentStep);
+
+  useEffect(() => {
+    if (user.identityProvider !== IdentityProvider.GOOGLE) {
+      return;
+    }
+    addAppMutation({
+      type: "google_calendar",
+    });
+  }, [addAppMutation, user.identityProvider]);
 
   return (
     <div
