@@ -184,7 +184,7 @@ export const roundRobinManualReassignment = async ({
     hasOrganizerChanged,
   });
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user;
+  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
 
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
 
@@ -296,19 +296,21 @@ export const roundRobinManualReassignment = async ({
     language: { translate: originalOrganizerT, locale: originalOrganizer.locale || "en" },
   };
 
-  await sendRoundRobinCancelledEmailsAndSMS(
-    cancelledEvt,
-    [
-      {
-        ...previousRRHost,
-        name: previousRRHost.name || "",
-        username: previousRRHost.username || "",
-        timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-        language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-      },
-    ],
-    eventType?.metadata as EventTypeMetadata
-  );
+  if (previousRRHost) {
+    await sendRoundRobinCancelledEmailsAndSMS(
+      cancelledEvt,
+      [
+        {
+          ...previousRRHost,
+          name: previousRRHost.name || "",
+          username: previousRRHost.username || "",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+          language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+        },
+      ],
+      eventType?.metadata as EventTypeMetadata
+    );
+  }
 
   if (hasOrganizerChanged) {
     // Handle changing workflows with organizer
