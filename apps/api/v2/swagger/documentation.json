@@ -3020,7 +3020,7 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
               "enum": [
                 "asc",
@@ -3141,16 +3141,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -3191,16 +3181,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -5413,7 +5393,7 @@
           "timeZone": {
             "type": "string",
             "example": "America/New_York",
-            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked."
+            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked.\n      It will default to Europe/London if not passed."
           },
           "locale": {
             "enum": [
@@ -12595,8 +12575,7 @@
               "cancelled",
               "accepted",
               "rejected",
-              "pending",
-              "rescheduled"
+              "pending"
             ],
             "example": "accepted"
           },
@@ -12633,6 +12612,20 @@
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -12648,20 +12641,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "meetingUrl": {
-            "type": "string",
-            "description": "Deprecated - rely on 'location' field instead.",
-            "example": "https://example.com/recurring-meeting",
-            "deprecated": true
-          },
-          "location": {
-            "type": "string",
-            "example": "https://example.com/meeting"
-          },
-          "absentHost": {
-            "type": "boolean",
-            "example": true
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -12683,8 +12662,8 @@
           "duration",
           "eventTypeId",
           "eventType",
-          "attendees",
-          "absentHost"
+          "absentHost",
+          "attendees"
         ]
       },
       "RecurringBookingOutput_2024_08_13": {
@@ -12692,15 +12671,15 @@
         "properties": {
           "id": {
             "type": "number",
-            "example": 456
+            "example": 123
           },
           "uid": {
             "type": "string",
-            "example": "recurring_uid_123"
+            "example": "booking_uid_123"
           },
           "title": {
             "type": "string",
-            "example": "Recurring meeting"
+            "example": "Consultation"
           },
           "description": {
             "type": "string",
@@ -12720,19 +12699,19 @@
               "rejected",
               "pending"
             ],
-            "example": "pending"
+            "example": "accepted"
           },
           "cancellationReason": {
             "type": "string",
-            "example": "Event was cancelled"
+            "example": "User requested cancellation"
           },
           "reschedulingReason": {
             "type": "string",
-            "example": "Event was rescheduled"
+            "example": "User rescheduled the event"
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_recurring_uid_123"
+            "example": "previous_uid_123"
           },
           "start": {
             "type": "string",
@@ -12744,7 +12723,7 @@
           },
           "duration": {
             "type": "number",
-            "example": 30
+            "example": 60
           },
           "eventTypeId": {
             "type": "number",
@@ -12755,9 +12734,19 @@
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
-          "recurringBookingUid": {
+          "meetingUrl": {
             "type": "string",
-            "example": "recurring_uid_987"
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
           },
           "attendees": {
             "type": "array",
@@ -12767,27 +12756,13 @@
           },
           "guests": {
             "example": [
-              "guest3@example.com",
-              "guest4@example.com"
+              "guest1@example.com",
+              "guest2@example.com"
             ],
             "type": "array",
             "items": {
               "type": "string"
             }
-          },
-          "meetingUrl": {
-            "type": "string",
-            "description": "Deprecated - rely on 'location' field instead.",
-            "example": "https://example.com/recurring-meeting",
-            "deprecated": true
-          },
-          "location": {
-            "type": "string",
-            "example": "https://example.com/recurring-meeting"
-          },
-          "absentHost": {
-            "type": "boolean",
-            "example": false
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -12795,6 +12770,10 @@
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
           }
         },
         "required": [
@@ -12809,9 +12788,9 @@
           "duration",
           "eventTypeId",
           "eventType",
-          "recurringBookingUid",
+          "absentHost",
           "attendees",
-          "absentHost"
+          "recurringBookingUid"
         ]
       },
       "CreateBookingOutput_2024_08_13": {
@@ -12869,6 +12848,18 @@
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
                 }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
@@ -12902,6 +12893,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                },
+                {
+                  "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+                },
+                {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               ]
             },
@@ -12914,24 +12911,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "RescheduleBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "start": {
-            "type": "string",
-            "description": "Start time in ISO 8601 format for the new booking",
-            "example": "2024-08-13T10:00:00Z"
-          },
-          "reschedulingReason": {
-            "type": "string",
-            "example": "User requested reschedule",
-            "description": "Reason for rescheduling the booking"
-          }
-        },
-        "required": [
-          "start"
         ]
       },
       "RescheduleBookingOutput_2024_08_13": {
@@ -12952,6 +12931,12 @@
               },
               {
                 "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/CreateSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/CreateRecurringSeatedBookingOutput_2024_08_13"
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or a RecurringBookingOutput object"
@@ -12960,18 +12945,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "CancelBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "cancellationReason": {
-            "type": "string",
-            "example": "User requested cancellation"
-          }
-        },
-        "required": [
-          "cancellationReason"
         ]
       },
       "CancelBookingOutput_2024_08_13": {
@@ -12997,6 +12970,18 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               }
             ],
