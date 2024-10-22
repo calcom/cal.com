@@ -929,13 +929,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
           routedHosts: usersWithCredentials.map((user) => {
             return {
-              email: user.email,
-              user: user.id,
+              userId: user.id,
             };
           }),
           hosts: eventHosts.map((host) => ({
-            email: host.email,
-            user: host.user.id,
+            userId: host.user.id,
           })),
         },
       }
