@@ -6,7 +6,7 @@ import { trpc } from "@calcom/trpc";
 import { Button, Divider, showToast, TextField } from "@calcom/ui";
 
 import type { AdyenCredentialKeys } from "../zod";
-import { adyenCredentialKeysSchema } from "../zod";
+import { appKeysSchema } from "../zod";
 
 export default function AdyenSetupForm() {
   // const router = useRouter();
@@ -17,12 +17,15 @@ export default function AdyenSetupForm() {
   const [newClientKey, setNewClientKey] = useState("");
   const [newHmacKey, setNewHmacKey] = useState("");
   const { data } = trpc.viewer.appCredentialsByType.useQuery({
-    appType: "adyen",
+    appType: "adyen_payment",
   });
 
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
+
+      //Allow the user to read the success message
+      setTimeout(() => router.push("/event-types"), 3000);
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -31,7 +34,7 @@ export default function AdyenSetupForm() {
 
   useEffect(() => {
     const appCredentials = data as RouterOutputs["viewer"]["appCredentialsByType"];
-    const credentialSchemaParse = adyenCredentialKeysSchema.safeParse(appCredentials?.credentials[0].key);
+    const credentialSchemaParse = appKeysSchema.safeParse(appCredentials?.credentials[0].key);
     const adyenPaymentAppCredentials: Partial<AdyenCredentialKeys> = credentialSchemaParse.success
       ? { ...credentialSchemaParse.data }
       : {};
@@ -67,7 +70,6 @@ export default function AdyenSetupForm() {
         onChange={(e) => setNewClientKey(e.target.value)}
       />
       <Divider />
-      <h3>Webhook Authentication</h3>
       <TextField
         label="HMAC Key"
         type="password"
@@ -92,6 +94,7 @@ export default function AdyenSetupForm() {
         <Button
           color="secondary"
           onClick={() => {
+            const appCredentials = data as RouterOutputs["viewer"]["appCredentialsByType"];
             saveKeysMutation.mutate({
               credentialId: appCredentials.credentials[0].id,
               key: {

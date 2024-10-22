@@ -7,7 +7,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-import { adyenCredentialKeysSchema, adyenPaymentDataSchema, paymentOptionEnum } from "../zod";
+import { adyenPaymentDataSchema, appKeysSchema, paymentOptionEnum } from "../zod";
 import { capturePaymentSession } from "./client/capturePayment";
 import { createPaymentSession } from "./client/createPaymentSession";
 import { refundPaymentSession } from "./client/refundPayment";
@@ -15,10 +15,10 @@ import { refundPaymentSession } from "./client/refundPayment";
 const log = logger.getSubLogger({ prefix: ["payment-service:adyen"] });
 
 export class PaymentService implements IAbstractPaymentService {
-  private credentials: z.infer<typeof adyenCredentialKeysSchema> | null;
+  private credentials: z.infer<typeof appKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    const keyParsing = adyenCredentialKeysSchema.safeParse(credentials.key);
+    const keyParsing = appKeysSchema.safeParse(credentials.key);
     if (keyParsing.success) {
       this.credentials = keyParsing.data;
     } else {

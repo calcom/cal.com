@@ -12,7 +12,7 @@ const handler: AppDeclarativeHandler = {
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
   redirect: {
-    url: "apps/adyen/setup",
+    url: "/apps/adyen/setup",
   },
 };
 

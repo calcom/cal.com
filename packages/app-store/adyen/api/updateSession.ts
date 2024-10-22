@@ -4,7 +4,7 @@ import z from "zod";
 import prisma from "@calcom/prisma";
 
 import { createPaymentSession } from "../lib/client/createPaymentSession";
-import { adyenCredentialKeysSchema, adyenPaymentDataSchema } from "../zod";
+import { adyenPaymentDataSchema, appKeysSchema } from "../zod";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { paymentUid } = parseRequest.data;
 
-    // Get payment,
+    // Get payment
     const payment = await prisma.payment.findUnique({
       where: {
         uid: paymentUid,
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`Malformed payment data: ${paymentDataParse.error}`);
     }
 
-    //Get creds from event creator's id.
+    //Get creds from event creator's id
     const credentialsReq = await prisma.credential.findFirst({
       where: {
         appId: "adyen",
@@ -58,13 +58,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const credentialsParse = adyenCredentialKeysSchema.safeParse(credentialsReq?.key);
+    const credentialsParse = appKeysSchema.safeParse(credentialsReq?.key);
 
     if (!credentialsParse.success) {
       throw new Error(`Adyen Credentials malformed: ${credentialsParse.error}`);
     }
 
-    console.log({ paymentDataParse });
+    // Call client for session, record session info in payment data
     const { session, idempotencyKey } = await createPaymentSession({
       credentials: credentialsParse.data,
       payment: paymentDataParse.data,

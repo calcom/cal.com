@@ -16,7 +16,7 @@ test.describe("Payment app", () => {
     expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
-        type: "adyen",
+        type: "adyen_payment",
         appId: "adyen",
         userId: user.id,
         key: {},

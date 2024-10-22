@@ -44,7 +44,6 @@ export default function SetupPage() {
               <ol className="text-default ml-1 mt-5 list-decimal pl-2">
                 {/* @TODO: translate */}
                 <li>
-                  Log into your Adyen account
                   <a
                     target="_blank"
                     href="https://developer.paypal.com/dashboard/applications/live"
@@ -77,7 +76,6 @@ export default function SetupPage() {
                   </a>
                 </li>
                 <li>Lastly, paste the merchantId into the respective field.</li>
-                <li>You should be all setup after this.</li>
               </ol>
             </div>
           }
