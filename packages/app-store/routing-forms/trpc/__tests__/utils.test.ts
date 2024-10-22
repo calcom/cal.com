@@ -6,7 +6,6 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
-// import { EmailField } from "@calcom/ui";
 import * as getAttributesModule from "../../lib/getAttributes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
 import { findTeamMembersMatchingAttributeLogicOfRoute } from "../utils";
@@ -28,19 +27,6 @@ function mockAttributesScenario({
   }[];
 }) {
   vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
-  vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
-    teamMembersWithAttributeOptionValuePerAttribute.map((member) => ({
-      ...member,
-      attributes: Object.fromEntries(
-        Object.entries(member.attributes).map(([attributeId, value]) => {
-          return [
-            attributeId,
-            { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
-          ];
-        })
-      ),
-    }))
-  );
 }
 
 function mockHugeAttributesOfTypeSingleSelect({

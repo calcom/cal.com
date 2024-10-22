@@ -488,7 +488,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         </span>
                         <AddMembersWithSwitch
                           teamMembers={form.teamMembers.map((member) => ({
-                            value: member.id.toString(),
+                            value: member.userId,
                             label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,

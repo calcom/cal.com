@@ -5,7 +5,6 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -21,37 +20,46 @@ interface ResponseHandlerOptions {
   };
   input: TResponseInputSchema;
 }
-export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
-  const { prisma } = ctx;
-  try {
-    const { response, formId, chosenRouteId } = input;
-    const form = await prisma.app_RoutingForms_Form.findFirst({
-      where: {
-        id: formId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-          },
+
+const getSerializableFormById = async (formId: number, prisma: PrismaClient) => {
+  const form = await prisma.app_RoutingForms_Form.findFirst({
+    where: {
+      id: formId,
+    },
+    include: {
+      team: {
+        select: {
+          parentId: true,
         },
       },
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
+  });
+  if (!form) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
     });
-    if (!form) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-      });
-    }
+  }
+  const serializableForm = await getSerializableForm({ form });
+  if (!serializableForm.fields) {
+    // There is no point in submitting a form that doesn't have fields defined
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+    });
+  }
+  return serializableForm;
+};
 
-    const serializableForm = await getSerializableForm({ form });
-    if (!serializableForm.fields) {
-      // There is no point in submitting a form that doesn't have fields defined
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-      });
-    }
+export const responseHandler = async ({ ctx: { prisma, ...ctx }, input }: ResponseHandlerOptions) => {
+  const { response, formId, chosenRouteId } = input;
+  const { serializableForm = await getSerializableFormById(formId, prisma) } = ctx;
 
+  try {
     const serializableFormWithFields = {
       ...serializableForm,
       fields: serializableForm.fields,
@@ -102,34 +110,19 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       },
     });
 
-    const settings = RoutingFormSettings.parse(form.settings);
     let userWithEmails: string[] = [];
-    if (form.teamId && settings?.sendUpdatesTo?.length) {
-      const userEmails = await prisma.membership.findMany({
-        where: {
-          teamId: form.teamId,
-          userId: {
-            in: settings.sendUpdatesTo,
-          },
-        },
-        select: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      });
-      userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
+    if (serializableForm.teamId && serializableForm.settings?.sendUpdatesTo instanceof Array) {
+      userWithEmails = serializableForm.teamMembers
+        .filter(({ userId }) => serializableForm.settings.sendUpdatesTo.includes(userId))
+        .map(({ email }) => email);
     }
 
     const teamMembersMatchingAttributeLogicWithResult =
-      form.teamId && chosenRouteId
+      serializableForm.teamId && chosenRouteId
         ? await findTeamMembersMatchingAttributeLogicOfRoute({
             response,
             routeId: chosenRouteId,
             form: serializableForm,
-            teamId: form.teamId,
           })
         : null;
 
@@ -138,9 +131,12 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       safeStringify({ teamMembersMatchingAttributeLogicWithResult })
     );
 
-    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-      ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map((member) => member.userId)
-      : null;
+    const teamMemberIdsMatchingAttributeLogic =
+      teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+        ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+            (member) => member.userId
+          )
+        : null;
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
       dbFormResponse.response as FormResponse

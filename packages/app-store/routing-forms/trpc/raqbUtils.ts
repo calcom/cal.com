@@ -212,8 +212,10 @@ function getAttributesData({
   >;
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
-  return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
-    const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
+  return Object.entries(attributesData).reduce((acc, [attributeId, { options, type: attributeType }]) => {
+    const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(
+      options.length > 1 ? options.map((option) => option.value) : options[0].value
+    );
 
     // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
     // acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({

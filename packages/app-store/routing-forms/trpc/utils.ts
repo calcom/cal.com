@@ -12,10 +12,6 @@ import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
 import { RaqbLogicResult } from "../lib/evaluateRaqbLogic";
-import {
-  getTeamMembersWithAttributeOptionValuePerAttribute,
-  getAttributesForTeam,
-} from "../lib/getAttributes";
 import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
 import type { SerializableField, OrderedResponses } from "../types/types";
@@ -44,9 +40,6 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     value: FormResponse[keyof FormResponse]["value"];
   }
 >;
-type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
-  ReturnType<typeof getTeamMembersWithAttributeOptionValuePerAttribute>
->[number];
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
@@ -197,13 +190,11 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     form,
     response,
     routeId,
-    teamId,
     isPreview,
   }: {
     form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
     response: FormResponse;
     routeId: string;
-    teamId: number;
     isPreview?: boolean;
   },
   config: {
@@ -248,14 +239,65 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
   const teamMembersMatchingAttributeLogicMap = new Map<number, RaqbLogicResult>();
 
-  const [attributesForTeam, getAttributesForTeamTimeTaken] = await aPf(
-    async () => await getAttributesForTeam({ teamId: teamId })
+  const attrsForTeam = form.teamMembers.reduce(
+    (
+      attrsForTeam: {
+        [x: string]: {
+          teamId: number;
+          id: string;
+          name: string;
+          type: string;
+          options: {
+            slug: string;
+            value: string;
+            id: string;
+          }[];
+        };
+      },
+      { attributes }
+    ) => {
+      Object.entries(attributes).forEach(([key, value]) => {
+        const newOptions = {};
+        value.options.forEach((option) => {
+          newOptions[option.id] = {
+            id: option.id,
+            slug: option.slug,
+            value: option.value,
+          };
+        });
+        if (attrsForTeam[key]) {
+          // merge options
+          attrsForTeam[key].options = {
+            ...attrsForTeam[key].options,
+            ...newOptions,
+          };
+          return attrsForTeam;
+        }
+        attrsForTeam[key] = {
+          teamId: form.teamId,
+          id: key,
+          name: value.name,
+          type: value.type,
+          slug: value.slug,
+          options: newOptions,
+        };
+        return attrsForTeam;
+      });
+
+      return attrsForTeam;
+    },
+    []
   );
+
+  const flattenedAttrsForTeam = Object.values(attrsForTeam).map((attribute) => ({
+    ...attribute,
+    options: Object.values(attribute.options),
+  }));
 
   const [attributesQueryValue, getAttributesQueryValueTimeTaken] = pf(() =>
     getAttributesQueryValue({
       attributesQueryValue: route.attributesQueryValue,
-      attributes: attributesForTeam,
+      attributes: flattenedAttrsForTeam,
       response,
       fields: form.fields,
       getFieldResponse,
@@ -266,7 +308,6 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: {
-        gAtr: getAttributesForTeamTimeTaken,
         gQryVal: getAttributesQueryValueTimeTaken,
         gQryCnfg: null,
         gMbrWtAtr: null,
@@ -286,15 +327,10 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   const [attributesQueryBuilderConfig, getAttributesQueryBuilderConfigTimeTaken] = pf(() =>
     getAttributesQueryBuilderConfig({
       form,
-      attributes: attributesForTeam,
+      attributes: flattenedAttrsForTeam,
       attributesQueryValue,
     })
   );
-
-  const [
-    teamMembersWithAttributeOptionValuePerAttribute,
-    getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
-  ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
 
   const logic = getJsonLogic({
     attributesQueryValue: attributesQueryValue as JsonTree,
@@ -306,9 +342,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: {
-        gAtr: getAttributesForTeamTimeTaken,
         gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
-        gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
         lgcFrMbrs: null,
         gQryVal: getAttributesQueryValueTimeTaken,
       },
@@ -329,7 +363,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
   const [_, teamMembersMatchingAttributeLogicTimeTaken] = await aPf(async () => {
     return await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
-      teamMembersWithAttributeOptionValuePerAttribute,
+      form.teamMembers,
       concurrency,
       async (member: TeamMemberWithAttributeOptionValuePerAttribute) => {
         const attributesData = getAttributes({
@@ -359,9 +393,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       result: item[1],
     })),
     timeTaken: {
-      gAtr: getAttributesForTeamTimeTaken,
       gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
-      gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
       lgcFrMbrs: teamMembersMatchingAttributeLogicTimeTaken,
       gQryVal: getAttributesQueryValueTimeTaken,
     },

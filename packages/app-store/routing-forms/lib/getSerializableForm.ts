@@ -15,6 +15,45 @@ import isRouterLinkedField from "./isRouterLinkedField";
 import { getFieldWithOptions } from "./selectOptions";
 
 const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
+
+const normalizeTeamMembers = (attributesToUser: any) =>
+  Object.values(
+    attributesToUser.reduce((acc, attributeToUser) => {
+      const { id: userId, email, avatarUrl, name, defaultScheduleId } = attributeToUser.member.user;
+      const { attribute, value, slug, id: attributeOptionId } = attributeToUser.attributeOption;
+
+      if (!acc[userId]) {
+        acc[userId] = { userId, email, avatarUrl, name, defaultScheduleId, attributes: {} };
+      }
+
+      const attributes = acc[userId].attributes;
+      const attributeOptions = attributes[attribute.id]?.options;
+
+      if (attributeOptions) {
+        attributeOptions.push({
+          id: attributeOptionId,
+          value,
+          slug,
+        });
+      } else {
+        attributes[attribute.id] = {
+          type: attribute.type,
+          options: [
+            {
+              id: attributeOptionId,
+              value,
+              slug,
+            },
+          ],
+          name: attribute.name,
+          slug: attribute.slug,
+          id: attribute.id,
+        };
+      }
+      return acc;
+    }, {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>)
+  );
+
 /**
  * Doesn't have deleted fields by default
  */
@@ -67,23 +106,47 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 
   let teamMembers: SerializableFormTeamMembers[] = [];
   if (form.teamId) {
-    teamMembers = await prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            teamId: form.teamId,
-            accepted: true,
+    teamMembers = normalizeTeamMembers(
+      await prisma.attributeToUser.findMany({
+        where: {
+          member: {
+            user: {
+              teams: {
+                some: {
+                  teamId: form.teamId,
+                  accepted: true,
+                },
+              },
+            },
           },
         },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatarUrl: true,
-        defaultScheduleId: true,
-      },
-    });
+        select: {
+          member: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  avatarUrl: true,
+                  defaultScheduleId: true,
+                },
+              },
+            },
+          },
+          attributeOption: {
+            select: {
+              id: true,
+              value: true,
+              slug: true,
+              attribute: {
+                select: { id: true, name: true, type: true, slug: true },
+              },
+            },
+          },
+        },
+      })
+    );
   }
 
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
