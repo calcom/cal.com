@@ -18,6 +18,9 @@ import type {
   TransformRecurringEventSchema_2024_06_14,
   SeatOptionsTransformedSchema,
   SeatOptionsDisabledSchema,
+  AttendeeAddressLocation_2024_06_14,
+  AttendeePhoneLocation_2024_06_14,
+  AttendeeDefinedLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -121,6 +124,57 @@ describe("transformLocationsInternalToApi", () => {
 
     const result = transformLocationsInternalToApi(transformedLocation);
 
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform attendee address location", () => {
+    const transformedLocation = [
+      {
+        type: "attendeeInPerson" as const,
+      },
+    ];
+
+    const expectedOutput: AttendeeAddressLocation_2024_06_14[] = [
+      {
+        type: "attendeeAddress",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform attendee phone location", () => {
+    const transformedLocation = [
+      {
+        type: "phone" as const,
+      },
+    ];
+
+    const expectedOutput: AttendeePhoneLocation_2024_06_14[] = [
+      {
+        type: "attendeePhone",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform attendee defined location", () => {
+    const transformedLocation = [
+      {
+        type: "somewhereElse" as const,
+      },
+    ];
+
+    const expectedOutput: AttendeeDefinedLocation_2024_06_14[] = [
+      {
+        type: "attendeeDefined",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
     expect(result).toEqual(expectedOutput);
   });
 });
