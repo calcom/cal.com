@@ -72,8 +72,11 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
   const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
 
+  console.log('_enablePerf, _concurrency', _enablePerf, _concurrency)
   if (_enablePerf) {
-    ctx.res?.setHeader("Server-Timing", getServerTimingHeader(teamMembersMatchingAttributeLogicTimeTaken));
+    const serverTimingHeader = getServerTimingHeader(teamMembersMatchingAttributeLogicTimeTaken);
+    ctx.res?.setHeader("Server-Timing", serverTimingHeader);
+    console.log('Server-Timing', serverTimingHeader)
   }
 
   return matchingTeamMembers.map((user) => ({

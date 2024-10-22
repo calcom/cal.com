@@ -55,6 +55,13 @@ const queryValueSchema = z.object({
   properties: z.any(),
 });
 
+export enum RouteActionType {
+  CustomPageMessage = "customPageMessage",
+  ExternalRedirectUrl = "externalRedirectUrl",
+  EventTypeRedirectUrl = "eventTypeRedirectUrl",
+}
+
+export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
 /**
  * Stricter schema for validating before saving to DB
  */
@@ -132,12 +139,8 @@ export const zodNonRouterRoute = z.object({
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
-    // TODO: Make it a union type of "customPageMessage" and ..
-    type: z.union([
-      z.literal("customPageMessage"),
-      z.literal("externalRedirectUrl"),
-      z.literal("eventTypeRedirectUrl"),
-    ]),
+    type: routeActionTypeSchema,
+    eventTypeId: z.number().optional(),
     value: z.string(),
   }),
 });
@@ -170,3 +173,11 @@ export const zodRoutesView = z.union([z.array(zodRouteView), z.null()]).optional
 export const appDataSchema = z.any();
 
 export const appKeysSchema = z.object({});
+
+// This is different from FormResponse in types.d.ts in that it has label optional. We don't seem to be using label at this point, so we might want to use this only while saving the response when Routing Form is submitted
+export const routingFormResponseInDbSchema = z.record(
+  z.object({
+    label: z.string().optional(),
+    value: z.union([z.string(), z.number(), z.array(z.string())]),
+  })
+);

@@ -2,6 +2,7 @@ import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { AttributeType } from "@calcom/prisma/enums";
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
@@ -141,7 +142,7 @@ function buildRoute({
 }: {
   id: string;
   action: {
-    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    type: RouteActionType;
     value: string;
   };
   queryValue: FormFieldsQueryValue;
@@ -164,7 +165,7 @@ function buildDefaultCustomPageRoute({
 }) {
   return buildRoute({
     id,
-    action: { type: "customPageMessage", value: "test" },
+    action: { type: RouteActionType.CustomPageMessage, value: "test" },
     queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
     attributesQueryValue,
   });
@@ -193,7 +194,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           {
             id: "test-route",
             queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
-            action: { type: "customPageMessage", value: "test" },
+            action: { type: RouteActionType.CustomPageMessage, value: "test" },
           },
         ],
         fields: [],
@@ -238,7 +239,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         routes: [
           {
             id: "test-route",
-            action: { type: "customPageMessage", value: "test" },
+            action: { type: RouteActionType.CustomPageMessage, value: "test" },
             queryValue: {
               type: "group",
             } as unknown as FormFieldsQueryValue,
@@ -458,7 +459,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
   describe("Performance testing", () => {
     describe("20 attributes, 4000 team members", async () => {
       // In tests, the performance is actually really bad than real world. So, skipping this test for now
-      it.skip("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
+      it("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
         const { attributes } = mockHugeAttributesOfTypeSingleSelect({
           numAttributes: 20,
           numOptionsPerAttribute: 30,
@@ -503,13 +504,30 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               userId: 1,
               result: RaqbLogicResult.MATCH,
             },
+            {
+              userId: 2,
+              result: RaqbLogicResult.MATCH,
+            },
+            {
+              userId: 3,
+              result: RaqbLogicResult.MATCH,
+            },
+            {
+              userId: 2000,
+              result: RaqbLogicResult.MATCH,
+            },
+            // Last Item
+            {
+              userId: 4000,
+              result: RaqbLogicResult.MATCH,
+            },
           ])
         );
 
         if (!timeTaken) {
           throw new Error("Looks like performance testing is not enabled");
         }
-        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => sum ?? 0 + (time || 0), 0);
+        const totalTimeTaken = Object.values(timeTaken).reduce((sum, time) => (sum ?? 0) + (time ?? 0), 0);
         console.log("Total time taken", totalTimeTaken, {
           timeTaken,
         });
