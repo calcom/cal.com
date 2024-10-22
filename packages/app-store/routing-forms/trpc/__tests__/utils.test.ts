@@ -176,10 +176,9 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
   it("should return null if route is not found and troubleshooter should also be null by default", async () => {
     const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
       await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: { routes: [], fields: [] },
+        form: { routes: [], fields: [], teamId: 1, teamMembers: [] },
         response: {},
         routeId: "non-existent-route",
-        teamId: 1,
       });
 
     expect(result).toBeNull();
@@ -197,10 +196,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           },
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: [],
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toBeNull();
@@ -247,10 +247,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
             },
           ],
           fields: [],
+          teamId: 1,
+          teamMembers: [],
         },
         response: {},
         routeId: "test-route",
-        teamId: 1,
       });
 
     expect(result).toEqual([
@@ -320,6 +321,8 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
             options: [Option1OfField1],
           },
         ],
+        teamId: 1,
+        teamMembers: [],
       },
       response: {
         [Field1Id]: {
@@ -328,7 +331,6 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         },
       },
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -395,10 +397,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           }),
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: [],
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -466,10 +469,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           }),
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: [],
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -529,7 +533,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           valueType: ["multiselect"],
         },
       ],
-    }) as AttributesQueryValue;
+    });
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
@@ -540,10 +544,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           }),
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: [],
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -592,10 +597,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               }),
             ],
             fields: [],
+            teamId: 1,
+            teamMembers: [],
           },
           response: {},
           routeId: "test-route",
-          teamId: 1,
         })
       ).rejects.toThrow("Unsupported attribute type");
     });
@@ -658,10 +664,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 }),
               ],
               fields: [],
+              teamId: 1,
+              teamMembers: [],
             },
             response: {},
             routeId: "test-route",
-            teamId: 1,
             isPreview: mode === "preview" ? true : false,
           });
         return result;
@@ -732,10 +739,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 }),
               ],
               fields: [],
+              teamId: 1,
+              teamMembers: [],
             },
             response: {},
             routeId: "test-route",
-            teamId: 1,
             isPreview: mode === "preview" ? true : false,
           });
         return result;
@@ -784,10 +792,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                   }),
                 ],
                 fields: [],
+                teamId: 1,
+                teamMembers: [],
               },
               response: {},
               routeId: "test-route",
-              teamId: 1,
             },
             {
               concurrency: 1,
@@ -894,10 +903,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 }),
               ],
               fields: [],
+              teamId: 1,
+              teamMembers: [],
             },
             response: {},
             routeId: "test-route",
-            teamId: 1,
           },
           {
             enableTroubleshooter: true,
