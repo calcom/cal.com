@@ -44,11 +44,9 @@ export type SerializableFormTeamMembers = {
   >;
 }[];
 
-export type SerializableForm<
-  T extends Omit<App_RoutingForms_Form, "fields" | "routes" | "createdAt" | "updatedAt" | "settings">
-> = T & {
-  routes: Routes;
-  fields: Fields;
+export type SerializableForm<T> = Omit<T, "fields" | "routes" | "createdAt" | "updatedAt" | "settings"> & {
+  routes: NonNullable<Routes>;
+  fields: NonNullable<Fields>;
   settings: z.infer<typeof RoutingFormSettings>;
   createdAt: string;
   updatedAt: string;

@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import type { Fields, SerializableFormTeamMembers } from "../types/types";
+import type { Fields, SerializableForm, SerializableFormTeamMembers } from "../types/types";
 import type { zodRoutesView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
@@ -102,7 +102,8 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 }: {
   form: TForm;
   withDeletedFields?: boolean;
-}) {
+  // this is not an optional thing; auto-infer doesn't completely work when you deconstruct ...form
+}): Promise<SerializableForm<TForm>> {
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
@@ -164,18 +165,8 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     );
   }
 
-  // by using formPassThrough we keep possible types (like JsonValue) out of serializableForm
-  const {
-    fields: _fields,
-    routes: _routes,
-    createdAt: _createdAt,
-    updatedAt: _updatedAt,
-    settings: _settings,
-    ...formPassThrough
-  } = form;
-  // would like to know how to do this without formPassThrough but -_^
   const serializableForm = {
-    ...formPassThrough,
+    ...form,
     settings,
     fields,
     routes,

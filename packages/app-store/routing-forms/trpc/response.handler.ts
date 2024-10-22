@@ -17,7 +17,7 @@ const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response
 interface ResponseHandlerOptions {
   ctx: {
     prisma: PrismaClient;
-    serializableForm: SerializableForm<{
+    serializableForm?: SerializableForm<{
       user: {
         id: number;
         email: string;
