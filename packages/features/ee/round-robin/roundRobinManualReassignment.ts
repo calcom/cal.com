@@ -125,7 +125,7 @@ export const roundRobinManualReassignment = async ({
         getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
     }
 
-    const eventNameObject = {
+    const newBookingTitle = getEventName({
       attendeeName: responses?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
@@ -135,15 +135,14 @@ export const roundRobinManualReassignment = async ({
       bookingFields: { ...responses },
       eventDuration: eventType.length,
       t: newUserT,
-    };
-
-    const newBookingTitle = getEventName(eventNameObject);
+    });
 
     booking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
         userId: newUserId,
         title: newBookingTitle,
+        userPrimaryEmail: newUser.email,
       },
       select: bookingSelect,
     });
