@@ -1,12 +1,7 @@
 "use client";
 
-import type { SubmenuOptions } from "@crabnebula/taurify-api/menu";
-import { Menu } from "@crabnebula/taurify-api/menu";
-import { TrayIcon } from "@crabnebula/taurify-api/tray";
-import { getCurrentWebviewWindow } from "@crabnebula/taurify-api/webviewWindow";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -83,13 +78,11 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
-  const router = useRouter();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
       filters: {
-        ...filterQuery,
         status: filterQuery.status ?? status,
       },
     },
@@ -150,69 +143,6 @@ export default function Bookings() {
     )[0] || [];
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-
-  const getSeatReferenceUid = () => {
-    if (!booking.seatsReferences[0]) {
-      return undefined;
-    }
-    return booking.seatsReferences[0].referenceUid;
-  };
-
-  useEffect(() => {
-    const updateTrayMenu = async () => {
-      const trayIcon = await TrayIcon.getById("main");
-
-      async function focusAppWindow() {
-        const appWindow = getCurrentWebviewWindow();
-        appWindow.show();
-        appWindow.setFocus();
-      }
-
-      function bookingMenuItem(booking: BookingOutput): SubmenuOptions {
-        return {
-          text: booking.title,
-          items: [
-            {
-              text: t("cancel_event"),
-              action: async () => {
-                const isRecurring = booking.recurringEventId !== null;
-                const isTabRecurring = booking.listingStatus === "recurring";
-
-                router.push(`/booking/${booking.uid}?cancel=true${
-                  isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-                }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-                `);
-
-                await focusAppWindow();
-              },
-            },
-            {
-              text: t("reschedule_booking"),
-              action: async () => {
-                router.push(
-                  `/reschedule/${booking.uid}${
-                    booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-                  }`
-                );
-
-                await focusAppWindow();
-              },
-            },
-          ],
-        };
-      }
-
-      const menu = await Menu.new({
-        items: bookingsToday.map(bookingMenuItem),
-      });
-
-      await trayIcon?.setMenu(menu);
-    };
-
-    if (typeof window !== "undefined" && "__TAURIFY__" in window) {
-      updateTrayMenu().catch(console.error);
-    }
-  }, [bookingsToday]);
 
   return (
     <Shell
