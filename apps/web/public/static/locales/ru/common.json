@@ -2166,7 +2166,7 @@
   "org_team_names_example_4": "например, технический отдел",
   "org_team_names_example_5": "например, отдел анализа данных",
   "org_max_team_warnings": "Позже можно добавить другие команды.",
-  "what_is_this_meeting_about": "Чему посвязена эта встреча?",
+  "what_is_this_meeting_about": "Чему посвящена эта встреча?",
   "add_to_team": "Добавить в команду",
   "remove_users_from_org": "Удалить пользователей из организации",
   "remove_users_from_org_confirm": "Удалить {{userCount}} пользователей из этой организации?",
