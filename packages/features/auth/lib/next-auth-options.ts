@@ -253,7 +253,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       authorization: {
         params: {
           scope:
-            "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+            "openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
         },
       },
     })
