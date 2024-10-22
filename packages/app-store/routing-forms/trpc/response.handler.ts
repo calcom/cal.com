@@ -8,7 +8,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
-import type { FormResponse } from "../types/types";
+import type { FormResponse, SerializableForm } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
 import { onFormSubmission, findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
 
@@ -17,11 +17,27 @@ const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response
 interface ResponseHandlerOptions {
   ctx: {
     prisma: PrismaClient;
+    serializableForm: SerializableForm<{
+      user: {
+        id: number;
+        email: string;
+      };
+      team: {
+        parentId: number | null;
+      } | null;
+      name: string;
+      id: string;
+      userId: number;
+      position: number;
+      teamId: number;
+      description: string | null;
+      disabled: boolean;
+    }>;
   };
   input: TResponseInputSchema;
 }
 
-const getSerializableFormById = async (formId: number, prisma: PrismaClient) => {
+const getSerializableFormById = async (formId: string, prisma: PrismaClient) => {
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
@@ -111,9 +127,9 @@ export const responseHandler = async ({ ctx: { prisma, ...ctx }, input }: Respon
     });
 
     let userWithEmails: string[] = [];
-    if (serializableForm.teamId && serializableForm.settings?.sendUpdatesTo instanceof Array) {
+    if (serializableForm.teamId) {
       userWithEmails = serializableForm.teamMembers
-        .filter(({ userId }) => serializableForm.settings.sendUpdatesTo.includes(userId))
+        .filter(({ userId }) => (serializableForm.settings?.sendUpdatesTo || []).includes(userId))
         .map(({ email }) => email);
     }
 

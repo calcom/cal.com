@@ -27,16 +27,15 @@ export type Route = NonNullable<Routes>[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
 
 export type SerializableFormTeamMembers = {
-  id: number;
+  userId: number;
   name: string | null;
   email: string;
   avatarUrl: string | null;
   defaultScheduleId: number | null;
 };
-export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
-  T,
-  "fields" | "routes" | "createdAt" | "updatedAt" | "settings"
-> & {
+export type SerializableForm<
+  T extends Omit<App_RoutingForms_Form, "fields" | "routes" | "createdAt" | "updatedAt" | "settings">
+> = T & {
   routes: Routes;
   fields: Fields;
   settings: z.infer<typeof RoutingFormSettings>;
