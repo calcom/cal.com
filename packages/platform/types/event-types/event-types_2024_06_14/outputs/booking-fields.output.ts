@@ -85,6 +85,8 @@ export class LocationDefaultFieldOutput_2024_06_14 {
   @IsString()
   @DocsProperty({
     default: "location",
+    description:
+      "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place.",
   })
   slug!: "location";
 
