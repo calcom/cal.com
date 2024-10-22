@@ -1387,6 +1387,8 @@
   "event_limit_tab_description": "ភាពញឹកញាប់ដែលអ្នកអាចត្រូវបានកក់",
   "event_advanced_tab_description": "ការកំណត់កាលវិភាគ និងច្រើនទៀត...",
   "event_advanced_tab_title": "កម្រិតខ្ពស់",
+  "event_payments_tab_title": "ការទូទាត់",
+  "event_payments_tab_description": "រៀបចំការទូទាត់សម្រាប់ព្រឹត្តិការណ៍",
   "event_setup_multiple_duration_error": "ការកំណត់ព្រឹត្តិការណ៍: រយៈពេលច្រើនត្រូវការយ៉ាងហោចណាស់ 1 ជម្រើស។",
   "event_setup_multiple_duration_default_error": "ការកំណត់ព្រឹត្តិការណ៍: សូមជ្រើសរយៈពេលលំនាំដើមដែលត្រឹមត្រូវ។",
   "event_setup_booking_limits_error": "ដែនកំណត់ការកក់ត្រូវតែមានលំដាប់ឡើងលើ។ [ថ្ងៃ, សប្តាហ៍, ខែ, ឆ្នាំ]",
