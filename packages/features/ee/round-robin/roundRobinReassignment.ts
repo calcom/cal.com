@@ -151,17 +151,6 @@ export const roundRobinReassignment = async ({
     reassignedHost: reassignedRRHost,
   });
 
-  // Assume the RR host was labelled as a team member
-  if (reassignedRRHost.email !== organizer.email) {
-    teamMembers.push({
-      id: reassignedRRHost.id,
-      email: reassignedRRHost.email,
-      name: reassignedRRHost.name || "",
-      timeZone: reassignedRRHost.timeZone,
-      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale ?? "en" },
-    });
-  }
-
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
     if (
