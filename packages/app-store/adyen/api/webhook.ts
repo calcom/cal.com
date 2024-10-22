@@ -1,6 +1,8 @@
 import { hmacValidator } from "@adyen/api-library";
-import type { Notification } from "@adyen/api-library/lib/src/typings/notification/models";
-import type { NotificationRequestItem } from "@adyen/api-library/lib/src/typings/notification/models";
+import type {
+  Notification,
+  NotificationRequestItem,
+} from "@adyen/api-library/lib/src/typings/notification/models";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
 import { z } from "zod";
@@ -11,7 +13,7 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
-import { adyenCredentialKeysSchema } from "../zod";
+import { appKeysSchema } from "../zod";
 
 export const config = {
   api: {
@@ -45,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               select: {
                 credentials: {
                   where: {
-                    type: "adyen",
+                    type: "adyen_payment",
                   },
                   select: {
                     key: true,
@@ -82,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const parseCredentials = adyenCredentialKeysSchema.safeParse(credentials?.key);
+    const parseCredentials = appKeysSchema.safeParse(credentials?.key);
     if (!parseCredentials.success) {
       throw new HttpCode({ statusCode: 500, message: "Credentials not valid" });
     }

@@ -21,14 +21,14 @@ export const appDataSchema = eventTypeAppCardZod.merge(
   })
 );
 
-export const adyenCredentialKeysSchema = z.object({
+export const appKeysSchema = z.object({
   api_key: z.string(),
   client_key: z.string(),
   merchant_id: z.string(),
   hmac_key: z.string(),
 });
 
-export type AdyenCredentialKeys = z.infer<typeof adyenCredentialKeysSchema>;
+export type AdyenCredentialKeys = z.infer<typeof appKeysSchema>;
 
 export const adyenSession = z.object({
   id: z.string(),
