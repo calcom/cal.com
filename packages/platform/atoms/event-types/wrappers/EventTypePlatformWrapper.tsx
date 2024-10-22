@@ -33,7 +33,7 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 
 export type eventTypeCustomClassNames = {
   atomsWrapper?: string;
-  eventSetupTab?: EventSetupTabCustomClassNames;
+  eventSetupTabClassnames?: EventSetupTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -148,7 +148,7 @@ const EventType = ({
         team={team}
         teamMembers={teamMembers}
         destinationCalendar={destinationCalendar}
-        customClassNames={customClassNames?.eventSetupTab}
+        customClassNames={customClassNames?.eventSetupTabClassnames}
       />
     ) : (
       <></>
