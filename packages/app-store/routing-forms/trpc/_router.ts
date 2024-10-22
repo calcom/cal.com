@@ -12,7 +12,6 @@ import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema"
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
 import { ZResponseInputSchema } from "./response.schema";
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
 

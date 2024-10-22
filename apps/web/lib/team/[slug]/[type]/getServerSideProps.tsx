@@ -14,7 +14,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-
 import { ssrInit } from "@server/lib/ssr";
 
 const paramsSchema = z.object({
@@ -88,7 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
-
+  const { getOwnerEmailFromCrm } = await import("@calcom/web/lib/getOwnerEmailFromCrm");
   return {
     props: {
       eventData: {
@@ -112,36 +111,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
+      teamMemberEmail: await getOwnerEmailFromCrm(eventData, email as string),
     },
   };
 };
 
-async function getTeamMemberEmail(
-  eventData: {
-    id: number;
-    isInstantEvent: boolean;
-    schedulingType: SchedulingType | null;
-    metadata: Prisma.JsonValue | null;
-    length: number;
-  },
-  email?: string
-): Promise<string | null> {
-  // Pre-requisites
-  if (!eventData || !email || eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
-  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
-  if (!crmContactOwnerEmail) return null;
-  // Determine if the contactOwner is a part of the event type
-  const contactOwnerQuery = await prisma.user.findFirst({
-    where: {
-      email: crmContactOwnerEmail,
-      hosts: {
-        some: {
-          eventTypeId: eventData.id,
-        },
-      },
-    },
-  });
-  if (!contactOwnerQuery) return null;
-  return crmContactOwnerEmail;
-}
