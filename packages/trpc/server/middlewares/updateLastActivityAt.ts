@@ -1,12 +1,14 @@
-import { middleware } from "../trpc";
+import { isAuthed } from "./sessionMiddleware";
 
 export const lastActivityCache = new Map<number, Date>();
 let lastUpdatedTime: number | null = null;
 const UPDATE_DB_INTERVAL = 60 * 60 * 1000; // 1 hour
 
-const updateLastActivityMiddleware = middleware(async ({ ctx, next }) => {
-  if (ctx?.user?.id) {
-    lastActivityCache.set(ctx.user.id, new Date());
+const updateLastActivityMiddleware = isAuthed.unstable_pipe(async ({ ctx, next }) => {
+  const { user, session } = ctx;
+
+  if (user.id) {
+    lastActivityCache.set(user.id, new Date());
   }
 
   const currentTime = new Date().getTime();
@@ -31,7 +33,7 @@ const updateLastActivityMiddleware = middleware(async ({ ctx, next }) => {
     }
   }
 
-  return next({ ctx });
+  return next({ ctx: { user, session } });
 });
 
 export default updateLastActivityMiddleware;
