@@ -14,7 +14,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, StepCard, Steps } from "@calcom/ui";
+import { Button, showToast, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
@@ -58,13 +58,14 @@ const OnboardingPage = (props: PageProps) => {
   const { t } = useLocale();
   const addAppMutation = useAddAppMutation(null, {
     onSuccess: (data) => {
-      if (data?.setupPending) return;
-      setIsLoading(false);
-      showToast(t("app_successfully_installed"), "success");
+      if (data?.setupPending) {
+        return;
+      }
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-      setIsLoading(false);
+      if (error instanceof Error) {
+        showToast(error.message, "error");
+      }
     },
   });
 
@@ -125,7 +126,7 @@ const OnboardingPage = (props: PageProps) => {
     if (user.identityProvider !== IdentityProvider.GOOGLE) {
       return;
     }
-    addAppMutation({
+    addAppMutation.mutate({
       type: "google_calendar",
     });
   }, [addAppMutation, user.identityProvider]);
@@ -163,22 +164,28 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
-              <Suspense fallback={<Icon name="loader" />}>
-                {currentStep === "user-settings" && (
-                  <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
-                )}
-                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
+              {addAppMutation.isPending ? (
+                <Icon name="loader" />
+              ) : (
+                <Suspense fallback={<Icon name="loader" />}>
+                  {currentStep === "user-settings" && (
+                    <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
+                  )}
+                  {currentStep === "connected-calendar" && (
+                    <ConnectedCalendars nextStep={() => goToIndex(2)} />
+                  )}
 
-                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
+                  {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
 
-                {currentStep === "setup-availability" && (
-                  <SetupAvailability
-                    nextStep={() => goToIndex(4)}
-                    defaultScheduleId={user.defaultScheduleId}
-                  />
-                )}
-                {currentStep === "user-profile" && <UserProfile />}
-              </Suspense>
+                  {currentStep === "setup-availability" && (
+                    <SetupAvailability
+                      nextStep={() => goToIndex(4)}
+                      defaultScheduleId={user.defaultScheduleId}
+                    />
+                  )}
+                  {currentStep === "user-profile" && <UserProfile />}
+                </Suspense>
+              )}
             </StepCard>
 
             {headers[currentStepIndex]?.skipText && (
