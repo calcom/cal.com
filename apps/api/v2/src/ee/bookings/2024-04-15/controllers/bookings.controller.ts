@@ -355,13 +355,14 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
-    req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
-    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
+    clone.body = { ...clone.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private async createNextApiRecurringBookingRequest(
@@ -369,17 +370,18 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, {
+    Object.assign(clone, {
       userId,
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
     });
-    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private handleBookingErrors(
