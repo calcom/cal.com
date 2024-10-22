@@ -670,7 +670,10 @@ class CalApi {
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(Cal.ensureGuestKey(config), containerEl);
-    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
+        const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`) as HTMLElement | null;
+    // First cleanup any zombie modals with same UID that might be hidden
+    const zombieModals = document.querySelectorAll(`cal-modal-box[uid="${uid}"][state="closed"]`);
+    zombieModals.forEach((modal) => (modal as HTMLElement).remove());
 
     if (existingModalEl) {
       if (isConnectingToPreloadedModal) {
@@ -682,8 +685,9 @@ class CalApi {
         existingModalEl.setAttribute("state", "loading");
         return;
       } else {
-        existingModalEl.setAttribute("state", "reopening");
-        return;
+        // Remove the old modal completely
+        existingModalEl.remove();
+        // Don't return here - let the code continue to create a new modal
       }
     }
 
@@ -693,7 +697,7 @@ class CalApi {
       // Intentionally not setting it to have the behaviour of reusing the same modal. Because it causes outdated content that might not be valid based on
       // 1. The time difference b/w reopening(availability getting changed in b/w)
       // 2. User using different query params but they not being used because of the same modal being reused. Happens in case of headless router being opened in embed
-      // this.modalUid = uid;
+      this.modalUid = uid;
     }
 
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
@@ -728,7 +732,23 @@ class CalApi {
   private handleClose() {
     // A request, to close from the iframe, should close the modal
     this.cal.actionManager.on("__closeIframe", () => {
-      this.cal.modalBox?.setAttribute("state", "closed");
+      if (this.cal.modalBox) {
+        this.cal.modalBox.setAttribute("state", "closed");
+
+        // Use requestAnimationFrame for smoother cleanup
+        requestAnimationFrame(() => {
+          // Add transition class if you have any animations
+          this.cal.modalBox?.classList.add("modal-closing");
+
+          setTimeout(() => {
+            if (this.cal.modalBox) {
+              // completely removes the modal
+              this.cal.modalBox.remove();
+              this.cal.modalBox = undefined;
+            }
+          }, 300); // Keeps your original timing
+        });
+      }
     });
   }
 
