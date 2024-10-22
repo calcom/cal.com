@@ -2675,6 +2675,7 @@
   "no_hosts_description": "No hosts assigned, add hosts in assignment tab.",
   "team_member_round_robin_reassign": "Manually reassign round robin host",
   "team_member_round_robin_reassign_description": "Manually reassign round robin host to another available host",
+  "round_robin_reassign_description": "Reassign round robin host to another available host",
   "invalid_round_robin_host": "New user is not a valid round-robin host for this event type",
   "user_is_round_robin_fixed": "New user is a fixed host for this event type",
   "reschedule_with_same_timeslot": "Reschedule with same timeslot",
@@ -2685,4 +2686,3 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rerouted booking successfully. Redirecting to booking page",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
-
