@@ -207,3 +207,8 @@ export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
 export { IconSprites } from "./components/icon/IconSprites";
+
+export { DataTableSelectionBar } from "./components/data-table/DataTableSelectionBar";
+export { DataTableToolbar } from "./components/data-table/DataTableToolbar";
+export { DataTableFilters } from "./components/data-table/filters";
+export { DataTablePagination } from "./components/data-table/DataTablePagination";

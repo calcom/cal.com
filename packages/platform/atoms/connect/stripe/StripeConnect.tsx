@@ -2,6 +2,8 @@ import type { FC } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
+import type { IconName } from "@calcom/ui";
+import type { ButtonColor } from "@calcom/ui";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
 import { useCheck } from "../../hooks/stripe/useCheck";
@@ -10,6 +12,9 @@ import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
 
 type StripeConnectProps = {
+  icon?: IconName;
+  color?: ButtonColor;
+  isClickable?: boolean;
   className?: string;
   label: string;
   alreadyConnectedLabel: string;
@@ -22,6 +27,9 @@ type StripeConnectProps = {
 };
 
 export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
+  icon,
+  color,
+  isClickable,
   label,
   className,
   loadingLabel,
@@ -54,9 +62,9 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   return (
     <AtomsWrapper>
       <Button
-        StartIcon="calendar"
-        color="primary"
-        disabled={isDisabled}
+        StartIcon={!!icon ? icon : "credit-card"}
+        color={!!color ? color : "primary"}
+        disabled={isClickable ? false : isDisabled}
         className={cn(
           "",
           className,
