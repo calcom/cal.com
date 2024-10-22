@@ -6626,6 +6626,45 @@
           "showAvailabilityCount"
         ]
       },
+      "AttendeeAddressLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "AttendeePhoneLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "AttendeeDefinedLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6725,6 +6764,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -7036,7 +7084,8 @@
           },
           "slug": {
             "type": "string",
-            "default": "location"
+            "default": "location",
+            "description": "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place."
           },
           "type": {
             "type": "string",
@@ -8199,6 +8248,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -9669,6 +9727,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -10396,6 +10463,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
