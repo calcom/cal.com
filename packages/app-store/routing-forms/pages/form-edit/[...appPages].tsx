@@ -341,7 +341,7 @@ function Field({
           </div>
           <div className="mt-6 w-full">
             {!isEditing ? (
-              <FormFieldIdentifier fieldIdentifier={label} setIsEditing={setIsEditing} />
+              <FormFieldIdentifier fieldIdentifier={identifier || label} setIsEditing={setIsEditing} />
             ) : (
               <TextField
                 disabled={!!router}
