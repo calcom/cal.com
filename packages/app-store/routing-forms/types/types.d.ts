@@ -59,16 +59,18 @@ export type SerializableRoute =
 
 export type OrderedResponses = FormResponse[string][];
 
+export type AttributeOption = {
+  id: string;
+  value: string;
+  slug: string;
+};
+
 export type Attribute = {
   name: string;
   slug: string;
   type: AttributeType;
   id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-  }[];
+  options: AttributeOption[];
 };
 
 export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;

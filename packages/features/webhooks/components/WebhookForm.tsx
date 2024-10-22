@@ -58,7 +58,10 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       label: "after_guests_cal_video_no_show",
     },
   ],
-  "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
+  "routing-forms": [
+    { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
+    { value: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT, label: "form_submitted_no_event" },
+  ],
 } as const;
 
 export type WebhookFormValues = {

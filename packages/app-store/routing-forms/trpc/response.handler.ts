@@ -137,10 +137,6 @@ export const responseHandler = async ({ ctx: { prisma, ...ctx }, input }: Respon
             (member) => member.userId
           )
         : null;
-    await onFormSubmission(
-      { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as FormResponse
-    );
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     if (!chosenRoute) {
@@ -149,6 +145,13 @@ export const responseHandler = async ({ ctx: { prisma, ...ctx }, input }: Respon
         message: "Chosen route not found",
       });
     }
+
+    await onFormSubmission(
+      { ...serializableFormWithFields, userWithEmails },
+      dbFormResponse.response as FormResponse,
+      dbFormResponse.id,
+      "action" in chosenRoute ? chosenRoute.action : undefined
+    );
     return {
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
