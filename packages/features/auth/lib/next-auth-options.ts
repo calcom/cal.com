@@ -250,6 +250,12 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope:
+            "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+        },
+      },
     })
   );
 }
