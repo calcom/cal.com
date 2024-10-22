@@ -155,7 +155,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
             <Button
               type="submit"
               data-testid="rejection-confirm"
-              loading={roundRobinReassignMutation.isPending}>
+              loading={roundRobinReassignMutation.isPending || roundRobinManualReassignMutation.isPending}>
               {t("reassign")}
             </Button>
           </DialogFooter>
