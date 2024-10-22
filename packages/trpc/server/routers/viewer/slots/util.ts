@@ -357,6 +357,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  troubleshooter?: any;
 }
 
 /**
@@ -401,6 +402,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -919,8 +921,29 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   }
 
+  const troubleshooterData = enableTroubleshooter
+    ? {
+        troubleshooter: {
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing skipContactOwner flag
+          consideredContactOwner: contactOwnerEmail,
+          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+          routedHosts: usersWithCredentials.map((user) => {
+            return {
+              userId: user.id,
+            };
+          }),
+          hosts: eventHosts.map((host) => ({
+            userId: host.user.id,
+          })),
+        },
+      }
+    : null;
+
   return {
     slots: withinBoundsSlotsMappedToDate,
+    ...troubleshooterData,
   };
 }
 
