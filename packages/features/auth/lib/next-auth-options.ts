@@ -228,8 +228,6 @@ const providers: Provider[] = [
         return "INACTIVE_ADMIN";
       };
 
-      await UserRepository.updateUserLastLogin(user.id);
-
       return {
         id: user.id,
         username: user.username,
@@ -764,7 +762,6 @@ export const getOptions = ({
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
               return loginWithTotp(existingUser.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUser.id);
               return true;
             }
           }
@@ -781,7 +778,6 @@ export const getOptions = ({
             if (existingUser.twoFactorEnabled) {
               return loginWithTotp(existingUser.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUser.id);
               return true;
             }
           } else {
@@ -815,7 +811,6 @@ export const getOptions = ({
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUserWithEmail.id);
               return true;
             }
           }
@@ -846,7 +841,6 @@ export const getOptions = ({
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUserWithEmail.id);
               return true;
             }
           }
@@ -869,7 +863,6 @@ export const getOptions = ({
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUserWithEmail.id);
               return true;
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
@@ -922,7 +915,6 @@ export const getOptions = ({
         if (account.twoFactorEnabled) {
           return loginWithTotp(newUser.email);
         } else {
-          await UserRepository.updateUserLastLogin(newUser.id);
           return true;
         }
       }

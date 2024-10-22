@@ -379,16 +379,16 @@ export default function MemberList(props: Props) {
         },
       },
       {
-        id: "lastLogin",
-        accessorFn: (data) => data.lastLogin,
-        header: "Last Login",
+        id: "lastActivityAt",
+        accessorFn: (data) => data.lastActivityAt,
+        header: "Last Activity At",
         cell: ({ row }) => {
-          const { lastLogin } = row.original;
+          const { lastActivityAt } = row.original;
           return (
             <div>
-              {lastLogin
-                ? `${formatLocalizedDateTime(lastLogin)}, ${formatToLocalizedTime(
-                    lastLogin,
+              {lastActivityAt
+                ? `${formatLocalizedDateTime(lastActivityAt)}, ${formatToLocalizedTime(
+                    lastActivityAt,
                     undefined,
                     "short",
                     true

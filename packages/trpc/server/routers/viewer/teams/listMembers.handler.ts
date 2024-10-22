@@ -8,6 +8,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { lastActivityCache } from "../../../middlewares/updateLastActivityAt";
 import type { TListMembersInputSchema } from "./listMembers.schema";
 
 type ListMembersHandlerOptions = {
@@ -25,7 +26,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
   bio: true,
   disableImpersonation: true,
-  lastLogin: true,
+  lastActivityAt: true,
 });
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
@@ -81,7 +82,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
       const user = await UserRepository.enrichUserWithItsProfile({
         user: member.user,
       });
-      const { profile, ...restUser } = user;
+      const { profile, lastActivityAt, ...restUser } = user;
       return {
         ...restUser,
         username: profile?.username ?? restUser.username,
@@ -93,6 +94,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
         disableImpersonation: user.disableImpersonation,
         bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
         teamId: member.teamId,
+        lastActivityAt: lastActivityCache.get(user.id) ?? lastActivityAt,
       };
     })
   );
