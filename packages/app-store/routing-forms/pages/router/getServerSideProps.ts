@@ -64,6 +64,7 @@ export const getServerSideProps = async function getServerSideProps(
         select: {
           id: true,
           username: true,
+          email: true,
           movedToProfileId: true,
           metadata: true,
           organization: {
@@ -137,7 +138,7 @@ export const getServerSideProps = async function getServerSideProps(
   let attributeRoutingConfig = null;
   try {
     const { responseHandler } = await import("../../trpc/response.handler");
-    const result2 = await responseHandler({
+    const result = await responseHandler({
       ctx: {
         prisma,
         serializableForm,

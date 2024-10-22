@@ -29,7 +29,7 @@ interface ResponseHandlerOptions {
       id: string;
       userId: number;
       position: number;
-      teamId: number;
+      teamId: number | null;
       description: string | null;
       disabled: boolean;
     }>;
