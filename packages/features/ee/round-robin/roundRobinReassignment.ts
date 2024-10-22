@@ -2,6 +2,7 @@
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import { findHumanReadableRoutingFormResponseForBooking } from "@calcom/app-store/routing-forms/lib/getResponseWithFormFields";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
@@ -224,6 +225,9 @@ export const roundRobinReassignment = async ({
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
       eventDuration: eventType.length,
+      routingFormResponses: booking.routedFromRoutingFormReponse
+        ? await findHumanReadableRoutingFormResponseForBooking({ bookingUid: booking.uid })
+        : null,
       t: organizerT,
     };
 

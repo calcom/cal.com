@@ -954,6 +954,7 @@ model App_RoutingForms_FormResponse {
   formFillerId       String                @default(cuid())
   form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId             String
+  // See routing-forms/zod.ts#routingFormResponseInDbSchema  and FormResponse in routing-forms/types/types.d.ts
   response           Json
   createdAt          DateTime              @default(now())
   routedToBookingUid String?               @unique
@@ -963,6 +964,8 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  // We need to lookup routing form response by booking uid at a lot of places.
+  @@index([routedToBookingUid])
 }
 
 model Feedback {

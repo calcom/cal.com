@@ -91,33 +91,6 @@ const RoundRobinContactOwnerOverrideSwitch = ({
   );
 };
 
-const RoundRobinContactOwnerOverrideSwitch = ({
-  route,
-  setAttributeRoutingConfig,
-}: {
-  route: LocalRouteWithRaqbStates;
-  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
-}) => {
-  return (
-    <div className="mt-4 flex flex-col">
-      <Switch
-        label={
-          route.attributeRoutingConfig?.skipContactOwner
-            ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
-            : "Contact owner will be the Round Robin host if available"
-        }
-        tooltip="Contact owner can only be used if the routed event has it enabled through Salesforce app"
-        checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
-        onCheckedChange={(skipContactOwner) => {
-          setAttributeRoutingConfig(route.id, {
-            skipContactOwner,
-          });
-        }}
-      />
-    </div>
-  );
-};
-
 type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;

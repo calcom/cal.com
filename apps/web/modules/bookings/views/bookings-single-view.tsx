@@ -109,7 +109,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid, routingFormResponses } = props;
 
   const {
     allRemainingBookings,
@@ -227,6 +227,7 @@ export default function Success(props: PageProps) {
     location: location,
     bookingFields: bookingInfo.responses,
     eventDuration: eventType.length,
+    routingFormResponses: routingFormResponses,
     t,
   };
 

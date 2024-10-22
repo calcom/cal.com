@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { findHumanReadableRoutingFormResponseForBooking } from "@calcom/app-store/routing-forms/lib/getResponseWithFormFields";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -179,6 +180,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
+  const routingFormResponses = bookingInfo.routedFromRoutingFormReponse
+    ? await findHumanReadableRoutingFormResponseForBooking({ bookingUid: bookingInfo.uid })
+    : null;
+
   return {
     props: {
       orgSlug: currentOrgDomain,
@@ -193,6 +198,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
+      routingFormResponses,
       requiresLoginToUpdate,
       rescheduledToUid,
     },

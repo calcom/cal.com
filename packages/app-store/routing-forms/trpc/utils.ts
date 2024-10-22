@@ -45,7 +45,7 @@ const {
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
-export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+export type HumanReadableFormResponse = Record<
   string,
   {
     /**
@@ -58,6 +58,7 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     value: FormResponse[keyof FormResponse]["value"];
   }
 >;
+export type FORM_SUBMITTED_WEBHOOK_RESPONSES = HumanReadableFormResponse;
 
 type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
   ReturnType<typeof getTeamMembersWithAttributeOptionValuePerAttribute>
@@ -67,6 +68,11 @@ function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
 }
 
+/**
+ * Returns the field response in terms of label.
+ * Single Select and Multi Select fields response have option ids in there and it transforms them to labels.
+ * Other fields like text, number, email, etc. are returned as is as they already have text as entered by the form filler/Booker.
+ */
 function getFieldResponse({
   field,
   fieldResponseValue,
@@ -409,6 +415,31 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   }
 }
 
+export const getHumanReadableResponseForForm = ({
+  response,
+  form,
+}: {
+  response: FormResponse;
+  form: Ensure<SerializableForm<App_RoutingForms_Form>, "fields">;
+}): HumanReadableFormResponse => {
+  const formResponse: HumanReadableFormResponse = {};
+  for (const [fieldId, fieldResponse] of Object.entries(response)) {
+    const field = form.fields.find((f) => f.id === fieldId);
+    if (!field) {
+      throw new Error(`Field with id ${fieldId} not found`);
+    }
+    // Use the label lowercased as the key to identify a field.
+    const key =
+      form.fields.find((f) => f.id === fieldId)?.identifier ||
+      (fieldResponse.label as keyof typeof formResponse);
+    formResponse[key] = getFieldResponse({
+      fieldResponseValue: fieldResponse.value,
+      field,
+    });
+  }
+  return formResponse;
+};
+
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
@@ -421,22 +452,10 @@ export async function onFormSubmission(
     value: string;
   }
 ) {
-  const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
-
-  for (const [fieldId, fieldResponse] of Object.entries(response)) {
-    const field = form.fields.find((f) => f.id === fieldId);
-    if (!field) {
-      throw new Error(`Field with id ${fieldId} not found`);
-    }
-    // Use the label lowercased as the key to identify a field.
-    const key =
-      form.fields.find((f) => f.id === fieldId)?.identifier ||
-      (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
-    fieldResponsesByIdentifier[key] = getFieldResponse({
-      fieldResponseValue: fieldResponse.value,
-      field,
-    });
-  }
+  const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = getHumanReadableResponseForForm({
+    response,
+    form,
+  });
 
   const { userId, teamId } = getWebhookTargetEntity(form);
 

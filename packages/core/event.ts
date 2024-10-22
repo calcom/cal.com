@@ -26,7 +26,7 @@ export type EventNameObjectType = {
   location?: string;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject;
-  routingFormResponses: Record<string, string> | null
+  routingFormResponses: Record<string, string> | null;
   t: TFunction;
 };
 
@@ -121,14 +121,24 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     entries(routingFormResponses).forEach(([formFieldIdentifier, formFieldValue]) => {
       const expectedVariableName = `routingForm.${formFieldIdentifier}`;
       if (variableNameInTemplate === expectedVariableName) {
-        dynamicEventName = dynamicEventName.replace(
-          `{${expectedVariableName}}`,
-          formFieldValue
-        );
+        dynamicEventName = dynamicEventName.replace(`{${expectedVariableName}}`, formFieldValue);
       }
     });
     return dynamicEventName;
   }
+}
+
+export function getEventNameWithoutConsideringRoutingFormVariables(
+  eventNameObj: Omit<EventNameObjectType, "routingFormResponses">,
+  forAttendeeView = false
+) {
+  return getEventName(
+    {
+      ...eventNameObj,
+      routingFormResponses: null,
+    },
+    forAttendeeView
+  );
 }
 
 export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject) => {

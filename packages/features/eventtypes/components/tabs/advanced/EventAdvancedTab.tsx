@@ -104,6 +104,8 @@ export const EventAdvancedTab = ({
     host: formMethods.getValues("users")[0]?.name || "Nameless",
     bookingFields: bookingFields,
     eventDuration: formMethods.getValues("length"),
+    // No Responses are available at this point
+    routingFormResponses: null,
     t,
   };
 

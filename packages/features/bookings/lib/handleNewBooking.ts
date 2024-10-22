@@ -13,6 +13,7 @@ import {
   getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { findHumanReadableRoutingFormResponse } from "@calcom/app-store/routing-forms/lib/getResponseWithFormFields";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -239,6 +240,16 @@ async function handler(
     routingFormResponseId,
     ...reqBody
   } = bookingData;
+
+  const routingFormResponsesPromise = routingFormResponseId
+    ? findHumanReadableRoutingFormResponse({ formResponseId: routingFormResponseId })
+    : null;
+
+  routingFormResponsesPromise?.catch((error) => {
+    // We don't want to fail the booking if we can't get the routing form response
+    // The response is only meant to a set of variables in booking title(that too only if used in title)
+    logger.error("Error getting routing form response", { error });
+  });
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -667,8 +678,10 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
-  const routingFormResponses = reqBody.routingFormResponses || null;
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
+
+  const routingFormResponses = await routingFormResponsesPromise;
+
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
     attendeeName: fullName || "Nameless",
