@@ -177,7 +177,6 @@ export const EventMeta = ({
                     value={timezone}
                     onChange={(tz) => setTimezone(tz.value)}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
-                    aria-label={t("timezone_selection")}
                   />
                 </span>
               )}
