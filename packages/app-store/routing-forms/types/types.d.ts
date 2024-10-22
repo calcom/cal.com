@@ -26,26 +26,23 @@ export type Routes = z.infer<typeof zodRoutesView>;
 export type Route = NonNullable<Routes>[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
 
-export type SerializableFormTeamMembers = Record<
-  number,
-  {
-    userId: number;
-    email: string;
-    avatarUrl: string | null;
-    name: string | null;
-    defaultScheduleId: number | null;
-    attributes: Record<
-      string,
-      {
-        type: string;
-        options: AttributeOption[];
-        name: string;
-        slug: string;
-        id: string;
-      }
-    >;
-  }
->;
+export type SerializableFormTeamMembers = {
+  userId: number;
+  email: string;
+  avatarUrl: string | null;
+  name: string | null;
+  defaultScheduleId: number | null;
+  attributes: Record<
+    string,
+    {
+      type: AttributeType;
+      options: AttributeOption[];
+      name: string;
+      slug: string;
+      id: string;
+    }
+  >;
+}[];
 
 export type SerializableForm<
   T extends Omit<App_RoutingForms_Form, "fields" | "routes" | "createdAt" | "updatedAt" | "settings">

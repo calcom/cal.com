@@ -11,12 +11,13 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import type { AttributeType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import { RaqbLogicResult } from "../lib/evaluateRaqbLogic";
 import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
-import type { SerializableField, OrderedResponses } from "../types/types";
+import type { SerializableField, OrderedResponses, AttributeOption } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
 import type { AttributesData } from "./raqbUtils";
@@ -212,7 +213,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     routeId,
     isPreview,
   }: {
-    form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
+    form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields" | "teamMembers" | "teamId">;
     response: FormResponse;
     routeId: string;
     isPreview?: boolean;
@@ -259,25 +260,28 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
   const teamMembersMatchingAttributeLogicMap = new Map<number, RaqbLogicResult>();
 
-  const attrsForTeam = form.teamMembers.reduce(
+  const attributesForTeam = form.teamMembers.reduce(
     (
       attrsForTeam: {
         [x: string]: {
-          teamId: number;
+          teamId: number | null;
           id: string;
           name: string;
-          type: string;
+          type: AttributeType;
+          slug: string;
           options: {
-            slug: string;
-            value: string;
-            id: string;
-          }[];
+            [x: string]: {
+              slug: string;
+              value: string;
+              id: string;
+            };
+          };
         };
       },
       { attributes }
     ) => {
       Object.entries(attributes).forEach(([key, value]) => {
-        const newOptions = {};
+        const newOptions: { [x: string]: AttributeOption } = {};
         value.options.forEach((option) => {
           newOptions[option.id] = {
             id: option.id,
@@ -306,10 +310,10 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
       return attrsForTeam;
     },
-    []
+    {}
   );
 
-  const flattenedAttrsForTeam = Object.values(attrsForTeam).map((attribute) => ({
+  const flattenedAttributesForTeam = Object.values(attributesForTeam).map((attribute) => ({
     ...attribute,
     options: Object.values(attribute.options),
   }));
@@ -317,7 +321,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   const [attributesQueryValue, getAttributesQueryValueTimeTaken] = pf(() =>
     getAttributesQueryValue({
       attributesQueryValue: route.attributesQueryValue,
-      attributes: flattenedAttrsForTeam,
+      attributes: flattenedAttributesForTeam,
       response,
       fields: form.fields,
       getFieldResponse,
@@ -330,7 +334,6 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       timeTaken: {
         gQryVal: getAttributesQueryValueTimeTaken,
         gQryCnfg: null,
-        gMbrWtAtr: null,
         lgcFrMbrs: null,
       },
       troubleshooter: enableTroubleshooter
@@ -347,7 +350,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   const [attributesQueryBuilderConfig, getAttributesQueryBuilderConfigTimeTaken] = pf(() =>
     getAttributesQueryBuilderConfig({
       form,
-      attributes: flattenedAttrsForTeam,
+      attributes: flattenedAttributesForTeam,
       attributesQueryValue,
     })
   );
@@ -372,7 +375,6 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
             data: {
               attributesQueryValue,
               attributesQueryBuilderConfig,
-              teamMembersWithAttributeOptionValuePerAttribute,
             },
           }
         : null,
@@ -425,7 +427,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
             attributesQueryValue,
             attributesQueryBuilderConfig,
             logic,
-            attributesForTeam,
+            flattenedAttributesForTeam,
           },
         }
       : null,

@@ -91,6 +91,8 @@ const normalizeTeamMembers = (attributesToUser: NormalizeTeamMembersInput) =>
     }, {})
   );
 
+type NormalizeTeamMembersResult = ReturnType<typeof normalizeTeamMembers>;
+
 /**
  * Doesn't have deleted fields by default
  */
@@ -141,7 +143,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 
   const finalFields = fields.map((field) => getFieldWithOptions(field));
 
-  let teamMembers: SerializableFormTeamMembers = [];
+  let teamMembers: NormalizeTeamMembersResult = [];
   if (form.teamId) {
     teamMembers = normalizeTeamMembers(
       await prisma.attributeToUser.findMany({
