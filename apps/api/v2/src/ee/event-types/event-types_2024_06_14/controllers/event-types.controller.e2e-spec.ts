@@ -20,11 +20,18 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14, FrequencyInput } from "@calcom/platform-enums";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+  FrequencyInput,
+} from "@calcom/platform-enums";
 import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  NameFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -193,6 +200,13 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: false,
+      };
+
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class",
         slug: "coding-class",
@@ -205,6 +219,7 @@ describe("Event types Endpoints", () => {
           },
         ],
         bookingFields: [
+          nameBookingField,
           {
             type: "select",
             label: "select which language you want to learn",
@@ -212,6 +227,7 @@ describe("Event types Endpoints", () => {
             required: true,
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
+            disableOnPrefill: true,
           },
         ],
         scheduleId: firstSchedule.id,
@@ -230,11 +246,37 @@ describe("Event types Endpoints", () => {
           value: 30,
           rolling: true,
         },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
         recurrence: {
           frequency: FrequencyInput.weekly,
           interval: 2,
           occurrences: 10,
+          disabled: false,
         },
+        requiresBookerEmailVerification: false,
+        hideCalendarNotes: false,
+        hideCalendarEventDetails: false,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
+        customName: `{Event type title} between {Organiser} and {Scheduler}`,
       };
 
       return request(app.getHttpServer())
@@ -257,14 +299,29 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(createdEventType.offsetStart).toEqual(body.offsetStart);
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
+          expect(createdEventType.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(createdEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(createdEventType.recurrence).toEqual(body.recurrence);
+          expect(createdEventType.customName).toEqual(body.customName);
+          expect(createdEventType.requiresBookerEmailVerification).toEqual(
+            body.requiresBookerEmailVerification
+          );
 
-          const responseBookingFields = body.bookingFields || [];
+          expect(createdEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(createdEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+            body.lockTimeZoneToggleOnBookingPage
+          );
+          expect(createdEventType.color).toEqual(body.color);
+
+          const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
-            { isDefault: true, required: true, slug: "name", type: "name" },
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
             { isDefault: true, required: true, slug: "email", type: "email" },
             { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
-            ...responseBookingFields.map((field) => ({ isDefault: false, ...field })),
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
@@ -272,12 +329,343 @@ describe("Event types Endpoints", () => {
         });
     });
 
+    it(`/GET/even-types by username`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+
+      const fetchedEventType = responseBody.data?.[0];
+
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedEventType?.title).toEqual(eventType.title);
+      expect(fetchedEventType?.description).toEqual(eventType.description);
+      expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.locations).toEqual(eventType.locations);
+      expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
+      expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
+      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
+      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
+      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.customName).toEqual(eventType.customName);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType.color).toEqual(eventType.color);
+    });
+
+    it("should return an error when creating an event type with seats enabled and multiple locations", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 2",
+        slug: "coding-class-2",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "phone",
+            phone: "+37120993151",
+            public: true,
+          },
+        ],
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when trying to enable seats for an event type with multiple locations", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 3",
+        slug: "coding-class-3",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "phone",
+            phone: "+37120993151",
+            public: true,
+          },
+        ],
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        locations: body.locations,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          seats: {
+            seatsPerTimeSlot: 4,
+            showAttendeeInfo: true,
+            showAvailabilityCount: true,
+          },
+        })
+        .expect(400);
+    });
+
+    it("should return an error when creating an event type with seats enabled and confirmationPolicy enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 4",
+        slug: "coding-class-4",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        scheduleId: firstSchedule.id,
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.ALWAYS,
+          blockUnconfirmedBookingsInBooker: false,
+        },
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when trying to enable seats for an event type with confirmationPolicy enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 5",
+        slug: "coding-class-5",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.ALWAYS,
+          blockUnconfirmedBookingsInBooker: false,
+        },
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+      console.log("createdEventType: ", createdEventType);
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        confirmationPolicy: body.confirmationPolicy,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          seats: {
+            seatsPerTimeSlot: 4,
+            showAttendeeInfo: true,
+            showAvailabilityCount: true,
+          },
+        })
+        .expect(400);
+    });
+
+    it("should return an error when trying to set multiple locations for an event type with seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 6",
+        slug: "coding-class-6",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        seats: body.seats,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+            {
+              type: "phone",
+              phone: "+37120993151",
+              public: true,
+            },
+          ],
+        })
+        .expect(400);
+    });
+
+    it("should return an error when creating an event type with confirmationPolicy enabled and seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 7",
+        slug: "coding-class-7",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.ALWAYS,
+          blockUnconfirmedBookingsInBooker: false,
+        },
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when trying to enable confirmationPolicy for an event type with seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 8",
+        slug: "coding-class-8",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        seats: body.seats,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          confirmationPolicy: {
+            type: ConfirmationPolicyEnum.ALWAYS,
+            blockUnconfirmedBookingsInBooker: false,
+          },
+        })
+        .expect(400);
+    });
+
     it("should update event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: true,
+      };
+
       const newTitle = "Coding class in Italian!";
 
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
+        bookingFields: [
+          nameBookingField,
+          {
+            type: "select",
+            label: "select which language you want to learn",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+            disableOnPrefill: false,
+          },
+        ],
         bookingLimitsCount: {
           day: 4,
           week: 10,
@@ -293,11 +681,33 @@ describe("Event types Endpoints", () => {
           value: 40,
           rolling: false,
         },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.ALWAYS,
+          blockUnconfirmedBookingsInBooker: false,
+        },
         recurrence: {
           frequency: FrequencyInput.monthly,
           interval: 4,
           occurrences: 10,
+          disabled: false,
         },
+        requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
+        customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
       };
 
       return request(app.getHttpServer())
@@ -315,7 +725,19 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
-          expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
+
+          const requestBookingFields = body.bookingFields || [];
+          const expectedBookingFields = [
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
+            { isDefault: true, required: true, slug: "email", type: "email" },
+            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
+          ];
+
+          expect(updatedEventType.bookingFields).toEqual(expectedBookingFields);
+
           expect(updatedEventType.ownerId).toEqual(user.id);
           expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
           expect(updatedEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
@@ -323,7 +745,19 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(updatedEventType.offsetStart).toEqual(body.offsetStart);
           expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
+          expect(updatedEventType.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(updatedEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(updatedEventType.recurrence).toEqual(body.recurrence);
+          expect(updatedEventType.customName).toEqual(body.customName);
+          expect(updatedEventType.requiresBookerEmailVerification).toEqual(
+            body.requiresBookerEmailVerification
+          );
+          expect(updatedEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(updatedEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+            body.lockTimeZoneToggleOnBookingPage
+          );
+          expect(updatedEventType.color).toEqual(body.color);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -332,7 +766,16 @@ describe("Event types Endpoints", () => {
           eventType.bookingLimitsDuration = updatedEventType.bookingLimitsDuration;
           eventType.offsetStart = updatedEventType.offsetStart;
           eventType.bookingWindow = updatedEventType.bookingWindow;
+          eventType.bookerLayouts = updatedEventType.bookerLayouts;
+          eventType.confirmationPolicy = updatedEventType.confirmationPolicy;
           eventType.recurrence = updatedEventType.recurrence;
+          eventType.customName = updatedEventType.customName;
+          eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
+          eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
+          eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
+          eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
+          eventType.color = updatedEventType.color;
+          eventType.bookingFields = updatedEventType.bookingFields;
         });
     });
 
@@ -373,38 +816,19 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
-    });
-
-    it(`/GET/even-types by username`, async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${username}`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
-        .expect(200);
-
-      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
-
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data).toBeDefined();
-      expect(responseBody.data?.length).toEqual(1);
-
-      const fetchedEventType = responseBody.data?.[0];
-
-      expect(fetchedEventType?.id).toEqual(eventType.id);
-      expect(fetchedEventType?.title).toEqual(eventType.title);
-      expect(fetchedEventType?.description).toEqual(eventType.description);
-      expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
-      expect(fetchedEventType?.locations).toEqual(eventType.locations);
-      expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
-      expect(fetchedEventType?.ownerId).toEqual(user.id);
-      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
-      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
-      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
-      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
-      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
-      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.customName).toEqual(eventType.customName);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType.color).toEqual(eventType.color);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -430,7 +854,19 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.customName).toEqual(eventType.customName);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType.color).toEqual(eventType.color);
     });
 
     it(`/GET/:id not existing`, async () => {

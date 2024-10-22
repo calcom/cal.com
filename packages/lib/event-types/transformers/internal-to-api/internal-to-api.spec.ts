@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums/monorepo";
 import type {
   AddressLocation_2024_06_14,
   LinkLocation_2024_06_14,
@@ -7,7 +13,11 @@ import type {
   IntegrationLocation_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,
+  BookerLayoutsTransformedSchema,
+  EventTypeColorsTransformedSchema,
   TransformRecurringEventSchema_2024_06_14,
+  SeatOptionsTransformedSchema,
+  SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
 import {
@@ -16,14 +26,23 @@ import {
   transformIntervalLimitsInternalToApi,
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformSeatsInternalToApi,
 } from ".";
-import type { CustomField } from "./booking-fields";
+import {
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
+  type CustomField,
+  type SystemField,
+} from "./booking-fields";
 
 describe("transformLocationsInternalToApi", () => {
   it("should reverse transform address location", () => {
     const transformedLocation = [
       {
-        type: "inPerson",
+        type: "inPerson" as const,
         address: "1234 Main St",
         displayLocationPublicly: true,
       },
@@ -45,7 +64,7 @@ describe("transformLocationsInternalToApi", () => {
   it("should reverse transform link location", () => {
     const transformedLocation = [
       {
-        type: "link",
+        type: "link" as const,
         link: "https://example.com",
         displayLocationPublicly: true,
       },
@@ -67,7 +86,7 @@ describe("transformLocationsInternalToApi", () => {
   it("should reverse transform phone location", () => {
     const transformedLocation = [
       {
-        type: "userPhone",
+        type: "userPhone" as const,
         hostPhoneNumber: "123456789",
         displayLocationPublicly: true,
       },
@@ -89,7 +108,7 @@ describe("transformLocationsInternalToApi", () => {
   it("should reverse transform integration location", () => {
     const transformedLocation = [
       {
-        type: "integrations:daily",
+        type: "integrations:daily" as const,
       },
     ];
 
@@ -107,6 +126,109 @@ describe("transformLocationsInternalToApi", () => {
 });
 
 describe("transformBookingFieldsInternalToApi", () => {
+  it("should reverse transform not modified name default field", () => {
+    const transformedField: SystemField[] = [systemBeforeFieldName];
+
+    const expectedOutput = [
+      {
+        type: "name",
+        slug: "name",
+        isDefault: true,
+        required: true,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform modified name default field", () => {
+    const nameField = {
+      ...systemBeforeFieldName,
+      placeholder: "custom placeholder",
+      disableOnPrefill: true,
+      label: "custom label",
+      variantsConfig: {
+        variants: {
+          fullName: {
+            fields: [
+              {
+                name: "fullName",
+                label: "custom label",
+                placeholder: "custom placeholder",
+                type: "text",
+                required: true,
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const transformedField: SystemField[] = [nameField];
+
+    const expectedOutput = [
+      {
+        type: "name",
+        slug: "name",
+        isDefault: true,
+        required: true,
+        placeholder: "custom placeholder",
+        disableOnPrefill: true,
+        label: "custom label",
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform not modified email default field", () => {
+    const transformedField: SystemField[] = [systemBeforeFieldEmail];
+
+    const expectedOutput = [
+      {
+        type: "email",
+        slug: "email",
+        isDefault: true,
+        required: true,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform modified email default field", () => {
+    const transformedField: SystemField[] = [
+      {
+        ...systemBeforeFieldEmail,
+        placeholder: "custom placeholder",
+        disableOnPrefill: true,
+        label: "custom label",
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        type: "email",
+        slug: "email",
+        isDefault: true,
+        required: true,
+        placeholder: "custom placeholder",
+        disableOnPrefill: true,
+        label: "custom label",
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should reverse transform phone field", () => {
     const transformedField: CustomField[] = [
       {
@@ -497,7 +619,6 @@ describe("transformBookingFieldsInternalToApi", () => {
         ],
         editable: "user",
         required: true,
-        placeholder: "",
       },
     ];
 
@@ -618,6 +739,162 @@ describe("transformFutureBookingLimitsInternalToApi", () => {
     };
 
     const result = transformFutureBookingLimitsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform disabled", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "UNLIMITED",
+    };
+
+    const expectedOutput = {
+      disabled: true,
+    };
+
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformBookerLayoutsInternalToApi", () => {
+  it("should reverse transform booker layout", () => {
+    const transformedField: BookerLayoutsTransformedSchema = {
+      enabledLayouts: [
+        BookerLayoutsOutputEnum_2024_06_14.column_view,
+        BookerLayoutsOutputEnum_2024_06_14.month_view,
+        BookerLayoutsOutputEnum_2024_06_14.week_view,
+      ],
+      defaultLayout: BookerLayoutsOutputEnum_2024_06_14.week_view,
+    };
+
+    const expectedOutput = {
+      enabledLayouts: [
+        BookerLayoutsInputEnum_2024_06_14.column,
+        BookerLayoutsInputEnum_2024_06_14.month,
+        BookerLayoutsInputEnum_2024_06_14.week,
+      ],
+      defaultLayout: BookerLayoutsInputEnum_2024_06_14.week,
+    };
+    const result = transformBookerLayoutsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformRequiresConfirmationInternalToApi", () => {
+  it("should reverse transform requires confirmation - time", () => {
+    const transformedField = {
+      requiresConfirmation: true,
+      requiresConfirmationThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+      requiresConfirmationWillBlockSlot: true,
+    };
+
+    const expectedOutput = {
+      type: ConfirmationPolicyEnum.TIME,
+      noticeThreshold: {
+        count: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+      blockUnconfirmedBookingsInBooker: true,
+    };
+    const result = transformRequiresConfirmationInternalToApi(
+      transformedField.requiresConfirmation,
+      transformedField.requiresConfirmationWillBlockSlot,
+      transformedField.requiresConfirmationThreshold
+    );
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform requires confirmation - always", () => {
+    const transformedField = {
+      requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
+    };
+
+    const expectedOutput = {
+      type: ConfirmationPolicyEnum.ALWAYS,
+      blockUnconfirmedBookingsInBooker: true,
+    };
+    const result = transformRequiresConfirmationInternalToApi(
+      transformedField.requiresConfirmation,
+      transformedField.requiresConfirmationWillBlockSlot,
+      undefined
+    );
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform requires confirmation - disabled", () => {
+    const transformedField = {
+      requiresConfirmation: false,
+    };
+
+    const expectedOutput = {
+      disabled: true,
+    };
+    const result = transformRequiresConfirmationInternalToApi(
+      transformedField.requiresConfirmation,
+      false,
+      undefined
+    );
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformEventTypeColorsInternalToApi", () => {
+  it("should reverse transform event type colors", () => {
+    const transformedField: EventTypeColorsTransformedSchema = {
+      darkEventTypeColor: "#292929",
+      lightEventTypeColor: "#fafafa",
+    };
+
+    const expectedOutput = {
+      darkThemeHex: "#292929",
+      lightThemeHex: "#fafafa",
+    };
+
+    const result = transformEventTypeColorsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformSeatsInternalToApi", () => {
+  it("should reverse transform event type seats", () => {
+    const transformedSeats: SeatOptionsTransformedSchema = {
+      seatsPerTimeSlot: 10,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: false,
+    };
+
+    const expectedOutput = {
+      seatsPerTimeSlot: 10,
+      showAttendeeInfo: true,
+      showAvailabilityCount: false,
+    };
+
+    const result = transformSeatsInternalToApi(transformedSeats);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform event type seats - disabled", () => {
+    const transformedSeats: SeatOptionsDisabledSchema = {
+      seatsPerTimeSlot: null,
+    };
+
+    const expectedOutput = {
+      disabled: true,
+    };
+
+    const result = transformSeatsInternalToApi(transformedSeats);
 
     expect(result).toEqual(expectedOutput);
   });

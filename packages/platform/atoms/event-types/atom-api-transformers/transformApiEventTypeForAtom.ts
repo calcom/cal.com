@@ -1,4 +1,3 @@
-import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
@@ -8,11 +7,14 @@ import {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
+  transformRecurrenceApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
   CustomFieldOutput_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
 import {
@@ -23,11 +25,14 @@ import {
   eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
 
+import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
+
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
+  const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
@@ -45,7 +50,7 @@ export function transformApiEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, defaultFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -95,14 +100,16 @@ export function transformApiEventTypeForAtom(
         upId: `usr-${user.id}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, ...rest } = eventType;
+  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -119,7 +126,7 @@ export function transformApiTeamEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, defaultFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -180,6 +187,7 @@ export function transformApiTeamEventTypeForAtom(
         upId: `usr-${host.userId}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
@@ -216,24 +224,49 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
   return withPrivateHidden;
 }
 
-function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
+function getBookingFields(
+  bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+) {
+  // note(Lauris): the peculiar thing about returning atom booking fields using v2 event type is that v2 event type has more possible
+  // booking field outputs than inputs due to default system fields that cant be passed as inputs, which is why we take v2 from response
+  // only the custom fields and default editable fields aka fields that can be passed as inputs for event type booking fields.
+  const customFields: (SystemField | CustomField)[] = bookingFields
+    ? transformBookingFieldsApiToInternal(
+        bookingFields.filter((field) => isCustomField(field) || isDefaultEditableField(field))
+      )
+    : [];
+
+  const customFieldsWithoutNameEmail = customFields.filter(
+    (field) => field.type !== "name" && field.type !== "email"
+  );
+  const customNameField = customFields?.find((field) => field.type === "name");
+  const customEmailField = customFields?.find((field) => field.type === "email");
+
   const systemBeforeFields: SystemField[] = [
-    systemBeforeFieldName,
-    systemBeforeFieldEmail,
+    customNameField || systemBeforeFieldName,
+    customEmailField || systemBeforeFieldEmail,
     systemBeforeFieldLocation,
   ];
-
-  const transformedCustomFields: CustomField[] = transformBookingFieldsApiToInternal(
-    bookingFields.filter((field) => isCustomField(field))
-  );
 
   const systemAfterFields: SystemField[] = [systemAfterFieldRescheduleReason];
 
   const transformedBookingFields: (SystemField | CustomField)[] = [
     ...systemBeforeFields,
-    ...transformedCustomFields,
+    ...customFieldsWithoutNameEmail,
     ...systemAfterFields,
   ];
+
+  // note(Lauris): in web app booking form values can be passed as url query params, but booker atom does not accept booking field values via url,
+  // so defaultFormValues act as a way to prefill booking form fields, and if the field in database has disableOnPrefill=true and value passed then its read only.
+  const defaultFormValuesKeys = defaultFormValues ? Object.keys(defaultFormValues) : [];
+  if (defaultFormValuesKeys.length) {
+    for (const field of transformedBookingFields) {
+      if (defaultFormValuesKeys.includes(field.name) && field.disableOnPrefill) {
+        field.editable = "user-readonly";
+      }
+    }
+  }
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
 }
@@ -242,4 +275,10 @@ function isCustomField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
 ): field is CustomFieldOutput_2024_06_14 {
   return !field.isDefault;
+}
+
+function isDefaultEditableField(
+  field: EventTypeOutput_2024_06_14["bookingFields"][number]
+): field is NameDefaultFieldOutput_2024_06_14 | EmailDefaultFieldOutput_2024_06_14 {
+  return field.type === "name" || field.type === "email";
 }

@@ -1,6 +1,6 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
-import { WebhookTriggerEvents } from "@prisma/client"
+import { WebhookTriggerEvents, TimeUnit } from "@prisma/client"
 import { CompleteUser, UserModel, CompleteTeam, TeamModel, CompleteEventType, EventTypeModel, CompletePlatformOAuthClient, PlatformOAuthClientModel, CompleteApp, AppModel, CompleteWebhookScheduledTriggers, WebhookScheduledTriggersModel } from "./index"
 
 export const _WebhookModel = z.object({
@@ -17,6 +17,8 @@ export const _WebhookModel = z.object({
   appId: z.string().nullish(),
   secret: z.string().nullish(),
   platform: z.boolean(),
+  time: z.number().int().nullish(),
+  timeUnit: z.nativeEnum(TimeUnit).nullish(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {

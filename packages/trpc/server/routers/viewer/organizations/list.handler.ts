@@ -11,12 +11,13 @@ type ListHandlerInput = {
 
 // This functionality is essentially the same as the teams/list.handler.ts but it's easier for SOC to have it in a separate file.
 export const listHandler = async ({ ctx }: ListHandlerInput) => {
-  if (!ctx.user.organization?.id) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "You do not belong to an organization" });
+  const organizationId = ctx.user.organization?.id ?? ctx.user.profiles[0]?.organizationId;
+  if (!organizationId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "You do not belong to  an organization" });
   }
   return await OrganizationRepository.findCurrentOrg({
     userId: ctx.user.id,
-    orgId: ctx.user.organization.id,
+    orgId: organizationId,
   });
 };
 
