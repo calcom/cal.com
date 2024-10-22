@@ -488,7 +488,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         </span>
                         <AddMembersWithSwitch
                           teamMembers={form.teamMembers.map((member) => ({
-                            value: member.userId,
+                            value: member.userId.toString(),
                             label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,
@@ -522,7 +522,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           onActive={() => {
                             hookForm.setValue(
                               "settings.sendUpdatesTo",
-                              form.teamMembers.map((teamMember) => teamMember.id),
+                              form.teamMembers.map((teamMember) => teamMember.userId),
                               { shouldDirty: true }
                             );
                             hookForm.setValue("settings.emailOwnerOnSubmission", false, {
