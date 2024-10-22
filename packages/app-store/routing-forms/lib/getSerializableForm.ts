@@ -8,8 +8,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
-import type { zodRoutesView, zodFieldsView } from "../zod";
+import type { Fields, SerializableFormTeamMembers } from "../types/types";
+import type { zodRoutesView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
@@ -126,13 +126,15 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const parsedFields =
     (withDeletedFields ? fieldsParsed.data : fieldsParsed.data?.filter((f) => !f.deleted)) || [];
   const parsedRoutes = routesParsed.data;
-  const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
   const fieldsExistInForm: Record<string, true> = {};
   parsedFields?.forEach((f) => {
     fieldsExistInForm[f.id] = true;
   });
-
+  // here we convert parsedFields to NonNullable<Fields> (fieldsParsed)
+  // contains only db values; Fields allows extension further down the line for display (zodFieldView)
+  const fields: NonNullable<Fields> = parsedFields.map((field) => getFieldWithOptions(field));
+  // also side-effects fields (useful tidbit)
   const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, form.userId);
 
   const connectedForms = (await getConnectedForms(prisma, form)).map((f) => ({
@@ -140,8 +142,6 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     name: f.name,
     description: f.description,
   }));
-
-  const finalFields = fields.map((field) => getFieldWithOptions(field));
 
   let teamMembers: NormalizeTeamMembersResult = [];
   if (form.teamId) {
@@ -164,11 +164,20 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     );
   }
 
-  // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
-  const serializableForm: SerializableForm<TForm> = {
-    ...form,
+  // by using formPassThrough we keep possible types (like JsonValue) out of serializableForm
+  const {
+    fields: _fields,
+    routes: _routes,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    settings: _settings,
+    ...formPassThrough
+  } = form;
+  // would like to know how to do this without formPassThrough but -_^
+  const serializableForm = {
+    ...formPassThrough,
     settings,
-    fields: finalFields,
+    fields,
     routes,
     routers,
     connectedForms,
@@ -176,6 +185,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
   };
+
   return serializableForm;
 
   /**
@@ -217,7 +227,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
           routes: parsedRouter.routes || [],
         });
 
-        parsedRouter.fields?.forEach((field) => {
+        parsedRouter.fields.forEach((field) => {
           if (!fieldsExistInForm[field.id]) {
             // Instead of throwing error, Log it instead of breaking entire routing forms feature
             console.error(
