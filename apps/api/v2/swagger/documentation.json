@@ -5957,6 +5957,10 @@
           },
           "placeholder": {
             "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -5990,6 +5994,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 1234 Main St"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6023,6 +6031,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6056,6 +6068,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 100"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6089,6 +6105,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Detailed description here..."
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6132,6 +6152,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6172,6 +6196,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6205,6 +6233,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., example@example.com"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
           }
         },
         "required": [
@@ -6244,6 +6276,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
           }
         },
         "required": [
@@ -6283,6 +6319,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6311,6 +6351,9 @@
             "example": "Agree to terms?"
           },
           "required": {
+            "type": "boolean"
+          },
+          "disableOnPrefill": {
             "type": "boolean"
           }
         },
@@ -6855,6 +6898,37 @@
       "EmailDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "email",
+            "description": "only allowed value for type is `email`",
+            "default": "email"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6865,24 +6939,51 @@
             "type": "string",
             "default": "email"
           },
-          "type": {
-            "type": "string",
-            "default": "email"
-          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
+          "type",
           "isDefault",
           "slug",
-          "type",
           "required"
         ]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "name",
+            "description": "only allowed value for type is `name`",
+            "default": "name"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6893,18 +6994,14 @@
             "type": "string",
             "default": "name"
           },
-          "type": {
-            "type": "string",
-            "default": "name"
-          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
+          "type",
           "isDefault",
           "slug",
-          "type",
           "required"
         ]
       },
@@ -7054,6 +7151,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7085,6 +7184,10 @@
             "type": "string",
             "example": "e.g., 1234 Main St"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7106,6 +7209,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7133,6 +7238,9 @@
           "required": {
             "type": "boolean"
           },
+          "disableOnPrefill": {
+            "type": "boolean"
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7154,6 +7262,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7191,6 +7301,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7213,6 +7327,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7244,6 +7360,10 @@
             "type": "string",
             "example": "e.g., example@example.com"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7265,6 +7385,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7302,6 +7424,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7324,6 +7450,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7355,6 +7483,10 @@
             "type": "string",
             "example": "e.g., 100"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7376,6 +7508,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7405,6 +7539,10 @@
           "placeholder": {
             "type": "string"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7426,6 +7564,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7463,6 +7603,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7485,6 +7629,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7526,6 +7672,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7548,6 +7698,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7579,6 +7731,10 @@
             "type": "string",
             "example": "e.g., Detailed description here..."
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7600,6 +7756,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7630,6 +7788,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           },
           "isDefault": {
             "type": "object",

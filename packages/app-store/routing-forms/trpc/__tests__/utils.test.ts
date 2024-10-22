@@ -35,6 +35,7 @@ function mockAttributesScenario({
         Object.entries(member.attributes).map(([attributeId, value]) => {
           return [
             attributeId,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
             { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
           ];
         })
