@@ -1,11 +1,11 @@
-/*import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import React from "react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { RerouteDialog } from "../RerouteDialog";
-import React from "react";
 
 const mockRouter = {
   push: vi.fn((_path: string) => {
@@ -22,7 +22,7 @@ vi.mock("next/navigation", async (importOriginal) => {
 });
 
 vi.mock("@calcom/app-store/routing-forms/lib/processRoute", () => ({
-  findMatchingRoute: vi.fn(({ form, _response }) => {
+  findMatchingRoute: vi.fn(({ form, response: _response }) => {
     return form.routes.find((route: any) => route.__testMatching);
   }),
 }));
@@ -204,7 +204,7 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-let mockMutateFn = vi.fn(({ __testOnSuccess }) => {
+const mockMutateFn = vi.fn(({ __testOnSuccess }) => {
   __testOnSuccess({
     uid: "RESCHEDULED_BOOKING_UID_SAME_TIMESLOT",
   });
@@ -248,7 +248,7 @@ function correctResponses() {
   fireEvent.click(screen.getByTestId("mock-form-update-response-button"));
 }
 
-function expectEventTypeInfoInCurrentRouting({
+async function expectEventTypeInfoInCurrentRouting({
   eventTypeText,
   eventTypeHref,
 }: {
@@ -257,10 +257,12 @@ function expectEventTypeInfoInCurrentRouting({
 }) {
   const eventTypeEl = screen.getByTestId("current-routing-status-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
+  const anchorEl = eventTypeEl.querySelector("a");
+  expect(anchorEl).not.toBeNull();
+  await expect(anchorEl).toHaveAttribute("href", eventTypeHref);
 }
 
-function expectEventTypeInfoInReroutePreview({
+async function expectEventTypeInfoInReroutePreview({
   eventTypeText,
   eventTypeHref,
 }: {
@@ -269,7 +271,9 @@ function expectEventTypeInfoInReroutePreview({
 }) {
   const eventTypeEl = screen.getByTestId("reroute-preview-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
+  const anchorEl = eventTypeEl.querySelector("a");
+  expect(anchorEl).not.toBeNull();
+  await expect(anchorEl).toHaveAttribute("href", eventTypeHref);
 }
 
 function expectOrganizerInfoInCurrentRouting({ organizerText }: { organizerText: string }) {
@@ -344,9 +348,9 @@ describe("RerouteDialog", () => {
 
   test("verify_new_route button is disabled when form fields are not filled", async () => {
     render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
-    expect(screen.getByText("verify_new_route")).toBeDisabled();
+    await expect(screen.getByText("verify_new_route")).toBeDisabled();
     correctResponses();
-    expect(screen.getByText("verify_new_route")).toBeEnabled();
+    await expect(screen.getByText("verify_new_route")).toBeEnabled();
   });
 
   test("disabledFields are passed to FormInputFields with value ['email'] - email field is disabled", async () => {
@@ -385,7 +389,7 @@ describe("RerouteDialog", () => {
         eventTypeText: "team/test-team/new-test-event",
         eventTypeHref: "https://cal.com/team/test-team/new-test-event",
       });
-      expect(screen.getByText("verify_new_route")).toBeEnabled();
+      await expect(screen.getByText("verify_new_route")).toBeEnabled();
       expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("reroute_preview_possible_host");
       expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("matching-user-1@example.com");
 
@@ -492,4 +496,3 @@ function expectToBeNavigatedToBookingPage({
 }) {
   expect(mockRouter.push).toHaveBeenCalledWith(`/booking/${booking.uid}?cal.rerouting=true`);
 }
-*/
