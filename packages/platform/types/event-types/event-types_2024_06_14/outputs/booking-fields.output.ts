@@ -17,9 +17,11 @@ import {
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
+  NameFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14,
 } from "../inputs";
 
-export class NameDefaultFieldOutput_2024_06_14 {
+export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -45,7 +47,7 @@ export class NameDefaultFieldOutput_2024_06_14 {
   required!: true;
 }
 
-export class EmailDefaultFieldOutput_2024_06_14 {
+export class EmailDefaultFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -83,6 +85,8 @@ export class LocationDefaultFieldOutput_2024_06_14 {
   @IsString()
   @DocsProperty({
     default: "location",
+    description:
+      "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place.",
   })
   slug!: "location";
 

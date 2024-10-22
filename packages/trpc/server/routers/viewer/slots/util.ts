@@ -924,17 +924,16 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         troubleshooter: {
           // One that Salesforce asked for
           askedContactOwner: contactOwnerEmailFromInput,
-          // One that we used as per Routing
-          usedContactOwner: contactOwnerEmail,
-          routedHosts: routedHostsWithContactOwnerAndFixedHosts.map((host) => {
+          // One that we used as per Routing skipContactOwner flag
+          consideredContactOwner: contactOwnerEmail,
+          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+          routedHosts: usersWithCredentials.map((user) => {
             return {
-              email: host.email,
-              user: host.user.id,
+              userId: user.id,
             };
           }),
           hosts: eventHosts.map((host) => ({
-            email: host.email,
-            user: host.user.id,
+            userId: host.user.id,
           })),
         },
       }
