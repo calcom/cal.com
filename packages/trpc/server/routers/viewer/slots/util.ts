@@ -614,6 +614,73 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   const currentBookingsAllUsers = [...resultOne, ...resultTwo, ...resultThree];
 
+  const outOfOfficeDaysAllUsers = await prisma.outOfOfficeEntry.findMany({
+    where: {
+      userId: {
+        in: allUserIds,
+      },
+      OR: [
+        // outside of range
+        // (start <= 'dateTo' AND end >= 'dateFrom')
+        {
+          start: {
+            lte: endTimeDate,
+          },
+          end: {
+            gte: startTimeDate,
+          },
+        },
+        // start is between dateFrom and dateTo but end is outside of range
+        // (start <= 'dateTo' AND end >= 'dateTo')
+        {
+          start: {
+            lte: endTimeDate,
+          },
+
+          end: {
+            gte: startTimeDate,
+          },
+        },
+        // end is between dateFrom and dateTo but start is outside of range
+        // (start <= 'dateFrom' OR end <= 'dateTo')
+        {
+          start: {
+            lte: endTimeDate,
+          },
+
+          end: {
+            lte: startTimeDate,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      toUser: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+        },
+      },
+    },
+  });
+
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
@@ -639,6 +706,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
           return bookingWithoutAttendees;
         }),
+      outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
     };
   });
 
