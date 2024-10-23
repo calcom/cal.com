@@ -19,9 +19,17 @@ import type {
   CreateEventTypeInput_2024_06_14,
   SeatOptionsTransformedSchema,
   SeatOptionsDisabledSchema,
+  AttendeeAddressLocation_2024_06_14,
+  AttendeePhoneLocation_2024_06_14,
+  AttendeeDefinedLocation_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { CustomField } from "../internal-to-api/booking-fields";
+import {
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
+  type CustomField,
+  type SystemField,
+} from "../internal-to-api/booking-fields";
 import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
@@ -102,9 +110,101 @@ describe("transformLocationsApiToInternal", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform attendee address", () => {
+    const input: AttendeeAddressLocation_2024_06_14[] = [
+      {
+        type: "attendeeAddress",
+      },
+    ];
+
+    const expectedOutput = [{ type: "attendeeInPerson" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee phone", () => {
+    const input: AttendeePhoneLocation_2024_06_14[] = [
+      {
+        type: "attendeePhone",
+      },
+    ];
+
+    const expectedOutput = [{ type: "phone" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee defined", () => {
+    const input: AttendeeDefinedLocation_2024_06_14[] = [
+      {
+        type: "attendeeDefined",
+      },
+    ];
+
+    const expectedOutput = [{ type: "somewhereElse" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformBookingFieldsApiToInternal", () => {
+  it("should transform name field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "name",
+      label: "Your name number",
+      placeholder: "123456789",
+      disableOnPrefill: true,
+    };
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedField = {
+      ...systemBeforeFieldName,
+      label: "Your name number",
+      placeholder: "123456789",
+      disableOnPrefill: true,
+    };
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expectedField.variantsConfig.variants.fullName.fields[0].label = "Your name number";
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expectedField.variantsConfig.variants.fullName.fields[0].placeholder = "123456789";
+
+    const expectedOutput: SystemField[] = [expectedField];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform email field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "email",
+      label: "Your email",
+      placeholder: "bob@gmail.com",
+      disableOnPrefill: true,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: SystemField[] = [
+      {
+        ...systemBeforeFieldEmail,
+        label: "Your email",
+        placeholder: "bob@gmail.com",
+        disableOnPrefill: true,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should transform phone field", () => {
     const bookingField: InputBookingField_2024_06_14 = {
       type: "phone",
@@ -475,6 +575,44 @@ describe("transformBookingFieldsApiToInternal", () => {
         name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
+        labelAsSafeHtml: `<p>${bookingField.label}</p>\n`,
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: bookingField.required,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should keep disableOnPrefill property", () => {
+    const disableOnPrefill = true;
+
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "radio",
+      slug: "radio",
+      label: "Your radio buttons",
+      required: true,
+      options: ["Radio 1", "Radio 2"],
+      disableOnPrefill,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: CustomField[] = [
+      {
+        name: bookingField.slug,
+        type: bookingField.type,
+        label: bookingField.label,
         sources: [
           {
             id: "user",
@@ -486,6 +624,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: "",
+        options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill,
       },
     ];
 
