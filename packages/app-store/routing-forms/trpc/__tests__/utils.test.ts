@@ -20,6 +20,9 @@ vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
 }));
 vi.mock("@calcom/ui", () => ({}));
 
+const ensureStringAsArray = (valueToEnsure: string | string[]): string[] =>
+  typeof valueToEnsure === "string" ? [valueToEnsure] : valueToEnsure;
+
 function mockAttributesScenario({
   attributes,
   teamMembersWithAttributeOptionValuePerAttribute,
@@ -37,11 +40,9 @@ function mockAttributesScenario({
       if (!selectedAttr) {
         throw new Error("Invalid attribute given.");
       }
-      const selectedAttrOptionValues: string[] =
-        typeof teamMemberAttrs[key] === "string" ? [teamMemberAttrs[key]] : teamMemberAttrs[key];
       newAttributes[key] = {
         ...selectedAttr,
-        options: selectedAttrOptionValues.map((selectedAttrOptionValue) => {
+        options: ensureStringAsArray(teamMemberAttrs[key]).map((selectedAttrOptionValue) => {
           const selectedOption = selectedAttr.options.find(
             (option) => option.value === selectedAttrOptionValue
           );
