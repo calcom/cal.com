@@ -23,7 +23,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     calEvent: CalendarEvent;
     newSeat?: boolean;
     teamMember?: Person;
-    reassignedTo: { email: string; name: string | null };
+    reassignedTo?: { email: string; name: string | null };
   }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";

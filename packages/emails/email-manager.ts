@@ -206,7 +206,6 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
         sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
       );
     } else {
-      console.log("reassignment email here");
       emailsAndSMSToSend.push(
         sendEmail(() => new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassignedTo }))
       );
