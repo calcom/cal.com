@@ -1,5 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { google } from "googleapis";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -27,7 +28,9 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -258,6 +261,8 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       authorization: {
         params: {
           scope: [...GOOGLE_OAUTH_SCOPES, ...GOOGLE_CALENDAR_SCOPES].join(" "),
+          access_type: "offline",
+          prompt: "consent",
         },
       },
     })
@@ -472,8 +477,10 @@ export const getOptions = ({
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
+      console.log("ACCOUNT123", account, account?.access_token, account?.refresh_token);
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
+        console.log("HELLO,BENNY");
         return {
           ...token,
           profileId: session?.profileId ?? token.profileId ?? null,
@@ -617,6 +624,69 @@ export const getOptions = ({
           return await autoMergeIdentities();
         }
 
+        if (account.provider === "google") {
+          // Installing Google Calendar by default
+          console.log("Installing Google Calendar by default");
+
+          const isAlreadyInstalled = await CredentialRepository.findFirstByAppIdAndUserId({
+            appId: "google-calendar",
+            userId: user.id,
+          });
+          if (isAlreadyInstalled) {
+            const credentialkey = {
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              id_token: account.id_token,
+              token_type: account.token_type,
+              expires_at: account.expires_at,
+              scope: account.scope,
+            };
+            console.log("HELLO123");
+            console.log("isAlreadyInstalled false");
+
+            const [credential] = await Promise.all([
+              CredentialRepository.create({
+                type: "google_calendar",
+                userId: user.id,
+                appId: "google-calendar",
+                key: credentialkey,
+              }),
+              CredentialRepository.create({
+                type: "google_video",
+                key: {},
+                userId: user.id,
+                appId: "google-meet",
+              }),
+            ]);
+
+            const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+            oAuth2Client.setCredentials(credentialkey);
+
+            const calendar = google.calendar({
+              version: "v3",
+              auth: oAuth2Client,
+            });
+
+            const cals = await calendar.calendarList.list({
+              fields: "items(id,summary,primary,accessRole)",
+            });
+
+            let primaryCal = cals.data.items?.find((cal) => cal.primary);
+
+            if (!primaryCal?.id) {
+              primaryCal = cals.data.items?.[0];
+            }
+            console.log("CREDENTIAL ID", credential.id);
+            console.log("PRIMARY CAL ID", primaryCal);
+            await SelectedCalendarRepository.create({
+              credentialId: credential.id,
+              userId: user.id,
+              externalId: primaryCal.id,
+              integration: "google_calendar",
+            });
+          }
+        }
+
         return {
           ...token,
           id: existingUser.id,
@@ -628,7 +698,6 @@ export const getOptions = ({
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
-          scopes: account?.scope,
         } as JWT;
       }
 
@@ -642,10 +711,11 @@ export const getOptions = ({
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const licenseKeyService = await LicenseKeySingleton.getInstance();
       const hasValidLicense = await licenseKeyService.checkLicense();
-
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
         profileId,
         upId: token.upId || session.upId,
         hasValidLicense,

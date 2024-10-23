@@ -52,6 +52,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
 
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
@@ -110,41 +111,6 @@ const OnboardingPage = (props: PageProps) => {
   };
 
   const currentStepIndex = steps.indexOf(currentStep);
-
-  useEffect(() => {
-    if (!user || user.identityProvider !== IdentityProvider.GOOGLE) {
-      return;
-    }
-    const installGoogleCalendar = async () => {
-      try {
-        setIsInstallPending(true);
-
-        const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
-        const state: IntegrationOAuthCallbackState = {
-          onErrorReturnTo,
-          fromApp: true,
-          installGoogleVideo: true,
-        };
-
-        const searchParams = `?state=${encodeURIComponent(JSON.stringify(state))}`;
-
-        const res = await fetch(`/api/integrations/google_calendar/add?${searchParams}`);
-
-        if (!res.ok) {
-          const errorBody = await res.json();
-          throw new Error(errorBody.message || "Something went wrong during Google Calendar installation");
-        }
-
-        const json = await res.json();
-        console.log("ONBOARDING", json);
-      } catch (error) {
-        console.error("Google Calendar installation failed:", error);
-      } finally {
-        setIsInstallPending(false);
-      }
-    };
-    installGoogleCalendar();
-  }, []);
 
   return (
     <div
