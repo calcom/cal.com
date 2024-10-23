@@ -24,4 +24,13 @@ export class CredentialRepository {
       select: { ...safeCredentialSelect, key: true },
     });
   }
+
+  static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
+    return await prisma.credential.findFirst({
+      where: {
+        appId,
+        userId,
+      },
+    });
+  }
 }
