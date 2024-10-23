@@ -116,30 +116,34 @@ const OnboardingPage = (props: PageProps) => {
       return;
     }
     const installGoogleCalendar = async () => {
-      setIsInstallPending(true);
-      const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
-      const state: IntegrationOAuthCallbackState = {
-        onErrorReturnTo,
-        fromApp: true,
-        installGoogleVideo: true,
-      };
+      try {
+        setIsInstallPending(true);
 
-      const stateStr = JSON.stringify(state);
-      const searchParams = new URLSearchParams({
-        state: stateStr,
-      }).toString();
+        const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
+        const state: IntegrationOAuthCallbackState = {
+          onErrorReturnTo,
+          fromApp: true,
+          installGoogleVideo: true,
+        };
 
-      const res = await fetch(`/api/integrations/google_calendar/add${searchParams}`);
+        const searchParams = new URLSearchParams({
+          state: JSON.stringify(state),
+        }).toString();
 
-      if (!res.ok) {
-        const errorBody = await res.json();
+        const res = await fetch(`/api/integrations/google_calendar/add?${searchParams}`);
+
+        if (!res.ok) {
+          const errorBody = await res.json();
+          throw new Error(errorBody.message || "Something went wrong during Google Calendar installation");
+        }
+
+        const json = await res.json();
+        console.log(json);
+      } catch (error) {
+        console.error("Google Calendar installation failed:", error);
+      } finally {
         setIsInstallPending(false);
-        throw new Error(errorBody.message || "Something went wrong");
       }
-
-      const json = await res.json();
-      console.log(json);
-      setIsInstallPending(false);
     };
     installGoogleCalendar();
   }, []);
