@@ -114,7 +114,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
       onOpenChange={(open) => {
         setIsOpenDialog(open);
       }}>
-      <DialogContent title={t("reassign_round_robin_host")} description={t("reassign_to_another_rr_host")}>
+      <DialogContent
+        title={t("reassign_round_robin_host")}
+        description={t("reassign_to_another_rr_host")}
+        enableOverflow>
         {/* TODO add team member reassignment*/}
         <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
           <RadioArea.Group
