@@ -477,10 +477,8 @@ export const getOptions = ({
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
-      console.log("ACCOUNT123", account, account?.access_token, account?.refresh_token);
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
-        console.log("HELLO,BENNY");
         return {
           ...token,
           profileId: session?.profileId ?? token.profileId ?? null,
@@ -626,7 +624,6 @@ export const getOptions = ({
 
         if (account.provider === "google") {
           // Installing Google Calendar by default
-          console.log("Installing Google Calendar by default");
 
           const isAlreadyInstalled = await CredentialRepository.findFirstByAppIdAndUserId({
             appId: "google-calendar",
@@ -640,8 +637,6 @@ export const getOptions = ({
               token_type: account.token_type,
               expires_at: account.expires_at,
             };
-            console.log("HELLO123");
-            console.log("isAlreadyInstalled false");
 
             const [credential] = await Promise.all([
               CredentialRepository.create({
@@ -673,9 +668,6 @@ export const getOptions = ({
             const primaryCal = cals.data.items?.find((cal) => cal.primary) ?? cals.data.items?.[0];
 
             if (primaryCal?.id) {
-              console.log("CREDENTIAL ID", credential.id);
-              console.log("PRIMARY CAL ID", primaryCal);
-
               await SelectedCalendarRepository.create({
                 credentialId: credential.id,
                 userId: user.id as number,
