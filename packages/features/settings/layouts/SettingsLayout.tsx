@@ -1,3 +1,5 @@
+"use client";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -8,7 +10,7 @@ import React, { Suspense, useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -138,6 +140,9 @@ tabs.find((tab) => {
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
+  }
 });
 
 // The following keys are assigned to admin only
@@ -166,6 +171,16 @@ const useTabs = () => {
         const newArray = (tab?.children ?? []).filter(
           (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
         );
+
+        // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
+        // You have to refresh the page to see the changes.
+        if (true) {
+          newArray.splice(4, 0, {
+            name: "attributes",
+            href: "/settings/organizations/attributes",
+          });
+        }
+
         return {
           ...tab,
           children: newArray,
@@ -182,8 +197,10 @@ const useTabs = () => {
           (childTab) => childTab.href !== "/settings/security/two-factor-auth"
         );
         return { ...tab, children: filtered };
-      } else if (tab.href === "/settings/developer" && !!orgBranding) {
-        const filtered = tab?.children?.filter((childTab) => childTab.name !== "admin_api");
+      } else if (tab.href === "/settings/developer") {
+        const filtered = tab?.children?.filter(
+          (childTab) => isOrgAdminOrOwner || childTab.name !== "admin_api"
+        );
         return { ...tab, children: filtered };
       }
       return tab;
@@ -242,6 +259,7 @@ const TeamListCollapsible = () => {
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -272,7 +290,7 @@ const TeamListCollapsible = () => {
                 }>
                 <CollapsibleTrigger asChild>
                   <div
-                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
+                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                     onClick={() =>
                       setTeamMenuState([
                         ...teamMenuState,
@@ -355,6 +373,12 @@ const TeamListCollapsible = () => {
                           />
                         </>
                       ) : null}
+                      <VerticalTabItem
+                        name={t("booking_limits")}
+                        href={`/settings/teams/${team.id}/bookingLimits`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        disableChevron
+                      />
                     </>
                   )}
                 </CollapsibleContent>
@@ -401,6 +425,7 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -473,7 +498,7 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
@@ -507,7 +532,7 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
@@ -546,7 +571,7 @@ const SettingsSidebarContainer = ({
                               }>
                               <CollapsibleTrigger asChild>
                                 <div
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                                   onClick={() =>
                                     setOtherTeamMenuState([
                                       ...otherTeamMenuState,
@@ -634,10 +659,13 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export default function SettingsLayout({
-  children,
-  ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+export type SettingsLayoutProps = {
+  children: React.ReactNode;
+  hideHeader?: boolean;
+  containerClassName?: string;
+} & ComponentProps<typeof Shell>;
+
+export default function SettingsLayout({ children, hideHeader, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -680,8 +708,9 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
-          <ShellHeader />
+        <div
+          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+          {!hideHeader && <ShellHeader />}
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
           </ErrorBoundary>

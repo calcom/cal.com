@@ -27,6 +27,7 @@ import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enum
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
@@ -34,7 +35,9 @@ import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
-logger.settings.minLevel = 0;
+type Fields = z.infer<typeof eventTypeBookingFields>;
+
+logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
@@ -75,6 +78,7 @@ type InputWorkflowReminder = {
 type InputHost = {
   userId: number;
   isFixed?: boolean;
+  scheduleId?: number | null;
 };
 /**
  * Data to be mocked
@@ -116,6 +120,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       name: string;
       slug: string;
       parentId?: number;
+      isPrivate?: boolean;
     };
   }[];
   schedules: {
@@ -141,6 +146,7 @@ export type InputEventType = {
   length?: number;
   offsetStart?: number;
   slotInterval?: number;
+  userId?: number;
   minimumBookingNotice?: number;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
@@ -148,16 +154,19 @@ export type InputEventType = {
   users?: { id: number }[];
   hosts?: InputHost[];
   schedulingType?: SchedulingType;
+  parent?: { id: number };
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
   team?: {
     id?: number | null;
     parentId?: number | null;
+    bookingLimits?: IntervalLimit;
+    includeManagedEventsInLimits?: boolean;
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-  schedule?: InputUser["schedules"][number];
+  schedule?: InputUser["schedules"][number] | null;
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
@@ -178,13 +187,16 @@ type WhiteListedBookingProps = {
   status: BookingStatus;
   attendees?: {
     email: string;
+    phoneNumber?: string;
     bookingSeat?: AttendeeBookingSeatInput | null;
   }[];
   references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  user?: { id: number };
   bookingSeat?: Prisma.BookingSeatCreateInput[];
+  createdAt?: string;
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
@@ -211,6 +223,13 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
             id: host.userId,
           },
         },
+        schedule: host.scheduleId
+          ? {
+              connect: {
+                id: host.scheduleId,
+              },
+            }
+          : undefined,
       };
 
       await prismock.host.create({
@@ -238,6 +257,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
+    team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -277,6 +297,22 @@ export async function addEventTypesToDb(
         },
       });
     }
+
+    if (eventType.team?.id) {
+      const createdTeam = await prismock.team.create({
+        data: {
+          id: eventType.team?.id,
+          bookingLimits: eventType.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
+          name: "",
+        },
+      });
+
+      await prismock.eventType.update({
+        where: { id: eventType.id },
+        data: { teamId: createdTeam.id },
+      });
+    }
   }
   /***
    *  HACK ENDS
@@ -299,6 +335,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     bookingLimits: {},
+    includeManagedEventsInLimits: false,
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
@@ -354,6 +391,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
+      parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
     };
   });
@@ -371,6 +409,7 @@ async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
+    user?: { id: number };
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
@@ -457,6 +496,16 @@ export async function addBookings(bookings: InputBooking[]) {
                 return attendee;
               }
             }),
+          },
+        };
+      }
+
+      if (booking?.user?.id) {
+        bookingCreate.user = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          connect: {
+            id: booking.user.id,
           },
         };
       }
@@ -1243,7 +1292,6 @@ export function getScenarioData(
       ];
     });
   }
-
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -1259,8 +1307,10 @@ export function getScenarioData(
         ...eventType,
         teamId: eventType.teamId || null,
         team: {
-          id: eventType.teamId,
+          id: eventType.teamId ?? eventType.team?.id,
           parentId: org ? org.id : null,
+          bookingLimits: eventType?.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType?.team?.includeManagedEventsInLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
@@ -1292,10 +1342,10 @@ export function enableEmailFeature() {
 
 export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
-  // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
+      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });
@@ -1706,10 +1756,19 @@ export function mockCrmApp(
   };
 }
 
-export function getBooker({ name, email }: { name: string; email: string }) {
+export function getBooker({
+  name,
+  email,
+  attendeePhoneNumber,
+}: {
+  name: string;
+  email: string;
+  attendeePhoneNumber?: string;
+}) {
   return {
     name,
     email,
+    attendeePhoneNumber,
   };
 }
 
@@ -1768,8 +1827,11 @@ export function getMockBookingReference(
 }
 
 export function getMockBookingAttendee(
-  attendee: Omit<Attendee, "bookingId"> & {
+  attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email" | "noShow"> & {
     bookingSeat?: AttendeeBookingSeatInput;
+    phoneNumber?: string | null;
+    email: string;
+    noShow?: boolean;
   }
 ) {
   return {
@@ -1779,6 +1841,8 @@ export function getMockBookingAttendee(
     email: attendee.email,
     locale: attendee.locale,
     bookingSeat: attendee.bookingSeat || null,
+    phoneNumber: attendee.phoneNumber ?? undefined,
+    noShow: attendee.noShow ?? false,
   };
 }
 
@@ -1820,4 +1884,90 @@ export const replaceDates = (dates: string[], replacement: Record<string, string
   return dates.map((date) => {
     return date.replace(/(.*)T/, (_, group1) => `${replacement[group1]}T`);
   });
+};
+
+export const getDefaultBookingFields = ({
+  emailField,
+  bookingFields = [],
+}: {
+  emailField?: Fields[number];
+  bookingFields: Fields;
+}) => {
+  return [
+    {
+      name: "name",
+      type: "name",
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system",
+      required: true,
+      defaultLabel: "your_name",
+    },
+    !!emailField
+      ? emailField
+      : {
+          name: "email",
+          type: "email",
+          label: "",
+          hidden: false,
+          sources: [{ id: "default", type: "default", label: "Default" }],
+          editable: "system",
+          required: true,
+          placeholder: "",
+          defaultLabel: "email_address",
+        },
+    {
+      name: "location",
+      type: "radioInput",
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system",
+      required: false,
+      defaultLabel: "location",
+      getOptionsAt: "locations",
+      optionsInputs: {
+        phone: { type: "phone", required: true, placeholder: "" },
+        attendeeInPerson: { type: "address", required: true, placeholder: "" },
+      },
+      hideWhenJustOneOption: true,
+    },
+    {
+      name: "title",
+      type: "text",
+      hidden: true,
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: true,
+      defaultLabel: "what_is_this_meeting_about",
+      defaultPlaceholder: "",
+    },
+    {
+      name: "notes",
+      type: "textarea",
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: false,
+      defaultLabel: "additional_notes",
+      defaultPlaceholder: "share_additional_notes",
+    },
+    {
+      name: "guests",
+      type: "multiemail",
+      hidden: false,
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: false,
+      defaultLabel: "additional_guests",
+      defaultPlaceholder: "email",
+    },
+    {
+      name: "rescheduleReason",
+      type: "textarea",
+      views: [{ id: "reschedule", label: "Reschedule View" }],
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: false,
+      defaultLabel: "reason_for_reschedule",
+      defaultPlaceholder: "reschedule_placeholder",
+    },
+    ...bookingFields,
+  ] as Fields;
 };

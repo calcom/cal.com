@@ -1,3 +1,5 @@
+"use client";
+
 import type { FC } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,6 +16,10 @@ export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
   onCheckError,
   redir,
   initialData,
+  isMultiCalendar = false,
+  tooltipSide,
+  tooltip,
+  isClickable,
 }) => {
   const { t } = useLocale();
   return (
@@ -26,6 +32,10 @@ export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
       onCheckError={onCheckError}
       redir={redir}
       initialData={initialData}
+      isMultiCalendar={isMultiCalendar}
+      tooltipSide={tooltipSide}
+      tooltip={tooltip}
+      isClickable={isClickable}
     />
   );
 };

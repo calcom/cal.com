@@ -164,7 +164,6 @@ describe("GET /api/bookings", async () => {
 
       const responseData = await handler(req);
       responseData.bookings.forEach((booking) => {
-        console.log(booking);
         expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(new Date().getTime());
       });
     });
@@ -185,6 +184,29 @@ describe("GET /api/bookings", async () => {
       const responseData = await handler(req);
       responseData.bookings.forEach((booking) => {
         expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(new Date().getTime());
+      });
+    });
+  });
+
+  describe("Expand feature to add relational data in return payload", () => {
+    it("Returns only team data when expand=team is set", async () => {
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          expand: "team",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = adminUser.id;
+      req.isOrganizationOwnerOrAdmin = true;
+
+      const responseData = await handler(req);
+      console.log("bookings=>", responseData.bookings);
+      responseData.bookings.forEach((booking) => {
+        if (booking.id === 31) expect(booking.eventType?.team?.slug).toBe("team1");
+        if (booking.id === 19) expect(booking.eventType?.team).toBe(null);
       });
     });
   });

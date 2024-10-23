@@ -13,6 +13,7 @@ import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-gu
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
@@ -51,15 +52,14 @@ Second, make sure that the logged in user has organizationId set to pass the Org
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("OAuth - development only")
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
     private readonly userRepository: UsersRepository,
-    private readonly teamsRepository: OrganizationsRepository
+    private readonly teamsRepository: OrganizationsRepository,
+    private usersService: UsersService
   ) {}
 
   @Post("/")
@@ -74,7 +74,7 @@ export class OAuthClientsController {
     @GetUser() user: UserWithProfile,
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
-    const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
+    const organizationId = this.usersService.getUserMainOrgId(user) as number;
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
@@ -100,7 +100,7 @@ export class OAuthClientsController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClients(@GetUser() user: UserWithProfile): Promise<GetOAuthClientsResponseDto> {
-    const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
+    const organizationId = this.usersService.getUserMainOrgId(user) as number;
 
     const clients = await this.oauthClientRepository.getOrganizationOAuthClients(organizationId);
     return { status: SUCCESS_STATUS, data: clients };
@@ -170,6 +170,7 @@ export class OAuthClientsController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,

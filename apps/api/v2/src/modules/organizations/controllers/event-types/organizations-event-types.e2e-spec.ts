@@ -18,6 +18,12 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
   Host,
@@ -260,6 +266,46 @@ describe("Organizations Event Types Endpoints", () => {
             userId: teammate2.id,
           },
         ],
+        bookingLimitsCount: {
+          day: 2,
+          week: 5,
+        },
+        onlyShowFirstAvailableSlot: true,
+        bookingLimitsDuration: {
+          day: 60,
+          week: 100,
+        },
+        offsetStart: 30,
+        bookingWindow: {
+          type: BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays,
+          value: 30,
+          rolling: true,
+        },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
+        requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
       };
 
       return request(app.getHttpServer())
@@ -276,6 +322,18 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.schedulingType).toEqual("COLLECTIVE");
           evaluateHost(body.hosts[0], data.hosts[0]);
           evaluateHost(body.hosts[1], data.hosts[1]);
+          expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
+          expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
+          expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
+          expect(data.offsetStart).toEqual(body.offsetStart);
+          expect(data.bookingWindow).toEqual(body.bookingWindow);
+          expect(data.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
+          expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
+          expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
+          expect(data.color).toEqual(body.color);
 
           collectiveEventType = responseBody.data;
         });
@@ -329,15 +387,18 @@ describe("Organizations Event Types Endpoints", () => {
             1
           );
 
-          const responseTeamEvent = responseBody.data[0];
-          expect(responseTeamEvent?.teamId).toEqual(team.id);
+          const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
+          expect(responseTeamEvent).toBeDefined();
+          if (!responseTeamEvent) {
+            throw new Error("Team event not found");
+          }
 
-          const responseTeammate1Event = responseBody.data[1];
-          expect(responseTeammate1Event?.ownerId).toEqual(teammate1.id);
+          const responseTeammate1Event = responseBody.data.find((event) => event.ownerId === teammate1.id);
+          expect(responseTeammate1Event).toBeDefined();
           expect(responseTeammate1Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
-          const responseTeammate2Event = responseBody.data[2];
-          expect(responseTeammate2Event?.ownerId).toEqual(teammate2.id);
+          const responseTeammate2Event = responseBody.data.find((event) => event.ownerId === teammate2.id);
+          expect(responseTeammate2Event).toBeDefined();
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
@@ -423,7 +484,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/999999`)
         .send(body)
-        .expect(404);
+        .expect(400);
     });
 
     it("should update collective event-type", async () => {

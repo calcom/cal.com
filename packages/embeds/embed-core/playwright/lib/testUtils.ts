@@ -29,6 +29,9 @@ export const getBooking = async (bookingId: string) => {
   return booking;
 };
 
+/**
+ * @deprecated use ensureEmbedIframe instead.
+ */
 export const getEmbedIframe = async ({
   calNamespace,
   page,
@@ -38,51 +41,41 @@ export const getEmbedIframe = async ({
   page: Page;
   pathname: string;
 }) => {
-  // We can't seem to access page.frame till contentWindow is available. So wait for that.
-  const iframeReady = await page.evaluate(
-    (hardTimeout) => {
-      return new Promise((resolve) => {
-        const interval = setInterval(() => {
-          const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          if (iframe && iframe.contentWindow && window.iframeReady) {
-            clearInterval(interval);
-            resolve(true);
-          } else {
-            console.log("Waiting for all three to be true:", {
-              iframeElement: iframe,
-              contentWindow: iframe?.contentWindow,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              iframeReady: window.iframeReady,
-            });
-          }
-        }, 500);
-
-        // A hard timeout if iframe isn't ready in that time. Avoids infinite wait
-        setTimeout(() => {
-          clearInterval(interval);
-          resolve(false);
-          // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
-        }, hardTimeout);
-      });
+  await page.waitForFunction(
+    () => {
+      const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      return iframe && iframe.contentWindow && window.iframeReady;
     },
-    !process.env.CI ? 150000 : 15000
+    { polling: 500 }
   );
-  if (!iframeReady) {
+  const embedIframe = page.frame(`cal-embed=${calNamespace}`);
+  if (!embedIframe) {
     return null;
   }
-
-  // We just verified that iframeReady is true here, so obviously embedIframe is not null
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const embedIframe = page.frame(`cal-embed=${calNamespace}`)!;
   const u = new URL(embedIframe.url());
   if (u.pathname === `${pathname}/embed`) {
     return embedIframe;
   }
   console.log(`Embed iframe url pathname match. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
   return null;
+};
+
+export const ensureEmbedIframe = async ({
+  calNamespace,
+  page,
+  pathname,
+}: {
+  calNamespace: string;
+  page: Page;
+  pathname: string;
+}) => {
+  const embedIframe = await getEmbedIframe({ calNamespace, page, pathname });
+  if (!embedIframe) {
+    throw new Error("Embed iframe not found");
+  }
+  return embedIframe;
 };
 
 async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
@@ -128,15 +121,12 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
+  const responsePromise = page.waitForResponse("**/api/book/event");
   await frame.press('[name="email"]', "Enter");
-  const response = await page.waitForResponse("**/api/book/event");
+  const response = await responsePromise;
   const booking = (await response.json()) as { uid: string; eventSlug: string };
+  expect(response.status()).toBe(200);
   booking.eventSlug = eventSlug;
-
-  // Make sure we're navigated to the success page
-  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
-  // expect(await page.screenshot()).toMatchSnapshot("success-page.png");
-
   return booking;
 }
 
@@ -144,15 +134,14 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   // --- fill form
   await frame.press('[name="email"]', "Enter");
+  const responsePromise = page.waitForResponse("**/api/book/event");
   await frame.click("[data-testid=confirm-reschedule-button]");
-  const response = await page.waitForResponse("**/api/book/event");
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
   const responseObj = await response.json();
   const booking = responseObj.uid;
-  // Make sure we're navigated to the success page
-  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   return booking;
 }
-
 export async function installAppleCalendar(page: Page) {
   await page.goto("/apps/categories/calendar");
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');

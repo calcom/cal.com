@@ -15,10 +15,13 @@
   ],
   "functions": {
     "pages/api/trpc/public/[trpc].ts": {
-      "memory": 768
+      "memory": 1024
     },
     "pages/api/trpc/slots/[trpc].ts": {
-      "memory": 768
+      "memory": 1024
+    },
+    "pages/api/trpc/appRoutingForms/[trpc].ts": {
+      "memory": 2048
     }
   }
 }
