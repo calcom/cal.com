@@ -72,6 +72,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
           "slots.getSchedule": `no-cache`,
+          "slots.getTeamSchedule": `no-cache`,
 
           // Feature Flags change but it might be okay to have a 5 minute cache to avoid burdening the servers with requests for this.
           // Note that feature flags can be used to quickly kill a feature if it's not working as expected. So, we have to keep fresh time lesser than the deployment time atleast
