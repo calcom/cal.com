@@ -44,7 +44,7 @@
   "event_request_declined_recurring": "Your recurring event request has been declined",
   "event_request_cancelled": "Your scheduled event was canceled",
   "event_request_reassigned": "Your scheduled event was reassigned",
-  "event_reassigned_subtitle": "You will no longer have the event on your calendar and your round robin likelihood i will not be negatively impacted",
+  "event_reassigned_subtitle": "You will no longer have the event on your calendar and your round robin likelihood will not be negatively impacted",
   "organizer": "Organizer",
   "reassigned_to": "Reassigned to",
   "need_to_reschedule_or_cancel": "Need to reschedule or cancel?",
