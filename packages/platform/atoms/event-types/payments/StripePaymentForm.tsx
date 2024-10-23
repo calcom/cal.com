@@ -5,12 +5,19 @@ import type { SyntheticEvent } from "react";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import type { Props, States } from "@calcom/features/ee/payments/components/Payment";
 import { PaymentFormComponent } from "@calcom/features/ee/payments/components/Payment";
+import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-const StripePaymentComponent = (props: Props) => {
+const StripePaymentComponent = (
+  props: Props & {
+    onPaymentSuccess?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+    onPaymentCancellation?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+  }
+) => {
   const { t } = useLocale();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
+  const attendeeEmail = props.booking.attendees[0].email;
   const stripe = useStripe();
 
   const [state, setState] = useState<States>({ status: "idle" });
@@ -40,7 +47,7 @@ const StripePaymentComponent = (props: Props) => {
           redirect_status?: string;
         } = {
           uid: props.booking.uid,
-          email: "rajiv@cal.com",
+          email: attendeeEmail,
         };
         if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
           payload = await stripe.confirmSetup({
@@ -70,6 +77,8 @@ const StripePaymentComponent = (props: Props) => {
             error: new Error(`Payment failed: ${payload.error.message}`),
           });
         } else {
+          setState({ status: "idle" });
+          props.onPaymentSuccess?.(props as unknown as Omit<PaymentPageProps, "trpcState">);
           if (props.location) {
             if (props.location.includes("integration")) {
               params.location = t("web_conferencing_details_to_follow");
@@ -80,7 +89,7 @@ const StripePaymentComponent = (props: Props) => {
         }
       }}
       onCancel={() => {
-        // show the pay to book button here or just go back
+        props.onPaymentCancellation?.(props as unknown as Omit<PaymentPageProps, "trpcState">);
       }}
       onPaymentElementChange={() => {
         setState({ status: "idle" });
@@ -89,7 +98,13 @@ const StripePaymentComponent = (props: Props) => {
   );
 };
 
-const StripePaymentForm = (props: Props & { uid: string }) => {
+const StripePaymentForm = (
+  props: Props & {
+    uid: string;
+    onPaymentSuccess?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+    onPaymentCancellation?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+  }
+) => {
   const stripePromise = getStripe(props.payment.data.stripe_publishable_key as any);
   const [theme, setTheme] = useState<"stripe" | "night">("stripe");
 

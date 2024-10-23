@@ -4,6 +4,7 @@ import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,12 +17,26 @@ import { useAtomsEventTypePaymentInfo } from "../hooks/useAtomEventTypePaymentIn
 
 const StripePaymentForm = React.lazy(() => import("./StripePaymentForm"));
 
-export const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
-  const { t, i18n } = useLocale();
+export const PaymentForm = ({
+  paymentUid,
+  onPaymentSuccess,
+  onPaymentCancellation,
+  onEventTypePaymentInfoSuccess,
+  onEventTypePaymentInfoFailure,
+}: {
+  paymentUid: string;
+  onPaymentSuccess?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+  onPaymentCancellation?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+  onEventTypePaymentInfoSuccess?: () => void;
+  onEventTypePaymentInfoFailure?: () => void;
+}) => {
+  const { t } = useLocale();
+  const { data: paymentInfo, isLoading } = useAtomsEventTypePaymentInfo({
+    uid: paymentUid,
+    onEventTypePaymentInfoSuccess,
+    onEventTypePaymentInfoFailure,
+  });
 
-  const { data: paymentInfo, isLoading } = useAtomsEventTypePaymentInfo(paymentUid);
-
-  const paymentAppData = getPaymentAppData(paymentInfo?.eventType);
   const eventName = paymentInfo?.booking.title;
 
   const is24h = isBrowserLocale24h();
@@ -29,14 +44,16 @@ export const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
     localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
   const date = dayjs.utc(paymentInfo?.booking.startTime).tz(timezone);
 
-  if (isLoading) return <>Loading...</>;
+  if (isLoading) return <h1 className="p-4 pt-4 text-xl">Loading...</h1>;
 
-  if (!isLoading && !paymentInfo) return null;
+  if (!paymentInfo) return <h1 className="p-4 text-xl">No payment found with UID - {paymentUid}</h1>;
+
+  const paymentAppData = getPaymentAppData(paymentInfo?.eventType);
 
   return (
     <AtomsWrapper>
       <div>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<></>}>
           <main className="mx-auto">
             <div>
               <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
@@ -105,6 +122,8 @@ export const PaymentForm = ({ paymentUid }: { paymentUid: string }) => {
                           location={paymentInfo.booking.location}
                           booking={paymentInfo.booking}
                           uid={paymentUid}
+                          onPaymentSuccess={onPaymentSuccess}
+                          onPaymentCancellation={onPaymentCancellation}
                         />
                       )}
                       {paymentInfo.payment.refunded && (
