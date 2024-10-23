@@ -3,7 +3,7 @@
 import { signOut } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { z } from "zod";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
@@ -55,6 +55,7 @@ const OnboardingPage = (props: PageProps) => {
 
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [isInstallPending, setIsInstallPending] = useState(false);
   const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse({
@@ -115,6 +116,7 @@ const OnboardingPage = (props: PageProps) => {
       return;
     }
     const installGoogleCalendar = async () => {
+      setIsInstallPending(true);
       const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
       const state: IntegrationOAuthCallbackState = {
         onErrorReturnTo,
@@ -131,11 +133,13 @@ const OnboardingPage = (props: PageProps) => {
 
       if (!res.ok) {
         const errorBody = await res.json();
+        setIsInstallPending(false);
         throw new Error(errorBody.message || "Something went wrong");
       }
 
       const json = await res.json();
       console.log(json);
+      setIsInstallPending(false);
     };
     installGoogleCalendar();
   }, []);
@@ -173,7 +177,7 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
-              {user?.identityProvider === IdentityProvider.GOOGLE && addAppMutation.isPending ? (
+              {user?.identityProvider === IdentityProvider.GOOGLE && isInstallPending ? (
                 <Icon name="loader" />
               ) : (
                 <Suspense fallback={<Icon name="loader" />}>
