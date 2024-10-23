@@ -258,6 +258,17 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    editBookingActions.push({
+      id: "reassign ",
+      label: t("reassign"),
+      onClick: () => {
+        setIsOpenReassignDialog(true);
+      },
+      icon: "users" as const,
+    });
+  }
+
   if (!booking.isBookingInPast) {
     editBookingActions.push({
       id: "no_show",
