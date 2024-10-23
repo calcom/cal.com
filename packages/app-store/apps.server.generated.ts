@@ -19,7 +19,6 @@ export const apiHandlers = {
   cron: import("./cron/api"),
   deel: import("./deel/api"),
   demodesk: import("./demodesk/api"),
-  dialpad: import("./dialpad/api"),
   discord: import("./discord/api"),
   eightxeight: import("./eightxeight/api"),
   "element-call": import("./element-call/api"),
