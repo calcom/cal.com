@@ -1,8 +1,14 @@
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import type { AppGetServerSidePropsContext, AppSsrInit, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type {
+  AppGetServerSidePropsContext,
+  AppSsrInit,
+  AppUser,
+  AppPrisma,
+} from "@calcom/types/AppGetServerSideProps";
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
+  _prisma: AppPrisma,
   user: AppUser,
   ssrInit: AppSsrInit
 ) {
