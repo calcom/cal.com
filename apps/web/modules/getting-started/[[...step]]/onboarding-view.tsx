@@ -123,13 +123,13 @@ const OnboardingPage = (props: PageProps) => {
   const currentStepIndex = steps.indexOf(currentStep);
 
   useEffect(() => {
-    if (user.identityProvider !== IdentityProvider.GOOGLE) {
+    if (!user || user.identityProvider !== IdentityProvider.GOOGLE) {
       return;
     }
     addAppMutation.mutate({
       type: "google_calendar",
     });
-  }, [addAppMutation, user.identityProvider]);
+  }, []);
 
   return (
     <div
@@ -164,7 +164,7 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
-              {addAppMutation.isPending ? (
+              {user?.identityProvider === IdentityProvider.GOOGLE && addAppMutation.isPending ? (
                 <Icon name="loader" />
               ) : (
                 <Suspense fallback={<Icon name="loader" />}>
