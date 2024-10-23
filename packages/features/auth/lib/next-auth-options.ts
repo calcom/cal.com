@@ -257,7 +257,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
-          scope: `${GOOGLE_OAUTH_SCOPES.join(" ")} ${GOOGLE_CALENDAR_SCOPES.join(" ")}`,
+          scope: [...GOOGLE_OAUTH_SCOPES, ...GOOGLE_CALENDAR_SCOPES].join(" "),
         },
       },
     })
@@ -628,6 +628,7 @@ export const getOptions = ({
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
+          scopes: account?.scope,
         } as JWT;
       }
 

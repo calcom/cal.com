@@ -126,9 +126,7 @@ const OnboardingPage = (props: PageProps) => {
           installGoogleVideo: true,
         };
 
-        const searchParams = new URLSearchParams({
-          state: JSON.stringify(state),
-        }).toString();
+        const searchParams = `?state=${encodeURIComponent(JSON.stringify(state))}`;
 
         const res = await fetch(`/api/integrations/google_calendar/add?${searchParams}`);
 
@@ -138,7 +136,7 @@ const OnboardingPage = (props: PageProps) => {
         }
 
         const json = await res.json();
-        console.log(json);
+        console.log("ONBOARDING", json);
       } catch (error) {
         console.error("Google Calendar installation failed:", error);
       } finally {
