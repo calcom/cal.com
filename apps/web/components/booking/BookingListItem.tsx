@@ -16,7 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -269,7 +269,7 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
-  if (!booking.isBookingInPast) {
+  if (isBookingInPast) {
     editBookingActions.push({
       id: "no_show",
       label: t("mark_as_no_show"),
