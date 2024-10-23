@@ -7,7 +7,7 @@ import {
   transformLocationsInternalToApi,
   transformBookingFieldsInternalToApi,
   parseRecurringEvent,
-  TransformedLocationsSchema,
+  InternalLocationsSchema,
   BookingFieldsSchema,
   SystemField,
   CustomField,
@@ -190,7 +190,7 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformLocations(locations: any) {
     if (!locations) return [];
-    return transformLocationsInternalToApi(TransformedLocationsSchema.parse(locations));
+    return transformLocationsInternalToApi(InternalLocationsSchema.parse(locations));
   }
 
   transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {

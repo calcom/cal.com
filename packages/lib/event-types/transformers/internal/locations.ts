@@ -50,7 +50,7 @@ export type AttendeeAddressLocation = z.infer<typeof AttendeeAddressSchema>;
 export type AttendeePhoneLocation = z.infer<typeof AttendeePhoneSchema>;
 export type AttendeeDefinedLocation = z.infer<typeof AttendeeDefinedSchema>;
 
-const TransformedLocationSchema = z.union([
+const InternalLocationSchema = z.union([
   OrganizerAddressSchema,
   OrganizerLinkSchema,
   OrganizerIntegrationSchema,
@@ -60,4 +60,4 @@ const TransformedLocationSchema = z.union([
   AttendeePhoneSchema,
   AttendeeDefinedSchema,
 ]);
-export const TransformedLocationsSchema = z.array(TransformedLocationSchema);
+export const InternalLocationsSchema = z.array(InternalLocationSchema);

@@ -126,7 +126,7 @@ export {
   transformEventTypeColorsInternalToApi,
   transformSeatsInternalToApi,
   // note(Lauris): schemas
-  TransformedLocationsSchema,
+  InternalLocationsSchema,
   BookingFieldsSchema,
   // note(Lauris): constants
   systemBeforeFieldName,
