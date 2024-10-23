@@ -231,8 +231,8 @@ export const prepareNoShowTrigger = async (
     }
 
     const calendar = await getCalendar(googleCalendarCredentials);
-    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata ?? null);
-    const allParticipantGroups = (await calendar?.getMeetParticipants?.(bookingMetadata?.videoCallUrl)) ?? [];
+    const videoCallUrl = bookingMetadataSchema.parse(booking.metadata ?? null)?.videoCallUrl ?? null;
+    const allParticipantGroups = (await calendar?.getMeetParticipants?.(videoCallUrl)) ?? [];
 
     const allParticipants: ParticipantWithEmail[] = allParticipantGroups.flat();
 
