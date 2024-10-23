@@ -696,13 +696,13 @@ const RerouteDialogContentAndFooter = ({
 }: Pick<RerouteDialogProps, "isOpenDialog" | "setIsOpenDialog"> & {
   booking: TeamEventTypeBookingToReroute;
 }) => {
-  const { data: responseWithForm, isPending: isRoutingFormLoading } =
+  const { data: responseWithForm, isPending: isRoutingFormLoading, error: formResponseFetchError } =
     trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
       formResponseId: booking.routedFromRoutingFormReponse.id,
     });
 
   const { t } = useLocale();
-  // useUpdateIsReroutingQueryParam({ isOpenDialog });
+
   if (isRoutingFormLoading)
     return (
       <>
@@ -718,7 +718,11 @@ const RerouteDialogContentAndFooter = ({
       </>
     );
 
-  if (!responseWithForm) return <div>{t("something_went_wrong")}</div>;
+  if (formResponseFetchError) {
+    return <div className="mb-8">{formResponseFetchError.message}</div>;
+  }
+
+  if (!responseWithForm) return <div className="mb-8">{t("something_went_wrong")}</div>;
 
   return (
     <RerouteDialogContentAndFooterWithFormResponse

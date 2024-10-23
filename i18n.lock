@@ -1389,6 +1389,8 @@ checksums:
     event_limit_tab_description: 0a6df44e16911fed68d3757e82486f69
     event_advanced_tab_description: e742ae193d93e359f3707f1bb4612060
     event_advanced_tab_title: 16e9b03eda6f6c1324cce54b96bbccd6
+    event_payments_tab_title: 1ce1a8d31ed709fb29fce2057045d104
+    event_payments_tab_description: 69a201094365d68c395879baf96d85ef
     event_setup_multiple_duration_error: a30305a88bf672e8131cb3b7cae4c1d1
     event_setup_multiple_duration_default_error: 6767f85bf2a790eb77e2ad4d6a46ae7c
     event_setup_booking_limits_error: c88422fdc86c4f62d2a6391cf06b918d
