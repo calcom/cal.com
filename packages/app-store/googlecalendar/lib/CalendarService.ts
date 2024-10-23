@@ -39,16 +39,6 @@ import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
-type Time = { seconds: number; nanos: number };
-
-type Participant = {
-  name: string;
-  earliestStartTime: Time;
-  latestEndTime: Time;
-  user: string;
-  singedInUser: { user: string; displayName: string };
-};
-
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 interface GoogleCalError extends Error {
   code?: number;
@@ -693,33 +683,26 @@ export default class GoogleCalendarService implements Calendar {
     });
 
     const meetClient = new ConferenceRecordsServiceClient({
-      auth: googleAuth,
+      auth: googleAuth as ConferenceRecordsServiceClient["auth"],
     });
 
     const spacesClient = new SpacesServiceClient({
-      auth: googleAuth,
+      auth: googleAuth as SpacesServiceClient["auth"],
     });
 
     const meetingCode = videoCallUrl ? new URL(videoCallUrl).pathname.split("/").pop() : null;
 
     const spaceInfo = await spacesClient.getSpace({ name: `spaces/${meetingCode}` });
-    // const spaceName = spaceInfo[0].name;
-    const spaceName = "spaces/iwjcGmsr0Z4B";
+    const spaceName = spaceInfo[0].name;
 
-    const conferenceRecords: Array<{
-      space: string;
-      name: string;
-      startTime: Time;
-      endTime: Time;
-      expireTime: Time;
-    }> = [];
+    const conferenceRecords = [];
     for await (const response of meetClient.listConferenceRecordsAsync()) {
       if (response.space === spaceName) {
         conferenceRecords.push(response);
       }
     }
 
-    const participantsByConferenceRecord: Array<Array<Participant>> = await Promise.all(
+    const participantsByConferenceRecord = await Promise.all(
       conferenceRecords.map(async (conferenceRecord) => {
         const participants = [];
         for await (const participant of meetClient.listParticipantsAsync({ parent: conferenceRecord.name })) {
@@ -738,7 +721,7 @@ export default class GoogleCalendarService implements Calendar {
             try {
               const response = await fetch(
                 `https://people.googleapis.com/v1/people/${
-                  participant.signedinUser.user.split("/")[1]
+                  participant.signedinUser?.user?.split("/")[1]
                 }?personFields=emailAddresses`,
                 {
                   headers: {
