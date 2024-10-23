@@ -40,6 +40,7 @@ export async function handleConfirmation(args: {
   booking: {
     startTime: Date;
     id: number;
+    location: string | null;
     eventType: {
       currency: string;
       description: string | null;
@@ -401,12 +402,14 @@ export async function handleConfirmation(args: {
       booking: {
         startTime: booking.startTime,
         id: booking.id,
+        location: booking.location,
       },
       triggerForUser,
       organizerUser: { id: booking.userId },
       eventTypeId: booking.eventTypeId,
       teamId,
       orgId,
+      destinationCalendars: evt.destinationCalendar,
     });
 
     const eventTypeInfo: EventTypeInfo = {

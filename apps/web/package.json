@@ -147,7 +147,6 @@
     "@calcom/config": "*",
     "@calcom/types": "*",
     "@google-apps/meet": "^0.3.0",
-    "@google-cloud/local-auth": "2.1.0",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.45.3",
     "@testing-library/react": "^13.3.0",

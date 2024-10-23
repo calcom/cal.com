@@ -1,3 +1,5 @@
+import type { protos } from "@google-apps/meet";
+
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -7,6 +9,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
@@ -18,31 +21,56 @@ export type Host = {
   email: string;
 };
 
+interface ParticipantWithEmail extends protos.google.apps.meet.v2.IParticipant {
+  email?: string;
+}
+
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
 export type DestinationCalendar = TSendNoShowWebhookPayloadSchema["destinationCalendar"];
 
 const getGoogleCalendarCredential = async (destinationCalendar: DestinationCalendar) => {
-  const credential = await prisma.credential.findUnique({
-    where: {
-      id: destinationCalendar?.credentialId,
-    },
-  });
+  if (destinationCalendar?.credentialId) {
+    const credential = await prisma.credential.findUnique({
+      where: {
+        id: destinationCalendar.credentialId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
 
-  if (credential) {
-    return credential;
+    if (credential) {
+      return credential;
+    }
   }
 
+  // If for some reason credentialId is deleted, we find the destinationCalendar by userId and externalId
   const destinationCalendars = await prisma.destinationCalendar.findMany({
     where: {
       integration: "google_calendar",
       userId: destinationCalendar?.userId,
       externalId: destinationCalendar?.externalId,
     },
+    include: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
   });
 
   if (!destinationCalendars.length) {
+    return null;
+  }
+
+  if (!destinationCalendars?.[0]?.credentialId) {
     return null;
   }
 
@@ -141,6 +169,7 @@ export const prepareNoShowTrigger = async (
   hostsThatDidntJoinTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  triggerEvent: WebhookTriggerEvents;
 } | void> => {
   const { bookingId, webhook, destinationCalendar, triggerEvent } = ZSendNoShowWebhookPayloadSchema.parse(
     JSON.parse(payload)
@@ -164,7 +193,7 @@ export const prepareNoShowTrigger = async (
 
   const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
 
-  if (!!dailyVideoReference || booking.location === DailyLocationType || booking.location?.trim() === "") {
+  if (!!dailyVideoReference && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
     const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
 
     const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
@@ -202,9 +231,10 @@ export const prepareNoShowTrigger = async (
     }
 
     const calendar = await getCalendar(googleCalendarCredentials);
-    const allParticipantGroups = await calendar?.getParticipants(booking.metadata?.videoCallUrl);
+    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata ?? null);
+    const allParticipantGroups = (await calendar?.getMeetParticipants?.(bookingMetadata?.videoCallUrl)) ?? [];
 
-    const allParticipants = allParticipantGroups.flat();
+    const allParticipants: ParticipantWithEmail[] = allParticipantGroups.flat();
 
     const hostsThatDidntJoinTheCall = hosts.filter(
       (host) => !allParticipants?.some((participant) => participant.email === host.email)

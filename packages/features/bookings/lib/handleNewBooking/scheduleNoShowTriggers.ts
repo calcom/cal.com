@@ -17,7 +17,7 @@ type ScheduleNoShowTriggersArgs = {
   eventTypeId: number | null;
   teamId?: number | null;
   orgId?: number | null;
-  destinationCalendars?: DestinationCalendar[];
+  destinationCalendars?: DestinationCalendar[] | null;
 };
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {

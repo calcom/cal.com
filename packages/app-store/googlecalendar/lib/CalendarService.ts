@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { protos } from "@google-apps/meet";
 import { ConferenceRecordsServiceClient, SpacesServiceClient } from "@google-apps/meet";
 import type { Prisma } from "@prisma/client";
 import { GoogleAuth, OAuth2Client } from "google-auth-library";
@@ -42,6 +43,10 @@ import { getGoogleAppKeys } from "./getGoogleAppKeys";
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 interface GoogleCalError extends Error {
   code?: number;
+}
+
+export interface ParticipantWithEmail extends protos.google.apps.meet.v2.IParticipant {
+  email?: string;
 }
 
 const ONE_MINUTE_MS = 60 * 1000;
@@ -666,7 +671,7 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async getParticipants(videoCallUrl: string | null): Promise<any> {
+  async getMeetParticipants(videoCallUrl: string | null): Promise<ParticipantWithEmail[][]> {
     const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
     if (!token) {
       throw new Error("Invalid grant for Google Calendar app");
