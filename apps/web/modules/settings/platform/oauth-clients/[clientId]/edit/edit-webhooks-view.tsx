@@ -77,6 +77,14 @@ export default function EditOAuthClientWebhooks() {
                     value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
                     label: "after_guests_cal_video_no_show",
                   },
+                  {
+                    value: WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW,
+                    label: "after_hosts_google_meet_no_show",
+                  },
+                  {
+                    value: WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW,
+                    label: "after_guests_google_meet_no_show",
+                  },
                 ]}
                 onSubmit={async (data) => {
                   try {
