@@ -21,7 +21,12 @@ test.describe("Wipe my Cal App Test", () => {
     const pro = await users.create();
     const [eventType] = pro.eventTypes;
     await prisma.credential.create({
-      data: { key: {}, type: "wipemycal_other", userId: pro.id, appId: "wipe-my-cal" },
+      data: {
+        key: {},
+        type: "wipemycal_other",
+        userId: pro.id,
+        appId: "wipe-my-cal",
+      },
     });
     await bookings.create(
       pro.id,

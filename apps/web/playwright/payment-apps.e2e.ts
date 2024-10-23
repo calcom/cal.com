@@ -175,7 +175,12 @@ test.describe("Payment app", () => {
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
-      data: { type: "paypal_payment", appId: "paypal", userId: user.id, key: {} },
+      data: {
+        type: "paypal_payment",
+        appId: "paypal",
+        userId: user.id,
+        key: {},
+      },
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
@@ -204,7 +209,13 @@ test.describe("Payment app", () => {
     expect(paymentEvent).not.toBeNull();
 
     await prisma.credential.create({
-      data: { type: "ga4_analytics", userId: user.id, appId: "ga4", invalid: false, key: {} },
+      data: {
+        type: "ga4_analytics",
+        userId: user.id,
+        appId: "ga4",
+        invalid: false,
+        key: {},
+      },
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
