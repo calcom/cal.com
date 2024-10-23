@@ -106,6 +106,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           timeZone: true,
           disableImpersonation: true,
           completedOnboarding: true,
+          lastActiveAt: true,
           teams: {
             select: {
               team: {
@@ -164,6 +165,13 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         accepted: membership.accepted,
         disableImpersonation: user.disableImpersonation,
         completedOnboarding: user.completedOnboarding,
+        lastActiveAt: membership.user.lastActiveAt
+          ? new Intl.DateTimeFormat(ctx.user.locale, {
+              timeZone: ctx.user.timeZone,
+            })
+              .format(membership.user.lastActiveAt)
+              .toLowerCase()
+          : null,
         avatarUrl: user.avatarUrl,
         teams: user.teams
           .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
