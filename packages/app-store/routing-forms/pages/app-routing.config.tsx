@@ -7,6 +7,7 @@ import * as forms from "./forms/[...appPages]";
 // extracts getServerSideProps function from the client component
 import { getServerSideProps as getServerSidePropsForms } from "./forms/getServerSideProps";
 import * as LayoutHandler from "./layout-handler/[...appPages]";
+import * as Queues from "./queues/[...appPages]";
 import * as Reporting from "./reporting/[...appPages]";
 import * as RouteBuilder from "./route-builder/[...appPages]";
 import * as Router from "./router/[...appPages]";
@@ -21,6 +22,7 @@ const routingConfig = {
   "routing-link": RoutingLink,
   router: Router,
   reporting: Reporting,
+  queues: Queues,
   layoutHandler: LayoutHandler,
 };
 
@@ -30,6 +32,7 @@ export const serverSidePropsConfig: Record<string, AppGetServerSideProps> = {
   "route-builder": getServerSidePropsSingleForm,
   "routing-link": getServerSidePropsRoutingLink,
   router: getServerSidePropsRouter,
+  queues: getServerSidePropsRouter,
   reporting: getServerSidePropsSingleForm,
 };
 
