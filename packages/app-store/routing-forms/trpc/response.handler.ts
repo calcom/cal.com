@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { RoutingFormFieldType } from "routing-forms/lib/FieldTypes";
 import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -95,13 +96,6 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
-    const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: {
-        formId,
-        response: response,
-      },
-    });
-
     const settings = RoutingFormSettings.parse(form.settings);
     let userWithEmails: string[] = [];
     if (form.teamId && settings?.sendUpdatesTo?.length) {
@@ -138,9 +132,12 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       safeStringify({ teamMembersMatchingAttributeLogicWithResult })
     );
 
-    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-      ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map((member) => member.userId)
-      : null;
+    const teamMemberIdsMatchingAttributeLogic =
+      teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+        ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+            (member) => member.userId
+          )
+        : null;
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     if (!chosenRoute) {
@@ -150,13 +147,73 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
+    if (input.isPreview) {
+      // Detect if response has value for a field that isn't in the field list
+      const formFields = serializableFormWithFields.fields.map((field) => field.id);
+      const extraFields = Object.keys(response).filter((fieldId) => !formFields.includes(fieldId));
+      let previewData = {
+        chosenRoute: {
+          ...chosenRoute,
+        },
+        warnings: [] as string[],
+        errors: [] as string[],
+      };
+
+      if (extraFields.length > 0) {
+        previewData.warnings.push(
+          `Response contains values for non-existent fields: ${extraFields.join(", ")}`
+        );
+      }
+
+      // Check for values not present in options for SINGLE_SELECT and MULTISELECT fields
+      serializableFormWithFields.fields.forEach((field) => {
+        if (
+          field.type !== RoutingFormFieldType.SINGLE_SELECT &&
+          field.type !== RoutingFormFieldType.MULTI_SELECT
+        ) {
+          return;
+        }
+
+        const fieldResponse = response[field.id];
+
+        if (fieldResponse && fieldResponse.value) {
+          const values = Array.isArray(fieldResponse.value) ? fieldResponse.value : [fieldResponse.value];
+          const invalidValues = values.filter(
+            (value) => !field.options?.some((option) => option.label === value)
+          );
+          if (invalidValues.length > 0) {
+            previewData.errors.push(`Invalid value(s) for ${field.label}: ${invalidValues.join(", ")}`);
+          }
+        }
+      });
+
+      // 2. Do strict match with options.
+      return {
+        isPreview: true,
+        previewData,
+        formResponse: null,
+        teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+        attributeRoutingConfig:
+          "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+      };
+    }
+
+    const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+      data: {
+        formId,
+        response: response,
+      },
+    });
+
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
       dbFormResponse.response as FormResponse,
       dbFormResponse.id,
       "action" in chosenRoute ? chosenRoute.action : undefined
     );
+
     return {
+      isPreview: false,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
       attributeRoutingConfig:

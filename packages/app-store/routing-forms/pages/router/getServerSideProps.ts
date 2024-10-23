@@ -24,6 +24,7 @@ const querySchema = z
     form: z.string(),
     slug: z.string(),
     pages: z.array(z.string()),
+    'cal.preview': z.string().transform((val) => val === "true").optional(),
   })
   .catchall(z.string().or(z.array(z.string())));
 
@@ -52,7 +53,7 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
+  const { form: formId, slug: _slug, pages: _pages, "cal.preview": isPreview, ...fieldsResponses } = queryParsed.data;
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
@@ -146,6 +147,7 @@ export const getServerSideProps = async function getServerSideProps(
       formFillerId: uuidv4(),
       response: response,
       chosenRouteId: matchingRoute.id,
+      isPreview: !!isPreview
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
