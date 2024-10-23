@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAvailabilityTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -29,6 +30,10 @@ import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
+export type eventTypeCustomClassNames = {
+  atomsWrapper?: string;
+  eventAvailabilityTabClassnames?: EventAvailabilityTabCustomClassnames;
+};
 
 export type EventTypePlatformWrapperProps = {
   id: number;
@@ -38,9 +43,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: {
-    atomsWrapper?: string;
-  };
+  customClassNames?: eventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -154,6 +157,7 @@ const EventType = ({
         isTeamEvent={!!team}
         user={user?.data}
         teamId={team?.id}
+        customClassnames={customClassNames?.eventAvailabilityTabClassnames}
       />
     ) : (
       <></>
