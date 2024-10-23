@@ -8,7 +8,7 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Switch, Alert, Select, Button, InputField } from "@calcom/ui";
+import { Switch, Alert, Select, Button, InputField, showToast } from "@calcom/ui";
 
 import { SalesforceRecordEnum } from "../lib/recordEnum";
 import type { appDataSchema } from "../zod";
@@ -182,7 +182,19 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <Button
                 className="mt-2"
                 size="sm"
+                disabled={
+                  !(newOnBookingWriteToEventObjectField.field && newOnBookingWriteToEventObjectField.value)
+                }
                 onClick={() => {
+                  if (
+                    Object.keys(onBookingWriteToEventObjectMap).includes(
+                      newOnBookingWriteToEventObjectField.field.trim()
+                    )
+                  ) {
+                    showToast("Field already exists", "error");
+                    return;
+                  }
+
                   setAppData("onBookingWriteToEventObjectMap", {
                     ...onBookingWriteToEventObjectMap,
                     [newOnBookingWriteToEventObjectField.field.trim()]:
