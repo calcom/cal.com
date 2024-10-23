@@ -503,6 +503,7 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
+
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
@@ -519,6 +520,21 @@ async function handler(
       users = [...fixedHosts, ...luckyUsersFromFirstBooking];
     }
   }
+
+  const troubleshooterData = enableTroubleshooter
+    ? {
+        // One that Salesforce asked for
+        askedContactOwner: contactOwnerFromReq,
+        // One that we used as per Routing skipContactOwner flag
+        consideredContactOwner: contactOwnerEmail,
+        possibleHosts: users.map((user) => ({
+          userId: user.id,
+        })),
+        luckyUsers: luckyUsers.map((user) => ({
+          userId: user.id,
+        })),
+      }
+    : null;
 
   if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     loggerWithEventDetails.error(`No available users found for round robin event.`);
@@ -1680,6 +1696,7 @@ async function handler(
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    ...troubleshooterData,
   };
 }
 

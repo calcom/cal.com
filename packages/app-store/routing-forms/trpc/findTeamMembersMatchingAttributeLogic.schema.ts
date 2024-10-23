@@ -1,8 +1,9 @@
+import { routingFormResponseInDbSchema } from "../zod";
 import { z } from "zod";
 
 export const ZFindTeamMembersMatchingAttributeLogicInputSchema = z.object({
   formId: z.string(),
-  response: z.record(z.string(), z.any()),
+  response: routingFormResponseInDbSchema,
   routeId: z.string(),
   isPreview: z.boolean().optional(),
   _enablePerf: z.boolean().optional(),
