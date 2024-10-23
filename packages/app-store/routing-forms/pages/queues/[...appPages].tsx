@@ -21,7 +21,39 @@ export default function Queues({
       appUrl={appUrl}
       enrichedWithUserProfileForm={enrichedWithUserProfileForm}
       Page={function Page() {
-        return <div>Queues</div>;
+        return (
+          <div>
+            Queues
+            <div>
+              {/* <div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    testRouting();
+                  }}>
+                  <div className="px-1">
+                    {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+                  </div>
+                  <div>{testResult}</div>
+                  <DialogFooter>
+                    <DialogClose
+                      color="secondary"
+                      onClick={() => {
+                        setIsTestPreviewOpen(false);
+                        setChosenRoute(null);
+                        setResponse({});
+                      }}>
+                      {t("close")}
+                    </DialogClose>
+                    <Button type="submit" data-testid="test-routing">
+                      {t("test_routing")}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </div> */}
+            </div>
+          </div>
+        );
       }}
     />
   );
