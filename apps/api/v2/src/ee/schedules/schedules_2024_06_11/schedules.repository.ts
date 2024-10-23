@@ -119,14 +119,17 @@ export class SchedulesRepository_2024_06_11 {
       timeZone: schedule.timeZone,
     };
 
-    const availabilitiesAndOverrides: Prisma.AvailabilityCreateManyInput[] = [];
+    const createAvailabilityStatements: Prisma.AvailabilityCreateManyInput[] = [];
+    const createOverridesStatements: Prisma.AvailabilityCreateManyInput[] = [];
 
-    const deleteConditions = [];
+    const deleteAvailabilityStatements: Prisma.AvailabilityWhereInput[] = [];
+    const deleteOverridesStatements: Prisma.AvailabilityWhereInput[] = [];
+
     if (availability) {
       // note(Lauris): availabilities and overrides are stored in the same "Availability" table,
       // but availabilities have "date" field as null, while overrides have it as not null, so delete
       // condition below results in deleting only rows from Availability table that are availabilities.
-      deleteConditions.push({
+      deleteAvailabilityStatements.push({
         scheduleId: { equals: scheduleId },
         date: null,
       });
@@ -136,7 +139,7 @@ export class SchedulesRepository_2024_06_11 {
       // note(Lauris): availabilities and overrides are stored in the same "Availability" table,
       // but overrides have "date" field as not-null, while availabilities have it as null, so delete
       // condition below results in deleting only rows from Availability table that are overrides.
-      deleteConditions.push({
+      deleteOverridesStatements.push({
         scheduleId: { equals: scheduleId },
         NOT: { date: null },
       });
@@ -144,7 +147,7 @@ export class SchedulesRepository_2024_06_11 {
 
     if (availability && availability.length > 0) {
       availability.forEach((availability) => {
-        availabilitiesAndOverrides.push({
+        createAvailabilityStatements.push({
           days: availability.days,
           startTime: availability.startTime,
           endTime: availability.endTime,
@@ -155,7 +158,7 @@ export class SchedulesRepository_2024_06_11 {
 
     if (overrides && overrides.length > 0) {
       overrides.forEach((override) => {
-        availabilitiesAndOverrides.push({
+        createOverridesStatements.push({
           date: override.date,
           startTime: override.startTime,
           endTime: override.endTime,
@@ -164,11 +167,21 @@ export class SchedulesRepository_2024_06_11 {
       });
     }
 
-    if (availabilitiesAndOverrides.length > 0) {
+    const deleteStatements = [...deleteAvailabilityStatements, ...deleteOverridesStatements];
+    const createStatements = [...createAvailabilityStatements, ...createOverridesStatements];
+
+    if (deleteStatements.length > 0) {
       updateScheduleData.availability = {
-        deleteMany: deleteConditions,
+        deleteMany: deleteStatements,
+      };
+    }
+
+    if (createStatements.length > 0) {
+      updateScheduleData.availability = {
+        // note(Lauris): keep deleteMany statements
+        ...(updateScheduleData.availability || {}),
         createMany: {
-          data: availabilitiesAndOverrides,
+          data: createStatements,
         },
       };
     }

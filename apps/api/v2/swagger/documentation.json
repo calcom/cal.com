@@ -3020,7 +3020,7 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
               "enum": [
                 "asc",
@@ -3141,16 +3141,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -3191,16 +3181,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -5413,7 +5393,7 @@
           "timeZone": {
             "type": "string",
             "example": "America/New_York",
-            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked."
+            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked.\n      It will default to Europe/London if not passed."
           },
           "locale": {
             "enum": [
@@ -5977,6 +5957,10 @@
           },
           "placeholder": {
             "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6010,6 +5994,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 1234 Main St"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6043,6 +6031,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6076,6 +6068,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 100"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6109,6 +6105,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Detailed description here..."
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
           }
         },
         "required": [
@@ -6152,6 +6152,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6192,6 +6196,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6225,6 +6233,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., example@example.com"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
           }
         },
         "required": [
@@ -6264,6 +6276,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
           }
         },
         "required": [
@@ -6303,6 +6319,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           }
         },
         "required": [
@@ -6331,6 +6351,9 @@
             "example": "Agree to terms?"
           },
           "required": {
+            "type": "boolean"
+          },
+          "disableOnPrefill": {
             "type": "boolean"
           }
         },
@@ -6583,6 +6606,45 @@
           "showAvailabilityCount"
         ]
       },
+      "AttendeeAddressLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "AttendeePhoneLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "AttendeeDefinedLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6682,6 +6744,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -6875,6 +6946,37 @@
       "EmailDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "email",
+            "description": "only allowed value for type is `email`",
+            "default": "email"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6885,24 +6987,51 @@
             "type": "string",
             "default": "email"
           },
-          "type": {
-            "type": "string",
-            "default": "email"
-          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
+          "type",
           "isDefault",
           "slug",
-          "type",
           "required"
         ]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "name",
+            "description": "only allowed value for type is `name`",
+            "default": "name"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6913,18 +7042,14 @@
             "type": "string",
             "default": "name"
           },
-          "type": {
-            "type": "string",
-            "default": "name"
-          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
+          "type",
           "isDefault",
           "slug",
-          "type",
           "required"
         ]
       },
@@ -6939,7 +7064,8 @@
           },
           "slug": {
             "type": "string",
-            "default": "location"
+            "default": "location",
+            "description": "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place."
           },
           "type": {
             "type": "string",
@@ -7074,6 +7200,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7105,6 +7233,10 @@
             "type": "string",
             "example": "e.g., 1234 Main St"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7126,6 +7258,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7153,6 +7287,9 @@
           "required": {
             "type": "boolean"
           },
+          "disableOnPrefill": {
+            "type": "boolean"
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7174,6 +7311,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7211,6 +7350,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7233,6 +7376,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7264,6 +7409,10 @@
             "type": "string",
             "example": "e.g., example@example.com"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7285,6 +7434,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7322,6 +7473,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7344,6 +7499,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7375,6 +7532,10 @@
             "type": "string",
             "example": "e.g., 100"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7396,6 +7557,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7425,6 +7588,10 @@
           "placeholder": {
             "type": "string"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7446,6 +7613,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7483,6 +7652,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7505,6 +7678,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7546,6 +7721,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7568,6 +7747,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7599,6 +7780,10 @@
             "type": "string",
             "example": "e.g., Detailed description here..."
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7620,6 +7805,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -7650,6 +7837,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           },
           "isDefault": {
             "type": "object",
@@ -8037,6 +8228,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -9507,6 +9707,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -10234,6 +10443,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -12357,8 +12575,7 @@
               "cancelled",
               "accepted",
               "rejected",
-              "pending",
-              "rescheduled"
+              "pending"
             ],
             "example": "accepted"
           },
@@ -12395,6 +12612,20 @@
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -12410,20 +12641,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "meetingUrl": {
-            "type": "string",
-            "description": "Deprecated - rely on 'location' field instead.",
-            "example": "https://example.com/recurring-meeting",
-            "deprecated": true
-          },
-          "location": {
-            "type": "string",
-            "example": "https://example.com/meeting"
-          },
-          "absentHost": {
-            "type": "boolean",
-            "example": true
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -12445,8 +12662,8 @@
           "duration",
           "eventTypeId",
           "eventType",
-          "attendees",
-          "absentHost"
+          "absentHost",
+          "attendees"
         ]
       },
       "RecurringBookingOutput_2024_08_13": {
@@ -12454,15 +12671,15 @@
         "properties": {
           "id": {
             "type": "number",
-            "example": 456
+            "example": 123
           },
           "uid": {
             "type": "string",
-            "example": "recurring_uid_123"
+            "example": "booking_uid_123"
           },
           "title": {
             "type": "string",
-            "example": "Recurring meeting"
+            "example": "Consultation"
           },
           "description": {
             "type": "string",
@@ -12482,19 +12699,19 @@
               "rejected",
               "pending"
             ],
-            "example": "pending"
+            "example": "accepted"
           },
           "cancellationReason": {
             "type": "string",
-            "example": "Event was cancelled"
+            "example": "User requested cancellation"
           },
           "reschedulingReason": {
             "type": "string",
-            "example": "Event was rescheduled"
+            "example": "User rescheduled the event"
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_recurring_uid_123"
+            "example": "previous_uid_123"
           },
           "start": {
             "type": "string",
@@ -12506,7 +12723,7 @@
           },
           "duration": {
             "type": "number",
-            "example": 30
+            "example": 60
           },
           "eventTypeId": {
             "type": "number",
@@ -12517,9 +12734,19 @@
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
-          "recurringBookingUid": {
+          "meetingUrl": {
             "type": "string",
-            "example": "recurring_uid_987"
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
           },
           "attendees": {
             "type": "array",
@@ -12529,27 +12756,13 @@
           },
           "guests": {
             "example": [
-              "guest3@example.com",
-              "guest4@example.com"
+              "guest1@example.com",
+              "guest2@example.com"
             ],
             "type": "array",
             "items": {
               "type": "string"
             }
-          },
-          "meetingUrl": {
-            "type": "string",
-            "description": "Deprecated - rely on 'location' field instead.",
-            "example": "https://example.com/recurring-meeting",
-            "deprecated": true
-          },
-          "location": {
-            "type": "string",
-            "example": "https://example.com/recurring-meeting"
-          },
-          "absentHost": {
-            "type": "boolean",
-            "example": false
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -12557,6 +12770,10 @@
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
           }
         },
         "required": [
@@ -12571,9 +12788,9 @@
           "duration",
           "eventTypeId",
           "eventType",
-          "recurringBookingUid",
+          "absentHost",
           "attendees",
-          "absentHost"
+          "recurringBookingUid"
         ]
       },
       "CreateBookingOutput_2024_08_13": {
@@ -12631,6 +12848,18 @@
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
                 }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
@@ -12664,6 +12893,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                },
+                {
+                  "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+                },
+                {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               ]
             },
@@ -12676,24 +12911,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "RescheduleBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "start": {
-            "type": "string",
-            "description": "Start time in ISO 8601 format for the new booking",
-            "example": "2024-08-13T10:00:00Z"
-          },
-          "reschedulingReason": {
-            "type": "string",
-            "example": "User requested reschedule",
-            "description": "Reason for rescheduling the booking"
-          }
-        },
-        "required": [
-          "start"
         ]
       },
       "RescheduleBookingOutput_2024_08_13": {
@@ -12714,6 +12931,12 @@
               },
               {
                 "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/CreateSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/CreateRecurringSeatedBookingOutput_2024_08_13"
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or a RecurringBookingOutput object"
@@ -12722,18 +12945,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "CancelBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "cancellationReason": {
-            "type": "string",
-            "example": "User requested cancellation"
-          }
-        },
-        "required": [
-          "cancellationReason"
         ]
       },
       "CancelBookingOutput_2024_08_13": {
@@ -12759,6 +12970,18 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               }
             ],

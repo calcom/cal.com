@@ -23,7 +23,10 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW,
     WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW,
   ] as const,
-  "routing-forms": [WebhookTriggerEvents.FORM_SUBMITTED] as const,
+  "routing-forms": [
+    WebhookTriggerEvents.FORM_SUBMITTED,
+    WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  ] as const,
 };
 
 export const WEBHOOK_TRIGGER_EVENTS = [
