@@ -37,12 +37,11 @@ function mockAttributesScenario({
       if (!selectedAttr) {
         throw new Error("Invalid attribute given.");
       }
+      const selectedAttrOptionValues: string[] =
+        typeof teamMemberAttrs[key] === "string" ? [teamMemberAttrs[key]] : teamMemberAttrs[key];
       newAttributes[key] = {
         ...selectedAttr,
-        options: (!(teamMemberAttrs[key] instanceof Array)
-          ? [teamMemberAttrs[key]]
-          : teamMemberAttrs[key]
-        ).map((selectedAttrOptionValue) => {
+        options: selectedAttrOptionValues.map((selectedAttrOptionValue) => {
           const selectedOption = selectedAttr.options.find(
             (option) => option.value === selectedAttrOptionValue
           );
