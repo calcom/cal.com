@@ -3,15 +3,13 @@
 import { signOut } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import { z } from "zod";
 
-import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -56,7 +54,6 @@ const OnboardingPage = (props: PageProps) => {
 
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
-  const [isInstallPending, setIsInstallPending] = useState(false);
   const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse({
@@ -145,28 +142,22 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
-              {user?.identityProvider === IdentityProvider.GOOGLE && isInstallPending ? (
-                <Icon name="loader" />
-              ) : (
-                <Suspense fallback={<Icon name="loader" />}>
-                  {currentStep === "user-settings" && (
-                    <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
-                  )}
-                  {currentStep === "connected-calendar" && (
-                    <ConnectedCalendars nextStep={() => goToIndex(2)} />
-                  )}
+              <Suspense fallback={<Icon name="loader" />}>
+                {currentStep === "user-settings" && (
+                  <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
+                )}
+                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
-                  {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
+                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
 
-                  {currentStep === "setup-availability" && (
-                    <SetupAvailability
-                      nextStep={() => goToIndex(4)}
-                      defaultScheduleId={user.defaultScheduleId}
-                    />
-                  )}
-                  {currentStep === "user-profile" && <UserProfile />}
-                </Suspense>
-              )}
+                {currentStep === "setup-availability" && (
+                  <SetupAvailability
+                    nextStep={() => goToIndex(4)}
+                    defaultScheduleId={user.defaultScheduleId}
+                  />
+                )}
+                {currentStep === "user-profile" && <UserProfile />}
+              </Suspense>
             </StepCard>
 
             {headers[currentStepIndex]?.skipText && (
