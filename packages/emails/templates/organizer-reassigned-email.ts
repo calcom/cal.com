@@ -23,6 +23,7 @@ export default class OrganizerReassignedEmail extends OrganizerScheduledEmail {
       html: await renderEmail("OrganizerReassignedEmail", {
         attendee: this.calEvent.organizer,
         calEvent: this.calEvent,
+        reassignedTo: this.reassignedTo,
       }),
       text: this.getTextBody("event_request_reassigned"),
     };

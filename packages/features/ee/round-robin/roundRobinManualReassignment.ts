@@ -244,7 +244,6 @@ export const roundRobinManualReassignment = async ({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
-    cancellationReason: "Manually re-assigned",
   };
 
   const credentials = await prisma.credential.findMany({
