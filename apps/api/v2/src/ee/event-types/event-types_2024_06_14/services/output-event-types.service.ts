@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/client";
 
+import { InternalLocationSchema } from "@calcom/lib";
 import {
   EventTypeMetaDataSchema,
   userMetadata,
@@ -190,7 +191,19 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformLocations(locations: any) {
     if (!locations) return [];
-    return transformLocationsInternalToApi(InternalLocationsSchema.parse(locations));
+
+    const parsedLocations = locations.map((location: any) => {
+      const result = InternalLocationSchema.safeParse(location);
+      if (result.success) {
+        return result.data;
+      } else {
+        return {
+          type: "unknown",
+          location: JSON.stringify(location),
+        };
+      }
+    });
+    return transformLocationsInternalToApi(parsedLocations);
   }
 
   transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {
