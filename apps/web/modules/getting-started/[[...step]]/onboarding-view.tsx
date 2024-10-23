@@ -6,15 +6,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { z } from "zod";
 
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { classNames } from "@calcom/lib";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast, StepCard, Steps } from "@calcom/ui";
+import { Button, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
@@ -56,18 +56,6 @@ const OnboardingPage = (props: PageProps) => {
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const addAppMutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
-      if (data?.setupPending) {
-        return;
-      }
-    },
-    onError: (error) => {
-      if (error instanceof Error) {
-        showToast(error.message, "error");
-      }
-    },
-  });
 
   const result = stepRouteSchema.safeParse({
     ...params,
@@ -126,9 +114,30 @@ const OnboardingPage = (props: PageProps) => {
     if (!user || user.identityProvider !== IdentityProvider.GOOGLE) {
       return;
     }
-    addAppMutation.mutate({
-      type: "google_calendar",
-    });
+    const installGoogleCalendar = async () => {
+      const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
+      const state: IntegrationOAuthCallbackState = {
+        onErrorReturnTo,
+        fromApp: true,
+        installGoogleVideo: true,
+      };
+
+      const stateStr = JSON.stringify(state);
+      const searchParams = new URLSearchParams({
+        state: stateStr,
+      }).toString();
+
+      const res = await fetch(`/api/integrations/google_calendar/add${searchParams}`);
+
+      if (!res.ok) {
+        const errorBody = await res.json();
+        throw new Error(errorBody.message || "Something went wrong");
+      }
+
+      const json = await res.json();
+      console.log(json);
+    };
+    installGoogleCalendar();
   }, []);
 
   return (
