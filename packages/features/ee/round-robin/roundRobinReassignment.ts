@@ -5,7 +5,7 @@ import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@cal
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
+import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -18,6 +18,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -29,28 +30,17 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const bookingSelect = {
-  uid: true,
-  title: true,
-  startTime: true,
-  endTime: true,
-  userId: true,
-  customInputs: true,
-  responses: true,
-  description: true,
-  location: true,
-  eventTypeId: true,
-  destinationCalendar: true,
-  user: {
-    include: {
-      destinationCalendar: true,
-    },
-  },
-  attendees: true,
-  references: true,
-};
+import { bookingSelect } from "./utils/bookingSelect";
+import { getDestinationCalendar } from "./utils/getDestinationCalendar";
+import { getTeamMembers } from "./utils/getTeamMembers";
 
-export const roundRobinReassignment = async ({ bookingId }: { bookingId: number }) => {
+export const roundRobinReassignment = async ({
+  bookingId,
+  orgId,
+}: {
+  bookingId: number;
+  orgId: number | null;
+}) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
@@ -63,26 +53,26 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   });
 
   if (!booking) {
-    roundRobinReassignLogger.error(`Booking ${bookingId} not found`);
+    logger.error(`Booking ${bookingId} not found`);
     throw new Error("Booking not found");
   }
 
-  if (!booking?.user) {
-    roundRobinReassignLogger.error(`No user associated with booking ${bookingId}`);
+  if (!booking.user) {
+    logger.error(`No user associated with booking ${bookingId}`);
     throw new Error("Booking not found");
   }
 
   const eventTypeId = booking.eventTypeId;
 
   if (!eventTypeId) {
-    roundRobinReassignLogger.error(`Booking ${bookingId} does not have an event type id`);
+    logger.error(`Booking ${bookingId} does not have an event type id`);
     throw new Error("Event type not found");
   }
 
   const eventType = await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) {
-    roundRobinReassignLogger.error(`Event type ${eventTypeId} not found`);
+    logger.error(`Event type ${eventTypeId} not found`);
     throw new Error("Event type not found");
   }
 
@@ -94,6 +84,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         priority: 2,
         weight: 100,
         weightAdjustment: 0,
+        schedule: null,
       }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
@@ -137,7 +128,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
     availableUsers,
     eventType: {
-      id: eventTypeId,
+      id: eventType.id,
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
     },
     allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
@@ -152,39 +143,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
-  const teamMemberPromises = [];
-  for (const teamMember of eventType.hosts) {
-    const user = teamMember.user;
-    // Need to skip over the reassigned user and the organizer user
-    if (user.email === previousRRHost?.email || user.email === organizer.email) {
-      continue;
-    }
-
-    // Check that the team member is a part of the booking
-    if (booking.attendees.some((attendee) => attendee.email === user.email)) {
-      teamMemberPromises.push(
-        getTranslation(user.locale ?? "en", "common").then((tTeamMember) => ({
-          id: user.id,
-          email: user.email,
-          name: user.name || "",
-          timeZone: user.timeZone,
-          language: { translate: tTeamMember, locale: user.locale ?? "en" },
-        }))
-      );
-    }
-  }
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-  // Assume the RR host was labelled as a team member
-  if (reassignedRRHost.email !== organizer.email) {
-    teamMembers.push({
-      id: reassignedRRHost.id,
-      email: reassignedRRHost.email,
-      name: reassignedRRHost.name || "",
-      timeZone: reassignedRRHost.timeZone,
-      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale ?? "en" },
-    });
-  }
+  const teamMembers = await getTeamMembers({
+    eventTypeHosts: eventType.hosts,
+    attendees: booking.attendees,
+    organizer: organizer,
+    previousHost: previousRRHost || null,
+    reassignedHost: reassignedRRHost,
+  });
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
@@ -202,6 +167,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         name: attendee.name,
         timeZone: attendee.timeZone,
         language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+        phoneNumber: attendee.phoneNumber || undefined,
       }))
     );
   }
@@ -279,24 +245,12 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     });
   }
 
-  const destinationCalendar = await (async () => {
-    if (eventType?.destinationCalendar) {
-      return [eventType.destinationCalendar];
-    }
-
-    if (hasOrganizerChanged) {
-      const organizerDestinationCalendar = await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: reassignedRRHost.id,
-        },
-      });
-      if (organizerDestinationCalendar) {
-        return [organizerDestinationCalendar];
-      }
-    } else {
-      if (booking.user?.destinationCalendar) return [booking.user?.destinationCalendar];
-    }
-  })();
+  const destinationCalendar = await getDestinationCalendar({
+    eventType,
+    booking,
+    newUserId: reassignedRRHost.id,
+    hasOrganizerChanged,
+  });
 
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
@@ -369,7 +323,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   });
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmails(evt, [
+  await sendRoundRobinScheduledEmailsAndSMS(evt, [
     {
       ...reassignedRRHost,
       name: reassignedRRHost.name || "",
@@ -410,7 +364,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       });
     }
 
-    await sendRoundRobinCancelledEmails(
+    await sendRoundRobinCancelledEmailsAndSMS(
       cancelledRRHostEvt,
       [
         {
@@ -464,6 +418,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
     const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
 
+    const bookerUrl = await getBookerBaseUrl(orgId);
+
     for (const workflowReminder of workflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
@@ -474,6 +430,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
             ...evt,
             metadata: workflowEventMetadata,
             eventType,
+            bookerUrl,
           },
           action: WorkflowActions.EMAIL_HOST,
           triggerEvent: workflow.trigger,
@@ -537,7 +494,12 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     await scheduleWorkflowReminders({
       workflows: newEventWorkflows,
       smsReminderNumber: null,
-      calendarEvent: { ...evt, metadata: workflowEventMetadata, eventType: { slug: eventType.slug } },
+      calendarEvent: {
+        ...evt,
+        metadata: workflowEventMetadata,
+        eventType: { slug: eventType.slug },
+        bookerUrl,
+      },
       hideBranding: !!eventType?.owner?.hideBranding,
     });
   }

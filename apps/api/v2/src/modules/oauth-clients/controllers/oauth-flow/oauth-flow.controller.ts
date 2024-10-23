@@ -25,9 +25,11 @@ import {
 import {
   ApiTags as DocsTags,
   ApiExcludeController as DocsExcludeController,
+  ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiOperation as DocsOperation,
   ApiOkResponse as DocsOkResponse,
   ApiBadRequestResponse as DocsBadRequestResponse,
+  ApiHeader as DocsHeader,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
@@ -37,8 +39,7 @@ import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
   path: "/v2/oauth/:clientId",
   version: API_VERSIONS_VALUES,
 })
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("OAuth - development only")
+@DocsTags("OAuth")
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
@@ -62,6 +63,7 @@ export class OAuthFlowController {
     description:
       "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client.",
   })
+  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
   async authorize(
     @Param("clientId") clientId: string,
     @Body() body: OAuthAuthorizeInput,
@@ -108,6 +110,7 @@ export class OAuthFlowController {
     description:
       "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match.",
   })
+  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
   async exchange(
     @Headers("Authorization") authorization: string,
     @Param("clientId") clientId: string,
@@ -138,6 +141,12 @@ export class OAuthFlowController {
   @Post("/refresh")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @DocsTags("Managed users")
+  @DocsHeader({
+    name: X_CAL_SECRET_KEY,
+    description: "OAuth client secret key.",
+    required: true,
+  })
   async refreshAccessToken(
     @Param("clientId") clientId: string,
     @Headers(X_CAL_SECRET_KEY) secretKey: string,

@@ -11,6 +11,7 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
+import { getRoutedHostsWithContactOwnerAndFixedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -37,6 +38,8 @@ import { TRPCError } from "@trpc/server";
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+
+const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 
 export const checkIfIsAvailable = ({
   time,
@@ -134,6 +137,7 @@ export async function getEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  log.info("getEventType", safeStringify({ usernameList, eventTypeSlug, isTeamEvent, organizationDetails }));
   const eventTypeId =
     input.eventTypeId ||
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -175,6 +179,24 @@ export async function getEventType(
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
       schedule: {
         select: {
           id: true,
@@ -204,6 +226,20 @@ export async function getEventType(
             select: {
               credentials: { select: credentialForCalendarServiceSelect },
               ...availabilityUserSelect,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
             },
           },
         },
@@ -319,9 +355,52 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  troubleshooter?: any;
+}
+
+/**
+ * Returns (Contact Owner plus Fixed Hosts) OR All Hosts
+ */
+export function getUsersWithCredentialsConsideringContactOwner({
+  contactOwnerEmail,
+  hosts,
+}: {
+  contactOwnerEmail: string | null | undefined;
+  hosts: {
+    isFixed?: boolean;
+    user: GetAvailabilityUser;
+  }[];
+}) {
+  const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
+  /**
+   * It could still have contact owner, if it was one of the assigned hosts of the event.
+   * In case of routedTeamMemberIds, hosts will only have the Routed Team Members and in that case, contact owner would be here only if it matches
+   */
+  const allHosts = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+  const contactOwnerExists = contactOwnerEmail && contactOwnerHost;
+
+  if (!contactOwnerExists) {
+    return allHosts;
+  }
+
+  if (contactOwnerHost?.isFixed) {
+    // If contact owner is a fixed host, we return all hosts which also includes contact owner
+    return allHosts;
+  }
+
+  const contactOwnerAndFixedHosts = hosts.reduce((usersArray, host) => {
+    if (host.isFixed || host.user.email === contactOwnerEmail)
+      usersArray.push({ ...host.user, isFixed: host.isFixed });
+
+    return usersArray;
+  }, [] as (GetAvailabilityUser & { isFixed?: boolean })[]);
+
+  return contactOwnerAndFixedHosts;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -381,15 +460,34 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let hosts =
+  const eventHosts: {
+    isFixed: boolean;
+    email: string;
+    user: (typeof eventType.hosts)[number]["user"];
+  }[] =
     eventType.hosts?.length && eventType.schedulingType
-      ? eventType.hosts
+      ? eventType.hosts.map((host) => ({
+          isFixed: host.isFixed,
+          email: host.user.email,
+          user: host.user,
+        }))
       : eventType.users.map((user) => {
           return {
             isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+            email: user.email,
             user: user,
           };
         });
+
+  const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
+  const skipContactOwner = input.skipContactOwner;
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
+
+  let routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
+    hosts: eventHosts,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    contactOwnerEmail,
+  });
 
   if (
     input.rescheduleUid &&
@@ -407,21 +505,19 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         userId: true,
       },
     });
-    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    routedHostsWithContactOwnerAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
+      (host) => host.user.id === originalRescheduledBooking?.userId || 0
+    );
   }
 
-  const teamMemberHost = hosts.find((host) => host.user.email === input?.teamMemberEmail);
+  const usersWithCredentials = getUsersWithCredentialsConsideringContactOwner({
+    contactOwnerEmail,
+    hosts: routedHostsWithContactOwnerAndFixedHosts,
+  });
 
-  // If the requested team member is a fixed host proceed as normal else get availability like the requested member is a fixed host
-  const usersWithCredentials =
-    !input.teamMemberEmail || !teamMemberHost || teamMemberHost.isFixed
-      ? hosts.map(({ isFixed, user }) => ({ isFixed, ...user }))
-      : hosts.reduce((usersArray, host) => {
-          if (host.isFixed || host.user.email === input.teamMemberEmail)
-            usersArray.push({ ...host.user, isFixed: host.isFixed });
-
-          return usersArray;
-        }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
+  loggerWithEventDetails.debug("Using users", {
+    usersWithCredentials: usersWithCredentials.map((user) => user.email),
+  });
 
   const durationToUse = input.duration || 0;
 
@@ -823,8 +919,29 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   }
 
+  const troubleshooterData = enableTroubleshooter
+    ? {
+        troubleshooter: {
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing skipContactOwner flag
+          consideredContactOwner: contactOwnerEmail,
+          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+          routedHosts: usersWithCredentials.map((user) => {
+            return {
+              userId: user.id,
+            };
+          }),
+          hosts: eventHosts.map((host) => ({
+            userId: host.user.id,
+          })),
+        },
+      }
+    : null;
+
   return {
     slots: withinBoundsSlotsMappedToDate,
+    ...troubleshooterData,
   };
 }
 
@@ -837,7 +954,7 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-
+  log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
   const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,

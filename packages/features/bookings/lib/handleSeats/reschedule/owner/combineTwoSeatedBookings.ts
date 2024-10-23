@@ -3,14 +3,14 @@ import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import type EventManager from "@calcom/core/EventManager";
-import { sendRescheduledEmails } from "@calcom/emails";
+import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
-import { addVideoCallDataToEvent } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
@@ -119,7 +119,7 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = addVideoCallDataToEvent(updatedNewBooking.references, evt);
+  evt = { ...addVideoCallDataToEvent(updatedNewBooking.references, evt), bookerUrl: evt.bookerUrl };
 
   const copyEvent = cloneDeep(evt);
 
@@ -136,7 +136,7 @@ const combineTwoSeatedBookings = async (
   if (noEmail !== true && isConfirmedByDefault) {
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-    await sendRescheduledEmails(
+    await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,
         additionalNotes, // Resets back to the additionalNote input and not the override value

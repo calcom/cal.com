@@ -13,6 +13,7 @@ import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/compone
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -170,13 +171,18 @@ function AvailabilityListWithQuery() {
   );
 }
 
-export default function AvailabilityPage() {
+type PageProps = {
+  currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
+};
+
+export default function AvailabilityPage({ currentOrg }: PageProps) {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const me = useMeQuery();
-  const { data } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: _data } = trpc.viewer.organizations.listCurrent.useQuery(undefined, { enabled: !currentOrg });
+  const data = currentOrg ?? _data;
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -190,12 +196,16 @@ export default function AvailabilityPage() {
     [searchParams]
   );
 
+  const isOrg = Boolean(data);
   const isOrgAdminOrOwner =
-    data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN);
+    (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
+
+  const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
+
   const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
 
-  if (!isOrgAndPrivate || isOrgAdminOrOwner) {
+  if (canViewTeamAvailability) {
     toggleGroupOptions.push({ value: "team", label: t("team_availability") });
   }
 
@@ -203,11 +213,11 @@ export default function AvailabilityPage() {
     <div>
       <Shell
         heading={t("availability")}
-        title="Availability"
-        description="Configure times when you are available for bookings."
+        subtitle={t("configure_availability")}
+        title={t("availability")}
+        description={t("configure_availability")}
         hideHeadingOnMobile
         withoutMain={false}
-        subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
             <ToggleGroup
@@ -222,8 +232,8 @@ export default function AvailabilityPage() {
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" && (!isOrgAndPrivate || isOrgAdminOrOwner) ? (
-          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
+        {searchParams?.get("type") === "team" && canViewTeamAvailability ? (
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} isOrg={isOrg} />
         ) : (
           <AvailabilityListWithQuery />
         )}

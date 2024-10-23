@@ -42,6 +42,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -63,7 +64,6 @@ import {
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
-import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -79,7 +79,6 @@ const querySchema = z.object({
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
-  reject: stringToBoolean,
   allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
@@ -116,7 +115,6 @@ export default function Success(props: PageProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    reject: isRejectionMode,
     formerTime,
     email,
     seatReferenceUid,
@@ -147,7 +145,7 @@ export default function Success(props: PageProps) {
 
   const attendees = bookingInfo?.attendees;
 
-  const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
+  const isGmail = !!attendees.find((attendee) => attendee?.email?.includes("gmail.com"));
 
   const [is24h, setIs24h] = useState(
     props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
@@ -164,7 +162,10 @@ export default function Success(props: PageProps) {
   const [comment, setComment] = useState("");
   const parsedRating = rating ? parseInt(rating, 10) : 3;
   const currentUserEmail =
-    searchParams?.get("cancelledBy") ?? searchParams?.get("email") ?? session?.user?.email ?? undefined;
+    searchParams?.get("rescheduledBy") ??
+    searchParams?.get("cancelledBy") ??
+    session?.user?.email ??
+    undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
@@ -209,16 +210,6 @@ export default function Success(props: PageProps) {
       if (_searchParams.get("cancel")) {
         _searchParams.delete("cancel");
       }
-    }
-
-    router.replace(`${pathname}?${_searchParams.toString()}`);
-  }
-
-  function setIsRejectionMode() {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
-
-    if (_searchParams.get("reject")) {
-      _searchParams.delete("reject");
     }
 
     router.replace(`${pathname}?${_searchParams.toString()}`);
@@ -376,10 +367,14 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
-
+  const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
+    }
+
+    if (isRerouting) {
+      return t("This meeting has been rerouted");
     }
 
     if (isNotAttendingSeatedEvent) {
@@ -487,6 +482,7 @@ export default function Success(props: PageProps) {
                         id="modal-headline">
                         {successPageHeadline}
                       </h3>
+
                       <div className="mt-3">
                         <p className="text-default">{getTitle()}</p>
                       </div>
@@ -566,7 +562,14 @@ export default function Success(props: PageProps) {
                                   {attendee.name && (
                                     <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
                                   )}
-                                  <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                  {attendee.phoneNumber && (
+                                    <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
+                                      {attendee.phoneNumber}
+                                    </p>
+                                  )}
+                                  {!isSmsCalEmail(attendee.email) && (
+                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -684,7 +687,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
-                      !isRejectionMode &&
+                      !isRerouting &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -699,7 +702,9 @@ export default function Success(props: PageProps) {
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
                                       href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+                                        currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
                                       }`}
                                       legacyBehavior>
                                       {t("reschedule")}
@@ -742,18 +747,17 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
-                    {!isCancelled && isRejectionMode && (
-                      <>
-                        <hr className="border-subtle" />
-                        <RejectBooking
-                          booking={{
-                            id: bookingInfo.id,
-                            uid: bookingInfo?.uid,
-                            recurringEventId: bookingInfo.recurringEventId,
-                          }}
-                          setIsRejectionMode={setIsRejectionMode}
-                        />
-                      </>
+                    {isRerouting && typeof window !== "undefined" && window.opener && (
+                      <div className="flex justify-center">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            window.opener.focus();
+                            window.close();
+                          }}>
+                          Go Back
+                        </Button>
+                      </div>
                     )}
                     {userIsOwner &&
                       !needsConfirmation &&
