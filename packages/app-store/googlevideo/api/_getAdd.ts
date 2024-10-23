@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -21,15 +21,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (alreadyInstalled) {
       throw new Error("Already installed");
     }
-    const installation = await CredentialRepository.create({
-      type: appType,
-      key: {},
-      userId: req.session.user.id,
-      appId: "google-meet",
+    const installation = await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        userId: req.session.user.id,
+        appId: "google-meet",
+      },
     });
     if (!installation) {
       throw new Error("Unable to create user credential for google_video");
     }
+    await BookingReferenceRepository.reconnectWithNewCredential(installation.id);
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });

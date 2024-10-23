@@ -4,8 +4,7 @@ import { z } from "zod";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -69,12 +68,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!currentCredential) {
-      await CredentialRepository.create({
-        type: "lark_calendar",
-        key,
-        userId: req.session?.user.id,
-        appId: "lark-calendar",
+      const newCredential = await prisma.credential.create({
+        data: {
+          type: "lark_calendar",
+          key,
+          userId: req.session?.user.id,
+          appId: "lark-calendar",
+        },
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
     } else {
       await prisma.credential.update({
         data: {
@@ -104,12 +106,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       const primaryCalendar = await primaryCalendarResponse.json();
 
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
-        await SelectedCalendarRepository.create({
-          userId: req.session?.user.id,
-          integration: "lark_calendar",
-          externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
-          credentialId: currentCredential?.id,
+        await prisma.selectedCalendar.create({
+          data: {
+            userId: req.session?.user.id,
+            integration: "lark_calendar",
+            externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
+            credentialId: currentCredential?.id,
+          },
         });
+        currentCredential &&
+          (await BookingReferenceRepository.reconnectWithNewCredential(currentCredential.id));
       }
     }
 

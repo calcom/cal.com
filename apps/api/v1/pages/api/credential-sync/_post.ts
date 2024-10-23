@@ -6,9 +6,8 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { schemaCredentialPostBody, schemaCredentialPostParams } from "~/lib/validations/credential-sync";
@@ -90,11 +89,14 @@ async function handler(req: NextApiRequest) {
 
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
 
-  const createdcredential = await CredentialRepository.create({
-    userId,
-    appId: appSlug,
-    key: key ? (key as Prisma.InputJsonValue) : Prisma.JsonNull,
-    type: appMetadata.type,
+  const createdcredential = await prisma.credential.create({
+    data: {
+      userId,
+      appId: appSlug,
+      key,
+      type: appMetadata.type,
+    },
+    select: credentialForCalendarServiceSelect,
   });
   // createdcredential.user.email;
   // TODO:              ^ Investigate why this select doesn't work.
@@ -137,6 +139,8 @@ async function handler(req: NextApiRequest) {
       });
     }
   }
+
+  await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
 
   return { credential: { id: credential.id, type: credential.type } };
 }

@@ -5,8 +5,7 @@ import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -114,12 +113,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    const credential = await CredentialRepository.create({
-      type: "office365_calendar",
-      key: responseBody,
-      userId: req.session?.user.id,
-      appId: "office365-calendar",
+    const credential = await prisma.credential.create({
+      data: {
+        type: "office365_calendar",
+        key: responseBody,
+        userId: req.session?.user.id,
+        appId: "office365-calendar",
+      },
     });
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
       integration: "office365_calendar",
@@ -128,10 +130,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await SelectedCalendarRepository.create({
-        ...selectedCalendarWhereUnique,
-        credentialId: credential.id,
+      await prisma.selectedCalendar.create({
+        data: {
+          ...selectedCalendarWhereUnique,
+          credentialId: credential.id,
+        },
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

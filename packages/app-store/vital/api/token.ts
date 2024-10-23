@@ -2,7 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import prisma from "@calcom/prisma";
 
 import { initVitalClient, vitalEnv } from "../lib/client";
 
@@ -33,12 +34,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (userVital?.user_id) {
-      await CredentialRepository.create({
-        type: "vital_other",
-        key: { userVitalId: userVital.user_id } as unknown as Prisma.InputJsonObject,
-        userId: calcomUserId,
-        appId: "vital-automation",
+      const credential = await prisma.credential.create({
+        data: {
+          type: "vital_other",
+          key: { userVitalId: userVital.user_id } as unknown as Prisma.InputJsonObject,
+          userId: calcomUserId,
+          appId: "vital-automation",
+        },
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     }
     const token = await vitalClient.Link.create(
       userVital?.user_id,

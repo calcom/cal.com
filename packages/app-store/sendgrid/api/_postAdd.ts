@@ -4,7 +4,8 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -31,7 +32,10 @@ export async function getHandler(req: NextApiRequest) {
   };
 
   try {
-    await CredentialRepository.create(data);
+    const credential = await prisma.credential.create({
+      data,
+    });
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
   } catch (reason) {
     logger.error("Could not add Sendgrid app", reason);
     throw new HttpError({ statusCode: 500, message: "Could not add Sendgrid app" });

@@ -1,7 +1,8 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../oauth/decodeOAuthState";
 import { throwIfNotHaveAdminAccessToTeam } from "../throwIfNotHaveAdminAccessToTeam";
@@ -31,20 +32,30 @@ const createOAuthAppCredential = async (
     // Check that the user belongs to the team
     await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
-    return await CredentialRepository.create({
-      type: appData.type,
-      key: key || {},
-      teamId: state.teamId,
-      appId: appData.appId,
+    const newCredential = await prisma.credential.create({
+      data: {
+        type: appData.type,
+        key: key || {},
+        teamId: state.teamId,
+        appId: appData.appId,
+      },
     });
+
+    await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
+    return newCredential;
   }
 
-  return await CredentialRepository.create({
-    type: appData.type,
-    key: key || {},
-    userId,
-    appId: appData.appId,
+  const newCredential = await prisma.credential.create({
+    data: {
+      type: appData.type,
+      key: key || {},
+      userId,
+      appId: appData.appId,
+    },
   });
+
+  await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
+  return newCredential;
 };
 
 export default createOAuthAppCredential;

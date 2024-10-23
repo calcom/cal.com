@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -27,16 +27,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (alreadyInstalled) {
       throw new Error("Already installed");
     }
-    const installation = await CredentialRepository.create({
-      type: appType,
-      key: {},
-      userId: req.session.user.id,
-      appId: "paypal",
+    const installation = await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        userId: req.session.user.id,
+        appId: "paypal",
+      },
     });
 
     if (!installation) {
       throw new Error("Unable to create user credential for Paypal");
     }
+    await BookingReferenceRepository.reconnectWithNewCredential(installation.id);
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });
