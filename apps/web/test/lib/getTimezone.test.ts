@@ -150,8 +150,6 @@ describe("getTimezone", () => {
         "Europe/Berlin": "Central European Time",
         "Europe/Bucharest": "Eastern European Time",
         "Europe/London": "Western European Time",
-        "Mountain Time - US & Canada": "America/Denver",
-        "Pacific Time - US & Canada": "America/Los_Angeles",
         "Pacific/Honolulu": "Hawaii-Aleutian Standard Time",
       }
     `);
