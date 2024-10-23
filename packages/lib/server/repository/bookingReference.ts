@@ -111,6 +111,10 @@ export class BookingReferenceRepository {
                 },
               }),
         },
+        select: {
+          id: true,
+          bookingId: true,
+        },
       });
 
       if (bookingReferences.length > 0) {
@@ -127,6 +131,10 @@ export class BookingReferenceRepository {
                     .map((bookingReference) => bookingReference.bookingId as number),
                 },
                 credentialId: null,
+              },
+              select: {
+                id: true,
+                bookingId: true,
               },
             }))
           );
