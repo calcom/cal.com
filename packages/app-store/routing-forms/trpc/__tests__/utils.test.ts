@@ -6,6 +6,7 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
+import * as getAttributesModule from "../../lib/getAttributes";
 import type {
   Attribute,
   AttributesQueryValue,
@@ -33,6 +34,7 @@ function mockAttributesScenario({
     attributes: Record<string, string | string[]>;
   }[];
 }): SerializableFormTeamMembers {
+  vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
   return teamMembersWithAttributeOptionValuePerAttribute.map(({ userId, attributes: teamMemberAttrs }) => {
     const newAttributes: SerializableFormTeamMembers[number]["attributes"] = {};
     Object.keys(teamMemberAttrs).forEach((key) => {
