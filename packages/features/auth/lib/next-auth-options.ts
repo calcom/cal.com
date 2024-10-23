@@ -705,8 +705,6 @@ export const getOptions = ({
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
         profileId,
         upId: token.upId || session.upId,
         hasValidLicense,
