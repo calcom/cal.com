@@ -623,7 +623,7 @@ const calculateOutOfOfficeRanges = (
   outOfOfficeDays: GetUserAvailabilityInitialData["outOfOfficeDays"],
   availability: GetUserAvailabilityParamsDTO["availability"]
 ): IOutOfOfficeData => {
-  if (!outOfOfficeDays || !outOfOfficeDays.length) {
+  if (!outOfOfficeDays || outOfOfficeDays.length === 0) {
     return {};
   }
 
