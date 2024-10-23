@@ -3,13 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZGetScheduleInputSchema } from "./getSchedule.schema";
-import { ZGetTeamScheduleInputSchema } from "./getTeamSchedule.schema";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 
 type SlotsRouterHandlerCache = {
   getSchedule?: typeof import("./getSchedule.handler").getScheduleHandler;
-  getTeamSchedule?: typeof import("./getTeamSchedule.handler").getTeamScheduleHandler;
   reserveSlot?: typeof import("./reserveSlot.handler").reserveSlotHandler;
 };
 
@@ -30,23 +28,6 @@ export const slotsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.getSchedule({
-      ctx,
-      input,
-    });
-  }),
-  getTeamSchedule: publicProcedure.input(ZGetTeamScheduleInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getTeamSchedule) {
-      UNSTABLE_HANDLER_CACHE.getTeamSchedule = await import("./getTeamSchedule.handler").then(
-        (mod) => mod.getTeamScheduleHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getTeamSchedule) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getTeamSchedule({
       ctx,
       input,
     });

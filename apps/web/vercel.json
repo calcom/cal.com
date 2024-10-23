@@ -14,10 +14,7 @@
     }
   ],
   "functions": {
-    "pages/api/trpc/public/[trpc].ts": {
-      "memory": 1024
-    },
-    "pages/api/trpc/slots/[trpc].ts": {
+    "pages/api/trpc/highPerf/[trpc].ts": {
       "memory": 3008
     },
     "pages/api/trpc/appRoutingForms/[trpc].ts": {

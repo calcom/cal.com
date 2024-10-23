@@ -1,7 +1,7 @@
 import type { IncomingMessage } from "http";
 
+import { getAvailableSlots } from "../slots/util";
 import type { TGetTeamScheduleInputSchema } from "./getTeamSchedule.schema";
-import { getAvailableSlots } from "./util";
 
 export type GetTeamScheduleOptions = {
   ctx?: ContextForGetSchedule;

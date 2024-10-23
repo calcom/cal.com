@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { getScheduleSchema } from "./types";
+import { getScheduleSchema } from "../slots/types";
 
 export const ZGetTeamScheduleInputSchema = getScheduleSchema;
 
