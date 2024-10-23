@@ -39,6 +39,16 @@ import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
+type Time = { seconds: number; nanos: number };
+
+type Participant = {
+  name: string;
+  earliestStartTime: Time;
+  latestEndTime: Time;
+  user: string;
+  singedInUser: { user: string; displayName: string };
+};
+
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 interface GoogleCalError extends Error {
   code?: number;
@@ -693,13 +703,8 @@ export default class GoogleCalendarService implements Calendar {
     const meetingCode = videoCallUrl ? new URL(videoCallUrl).pathname.split("/").pop() : null;
 
     const spaceInfo = await spacesClient.getSpace({ name: `spaces/${meetingCode}` });
-    console.log("spaceInfot", spaceInfo);
     // const spaceName = spaceInfo[0].name;
     const spaceName = "spaces/iwjcGmsr0Z4B";
-
-    const allConferenceRecords = meetClient.listConferenceRecordsAsync();
-
-    type Time = { seconds: number; nanos: number };
 
     const conferenceRecords: Array<{
       space: string;
@@ -708,55 +713,58 @@ export default class GoogleCalendarService implements Calendar {
       endTime: Time;
       expireTime: Time;
     }> = [];
-    for await (const response of allConferenceRecords) {
+    for await (const response of meetClient.listConferenceRecordsAsync()) {
       if (response.space === spaceName) {
         conferenceRecords.push(response);
       }
     }
-    console.log("conferenceRecords", conferenceRecords);
 
-    type Participant = {
-      name: string;
-      earliestStartTime: Time;
-      latestEndTime: Time;
-      user: string;
-      singedInUser: { user: string; displayName: string };
-    };
-
-    const participantsByConferenceRecord: Array<Array<Participant>> = [];
-
-    for (const conferenceRecord of conferenceRecords) {
-      const participants: Array<Participant> = [];
-
-      const iterable = meetClient.listParticipantsAsync({ parent: conferenceRecord.name });
-      for await (const participant of iterable) {
-        try {
-          const response = await fetch(
-            `https://people.googleapis.com/v1/people/${
-              participant.signedinUser.user.split("/")[1]
-            }?personFields=emailAddresses&sources=READ_SOURCE_TYPE_OTHER_CONTACT&sources=READ_SOURCE_TYPE_PROFILE&sources=READ_SOURCE_TYPE_CONTACT`,
-            {
-              headers: {
-                Authorization: `Bearer ${token.access_token}`,
-                Accept: "application/json",
-              },
-            }
-          );
-
-          const data = await response.json();
-
-          console.log("data", data);
-        } catch (err) {
-          console.log("err", err);
+    const participantsByConferenceRecord: Array<Array<Participant>> = await Promise.all(
+      conferenceRecords.map(async (conferenceRecord) => {
+        const participants = [];
+        for await (const participant of meetClient.listParticipantsAsync({ parent: conferenceRecord.name })) {
+          participants.push(participant);
         }
-      }
-
-      participantsByConferenceRecord.push(participants);
-    }
+        return participants;
+      })
+    );
 
     console.log("participantsByConferenceRecord", participantsByConferenceRecord);
 
-    return conferenceRecords;
+    const participantsWithEmails = await Promise.all(
+      participantsByConferenceRecord.map(async (participants) => {
+        return Promise.all(
+          participants.map(async (participant) => {
+            try {
+              const response = await fetch(
+                `https://people.googleapis.com/v1/people/${
+                  participant.signedinUser.user.split("/")[1]
+                }?personFields=emailAddresses`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token.access_token}`,
+                    Accept: "application/json",
+                  },
+                }
+              );
+
+              const data = await response.json();
+              const emailAddresses = data.emailAddresses;
+
+              return {
+                ...participant,
+                email: emailAddresses ? emailAddresses[0].value : undefined,
+              };
+            } catch (err) {
+              console.error("Error fetching email for participant:", err);
+              return participant;
+            }
+          })
+        );
+      })
+    );
+
+    return participantsWithEmails;
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {

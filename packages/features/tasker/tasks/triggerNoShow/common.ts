@@ -149,7 +149,7 @@ export const prepareNoShowTrigger = async (
   const booking = await getBooking(bookingId);
 
   if (booking.status !== BookingStatus.ACCEPTED) {
-    log.debug(
+    log.info(
       "Booking is not accepted",
       safeStringify({
         bookingId,
@@ -202,8 +202,30 @@ export const prepareNoShowTrigger = async (
     }
 
     const calendar = await getCalendar(googleCalendarCredentials);
-    const participants = await calendar?.getParticipants(booking.metadata?.videoCallUrl);
-    console.log("participants", participants);
+    const allParticipantGroups = await calendar?.getParticipants(booking.metadata?.videoCallUrl);
+
+    const allParticipants = allParticipantGroups.flat();
+
+    const hostsThatDidntJoinTheCall = hosts.filter(
+      (host) => !allParticipants?.some((participant) => participant.email === host.email)
+    );
+
+    const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
+
+    const maxParticipants = allParticipantGroups.reduce((max, participantGroup) => {
+      return Math.max(max, participantGroup.length);
+    }, 0);
+
+    const didGuestJoinTheCall = maxParticipants < numberOfHostsThatJoined;
+
+    return {
+      hostsThatDidntJoinTheCall,
+      booking,
+      numberOfHostsThatJoined,
+      webhook,
+      didGuestJoinTheCall,
+      triggerEvent,
+    };
   } else {
     log.error(
       "No valid location found in triggerNoShowWebhook",
