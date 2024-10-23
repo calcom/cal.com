@@ -93,11 +93,11 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
         disableImpersonation: user.disableImpersonation,
         bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
         teamId: member.teamId,
-        lastActiveAt: user.lastActiveAt
+        lastActiveAt: member.user.lastActiveAt
           ? new Intl.DateTimeFormat(ctx.user.locale, {
               timeZone: ctx.user.timeZone,
             })
-              .format(lastActiveAt)
+              .format(member.user.lastActiveAt)
               .toLowerCase()
           : null,
       };
