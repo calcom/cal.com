@@ -57,6 +57,12 @@ export const useBookingSuccessRedirect = () => {
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
+    // Ensures that the param is added both to external redirect url and booking success page URL
+    query = {
+      ...query,
+      "cal.rerouting": searchParams.get("cal.rerouting"),
+    };
+
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.

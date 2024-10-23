@@ -78,7 +78,6 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
-
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
@@ -88,7 +87,6 @@ export default function Bookings() {
       },
     },
     {
-      // first render has status `undefined`
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
@@ -151,8 +149,8 @@ export default function Bookings() {
       hideHeadingOnMobile
       heading={t("bookings")}
       subtitle={t("bookings_description")}
-      title="Bookings"
-      description="Create events to share for people to book on your calendar.">
+      title={t("bookings")}
+      description={t("bookings_description")}>
       <div className="flex flex-col">
         <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />

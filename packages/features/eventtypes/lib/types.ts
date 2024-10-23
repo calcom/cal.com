@@ -27,12 +27,14 @@ export type Host = {
   priority: number;
   weight: number;
   weightAdjustment: number;
+  scheduleId?: number | null;
 };
 export type TeamMember = {
   value: string;
   label: string;
   avatar: string;
   email: string;
+  defaultScheduleId: number | null;
 };
 
 export type FormValues = {
@@ -55,7 +57,7 @@ export type FormValues = {
   schedulingType: SchedulingType | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
-  hashedLink: string | undefined;
+  multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
   locations: {
     type: EventLocationType["type"];
@@ -151,4 +153,5 @@ export type TabMap = {
   team?: React.ReactNode;
   webhooks?: React.ReactNode;
   workflows?: React.ReactNode;
+  payments?: React.ReactNode;
 };

@@ -1,8 +1,6 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
-import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
@@ -36,6 +34,14 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CancelBookingInput,
+  CancelBookingInputPipe,
+  GetBookingOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  RescheduleBookingInput,
+  RescheduleBookingInputPipe,
+} from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
   CreateBookingInput,
@@ -167,7 +173,8 @@ export class BookingsController_2024_08_13 {
   })
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: RescheduleBookingInput_2024_08_13,
+    @Body(new RescheduleBookingInputPipe())
+    body: RescheduleBookingInput,
     @Req() request: Request
   ): Promise<RescheduleBookingOutput_2024_08_13> {
     const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
@@ -186,7 +193,8 @@ export class BookingsController_2024_08_13 {
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
-    @Body() body: CancelBookingInput_2024_08_13
+    @Body(new CancelBookingInputPipe())
+    body: CancelBookingInput
   ): Promise<CancelBookingOutput_2024_08_13> {
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 

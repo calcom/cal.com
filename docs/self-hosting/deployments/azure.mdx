@@ -1,0 +1,58 @@
+---
+title: "Azure"
+icon: "microsoft"
+---
+
+Deploying Cal.com on Azure
+___
+
+
+## One Click Deployment
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https://raw.githubusercontent.com/calcom/docker/main/azuredeploy.json" target="_blank">
+  <img src="https://aka.ms/deploytoazurebutton" noZoom alt="Deploy to Azure"/>
+</a>
+
+
+## Manual Deployment
+
+<Steps>
+    <Step title="Prerequisites">
+        1. Microsoft Azure account
+        2. Basic knowledge of Azure services
+        3. Access to Cal.com source code
+    </Step>
+    <Step title="Azure Setup">
+        1. Create an Azure Account
+        2. Azure Portal: Familiarize yourself with the Azure Portal.
+        <img src="https://github.com/sriyachalla/cal.com/assets/142919730/65404c14-a70c-4a10-a253-f4cd4a7de421" />
+    </Step>
+    <Step title="Creating Azure Resources">
+        1. Creating Azure Resources: In the Azure Portal, create a new resource group for your Cal.com project.
+        <img src="https://github.com/sriyachalla/cal.com/assets/142919730/ac301959-9280-40ce-a8f9-061ea18f287a" />
+        2. Create Azure Services: Set up required services such as Azure App Service, Azure Database for PostgreSQL, etc.
+        #### Create Web App
+        <img src="https://github.com/sriyachalla/cal.com/assets/142919730/3ce2984a-bca2-486f-a675-ac5fd719efd2" />
+
+        #### Setup Database, Networking
+        <img src="https://github.com/sriyachalla/cal.com/assets/142919730/9eefd029-1b8f-4163-b35c-fa34dd8e4eb4" />
+
+        #### Setup Monitoring
+        <img src="https://github.com/sriyachalla/cal.com/assets/142919730/49ed309c-c70d-486e-84be-37ea1e8ca14e" />
+    </Step>
+    <Step title="Configuring Cal.com">
+        1. Clone Repository: Clone the Cal.com repository to your local machine.
+        2. Configuration Files: Update the .env file with necessary Azure configurations (e.g., database connection strings).
+    </Step>
+    <Step title="Deploying on Azure">
+        1. Deploying Web App: Use Azure App Service to deploy the Cal.com web application.
+        2. Database Setup: Deploy and configure the Azure Database for PostgreSQL with Cal.com.
+        3. Deployment Verification: Ensure that the application is running smoothly post-deployment.
+
+        <img src="https://github.com/sriyachalla/cal.com/assets/142919730/8ca084e4-eb4e-4ff5-8445-caf002eed500" />
+    </Step>
+    <Step title="Post-Deployment Steps">
+        1. DNS Configuration: Configure your DNS settings to point to the Azure deployment.
+        2. Monitor and Scale: Utilize Azure monitoring tools to keep track of performance and scale resources as needed.
+    </Step>
+</Steps>
