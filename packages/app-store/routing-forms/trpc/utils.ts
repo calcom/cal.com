@@ -15,6 +15,7 @@ import type { AttributeType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import { RaqbLogicResult } from "../lib/evaluateRaqbLogic";
+import { getAttributesForTeam } from "../lib/getAttributes";
 import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
 import type { SerializableField, OrderedResponses, AttributeOption } from "../types/types";
@@ -355,11 +356,53 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     })
   );
 
-  const logic = getJsonLogic({
-    attributesQueryValue: attributesQueryValue as JsonTree,
-    attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
-    isPreview: !!isPreview,
-  });
+  let logic: object | undefined;
+  // isPreview getJsonLogic may throw errors that make sense in context
+  try {
+    logic = getJsonLogic({
+      attributesQueryValue: attributesQueryValue as JsonTree,
+      attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
+      isPreview: !!isPreview,
+    });
+  } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
+    // bail early as an out-of-bounds entry was not found in the error message.
+    if (!/Value (.+?) is not in list of values/.test(e.message)) {
+      throw e;
+    }
+    const errors = (e.message as string).split(",");
+    // because jsonLogic only runs for the actually assigned attributes, it may be missing.
+    // When it is missing (and ONLY THEN) we check against all attributes of the team.
+    if (form.teamId) {
+      const allAttributes = await getAttributesForTeam({ teamId: form.teamId });
+      Object.values(attributesQueryValue.children1).forEach((rule) => {
+        // get all options for the field that (may have) got validated.
+        const fieldOptions = allAttributes.find(
+          ({ id: fieldId }) => fieldId === (rule as { properties: { field: string } }).properties.field
+        )?.options;
+        const values = (rule as { properties: { value: string[] } }).properties.value;
+        // Value provided could be valid but not found with any members. - if not we error
+        const match = fieldOptions?.find(({ value }) => values.flat().includes(value.toLowerCase()));
+        // isValid
+        if (!!match) {
+          errors.splice(
+            errors.findIndex(
+              (error) => error === `Value ${match.value.toLowerCase()} is not in list of values`
+            ),
+            1
+          );
+        }
+      });
+      if (errors.length) {
+        throw new Error(errors.join(","));
+      }
+    } else {
+      // handle as normal for non-teams?
+      throw e;
+    }
+  }
 
   if (!logic) {
     return {

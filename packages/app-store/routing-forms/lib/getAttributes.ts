@@ -57,11 +57,3 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }): Prom
   const attributes = await getAttributesAssignedToMembersOfTeam({ teamId });
   return attributes;
 }
-
-type AttributeId = string;
-type AttributeOptionValueWithType = {
-  type: Attribute["type"];
-  value: string | string[];
-};
-
-type UserId = number;
