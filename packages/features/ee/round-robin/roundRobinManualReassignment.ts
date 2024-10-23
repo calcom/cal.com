@@ -287,7 +287,7 @@ export const roundRobinManualReassignment = async ({
     },
   ]);
 
-  // Send cancellation email to original organizer
+  // Send cancellation email to previous RR host
   const cancelledEvt = cloneDeep(evt);
   cancelledEvt.organizer = {
     email: originalOrganizer.email,
@@ -308,7 +308,8 @@ export const roundRobinManualReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      eventType?.metadata as EventTypeMetadata
+      eventType?.metadata as EventTypeMetadata,
+      { name: newUser.name, email: newUser.email }
     );
   }
 
