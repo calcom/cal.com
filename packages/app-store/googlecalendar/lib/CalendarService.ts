@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ConferenceRecordsServiceClient, SpacesServiceClient } from "@google-apps/meet";
 import type { Prisma } from "@prisma/client";
+import { GoogleAuth, OAuth2Client } from "google-auth-library";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
@@ -334,6 +336,7 @@ export default class GoogleCalendarService implements Calendar {
           conferenceDataVersion: 1,
           sendUpdates: "none",
         });
+
         event = eventResponse.data;
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
@@ -663,6 +666,99 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  async getParticipants(videoCallUrl: string | null): Promise<any> {
+    const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
+    if (!token) {
+      throw new Error("Invalid grant for Google Calendar app");
+    }
+
+    console.log("getParticipants.token", token);
+
+    const googleAuth = new GoogleAuth({
+      authClient: new OAuth2Client({
+        credentials: {
+          access_token: token.access_token,
+        },
+      }),
+    });
+
+    const meetClient = new ConferenceRecordsServiceClient({
+      auth: googleAuth,
+    });
+
+    const spacesClient = new SpacesServiceClient({
+      auth: googleAuth,
+    });
+
+    const meetingCode = videoCallUrl ? new URL(videoCallUrl).pathname.split("/").pop() : null;
+
+    const spaceInfo = await spacesClient.getSpace({ name: `spaces/${meetingCode}` });
+    console.log("spaceInfot", spaceInfo);
+    // const spaceName = spaceInfo[0].name;
+    const spaceName = "spaces/iwjcGmsr0Z4B";
+
+    const allConferenceRecords = meetClient.listConferenceRecordsAsync();
+
+    type Time = { seconds: number; nanos: number };
+
+    const conferenceRecords: Array<{
+      space: string;
+      name: string;
+      startTime: Time;
+      endTime: Time;
+      expireTime: Time;
+    }> = [];
+    for await (const response of allConferenceRecords) {
+      if (response.space === spaceName) {
+        conferenceRecords.push(response);
+      }
+    }
+    console.log("conferenceRecords", conferenceRecords);
+
+    type Participant = {
+      name: string;
+      earliestStartTime: Time;
+      latestEndTime: Time;
+      user: string;
+      singedInUser: { user: string; displayName: string };
+    };
+
+    const participantsByConferenceRecord: Array<Array<Participant>> = [];
+
+    for (const conferenceRecord of conferenceRecords) {
+      const participants: Array<Participant> = [];
+
+      const iterable = meetClient.listParticipantsAsync({ parent: conferenceRecord.name });
+      for await (const participant of iterable) {
+        try {
+          const response = await fetch(
+            `https://people.googleapis.com/v1/people/${
+              participant.signedinUser.user.split("/")[1]
+            }?personFields=emailAddresses&sources=READ_SOURCE_TYPE_OTHER_CONTACT&sources=READ_SOURCE_TYPE_PROFILE&sources=READ_SOURCE_TYPE_CONTACT`,
+            {
+              headers: {
+                Authorization: `Bearer ${token.access_token}`,
+                Accept: "application/json",
+              },
+            }
+          );
+
+          const data = await response.json();
+
+          console.log("data", data);
+        } catch (err) {
+          console.log("err", err);
+        }
+      }
+
+      participantsByConferenceRecord.push(participants);
+    }
+
+    console.log("participantsByConferenceRecord", participantsByConferenceRecord);
+
+    return conferenceRecords;
+  }
+
   async listCalendars(): Promise<IntegrationCalendar[]> {
     this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
@@ -693,7 +789,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 }
 
-class MyGoogleAuth extends google.auth.OAuth2 {
+export class MyGoogleAuth extends google.auth.OAuth2 {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
     super(client_id, client_secret, redirect_uri);
   }
