@@ -2647,6 +2647,7 @@
   "add_domain_wide_delegation": "Add domain-wide delegation",
   "edit_domain_wide_delegation": "Edit domain-wide delegation",
   "domain": "Domain",
+  "no_workspace_platforms": "No workspace platforms",
   "workspace_platform": "Workspace platform",
   "workspace_platforms": "Workspace platforms",
   "workspace_platforms_description": "Manage workspace platforms that can be used for domain-wide delegation",

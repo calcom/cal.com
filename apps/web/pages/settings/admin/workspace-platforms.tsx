@@ -49,8 +49,8 @@ const WorkspacePlatformsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [editing, setEditing] = useState<
-    { platform: WorkspacePlatform; editType: EditType } | { platform: null; editType: null }
-  >({ platform: null, editType: null });
+    { platform: WorkspacePlatform; editType: EditType } | { platform: null; editType: EditType }
+  >({ platform: null, editType: "meta" });
 
   const utils = trpc.useUtils();
   const { data: workspacePlatforms, isPending, error } = trpc.viewer.admin.workspacePlatform.list.useQuery();
@@ -102,7 +102,7 @@ const WorkspacePlatformsPage = () => {
   );
 
   function handleAdd() {
-    setEditing({ platform: null, editType: null });
+    setEditing({ platform: null, editType: "meta" });
     setIsDialogOpen(true);
   }
 
