@@ -58,7 +58,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable(props: { userTimeFormat: number | null }) {
+export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
@@ -210,8 +210,10 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
             table={table}
             tableContainerRef={tableContainerRef}
             onRowMouseclick={(row) => {
-              setEditSheetOpen(true);
-              setSelectedUser(row.original);
+              if (props.isOrg) {
+                setEditSheetOpen(true);
+                setSelectedUser(row.original);
+              }
             }}
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
