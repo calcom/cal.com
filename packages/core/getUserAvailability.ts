@@ -459,10 +459,74 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     }
   }
 
-  const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(
-    initialData?.outOfOfficeDays,
-    availability
-  );
+  const outOfOfficeDays =
+    initialData?.outOfOfficeDays ??
+    (await prisma.outOfOfficeEntry.findMany({
+      where: {
+        userId: user.id,
+        OR: [
+          // outside of range
+          // (start <= 'dateTo' AND end >= 'dateFrom')
+          {
+            start: {
+              lte: dateTo.toISOString(),
+            },
+            end: {
+              gte: dateFrom.toISOString(),
+            },
+          },
+          // start is between dateFrom and dateTo but end is outside of range
+          // (start <= 'dateTo' AND end >= 'dateTo')
+          {
+            start: {
+              lte: dateTo.toISOString(),
+            },
+
+            end: {
+              gte: dateTo.toISOString(),
+            },
+          },
+          // end is between dateFrom and dateTo but start is outside of range
+          // (start <= 'dateFrom' OR end <= 'dateTo')
+          {
+            start: {
+              lte: dateFrom.toISOString(),
+            },
+
+            end: {
+              lte: dateTo.toISOString(),
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        start: true,
+        end: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        toUser: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+        reason: {
+          select: {
+            id: true,
+            emoji: true,
+            reason: true,
+          },
+        },
+      },
+    }));
+
+  const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,

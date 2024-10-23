@@ -638,18 +638,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           },
 
           end: {
-            gte: startTimeDate,
+            gte: endTimeDate,
           },
         },
         // end is between dateFrom and dateTo but start is outside of range
         // (start <= 'dateFrom' OR end <= 'dateTo')
         {
           start: {
-            lte: endTimeDate,
+            lte: startTimeDate,
           },
 
           end: {
-            lte: startTimeDate,
+            lte: endTimeDate,
           },
         },
       ],
