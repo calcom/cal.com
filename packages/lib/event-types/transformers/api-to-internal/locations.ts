@@ -1,4 +1,5 @@
-import { type CreateEventTypeInput_2024_06_14, type Integration_2024_06_14 } from "@calcom/platform-types";
+import type { InputLocation_2024_06_14 } from "@calcom/platform-types";
+import { type Integration_2024_06_14 } from "@calcom/platform-types";
 
 import type {
   AttendeeAddressLocation,
@@ -10,13 +11,11 @@ import type {
   OrganizerPhoneLocation,
 } from "../internal/locations";
 
-const integrationsMapping: Record<Integration_2024_06_14, "integrations:daily"> = {
+const apiToInternalintegrationsMapping: Record<Integration_2024_06_14, "integrations:daily"> = {
   "cal-video": "integrations:daily",
 };
 
-export function transformLocationsApiToInternal(
-  inputLocations: CreateEventTypeInput_2024_06_14["locations"]
-) {
+export function transformLocationsApiToInternal(inputLocations: InputLocation_2024_06_14[] | undefined) {
   if (!inputLocations) {
     return [];
   }
@@ -39,7 +38,7 @@ export function transformLocationsApiToInternal(
           displayLocationPublicly: location.public,
         } satisfies OrganizerLinkLocation;
       case "integration":
-        const integrationLabel = integrationsMapping[location.integration];
+        const integrationLabel = apiToInternalintegrationsMapping[location.integration];
         return { type: integrationLabel } satisfies OrganizerIntegrationLocation;
       case "phone":
         return {
@@ -52,7 +51,7 @@ export function transformLocationsApiToInternal(
       case "attendeeDefined":
         return { type: "somewhereElse" } satisfies AttendeeDefinedLocation;
       default:
-        throw new Error(`Unsupported location type '${type}'`);
+        throw new Error(`Unsupported input location type '${type}'`);
     }
   });
 }

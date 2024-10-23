@@ -2,11 +2,11 @@ import { z } from "zod";
 
 const integrationsApiAvailable = {
   "cal-video": z.literal("integrations:daily"),
-  "google-meet": z.literal("integrations:google:meet"),
 };
 
 // note(Lauris): these are read only aka they exist in database and are to be returned by a READ operation
 const integrationsApiUnavailable = {
+  "google-meet": z.literal("integrations:google:meet"),
   zoom: z.literal("integrations:zoom"),
   "whereby-video": z.literal("integrations:whereby_video"),
   "whatsapp-video": z.literal("integrations:whatsapp_video"),
@@ -38,7 +38,7 @@ const integrationsApiUnavailable = {
   "around-video": z.literal("integrations:around_video"),
 };
 
-const integrationsApiToInternalMappingSchema = {
+export const integrationsApiToInternalMappingSchema = {
   ...integrationsApiAvailable,
   ...integrationsApiUnavailable,
 };
@@ -115,15 +115,6 @@ const AttendeeDefinedSchema = z.object({
   type: z.literal("somewhereElse"),
 });
 
-const OtherSchema = z.object({
-  type: z.literal("other"),
-  link: z.string().url().optional(),
-});
-
-const IntegrationSchema = z.object({
-  type: z.literal("integration"),
-});
-
 export type OrganizerAddressLocation = z.infer<typeof OrganizerAddressSchema>;
 export type OrganizerLinkLocation = z.infer<typeof OrganizerLinkSchema>;
 export type OrganizerIntegrationLocation = z.infer<typeof OrganizerIntegrationSchema>;
@@ -132,10 +123,8 @@ export type OrganizerConferencingSchema = z.infer<typeof OrganizerConferencingSc
 export type AttendeeAddressLocation = z.infer<typeof AttendeeAddressSchema>;
 export type AttendeePhoneLocation = z.infer<typeof AttendeePhoneSchema>;
 export type AttendeeDefinedLocation = z.infer<typeof AttendeeDefinedSchema>;
-export type OtherLocation = z.infer<typeof OtherSchema>;
-export type IntegrationLocation = z.infer<typeof IntegrationSchema>;
 
-const InternalLocationSchema = z.union([
+export const InternalLocationSchema = z.union([
   OrganizerAddressSchema,
   OrganizerLinkSchema,
   OrganizerIntegrationSchema,
@@ -144,8 +133,7 @@ const InternalLocationSchema = z.union([
   AttendeeAddressSchema,
   AttendeePhoneSchema,
   AttendeeDefinedSchema,
-  OtherSchema,
-  IntegrationSchema,
 ]);
+export type InternalLocation = z.infer<typeof InternalLocationSchema>;
 
 export const InternalLocationsSchema = z.array(InternalLocationSchema);
