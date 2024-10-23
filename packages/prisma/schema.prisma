@@ -190,6 +190,9 @@ model Credential {
   CalendarCache        CalendarCache[]
   references           BookingReference[]
 
+  delegatedTo   DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
+  delegatedToId String?
+
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
@@ -215,7 +218,8 @@ model DestinationCalendar {
   eventTypeId  Int?        @unique
   credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-
+  domainWideDelegation   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
   @@index([userId])
   @@index([eventTypeId])
   @@index([credentialId])
@@ -444,6 +448,7 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  domainWideDelegations  DomainWideDelegation[]
   features               TeamFeatures[]
 
   /// @zod.custom(imports.intervalLimitsType)
@@ -682,6 +687,8 @@ model SelectedCalendar {
   externalId   String
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId Int?
+  domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -1579,4 +1586,53 @@ model AttributeToUser {
   attributeOptionId String
 
   @@unique([memberId, attributeOptionId])
+}
+
+model DomainWideDelegation {
+  id                  String            @id @default(uuid())
+  workspacePlatform   WorkspacePlatform @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
+  workspacePlatformId Int
+
+  // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
+  serviceAccountKey Json
+
+  enabled        Boolean      @default(false)
+  organizationId Int
+  organization   Team         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Credential     Credential[]
+  domain         String
+
+  selectedCalendars   SelectedCalendar[]
+  destinationCalendar DestinationCalendar[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Should be fare to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
+  // Because we don't know which domain the organization might have, we couldn't make it unique as that would prevent an authorized owner to prevent using that domain.
+  @@unique([organizationId, domain])
+}
+
+// It is for domain-wide delegation 
+model WorkspacePlatform {
+  id Int @id @default(autoincrement())
+
+  /// @zod.min(1)
+  slug String
+
+  /// @zod.min(1)
+  name String
+
+  description String
+
+  defaultServiceAccountKey Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enabled Boolean @default(false)
+
+  domainWideDelegations DomainWideDelegation[]
+
+  @@unique([slug])
 }
