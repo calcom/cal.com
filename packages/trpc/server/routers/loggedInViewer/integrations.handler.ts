@@ -24,7 +24,7 @@ type IntegrationsOptions = {
   input: TIntegrationsInputSchema;
 };
 
-type TeamQuery = Prisma.TeamGetPayload<{
+export type TeamQuery = Prisma.TeamGetPayload<{
   select: {
     id: true;
     credentials: {

@@ -40,10 +40,14 @@ export const BookingFields = ({
 
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
-        let readOnly =
+        const rescheduleReadOnly =
           (field.editable === "system" || field.editable === "system-but-optional") &&
           !!rescheduleUid &&
           bookingData !== null;
+
+        const bookingReadOnly = field.editable === "user-readonly";
+
+        let readOnly = bookingReadOnly || rescheduleReadOnly;
 
         let hidden = !!field.hidden;
         const fieldViews = field.views;

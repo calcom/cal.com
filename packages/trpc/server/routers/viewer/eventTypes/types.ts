@@ -57,12 +57,13 @@ export const EventTypeUpdateInput = _EventTypeModel
           isFixed: z.boolean().optional(),
           priority: z.number().min(0).max(4).optional().nullable(),
           weight: z.number().min(0).optional().nullable(),
+          scheduleId: z.number().optional().nullable(),
         })
       )
       .optional(),
     schedule: z.number().nullable().optional(),
     instantMeetingSchedule: z.number().nullable().optional(),
-    hashedLink: z.string(),
+    multiplePrivateLinks: z.array(z.string()),
     assignAllTeamMembers: z.boolean().optional(),
     isRRWeightsEnabled: z.boolean().optional(),
   })

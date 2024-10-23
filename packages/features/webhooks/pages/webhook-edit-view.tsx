@@ -88,6 +88,8 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
             active: values.active,
             payloadTemplate: values.payloadTemplate,
             secret: values.secret,
+            time: values.time,
+            timeUnit: values.timeUnit,
           });
         }}
         apps={installedApps?.items.map((app) => app.slug)}

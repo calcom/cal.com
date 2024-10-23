@@ -3,6 +3,7 @@ import type { DestinationCalendar, BookingReference } from "@prisma/client";
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
+
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
@@ -55,8 +56,8 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
-const delegatedCredentialFirst = <T extends {delegatedToId: string | null}>(a: T, b: T) => {
-  return (b.delegatedToId ? 1: 0) - (a.delegatedToId ? 1: 0);
+const delegatedCredentialFirst = <T extends { delegatedToId: string | null }>(a: T, b: T) => {
+  return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -103,7 +104,7 @@ export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
   crmCredentials: CredentialPayload[];
-  appOptions: AppOptions;
+  appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -123,8 +124,9 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       //see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      .sort(latestCredentialFirst).sort(delegatedCredentialFirst)
-      
+      .sort(latestCredentialFirst)
+      .sort(delegatedCredentialFirst);
+
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
@@ -135,7 +137,7 @@ export default class EventManager {
       (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
     );
 
-    this.appOptions = this.generateAppOptions(eventTypeAppMetadata);
+    this.appOptions = eventTypeAppMetadata;
   }
 
   /**
@@ -633,7 +635,10 @@ export default class EventManager {
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event using credential", safeStringify({ credentialId:credential.id, createdEvent }));
+        log.silly(
+          "Created Calendar event using credential",
+          safeStringify({ credentialId: credential.id, createdEvent })
+        );
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -974,29 +979,32 @@ export default class EventManager {
     const createdEvents = [];
     const uid = getUid(event);
     for (const credential of this.crmCredentials) {
-      const crm = new CrmManager(credential);
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+
+      const crm = new CrmManager(credential, currentAppOption);
 
       let success = true;
-      const skipContactCreation = this.appOptions.crm.skipContactCreation.includes(credential.appId || "");
-      const createdEvent = await crm.createEvent(event, skipContactCreation).catch((error) => {
+      const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
         success = false;
         log.warn(`Error creating crm event for ${credential.type}`, error);
       });
 
-      createdEvents.push({
-        type: credential.type,
-        appName: credential.appId || "",
-        uid,
-        success,
-        createdEvent: {
-          id: createdEvent?.id || "",
+      if (createdEvent) {
+        createdEvents.push({
           type: credential.type,
+          appName: credential.appId || "",
+          uid,
+          success,
+          createdEvent: {
+            id: createdEvent?.id || "",
+            type: credential.type,
+            credentialId: credential.id,
+          },
+          id: createdEvent?.id || "",
+          originalEvent: event,
           credentialId: credential.id,
-        },
-        id: createdEvent?.id || "",
-        originalEvent: event,
-        credentialId: credential.id,
-      });
+        });
+      }
     }
     return createdEvents;
   }
@@ -1036,20 +1044,10 @@ export default class EventManager {
     }
   }
 
-  private generateAppOptions(eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
-    const appOptions: AppOptions = {
-      crm: {
-        skipContactCreation: [],
-      },
-    };
+  private getAppOptionsFromEventMetadata(credential: CredentialPayload) {
+    if (!this.appOptions || !credential.appId) return {};
 
-    if (eventTypeAppMetadata) {
-      for (const key in eventTypeAppMetadata) {
-        const app = eventTypeAppMetadata[key as keyof typeof eventTypeAppMetadata];
-        if (app?.skipContactCreation) appOptions.crm.skipContactCreation.push(key);
-      }
-    }
-
-    return appOptions;
+    if (credential.appId in this.appOptions)
+      return this.appOptions[credential.appId as keyof typeof this.appOptions];
   }
 }

@@ -119,7 +119,7 @@ export const BookEventForm = ({
           </div>
         )}
         {!isPlatform && (
-          <div className="text-subtle my-3 w-full text-xs opacity-80">
+          <div className="text-subtle my-3 w-full text-xs">
             <Trans
               i18nKey="signing_up_terms"
               components={[
