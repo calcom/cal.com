@@ -65,6 +65,7 @@ export function TimezoneSelectComponent({
     <BaseSelect
       value={value}
       className={`${className} ${timezoneSelectCustomClassname}`}
+      aria-label="Timezone Select"
       isLoading={isPending}
       isDisabled={isPending}
       {...reactSelectProps}
