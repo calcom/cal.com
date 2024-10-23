@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 export class CredentialRepository {
-  static async create(data: Prisma.CredentialCreateInput) {
+  static async create(data: Prisma.CredentialCreateInput & { userId: number; appId: string }) {
     return await prisma.credential.create({ data });
   }
 

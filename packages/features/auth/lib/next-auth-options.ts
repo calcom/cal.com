@@ -630,16 +630,15 @@ export const getOptions = ({
 
           const isAlreadyInstalled = await CredentialRepository.findFirstByAppIdAndUserId({
             appId: "google-calendar",
-            userId: user.id,
+            userId: user.id as number,
           });
-          if (isAlreadyInstalled) {
+          if (!isAlreadyInstalled) {
             const credentialkey = {
               access_token: account.access_token,
               refresh_token: account.refresh_token,
               id_token: account.id_token,
               token_type: account.token_type,
               expires_at: account.expires_at,
-              scope: account.scope,
             };
             console.log("HELLO123");
             console.log("isAlreadyInstalled false");
@@ -647,14 +646,14 @@ export const getOptions = ({
             const [credential] = await Promise.all([
               CredentialRepository.create({
                 type: "google_calendar",
-                userId: user.id,
+                userId: user.id as number,
                 appId: "google-calendar",
                 key: credentialkey,
               }),
               CredentialRepository.create({
                 type: "google_video",
                 key: {},
-                userId: user.id,
+                userId: user.id as number,
                 appId: "google-meet",
               }),
             ]);
@@ -671,19 +670,19 @@ export const getOptions = ({
               fields: "items(id,summary,primary,accessRole)",
             });
 
-            let primaryCal = cals.data.items?.find((cal) => cal.primary);
+            const primaryCal = cals.data.items?.find((cal) => cal.primary) ?? cals.data.items?.[0];
 
-            if (!primaryCal?.id) {
-              primaryCal = cals.data.items?.[0];
+            if (primaryCal?.id) {
+              console.log("CREDENTIAL ID", credential.id);
+              console.log("PRIMARY CAL ID", primaryCal);
+
+              await SelectedCalendarRepository.create({
+                credentialId: credential.id,
+                userId: user.id as number,
+                externalId: primaryCal.id,
+                integration: "google_calendar",
+              });
             }
-            console.log("CREDENTIAL ID", credential.id);
-            console.log("PRIMARY CAL ID", primaryCal);
-            await SelectedCalendarRepository.create({
-              credentialId: credential.id,
-              userId: user.id,
-              externalId: primaryCal.id,
-              integration: "google_calendar",
-            });
           }
         }
 

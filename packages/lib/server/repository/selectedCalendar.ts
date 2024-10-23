@@ -4,7 +4,7 @@ export class SelectedCalendarRepository {
   static async create(data: {
     credentialId: number;
     userId: number;
-    externalId: number;
+    externalId: string;
     integration: string;
   }) {
     return await prisma.selectedCalendar.create({
