@@ -6,8 +6,12 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
-import * as getAttributesModule from "../../lib/getAttributes";
-import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
+import type {
+  Attribute,
+  AttributesQueryValue,
+  FormFieldsQueryValue,
+  SerializableFormTeamMembers,
+} from "../../types/types";
 import { findTeamMembersMatchingAttributeLogicOfRoute } from "../utils";
 
 vi.mock("../../lib/getAttributes");
@@ -20,16 +24,50 @@ function mockAttributesScenario({
   attributes,
   teamMembersWithAttributeOptionValuePerAttribute,
 }: {
-  attributes: Awaited<ReturnType<typeof getAttributesModule.getAttributesForTeam>>;
+  attributes: Attribute[];
   teamMembersWithAttributeOptionValuePerAttribute: {
     userId: number;
     attributes: Record<string, string | string[]>;
   }[];
-}) {
-  vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
+}): SerializableFormTeamMembers {
+  return teamMembersWithAttributeOptionValuePerAttribute.map(({ userId, attributes: teamMemberAttrs }) => {
+    const newAttributes: SerializableFormTeamMembers[number]["attributes"] = {};
+    Object.keys(teamMemberAttrs).forEach((key) => {
+      const selectedAttr = attributes.find((attr) => attr.id === key);
+      if (!selectedAttr) {
+        throw new Error("Invalid attribute given.");
+      }
+      newAttributes[key] = {
+        ...selectedAttr,
+        options: (!(teamMemberAttrs[key] instanceof Array)
+          ? [teamMemberAttrs[key]]
+          : teamMemberAttrs[key]
+        ).map((selectedAttrOptionValue) => {
+          const selectedOption = selectedAttr.options.find(
+            (option) => option.value === selectedAttrOptionValue
+          );
+          if (!selectedOption) {
+            throw new Error("Selected option was not found in provided attributes.");
+          }
+          return {
+            ...selectedOption,
+          };
+        }),
+      };
+    });
+
+    return {
+      userId,
+      email: `testuser-${userId}.example.com`,
+      avatarUrl: null,
+      name: null,
+      defaultScheduleId: null,
+      attributes: newAttributes,
+    };
+  });
 }
 
-function mockHugeAttributesOfTypeSingleSelect({
+function generateTeamMembersFixture({
   numAttributes,
   numOptionsPerAttribute,
   numTeamMembers,
@@ -39,7 +77,7 @@ function mockHugeAttributesOfTypeSingleSelect({
   numOptionsPerAttribute: number;
   numTeamMembers: number;
   numAttributesUsedPerTeamMember: number;
-}) {
+}): SerializableFormTeamMembers {
   if (numAttributesUsedPerTeamMember > numAttributes) {
     throw new Error("numAttributesUsedPerTeamMember cannot be greater than numAttributes");
   }
@@ -54,28 +92,26 @@ function mockHugeAttributesOfTypeSingleSelect({
       slug: `option-${i + 1}`,
     })),
   }));
-
   const assignedAttributeOptionIdForEachMember = 1;
 
-  const teamMembersWithAttributeOptionValuePerAttribute = Array.from({ length: numTeamMembers }, (_, i) => ({
+  const teamMembersFixture = Array.from({ length: numTeamMembers }, (_, i) => ({
     userId: i + 1,
+    email: `testuser-${i + 1}.example.com`,
+    defaultScheduleId: null,
+    name: null,
+    avatarUrl: null,
     attributes: Object.fromEntries(
       Array.from({ length: numAttributesUsedPerTeamMember }, (_, j) => [
         attributes[j].id,
-        attributes[j].options[assignedAttributeOptionIdForEachMember].value,
+        {
+          ...attributes[j],
+          options: [attributes[j].options[assignedAttributeOptionIdForEachMember]],
+        },
       ])
     ),
   }));
 
-  mockAttributesScenario({
-    attributes,
-    teamMembersWithAttributeOptionValuePerAttribute,
-  });
-
-  return {
-    attributes,
-    teamMembersWithAttributeOptionValuePerAttribute,
-  };
+  return teamMembersFixture;
 }
 
 function buildQueryValue({
@@ -216,7 +252,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -248,7 +284,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           ],
           fields: [],
           teamId: 1,
-          teamMembers: [],
+          teamMembers: teamMembersWithAttributeScenario,
         },
         response: {},
         routeId: "test-route",
@@ -288,7 +324,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -322,7 +358,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           },
         ],
         teamId: 1,
-        teamMembers: [],
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {
         [Field1Id]: {
@@ -370,7 +406,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -398,7 +434,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         ],
         fields: [],
         teamId: 1,
-        teamMembers: [],
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {},
       routeId: "test-route",
@@ -441,7 +477,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         // user 1 has only one option selected for the attribute
@@ -470,7 +506,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         ],
         fields: [],
         teamId: 1,
-        teamMembers: [],
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {},
       routeId: "test-route",
@@ -513,7 +549,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         {
@@ -545,7 +581,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         ],
         fields: [],
         teamId: 1,
-        teamMembers: [],
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {},
       routeId: "test-route",
@@ -569,7 +605,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         slug: "attribute-1",
         options: [Option1OfAttribute1],
       };
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           {
@@ -598,7 +634,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
             ],
             fields: [],
             teamId: 1,
-            teamMembers: [],
+            teamMembers: teamMembersWithAttributeScenario,
           },
           response: {},
           routeId: "test-route",
@@ -635,7 +671,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -665,7 +701,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               ],
               fields: [],
               teamId: 1,
-              teamMembers: [],
+              teamMembers: teamMembersWithAttributeScenario,
             },
             response: {},
             routeId: "test-route",
@@ -715,7 +751,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -740,7 +776,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               ],
               fields: [],
               teamId: 1,
-              teamMembers: [],
+              teamMembers: teamMembersWithAttributeScenario,
             },
             response: {},
             routeId: "test-route",
@@ -765,7 +801,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     describe("20 attributes, 4000 team members", async () => {
       // In tests, the performance is actually really bad than real world. So, skipping this test for now
       it("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
-        const { attributes } = mockHugeAttributesOfTypeSingleSelect({
+        const teamMembersWithSingleSelectAttributes = generateTeamMembersFixture({
           numAttributes: 20,
           numOptionsPerAttribute: 30,
           numTeamMembers: 4000,
@@ -774,12 +810,12 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         const attributesQueryValue = buildSelectTypeFieldQueryValue({
           rules: [
             {
-              raqbFieldId: attributes[0].id,
-              value: [attributes[0].options[1].id],
+              raqbFieldId: teamMembersWithSingleSelectAttributes[0].attributes.attr1.id,
+              value: [teamMembersWithSingleSelectAttributes[0].attributes.attr1.options[0].id],
               operator: "select_equals",
             },
           ],
-        }) as AttributesQueryValue;
+        });
 
         const { teamMembersMatchingAttributeLogic: result, timeTaken } =
           await findTeamMembersMatchingAttributeLogicOfRoute(
@@ -793,7 +829,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 ],
                 fields: [],
                 teamId: 1,
-                teamMembers: [],
+                teamMembers: teamMembersWithSingleSelectAttributes,
               },
               response: {},
               routeId: "test-route",
@@ -874,7 +910,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -904,7 +940,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               ],
               fields: [],
               teamId: 1,
-              teamMembers: [],
+              teamMembers: teamMembersWithAttributeScenario,
             },
             response: {},
             routeId: "test-route",
