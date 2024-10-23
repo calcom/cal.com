@@ -103,7 +103,7 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
-  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
@@ -467,7 +467,7 @@ function BookingListItem(booking: BookingItemProps) {
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
           bookingUid={booking.uid}
-          attendees={booking.attendees}
+          attendees={attendeeList}
           setIsOpen={setIsNoShowDialogOpen}
           isOpen={isNoShowDialogOpen}
         />
