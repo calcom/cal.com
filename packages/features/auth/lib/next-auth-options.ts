@@ -14,7 +14,12 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES, IS_CALCOM } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  GOOGLE_OAUTH_SCOPES,
+  HOSTED_CAL_FEATURES,
+  IS_CALCOM,
+} from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -252,8 +257,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
-          scope:
-            "openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+          scope: `${GOOGLE_OAUTH_SCOPES.join(" ")} ${GOOGLE_CALENDAR_SCOPES.join(" ")}`,
         },
       },
     })
