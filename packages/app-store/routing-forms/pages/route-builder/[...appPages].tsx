@@ -57,6 +57,7 @@ type AttributesQueryBuilderState = {
 type LocalRouteWithRaqbStates = LocalRoute & {
   formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
   attributesQueryBuilderState: AttributesQueryBuilderState | null;
+  fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
 };
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
@@ -136,10 +137,15 @@ const hasRules = (route: Route) => {
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
+function getEmptyQueryValue() {
+  return { id: QbUtils.uuid(), type: "group" };
+}
+
 const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
-  const formFieldsQueryValue = { id: uuid, type: "group" } as FormFieldsQueryValue;
-  const attributesQueryValue = { id: uuid, type: "group" } as AttributesQueryValue;
+  const formFieldsQueryValue = getEmptyQueryValue() as FormFieldsQueryValue;
+  const attributesQueryValue = getEmptyQueryValue() as AttributesQueryValue;
+  const fallbackAttributesQueryValue = getEmptyQueryValue() as AttributesQueryValue;
 
   return {
     id: uuid,
@@ -147,9 +153,9 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
       type: RouteActionType.EventTypeRedirectUrl,
       value: "",
     },
-    // It is actually formFieldsQueryValue
     queryValue: formFieldsQueryValue,
     attributesQueryValue: attributesQueryValue,
+    fallbackAttributesQueryValue: fallbackAttributesQueryValue,
   };
 };
 
@@ -218,6 +224,7 @@ const Route = ({
   appUrl,
   disabled = false,
   fieldIdentifiers,
+  eventTypesByGroup,
 }: {
   form: Form;
   route: Route;
@@ -232,14 +239,11 @@ const Route = ({
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
+  eventTypesByGroup: RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 }) => {
   const { t } = useLocale();
   const isTeamForm = form.teamId !== null;
   const index = routes.indexOf(route);
-
-  const { data: eventTypesByGroup, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery({
-    forRoutingForms: true,
-  });
 
   const { eventOptions, eventTypesMap } = buildEventsData({ eventTypesByGroup, form, route });
 
@@ -252,12 +256,10 @@ const Route = ({
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
 
   useEffect(() => {
-    if (!isLoading) {
-      const isCustom =
-        !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-      setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-    }
-  }, [isLoading]);
+    const isCustom =
+      !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
+    setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
+  }, []);
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -286,6 +288,18 @@ const Route = ({
     setRoute(route.id, {
       attributesQueryBuilderState: { tree: immutableTree, config: config },
       attributesQueryValue: jsonTree as AttributesQueryValue,
+    });
+  };
+
+  const onChangeFallbackTeamMembersQuery = (
+    route: Route,
+    immutableTree: ImmutableTree,
+    config: AttributesQueryBuilderConfigWithRaqbFields
+  ) => {
+    const jsonTree = QbUtils.getTree(immutableTree);
+    setRoute(route.id, {
+      fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
+      fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
     });
   };
 
@@ -375,7 +389,8 @@ const Route = ({
         }}
         renderBuilder={renderBuilder}
       />
-      <Divider className="mb-6 mt-6" />
+      <Divider className="mb-2 mt-6" />
+      <Divider className="mb-6" />
     </div>
   ) : null;
 
@@ -400,6 +415,31 @@ const Route = ({
               value={route.attributesQueryBuilderState.tree}
               onChange={(immutableTree, attributesQueryBuilderConfig) => {
                 onChangeTeamMembersQuery(
+                  route,
+                  immutableTree,
+                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                );
+              }}
+              renderBuilder={renderBuilder}
+            />
+          )}
+        </div>
+      </div>
+    ) : null;
+
+  const fallbackAttributesQueryBuilder =
+    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
+      <div className="mt-4">
+        <span className="text-emphasis flex w-full items-center text-sm">
+          Fallback: If no Team Members match, use those that match the following criteria(Matches all assigned team members of the event by default)
+        </span>
+        <div className="mt-2">
+          {route.fallbackAttributesQueryBuilderState && attributesQueryBuilderConfig && (
+            <Query
+              {...(attributesQueryBuilderConfig as unknown as Config)}
+              value={route.fallbackAttributesQueryBuilderState.tree}
+              onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                onChangeFallbackTeamMembersQuery(
                   route,
                   immutableTree,
                   attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
@@ -547,6 +587,8 @@ const Route = ({
               ) : null}
             </div>
             {attributesQueryBuilder}
+            <Divider className="mb-6 mt-6" />
+            {fallbackAttributesQueryBuilder}
           </div>
         </div>
       </div>
@@ -589,6 +631,14 @@ const deserializeRoute = ({
         })
       : null;
 
+  const fallbackAttributesQueryBuilderState =
+    route.fallbackAttributesQueryValue && attributesQueryBuilderConfig
+      ? buildState({
+          queryValue: route.fallbackAttributesQueryValue,
+          config: attributesQueryBuilderConfig,
+        })
+      : null;
+
   return {
     ...route,
     formFieldsQueryBuilderState: buildState({
@@ -596,6 +646,7 @@ const deserializeRoute = ({
       config: formFieldsQueryBuilderConfig,
     }),
     attributesQueryBuilderState,
+    fallbackAttributesQueryBuilderState,
   };
 };
 
@@ -604,11 +655,13 @@ const Routes = ({
   hookForm,
   appUrl,
   attributes,
+  eventTypesByGroup,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
   attributes: Attribute[] | null;
+  eventTypesByGroup: RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
@@ -627,7 +680,10 @@ const Routes = ({
       _routes.forEach((r) => {
         if (isRouter(r)) return;
         if (!r.queryValue?.id) {
-          r.queryValue = { id: QbUtils.uuid(), type: "group" } as LocalRoute["queryValue"];
+          r.queryValue = getEmptyQueryValue() as LocalRoute["queryValue"];
+        }
+        if (!r.fallbackAttributesQueryValue) {
+          r.fallbackAttributesQueryValue = getEmptyQueryValue() as LocalRoute["fallbackAttributesQueryValue"];
         }
       });
       return _routes;
@@ -795,6 +851,7 @@ const Routes = ({
       isFallback: route.isFallback,
       queryValue: route.queryValue,
       attributesQueryValue: route.attributesQueryValue,
+      fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
     };
   });
 
@@ -834,6 +891,7 @@ const Routes = ({
               setRoute={setRoute}
               setAttributeRoutingConfig={setAttributeRoutingConfig}
               setRoutes={setRoutes}
+              eventTypesByGroup={eventTypesByGroup}
             />
           );
         })}
@@ -863,6 +921,13 @@ const Routes = ({
                     attributesQueryBuilderConfig && newEmptyRoute.attributesQueryValue
                       ? buildState({
                           queryValue: newEmptyRoute.attributesQueryValue,
+                          config: attributesQueryBuilderConfig,
+                        })
+                      : null,
+                  fallbackAttributesQueryBuilderState:
+                    attributesQueryBuilderConfig && newEmptyRoute.fallbackAttributesQueryValue
+                      ? buildState({
+                          queryValue: newEmptyRoute.fallbackAttributesQueryValue,
                           config: attributesQueryBuilderConfig,
                         })
                       : null,
@@ -900,6 +965,7 @@ const Routes = ({
             appUrl={appUrl}
             fieldIdentifiers={fieldIdentifiers}
             setAttributeRoutingConfig={setAttributeRoutingConfig}
+            eventTypesByGroup={eventTypesByGroup}
           />
         </div>
       </div>
@@ -925,6 +991,12 @@ export default function RouteBuilder({
             { teamId: values.teamId! },
             { enabled: !!values.teamId }
           );
+
+        const { data: eventTypesByGroup, isLoading: areEventsLoading } =
+          trpc.viewer.eventTypes.getByViewer.useQuery({
+            forRoutingForms: true,
+          });
+
         // If hookForm hasn't been initialized, don't render anything
         // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values
         if (!hookForm.getValues().id) {
@@ -941,9 +1013,23 @@ export default function RouteBuilder({
           }
         }
 
+        if (areEventsLoading) {
+          return <div>Loading...</div>;
+        }
+
+        if (!eventTypesByGroup) {
+          return <div>{t("something_went_wrong")}</div>;
+        }
+
         return (
           <div className="route-config">
-            <Routes hookForm={hookForm} appUrl={appUrl} form={form} attributes={attributes || null} />
+            <Routes
+              hookForm={hookForm}
+              appUrl={appUrl}
+              eventTypesByGroup={eventTypesByGroup}
+              form={form}
+              attributes={attributes || null}
+            />
           </div>
         );
       }}

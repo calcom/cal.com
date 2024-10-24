@@ -1,8 +1,9 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 import async from "async";
-import type { ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
+import type { Attribute, AttributesQueryValue } from "../types/types";
 
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
@@ -20,7 +21,7 @@ import {
 } from "../lib/getAttributes";
 import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
-import type { SerializableField, OrderedResponses } from "../types/types";
+import type { SerializableField, OrderedResponses, AttributesQueryValue } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
 
@@ -176,6 +177,9 @@ function getJsonLogic({
     config: attributesQueryBuilderConfig as unknown as Config,
   };
 
+  console.log({
+    config: JSON.stringify(state.config.fields, null, 2),
+  })
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
 
@@ -204,7 +208,78 @@ export const enum TroubleshooterCase {
   IS_A_ROUTER = "is-a-router",
   NO_LOGIC_FOUND = "no-logic-found",
   MATCH_RESULTS_READY = "match-results-ready",
+  MATCH_RESULTS_READY_WITH_FALLBACK = "match-results-ready-with-fallback",
+  NO_FALLBACK_LOGIC_FOUND = "no-fallback-logic-found",
   NO_ROUTE_FOUND = "no-route-found",
+}
+
+async function getLogicResultForAllMembers(
+  {
+    teamMembersWithAttributeOptionValuePerAttribute,
+    attributeJsonLogic,
+    attributesQueryValue,
+  }: {
+    teamMembersWithAttributeOptionValuePerAttribute: TeamMemberWithAttributeOptionValuePerAttribute[];
+    attributeJsonLogic: NonNullable<JsonLogicResult["logic"]>;
+    attributesQueryValue: AttributesQueryValue;
+  },
+  config: {
+    concurrency: number;
+    enableTroubleshooter: boolean;
+  }
+) {
+  const { concurrency, enableTroubleshooter } = config;
+  const teamMembersMatchingAttributeLogicMap = new Map<number, RaqbLogicResult>();
+  const attributesDataPerUser = new Map<number, ReturnType<typeof getAttributes>>();
+
+  await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
+    teamMembersWithAttributeOptionValuePerAttribute,
+    concurrency,
+    async (member: TeamMemberWithAttributeOptionValuePerAttribute) => {
+      const attributesData = getAttributes({
+        attributesData: member.attributes,
+        attributesQueryValue,
+      });
+
+      if (enableTroubleshooter) {
+        attributesDataPerUser.set(member.userId, attributesData);
+      }
+
+      const result = !!jsonLogic.apply(attributeJsonLogic as any, attributesData)
+        ? RaqbLogicResult.MATCH
+        : RaqbLogicResult.NO_MATCH;
+
+      if (result !== RaqbLogicResult.MATCH) {
+        return;
+      }
+      teamMembersMatchingAttributeLogicMap.set(member.userId, result);
+    }
+  );
+
+  return {
+    teamMembersMatchingAttributeLogicMap,
+    attributesDataPerUser,
+  };
+}
+
+function buildTroubleshooterData({
+  type,
+  data,
+  enableTroubleshooter,
+}: {
+  type: TroubleshooterCase;
+  data: Record<string, any>;
+  enableTroubleshooter: boolean;
+}) {
+  if (!enableTroubleshooter) {
+    return null;
+  }
+  return {
+    troubleshooterData: {
+      type,
+      data,
+    },
+  };
 }
 
 export async function findTeamMembersMatchingAttributeLogicOfRoute(
@@ -229,39 +304,21 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 ) {
   const route = form.routes?.find((route) => route.id === routeId);
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2, enableTroubleshooter } = config;
+  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false } = config;
 
   if (!route) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      timeTaken: null,
-      troubleshooter: enableTroubleshooter
-        ? {
-            type: TroubleshooterCase.NO_ROUTE_FOUND,
-            data: {
-              routeId,
-            },
-          }
-        : null,
+      ...buildNoRouteFoundTroubleshooterData({ routeId }),
     };
   }
 
   if (isRouter(route)) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      timeTaken: null,
-      troubleshooter: enableTroubleshooter
-        ? {
-            type: TroubleshooterCase.IS_A_ROUTER,
-            data: {
-              routeId,
-            },
-          }
-        : null,
+      ...buildIsARouterTroubleshooterData({ routeId }),
     };
   }
-
-  const teamMembersMatchingAttributeLogicMap = new Map<number, RaqbLogicResult>();
 
   const [attributesForTeam, getAttributesForTeamTimeTaken] = await aPf(
     async () => await getAttributesForTeam({ teamId: teamId })
@@ -277,24 +334,24 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     })
   );
 
+  const [fallbackAttributesQueryValue, getFallbackAttributesQueryValueTimeTaken] = pf(() =>
+    getAttributesQueryValue({
+      attributesQueryValue: route.fallbackAttributesQueryValue,
+      attributes: attributesForTeam,
+      response,
+      fields: form.fields,
+      getFieldResponse,
+    })
+  );
+
   if (raqbQueryValueUtils.isQueryValueEmpty(attributesQueryValue)) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      timeTaken: {
-        gAtr: getAttributesForTeamTimeTaken,
-        gQryVal: getAttributesQueryValueTimeTaken,
-        gQryCnfg: null,
-        gMbrWtAtr: null,
-        lgcFrMbrs: null,
-      },
-      troubleshooter: enableTroubleshooter
-        ? {
-            type: TroubleshooterCase.EMPTY_QUERY_VALUE,
-            data: {
-              attributesQueryValue,
-            },
-          }
-        : null,
+      ...buildEmptyQueryValueTroubleshooterData({
+        attributesQueryValue,
+        getAttributesForTeamTimeTaken,
+        getAttributesQueryValueTimeTaken,
+      }),
     };
   }
 
@@ -311,13 +368,13 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
   ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
 
-  const logic = getJsonLogic({
+  const mainLogic = getJsonLogic({
     attributesQueryValue: attributesQueryValue as JsonTree,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
     isPreview: !!isPreview,
   });
 
-  if (!logic) {
+  if (!mainLogic) {
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: {
@@ -337,42 +394,131 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
             },
           }
         : null,
+      ...buildNoLogicFoundTroubleshooterData({
+        attributesQueryValue,
+        attributesQueryBuilderConfig,
+        teamMembersWithAttributeOptionValuePerAttribute,
+      }),
     };
   }
 
-  const attributesDataPerUser = new Map<number, ReturnType<typeof getAttributes>>();
-
-  const [_, teamMembersMatchingAttributeLogicTimeTaken] = await aPf(async () => {
-    return await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
-      teamMembersWithAttributeOptionValuePerAttribute,
-      concurrency,
-      async (member: TeamMemberWithAttributeOptionValuePerAttribute) => {
-        const attributesData = getAttributes({
-          attributesData: member.attributes,
-          attributesQueryValue,
-        });
-
-        if (enableTroubleshooter) {
-          attributesDataPerUser.set(member.userId, attributesData);
-        }
-
-        const result = !!jsonLogic.apply(logic as any, attributesData)
-          ? RaqbLogicResult.MATCH
-          : RaqbLogicResult.NO_MATCH;
-
-        if (result !== RaqbLogicResult.MATCH) {
-          return;
-        }
-        teamMembersMatchingAttributeLogicMap.set(member.userId, result);
+  const [
+    { teamMembersMatchingAttributeLogicMap, attributesDataPerUser },
+    teamMembersMatchingAttributeLogicTimeTaken,
+  ] = await aPf(async () =>
+    getLogicResultForAllMembers(
+      {
+        teamMembersWithAttributeOptionValuePerAttribute,
+        attributeJsonLogic: mainLogic,
+        attributesQueryValue,
+      },
+      {
+        concurrency,
+        enableTroubleshooter,
       }
-    );
-  });
+    )
+  );
 
-  return {
-    teamMembersMatchingAttributeLogic: Array.from(teamMembersMatchingAttributeLogicMap).map((item) => ({
+  const teamMembersMatchingMainAttributeLogic = Array.from(teamMembersMatchingAttributeLogicMap).map(
+    (item) => ({
       userId: item[0],
       result: item[1],
-    })),
+    })
+  );
+
+  if (!teamMembersMatchingMainAttributeLogic.length) {
+    if (raqbQueryValueUtils.isQueryValueEmpty(fallbackAttributesQueryValue)) {
+      return {
+        teamMembersMatchingAttributeLogic: null,
+        ...buildEmptyQueryValueTroubleshooterData({
+          fallbackAttributesQueryValue,
+          getAttributesForTeamTimeTaken,
+          getAttributesQueryValueTimeTaken,
+        }),
+      };
+    }
+    
+    const fallbackLogic = getJsonLogic({
+      attributesQueryValue: fallbackAttributesQueryValue,
+      attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
+      isPreview: !!isPreview,
+    });
+    // TODO: Make sure that it is a required field while saving the form
+    // if (!fallbackLogic) {
+    //   // Don't throw error yet as routes won't have it yet and they would immediately throw an error in instead of falling   back to entire team RR
+    //   throw new Error("No fallback logic found");
+    // }
+
+    if (!fallbackLogic) {
+      return {
+        teamMembersMatchingAttributeLogic: null,
+        timeTaken: {
+          gAtr: getAttributesForTeamTimeTaken,
+          gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
+          gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
+          lgcFrMbrs: null,
+          gQryVal: getAttributesQueryValueTimeTaken,
+        },
+        troubleshooter: enableTroubleshooter
+          ? {
+              type: TroubleshooterCase.NO_FALLBACK_LOGIC_FOUND,
+              data: {
+                attributesQueryValue,
+                fallbackAttributesQueryValue,
+                attributesQueryBuilderConfig,
+                logic: mainLogic,
+                attributesForTeam,
+              },
+            }
+          : null,
+      };
+    }
+    const [
+      { teamMembersMatchingAttributeLogicMap:teamMembersMatchingFallbackLogicMap, attributesDataPerUser },
+      teamMembersMatchingFallbackLogicTimeTaken,
+    ] = await aPf(async () =>
+      getLogicResultForAllMembers(
+        {
+          teamMembersWithAttributeOptionValuePerAttribute,
+          attributeJsonLogic: fallbackLogic,
+          attributesQueryValue: fallbackAttributesQueryValue,
+        },
+        {
+          concurrency,
+          enableTroubleshooter,
+        }
+      )
+    );
+
+    return {
+      teamMembersMatchingAttributeLogic: Array.from(teamMembersMatchingFallbackLogicMap).map((item) => ({
+        userId: item[0],
+        result: item[1],
+      })),
+      timeTaken: {
+        gAtr: getAttributesForTeamTimeTaken,
+        gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
+        gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
+        lgcFrMbrs: teamMembersMatchingFallbackLogicTimeTaken,
+        gQryVal: getAttributesQueryValueTimeTaken,
+      },
+      troubleshooter: enableTroubleshooter
+        ? {
+            type: TroubleshooterCase.MATCH_RESULTS_READY_WITH_FALLBACK,
+            data: {
+              attributesDataPerUser,
+              attributesQueryValue,
+              attributesQueryBuilderConfig,
+              logic: mainLogic,
+              attributesForTeam,
+            },
+          }
+        : null,
+    };
+  }
+
+  return {
+    teamMembersMatchingAttributeLogic: teamMembersMatchingMainAttributeLogic,
     timeTaken: {
       gAtr: getAttributesForTeamTimeTaken,
       gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
@@ -387,7 +533,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
             attributesDataPerUser,
             attributesQueryValue,
             attributesQueryBuilderConfig,
-            logic,
+            logic: mainLogic,
             attributesForTeam,
           },
         }
@@ -406,6 +552,75 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       return [await fn(), null];
     }
     return asyncPerf(fn);
+  }
+
+  function buildNoRouteFoundTroubleshooterData({ routeId }: { routeId: string }) {
+    return {
+      ...buildTroubleshooterData({
+        type: TroubleshooterCase.NO_ROUTE_FOUND,
+        data: { routeId },
+        enableTroubleshooter,
+      }),
+      timeTaken: null,
+    };
+  }
+
+  function buildIsARouterTroubleshooterData({ routeId }: { routeId: string }) {
+    return {
+      ...buildTroubleshooterData({
+        type: TroubleshooterCase.IS_A_ROUTER,
+        data: { routeId },
+        enableTroubleshooter,
+      }),
+      timeTaken: null,
+    };
+  }
+
+  function buildEmptyQueryValueTroubleshooterData({
+    attributesQueryValue,
+    getAttributesForTeamTimeTaken,
+    getAttributesQueryValueTimeTaken,
+  }: {
+    attributesQueryValue: AttributesQueryValue | null;
+    getAttributesForTeamTimeTaken: number | null;
+    getAttributesQueryValueTimeTaken: number | null;
+  }) {
+    return {
+      ...buildTroubleshooterData({
+        type: TroubleshooterCase.EMPTY_QUERY_VALUE,
+        data: { attributesQueryValue },
+        enableTroubleshooter,
+      }),
+      timeTaken: {
+        gAtr: getAttributesForTeamTimeTaken,
+        gQryVal: getAttributesQueryValueTimeTaken,
+        gQryCnfg: null,
+        gMbrWtAtr: null,
+        lgcFrMbrs: null,
+      },
+    };
+  }
+
+  function buildNoLogicFoundTroubleshooterData({
+    attributesQueryValue,
+    fallbackAttributesQueryValue,
+    attributesQueryBuilderConfig,
+    logic,
+    attributesForTeam,
+  }: {
+    attributesQueryValue: AttributesQueryValue | null;
+    fallbackAttributesQueryValue: AttributesQueryValue | null;
+    attributesQueryBuilderConfig: AttributesQueryValue;
+    logic: NonNullable<JsonLogicResult["logic"]>;
+    attributesForTeam: Attribute[]
+  }) {
+    return {
+      ...buildTroubleshooterData({
+        type: TroubleshooterCase.NO_FALLBACK_LOGIC_FOUND,
+        data: { attributesQueryValue, fallbackAttributesQueryValue, attributesQueryBuilderConfig, logic, attributesForTeam },
+        enableTroubleshooter,
+      }),
+    };
   }
 }
 
