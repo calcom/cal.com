@@ -244,18 +244,33 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
   const searchParams = useCompatSearchParams();
-  const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
-    | {
-        id: number;
-        name: string | null;
-        email: string;
-      }[]
-    | null
-  >([]);
+  const [membersMatchResult, setMembersMatchResult] = useState<{
+    teamMembersMatchingAttributeLogic:
+      | {
+          id: number;
+          name: string | null;
+          email: string;
+        }[]
+      | null;
+    checkedFallback: boolean;
+  }>({
+    teamMembersMatchingAttributeLogic: null,
+    checkedFallback: false,
+  });
+
+  const resetMembersMatchResult = () => {
+    setMembersMatchResult({
+      teamMembersMatchingAttributeLogic: null,
+      checkedFallback: false,
+    });
+  };
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
       onSuccess(data) {
-        setTeamMembersMatchingAttributeLogic(data.result);
+        setMembersMatchResult({
+          teamMembersMatchingAttributeLogic: data.result,
+          checkedFallback: data.checkedFallback,
+        });
       },
       onError(e) {
         if (e instanceof TRPCClientError) {
@@ -342,6 +357,62 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const connectedForms = form.connectedForms;
 
   const testFormDialog = (() => {
+    const renderMatchResult = () => {
+      const isNoLogicFound = !membersMatchResult.teamMembersMatchingAttributeLogic;
+      if (!form.routes || !chosenRoute) return null;
+      const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
+      const chosenRouteName = () => {
+        if (chosenRoute.isFallback) {
+          return <span>{t("fallback_route")}</span>;
+        }
+        return <span>{`Route ${chosenRouteIndex + 1}`}</span>;
+      };
+      return (
+        <div className="mt-2 space-y-2 text-sm">
+          <div>
+            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName()}</span>
+          </div>
+          <div>
+            {t("attribute_logic_matched")}:{" "}
+            <span className="font-semibold">{!membersMatchResult.checkedFallback ? "Yes" : "No"}</span>
+          </div>
+          <div>
+            {t("attribute_logic_fallback_matched")}:{" "}
+            <span className="font-semibold">
+              {!membersMatchResult.checkedFallback
+                ? "Not needed"
+                : membersMatchResult.checkedFallback
+                ? "Yes"
+                : "No"}
+            </span>
+          </div>
+          <div>
+            {t("matching_members")}:{" "}
+            {isNoLogicFound ? (
+              membersMatchResult.checkedFallback ? (
+                <span className="font-semibold">
+                  {t(
+                    "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
+                  )}
+                </span>
+              ) : (
+                <span className="font-semibold">
+                  {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
+                </span>
+              )
+            ) : (
+              <span className="font-semibold">
+                {membersMatchResult.teamMembersMatchingAttributeLogic
+                  .map((member) => member.email)
+                  .join(", ") ||
+                  t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    };
+
     const testResult = chosenRoute ? (
       <div className="bg-subtle text-default mt-5 rounded-md p-3">
         <div className="font-bold ">{t("route_to")}:</div>
@@ -383,12 +454,8 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               </span>
               {isTeamForm ? (
                 <div>
-                  <span>{t("matching_members")}:</span>{" "}
                   {!findTeamMembersMatchingAttributeLogicMutation.isPending ? (
-                    <div>
-                      {teamMembersMatchingAttributeLogic?.map((member) => member.email).join(", ") ||
-                        t("no_matching_members")}
-                    </div>
+                    <div>{renderMatchResult()}</div>
                   ) : (
                     <div>Loading...</div>
                   )}
@@ -408,6 +475,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                resetMembersMatchResult();
                 testRouting();
               }}>
               <div className="px-1">

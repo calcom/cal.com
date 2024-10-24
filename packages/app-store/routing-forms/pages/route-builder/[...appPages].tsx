@@ -389,7 +389,7 @@ const Route = ({
         }}
         renderBuilder={renderBuilder}
       />
-      <Divider className="mb-2 mt-6" />
+      <Divider className="mt-6" />
       <Divider className="mb-6" />
     </div>
   ) : null;
