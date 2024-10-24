@@ -676,8 +676,8 @@ export const insightsRouter = router({
         return [];
       }
 
-      const startDate = dayjs(startDateString);
-      const endDate = dayjs(endDateString);
+      const startDate = dayjs.utc(startDateString).startOf("day");
+      const endDate = dayjs.utc(endDateString).endOf("day");
 
       const { whereCondition: whereConditional } = await buildBaseWhereCondition({
         teamId,
@@ -699,42 +699,41 @@ export const insightsRouter = router({
         return [];
       }
 
-      const dateFormat = "ll";
+      const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
 
-      const result = [];
+      const allBookings = await ctx.insightsDb.bookingTimeStatus.findMany({
+        select: {
+          eventLength: true,
+          createdAt: true,
+        },
+        where: {
+          ...whereConditional,
+          createdAt: {
+            gte: startDate.toDate(),
+            lte: endDate.toDate(),
+          },
+        },
+      });
+
+      const resultMap = new Map<string, { totalDuration: number; count: number }>();
 
       for (const date of timeLine) {
-        const EventData = {
-          Date: dayjs(date).format(dateFormat),
-          Average: 0,
-        };
-        const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
-
-        const startDate = dayjs(date).startOf(startOfEndOf);
-        const endDate = dayjs(date).endOf(startOfEndOf);
-
-        const bookingsInTimeRange = await ctx.insightsDb.bookingTimeStatus.findMany({
-          select: {
-            eventLength: true,
-          },
-          where: {
-            ...whereConditional,
-            createdAt: {
-              gte: startDate.toDate(),
-              lte: endDate.toDate(),
-            },
-          },
-        });
-
-        const avgDuration =
-          bookingsInTimeRange.reduce((acc, booking) => {
-            const duration = booking.eventLength || 0;
-            return acc + duration;
-          }, 0) / bookingsInTimeRange.length;
-
-        EventData["Average"] = Number(avgDuration) || 0;
-        result.push(EventData);
+        resultMap.set(dayjs(date).startOf(startOfEndOf).format("ll"), { totalDuration: 0, count: 0 });
       }
+
+      for (const booking of allBookings) {
+        const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
+        if (resultMap.has(periodStart)) {
+          const current = resultMap.get(periodStart)!;
+          current.totalDuration += booking.eventLength || 0;
+          current.count += 1;
+        }
+      }
+
+      const result = Array.from(resultMap.entries()).map(([date, { totalDuration, count }]) => ({
+        Date: date,
+        Average: count > 0 ? totalDuration / count : 0,
+      }));
 
       return result;
     }),
