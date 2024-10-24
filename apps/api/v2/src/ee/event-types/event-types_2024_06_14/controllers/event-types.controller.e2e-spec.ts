@@ -1251,4 +1251,154 @@ describe("Event types Endpoints", () => {
       await app.close();
     });
   });
+
+  describe("Handle event-types locations", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+
+    const userEmail = "locations-event-types-test-e2e@api.com";
+    const name = "bob-the-locations-builder";
+    const username = name;
+    let user: User;
+    let legacyEventTypeId1: number;
+    let legacyEventTypeId2: number;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({ name: "organization" });
+      oAuthClient = await createOAuthClient(organization.id);
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        name,
+        username,
+      });
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["redirect-uri"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should return integration location with link and credentialId", async () => {
+      const eventTypeInput = {
+        title: "event type discord",
+        description: "event type description",
+        length: 40,
+        hidden: false,
+        slug: "discord-event-type",
+        locations: [
+          {
+            type: "integrations:discord_video",
+            link: "https://discord.com/users/100",
+            credentialId: 100,
+          },
+        ],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [],
+      };
+      const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+      legacyEventTypeId1 = legacyEventType.id;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${legacyEventTypeId1}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+          expect(fetchedEventType.locations).toEqual([
+            {
+              type: "integration",
+              integration: "discord-video",
+              link: eventTypeInput.locations[0].link,
+              credentialId: eventTypeInput.locations[0].credentialId,
+            },
+          ]);
+        });
+    });
+
+    it("should return unsupported location", async () => {
+      const eventTypeInput = {
+        title: "event type not existing",
+        description: "event type description",
+        length: 40,
+        hidden: false,
+        slug: "not-existing-event-type",
+        locations: [
+          {
+            type: "this-type-does-not-exist",
+          },
+        ],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [],
+      };
+      const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+      legacyEventTypeId1 = legacyEventType.id;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${legacyEventTypeId1}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+          expect(fetchedEventType.locations).toEqual([
+            { type: "unknown", location: JSON.stringify(eventTypeInput.locations[0]) },
+          ]);
+        });
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
+        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
+      } catch (e) {
+        // Event type might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      await app.close();
+    });
+  });
 });

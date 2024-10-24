@@ -83,11 +83,12 @@ jobs:
             **/.turbo/**
             **/dist/**
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-      - run: |
+      - name: Log Cache Hit
+        if: steps.cache-api-v1-build.outputs.cache-hit == 'true'
+        run: echo "Cache hit for API v1 build. Skipping build."
+      - name: Run build
+        if: steps.cache-api-v1-build.outputs.cache-hit != 'true'
+        run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          if [ ${{ steps.cache-api-v1-build.outputs.cache-hit }} == 'true' ]; then
-            echo "Cache hit for API v1 build. Skipping build."
-          else
-            yarn turbo run build --filter=@calcom/api...
-          fi
+          yarn turbo run build --filter=@calcom/api...
         shell: bash

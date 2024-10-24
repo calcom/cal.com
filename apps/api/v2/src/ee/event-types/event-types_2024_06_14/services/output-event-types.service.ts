@@ -7,7 +7,7 @@ import {
   transformLocationsInternalToApi,
   transformBookingFieldsInternalToApi,
   parseRecurringEvent,
-  TransformedLocationsSchema,
+  InternalLocationSchema,
   BookingFieldsSchema,
   SystemField,
   CustomField,
@@ -20,12 +20,14 @@ import {
   transformEventTypeColorsInternalToApi,
   parseEventTypeColor,
   transformSeatsInternalToApi,
+  InternalLocation,
 } from "@calcom/platform-libraries";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
   NoticeThresholdTransformedSchema,
   EventTypeOutput_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 type EventTypeRelations = {
@@ -190,7 +192,20 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformLocations(locations: any) {
     if (!locations) return [];
-    return transformLocationsInternalToApi(TransformedLocationsSchema.parse(locations));
+
+    const knownLocations: InternalLocation[] = [];
+    const unknownLocations: OutputUnknownLocation_2024_06_14[] = [];
+
+    const parsedLocations = locations.map((location: any) => {
+      const result = InternalLocationSchema.safeParse(location);
+      if (result.success) {
+        return knownLocations.push(result.data);
+      } else {
+        return unknownLocations.push({ type: "unknown", location: JSON.stringify(location) });
+      }
+    });
+
+    return [...transformLocationsInternalToApi(knownLocations), ...unknownLocations];
   }
 
   transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {

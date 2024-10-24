@@ -6,6 +6,11 @@
   "main": "./index.tsx",
   "exports": {
     ".": "./index.tsx",
+    "./button": "./components/button/index.ts",
+    "./form/timezone-select": "./components/form/timezone-select/index.ts",
+    "./toast": "./components/toast/index.tsx",
+    "./icon": "./components/icon/index.ts",
+    "./unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
     "./components/toast": "./components/toast/index.tsx",
     "./components/icon": "./components/icon/index.ts",
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
