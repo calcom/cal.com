@@ -343,7 +343,24 @@ async function handleWorkflowsUpdate({
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
   orgId: number | null;
 }) {
-  const workflowReminders = await prisma.workflowReminder.findMany({
+  const select = {
+    id: true,
+    referenceId: true,
+    workflowStep: {
+      select: {
+        template: true,
+        workflow: {
+          select: {
+            trigger: true,
+            time: true,
+            timeUnit: true,
+          },
+        },
+      },
+    },
+  };
+
+  const workflowRemindersHost = await prisma.workflowReminder.findMany({
     where: {
       bookingUid: booking.uid,
       method: WorkflowMethods.EMAIL,
@@ -360,32 +377,40 @@ async function handleWorkflowsUpdate({
         },
       },
     },
-    select: {
-      id: true,
-      referenceId: true,
+    select,
+  });
+
+  const scheduledWorkflowRemindersAttendee = await prisma.workflowReminder.findMany({
+    where: {
+      bookingUid: booking.uid,
+      method: WorkflowMethods.EMAIL,
+      scheduled: true,
       workflowStep: {
-        select: {
-          template: true,
-          workflow: {
-            select: {
-              trigger: true,
-              time: true,
-              timeUnit: true,
-            },
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        workflow: {
+          trigger: {
+            in: [
+              WorkflowTriggerEvents.BEFORE_EVENT,
+              WorkflowTriggerEvents.NEW_EVENT,
+              WorkflowTriggerEvents.AFTER_EVENT,
+            ],
           },
         },
       },
     },
+    select,
   });
+
+  const workflowReminders = [...workflowRemindersHost, ...scheduledWorkflowRemindersAttendee];
 
   const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
   const bookerUrl = await getBookerBaseUrl(orgId);
 
   for (const workflowReminder of workflowReminders) {
-    const workflowStep = workflowReminder?.workflowStep;
-    const workflow = workflowStep?.workflow;
+    const workflowStep = workflowReminder.workflowStep;
 
-    if (workflowStep && workflow) {
+    if (workflowStep) {
+      const workflow = workflowStep.workflow;
       await scheduleEmailReminder({
         evt: {
           ...evt,
