@@ -34,8 +34,8 @@ export const BookingStatusLineChart = () => {
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
       timeView: selectedTimeView,
-      startDate: dayjs(startDate).utc(true).toISOString(),
-      endDate: dayjs(endDate).utc(true).toISOString(),
+      startDate: dayjs.utc(startDate).toISOString(),
+      endDate: dayjs.utc(endDate).toISOString(),
       teamId: selectedTeamId ?? undefined,
       eventTypeId: selectedEventTypeId ?? undefined,
       userId: selectedUserId ?? undefined,
