@@ -5,7 +5,6 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
-import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 import { SCOPES } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
