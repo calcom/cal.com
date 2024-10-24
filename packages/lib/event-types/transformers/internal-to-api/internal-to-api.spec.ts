@@ -128,7 +128,7 @@ describe("transformLocationsInternalToApi", () => {
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform integration location", () => {
+  it("should transform integration location", () => {
     const transformedLocation = [
       {
         type: "integrations:discord_video" as const,
@@ -139,6 +139,29 @@ describe("transformLocationsInternalToApi", () => {
       {
         type: "integration",
         integration: "discord-video",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform integration location with link and credentialId", () => {
+    const transformedLocation = [
+      {
+        type: "integrations:discord_video" as const,
+        link: "https://discord.com/users/100",
+        credentialId: 100,
+      },
+    ];
+
+    const expectedOutput: OutputIntegrationLocation_2024_06_14[] = [
+      {
+        type: "integration",
+        integration: "discord-video",
+        link: "https://discord.com/users/100",
+        credentialId: 100,
       },
     ];
 
@@ -162,6 +185,8 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);

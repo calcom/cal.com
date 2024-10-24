@@ -47,9 +47,7 @@ const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06
   "integrations:around_video": "around-video",
 };
 
-export function transformLocationsInternalToApi(
-  internalLocations: (InternalLocation | OutputUnknownLocation_2024_06_14)[] | undefined
-) {
+export function transformLocationsInternalToApi(internalLocations: InternalLocation[] | undefined) {
   if (!internalLocations) {
     return [];
   }
@@ -113,13 +111,6 @@ export function transformLocationsInternalToApi(
         };
         return conferencingLocation;
       }
-      case "unknown": {
-        const unknown: OutputUnknownLocation_2024_06_14 = {
-          type: "unknown",
-          location: JSON.stringify(location),
-        };
-        return unknown;
-      }
       default: {
         const integrationType = internalToApiIntegrationsMapping[location.type];
         if (!integrationType) {
@@ -132,6 +123,8 @@ export function transformLocationsInternalToApi(
         const integration: OutputIntegrationLocation_2024_06_14 = {
           type: "integration",
           integration: integrationType,
+          link: location.link,
+          credentialId: location.credentialId,
         };
         return integration;
       }

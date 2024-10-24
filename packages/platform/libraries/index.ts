@@ -141,6 +141,7 @@ export type {
   CustomField,
   NameSystemField,
   EmailSystemField,
+  InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";

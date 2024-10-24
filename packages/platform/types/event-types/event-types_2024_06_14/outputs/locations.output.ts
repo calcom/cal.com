@@ -74,7 +74,7 @@ export class OutputIntegrationLocation_2024_06_14 {
 
   @IsNumber()
   @IsOptional()
-  credentialdId?: string;
+  credentialId?: number;
 }
 
 export class OutputConferencingLocation_2024_06_14 {

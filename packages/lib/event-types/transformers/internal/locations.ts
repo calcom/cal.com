@@ -78,7 +78,7 @@ const OrganizerIntegrationSchema = z.object({
     integrationsApiToInternalMappingSchema["around-video"],
   ]),
   link: z.string().url().optional(),
-  credentialId: z.string().optional(),
+  credentialId: z.number().optional(),
 });
 
 const OrganizerAddressSchema = z.object({
