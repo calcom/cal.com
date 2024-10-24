@@ -429,12 +429,14 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
-      <ReassignDialog
-        isOpenDialog={isOpenReassignDialog}
-        setIsOpenDialog={setIsOpenReassignDialog}
-        bookingId={booking.id}
-        teamId={booking.eventType?.team?.id || 0}
-      />
+      {isOpenReassignDialog && (
+        <ReassignDialog
+          isOpenDialog={isOpenReassignDialog}
+          setIsOpenDialog={setIsOpenReassignDialog}
+          bookingId={booking.id}
+          teamId={booking.eventType?.team?.id || 0}
+        />
+      )}
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
