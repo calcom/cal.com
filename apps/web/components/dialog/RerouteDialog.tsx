@@ -278,7 +278,10 @@ const NewRoutingManager = ({
   const router = useRouter();
   const bookerUrl = useBookerUrl();
   const teamMemberIdsMatchingAttributeLogic =
-    teamMembersMatchingAttributeLogic?.data?.map((member) => member.id) || null;
+    teamMembersMatchingAttributeLogic?.data?.map((member) => member.id).filter((id) => {
+      // We don't want to reroute to the same user who booked the booking
+      return id !== booking.user?.id;
+    }) || null;
   const routedFromRoutingFormReponseId = booking.routedFromRoutingFormReponse.id;
 
   const bookingEventType = booking.eventType;
@@ -696,10 +699,13 @@ const RerouteDialogContentAndFooter = ({
 }: Pick<RerouteDialogProps, "isOpenDialog" | "setIsOpenDialog"> & {
   booking: TeamEventTypeBookingToReroute;
 }) => {
-  const { data: responseWithForm, isPending: isRoutingFormLoading, error: formResponseFetchError } =
-    trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
-      formResponseId: booking.routedFromRoutingFormReponse.id,
-    });
+  const {
+    data: responseWithForm,
+    isPending: isRoutingFormLoading,
+    error: formResponseFetchError,
+  } = trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
+    formResponseId: booking.routedFromRoutingFormReponse.id,
+  });
 
   const { t } = useLocale();
 
@@ -840,10 +846,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
           <Button
             onClick={verifyRoute}
             data-testid="verify-new-route-button"
-            disabled={
-              reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS ||
-              isResponseFromOrganizerUnpopulated
-            }>
+            disabled={reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS}>
             {t("verify_new_route")}
           </Button>
         </DialogFooter>
