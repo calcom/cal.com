@@ -48,22 +48,13 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
     }
   );
 
-  return (
-    <TimezoneSelectComponent
-      data={data.reduce((acc: { [label: string]: string }, { city, timezone }) => {
-        acc[city] = timezone;
-        return acc;
-      }, {})}
-      isPending={isPending}
-      {...props}
-    />
-  );
+  return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
 }
 
 export type TimezoneSelectComponentProps = SelectProps & {
   variant?: "default" | "minimal";
   isPending: boolean;
-  data: Record<string, string> | undefined;
+  data?: Timezones;
   timezoneSelectCustomClassname?: string;
 };
 export function TimezoneSelectComponent({
@@ -86,7 +77,7 @@ export function TimezoneSelectComponent({
    */
   const [additionalTimezones, setAdditionalTimezones] = useState<Timezones>([]);
   const handleInputChange = (searchText: string) => {
-    if (data) setAdditionalTimezones(filterBySearchText(searchText, combinedData));
+    if (data) setAdditionalTimezones(filterBySearchText(searchText, data));
   };
 
   const reactSelectProps = useMemo(() => {
