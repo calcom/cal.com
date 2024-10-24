@@ -42,6 +42,7 @@ export class Task {
     options: { scheduledAt?: Date; maxAttempts?: number } = {}
   ) {
     const { scheduledAt, maxAttempts } = options;
+    console.info("Creating task", { type, payload, scheduledAt, maxAttempts });
     const newTask = await db.task.create({
       data: {
         payload,
@@ -54,6 +55,7 @@ export class Task {
   }
 
   static async getNextBatch() {
+    console.info("Getting next batch of tasks", whereUpcomingTasks);
     return db.task.findMany({
       where: whereUpcomingTasks,
       orderBy: {
@@ -134,15 +136,16 @@ export class Task {
   }
 
   static async cleanup() {
-    return db.task.deleteMany({
-      where: {
-        OR: [
-          // Get tasks that have succeeded
-          whereSucceeded,
-          // Get tasks where maxAttemps has been reached
-          whereMaxAttemptsReached,
-        ],
-      },
-    });
+    // TODO: Uncomment this later
+    // return db.task.deleteMany({
+    //   where: {
+    //     OR: [
+    //       // Get tasks that have succeeded
+    //       whereSucceeded,
+    //       // Get tasks where maxAttemps has been reached
+    //       whereMaxAttemptsReached,
+    //     ],
+    //   },
+    // });
   }
 }
