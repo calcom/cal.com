@@ -17,7 +17,7 @@ import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
 
 const WebTimezoneSelect = dynamic(
-  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  () => import("@calcom/ui/form/timezone-select").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
   }
