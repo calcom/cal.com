@@ -107,7 +107,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
       roundRobinReassignMutation.mutate({ teamId, bookingId });
     } else {
       if (values.teamMemberId) {
-        const selectedMember = teamMemberOptions.find((member) => member.value === values.teamMemberId);
+        const selectedMember = teamMemberOptions?.find((member) => member.value === values.teamMemberId);
         if (selectedMember && selectedMember.status === "unavailable") {
           setShowConfirmation(true);
         } else {
@@ -206,6 +206,9 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
           cancelBtnText={t("cancel")}
           onConfirm={() => {
             const teamMemberId = form.getValues("teamMemberId");
+            if (!teamMemberId) {
+              return;
+            }
             roundRobinManualReassignMutation.mutate({ bookingId, teamMemberId });
             setShowConfirmation(false);
           }}>
