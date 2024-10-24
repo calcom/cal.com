@@ -1,12 +1,12 @@
 import { type TFunction } from "i18next";
 
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -17,14 +17,14 @@ import type { TeamWithParent } from "./types";
 import type { Invitation } from "./utils";
 import {
   ensureAtleastAdminPermissions,
-  getTeamOrThrow,
-  getUniqueInvitationsOrThrowIfEmpty,
+  findUsersWithInviteStatus,
   getOrgConnectionInfo,
   getOrgState,
-  findUsersWithInviteStatus,
-  INVITE_STATUS,
+  getTeamOrThrow,
+  getUniqueInvitationsOrThrowIfEmpty,
   handleExistingUsersInvites,
   handleNewUsersInvites,
+  INVITE_STATUS,
 } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
@@ -121,34 +121,31 @@ function buildInvitationsFromInput({
   });
 }
 
-export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
-  const myLog = log.getSubLogger({ prefix: ["inviteMemberHandler"] });
-  const translation = await getTranslation(input.language ?? "en", "common");
-  await checkRateLimitAndThrowError({
-    identifier: `invitedBy:${ctx.user.id}`,
-  });
+type TargetTeam =
+  | {
+      teamId: number;
+    }
+  | {
+      team: TeamWithParent;
+    };
 
-  const invitations = buildInvitationsFromInput({
-    usernameOrEmail: input.usernameOrEmail,
-    roleForAllInvitees: input.role,
-  });
-
-  const team = await getTeamOrThrow(input.teamId);
-
+export const inviteMembersWithNoInviterPermissionCheck = async (
+  data: {
+    // TODO: Remove `input` and instead pass the required fields directly
+    language: string;
+    inviterName: string | null;
+    orgSlug: string | null;
+    invitations: {
+      usernameOrEmail: string;
+      role: MembershipRole;
+    }[];
+  } & TargetTeam
+) => {
+  const { inviterName, orgSlug, invitations, language } = data;
+  const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
+  const translation = await getTranslation(language ?? "en", "common");
+  const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
   const isTeamAnOrg = team.isOrganization;
-  const isAddingNewOwner = !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER);
-  const inviter = ctx.user;
-  const inviterOrg = inviter.organization;
-
-  if (isTeamAnOrg) {
-    await throwIfInviterCantAddOwnerToOrg();
-  }
-
-  await ensureAtleastAdminPermissions({
-    userId: ctx.user.id,
-    teamId: inviterOrg.id && inviterOrg.isOrgAdmin ? inviterOrg.id : input.teamId,
-    isOrg: isTeamAnOrg,
-  });
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
   const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations);
@@ -179,13 +176,17 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     uniqueInvitations,
   });
 
+  const inviter = { name: inviterName };
+
   if (invitationsForNewUsers.length) {
     await handleNewUsersInvites({
       invitationsForNewUsers,
       team,
       orgConnectInfoByUsernameOrEmail,
-      input,
-      inviter: ctx.user,
+      teamId: team.id,
+      language,
+      isOrg: isTeamAnOrg,
+      inviter,
       autoAcceptEmailDomain: orgState.autoAcceptEmailDomain,
     });
   }
@@ -207,36 +208,85 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   );
 
   if (invitableExistingUsers.length) {
-    const organization = ctx.user.profile.organization;
-    const orgSlug = organization ? organization.slug || organization.requestedSlug : null;
     await handleExistingUsersInvites({
       invitableExistingUsers,
       team,
       orgConnectInfoByUsernameOrEmail,
-      input,
-      inviter: ctx.user,
+      teamId: team.id,
+      language,
+      isOrg: isTeamAnOrg,
+      inviter,
       orgSlug,
     });
   }
 
-  if (IS_TEAM_BILLING_ENABLED) {
-    await updateQuantitySubscriptionFromStripe(team.parentId ?? input.teamId);
-  }
+  const teamBilling = TeamBilling.init(team);
+  await teamBilling.updateQuantity();
 
   return {
-    ...input,
+    // TODO: Better rename it to invitations only maybe?
+    usernameOrEmail:
+      invitations.length == 1
+        ? invitations[0].usernameOrEmail
+        : invitations.map((invitation) => invitation.usernameOrEmail),
     numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
   };
+};
+
+const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
+  const { user: inviter } = ctx;
+  const { usernameOrEmail, role, isPlatform } = input;
+
+  const team = await getTeamOrThrow(input.teamId);
+  const requestedSlugForTeam = team?.metadata?.requestedSlug ?? null;
+  const isTeamAnOrg = team.isOrganization;
+  const organization = inviter.profile.organization;
+
+  let inviterOrgId = inviter.organization.id;
+  let orgSlug = organization ? organization.slug || organization.requestedSlug : null;
+  let isInviterOrgAdmin = inviter.organization.isOrgAdmin;
+
+  const invitations = buildInvitationsFromInput({
+    usernameOrEmail,
+    roleForAllInvitees: role,
+  });
+  const isAddingNewOwner = !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER);
+
+  if (isTeamAnOrg) {
+    await throwIfInviterCantAddOwnerToOrg();
+  }
+
+  if (isPlatform) {
+    inviterOrgId = team.id;
+    orgSlug = team ? team.slug || requestedSlugForTeam : null;
+    isInviterOrgAdmin = await UserRepository.isAdminOrOwnerOfTeam({ userId: inviter.id, teamId: team.id });
+  }
+
+  await ensureAtleastAdminPermissions({
+    userId: inviter.id,
+    teamId: inviterOrgId && isInviterOrgAdmin ? inviterOrgId : input.teamId,
+    isOrg: isTeamAnOrg,
+  });
+
+  const result = await inviteMembersWithNoInviterPermissionCheck({
+    inviterName: inviter.name,
+    team,
+    language: input.language,
+    orgSlug,
+    invitations,
+  });
+  return result;
 
   async function throwIfInviterCantAddOwnerToOrg() {
-    const isInviterOrgOwner = await isOrganisationOwner(ctx.user.id, input.teamId);
+    const isInviterOrgOwner = await isOrganisationOwner(inviter.id, input.teamId);
     if (isAddingNewOwner && !isInviterOrgOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 };
 
-async function handleSubscriptionUpdates(teamId: number) {
-  if (!IS_TEAM_BILLING_ENABLED) return;
-  await updateQuantitySubscriptionFromStripe(teamId);
+export default async function inviteMemberHandler({ ctx, input }: InviteMemberOptions) {
+  const { user: inviter } = ctx;
+  await checkRateLimitAndThrowError({
+    identifier: `invitedBy:${inviter.id}`,
+  });
+  return await inviteMembers({ ctx, input });
 }
-
-export default inviteMemberHandler;

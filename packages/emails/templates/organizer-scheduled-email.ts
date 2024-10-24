@@ -8,7 +8,8 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsFile from "../lib/generateIcsFile";
+import { GenerateIcsRole } from "../lib/generateIcsFile";
 import BaseEmail from "./_base-email";
 
 export default class OrganizerScheduledEmail extends BaseEmail {
@@ -16,14 +17,21 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   t: TFunction;
   newSeat?: boolean;
   teamMember?: Person;
+  reassignedTo?: { name: string | null; email: string };
 
-  constructor(input: { calEvent: CalendarEvent; newSeat?: boolean; teamMember?: Person }) {
+  constructor(input: {
+    calEvent: CalendarEvent;
+    newSeat?: boolean;
+    teamMember?: Person;
+    reassignedTo?: { email: string; name: string | null };
+  }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = input.calEvent;
     this.t = this.calEvent.organizer.language.translate;
     this.newSeat = input.newSeat;
     this.teamMember = input.teamMember;
+    this.reassignedTo = input.reassignedTo;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -31,19 +39,11 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: generateIcsString({
-          event: this.calEvent,
-          title: this.calEvent.recurringEvent?.count
-            ? this.t("new_event_scheduled_recurring")
-            : this.t("new_event_scheduled"),
-          subtitle: this.t("emailed_you_and_any_other_attendees"),
-          role: "organizer",
-          status: "CONFIRMED",
-        }),
-        method: "REQUEST",
-      },
+      icalEvent: generateIcsFile({
+        calEvent: this.calEvent,
+        role: GenerateIcsRole.ORGANIZER,
+        status: "CONFIRMED",
+      }),
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
@@ -66,7 +66,11 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   ): string {
     return `
 ${this.t(
-  title || this.calEvent.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+  title
+    ? title
+    : this.calEvent.recurringEvent?.count
+    ? "new_event_scheduled_recurring"
+    : "new_event_scheduled"
 )}
 ${this.t(subtitle)}
 ${extraInfo}

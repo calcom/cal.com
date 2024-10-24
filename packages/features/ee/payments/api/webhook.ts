@@ -5,7 +5,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
-import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
+import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -72,7 +72,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     },
   });
   if (!requiresConfirmation) {
-    const eventManager = new EventManager(user);
+    const eventManager = new EventManager(user, eventType?.metadata?.apps);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
@@ -107,8 +107,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       paid: true,
     });
   } else {
-    await sendOrganizerRequestEmail({ ...evt });
-    await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+    await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
+    await sendAttendeeRequestEmailAndSMS({ ...evt }, evt.attendees[0], eventType.metadata);
   }
 };
 

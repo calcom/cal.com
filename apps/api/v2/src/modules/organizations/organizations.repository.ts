@@ -70,11 +70,64 @@ export class OrganizationsRepository {
       },
     });
   }
+
+  async findPlatformOrgFromUserId(userId: number) {
+    return this.dbRead.prisma.team.findFirstOrThrow({
+      where: {
+        orgProfiles: {
+          some: {
+            userId: userId,
+          },
+        },
+        isPlatform: true,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        isPlatform: true,
+        isOrganization: true,
+      },
+    });
+  }
+
   async findOrgUser(organizationId: number, userId: number) {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+      },
+    });
+  }
+
+  async findOrgTeamUser(organizationId: number, teamId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+        teams: {
+          some: {
+            teamId: teamId,
+          },
+        },
+      },
+    });
+  }
+
+  async fetchOrgAdminApiStatus(organizationId: number) {
+    return this.dbRead.prisma.organizationSettings.findUnique({
+      where: {
         organizationId,
+      },
+      select: {
+        isAdminAPIEnabled: true,
       },
     });
   }

@@ -19,8 +19,18 @@ export class CreateAvailabilityInput_2024_04_15 {
 }
 
 function transformStringToDate(value: string, key: string): Date {
-  // note(Lauris): incoming value is ISO8061 e.g. 2025-0412T13:17:56.324Z
+  if (!value) {
+    throw new BadRequestException(
+      `Missing ${key}. Expected value is in ISO8061 format e.g. 2025-0412T13:17:56.324Z`
+    );
+  }
+
   const dateTimeParts = value.split("T");
+  if (dateTimeParts.length !== 2) {
+    throw new BadRequestException(
+      `Invalid datestring format. Expected format(ISO8061): 2025-04-12T13:17:56.324Z. Received: ${value}`
+    );
+  }
 
   const timePart = dateTimeParts[1].split(".")[0]; // Removes milliseconds
   const parts = timePart.split(":");

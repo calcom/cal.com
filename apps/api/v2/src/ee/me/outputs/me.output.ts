@@ -1,5 +1,11 @@
-import { IsInt, IsEmail, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsInt, IsEmail, IsOptional, IsString, ValidateNested } from "class-validator";
 
+export class MeOrgOutput {
+  isPlatform!: boolean;
+
+  id!: number;
+}
 export class MeOutput {
   @IsInt()
   id!: number;
@@ -22,4 +28,12 @@ export class MeOutput {
 
   @IsString()
   timeZone!: string;
+
+  @IsInt()
+  organizationId!: number | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MeOrgOutput)
+  organization?: MeOrgOutput;
 }

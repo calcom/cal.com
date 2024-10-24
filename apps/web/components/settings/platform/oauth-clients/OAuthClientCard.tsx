@@ -22,6 +22,7 @@ type OAuthClientCardProps = {
   secret: string;
   onDelete: (id: string) => Promise<void>;
   isLoading: boolean;
+  organizationId: number;
 };
 
 export const OAuthClientCard = ({
@@ -38,6 +39,7 @@ export const OAuthClientCard = ({
   onDelete,
   isLoading,
   areEmailsEnabled,
+  organizationId,
 }: OAuthClientCardProps) => {
   const router = useRouter();
 
@@ -113,6 +115,21 @@ export const OAuthClientCard = ({
             />
           </div>
         </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row items-center gap-2">
+            <div className="font-semibold">Organization Id:</div>
+            <div>{organizationId}</div>
+            <Icon
+              name="clipboard"
+              type="button"
+              className="h-4 w-4 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(organizationId.toString());
+                showToast("Organization id copied to clipboard.", "success");
+              }}
+            />
+          </div>
+        </div>
         <div className="border-subtle flex text-sm">
           <span className="font-semibold">Permissions: </span>
           {permissions ? <div className="flex">{clientPermissions}</div> : <>&nbsp;Disabled</>}
@@ -142,17 +159,20 @@ export const OAuthClientCard = ({
       </div>
       <div className="flex items-start gap-4">
         <Button
-          className="bg-subtle hover:bg-emphasis text-white"
+          color="primary"
+          loading={isLoading}
+          disabled={isLoading}
+          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit/webhooks`)}>
+          Webhooks
+        </Button>
+        <Button
+          color="secondary"
           loading={isLoading}
           disabled={isLoading}
           onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>
           Edit
         </Button>
-        <Button
-          className="bg-red-500 text-white hover:bg-red-600"
-          loading={isLoading}
-          disabled={isLoading}
-          onClick={() => onDelete(id)}>
+        <Button color="destructive" loading={isLoading} disabled={isLoading} onClick={() => onDelete(id)}>
           Delete
         </Button>
       </div>

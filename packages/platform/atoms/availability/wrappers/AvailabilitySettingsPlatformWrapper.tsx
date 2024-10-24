@@ -1,5 +1,10 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { ApiErrorResponse, ApiResponse, ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
+import type {
+  ApiErrorResponse,
+  ApiResponse,
+  ScheduleOutput_2024_06_11,
+  UpdateScheduleInput_2024_06_11,
+} from "@calcom/platform-types";
 
 import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
 import { useSchedule } from "../../hooks/schedules/useSchedule";
@@ -27,6 +32,10 @@ type AvailabilitySettingsPlatformWrapperProps = {
   onDeleteError?: (err: ApiErrorResponse) => void;
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
+  onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
+  allowDelete?: boolean;
+  allowSetToDefault?: boolean;
+  disableToasts?: boolean;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -38,6 +47,10 @@ export const AvailabilitySettingsPlatformWrapper = ({
   onUpdateSuccess,
   disableEditableHeading = false,
   enableOverrides = false,
+  onBeforeUpdate,
+  allowDelete,
+  allowSetToDefault,
+  disableToasts,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -49,30 +62,38 @@ export const AvailabilitySettingsPlatformWrapper = ({
   const { mutate: deleteSchedule, isPending: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: (res) => {
       onDeleteSuccess?.(res);
-      toast({
-        description: "Schedule deleted successfully",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Schedule deleted successfully",
+        });
+      }
     },
     onError: (err) => {
       onDeleteError?.(err);
-      toast({
-        description: "Could not delete schedule",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Could not delete schedule",
+        });
+      }
     },
   });
 
   const { mutate: updateSchedule, isPending: isSavingInProgress } = useUpdateSchedule({
     onSuccess: (res) => {
       onUpdateSuccess?.(res);
-      toast({
-        description: "Schedule updated successfully",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Schedule updated successfully",
+        });
+      }
     },
     onError: (err) => {
       onUpdateError?.(err);
-      toast({
-        description: "Could not update schedule",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Could not update schedule",
+        });
+      }
     },
   });
 
@@ -82,7 +103,16 @@ export const AvailabilitySettingsPlatformWrapper = ({
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
     const updateBody = transformAtomScheduleForApi(body);
-    updateSchedule({ id, ...updateBody });
+
+    let canUpdate = true;
+
+    if (onBeforeUpdate) {
+      canUpdate = await onBeforeUpdate(updateBody);
+    }
+
+    if (canUpdate) {
+      updateSchedule({ id, ...updateBody });
+    }
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
@@ -126,6 +156,8 @@ export const AvailabilitySettingsPlatformWrapper = ({
         backPath=""
         isPlatform={true}
         customClassNames={customClassNames}
+        allowDelete={allowDelete}
+        allowSetToDefault={allowSetToDefault}
       />
     </AtomsWrapper>
   );

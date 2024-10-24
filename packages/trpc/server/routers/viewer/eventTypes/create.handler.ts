@@ -35,7 +35,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, locations: inputLocations, ...rest } = input;
+  const { schedulingType, teamId, metadata, locations: inputLocations, scheduleId, ...rest } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -51,6 +51,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     // Only connecting the current user for non-managed event types and non team event types
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
+    schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
 
   if (teamId && schedulingType) {

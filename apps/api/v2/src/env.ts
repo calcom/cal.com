@@ -19,6 +19,13 @@ export type Environment = {
   CALCOM_LICENSE_KEY: string;
   GET_LICENSE_KEY_URL: string;
   API_KEY_PREFIX: string;
+  DOCS_URL: string;
+  RATE_LIMIT_DEFAULT_TTL_MS: number;
+  RATE_LIMIT_DEFAULT_LIMIT_API_KEY: number;
+  RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT: number;
+  RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN: number;
+  RATE_LIMIT_DEFAULT_LIMIT: number;
+  RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: number;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

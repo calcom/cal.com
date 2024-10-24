@@ -1,7 +1,9 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsController } from "@/ee/calendars/controllers/calendars.controller";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
+import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -19,8 +21,10 @@ import { Module } from "@nestjs/common";
     OutlookService,
     GoogleCalendarService,
     AppleCalendarService,
+    IcsFeedService,
     SelectedCalendarsRepository,
     AppsRepository,
+    CalendarsRepository,
   ],
   controllers: [CalendarsController],
   exports: [CalendarsService],

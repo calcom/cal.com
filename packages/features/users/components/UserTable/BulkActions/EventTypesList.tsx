@@ -1,5 +1,4 @@
 import type { Table } from "@tanstack/react-table";
-import { Check } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -20,12 +19,13 @@ import {
   showToast,
   PopoverContent,
   PopoverTrigger,
+  Icon,
 } from "@calcom/ui";
 
-import type { User } from "../UserListTable";
+import type { UserTableUser } from "../types";
 
 interface Props {
-  table: Table<User>;
+  table: Table<UserTableUser>;
   orgTeams: RouterOutputs["viewer"]["organizations"]["getTeams"] | undefined;
 }
 
@@ -255,7 +255,7 @@ const ListItem = ({ onSelect, text, isSelected, isTeam }: ListItemProps) => {
           "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
           isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
         )}>
-        <Check className={classNames("h-4 w-4")} />
+        <Icon name="check" className={classNames("h-4 w-4")} />
       </div>
     </CommandItem>
   );

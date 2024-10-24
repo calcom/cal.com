@@ -163,7 +163,7 @@ describe("OAuth Clients Endpoints", () => {
       await app.init();
     });
 
-    describe("User is not in an organization", () => {
+    describe("User is not part of an organization", () => {
       it(`/GET`, () => {
         return request(app.getHttpServer()).get("/api/v2/oauth-clients").expect(403);
       });
@@ -371,6 +371,7 @@ describe("OAuth Clients Endpoints", () => {
     afterAll(async () => {
       await teamFixtures.delete(org.id);
       await usersFixtures.delete(user.id);
+      await platformBillingRepositoryFixture.deleteSubscriptionForTeam(org.id);
       await app.close();
     });
   });

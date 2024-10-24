@@ -41,7 +41,7 @@ const InputOption: React.FC<OptionProps<Option, boolean, GroupBase<Option>>> = (
       innerProps={props}>
       <input
         type="checkbox"
-        className="text-emphasis focus:ring-emphasis dark:text-muted border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2"
+        className="text-emphasis focus:ring-emphasis dark:text-muted border-default h-4 w-4 rounded transition ltr:mr-2 rtl:ml-2"
         checked={isSelected}
         readOnly
       />

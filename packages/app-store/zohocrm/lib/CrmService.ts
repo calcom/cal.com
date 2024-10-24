@@ -93,7 +93,7 @@ export default class ZohoCrmCrmService implements CRM {
     });
   }
 
-  async getContacts(emails: string | string[]) {
+  async getContacts({ emails }: { emails: string | string[] }) {
     const auth = await this.auth;
     await auth.getToken();
     const emailsArray = Array.isArray(emails) ? emails : [emails];
@@ -291,5 +291,9 @@ export default class ZohoCrmCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     return await this.deleteMeeting(uid);
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }

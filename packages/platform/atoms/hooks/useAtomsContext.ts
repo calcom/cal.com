@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext } from "react";
 
 import type { translationKeys, CalProviderLanguagesType } from "../cal-provider/CalProvider";
@@ -26,11 +28,14 @@ export interface IAtomsContext {
     locales: CalProviderLanguagesType[];
     exists: (key: translationKeys | string) => boolean;
   };
+  organizationId: number;
+  userId?: number;
 }
 
 export const AtomsContext = createContext({
   clientId: "",
   accessToken: "",
+  organizationId: 0,
   options: { refreshUrl: "", apiUrl: "" },
   error: "",
   getClient: () => {

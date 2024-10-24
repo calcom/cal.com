@@ -1,18 +1,17 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
-import type z from "zod";
 
-import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
+import { getRoutedHostsWithContactOwnerAndFixedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -32,7 +31,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -40,6 +38,8 @@ import { TRPCError } from "@trpc/server";
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+
+const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 
 export const checkIfIsAvailable = ({
   time,
@@ -137,6 +137,7 @@ export async function getEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  log.info("getEventType", safeStringify({ usernameList, eventTypeSlug, isTeamEvent, organizationDetails }));
   const eventTypeId =
     input.eventTypeId ||
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -175,8 +176,27 @@ export async function getEventType(
       periodEndDate: true,
       onlyShowFirstAvailableSlot: true,
       periodCountCalendarDays: true,
+      rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
       schedule: {
         select: {
           id: true,
@@ -206,6 +226,20 @@ export async function getEventType(
             select: {
               credentials: { select: credentialForCalendarServiceSelect },
               ...availabilityUserSelect,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
             },
           },
         },
@@ -321,60 +355,52 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  teamMember?: string | undefined;
+  troubleshooter?: any;
 }
 
-async function getCRMContactOwnerForRRLeadSkip(
-  bookerEmail: string,
-  apps?: z.infer<typeof EventTypeAppMetadataSchema>
-) {
-  if (!apps) return;
-  const crm = await getCRMManagerWithRRLeadSkip(apps);
+/**
+ * Returns (Contact Owner plus Fixed Hosts) OR All Hosts
+ */
+export function getUsersWithCredentialsConsideringContactOwner({
+  contactOwnerEmail,
+  hosts,
+}: {
+  contactOwnerEmail: string | null | undefined;
+  hosts: {
+    isFixed?: boolean;
+    user: GetAvailabilityUser;
+  }[];
+}) {
+  const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
+  /**
+   * It could still have contact owner, if it was one of the assigned hosts of the event.
+   * In case of routedTeamMemberIds, hosts will only have the Routed Team Members and in that case, contact owner would be here only if it matches
+   */
+  const allHosts = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 
-  if (!crm) return;
+  const contactOwnerExists = contactOwnerEmail && contactOwnerHost;
 
-  const contact = await crm.getContacts(bookerEmail, true);
-  if (contact?.length) {
-    return contact[0].ownerEmail;
-  }
-}
-
-async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
-  let crmRoundRobinLeadSkip;
-  for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof apps];
-    if (
-      app.enabled &&
-      typeof app.appCategories === "object" &&
-      app.appCategories.some((category: string) => category === "crm") &&
-      app.roundRobinLeadSkip
-    ) {
-      crmRoundRobinLeadSkip = app;
-      break;
-    }
+  if (!contactOwnerExists) {
+    return allHosts;
   }
 
-  if (crmRoundRobinLeadSkip) {
-    const crmCredential = await prisma.credential.findUnique({
-      where: {
-        id: crmRoundRobinLeadSkip.credentialId,
-      },
-      include: {
-        user: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-    if (crmCredential) {
-      return new CrmManager(crmCredential);
-    }
+  if (contactOwnerHost?.isFixed) {
+    // If contact owner is a fixed host, we return all hosts which also includes contact owner
+    return allHosts;
   }
-  return;
+
+  const contactOwnerAndFixedHosts = hosts.reduce((usersArray, host) => {
+    if (host.isFixed || host.user.email === contactOwnerEmail)
+      usersArray.push({ ...host.user, isFixed: host.isFixed });
+
+    return usersArray;
+  }, [] as (GetAvailabilityUser & { isFixed?: boolean })[]);
+
+  return contactOwnerAndFixedHosts;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -434,37 +460,64 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let teamMember: string | undefined;
-
-  const hosts =
+  const eventHosts: {
+    isFixed: boolean;
+    email: string;
+    user: (typeof eventType.hosts)[number]["user"];
+  }[] =
     eventType.hosts?.length && eventType.schedulingType
-      ? eventType.hosts
+      ? eventType.hosts.map((host) => ({
+          isFixed: host.isFixed,
+          email: host.user.email,
+          user: host.user,
+        }))
       : eventType.users.map((user) => {
           return {
             isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+            email: user.email,
             user: user,
           };
         });
 
-  let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
+  const skipContactOwner = input.skipContactOwner;
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
 
-  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
-    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
-      input.bookerEmail,
-      eventType?.metadata?.apps
+  let routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
+    hosts: eventHosts,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    contactOwnerEmail,
+  });
+
+  if (
+    input.rescheduleUid &&
+    eventType.rescheduleWithSameRoundRobinHost &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+  ) {
+    const originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: input.rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+    routedHostsWithContactOwnerAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
+      (host) => host.user.id === originalRescheduledBooking?.userId || 0
     );
-    const contactOwnerHost = hosts.find((host) => host.user.email === crmContactOwner);
-
-    if (contactOwnerHost) {
-      teamMember = contactOwnerHost.user.email;
-      const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
-
-      usersWithCredentials = usersWithCredentials.filter(
-        (user) => user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || user.isFixed)
-      );
-      usersWithCredentials.push({ ...contactOwnerHost.user, isFixed: true });
-    }
   }
+
+  const usersWithCredentials = getUsersWithCredentialsConsideringContactOwner({
+    contactOwnerEmail,
+    hosts: routedHostsWithContactOwnerAndFixedHosts,
+  });
+
+  loggerWithEventDetails.debug("Using users", {
+    usersWithCredentials: usersWithCredentials.map((user) => user.email),
+  });
 
   const durationToUse = input.duration || 0;
 
@@ -485,54 +538,146 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
+  const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
+    id: true,
+    uid: true,
+    userId: true,
+    startTime: true,
+    endTime: true,
+    title: true,
+    attendees: true,
+    eventType: {
+      select: {
+        id: true,
+        onlyShowFirstAvailableSlot: true,
+        afterEventBuffer: true,
+        beforeEventBuffer: true,
+        seatsPerTimeSlot: true,
+        requiresConfirmationWillBlockSlot: true,
+        requiresConfirmation: true,
+      },
+    },
+    ...(!!eventType?.seatsPerTimeSlot && {
+      _count: {
+        select: {
+          seatsReferences: true,
+        },
+      },
+    }),
+  });
 
-  const currentBookingsAllUsers = await prisma.booking.findMany({
+  const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
     where: {
-      OR: [
-        // User is primary host (individual events, or primary organizer)
-        {
-          ...sharedQuery,
-          userId: {
-            in: allUserIds,
+      ...sharedQuery,
+      userId: {
+        in: allUserIds,
+      },
+    },
+    select: bookingsSelect,
+  });
+
+  const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
+    where: {
+      ...sharedQuery,
+      attendees: {
+        some: {
+          email: {
+            in: usersWithCredentials.map((user) => user.email),
           },
         },
-        // The current user has a different booking at this time he/she attends
+      },
+    },
+    select: bookingsSelect,
+  });
+
+  const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
+    where: {
+      startTime: { lte: endTimeDate },
+      endTime: { gte: startTimeDate },
+      eventType: {
+        id: eventType.id,
+        requiresConfirmation: true,
+        requiresConfirmationWillBlockSlot: true,
+      },
+      status: {
+        in: [BookingStatus.PENDING],
+      },
+    },
+    select: bookingsSelect,
+  });
+
+  const [resultOne, resultTwo, resultThree] = await Promise.all([
+    currentBookingsAllUsersQueryOne,
+    currentBookingsAllUsersQueryTwo,
+    currentBookingsAllUsersQueryThree,
+  ]);
+
+  const currentBookingsAllUsers = [...resultOne, ...resultTwo, ...resultThree];
+
+  const outOfOfficeDaysAllUsers = await prisma.outOfOfficeEntry.findMany({
+    where: {
+      userId: {
+        in: allUserIds,
+      },
+      OR: [
+        // outside of range
+        // (start <= 'dateTo' AND end >= 'dateFrom')
         {
-          ...sharedQuery,
-          attendees: {
-            some: {
-              email: {
-                in: usersWithCredentials.map((user) => user.email),
-              },
-            },
+          start: {
+            lte: endTimeDate,
+          },
+          end: {
+            gte: startTimeDate,
+          },
+        },
+        // start is between dateFrom and dateTo but end is outside of range
+        // (start <= 'dateTo' AND end >= 'dateTo')
+        {
+          start: {
+            lte: endTimeDate,
+          },
+
+          end: {
+            gte: endTimeDate,
+          },
+        },
+        // end is between dateFrom and dateTo but start is outside of range
+        // (start <= 'dateFrom' OR end <= 'dateTo')
+        {
+          start: {
+            lte: startTimeDate,
+          },
+
+          end: {
+            lte: endTimeDate,
           },
         },
       ],
     },
     select: {
       id: true,
-      uid: true,
-      userId: true,
-      startTime: true,
-      endTime: true,
-      title: true,
-      attendees: true,
-      eventType: {
+      start: true,
+      end: true,
+      user: {
         select: {
           id: true,
-          onlyShowFirstAvailableSlot: true,
-          afterEventBuffer: true,
-          beforeEventBuffer: true,
-          seatsPerTimeSlot: true,
+          name: true,
         },
       },
-      ...(!!eventType?.seatsPerTimeSlot && {
-        _count: {
-          select: {
-            seatsReferences: true,
-          },
+      toUser: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
         },
-      }),
+      },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+        },
+      },
     },
   });
 
@@ -561,6 +706,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
           return bookingWithoutAttendees;
         }),
+      outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
     };
   });
 
@@ -618,6 +764,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
+  // timeZone isn't directly set on eventType now(So, it is legacy)
+  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
+  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
+  const eventTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -625,8 +776,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone:
-      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+    organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
@@ -765,15 +915,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
-  const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+  const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
+  const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
   const periodLimits = calculatePeriodLimits({
     periodType: eventType.periodType,
     periodDays: eventType.periodDays,
     periodCountCalendarDays: eventType.periodCountCalendarDays,
     periodStartDate: eventType.periodStartDate,
     periodEndDate: eventType.periodEndDate,
-    allDatesWithBookabilityStatus,
-    utcOffset,
+    allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
+    eventUtcOffset,
+    bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
@@ -835,9 +987,29 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   }
 
+  const troubleshooterData = enableTroubleshooter
+    ? {
+        troubleshooter: {
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing skipContactOwner flag
+          consideredContactOwner: contactOwnerEmail,
+          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+          routedHosts: usersWithCredentials.map((user) => {
+            return {
+              userId: user.id,
+            };
+          }),
+          hosts: eventHosts.map((host) => ({
+            userId: host.user.id,
+          })),
+        },
+      }
+    : null;
+
   return {
     slots: withinBoundsSlotsMappedToDate,
-    teamMember,
+    ...troubleshooterData,
   };
 }
 
@@ -850,7 +1022,7 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-
+  log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
   const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,

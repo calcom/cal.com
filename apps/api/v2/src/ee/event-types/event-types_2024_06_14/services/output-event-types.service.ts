@@ -1,18 +1,39 @@
 import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule } from "@prisma/client";
+import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/client";
 
 import {
   EventTypeMetaDataSchema,
   userMetadata,
-  getResponseEventTypeLocations,
-  getResponseEventTypeBookingFields,
+  transformLocationsInternalToApi,
+  transformBookingFieldsInternalToApi,
   parseRecurringEvent,
   TransformedLocationsSchema,
   BookingFieldsSchema,
-} from "@calcom/platform-libraries-0.0.18";
+  SystemField,
+  CustomField,
+  parseBookingLimit,
+  transformIntervalLimitsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  parseEventTypeColor,
+  transformSeatsInternalToApi,
+} from "@calcom/platform-libraries";
+import {
+  TransformFutureBookingsLimitSchema_2024_06_14,
+  BookerLayoutsTransformedSchema,
+  NoticeThresholdTransformedSchema,
+  EventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
 
-type EventTypeRelations = { users: User[]; schedule: Schedule | null };
-type DatabaseEventType = EventType & EventTypeRelations;
+type EventTypeRelations = {
+  users: User[];
+  schedule: Schedule | null;
+  destinationCalendar?: DestinationCalendar | null;
+};
+export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
@@ -41,12 +62,30 @@ type Input = Pick<
   | "recurringEvent"
   | "metadata"
   | "users"
-  | "schedule"
+  | "scheduleId"
+  | "bookingLimits"
+  | "durationLimits"
+  | "onlyShowFirstAvailableSlot"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
+  | "requiresBookerEmailVerification"
+  | "hideCalendarNotes"
+  | "eventTypeColor"
+  | "seatsShowAttendees"
+  | "requiresConfirmationWillBlockSlot"
+  | "eventName"
+  | "destinationCalendar"
+  | "useEventTypeDestinationCalendarEmail"
+  | "hideCalendarEventDetails"
 >;
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  async getResponseEventType(ownerId: number, databaseEventType: Input) {
+  getResponseEventType(ownerId: number, databaseEventType: Input): EventTypeOutput_2024_06_14 {
     const {
       id,
       length,
@@ -58,8 +97,6 @@ export class OutputEventTypesService_2024_06_14 {
       beforeEventBuffer,
       afterEventBuffer,
       slug,
-      schedulingType,
-      requiresConfirmation,
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
@@ -68,14 +105,46 @@ export class OutputEventTypesService_2024_06_14 {
       successRedirectUrl,
       seatsShowAvailabilityCount,
       isInstantEvent,
+      scheduleId,
+      onlyShowFirstAvailableSlot,
+      offsetStart,
+      requiresBookerEmailVerification,
+      hideCalendarNotes,
+      seatsShowAttendees,
+      useEventTypeDestinationCalendarEmail,
+      hideCalendarEventDetails,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
-    const bookingFields = this.transformBookingFields(databaseEventType.bookingFields);
-    const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
+    const customName = databaseEventType?.eventName ?? undefined;
+    const bookingFields = databaseEventType.bookingFields
+      ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
+      : [];
+    const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
-    const schedule = await this.getSchedule(databaseEventType);
-    const users = this.transformUsers(databaseEventType.users);
+    const users = this.transformUsers(databaseEventType.users || []);
+    const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
+    const bookingLimitsDuration = this.transformIntervalLimits(databaseEventType.durationLimits);
+    const color = this.transformEventTypeColor(databaseEventType.eventTypeColor);
+    const bookerLayouts = this.transformBookerLayouts(
+      metadata.bookerLayouts as unknown as BookerLayoutsTransformedSchema
+    );
+    const confirmationPolicy = this.transformRequiresConfirmation(
+      !!databaseEventType.requiresConfirmation,
+      !!databaseEventType.requiresConfirmationWillBlockSlot,
+      metadata.requiresConfirmationThreshold as NoticeThresholdTransformedSchema
+    );
+    delete metadata["bookerLayouts"];
+    delete metadata["requiresConfirmationThreshold"];
+    const seats = this.transformSeats(seatsPerTimeSlot, seatsShowAttendees, seatsShowAvailabilityCount);
+    const bookingWindow = this.transformBookingWindow({
+      periodType: databaseEventType.periodType,
+      periodDays: databaseEventType.periodDays,
+      periodCountCalendarDays: databaseEventType.periodCountCalendarDays,
+      periodStartDate: databaseEventType.periodStartDate,
+      periodEndDate: databaseEventType.periodEndDate,
+    } as TransformFutureBookingsLimitSchema_2024_06_14);
+    const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
 
     return {
       id,
@@ -86,50 +155,68 @@ export class OutputEventTypesService_2024_06_14 {
       description: description || "",
       locations,
       bookingFields,
-      recurringEvent,
+      recurrence,
       disableGuests,
       slotInterval,
       minimumBookingNotice,
       beforeEventBuffer,
       afterEventBuffer,
-      schedulingType,
       metadata,
-      requiresConfirmation,
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
-      seatsPerTimeSlot,
       forwardParamsSuccessRedirect,
       successRedirectUrl,
-      seatsShowAvailabilityCount,
       isInstantEvent,
       users,
-      schedule,
+      scheduleId,
+      bookingLimitsCount,
+      bookingLimitsDuration,
+      onlyShowFirstAvailableSlot,
+      offsetStart,
+      bookingWindow,
+      bookerLayouts,
+      confirmationPolicy,
+      requiresBookerEmailVerification,
+      hideCalendarNotes,
+      color,
+      seats,
+      customName,
+      destinationCalendar,
+      useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
+      hideCalendarEventDetails,
     };
   }
 
   transformLocations(locations: any) {
     if (!locations) return [];
-    return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
+    return transformLocationsInternalToApi(TransformedLocationsSchema.parse(locations));
   }
 
-  transformBookingFields(inputBookingFields: any) {
-    if (!inputBookingFields) return [];
-    return getResponseEventTypeBookingFields(BookingFieldsSchema.parse(inputBookingFields));
+  transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {
+    if (!destinationCalendar) return undefined;
+    return {
+      integration: destinationCalendar.integration,
+      externalId: destinationCalendar.externalId,
+    };
+  }
+
+  transformBookingFields(bookingFields: (SystemField | CustomField)[] | null) {
+    if (!bookingFields) return [];
+
+    return transformBookingFieldsInternalToApi(bookingFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
-    return parseRecurringEvent(recurringEvent);
+    const recurringEventParsed = parseRecurringEvent(recurringEvent);
+    if (!recurringEventParsed) return null;
+    return transformRecurrenceInternalToApi(recurringEventParsed);
   }
 
   transformMetadata(metadata: any) {
     if (!metadata) return {};
     return EventTypeMetaDataSchema.parse(metadata);
-  }
-
-  async getSchedule(databaseEventType: Input) {
-    return databaseEventType.schedule || null;
   }
 
   transformUsers(users: User[]) {
@@ -145,6 +232,50 @@ export class OutputEventTypesService_2024_06_14 {
         weekStart: user.weekStart,
         metadata: metadata || {},
       };
+    });
+  }
+
+  transformIntervalLimits(bookingLimits: any) {
+    const bookingLimitsParsed = parseBookingLimit(bookingLimits);
+    return transformIntervalLimitsInternalToApi(bookingLimitsParsed);
+  }
+
+  transformBookingWindow(bookingLimits: TransformFutureBookingsLimitSchema_2024_06_14) {
+    return transformFutureBookingLimitsInternalToApi(bookingLimits);
+  }
+
+  transformBookerLayouts(bookerLayouts: BookerLayoutsTransformedSchema) {
+    if (!bookerLayouts) return undefined;
+    return transformBookerLayoutsInternalToApi(bookerLayouts);
+  }
+
+  transformRequiresConfirmation(
+    requiresConfirmation: boolean,
+    requiresConfirmationWillBlockSlot: boolean,
+    requiresConfirmationThreshold?: NoticeThresholdTransformedSchema
+  ) {
+    return transformRequiresConfirmationInternalToApi(
+      requiresConfirmation,
+      requiresConfirmationWillBlockSlot,
+      requiresConfirmationThreshold
+    );
+  }
+
+  transformEventTypeColor(eventTypeColor: any) {
+    if (!eventTypeColor) return undefined;
+    const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
+    return transformEventTypeColorsInternalToApi(parsedeventTypeColor);
+  }
+
+  transformSeats(
+    seatsPerTimeSlot: number | null,
+    seatsShowAttendees: boolean | null,
+    seatsShowAvailabilityCount: boolean | null
+  ) {
+    return transformSeatsInternalToApi({
+      seatsPerTimeSlot,
+      seatsShowAttendees: !!seatsShowAttendees,
+      seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,
     });
   }
 }

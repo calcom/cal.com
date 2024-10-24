@@ -1,17 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
 
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const email = z
-    .string()
-    .email()
-    .transform((val) => val.toLowerCase())
-    .safeParse(req.body?.email);
+  const email = emailSchema.transform((val) => val.toLowerCase()).safeParse(req.body?.email);
 
   if (!email.success) {
     return res.status(400).json({ message: "email is required" });

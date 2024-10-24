@@ -164,7 +164,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                   <p className="text-subtle">{t("current_username")}</p>
                   <Tooltip content={currentUsername}>
                     <p
-                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis"
+                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all"
                       data-testid="current-username">
                       {currentUsername}
                     </p>
@@ -175,7 +175,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                     {t("new_username")}
                   </p>
                   <Tooltip content={inputUsernameValue}>
-                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis">
+                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all">
                       {inputUsernameValue}
                     </p>
                   </Tooltip>

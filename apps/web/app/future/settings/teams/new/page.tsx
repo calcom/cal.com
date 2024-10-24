@@ -1,6 +1,7 @@
-import LegacyPage, { LayoutWrapper } from "@pages/settings/teams/new/index";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+
+import CreateNewTeamView, { LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -8,4 +9,4 @@ export const generateMetadata = async () =>
     (t) => t("create_new_team_description")
   );
 
-export default WithLayout({ Page: LegacyPage, getLayout: LayoutWrapper })<"P">;
+export default WithLayout({ Page: CreateNewTeamView, getLayout: LayoutWrapper })<"P">;

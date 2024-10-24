@@ -1,3 +1,5 @@
+"use client";
+
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { usePathname, useRouter } from "next/navigation";
 import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
@@ -87,11 +89,19 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   actionDisabled?: boolean;
   Icon?: IconName;
   enableOverflow?: boolean;
+  forceOverlayWhenNoModal?: boolean;
+  /**
+   * Disables the ability to close the dialog by clicking outside of it. Could be useful when the dialog is doing something critical which might be in progress.
+   */
+  preventCloseOnOutsideClick?: boolean;
 };
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon: icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
+  (
+    { children, title, Icon: icon, enableOverflow, forceOverlayWhenNoModal, type = "creation", preventCloseOnOutsideClick, ...props },
+    forwardedRef
+  ) => {
     const isPlatform = useIsPlatform();
     const [Portal, Overlay, Content] = useMemo(
       () =>
@@ -106,9 +116,18 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     );
     return (
       <Portal>
-        <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        {forceOverlayWhenNoModal ? (
+          <div className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        ) : (
+          <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        )}
         <Content
           {...props}
+          onPointerDownOutside={(e) => {
+            if (preventCloseOnOutsideClick) {
+              e.preventDefault();
+            }
+          }}
           className={classNames(
             "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
             props.size == "xl"

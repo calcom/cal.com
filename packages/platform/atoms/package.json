@@ -31,7 +31,8 @@
     "typescript": "^4.9.4",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.3",
-    "vite-plugin-inspect": "^0.8.4"
+    "vite-plugin-inspect": "^0.8.4",
+    "vite-plugin-node-polyfills": "^0.22.0"
   },
   "files": [
     "dist",
@@ -57,11 +58,11 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-toast": "^1.1.5",
     "@tanstack/react-query": "^5.17.15",
     "class-variance-authority": "^0.4.0",
     "clsx": "^2.0.0",
-    "lucide-react": "^0.364.0",
     "react-use": "^17.4.2",
     "tailwind-merge": "^1.13.2",
     "tailwindcss": "^3.3.3",

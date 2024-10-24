@@ -3,6 +3,8 @@ on:
   workflow_call:
 env:
   NODE_OPTIONS: --max-old-space-size=4096
+permissions:
+  contents: read
 jobs:
   check-types:
     runs-on: buildjet-4vcpu-ubuntu-2204

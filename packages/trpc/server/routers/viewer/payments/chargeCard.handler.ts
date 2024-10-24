@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -80,9 +81,13 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     },
   };
 
+  const idToSearchObject = booking.eventType?.teamId
+    ? { teamId: booking.eventType.teamId }
+    : { userId: ctx.user.id };
+
   const paymentCredential = await prisma.credential.findFirst({
     where: {
-      userId: ctx.user.id,
+      ...idToSearchObject,
       appId: booking.payment[0].appId,
     },
     include: {
@@ -112,7 +117,11 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
     }
 
-    await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt);
+    await sendNoShowFeeChargedEmail(
+      attendeesListPromises[0],
+      evt,
+      booking?.eventType?.metadata as EventTypeMetadata
+    );
 
     return paymentData;
   } catch (err) {

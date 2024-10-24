@@ -50,12 +50,13 @@ export class MembershipsRepository {
     return !!adminMembership;
   }
 
-  async createMembership(teamId: number, userId: number, role: MembershipRole) {
+  async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {
     const membership = await this.dbRead.prisma.membership.create({
       data: {
         role,
         teamId,
         userId,
+        accepted,
       },
     });
 

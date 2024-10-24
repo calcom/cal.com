@@ -1,0 +1,82 @@
+<Steps>
+    <Step title="Create an application with your OIDC provider">
+        For example, in Okta, once you create an account, you can click on Applications on the sidebar menu:
+        <img src="/images/i1600x900-oVjaQ0tU3AnO_wrzp85.png" />
+    </Step>
+    <Step title="Click on Create App Integration">
+        <img src="/images/i1600x900-wrIlZkLdZ6kL_wf7mxn.png" />
+    </Step>
+    <Step title="Select SAML or OIDC and Web App, then click Next">
+        Note you will have to fill in the appropriate fields for the SAML or OIDC setup to continue.
+        - [SAML Setup](/developing/guides/auth-and-provision/sso-setup#setting-up-saml-login)
+        - [OIDC Setup](/developing/guides/auth-and-provision/sso-setup#setting-up-oidc-login)
+        <img src="/images/i1600x900-IfRWYg8XuCMI_tkwyft.png" />
+    </Step>
+    <Step title="Enable SCIM provisioning">
+        Once the application is created, under General -> App Settings, click "Edit" and then the checkbox "Enable SCIM provisioning".
+        <img src="/images/scim/app-settings-enable-scim.webp" />
+    </Step>
+    <Step title="Go to Directory Sync in Cal.com">
+        Next, go to your instance of Cal.com and navigate to `https://app.cal.com/settings/organization/dsync` and click configure.
+        <img src="/images/scim/dsync-configure.webp" />
+    </Step>
+    <Step title="Configure Directory Sync">
+        In the "Configure Directory Sync" form, choose a directory sync name and select "Okta SCIM v2.0" as the "Directory Provider".
+        <img src="/images/scim/dsync-configure-provider.webp" />
+    </Step>
+    <Step title="Take note of SCIM Base URL and SCIM Bearer Token">
+        <img src="/images/scim/dsync-configure-info.webp" />
+    </Step>
+    <Step title="Setup Provisioning in Okta">
+        In Okta, go to your application. Navigate to the "Provisioning" tab and click "Integration" under "Settings".
+        <img src="/images/scim/okta-dsync-options.webp" />
+        - Under "SCIM connector base URL" enter the "SCIM Base URL" from Cal.com
+        - Under "Unique identifier field for users" enter "email"
+        - Under "Supported provisioning actions" enable:
+            - "Import New Users and Profile Updates"
+            - "Push New Users"
+            - "Push Profile Updates"
+            - "Push Groups"
+        - Under "Authentication Mode" choose "HTTP Header"
+        - Under "Authentication" enter the "SCIM Bearer Token" from Cal.com
+        - When you hit save, it will make a test call to the "SCIM Base URL"
+    </Step>
+    <Step title="Go to the 'To App' settings">
+        After saving, navigate to the "To App" settings, still under the "Provisioning" tab.
+    </Step>
+    <Step title="Enable Provisioning to App">
+        Under "Provisioning to App", click "Edit" and enable:
+        - "Create User"
+        - "Update User Attributes"
+        - "Deactivate User"
+    </Step>
+    <Step title="Update Attribute Mapping">
+        Under "\{Your application name\} Attribute Mapping," remove all fields except for:
+        - "username"
+        - "givenName"
+        - "familyName"
+        - "email"
+        - "displayName"
+    </Step>
+    <Step title="Map Attributes from Okta Profile">
+        Set each of these properties to "Map from Okta Profile" and the related field. Under "Apply On" select "Create and Update".
+        <img src="/images/scim/okta-property-settings.webp" />
+    </Step>
+    <Step title="Assign users and groups to the app">
+        You can now assign users and groups to the app.
+    </Step>
+</Steps>
+
+## Mapping Okta Groups to Cal.com Teams
+
+When provisioning groups to your organization, Okta groups can be mapped to teams within your organization, and users will be auto-assigned to these teams.
+
+On `https://app.cal.com/settings/organization/dsync`, there is a table with the teams under your organization. Click on "Add group name" to map the Okta group to the team.
+
+<Note>
+The group name must be spelled exactly as it is shown on Okta.
+</Note>
+
+When you push the group to your organization, those users will automatically be added to the team.
+
+<img src="/images/scim/group-team-mapping.webp" />

@@ -32,14 +32,16 @@ const ZWorkflow = z.object({
     .array(),
 });
 
+export const ZWorkflows = z
+  .object({
+    workflow: ZWorkflow,
+  })
+  .array()
+  .optional();
+
 export const ZGetAllActiveWorkflowsInputSchema = z.object({
   eventType: z.object({
-    workflows: z
-      .object({
-        workflow: ZWorkflow,
-      })
-      .array()
-      .optional(),
+    id: z.number(),
     teamId: z.number().optional().nullable(),
     parent: z
       .object({
