@@ -30,6 +30,14 @@ const navigation: NavigationItemType[] = [
     icon: "clock",
   },
   {
+    // only show for Organizations
+    name: "members",
+    href: "/members",
+    icon: "building",
+    onlyDesktop: true,
+    badge: <TeamInviteBadge />,
+  },
+  {
     name: "teams",
     href: "/teams",
     icon: "users",
