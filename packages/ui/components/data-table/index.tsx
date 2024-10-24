@@ -18,6 +18,7 @@ export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
+  isFetching?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   tableOverlay?: React.ReactNode;
@@ -29,6 +30,7 @@ export function DataTable<TData, TValue>({
   table,
   tableContainerRef,
   isPending,
+  isFetching,
   variant,
   onRowMouseclick,
   onScroll,
@@ -40,7 +42,7 @@ export function DataTable<TData, TValue>({
   const rowVirtualizer = useVirtual({
     parentRef: tableContainerRef,
     size: rows.length,
-    overscan: 10,
+    overscan: 20,
   });
   const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
@@ -109,38 +111,47 @@ export function DataTable<TData, TValue>({
               </tr>
             )}
             {virtualRows && !isPending ? (
-              virtualRows.map((virtualRow) => {
-                const row = rows[virtualRow.index] as Row<TData>;
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                    className={classNames(
-                      onRowMouseclick && "hover:cursor-pointer",
-                      variant === "compact" && "!border-0",
-                      "group"
-                    )}>
-                    {row.getVisibleCells().map((cell) => {
-                      const column = table.getColumn(cell.column.id);
-                      const meta = column?.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
-                      return (
-                        <TableCell
-                          key={cell.id}
-                          style={{
-                            left: meta?.stickyLeft ? `${meta.stickyLeft}px` : undefined,
-                          }}
-                          className={classNames(
-                            variant === "compact" && "p-1.5",
-                            meta?.sticky && "group-hover:bg-muted bg-default sticky left-0"
-                          )}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      );
-                    })}
+              <>
+                {virtualRows.map((virtualRow) => {
+                  const row = rows[virtualRow.index] as Row<TData>;
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                      className={classNames(
+                        onRowMouseclick && "hover:cursor-pointer",
+                        variant === "compact" && "!border-0",
+                        "group"
+                      )}>
+                      {row.getVisibleCells().map((cell) => {
+                        const column = table.getColumn(cell.column.id);
+                        const meta = column?.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            style={{
+                              left: meta?.stickyLeft ? `${meta.stickyLeft}px` : undefined,
+                            }}
+                            className={classNames(
+                              variant === "compact" && "p-1.5",
+                              meta?.sticky && "group-hover:bg-muted bg-default sticky left-0"
+                            )}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+                {isFetching && (
+                  <TableRow>
+                    <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                      Loading more data...
+                    </TableCell>
                   </TableRow>
-                );
-              })
+                )}
+              </>
             ) : (
               <TableRow>
                 <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
