@@ -25,7 +25,11 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
   useEffect(() => {
     if (window) {
       if (parsedData.success) {
-        window.location.href = parsedData.data.url;
+        if (window.self !== window.top && window.top) {
+          window.top.open(parsedData.data.url, "_blank");
+        } else {
+          window.location.href = parsedData.data.url;
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
