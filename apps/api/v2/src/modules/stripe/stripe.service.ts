@@ -5,6 +5,7 @@ import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturn
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
@@ -17,6 +18,14 @@ import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 
 import stringify = require("qs-stringify");
 
+type IntegrationOAuthCallbackState = {
+  accessToken: string;
+  returnTo: string;
+  onErrorReturnTo: string;
+  fromApp: boolean;
+  teamId?: number | null;
+};
+
 @Injectable()
 export class StripeService {
   public stripe: Stripe;
@@ -27,7 +36,8 @@ export class StripeService {
     private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
-    private readonly tokensRepository: TokensRepository
+    private readonly tokensRepository: TokensRepository,
+    private readonly usersRepository: UsersRepository
   ) {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
@@ -76,6 +86,7 @@ export class StripeService {
 
   async saveStripeAccount(state: string, code: string, accessToken: string): Promise<{ url: string }> {
     const userId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+    const oAuthCallbackState: IntegrationOAuthCallbackState = JSON.parse(state);
 
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
@@ -90,6 +101,19 @@ export class StripeService {
     if (response["stripe_user_id"]) {
       const account = await stripeInstance.accounts.retrieve(response["stripe_user_id"]);
       data["default_currency"] = account.default_currency;
+    }
+
+    if (oAuthCallbackState.teamId) {
+      await this.checkIfUserHasAdminAccessToTeam(oAuthCallbackState.teamId, userId);
+
+      await this.appsRepository.createTeamAppCredential(
+        "stripe_payment",
+        data as unknown as Prisma.InputJsonObject,
+        oAuthCallbackState.teamId,
+        "stripe"
+      );
+
+      return { url: getReturnToValueFromQueryState(state) };
     }
 
     await this.appsRepository.createAppCredential(
@@ -126,5 +150,15 @@ export class StripeService {
     return {
       status: SUCCESS_STATUS,
     };
+  }
+
+  async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
+    const userAdminTeams = await this.usersRepository.getUserAdminTeams(userId);
+    const teamsUserHasAdminAccessFor = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
+    const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
+
+    if (!hasAdminAccessToTeam) {
+      throw new BadRequestException("You must be team admin to do this");
+    }
   }
 }

@@ -25,6 +25,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
           description="You need to connect Stripe to use this feature. Pleae click on the button below to connect."
           buttonRaw={
             <StripeConnect
+              teamId={eventType.teamId}
               label="Connect to Stripe"
               loadingLabel="Connect to Stripe"
               alreadyConnectedLabel="Connect to Stripe"
@@ -43,7 +44,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
 
 const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
-  const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe");
+  const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe", eventType.teamId);
 
   const transformedAppData = {
     ...stripeData?.app,

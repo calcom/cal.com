@@ -12,6 +12,7 @@ import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
 
 type StripeConnectProps = {
+  teamId?: number | null;
   icon?: IconName;
   color?: ButtonColor;
   isClickable?: boolean;
@@ -27,6 +28,7 @@ type StripeConnectProps = {
 };
 
 export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
+  teamId,
   icon,
   color,
   isClickable,
@@ -41,7 +43,7 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   onCheckSuccess,
 }) => {
   const { t } = useLocale();
-  const { connect } = useConnect(redir, errorRedir);
+  const { connect } = useConnect(redir, errorRedir, teamId);
   const { allowConnect, checked } = useCheck({
     onCheckError,
     onCheckSuccess,
