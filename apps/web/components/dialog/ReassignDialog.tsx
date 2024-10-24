@@ -199,8 +199,6 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
       <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
         <ConfirmationDialogContent
           variety="warning"
-          open={showConfirmation}
-          onOpenChange={setShowConfirmation}
           title={t("confirm_reassign_unavailable")}
           confirmBtnText={t("yes_reassign")}
           cancelBtnText={t("cancel")}
