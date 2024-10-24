@@ -25,6 +25,7 @@ export type ButtonBaseProps = {
   tooltip?: string | React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
+  tooltipClassName?: string;
   disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
@@ -127,6 +128,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     type = "button",
     tooltipSide = "top",
     tooltipOffset = 4,
+    tooltipClassName,
     StartIcon,
     CustomStartIcon,
     EndIcon,
@@ -171,8 +173,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 name={StartIcon}
                 className={classNames(
                   variant === "icon" && "h-4 w-4",
-                  variant === "button" &&
-                    "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
+                  variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
                 )}
               />
             )}
@@ -229,7 +230,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
-      tooltipOffset={tooltipOffset}>
+      tooltipOffset={tooltipOffset}
+      tooltipClassName={tooltipClassName}>
       {element}
     </Wrapper>
   );
@@ -240,18 +242,25 @@ const Wrapper = ({
   tooltip,
   tooltipSide,
   tooltipOffset,
+  tooltipClassName,
 }: {
   tooltip?: string | React.ReactNode;
   children: React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
+  tooltipClassName?: string;
 }) => {
   if (!tooltip) {
     return <>{children}</>;
   }
 
   return (
-    <Tooltip data-testid="tooltip" content={tooltip} side={tooltipSide} sideOffset={tooltipOffset}>
+    <Tooltip
+      data-testid="tooltip"
+      className={tooltipClassName}
+      content={tooltip}
+      side={tooltipSide}
+      sideOffset={tooltipOffset}>
       {children}
     </Tooltip>
   );
