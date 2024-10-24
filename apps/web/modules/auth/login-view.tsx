@@ -19,7 +19,7 @@ import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
+import { Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -42,10 +42,18 @@ interface LoginValues {
 const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
+const MicrosoftIcon = () => (
+  <img
+    className="text-subtle mr-2 h-4 w-4"
+    src="/microsoft-icon-colored.svg"
+    alt="Continue with Microsoft Icon"
+  />
+);
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
+  isMicrosoftLoginEnabled,
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
@@ -95,12 +103,6 @@ PageProps & WithNonceProps<{}>) {
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
-
-  const LoginFooter = (
-    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("dont_have_an_account")}
-    </Link>
-  );
 
   const TwoFactorFooter = (
     <>
@@ -179,6 +181,23 @@ PageProps & WithNonceProps<{}>) {
     ? true
     : isSAMLLoginEnabled && !isPending && data?.connectionExists;
 
+  const LoginFooter = (
+    <div className="flex w-full flex-row items-center justify-center">
+      <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+        {t("create_an_account")}
+      </Link>
+      {displaySSOLogin && <Icon name="circle" className="mx-5 h-2 w-2 fill-[#d9d9d9]" color="#d9d9d9" />}
+      {displaySSOLogin && (
+        <SAMLLogin
+          disabled={formState.isSubmitting}
+          samlTenantID={samlTenantID}
+          samlProductID={samlProductID}
+          setErrorMessage={setErrorMessage}
+        />
+      )}
+    </div>
+  );
+
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
@@ -217,16 +236,27 @@ PageProps & WithNonceProps<{}>) {
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}
-                {displaySSOLogin && (
-                  <SAMLLogin
+                {/* TODO replace true with isMicrosoftLoginEnabled */}
+                {true && (
+                  <Button
+                    color="primary"
+                    className="w-full justify-center"
                     disabled={formState.isSubmitting}
-                    samlTenantID={samlTenantID}
-                    samlProductID={samlProductID}
-                    setErrorMessage={setErrorMessage}
-                  />
+                    data-testid="microsoft"
+                    CustomStartIcon={<MicrosoftIcon />}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      setLastUsed("microsoft");
+                      await signIn("microsoft", {
+                        callbackUrl,
+                      });
+                    }}>
+                    <span>{t("signin_with_microsoft")}</span>
+                    {lastUsed === "microsoft" && <LastUsed />}
+                  </Button>
                 )}
               </div>
-              {(isGoogleLoginEnabled || displaySSOLogin) && (
+              {(isGoogleLoginEnabled || isMicrosoftLoginEnabled) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
