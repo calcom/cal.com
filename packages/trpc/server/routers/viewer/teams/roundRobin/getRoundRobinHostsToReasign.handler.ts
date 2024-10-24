@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -67,15 +68,26 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
       priority: host?.priority ?? 2,
     }));
 
-  const availableUsers = await ensureAvailableUsers(
-    { ...eventType, users: availableEventTypeUsers as IsFixedAwareUser[] },
-    {
-      dateFrom: dayjs(booking.startTime).format(),
-      dateTo: dayjs(booking.endTime).format(),
-      timeZone: eventType.timeZone || "UTC",
-    },
-    gettingRoundRobinHostsToReassignLogger
-  );
+  let availableUsers: IsFixedAwareUser[] = [];
+  try {
+    availableUsers = await ensureAvailableUsers(
+      { ...eventType, users: availableEventTypeUsers as IsFixedAwareUser[] },
+      {
+        dateFrom: dayjs(booking.startTime).format(),
+        dateTo: dayjs(booking.endTime).format(),
+        timeZone: eventType.timeZone || "UTC",
+      },
+      gettingRoundRobinHostsToReassignLogger
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message === ErrorCode.NoAvailableUsersFound) {
+      availableUsers = [];
+    } else {
+      gettingRoundRobinHostsToReassignLogger.error(error);
+      // Log error and return empty array to avoid rethrowing the error
+      return [];
+    }
+  }
 
   const availableUserIds = new Set(availableUsers.map((u) => u.id));
 
