@@ -3,5 +3,8 @@
   "description": "Debugging utilities",
   "private": true,
   "version": "1.0.0",
-  "main": "./index.ts"
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/debugging": "file:"
+  }
 }

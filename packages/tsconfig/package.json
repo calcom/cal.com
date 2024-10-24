@@ -11,5 +11,8 @@
   ],
   "devDependencies": {
     "tsconfig-paths": "^4.1.0"
+  },
+  "dependencies": {
+    "@calcom/tsconfig": "file:"
   }
 }

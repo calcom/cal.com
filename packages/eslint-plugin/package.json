@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "main": "./src/index.js",
   "dependencies": {
+    "@calcom/eslint-plugin-eslint": "file:",
     "@typescript-eslint/parser": "^5.52.0",
     "@typescript-eslint/utils": "^5.52.0",
     "ts-node": "^10.9.1",

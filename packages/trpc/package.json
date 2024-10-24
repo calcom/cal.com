@@ -13,6 +13,7 @@
     "trpc:generate": "yarn tsc --project tsconfig.json"
   },
   "dependencies": {
+    "@calcom/trpc": "file:",
     "@tanstack/react-query": "^5.17.15",
     "@trpc/client": "11.0.0-next-beta.222",
     "@trpc/next": "11.0.0-next-beta.222",

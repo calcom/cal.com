@@ -3,6 +3,7 @@
   "private": true,
   "main": "index.ts",
   "dependencies": {
+    "@calcom/kysely": "file:",
     "kysely": "^0.26.3",
     "pg": "^8.11.3"
   },

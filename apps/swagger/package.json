@@ -12,6 +12,7 @@
     "start": "PORT=4200 next start"
   },
   "dependencies": {
+    "@calcom/swagger": "file:",
     "highlight.js": "^11.6.0",
     "isarray": "2.0.5",
     "next": "^13.5.6",

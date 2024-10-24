@@ -27,6 +27,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@calcom/sdk": "file:",
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
     "lodash": "^4.17.21",
