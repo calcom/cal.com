@@ -47,8 +47,13 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
       trpc: { context: { skipBatch: true } },
     }
   );
-
-  return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
+  return (
+    <TimezoneSelectComponent
+      data={data.map(({ city, timezone }) => ({ label: city, timezone }))}
+      isPending={isPending}
+      {...props}
+    />
+  );
 }
 
 export type TimezoneSelectComponentProps = SelectProps & {
@@ -67,7 +72,7 @@ export function TimezoneSelectComponent({
   value,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = [...props.data, ...SELECT_SEARCH_DATA];
+  const data = [...(props.data || []), ...SELECT_SEARCH_DATA];
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
