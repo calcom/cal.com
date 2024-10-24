@@ -207,7 +207,39 @@ class EventsInsights {
       where: whereConditional,
     });
 
-    return csvData;
+    const csvDataWithBookerInfo = await Promise.all(
+      csvData.map(async (bookingTimeStatus) => {
+        if (!bookingTimeStatus.uid) {
+          return bookingTimeStatus;
+        }
+
+        const booking = await prisma.booking.findUnique({
+          where: { uid: bookingTimeStatus.uid },
+          select: {
+            attendees: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+        if (!booking || !booking.attendees.length) {
+          return bookingTimeStatus;
+        }
+        const { attendees } = booking;
+        const booker = attendees[0];
+
+        return {
+          ...bookingTimeStatus,
+          bookerEmail: booker.email,
+          bookerName: booker.name,
+        };
+      })
+    );
+
+    return csvDataWithBookerInfo;
   };
 
   /*

@@ -419,6 +419,13 @@ export default class SalesforceCRMService implements CRM {
       }
 
       if (appOptions.createLeadIfAccountNull) {
+        // Check to see if the lead exists already
+        const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
+        if (leadQuery.records.length) {
+          const contact = leadQuery.records[0] as { Id: string; Email: string };
+          return [{ id: contact.Id, email: contact.Email }];
+        }
+
         await Promise.all(
           contactsToCreate.map(async (attendee) => {
             return await conn
