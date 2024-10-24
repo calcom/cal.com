@@ -69,51 +69,54 @@ function buildSqlCondition(condition: any): string {
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
     whereConditional: Prisma.BookingTimeStatusWhereInput,
-    startDate,
-    endDate,
-    timeView
+    startDate: Dayjs,
+    endDate: Dayjs,
+    timeView: "week" | "month" | "year" | "day"
   ): Promise<AggregateResult> => {
     // Determine the date truncation and date range based on timeView
-
     const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
     const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
     const whereClause = buildSqlCondition(whereConditional);
+
     const data = await prisma.$queryRaw<
       { periodStart: Date; bookingsCount: number; timeStatus: string; noShowHost: boolean }[]
     >`
-      SELECT
-    periodStart,
-    CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
-    "timeStatus",
-    "noShowHost"
-  FROM (
     SELECT
-      DATE_TRUNC(${timeView}, "createdAt") AS periodStart,
+      periodStart,
+      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
       "timeStatus",
       "noShowHost"
-    FROM
-      "BookingTimeStatus"
-    WHERE
-      "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
-      AND ${Prisma.raw(whereClause)}
-  ) AS truncated_dates
-  GROUP BY
-    periodStart,
-    "timeStatus",
-    "noShowHost"
-  ORDER BY
-    periodStart;
-    `;
+    FROM (
+      SELECT
+        DATE_TRUNC(${timeView}, "createdAt") AS periodStart,
+        "timeStatus",
+        "noShowHost"
+      FROM
+        "BookingTimeStatus"
+      WHERE
+        "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
+        AND ${Prisma.raw(whereClause)}
+    ) AS truncated_dates
+    GROUP BY
+      periodStart,
+      "timeStatus",
+      "noShowHost"
+    ORDER BY
+      periodStart;
+  `;
+
     // Initialize an empty aggregate result based on the selected timeView and date ranges
     const aggregate: AggregateResult = {};
 
-    // Process the query results and store them in the aggregate object
-    const dateRangeLabels: string[] = [];
     // Process each row in the returned data
-    data.forEach(({ periodstart: periodStart, bookingsCount, timeStatus, noShowHost }) => {
-      // Format the date as needed for your keys
+    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost }) => {
       const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
-      dateRangeLabels.push(formattedDate);
+
+      // Skip if periodStart exceeds the specified endDate
+      if (dayjs(periodStart).isAfter(endDate)) {
+        return;
+      }
+
       // Ensure the date entry exists in the aggregate object
       if (!aggregate[formattedDate]) {
         aggregate[formattedDate] = {
@@ -139,8 +142,28 @@ class EventsInsights {
       }
     });
 
-    // Fill in any missing dates with zero counts, if necessary
-    dateRangeLabels.forEach((label) => {
+    // Generate a complete list of expected date labels based on the timeline
+    let current = dayjs(startDate);
+    const expectedDates: string[] = [];
+
+    while (current.isBefore(endDate) || current.isSame(endDate)) {
+      const formattedDate = current.format("MMM D, YYYY");
+      expectedDates.push(formattedDate);
+
+      // Increment based on the selected timeView
+      if (timeView === "day") {
+        current = current.add(1, "day");
+      } else if (timeView === "week") {
+        current = current.add(1, "week");
+      } else if (timeView === "month") {
+        current = current.add(1, "month");
+      } else if (timeView === "year") {
+        current = current.add(1, "year");
+      }
+    }
+
+    // Fill in any missing dates with zero counts
+    expectedDates.forEach((label) => {
       if (!aggregate[label]) {
         aggregate[label] = {
           completed: 0,
@@ -152,6 +175,7 @@ class EventsInsights {
         };
       }
     });
+
     return aggregate;
   };
 
