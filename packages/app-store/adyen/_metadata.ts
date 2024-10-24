@@ -1,10 +1,7 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   name: "Adyen",
-  description: _package.description,
   slug: "adyen",
   category: "payment",
   categories: ["payment"],
@@ -19,7 +16,6 @@ export const metadata = {
   docsUrl: "https://docs.adyen.com/",
   variant: "payment",
   extendsFeature: "EventType",
-  email: "help@cal.com",
   dirName: "adyen",
 } as AppMeta;
 
