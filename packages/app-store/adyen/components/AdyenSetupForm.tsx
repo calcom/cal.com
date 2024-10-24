@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,7 +10,7 @@ import type { AdyenCredentialKeys } from "../zod";
 import { appKeysSchema } from "../zod";
 
 export default function AdyenSetupForm() {
-  // const router = useRouter();
+  const router = useRouter();
   const { t } = useLocale();
 
   const [newMerchantId, setNewMerchantId] = useState("");

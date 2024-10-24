@@ -47,6 +47,7 @@ export const AdyenPaymentComponent = (props: IAdyenPaymentComponentProps) => {
 
   useEffect(() => {
     const updateSession = async () => {
+      if (!parsedPayment.success) return;
       setIsLoadingSession(true);
       let currentSession;
       let clientKey;
@@ -81,7 +82,7 @@ export const AdyenPaymentComponent = (props: IAdyenPaymentComponentProps) => {
           environment: IS_LIVE ? "live" : "test",
           amount: currentSession.amount,
           //newLocale seems to be unlisted, but was found as a value during live testing
-          locale: (props.paymentPageProps as unknown)?.newLocale ?? "en",
+          locale: (props.paymentPageProps as any)?.newLocale ?? "en",
           countryCode: countryCode.value,
           session: currentSession,
           onPaymentCompleted: () => {
