@@ -25,6 +25,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
   bio: true,
   disableImpersonation: true,
+  lastActiveAt: true,
 });
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
@@ -92,6 +93,13 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
         disableImpersonation: user.disableImpersonation,
         bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
         teamId: member.teamId,
+        lastActiveAt: member.user.lastActiveAt
+          ? new Intl.DateTimeFormat(ctx.user.locale, {
+              timeZone: ctx.user.timeZone,
+            })
+              .format(member.user.lastActiveAt)
+              .toLowerCase()
+          : null,
       };
     })
   );

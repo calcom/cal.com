@@ -37,6 +37,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -949,6 +950,11 @@ async function handler(
       evt,
       originalRescheduledBooking,
     });
+
+    if (booking?.userId) {
+      const usersRepository = new UsersRepository();
+      await usersRepository.updateLastActiveAt(booking.userId);
+    }
 
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
     // Sync Services
