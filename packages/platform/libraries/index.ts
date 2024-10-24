@@ -127,6 +127,7 @@ export {
   transformSeatsInternalToApi,
   // note(Lauris): schemas
   InternalLocationsSchema,
+  InternalLocationSchema,
   BookingFieldsSchema,
   // note(Lauris): constants
   systemBeforeFieldName,

@@ -5,8 +5,6 @@ import { IsUrl, IsIn, IsOptional, IsNumber, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
-import { integrationsApiToInternalMappingSchema } from "@calcom/lib/event-types/transformers";
-
 import {
   InputAddressLocation_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
@@ -27,8 +25,38 @@ export class OutputAttendeePhoneLocation_2024_06_14 extends InputAttendeePhoneLo
 export class OutputAttendeeDefinedLocation_2024_06_14 extends InputAttendeeDefinedLocation_2024_06_14 {}
 
 const integrationsValues = [
-  ...Object.keys(integrationsApiToInternalMappingSchema),
-] as (keyof typeof integrationsApiToInternalMappingSchema)[];
+  "cal-video",
+  "google-meet",
+  "zoom",
+  "whereby-video",
+  "whatsapp-video",
+  "webex-video",
+  "telegram-video",
+  "tandem",
+  "sylaps-video",
+  "skype-video",
+  "sirius-video",
+  "signal-video",
+  "shimmer-video",
+  "salesroom-video",
+  "roam-video",
+  "riverside-video",
+  "ping-video",
+  "office365-video",
+  "mirotalk-video",
+  "jitsi",
+  "jelly-video",
+  "jelly-conferencing",
+  "huddle",
+  "facetime-video",
+  "element-call-video",
+  "eightxeight-video",
+  "discord-video",
+  "demodesk-video",
+  "campsite-conferencing",
+  "campfire-video",
+  "around-video",
+];
 export type OutputIntegration_2024_06_14 = (typeof integrationsValues)[number];
 
 export class OutputIntegrationLocation_2024_06_14 {

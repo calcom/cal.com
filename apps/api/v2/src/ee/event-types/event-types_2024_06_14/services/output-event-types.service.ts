@@ -1,14 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/client";
 
-import { InternalLocationSchema } from "@calcom/lib";
 import {
   EventTypeMetaDataSchema,
   userMetadata,
   transformLocationsInternalToApi,
   transformBookingFieldsInternalToApi,
   parseRecurringEvent,
-  InternalLocationsSchema,
+  InternalLocationSchema,
   BookingFieldsSchema,
   SystemField,
   CustomField,
