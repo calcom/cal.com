@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: Build atoms
+    name: Build Atoms
     permissions:
       contents: read
     runs-on: buildjet-4vcpu-ubuntu-2204
@@ -34,7 +34,7 @@ jobs:
       - name: Run build
         if: steps.cache-atoms-build.outputs.cache-hit != 'true'
         run: |
-          export NODE_OPTIONS="--max_old_space_size=8192
+          export NODE_OPTIONS="--max_old_space_size=8192"
           rm -rf packages/platform/atoms/node_modules
           yarn install
           yarn workspace @calcom/atoms run build
