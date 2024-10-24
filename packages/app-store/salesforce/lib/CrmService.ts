@@ -171,8 +171,26 @@ export default class SalesforceCRMService implements CRM {
   };
 
   private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+
+    const customFieldInputs = customFieldInputsEnabled
+      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
+      : [];
+
+    const confirmedCustomFieldInputs: {
+      [key: string]: any;
+    } = {};
+
+    for (const field of customFieldInputs) {
+      confirmedCustomFieldInputs[field] = appOptions.onBookingWriteToEventObjectMap[field];
+    }
+
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
+      ...confirmedCustomFieldInputs,
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
         this.calWarnings.push(
@@ -506,5 +524,30 @@ export default class SalesforceCRMService implements CRM {
       ...(organizerId && { OwnerId: organizerId }),
       ...(recordType === SalesforceRecordEnum.LEAD && { Company: company }),
     };
+  }
+
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+    const conn = await this.conn;
+
+    const fieldSet = new Set(fieldsToTest);
+    const foundFields: string[] = [];
+
+    try {
+      const salesforceEntity = await conn.describe(sobject);
+      const fields = salesforceEntity.fields;
+
+      for (const field of fields) {
+        if (foundFields.length === fieldSet.size) break;
+
+        if (fieldSet.has(field.name)) {
+          foundFields.push(field.name);
+        }
+      }
+
+      return foundFields;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
   }
 }
