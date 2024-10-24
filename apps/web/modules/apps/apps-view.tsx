@@ -63,7 +63,6 @@ export default function Apps({ categories, appStore, userAdminTeams }: PageProps
   return (
     <AppsLayout
       isPublic
-      withoutMain
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (
