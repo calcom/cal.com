@@ -406,6 +406,8 @@ export default class SalesforceCRMService implements CRM {
 
       const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
+      let contactCreated = false;
+
       if (accountId && appOptions.createNewContactUnderAccount) {
         // First see if the contact already exists and connect it to the account
         const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
@@ -432,14 +434,16 @@ export default class SalesforceCRMService implements CRM {
           .then((result) => {
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
+              contactCreated = true;
             }
           });
       }
 
-      if (appOptions.createLeadIfAccountNull) {
+      if (appOptions.createLeadIfAccountNull && !contactCreated) {
         // Check to see if the lead exists already
         const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
         if (leadQuery.records.length) {
+          console.log("leadQuery", leadQuery.records);
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
         }
@@ -453,11 +457,13 @@ export default class SalesforceCRMService implements CRM {
                 organizerId,
               })
             );
+            console.log("result", result);
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
           } catch (error: any) {
             if (error.name === "DUPLICATES_DETECTED") {
+              console.log("error", error);
               const existingId = this.getExistingIdFromDuplicateError(error);
               if (existingId) {
                 console.log("Using existing record:", existingId);
