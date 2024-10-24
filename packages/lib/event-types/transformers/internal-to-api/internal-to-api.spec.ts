@@ -21,6 +21,7 @@ import type {
   OutputIntegrationLocation_2024_06_14,
   OutputLinkLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -122,6 +123,66 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform integration location", () => {
+    const transformedLocation = [
+      {
+        type: "integrations:discord_video" as const,
+      },
+    ];
+
+    const expectedOutput: OutputIntegrationLocation_2024_06_14[] = [
+      {
+        type: "integration",
+        integration: "discord-video",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform unknown location", () => {
+    const transformedLocation = [
+      {
+        type: "unknown" as const,
+        location: "unknown location",
+      },
+    ];
+
+    const expectedOutput: OutputUnknownLocation_2024_06_14[] = [
+      {
+        type: "unknown",
+        location: JSON.stringify(transformedLocation[0]),
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform unknown integration location", () => {
+    const transformedLocation = [
+      {
+        type: "integrations:unknown_video" as const,
+      },
+    ];
+
+    const expectedOutput: OutputUnknownLocation_2024_06_14[] = [
+      {
+        type: "unknown",
+        location: JSON.stringify(transformedLocation[0]),
+      },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
