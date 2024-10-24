@@ -5,10 +5,9 @@ import type { AppCategories } from "@prisma/client";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, GlobalApp } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
@@ -33,7 +32,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   return store;
 }, {} as Record<string, AppMeta>);
 
-export type CredentialDataWithTeamName = CredentialPayload & {
+export type AvailableApp = (CredentialPayload | GlobalApp) & {
   team?: {
     name: string;
   } | null;
@@ -45,7 +44,7 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
+function getApps(credentials: AvailableApp[], filterOnCredentials?: boolean) {
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
     const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 
@@ -56,7 +55,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
       const credential = {
-        id: 0,
+        id: null,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
@@ -69,10 +68,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
           name: "Global",
         },
       };
-      logger.debug(
-        `${appMeta.type} is a global app, injecting credential`,
-        safeStringify(getPiiFreeCredential(credential))
-      );
+      logger.debug(`${appMeta.type} is a global app, injecting credential`, safeStringify(credential));
       appCredentials.push(credential);
     }
 
@@ -99,7 +95,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     });
 
     return reducedArray;
-  }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
+  }, [] as (App & { credential: AvailableApp; credentials: AvailableApp[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }
