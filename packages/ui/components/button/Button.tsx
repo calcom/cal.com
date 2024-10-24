@@ -172,7 +172,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 className={classNames(
                   variant === "icon" && "h-4 w-4",
                   variant === "button" &&
-                    "h-4 w-4 shrink-0 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
+                    "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
                 )}
               />
             )}
