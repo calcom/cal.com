@@ -307,7 +307,7 @@ export const Components: Record<FieldType, Component> = {
                 setValue(value);
               }}
               className="mr-auto h-fit whitespace-normal text-left">
-              {label}
+              <span className="flex-1">{label}</span>
             </Button>
           )}
         </>
