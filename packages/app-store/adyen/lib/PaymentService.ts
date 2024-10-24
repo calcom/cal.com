@@ -116,7 +116,7 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Adyen credentials not found");
       }
 
-      const { session } = await createPaymentSession({
+      const { session, idempotencyKey } = await createPaymentSession({
         credentials: this.credentials,
         payment,
         shopperEmail: bookerEmail,
