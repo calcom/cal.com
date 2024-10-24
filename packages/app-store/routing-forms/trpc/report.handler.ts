@@ -33,6 +33,8 @@ const makeFormatDate = (locale: string, timeZone: string) => {
 
 async function getRows({ ctx: { prisma, user }, input }: ReportHandlerOptions) {
   const formatDate = makeFormatDate(user.locale, user.timeZone);
+  // Can be any prisma `where` clause
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const prismaWhere: Record<string, any> = input.jsonLogicQuery
     ? jsonLogicToPrisma(input.jsonLogicQuery)
     : {};
