@@ -126,7 +126,8 @@ export {
   transformEventTypeColorsInternalToApi,
   transformSeatsInternalToApi,
   // note(Lauris): schemas
-  TransformedLocationsSchema,
+  InternalLocationsSchema,
+  InternalLocationSchema,
   BookingFieldsSchema,
   // note(Lauris): constants
   systemBeforeFieldName,
@@ -140,6 +141,7 @@ export type {
   CustomField,
   NameSystemField,
   EmailSystemField,
+  InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
