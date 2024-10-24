@@ -194,26 +194,24 @@ export default class Office365CalendarService implements Calendar {
         method: "GET",
         url: `/me/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
-      const response = await this.apiGraphBatchCall(requests);
-      const responseBody = await this.handleErrorJsonOffice365Calendar(response);
-      let responseBatchApi: IBatchResponse = { responses: [] };
-      if (typeof responseBody === "string") {
-        responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
-      }
+
+      // Use concurrent batch calls
+      const response = await this.apiGraphBatchCallConcurrent(requests);
+
+      // Process responses with existing retry and nextLink logic
       let alreadySuccessResponse = [] as ISettledResponse[];
 
       // Validate if any 429 status Retry-After is present
-      const retryAfter =
-        !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
+      const retryAfter = !!response?.responses && this.findRetryAfterResponse(response.responses);
 
-      if (retryAfter && responseBatchApi.responses) {
-        responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
+      if (retryAfter && response.responses) {
+        const retryResponse = await this.fetchRequestWithRetryAfter(requests, response.responses, 2);
+        alreadySuccessResponse = await this.fetchResponsesWithNextLink(retryResponse.responses);
+      } else {
+        alreadySuccessResponse = await this.fetchResponsesWithNextLink(response.responses);
       }
 
-      // Recursively fetch nextLink responses
-      alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+      return this.processBusyTimes(alreadySuccessResponse);
     } catch (err) {
       console.log(err);
       return Promise.reject([]);
@@ -431,6 +429,50 @@ export default class Office365CalendarService implements Calendar {
 
     return response;
   };
+
+  private async apiGraphBatchCallConcurrent(requests: IRequest[]): Promise<IBatchResponse> {
+    // Microsoft Graph API limit is 20 requests per batch
+    const BATCH_SIZE = 20;
+
+    // Split requests into batches of 20 and run them concurrently
+    const batchPromises = Array.from({ length: Math.ceil(requests.length / BATCH_SIZE) }, (_, i) => {
+      const start = i * BATCH_SIZE;
+      const batchRequests = requests.slice(start, start + BATCH_SIZE);
+      return this.apiGraphBatchCall(batchRequests);
+    });
+
+    try {
+      // Wait for all batches to complete, handling failures individually
+      const settledResults = await Promise.allSettled(batchPromises);
+
+      // Process successful responses and log failures
+      const successfulResponses = await Promise.all(
+        settledResults.map(async (result, index) => {
+          if (result.status === "rejected") {
+            this.log.error(`Batch ${index} failed:`, result.reason);
+            return [];
+          }
+
+          try {
+            const body = await handleErrorsJson<IBatchResponse | string>(result.value);
+            return typeof body === "string"
+              ? this.handleTextJsonResponseWithHtmlInBody(body).responses
+              : body.responses;
+          } catch (error) {
+            this.log.error(`Failed to process batch ${index}:`, error);
+            return [];
+          }
+        })
+      );
+
+      return {
+        responses: successfulResponses.flat(),
+      };
+    } catch (error) {
+      this.log.error("Error in concurrent batch call", error);
+      throw error;
+    }
+  }
 
   private handleTextJsonResponseWithHtmlInBody = (response: string): IBatchResponse => {
     try {
