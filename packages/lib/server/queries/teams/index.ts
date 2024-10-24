@@ -459,12 +459,16 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               workflows: currentWorkflowIds && {
                 create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
               },
+              actorUserId: userId,
             },
           });
         } else {
           return prisma.eventType.update({
             where: { id: eventType.id },
-            data: { hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } },
+            data: {
+              hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] },
+              actorUserId: userId,
+            },
           });
         }
       })

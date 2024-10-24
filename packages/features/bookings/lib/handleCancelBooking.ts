@@ -420,6 +420,7 @@ async function handler(req: CustomRequest) {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
         cancelledBy: cancelledBy,
+        actorUserId: userId,
       },
     });
     const allUpdatedBookings = await prisma.booking.findMany({
@@ -465,6 +466,7 @@ async function handler(req: CustomRequest) {
         cancelledBy: cancelledBy,
         // Assume that canceling the booking is the last action
         iCalSequence: evt.iCalSequence || 100,
+        actorUserId: userId,
       },
       select: {
         id: true,

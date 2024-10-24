@@ -22,7 +22,8 @@ const rescheduleSeatedBooking = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
   resultBooking: HandleSeatsResultBooking | null,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>,
+  actorUserId?: number
 ) => {
   const { evt, eventType, allCredentials, organizerUser, bookerEmail, tAttendees, bookingSeat, reqUserId } =
     rescheduleSeatedBookingObject;
@@ -134,7 +135,8 @@ const rescheduleSeatedBooking = async (
       seatAttendee,
       newTimeSlotBooking,
       originalBookingEvt,
-      eventManager
+      eventManager,
+      actorUserId
     );
   }
 
