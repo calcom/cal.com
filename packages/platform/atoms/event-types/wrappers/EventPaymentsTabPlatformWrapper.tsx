@@ -43,7 +43,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
 
 const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
-  const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe");
+  const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe", eventType.teamId);
 
   const transformedAppData = {
     ...stripeData?.app,
