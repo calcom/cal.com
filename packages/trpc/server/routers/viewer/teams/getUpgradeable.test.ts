@@ -8,6 +8,7 @@ import getUpgradeableHandler from "./getUpgradeable.handler";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_TEAM_BILLING_ENABLED: true,
+  IS_PRODUCTION: true,
 }));
 
 describe("getUpgradeableHandler", () => {
