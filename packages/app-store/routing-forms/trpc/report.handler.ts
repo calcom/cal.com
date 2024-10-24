@@ -2,8 +2,8 @@ import type { z } from "zod";
 
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import type { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
 import { TRPCError } from "@calcom/trpc/server";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -15,13 +15,24 @@ import type { TReportInputSchema } from "./report.schema";
 interface ReportHandlerOptions {
   ctx: {
     prisma: PrismaClient;
+    user: NonNullable<TrpcSessionUser>;
   };
   input: TReportInputSchema;
 }
 
-export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
-  // Can be any prisma `where` clause
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const makeFormatDate = (locale: string, timeZone: string) => {
+  const formatDate = (date: Date): string => {
+    return new Intl.DateTimeFormat(locale, {
+      timeZone,
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(date);
+  };
+  return formatDate;
+};
+
+async function getRows({ ctx: { prisma, user }, input }: ReportHandlerOptions) {
+  const formatDate = makeFormatDate(user.locale, user.timeZone);
   const prismaWhere: Record<string, any> = input.jsonLogicQuery
     ? jsonLogicToPrisma(input.jsonLogicQuery)
     : {};
@@ -32,6 +43,44 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
       input.jsonLogicQuery
     )}`
   );
+  const rows = await prisma.app_RoutingForms_FormResponse.findMany({
+    where: {
+      formId: input.formId,
+      ...prismaWhere,
+    },
+    include: {
+      routedToBooking: {
+        select: {
+          createdAt: true,
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
+    },
+    take,
+    skip,
+  });
+  return {
+    skip,
+    take,
+    rows: rows.map((r) => ({
+      ...r,
+      routedToBooking: r.routedToBooking
+        ? { ...r.routedToBooking, createdAt: formatDate(r.routedToBooking.createdAt) }
+        : null,
+    })),
+  };
+}
+
+type Rows = Awaited<ReturnType<typeof getRows>>["rows"];
+
+export const reportHandler = async (options: ReportHandlerOptions) => {
+  const {
+    ctx: { prisma },
+    input,
+  } = options;
+
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: input.formId,
@@ -47,19 +96,7 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
   // TODO: Second argument is required to return deleted operators.
   const serializedForm = await getSerializableForm({ form, withDeletedFields: true });
 
-  const rows = await prisma.app_RoutingForms_FormResponse.findMany({
-    where: {
-      formId: input.formId,
-      ...prismaWhere,
-    },
-    include: {
-      routedToBooking: {
-        include: { user: true },
-      },
-    },
-    take,
-    skip,
-  });
+  const { skip, take, rows } = await getRows(options);
 
   const fields = serializedForm?.fields || [];
   const { responses, headers } = buildResponsesForReporting({
@@ -81,7 +118,7 @@ export function buildResponsesForReporting({
   responsesFromDb,
   fields,
 }: {
-  responsesFromDb: App_RoutingForms_FormResponse[];
+  responsesFromDb: Rows;
   fields: Pick<z.infer<typeof zodFieldView>, "id" | "options" | "label" | "deleted">[];
 }) {
   const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
@@ -107,8 +144,8 @@ export function buildResponsesForReporting({
         rowResponses.push(transformedValue);
       }
     });
-    rowResponses.push(r.routedToBooking?.user.name);
-    rowResponses.push(r.routedToBooking?.createdAt);
+    rowResponses.push(r.routedToBooking ? r.routedToBooking?.user?.email || "" : "");
+    rowResponses.push(r.routedToBooking?.createdAt || "");
   });
 
   return { responses, headers };
