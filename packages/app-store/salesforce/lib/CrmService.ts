@@ -444,28 +444,44 @@ export default class SalesforceCRMService implements CRM {
           return [{ id: contact.Id, email: contact.Email }];
         }
 
-        await Promise.all(
-          contactsToCreate.map(async (attendee) => {
-            return await conn
-              .sobject(SalesforceRecordEnum.LEAD)
-              .create(
-                this.generateCreateRecordBody({
-                  attendee,
-                  recordType: SalesforceRecordEnum.LEAD,
-                  organizerId,
-                })
-              )
-              .then((result) => {
-                if (result.success) {
-                  createdContacts.push({ id: result.id, email: attendee.email });
-                }
-              });
-          })
-        );
+        for (const attendee of contactsToCreate) {
+          try {
+            const result = await conn.sobject(SalesforceRecordEnum.LEAD).create(
+              this.generateCreateRecordBody({
+                attendee,
+                recordType: SalesforceRecordEnum.LEAD,
+                organizerId,
+              })
+            );
+            if (result.success) {
+              createdContacts.push({ id: result.id, email: attendee.email });
+            }
+          } catch (error: any) {
+            console.error("Error creating lead:", error);
+            if (error.name === "DUPLICATES_DETECTED") {
+              const existingId = this.getExistingIdFromDuplicateError(error);
+              if (existingId) {
+                console.log("Using existing record:", existingId);
+                createdContacts.push({ id: existingId, email: attendee.email });
+              }
+            }
+          }
+        }
       }
     }
 
     return createdContacts;
+  }
+
+  private getExistingIdFromDuplicateError(error: any): string | null {
+    if (error.duplicateResult && error.duplicateResult.matchResults) {
+      for (const matchResult of error.duplicateResult.matchResults) {
+        if (matchResult.matchRecords && matchResult.matchRecords.length > 0) {
+          return matchResult.matchRecords[0].record.Id;
+        }
+      }
+    }
+    return null;
   }
 
   private setDoNotCreateEvent(boolean: boolean) {
