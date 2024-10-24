@@ -457,13 +457,11 @@ export default class SalesforceCRMService implements CRM {
                 organizerId,
               })
             );
-            console.log("result", result);
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
           } catch (error: any) {
             if (error.name === "DUPLICATES_DETECTED") {
-              console.log("error", error);
               const existingId = this.getExistingIdFromDuplicateError(error);
               if (existingId) {
                 console.log("Using existing record:", existingId);
