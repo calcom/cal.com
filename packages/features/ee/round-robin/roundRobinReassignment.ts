@@ -375,7 +375,8 @@ export const roundRobinReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      eventType?.metadata as EventTypeMetadata
+      eventType?.metadata as EventTypeMetadata,
+      { name: reassignedRRHost.name, email: reassignedRRHost.email }
     );
   }
 
