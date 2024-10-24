@@ -74,6 +74,7 @@
 
 ### V2.0
 - [ ] Fallback for when no team member matches the criteria.
-    - Fallback will be attributes query builder that would match a different set of users. Though the booking will use the team members assigned to the event type, it might be better to be able to identify such a scenario and use a different set of users. It also makes it easy to identify when the fallback scenario happens.
+    - [x] Fallback will be attributes query builder that would match a different set of users. Though the booking will use the team members assigned to the event type, it might be better to be able to identify such a scenario and use a different set of users. It also makes it easy to identify when the fallback scenario happens.
+    - [ ] Mark if fallback was used by the router for a response. 
 - [ ] cal.routedTeamMembersIds query param - Could possible become a big payload and possibly break the URL limit. We could work on a short-lived row in a table that would hold that info and we pass the id of that row only in query param. handleNewBooking can then retrieve the routedTeamMembersIds from that short-lived row and delete the entry after successfully creating a booking.
 - [ ] Better ability to test with contact owner from Routing Form Preview itself(if possible). Right now, we need to test the entire booking flow to verify that.

@@ -137,6 +137,13 @@ export const zodNonRouterRoute = z.object({
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
    */
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * RAQB query value for fallback of `attributesQueryValue`
+   */
+  fallbackAttributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * Whether the route is a fallback logic of Route
+   */
   isFallback: z.boolean().optional(),
   action: z.object({
     type: routeActionTypeSchema,

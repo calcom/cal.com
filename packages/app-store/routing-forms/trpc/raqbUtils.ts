@@ -7,7 +7,7 @@ import { AttributeType } from "@calcom/prisma/enums";
 
 import type { AttributesQueryBuilderConfigWithRaqbFields } from "../lib/getQueryBuilderConfig";
 import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig";
-import type { Attribute } from "../types/types";
+import type { Attribute, AttributesQueryValue } from "../types/types";
 import type { LocalRoute } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import type { SerializableField } from "../types/types";
@@ -250,8 +250,6 @@ function getAttributesQueryValue({
   if (!attributesQueryValue) {
     return null;
   }
-
-  type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 
   const attributesMap = attributes.reduce((acc, attribute) => {
     acc[attribute.id] = attribute;
