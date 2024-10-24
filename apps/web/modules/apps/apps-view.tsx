@@ -102,7 +102,7 @@ export const LayoutWrapper = (page: React.ReactElement) => {
 
   return (
     <Shell
-      title={t("app_store")}
+      title={t("app_store") !== "app_store" ? t("app_store") : "App Store"}
       description={t("app_store_description")}
       withoutMain={true}
       hideHeadingOnMobile>
