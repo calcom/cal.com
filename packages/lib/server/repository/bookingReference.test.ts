@@ -161,7 +161,7 @@ describe("bookingReferences", () => {
     expect(bookingReference?.credentialId).toStrictEqual(newCredentialId);
   });
 
-  it("should reconnect bookingReference when 'google-calendar' and 'google-meet' app is reconnected", async () => {
+  it("should reconnect bookingReference when 'google-calendar' and 'google-meet' apps are reconnected", async () => {
     vi.setSystemTime("2024-10-24T00:00:10Z");
 
     const plus2DateString = "2024-10-26";
