@@ -487,8 +487,6 @@ export const insightsRouter = router({
         endDate,
         timeView
       );
-
-      // Construct the result by mapping date ranges to count data
       const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
           Month: formattedDate,
@@ -499,7 +497,6 @@ export const insightsRouter = router({
           "No-Show (Host)": 0,
         };
 
-        // Access counts directly using the formattedDate as a key in countsByStatus
         const countsForDateRange = countsByStatus[formattedDate];
 
         if (countsForDateRange) {

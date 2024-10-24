@@ -82,13 +82,13 @@ class EventsInsights {
       { periodStart: Date; bookingsCount: number; timeStatus: string; noShowHost: boolean }[]
     >`
     SELECT
-      periodStart,
+      "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
       "timeStatus",
       "noShowHost"
     FROM (
       SELECT
-        DATE_TRUNC(${timeView}, "createdAt") AS periodStart,
+        DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
         "timeStatus",
         "noShowHost"
       FROM
@@ -98,21 +98,19 @@ class EventsInsights {
         AND ${Prisma.raw(whereClause)}
     ) AS truncated_dates
     GROUP BY
-      periodStart,
+      "periodStart",
       "timeStatus",
       "noShowHost"
     ORDER BY
-      periodStart;
+      "periodStart";
   `;
 
     // Initialize an empty aggregate result based on the selected timeView and date ranges
     const aggregate: AggregateResult = {};
-
     // Process each row in the returned data
     data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost }) => {
       const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
-      // Skip if periodStart exceeds the specified endDate
       if (dayjs(periodStart).isAfter(endDate)) {
         return;
       }
