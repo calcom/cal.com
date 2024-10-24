@@ -181,6 +181,7 @@ const MultiSelectWidget = ({
       isMulti={true}
       isDisabled={remainingProps.readOnly}
       options={selectItems}
+      menuPortalTarget={document.body}
       {...remainingProps}
     />
   );
@@ -218,6 +219,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       isDisabled={remainingProps.readOnly}
       value={optionFromList}
       options={selectItems}
+      menuPortalTarget={document.body}
       {...remainingProps}
     />
   );
