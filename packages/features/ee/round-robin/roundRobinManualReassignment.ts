@@ -349,9 +349,7 @@ async function handleWorkflowsUpdate({
       bookingUid: booking.uid,
       method: WorkflowMethods.EMAIL,
       scheduled: true,
-      cancelled: {
-        not: true,
-      },
+      OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
         workflow: {
           trigger: {
@@ -415,6 +413,7 @@ async function handleWorkflowsUpdate({
         sender: workflowStep.sender || SENDER_NAME,
         hideBranding: true,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
+        workflowStepId: workflowStep.id,
       });
     }
 

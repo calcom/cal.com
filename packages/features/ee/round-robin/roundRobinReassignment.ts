@@ -388,9 +388,7 @@ export const roundRobinReassignment = async ({
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
         scheduled: true,
-        // cancelled: {
-        //   not: true,
-        // },
+        OR: [{ cancelled: false }, { cancelled: null }],
         workflowStep: {
           workflow: {
             trigger: {
@@ -455,6 +453,7 @@ export const roundRobinReassignment = async ({
           sender: workflowStep.sender || SENDER_NAME,
           hideBranding: true,
           includeCalendarEvent: workflowStep.includeCalendarEvent,
+          workflowStepId: workflowStep.id,
         });
       }
 
