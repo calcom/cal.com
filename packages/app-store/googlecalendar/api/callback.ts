@@ -75,7 +75,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    let primaryCal = cals.data.items?.find((cal) => cal.primary);
+    const userDetails = await oauth2.userinfo.get();
+    const userEmail = userDetails.data?.email;
+    let primaryCal = cals.data.items?.find((cal) => {
+      cal.primary || cal.accessRole === "owner" || cal.id === userEmail;
+    });
     if (!primaryCal?.id) {
       // If the primary calendar is not set, set it to the first calendar
       primaryCal = cals.data.items?.[0];
