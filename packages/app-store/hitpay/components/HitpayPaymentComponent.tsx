@@ -7,7 +7,7 @@ const PaymentHitpayDataSchema = z.object({
 
 interface IPaymentComponentProps {
   payment: {
-    data: z.infer<typeof PaymentHitpayDataSchema>;
+    data: unknown;
   };
 }
 
