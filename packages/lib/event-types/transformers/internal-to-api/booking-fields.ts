@@ -25,6 +25,9 @@ export function transformBookingFieldsInternalToApi(
           type: field.type,
           slug: field.name,
           required: field.required,
+          label: field.label,
+          placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "email":
         return {
@@ -32,6 +35,9 @@ export function transformBookingFieldsInternalToApi(
           type: field.type,
           slug: field.name,
           required: field.required,
+          label: field.label,
+          placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "location":
         return {
@@ -85,6 +91,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "address":
         return {
@@ -94,6 +101,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "text":
         return {
@@ -103,6 +111,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "number":
         return {
@@ -112,6 +121,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "textarea":
         return {
@@ -121,6 +131,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "multiemail":
         return {
@@ -130,6 +141,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "boolean":
         return {
@@ -138,6 +150,7 @@ export function transformBookingFieldsInternalToApi(
           slug: field.name,
           label: field.label,
           required: field.required,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "select":
         return {
@@ -148,6 +161,7 @@ export function transformBookingFieldsInternalToApi(
           required: field.required,
           placeholder: field.placeholder,
           options: field.options ? field.options.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "multiselect":
         return {
@@ -157,6 +171,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           options: field.options ? field.options?.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "checkbox":
         return {
@@ -166,6 +181,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           options: field.options ? field.options?.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "radio":
         return {
@@ -175,6 +191,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           options: field.options ? field.options?.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       default:
         throw new Error(`Unsupported booking field type '${field.type}'.`);
@@ -203,6 +220,7 @@ const CustomFieldsSchema = z.object({
   name: z.string(),
   type: CustomFieldTypeEnum,
   label: z.string(),
+  labelAsSafeHtml: z.string().optional(),
   sources: z.array(
     z.object({
       id: z.literal("user"),
@@ -211,7 +229,7 @@ const CustomFieldsSchema = z.object({
       fieldRequired: z.literal(true),
     })
   ),
-  editable: z.literal("user"),
+  editable: z.enum(["user", "user-readonly"]),
   required: z.boolean(),
   placeholder: z.string().optional(),
   options: z
@@ -222,6 +240,7 @@ const CustomFieldsSchema = z.object({
       })
     )
     .optional(),
+  disableOnPrefill: z.boolean().optional(),
 });
 
 const SystemFieldSchema = z.object({
@@ -244,6 +263,7 @@ const SystemFieldSchema = z.object({
     )
     .optional(),
   defaultPlaceholder: z.enum(["", "share_additional_notes", "email", "reschedule_placeholder"]).optional(),
+  placeholder: z.string().optional(),
   hidden: z.boolean().optional(),
   required: z.boolean(),
   hideWhenJustOneOption: z.boolean().optional(),
@@ -260,14 +280,40 @@ const SystemFieldSchema = z.object({
         required: z.boolean(),
         placeholder: z.string(),
       }),
+      somewhereElse: z
+        .object({
+          type: z.literal("text"),
+          required: z.boolean(),
+          placeholder: z.string(),
+        })
+        .optional(),
     })
     .optional(),
+  disableOnPrefill: z.boolean().optional(),
 });
 
 const NameSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("name"),
   type: z.literal("name"),
   required: z.literal(true),
+  variant: z.literal("fullName").optional(),
+  variantsConfig: z
+    .object({
+      variants: z.object({
+        fullName: z.object({
+          fields: z.array(
+            z.object({
+              name: z.literal("fullName"),
+              type: z.literal("text"),
+              label: z.string().optional(),
+              required: z.literal(true),
+              placeholder: z.string().optional(),
+            })
+          ),
+        }),
+      }),
+    })
+    .optional(),
 });
 
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
@@ -306,8 +352,8 @@ const GuestsSystemFieldSchema = SystemFieldSchema.extend({
   required: z.literal(false),
 });
 
-type NameSystemField = z.infer<typeof NameSystemFieldSchema>;
-type EmailSystemField = z.infer<typeof EmailSystemFieldSchema>;
+export type NameSystemField = z.infer<typeof NameSystemFieldSchema>;
+export type EmailSystemField = z.infer<typeof EmailSystemFieldSchema>;
 type RescheduleReasonSystemField = z.infer<typeof RescheduleReasonSystemFieldSchema>;
 type LocationReasonSystemField = z.infer<typeof LocationReasonSystemFieldSchema>;
 type TitleSystemField = z.infer<typeof TitleSystemFieldSchema>;
@@ -343,6 +389,7 @@ export const systemBeforeFieldName: NameSystemField = {
   editable: "system",
   defaultLabel: "your_name",
   required: true,
+  variant: "fullName",
   sources: [
     {
       label: "Default",
@@ -350,21 +397,19 @@ export const systemBeforeFieldName: NameSystemField = {
       type: "default",
     },
   ],
-};
-
-export const systemBeforeFieldNameReadOnly: NameSystemField = {
-  type: "name",
-  name: "name",
-  editable: "user-readonly",
-  defaultLabel: "your_name",
-  required: true,
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
+  variantsConfig: {
+    variants: {
+      fullName: {
+        fields: [
+          {
+            name: "fullName",
+            type: "text",
+            required: true,
+          },
+        ],
+      },
     },
-  ],
+  },
 };
 
 export const systemBeforeFieldEmail: EmailSystemField = {
@@ -373,21 +418,6 @@ export const systemBeforeFieldEmail: EmailSystemField = {
   name: "email",
   required: true,
   editable: "system",
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
-    },
-  ],
-};
-
-export const systemBeforeFieldEmailReadOnly: EmailSystemField = {
-  defaultLabel: "email_address",
-  type: "email",
-  name: "email",
-  required: true,
-  editable: "user-readonly",
   sources: [
     {
       label: "Default",
@@ -413,6 +443,11 @@ export const systemBeforeFieldLocation: LocationReasonSystemField = {
     },
     phone: {
       type: "phone",
+      required: true,
+      placeholder: "",
+    },
+    somewhereElse: {
+      type: "text",
       required: true,
       placeholder: "",
     },

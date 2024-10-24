@@ -6,6 +6,8 @@ import type { User } from "@calcom/prisma/client";
 
 import type { Availability } from "../../availability/AvailabilitySettings";
 import { transformApiScheduleForAtom } from "../../availability/atom-api-transformers/transformApiScheduleForAtom";
+import { useTeamMembers } from "../../hooks/teams/useTeamMembers";
+import { useAtomHostSchedules } from "../hooks/useAtomHostSchedules";
 import { useSchedule } from "../hooks/useSchedule";
 import { useSchedules } from "../hooks/useSchedules";
 
@@ -13,10 +15,12 @@ type EventAvailabilityTabPlatformWrapperProps = {
   user?: Pick<User, "id" | "defaultScheduleId" | "timeZone" | "timeFormat" | "weekStart">;
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
+  teamId?: number;
 };
 
 const EventAvailabilityTabPlatformWrapper = ({
   user,
+  teamId,
   ...props
 }: EventAvailabilityTabPlatformWrapperProps) => {
   const formMethods = useFormContext<FormValues>();
@@ -29,6 +33,8 @@ const EventAvailabilityTabPlatformWrapper = ({
   const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();
 
   const atomSchedule = transformApiScheduleForAtom(user, scheduleQueryData, schedulesQueryData?.length || 0);
+  const hostSchedulesQuery = useAtomHostSchedules;
+  const { data: teamMembers } = useTeamMembers({ teamId });
 
   if (!atomSchedule) {
     return <></>;
@@ -38,9 +44,17 @@ const EventAvailabilityTabPlatformWrapper = ({
     <EventAvailabilityTab
       {...props}
       user={user}
+      teamMembers={
+        teamMembers?.map((member) => ({
+          avatar: member.user.avatarUrl ?? "",
+          id: member.userId,
+          name: member.user.name,
+        })) ?? []
+      }
       schedulesQueryData={schedulesQueryData}
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}
+      hostSchedulesQuery={({ userId }: { userId: number }) => hostSchedulesQuery({ userId, teamId })}
       scheduleQueryData={{
         isManaged: atomSchedule.isManaged,
         readOnly: atomSchedule.readOnly,

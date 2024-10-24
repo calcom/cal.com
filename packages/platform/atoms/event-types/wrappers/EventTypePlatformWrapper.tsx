@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
+import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
@@ -22,6 +23,7 @@ import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations"
 import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
 import EventAvailabilityTabPlatformWrapper from "./EventAvailabilityTabPlatformWrapper";
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
+import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
@@ -39,10 +41,11 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: {
     atomsWrapper?: string;
   };
+  disableToasts?: boolean;
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring"],
+  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring", "payments"],
   onSuccess,
   onError,
   onDeleteSuccess,
@@ -50,6 +53,7 @@ const EventType = ({
   id,
   allowDelete = true,
   customClassNames,
+  disableToasts = false,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -62,17 +66,34 @@ const EventType = ({
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
 
+  const handleDeleteSuccess = () => {
+    showToast(t("event_type_deleted_successfully"), "success");
+    isTeamEventTypeDeleted.current = true;
+    setSlugExistsChildrenDialogOpen([]);
+    setIsOpenAssignmentWarnDialog(false);
+    onDeleteSuccess?.();
+  };
+
+  const handleDeleteError = (err: Error) => {
+    showToast(err.message, "error");
+    onDeleteError?.(err.message);
+  };
+
   const deleteMutation = useDeleteEventTypeById({
     onSuccess: async () => {
-      showToast(t("event_type_deleted_successfully"), "success");
-      isTeamEventTypeDeleted.current = true;
-      setSlugExistsChildrenDialogOpen([]);
-      setIsOpenAssignmentWarnDialog(false);
-      onDeleteSuccess?.();
+      handleDeleteSuccess();
     },
     onError: (err) => {
-      showToast(err.message, "error");
-      onDeleteError?.(err.message);
+      handleDeleteError(err);
+    },
+  });
+
+  const deleteTeamEventTypeMutation = useDeleteTeamEventTypeById({
+    onSuccess: async () => {
+      handleDeleteSuccess();
+    },
+    onError: (err) => {
+      handleDeleteError(err);
     },
   });
 
@@ -110,7 +131,9 @@ const EventType = ({
   const slug = form.watch("slug") ?? eventType.slug;
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
-    toast({ description: message });
+    if (!disableToasts) {
+      toast({ description: message });
+    }
   };
 
   const tabMap = {
@@ -126,7 +149,12 @@ const EventType = ({
       <></>
     ),
     availability: tabs.includes("availability") ? (
-      <EventAvailabilityTabPlatformWrapper eventType={eventType} isTeamEvent={!!team} user={user?.data} />
+      <EventAvailabilityTabPlatformWrapper
+        eventType={eventType}
+        isTeamEvent={!!team}
+        user={user?.data}
+        teamId={team?.id}
+      />
     ) : (
       <></>
     ),
@@ -146,7 +174,7 @@ const EventType = ({
     ) : (
       <></>
     ),
-
+    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
     limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
@@ -184,9 +212,12 @@ const EventType = ({
   const onDelete = () => {
     if (allowDelete) {
       isTeamEventTypeDeleted.current = true;
-      deleteMutation.mutate(id);
+      team?.id
+        ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
+        : deleteMutation.mutate(id);
     }
   };
+
   const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };

@@ -13,6 +13,8 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),
   createLeadIfAccountNull: z.boolean().optional(),
+  onBookingWriteToEventObject: z.boolean().optional(),
+  onBookingWriteToEventObjectMap: z.record(z.any()).optional(),
 });
 
 export const appKeysSchema = z.object({
