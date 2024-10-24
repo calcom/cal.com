@@ -75,8 +75,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    const userDetails = await oauth2.userinfo.get();
-    const userEmail = userDetails.data?.email;
+    const tokenInfo = await oAuth2Client.getTokenInfo(key.access_token);
+    const userEmail = tokenInfo?.email;
     let primaryCal = cals.data.items?.find((cal) => {
       cal.primary || cal.accessRole === "owner" || cal.id === userEmail;
     });
