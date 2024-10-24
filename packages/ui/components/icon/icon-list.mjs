@@ -133,7 +133,8 @@ export const lucideIconList = new Set([
   "venetian-mask",
   "video",
   "webhook",
+  "buildig",
   "x",
   "zap",
-  "waypoints"
+  "waypoints",
 ]);
