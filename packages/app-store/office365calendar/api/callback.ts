@@ -5,6 +5,7 @@ import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -120,6 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         appId: "office365-calendar",
       },
     });
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
       integration: "office365_calendar",
@@ -134,6 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           credentialId: credential.id,
         },
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

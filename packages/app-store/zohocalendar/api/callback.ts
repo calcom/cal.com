@@ -6,6 +6,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -110,6 +111,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         appId: config.slug,
       },
     });
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
       integration: config.type,
@@ -124,6 +126,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           credentialId: credential.id,
         },
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

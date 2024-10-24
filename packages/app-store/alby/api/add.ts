@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -31,6 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!installation) {
       throw new Error("Unable to create user credential for Alby");
     }
+
+    await BookingReferenceRepository.reconnectWithNewCredential(installation.id);
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });

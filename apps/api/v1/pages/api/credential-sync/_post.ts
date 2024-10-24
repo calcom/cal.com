@@ -6,6 +6,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -138,6 +139,8 @@ async function handler(req: NextApiRequest) {
       });
     }
   }
+
+  await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
 
   return { credential: { id: credential.id, type: credential.type } };
 }
