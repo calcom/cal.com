@@ -1,11 +1,10 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-testBothFutureAndLegacyRoutes.describe("Settings/admin tests", () => {
+test.describe("Settings/admin tests", () => {
   test("should render /settings/admin page", async ({ page, users, context }) => {
     const user = await users.create({
       role: "ADMIN",
