@@ -131,6 +131,7 @@
   "your_meeting_has_been_booked": "Your meeting has been booked",
   "event_type_has_been_rescheduled_on_time_date": "Your {{title}} has been rescheduled to {{date}}.",
   "event_has_been_rescheduled": "Updated - Your event has been rescheduled",
+  "your_event_has_been_rescheduled": "Your event has been rescheduled",
   "request_reschedule_subtitle": "{{organizer}} has canceled the booking and requested you to pick another time.",
   "request_reschedule_title_organizer": "You have requested {{attendee}} to reschedule",
   "request_reschedule_subtitle_organizer": "You have canceled the booking and {{attendee}} should pick a new booking time with you.",

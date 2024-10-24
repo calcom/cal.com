@@ -14,6 +14,7 @@ import type {
   CustomFieldOutput_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  InputLocation_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
@@ -199,7 +200,9 @@ function isDefaultEvent(eventSlug: string) {
 }
 
 function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
-  const transformed = transformLocationsApiToInternal(locations);
+  const transformed = transformLocationsApiToInternal(
+    locations.filter((location) => isAtomSupportedLocation(location))
+  );
 
   const withPrivateHidden = transformed.map((location) => {
     const { displayLocationPublicly, type } = location;
@@ -222,6 +225,20 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
   });
 
   return withPrivateHidden;
+}
+
+function isAtomSupportedLocation(
+  location: EventTypeOutput_2024_06_14["locations"][number]
+): location is InputLocation_2024_06_14 {
+  return (
+    location.type === "address" ||
+    location.type === "attendeeAddress" ||
+    location.type === "link" ||
+    location.type === "phone" ||
+    location.type === "attendeePhone" ||
+    location.type === "attendeeDefined" ||
+    (location.type === "integration" && location.integration === "cal-video")
+  );
 }
 
 function getBookingFields(
