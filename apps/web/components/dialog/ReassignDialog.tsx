@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { components } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -51,12 +52,14 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
         {
           label: "Loading...",
           value: 0,
+          status: "unavailable",
         },
       ];
 
     return teamMembers.data?.map((member) => ({
       label: member.name,
       value: member.id,
+      status: member.status,
     }));
   }, [teamMembers]);
 
@@ -149,6 +152,24 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
                 options={teamMemberOptions}
                 onChange={(event) => {
                   form.setValue("teamMemberId", event?.value);
+                }}
+                components={{
+                  Option: ({ children, ...props }) => {
+                    const status = props.data?.status;
+                    return (
+                      <components.Option {...props}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={classNames(
+                              "h-2 w-2 rounded-full",
+                              status === "available" ? "bg-green-500" : "bg-red-500"
+                            )}
+                          />
+                          {children}
+                        </div>
+                      </components.Option>
+                    );
+                  },
                 }}
               />
             </div>
