@@ -6,7 +6,12 @@ import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
-import { type PageProps } from "./users-type-public-view.getServerSideProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
+
+import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -47,7 +52,7 @@ function Type({
         eventSlug={slug}
         bookingData={booking}
         hideBranding={isBrandingHidden}
-        entity={eventData.entity}
+        entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
         durationConfig={eventData.metadata?.multipleDuration}
         orgBannerUrl={orgBannerUrl}
         /* TODO: Currently unused, evaluate it is needed-

@@ -6,6 +6,8 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.NEW_EVENT,
   WorkflowTriggerEvents.AFTER_EVENT,
   WorkflowTriggerEvents.RESCHEDULE_EVENT,
+  WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
 ] as const;
 
 export const WORKFLOW_ACTIONS = [

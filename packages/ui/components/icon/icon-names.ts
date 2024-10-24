@@ -67,6 +67,7 @@ export type IconName =
   | "fingerprint"
   | "flag"
   | "folder"
+  | "gift"
   | "git-merge"
   | "github"
   | "globe"
@@ -131,6 +132,7 @@ export type IconName =
   | "users"
   | "venetian-mask"
   | "video"
+  | "waypoints"
   | "webhook"
   | "x"
   | "zap";

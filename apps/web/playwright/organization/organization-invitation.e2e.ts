@@ -24,7 +24,6 @@ test.describe("Organization", () => {
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       await page.goto("/settings/organizations/members");
-      await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
@@ -104,11 +103,10 @@ test.describe("Organization", () => {
 
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
-        await page.waitForLoadState("networkidle");
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
-        await inviteAnEmail(page, invitedUserEmail);
+        await inviteAnEmail(page, invitedUserEmail, true);
         await expectUserToBeAMemberOfTeam({
           page,
           teamId: team.id,
@@ -126,7 +124,6 @@ test.describe("Organization", () => {
           email: invitedUserEmail,
         });
 
-        await page.waitForLoadState("networkidle");
         const inviteLink = await expectInvitationEmailToBeReceived(
           page,
           emails,
@@ -167,7 +164,7 @@ test.describe("Organization", () => {
 
       await test.step("By invite link", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
-        const inviteLink = await copyInviteLink(page);
+        const inviteLink = await copyInviteLink(page, true);
         const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
@@ -206,7 +203,6 @@ test.describe("Organization", () => {
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       await page.goto("/settings/organizations/members");
-      await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
@@ -300,11 +296,13 @@ test.describe("Organization", () => {
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
+        await expect(page.locator("text=Create your account")).toBeVisible();
+        await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+        await page.locator('[data-testid="continue-with-email-button"]').click();
+        await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const usernameInput = page.locator('input[name="username"]');
-        await usernameInput.waitFor({ state: "attached" });
-        await usernameInput.waitFor({ state: "visible" });
-        await usernameInput.fill(existingUser.username!);
+        await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
@@ -333,10 +331,9 @@ test.describe("Organization", () => {
 
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
-        await page.waitForLoadState("networkidle");
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
-        await inviteAnEmail(page, invitedUserEmail);
+        await inviteAnEmail(page, invitedUserEmail, true);
         await expectUserToBeAMemberOfTeam({
           page,
           teamId: team.id,
@@ -394,7 +391,7 @@ test.describe("Organization", () => {
       await test.step("By invite link", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
 
-        const inviteLink = await copyInviteLink(page);
+        const inviteLink = await copyInviteLink(page, true);
         const email = users.trackEmail({ username: "rick", domain: "example.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}`;
@@ -435,7 +432,7 @@ async function signupFromInviteLink({
   const context = await browser.newContext();
   const inviteLinkPage = await context.newPage();
   await inviteLinkPage.goto(inviteLink);
-  await inviteLinkPage.waitForLoadState("networkidle");
+  await expect(inviteLinkPage.locator("text=Create your account")).toBeVisible();
 
   // Check required fields
   const button = inviteLinkPage.locator("button[type=submit][disabled]");
@@ -464,7 +461,7 @@ export async function signupFromEmailInviteLink({
   const signupPage = await context.newPage();
 
   signupPage.goto(inviteLink);
-  await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
+  await expect(signupPage.locator("text=Create your account")).toBeVisible();
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
   // await for value. initial value is ""
   if (expectedUsername) {
@@ -476,7 +473,6 @@ export async function signupFromEmailInviteLink({
     await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
   }
 
-  await signupPage.waitForLoadState("networkidle");
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await signupPage.locator("button[type=submit]").click();
@@ -485,10 +481,13 @@ export async function signupFromEmailInviteLink({
   await signupPage.close();
 }
 
-async function inviteAnEmail(page: Page, invitedUserEmail: string) {
-  await page.locator('button:text("Add")').click();
+async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: boolean) {
+  if (teamPage) {
+    await page.getByTestId("new-member-button").click();
+  } else {
+    await page.getByTestId("new-organization-member-button").click();
+  }
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-  await page.waitForLoadState("networkidle");
   const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
   await page.locator('button:text("Send invite")').click();
   const response = await submitPromise;
@@ -543,9 +542,15 @@ async function expectUserToBeAMemberOfTeam({
   await page.waitForLoadState("domcontentloaded");
   expect(
     (
-      await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()
+      await page
+        .locator(
+          `[data-testid="member-${username}"] [data-testid="${
+            isMemberShipAccepted ? "member-email" : `email-${email.replace("@", "")}-pending`
+          }"]`
+        )
+        .textContent()
     )?.toLowerCase()
-  ).toBe(role.toLowerCase());
+  ).toBe(email.toLowerCase());
   if (isMemberShipAccepted) {
     await expect(page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)).toBeHidden();
   } else {
@@ -557,9 +562,12 @@ function assertInviteLink(inviteLink: string | null | undefined): asserts invite
   if (!inviteLink) throw new Error("Invite link not found");
 }
 
-async function copyInviteLink(page: Page) {
-  await page.locator('button:text("Add")').click();
-  await page.locator(`[data-testid="copy-invite-link-button"]`).click();
+async function copyInviteLink(page: Page, teamPage?: boolean) {
+  if (teamPage) {
+    await page.getByTestId("new-member-button").click();
+  } else {
+    await page.getByTestId("new-organization-member-button").click();
+  }
   const inviteLink = await getInviteLink(page);
   return inviteLink;
 }

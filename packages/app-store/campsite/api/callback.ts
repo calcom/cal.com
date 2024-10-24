@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const { client_id, client_secret } = await getAppKeysFromSlug("campsite");
 
-  const result = await fetch(`https://auth.campsite.co/oauth/token`, {
+  const result = await fetch(`https://auth.campsite.com/oauth/token`, {
     method: "POST",
     body: JSON.stringify({
       grant_type: "authorization_code",

@@ -1,5 +1,5 @@
-import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -7,6 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -20,10 +21,8 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add_entry_ooo").click();
-    await page.waitForLoadState("networkidle");
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -32,7 +31,9 @@ test.describe("Out of office", () => {
     await page.getByTestId("notes_input").fill("Demo notes");
 
     // send request
-    await submitAndWaitForResponse(page);
+    await saveAndWaitForResponse(page);
+
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 
   test("User can configure booking redirect", async ({ page, users }) => {
@@ -67,10 +68,8 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
-    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add_entry_ooo").click();
-    await page.waitForLoadState("networkidle");
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -82,11 +81,13 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("team_username_select").click();
 
-    await page.locator("#react-select-3-input").fill("user");
-    await page.locator("#react-select-3-input").press("Enter");
+    await page.locator("#react-select-3-option-0").click();
 
     // send request
-    await submitAndWaitForResponse(page);
+    await saveAndWaitForResponse(page);
+
+    // expect table-redirect-toUserId to be visible
+    await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
   });
 
   test("User can edit out of office entry", async ({ page, users }) => {
@@ -146,7 +147,6 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
-    await page.waitForLoadState("networkidle");
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -159,11 +159,19 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("team_username_select").click();
 
-    await page.locator("#react-select-3-input").fill("userThree");
-    await page.locator("#react-select-3-input").press("Enter");
+    await page.locator("#react-select-3-option-1").click();
 
     // send request
-    await submitAndWaitForResponse(page);
+    await saveAndWaitForResponse(page);
+
+    // expect entry with new username exist.
+    await expect(page.locator(`data-testid=table-redirect-${userToSecond.username}`)).toBeVisible();
+
+    // expect new note to be present.
+    await expect(page.locator(`data-testid=ooo-entry-note-${userToSecond.username}`)).toBeVisible();
+    await expect(page.locator(`data-testid=ooo-entry-note-${userToSecond.username}`)).toContainText(
+      "Changed notes"
+    );
   });
 
   test("Profile redirection", async ({ page, users }) => {
@@ -187,7 +195,6 @@ test.describe("Out of office", () => {
     });
 
     await page.goto(`/${user.username}`);
-    await page.waitForLoadState("networkidle");
 
     const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
     await eventTypeLink.click();
@@ -195,9 +202,9 @@ test.describe("Out of office", () => {
     await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
 });
-async function submitAndWaitForResponse(page: Page) {
-  const submitPromise = page.waitForResponse("/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1");
-  await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+
+async function saveAndWaitForResponse(page: Page) {
+  await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
+    action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
+  });
 }
