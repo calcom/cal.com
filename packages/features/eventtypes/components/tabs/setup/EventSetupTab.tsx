@@ -5,24 +5,70 @@ import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
 import Locations from "@calcom/features/eventtypes/components/Locations";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
 
+type InputBaseClassNames = {
+  containerClassName?: string;
+  labelClassName?: string;
+  inputClassName?: string;
+};
+
+type SelectBaseClassNames = {
+  selectInnerClassNames: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+  selectClassName?: string;
+  labelClassName?: string;
+  containerClassName?: string;
+};
+
+export type EventSetupTabCustomClassNames = {
+  eventSetupWrapper?: string;
+  eventSetupTitleSectionWrapper?: string;
+  eventTitleClassnames?: InputBaseClassNames;
+  eventUrlClassnames?: InputBaseClassNames;
+  eventDurationClassnames?: InputBaseClassNames & {
+    multipleDurationClassnames?: {
+      availableDurationsClassnames?: SelectBaseClassNames;
+      defaultDurationClassnames?: SelectBaseClassNames;
+      toggleClassnames: {
+        labelClassName?: string;
+        descriptionClassName?: string;
+        switchContainerClassName?: string;
+        childrenClassName?: string;
+      };
+    };
+  };
+  locationClassnames?: LocationCustomClassNames;
+};
+
 export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
->;
+> & {
+  customClassNames?: EventSetupTabCustomClassNames;
+};
 export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean }) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames } = props;
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
@@ -57,10 +103,17 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
 
   return (
     <div>
-      <div className="space-y-4">
-        <div className="border-subtle space-y-6 rounded-lg border p-6">
+      <div className={classNames("space-y-4", customClassNames?.eventSetupWrapper)}>
+        <div
+          className={classNames(
+            "border-subtle space-y-6 rounded-lg border p-6",
+            customClassNames?.eventSetupTitleSectionWrapper
+          )}>
           <TextField
             required
+            containerClassName={classNames(customClassNames?.eventTitleClassnames?.containerClassName)}
+            labelClassName={classNames(customClassNames?.eventTitleClassnames?.labelClassName)}
+            className={classNames(customClassNames?.eventTitleClassnames?.inputClassName)}
             label={t("title")}
             {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
             defaultValue={eventType.title}
@@ -101,6 +154,9 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
+            containerClassName={classNames(customClassNames?.eventUrlClassnames?.containerClassName)}
+            labelClassName={classNames(customClassNames?.eventUrlClassnames?.labelClassName)}
+            className={classNames(customClassNames?.eventUrlClassnames?.inputClassName)}
             addOnLeading={
               isPlatform ? undefined : (
                 <>
@@ -121,9 +177,20 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
         </div>
         <div className="border-subtle rounded-lg border p-6">
           {multipleDuration ? (
-            <div className="space-y-6">
+            <div
+              className={classNames(
+                "space-y-6",
+                customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                  ?.availableDurationsClassnames?.containerClassName
+              )}>
               <div>
-                <Skeleton as={Label} loadingClassName="w-16">
+                <Skeleton
+                  as={Label}
+                  loadingClassName="w-16"
+                  className={classNames(
+                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                      ?.availableDurationsClassnames?.labelClassName
+                  )}>
                   {t("available_durations")}
                 </Skeleton>
                 <Select
@@ -132,7 +199,15 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   name="metadata.multipleDuration"
                   isSearchable={false}
                   isDisabled={lengthLockedProps.disabled}
-                  className="h-auto !min-h-[36px] text-sm"
+                  className={classNames(
+                    "h-auto !min-h-[36px] text-sm",
+                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                      ?.availableDurationsClassnames?.selectClassName
+                  )}
+                  innerClassNames={
+                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                      ?.availableDurationsClassnames?.selectInnerClassNames
+                  }
                   options={multipleDurationOptions}
                   value={selectedMultipleDuration}
                   onChange={(options) => {
@@ -159,8 +234,18 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   }}
                 />
               </div>
-              <div>
-                <Skeleton as={Label} loadingClassName="w-16">
+              <div
+                className={classNames(
+                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                    ?.defaultDurationClassnames?.containerClassName
+                )}>
+                <Skeleton
+                  as={Label}
+                  loadingClassName="w-16"
+                  className={classNames(
+                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                      ?.defaultDurationClassnames?.labelClassName
+                  )}>
                   {t("default_duration")}
                   {shouldLockIndicator("length")}
                 </Skeleton>
@@ -168,7 +253,15 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   value={defaultDuration}
                   isSearchable={false}
                   name="length"
-                  className="text-sm"
+                  className={classNames(
+                    "text-sm",
+                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                      ?.defaultDurationClassnames?.selectClassName
+                  )}
+                  innerClassNames={
+                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
+                      ?.defaultDurationClassnames?.selectInnerClassNames
+                  }
                   isDisabled={lengthLockedProps.disabled}
                   noOptionsMessage={() => t("default_duration_no_options")}
                   options={selectedMultipleDuration}
@@ -185,6 +278,9 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
             <TextField
               required
               type="number"
+              containerClassName={classNames(customClassNames?.eventTitleClassnames?.containerClassName)}
+              labelClassName={classNames(customClassNames?.eventTitleClassnames?.labelClassName)}
+              className={classNames(customClassNames?.eventTitleClassnames?.inputClassName)}
               data-testid="duration"
               {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
               label={t("duration")}
@@ -201,6 +297,22 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 checked={multipleDuration !== undefined}
                 disabled={seatsEnabled}
                 tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
+                labelClassName={
+                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
+                    ?.labelClassName
+                }
+                descriptionClassName={
+                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
+                    ?.descriptionClassName
+                }
+                switchContainerClassName={
+                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
+                    ?.switchContainerClassName
+                }
+                childrenClassName={
+                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
+                    ?.labelClassName
+                }
                 onCheckedChange={() => {
                   if (multipleDuration !== undefined) {
                     setMultipleDuration(undefined);
@@ -240,6 +352,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
                   control={formMethods.control as unknown as Control<LocationFormValues>}
                   formState={formMethods.formState as unknown as FormState<LocationFormValues>}
+                  customClassNames={customClassNames?.locationClassnames}
                   {...props}
                 />
               )}

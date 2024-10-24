@@ -11,8 +11,12 @@ import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locati
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
-import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
+import type {
+  locationSelectCustomClassnames,
+  SingleValueLocationOption,
+} from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
+import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Input, PhoneInput, Button, showToast } from "@calcom/ui";
@@ -21,6 +25,22 @@ export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locatio
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
+
+type LocationInputCustomClassnames = {
+  organizerAddressInputClassname?: string;
+  organizerPhoneInputClassName?: string;
+};
+
+export type LocationCustomClassNames = {
+  locationSelectClassnames: locationSelectCustomClassnames;
+  removeLocationButton?: string;
+  removeLocationIcon?: string;
+  addLocationButton?: string;
+  organizerInputClassnames?: {
+    organizerInputError?: string;
+    locationInputClassnames?: LocationInputCustomClassnames;
+  };
+};
 
 type LocationsProps = {
   team: { id: number } | null;
@@ -36,6 +56,7 @@ type LocationsProps = {
   eventType: TEventTypeLocation;
   locationOptions: TLocationOptions;
   prefillLocation?: SingleValueLocationOption;
+  customClassnames?: LocationCustomClassNames;
 };
 
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
@@ -84,6 +105,7 @@ const Locations: React.FC<LocationsProps> = ({
   team,
   eventType,
   prefillLocation,
+  customClassnames,
   ...props
 }) => {
   const { t } = useLocale();
@@ -135,8 +157,9 @@ const Locations: React.FC<LocationsProps> = ({
     eventLocationType: EventLocationType;
     defaultValue?: string;
     index: number;
+    customClassnames?: LocationInputCustomClassnames;
   }) => {
-    const { eventLocationType, index, ...remainingProps } = props;
+    const { eventLocationType, index, customClassnames, ...remainingProps } = props;
     if (eventLocationType?.organizerInputType === "text") {
       const { defaultValue, ...rest } = remainingProps;
 
@@ -154,7 +177,7 @@ const Locations: React.FC<LocationsProps> = ({
                 onChange={onChange}
                 value={value}
                 {...(disableLocationProp ? { disabled: true } : {})}
-                className="my-0"
+                className={classNames("my-0", customClassnames?.organizerAddressInputClassname)}
                 {...rest}
               />
             );
@@ -175,6 +198,7 @@ const Locations: React.FC<LocationsProps> = ({
                 disabled={disableLocationProp}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                 name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                className={customClassnames?.organizerPhoneInputClassName}
                 value={value}
                 onChange={onChange}
                 {...rest}
@@ -230,7 +254,11 @@ const Locations: React.FC<LocationsProps> = ({
                   isDisabled={disableLocationProp}
                   defaultValue={option}
                   isSearchable={false}
-                  className="block min-w-0 flex-1 rounded-sm text-sm"
+                  className={classNames(
+                    "block min-w-0 flex-1 rounded-sm text-sm",
+                    customClassnames?.locationSelectClassnames?.locationSelectWrapper
+                  )}
+                  customClassnames={customClassnames?.locationSelectClassnames}
                   menuPlacement="auto"
                   onChange={(e: SingleValueLocationOption) => {
                     setShowEmptyLocationSelect(false);
@@ -275,12 +303,18 @@ const Locations: React.FC<LocationsProps> = ({
                 {!(disableLocationProp && isChildrenManagedEventType) && (
                   <button
                     data-testid={`delete-locations.${index}.type`}
-                    className="min-h-9 block h-9 px-2"
+                    className={classNames("min-h-9 block h-9 px-2", customClassnames?.removeLocationButton)}
                     type="button"
                     onClick={() => remove(index)}
                     aria-label={t("remove")}>
                     <div className="h-4 w-4">
-                      <Icon name="x" className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
+                      <Icon
+                        name="x"
+                        className={classNames(
+                          "border-l-1 hover:text-emphasis text-subtle h-4 w-4",
+                          customClassnames?.removeLocationIcon
+                        )}
+                      />
                     </div>
                   </button>
                 )}
@@ -302,12 +336,16 @@ const Locations: React.FC<LocationsProps> = ({
                         }
                         eventLocationType={eventLocationType}
                         index={index}
+                        customClassnames={customClassnames?.organizerInputClassnames?.locationInputClassnames}
                       />
                     </div>
                     <ErrorMessage
                       errors={formState.errors?.locations?.[index]}
                       name={eventLocationType.defaultValueVariable}
-                      className="text-error my-1 ml-6 text-sm"
+                      className={classNames(
+                        "text-error my-1 ml-6 text-sm",
+                        customClassnames?.organizerInputClassnames?.organizerInputError
+                      )}
                       as="div"
                       id="location-error"
                     />
@@ -344,7 +382,11 @@ const Locations: React.FC<LocationsProps> = ({
               isDisabled={disableLocationProp}
               defaultValue={defaultValue}
               isSearchable={false}
-              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+              className={classNames(
+                "block w-full min-w-0 flex-1 rounded-sm text-sm",
+                customClassnames?.locationSelectClassnames.locationSelectWrapper
+              )}
+              customClassnames={customClassnames?.locationSelectClassnames}
               menuPlacement="auto"
               onChange={(e: SingleValueLocationOption) => {
                 setShowEmptyLocationSelect(false);
@@ -413,6 +455,7 @@ const Locations: React.FC<LocationsProps> = ({
               StartIcon="plus"
               color="minimal"
               disabled={seatsEnabled}
+              className={classNames(customClassnames?.addLocationButton)}
               tooltip={seatsEnabled ? t("seats_option_doesnt_support_multi_location") : undefined}
               onClick={() => setShowEmptyLocationSelect(true)}>
               {t("add_location")}
