@@ -136,10 +136,10 @@ export default function Shell(props: LayoutProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady: _isLocaleReady, t } = useLocale();
+  const { isLocaleReady, t } = useLocale();
 
   const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
-  const isLocaleReady = true;
+
   return (
     <>
       {(props.heading || !!props.backPath) && (
