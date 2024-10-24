@@ -2,10 +2,12 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ClipboardEvent } from "react";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
+import FormFieldIdentifier from "@calcom/features/form-builder/FormFieldIdentifier";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -78,6 +80,7 @@ function Field({
 }) {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+  const [isEditing, setIsEditing] = useState(false);
   const watchedOptions =
     useWatch({
       control: hookForm.control,
@@ -208,22 +211,6 @@ function Field({
               {...hookForm.register(`${hookFieldNamespace}.label`)}
             />
           </div>
-          <div className="mb-6 w-full">
-            <TextField
-              disabled={!!router}
-              label="Identifier"
-              name={`${hookFieldNamespace}.identifier`}
-              required
-              placeholder={t("identifies_name_field")}
-              //This change has the same effects that already existed in relation to this field,
-              // but written in a different way.
-              // The identifier field will have the same value as the label field until it is changed
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
-              onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value);
-              }}
-            />
-          </div>
           <div className="mb-6 w-full ">
             <Controller
               name={`${hookFieldNamespace}.type`}
@@ -351,6 +338,26 @@ function Field({
                 );
               }}
             />
+          </div>
+          <div className="mt-6 w-full">
+            {!isEditing ? (
+              <FormFieldIdentifier fieldIdentifier={identifier || label} setIsEditing={setIsEditing} />
+            ) : (
+              <TextField
+                disabled={!!router}
+                label="Identifier"
+                name={`${hookFieldNamespace}.identifier`}
+                required
+                placeholder={t("identifies_name_field")}
+                //This change has the same effects that already existed in relation to this field,
+                // but written in a different way.
+                // The identifier field will have the same value as the label field until it is changed
+                value={identifier || routerField?.identifier || label || routerField?.label || ""}
+                onChange={(e) => {
+                  hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value);
+                }}
+              />
+            )}
           </div>
         </div>
       </FormCard>
