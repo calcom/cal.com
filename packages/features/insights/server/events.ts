@@ -207,39 +207,48 @@ class EventsInsights {
       where: whereConditional,
     });
 
-    const csvDataWithBookerInfo = await Promise.all(
-      csvData.map(async (bookingTimeStatus) => {
-        if (!bookingTimeStatus.uid) {
-          return bookingTimeStatus;
-        }
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
 
-        const booking = await prisma.booking.findUnique({
-          where: { uid: bookingTimeStatus.uid },
+    if (uids.length === 0) {
+      return csvData;
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
           select: {
-            attendees: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
+            name: true,
+            email: true,
           },
-        });
+        },
+      },
+    });
+    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
 
-        if (!booking || !booking.attendees.length) {
-          return bookingTimeStatus;
-        }
-        const { attendees } = booking;
-        const booker = attendees[0];
+    return csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        return bookingTimeStatus;
+      }
 
-        return {
-          ...bookingTimeStatus,
-          bookerEmail: booker.email,
-          bookerName: booker.name,
-        };
-      })
-    );
+      const booker = bookingMap.get(bookingTimeStatus.uid);
 
-    return csvDataWithBookerInfo;
+      if (!booker) {
+        return bookingTimeStatus;
+      }
+
+      return {
+        ...bookingTimeStatus,
+        bookerEmail: booker.email,
+        bookerName: booker.name,
+      };
+    });
   };
 
   /*
