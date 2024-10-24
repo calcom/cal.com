@@ -36,7 +36,17 @@ const getGoogleCalendarCredential = async (destinationCalendar: DestinationCalen
       where: {
         id: destinationCalendar.credentialId,
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        userId: true,
+        teamId: true,
+        subscriptionId: true,
+        billingCycleStart: true,
+        appId: true,
+        paymentStatus: true,
+        invalid: true,
         user: {
           select: {
             email: true,
@@ -193,7 +203,10 @@ export const prepareNoShowTrigger = async (
 
   const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
 
-  if (!!dailyVideoReference && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
+  if (
+    !!dailyVideoReference &&
+    (booking.location === DailyLocationType || booking.location?.trim() === "" || !booking.location)
+  ) {
     const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
 
     const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
