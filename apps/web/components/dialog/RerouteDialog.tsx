@@ -696,10 +696,13 @@ const RerouteDialogContentAndFooter = ({
 }: Pick<RerouteDialogProps, "isOpenDialog" | "setIsOpenDialog"> & {
   booking: TeamEventTypeBookingToReroute;
 }) => {
-  const { data: responseWithForm, isPending: isRoutingFormLoading, error: formResponseFetchError } =
-    trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
-      formResponseId: booking.routedFromRoutingFormReponse.id,
-    });
+  const {
+    data: responseWithForm,
+    isPending: isRoutingFormLoading,
+    error: formResponseFetchError,
+  } = trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
+    formResponseId: booking.routedFromRoutingFormReponse.id,
+  });
 
   const { t } = useLocale();
 
