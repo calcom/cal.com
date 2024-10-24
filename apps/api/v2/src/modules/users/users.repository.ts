@@ -4,6 +4,7 @@ import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-us
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { Profile, User, Team } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -246,6 +247,48 @@ export class UsersRepository {
       },
 
       where: { id: userId },
+    });
+  }
+
+  async getUserAdminTeams(userId?: number) {
+    return await this.dbRead.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        username: true,
+        teams: {
+          where: {
+            accepted: true,
+            OR: [
+              {
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+              {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        id: userId,
+                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          select: {
+            team: {
+              select: {
+                id: true,
+                isOrganization: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }
