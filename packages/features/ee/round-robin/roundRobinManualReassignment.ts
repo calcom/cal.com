@@ -343,29 +343,12 @@ async function handleWorkflowsUpdate({
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
   orgId: number | null;
 }) {
-  const select = {
-    id: true,
-    referenceId: true,
-    workflowStep: {
-      select: {
-        template: true,
-        workflow: {
-          select: {
-            trigger: true,
-            time: true,
-            timeUnit: true,
-          },
-        },
-      },
-    },
-  };
-
   const workflowRemindersHost = await prisma.workflowReminder.findMany({
     where: {
       bookingUid: booking.uid,
       method: WorkflowMethods.EMAIL,
+      scheduled: true,
       workflowStep: {
-        action: WorkflowActions.EMAIL_HOST,
         workflow: {
           trigger: {
             in: [
@@ -377,7 +360,22 @@ async function handleWorkflowsUpdate({
         },
       },
     },
-    select,
+    select: {
+      id: true,
+      referenceId: true,
+      workflowStep: {
+        select: {
+          template: true,
+          workflow: {
+            select: {
+              trigger: true,
+              time: true,
+              timeUnit: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   const scheduledWorkflowRemindersAttendee = await prisma.workflowReminder.findMany({
@@ -386,7 +384,9 @@ async function handleWorkflowsUpdate({
       method: WorkflowMethods.EMAIL,
       scheduled: true,
       workflowStep: {
-        action: WorkflowActions.EMAIL_ATTENDEE,
+        action: {
+          in: [WorkflowActions.EMAIL_ADDRESS, WorkflowActions.EMAIL_HOST],
+        },
         workflow: {
           trigger: {
             in: [

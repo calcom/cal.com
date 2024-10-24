@@ -382,12 +382,12 @@ export const roundRobinReassignment = async ({
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
-    const workflowReminders = await prisma.workflowReminder.findMany({
+    const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
+        scheduled: true,
         workflowStep: {
-          action: WorkflowActions.EMAIL_HOST,
           workflow: {
             trigger: {
               in: [
@@ -421,7 +421,7 @@ export const roundRobinReassignment = async ({
 
     const bookerUrl = await getBookerBaseUrl(orgId);
 
-    for (const workflowReminder of workflowReminders) {
+    for (const workflowReminder of scheduledWorkflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
 
