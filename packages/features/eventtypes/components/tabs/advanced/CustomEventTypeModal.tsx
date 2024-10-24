@@ -86,12 +86,12 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler}`}</p>
               <p className="text-emphasis">{t("scheduler_full_name")}</p>
             </div>
-            {isNameFieldSplit && (
-              <div className="mb-2.5 flex font-normal">
-                <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler first name}`}</p>
-                <p className="text-emphasis">{t("scheduler_first_name")}</p>
-              </div>
-            )}
+
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler first name}`}</p>
+              <p className="text-emphasis">{t("scheduler_first_name")}</p>
+            </div>
+
             {isNameFieldSplit && (
               <div className="mb-2.5 flex font-normal">
                 <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler last name}`}</p>
