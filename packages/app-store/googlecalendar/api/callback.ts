@@ -2,6 +2,8 @@ import type { Auth } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { handleWatchCalendar } from "@calcom/features/calendar-cache/lib/handleWatchCalendar";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -10,11 +12,26 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import { getCalendar } from "../../_utils/getCalendar";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
+
+async function getWatchedCalendar(credential: Parameters<typeof getCalendar>[0], externalId: string) {
+  const flags = await getFeatureFlagMap(prisma);
+  if (!flags["calendar-cache"]) {
+    logger.info(
+      '[getWatchedCalendar] Skipping watching calendar due to "calendar-cache" flag being disabled'
+    );
+    return;
+  }
+  const calendar = await getCalendar(credential);
+  if (!calendar) return;
+  return handleWatchCalendar(calendar, externalId);
+}
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -96,6 +113,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         userId: req.session.user.id,
         appId: "google-calendar",
       },
+      select: credentialForCalendarServiceSelect,
     });
 
     // If we still don't have a primary calendar skip creating the selected calendar.
@@ -117,9 +135,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
+      const watchedCalendar = await getWatchedCalendar(credential, primaryCal.id);
       await prisma.selectedCalendar.create({
         data: {
           credentialId: credential.id,
+          integration: "google_calendar",
+          googleChannelId: watchedCalendar?.id,
+          googleChannelKind: watchedCalendar?.kind,
+          googleChannelResourceId: watchedCalendar?.resourceId,
+          googleChannelResourceUri: watchedCalendar?.resourceUri,
+          googleChannelExpiration: watchedCalendar?.expiration,
           ...selectedCalendarWhereUnique,
         },
       });
