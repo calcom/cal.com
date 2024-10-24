@@ -353,7 +353,48 @@ class EventsInsights {
       where: whereConditional,
     });
 
-    return csvData;
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
+
+    if (uids.length === 0) {
+      return csvData;
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
+
+    return csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        return bookingTimeStatus;
+      }
+
+      const booker = bookingMap.get(bookingTimeStatus.uid);
+
+      if (!booker) {
+        return bookingTimeStatus;
+      }
+
+      return {
+        ...bookingTimeStatus,
+        bookerEmail: booker.email,
+        bookerName: booker.name,
+      };
+    });
   };
 
   /*

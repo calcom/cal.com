@@ -65,6 +65,7 @@ import OrganizerDailyVideoDownloadRecordingEmail from "./templates/organizer-dai
 import OrganizerDailyVideoDownloadTranscriptEmail from "./templates/organizer-daily-video-download-transcript-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
+import OrganizerReassignedEmail from "./templates/organizer-reassigned-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
 import OrganizerRequestReminderEmail from "./templates/organizer-request-reminder-email";
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
@@ -191,7 +192,8 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
 export const sendRoundRobinCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   members: Person[],
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  reassignedTo?: { name: string | null; email: string }
 ) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
@@ -199,9 +201,16 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
 
   for (const teamMember of members) {
-    emailsAndSMSToSend.push(
-      sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
-    );
+    if (!reassignedTo) {
+      emailsAndSMSToSend.push(
+        sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
+      );
+    } else {
+      emailsAndSMSToSend.push(
+        sendEmail(() => new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassignedTo }))
+      );
+    }
+
     if (teamMember.phoneNumber) {
       emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));
     }
