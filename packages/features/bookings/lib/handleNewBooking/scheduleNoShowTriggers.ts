@@ -1,3 +1,6 @@
+import type { DestinationCalendar } from "@prisma/client";
+
+import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -7,27 +10,56 @@ type ScheduleNoShowTriggersArgs = {
   booking: {
     startTime: Date;
     id: number;
+    location: string | null;
   };
   triggerForUser?: number | true | null;
   organizerUser: { id: number | null };
   eventTypeId: number | null;
   teamId?: number | null;
   orgId?: number | null;
+  destinationCalendars?: DestinationCalendar[] | null;
 };
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
-  const { booking, triggerForUser, organizerUser, eventTypeId, teamId, orgId } = args;
+  const { booking, triggerForUser, organizerUser, eventTypeId, teamId, orgId, destinationCalendars } = args;
 
-  // Add task for automatic no show in cal video
+  const isDailyVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
+  const isGoogleMeetLocation = booking.location === "integrations:google:meet";
+
+  if (!isGoogleMeetLocation && !isDailyVideoLocation) return;
+
   const noShowPromises: Promise<any>[] = [];
 
-  const subscribersHostsNoShowStarted = await getWebhooks({
+  const hostNoShowTriggerEvent = isDailyVideoLocation
+    ? WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+    : WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW;
+
+  const guestNoShowTriggerEvent = isDailyVideoLocation
+    ? WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    : WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW;
+
+  const subscribersHostsNoShowStartedPromises = getWebhooks({
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+    triggerEvent: hostNoShowTriggerEvent,
     teamId,
     orgId,
   });
+  const subscribersGuestsNoShowStartedPromises = getWebhooks({
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: guestNoShowTriggerEvent,
+    teamId,
+    orgId,
+  });
+
+  const [subscribersHostsNoShowStarted, subscribersGuestsNoShowStarted] = await Promise.all([
+    subscribersHostsNoShowStartedPromises,
+    subscribersGuestsNoShowStartedPromises,
+  ]);
+
+  // TODO: is this correct?
+  const destinationCalendar = destinationCalendars?.find((cal) => cal.userId === organizerUser.id);
 
   noShowPromises.push(
     ...subscribersHostsNoShowStarted.map((webhook) => {
@@ -38,10 +70,11 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
         return tasker.create(
           "triggerHostNoShowWebhook",
           {
-            triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+            triggerEvent: hostNoShowTriggerEvent,
             bookingId: booking.id,
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+            destinationCalendar,
           },
           { scheduledAt }
         );
@@ -49,14 +82,6 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
       return Promise.resolve();
     })
   );
-
-  const subscribersGuestsNoShowStarted = await getWebhooks({
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-    teamId,
-    orgId,
-  });
 
   noShowPromises.push(
     ...subscribersGuestsNoShowStarted.map((webhook) => {
@@ -68,10 +93,11 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
         return tasker.create(
           "triggerGuestNoShowWebhook",
           {
-            triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+            triggerEvent: guestNoShowTriggerEvent,
             bookingId: booking.id,
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+            destinationCalendar,
           },
           { scheduledAt }
         );

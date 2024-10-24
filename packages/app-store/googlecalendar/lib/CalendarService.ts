@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { protos } from "@google-apps/meet";
+import { ConferenceRecordsServiceClient, SpacesServiceClient } from "@google-apps/meet";
 import type { Prisma } from "@prisma/client";
+import { GoogleAuth, OAuth2Client } from "google-auth-library";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
@@ -40,6 +43,10 @@ import { getGoogleAppKeys } from "./getGoogleAppKeys";
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 interface GoogleCalError extends Error {
   code?: number;
+}
+
+export interface ParticipantWithEmail extends protos.google.apps.meet.v2.IParticipant {
+  email?: string;
 }
 
 const ONE_MINUTE_MS = 60 * 1000;
@@ -334,6 +341,7 @@ export default class GoogleCalendarService implements Calendar {
           conferenceDataVersion: 1,
           sendUpdates: "none",
         });
+
         event = eventResponse.data;
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
@@ -663,6 +671,86 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  async getMeetParticipants(videoCallUrl: string | null): Promise<ParticipantWithEmail[][]> {
+    const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
+    if (!token) {
+      throw new Error("Invalid grant for Google Calendar app");
+    }
+
+    const googleAuth = new GoogleAuth({
+      authClient: new OAuth2Client({
+        credentials: {
+          access_token: token.access_token,
+        },
+      }),
+    });
+
+    const meetClient = new ConferenceRecordsServiceClient({
+      auth: googleAuth as ConferenceRecordsServiceClient["auth"],
+    });
+
+    const spacesClient = new SpacesServiceClient({
+      auth: googleAuth as SpacesServiceClient["auth"],
+    });
+
+    const meetingCode = videoCallUrl ? new URL(videoCallUrl).pathname.split("/").pop() : null;
+
+    const spaceInfo = await spacesClient.getSpace({ name: `spaces/${meetingCode}` });
+    const spaceName = spaceInfo[0].name;
+
+    const conferenceRecords = [];
+    for await (const response of meetClient.listConferenceRecordsAsync()) {
+      if (response.space === spaceName) {
+        conferenceRecords.push(response);
+      }
+    }
+
+    const participantsByConferenceRecord = await Promise.all(
+      conferenceRecords.map(async (conferenceRecord) => {
+        const participants = [];
+        for await (const participant of meetClient.listParticipantsAsync({ parent: conferenceRecord.name })) {
+          participants.push(participant);
+        }
+        return participants;
+      })
+    );
+
+    const participantsWithEmails = await Promise.all(
+      participantsByConferenceRecord.map(async (participants) => {
+        return Promise.all(
+          participants.map(async (participant) => {
+            try {
+              const response = await fetch(
+                `https://people.googleapis.com/v1/people/${
+                  participant.signedinUser?.user?.split("/")[1]
+                }?personFields=emailAddresses`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token.access_token}`,
+                    Accept: "application/json",
+                  },
+                }
+              );
+
+              const data = await response.json();
+              const emailAddresses = data.emailAddresses;
+
+              return {
+                ...participant,
+                email: emailAddresses ? emailAddresses[0].value : undefined,
+              };
+            } catch (err) {
+              console.error("Error fetching email for participant:", err);
+              return participant;
+            }
+          })
+        );
+      })
+    );
+
+    return participantsWithEmails;
+  }
+
   async listCalendars(): Promise<IntegrationCalendar[]> {
     this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
@@ -693,7 +781,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 }
 
-class MyGoogleAuth extends google.auth.OAuth2 {
+export class MyGoogleAuth extends google.auth.OAuth2 {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
     super(client_id, client_secret, redirect_uri);
   }

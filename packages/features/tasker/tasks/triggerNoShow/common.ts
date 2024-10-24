@@ -1,13 +1,19 @@
+import type { protos } from "@google-apps/meet";
+
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { prisma } from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TWebhook, TTriggerNoShowPayloadSchema, TSendNoShowWebhookPayloadSchema } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 export type Host = {
@@ -15,9 +21,87 @@ export type Host = {
   email: string;
 };
 
+interface ParticipantWithEmail extends protos.google.apps.meet.v2.IParticipant {
+  email?: string;
+}
+
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
+export type DestinationCalendar = TSendNoShowWebhookPayloadSchema["destinationCalendar"];
+
+const getGoogleCalendarCredential = async (destinationCalendar: DestinationCalendar) => {
+  if (destinationCalendar?.credentialId) {
+    const credential = await prisma.credential.findUnique({
+      where: {
+        id: destinationCalendar.credentialId,
+      },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        userId: true,
+        teamId: true,
+        subscriptionId: true,
+        billingCycleStart: true,
+        appId: true,
+        paymentStatus: true,
+        invalid: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (credential) {
+      return credential;
+    }
+  }
+
+  // If for some reason credentialId is deleted, we find the destinationCalendar by userId and externalId
+  const destinationCalendars = await prisma.destinationCalendar.findMany({
+    where: {
+      integration: "google_calendar",
+      userId: destinationCalendar?.userId,
+      externalId: destinationCalendar?.externalId,
+    },
+    select: {
+      credentialId: true,
+    },
+  });
+
+  if (!destinationCalendars.length) {
+    return null;
+  }
+
+  if (!destinationCalendars?.[0]?.credentialId) {
+    return null;
+  }
+
+  const newCredential = await prisma.credential.findUnique({
+    where: {
+      id: destinationCalendars[0].credentialId,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+      userId: true,
+      teamId: true,
+      appId: true,
+      invalid: true,
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  return newCredential;
+};
 
 export function getHosts(booking: Booking): Host[] {
   const hostMap = new Map<number, Host>();
@@ -105,13 +189,16 @@ export const prepareNoShowTrigger = async (
   hostsThatDidntJoinTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  triggerEvent: WebhookTriggerEvents;
 } | void> => {
-  const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const { bookingId, webhook, destinationCalendar, triggerEvent } = ZSendNoShowWebhookPayloadSchema.parse(
+    JSON.parse(payload)
+  );
 
   const booking = await getBooking(bookingId);
 
   if (booking.status !== BookingStatus.ACCEPTED) {
-    log.debug(
+    log.info(
       "Booking is not accepted",
       safeStringify({
         bookingId,
@@ -122,32 +209,84 @@ export const prepareNoShowTrigger = async (
     return;
   }
 
+  const hosts = getHosts(booking);
+
   const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
 
-  if (!dailyVideoReference) {
+  if (
+    !!dailyVideoReference &&
+    (booking.location === DailyLocationType || booking.location?.trim() === "" || !booking.location)
+  ) {
+    const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
+
+    const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
+
+    const hostsThatDidntJoinTheCall = hosts.filter(
+      (host) => !checkIfUserJoinedTheCall(host.id, allParticipants)
+    );
+
+    const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
+
+    const didGuestJoinTheCall = meetingDetails.data.some(
+      (meeting) => meeting.max_participants < numberOfHostsThatJoined
+    );
+
+    return {
+      hostsThatDidntJoinTheCall,
+      booking,
+      numberOfHostsThatJoined,
+      webhook,
+      didGuestJoinTheCall,
+      triggerEvent,
+    };
+  } else if (booking.location === "integrations:google:meet") {
+    const googleCalendarCredentials = await getGoogleCalendarCredential(destinationCalendar);
+    if (!googleCalendarCredentials) {
+      log.error(
+        "No google calendar credentials found",
+        safeStringify({
+          bookingId,
+          webhook: { id: webhook.id },
+          destinationCalendar,
+        })
+      );
+      return;
+    }
+
+    const calendar = await getCalendar(googleCalendarCredentials);
+    const videoCallUrl = bookingMetadataSchema.parse(booking.metadata ?? null)?.videoCallUrl ?? null;
+    const allParticipantGroups = (await calendar?.getMeetParticipants?.(videoCallUrl)) ?? [];
+
+    const allParticipants: ParticipantWithEmail[] = allParticipantGroups.flat();
+
+    const hostsThatDidntJoinTheCall = hosts.filter(
+      (host) => !allParticipants?.some((participant) => participant.email === host.email)
+    );
+
+    const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
+
+    const maxParticipants = allParticipantGroups.reduce((max, participantGroup) => {
+      return Math.max(max, participantGroup.length);
+    }, 0);
+
+    const didGuestJoinTheCall = maxParticipants < numberOfHostsThatJoined;
+
+    return {
+      hostsThatDidntJoinTheCall,
+      booking,
+      numberOfHostsThatJoined,
+      webhook,
+      didGuestJoinTheCall,
+      triggerEvent,
+    };
+  } else {
     log.error(
-      "Daily video reference not found",
+      "No valid location found in triggerNoShowWebhook",
       safeStringify({
         bookingId,
         webhook: { id: webhook.id },
       })
     );
-    throw new Error(`Daily video reference not found in triggerHostNoShow with bookingId ${bookingId}`);
+    throw new Error(`No valid location found in triggerNoShowWebhook with bookingId ${bookingId}`);
   }
-  const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
-
-  const hosts = getHosts(booking);
-  const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
-
-  const hostsThatDidntJoinTheCall = hosts.filter(
-    (host) => !checkIfUserJoinedTheCall(host.id, allParticipants)
-  );
-
-  const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
-
-  const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants < numberOfHostsThatJoined
-  );
-
-  return { hostsThatDidntJoinTheCall, booking, numberOfHostsThatJoined, webhook, didGuestJoinTheCall };
 };

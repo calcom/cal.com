@@ -7,6 +7,8 @@ const commonSchema = z.object({
   triggerEvent: z.enum([
     WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+    WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW,
+    WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW,
   ]),
   bookingId: z.number(),
 });
@@ -48,10 +50,23 @@ export const triggerNoShowPayloadSchema = z.object({
   ),
 });
 
+const ZDestinationCalendar = z
+  .object({
+    id: z.number(),
+    integration: z.string(),
+    externalId: z.string(),
+    primaryEmail: z.string().nullable(),
+    credentialId: z.number().nullable(),
+    userId: z.number().nullable(),
+  })
+  .passthrough()
+  .optional();
+
 export type TTriggerNoShowPayloadSchema = z.infer<typeof triggerNoShowPayloadSchema>;
 
 export const ZSendNoShowWebhookPayloadSchema = commonSchema.extend({
   webhook: ZWebhook,
+  destinationCalendar: ZDestinationCalendar,
 });
 
 export type TSendNoShowWebhookPayloadSchema = z.infer<typeof ZSendNoShowWebhookPayloadSchema>;

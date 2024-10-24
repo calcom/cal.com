@@ -1,3 +1,4 @@
+import type { protos } from "@google-apps/meet";
 import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
@@ -13,6 +14,10 @@ import type { Frequency } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
+
+interface ParticipantWithEmail extends protos.google.apps.meet.v2.IParticipant {
+  email?: string;
+}
 
 export type { VideoCallData } from "./VideoApiAdapter";
 
@@ -260,6 +265,8 @@ export interface Calendar {
   ): Promise<EventBusyDate[]>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
+
+  getMeetParticipants?(videoCallUrl: string | null): Promise<ParticipantWithEmail[][]>;
 }
 
 /**

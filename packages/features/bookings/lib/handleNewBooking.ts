@@ -12,7 +12,6 @@ import {
   OrganizerDefaultConferencingAppType,
   getLocationValueForDB,
 } from "@calcom/app-store/locations";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -1249,6 +1248,7 @@ async function handler(
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
+    console.log("createManager", JSON.stringify(createManager));
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -1647,17 +1647,19 @@ async function handler(
   }
 
   try {
-    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
+    if (isConfirmedByDefault) {
       await scheduleNoShowTriggers({
-        booking: { startTime: booking.startTime, id: booking.id },
+        booking: { startTime: booking.startTime, id: booking.id, location: booking.location },
         triggerForUser,
         organizerUser: { id: organizerUser.id },
         eventTypeId,
         teamId,
         orgId,
+        destinationCalendars: evt.destinationCalendar,
       });
     }
   } catch (error) {
+    console.log("error", error);
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
