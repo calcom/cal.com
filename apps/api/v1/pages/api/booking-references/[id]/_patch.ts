@@ -60,12 +60,12 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { query, body, isAdmin, userId } = req;
+  const { query, body, isSystemWideAdmin, userId } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaBookingEditBodyParams.parse(body);
   /* If user tries to update bookingId, we run extra checks */
   if (data.bookingId) {
-    const args: Prisma.BookingFindFirstOrThrowArgs = isAdmin
+    const args: Prisma.BookingFindFirstOrThrowArgs = isSystemWideAdmin
       ? /* If admin, we only check that the booking exists */
         { where: { id: data.bookingId } }
       : /* For non-admins we make sure the booking belongs to the user */

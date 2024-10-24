@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
@@ -30,7 +31,7 @@ enum locales {
   RO = "ro",
   NL = "nl",
   PT_BR = "pt-BR",
-  // ES_419 = "es-419", // Disabled until Crowdin reaches at least 80% completion
+  ES_419 = "es-419",
   KO = "ko",
   JA = "ja",
   PL = "pl",
@@ -82,7 +83,6 @@ export const schemaUserBaseBodyParams = User.pick({
   brandColor: true,
   darkBrandColor: true,
   allowDynamicBooking: true,
-  away: true,
   role: true,
   // @note: disallowing avatar changes via API for now. We can add it later if needed. User should upload image via UI.
   // avatar: true,
@@ -93,7 +93,7 @@ export const schemaUserBaseBodyParams = User.pick({
 // Here we can both require or not (adding optional or nullish) and also rewrite validations for any value
 // for example making weekStart only accept weekdays as input
 const schemaUserEditParams = z.object({
-  email: z.string().email().toLowerCase(),
+  email: emailSchema.toLowerCase(),
   username: usernameSchema,
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
@@ -116,7 +116,7 @@ const schemaUserEditParams = z.object({
 // merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
 
 const schemaUserCreateParams = z.object({
-  email: z.string().email().toLowerCase(),
+  email: emailSchema.toLowerCase(),
   username: usernameSchema,
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
@@ -171,7 +171,6 @@ export const schemaUserReadPublic = User.pick({
   brandColor: true,
   darkBrandColor: true,
   allowDynamicBooking: true,
-  away: true,
   createdDate: true,
   verified: true,
   invitedTo: true,

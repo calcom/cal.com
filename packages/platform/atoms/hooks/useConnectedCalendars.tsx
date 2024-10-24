@@ -11,7 +11,7 @@ export const useConnectedCalendars = (props: { enabled?: boolean }) => {
   const calendars = useQuery({
     queryKey: [QUERY_KEY],
     queryFn: () => {
-      return http.get<ApiResponse<ConnectedDestinationCalendars>>("/ee/calendars").then((res) => {
+      return http.get<ApiResponse<ConnectedDestinationCalendars>>("/calendars").then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return (res.data as ApiSuccessResponse<ConnectedDestinationCalendars>)?.data;
         }

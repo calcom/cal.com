@@ -24,7 +24,7 @@ interface IRescheduleDialog {
 
 export const ChargeCardDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
   const [chargeError, setChargeError] = useState(false);
   const chargeCardMutation = trpc.viewer.payments.chargeCard.useMutation({

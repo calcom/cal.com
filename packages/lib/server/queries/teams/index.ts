@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { parseBookingLimit } from "@calcom/lib";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -11,7 +12,6 @@ import {
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
 
-import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
 import { UserRepository } from "../../repository/user";
@@ -23,7 +23,6 @@ export async function getTeamWithMembers(args: {
   slug?: string;
   userId?: number;
   orgSlug?: string | null;
-  includeTeamLogo?: boolean;
   isTeamView?: boolean;
   currentOrg?: Pick<Team, "id"> | null;
   /**
@@ -31,7 +30,7 @@ export async function getTeamWithMembers(args: {
    */
   isOrgView?: boolean;
 }) {
-  const { id, slug, currentOrg: _currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, currentOrg: _currentOrg, userId, orgSlug, isTeamView, isOrgView } = args;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
@@ -87,7 +86,6 @@ export async function getTeamWithMembers(args: {
       name: true,
       slug: true,
       isOrganization: true,
-      ...(!!includeTeamLogo ? { logo: true } : {}),
       logoUrl: true,
       bio: true,
       hideBranding: true,
@@ -101,8 +99,11 @@ export async function getTeamWithMembers(args: {
           name: true,
           isPrivate: true,
           isOrganization: true,
+          logoUrl: true,
+          metadata: true,
         },
       },
+      parentId: true,
       children: {
         select: {
           name: true,
@@ -129,6 +130,14 @@ export async function getTeamWithMembers(args: {
             not: SchedulingType.MANAGED,
           },
         },
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ] as Prisma.EventTypeOrderByWithRelationInput[],
         select: {
           hosts: {
             select: {
@@ -181,7 +190,6 @@ export async function getTeamWithMembers(args: {
             .filter((membership) => membership.team.id !== teamOrOrg.id)
             .map((membership) => membership.team.slug)
         : null,
-      avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
       bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
@@ -253,6 +261,107 @@ export async function getTeamWithMembers(args: {
   };
 }
 
+export async function getTeamWithoutMembers(args: {
+  id?: number;
+  slug?: string;
+  userId?: number;
+  orgSlug?: string | null;
+  /**
+   * If true, means that you are fetching an organization and not a team
+   */
+  isOrgView?: boolean;
+}) {
+  const { id, slug, userId, orgSlug, isOrgView } = args;
+
+  let lookupBy;
+
+  if (id) {
+    lookupBy = { id, havingMemberWithId: userId };
+  } else if (slug) {
+    lookupBy = { slug, havingMemberWithId: userId };
+  } else {
+    throw new Error("Must provide either id or slug");
+  }
+
+  const arg = {
+    lookupBy,
+    forOrgWithSlug: orgSlug ?? null,
+    isOrg: !!isOrgView,
+    teamSelect: {
+      id: true,
+      name: true,
+      slug: true,
+      isOrganization: true,
+      logoUrl: true,
+      bio: true,
+      hideBranding: true,
+      hideBookATeamMember: true,
+      isPrivate: true,
+      metadata: true,
+      bookingLimits: true,
+      includeManagedEventsInLimits: true,
+      parent: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          isPrivate: true,
+          isOrganization: true,
+          logoUrl: true,
+          metadata: true,
+        },
+      },
+      parentId: true,
+      children: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+      theme: true,
+      brandColor: true,
+      darkBrandColor: true,
+      inviteTokens: {
+        select: {
+          token: true,
+          expires: true,
+          expiresInDays: true,
+          identifier: true,
+        },
+      },
+    },
+  } as const;
+
+  const teamOrOrg = isOrgView ? await getOrg(arg) : await getTeam(arg);
+
+  if (!teamOrOrg) return null;
+
+  // Don't leak invite tokens to the frontend
+  const { inviteTokens, ...teamWithoutInviteTokens } = teamOrOrg;
+
+  // Don't leak stripe payment ids
+  const teamMetadata = teamOrOrg.metadata;
+  const {
+    paymentId: _,
+    subscriptionId: __,
+    subscriptionItemId: ___,
+    ...restTeamMetadata
+  } = teamMetadata || {};
+
+  return {
+    ...teamWithoutInviteTokens,
+    ...(teamWithoutInviteTokens.logoUrl ? { logo: teamWithoutInviteTokens.logoUrl } : {}),
+    /** To prevent breaking we only return non-email attached token here, if we have one */
+    inviteToken: inviteTokens.find(
+      (token) =>
+        token.identifier === `invite-link-for-teamId-${teamOrOrg.id}` &&
+        token.expires > new Date(new Date().setHours(24))
+    ),
+    metadata: restTeamMetadata,
+    bookingLimits: parseBookingLimit(teamOrOrg.bookingLimits),
+  };
+}
+
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
   const team = await prisma.membership.findFirst({
@@ -262,7 +371,15 @@ export async function isTeamAdmin(userId: number, teamId: number) {
       accepted: true,
       OR: [{ role: "ADMIN" }, { role: "OWNER" }],
     },
-    include: { team: true },
+    include: {
+      team: {
+        select: {
+          metadata: true,
+          parentId: true,
+          isOrganization: true,
+        },
+      },
+    },
   });
   if (!team) return false;
   return team;
@@ -331,6 +448,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
               bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
               durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+              eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
               onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {

@@ -4,7 +4,16 @@ import type { Slots } from "../use-schedule";
 
 export const getNonEmptyScheduleDays = (slots?: Slots) => {
   if (typeof slots === "undefined") return [];
-  return Object.keys(slots).filter((day) => slots[day].length > 0);
+
+  const nonEmptyDays: string[] = [];
+
+  Object.keys(slots).forEach((date) => {
+    if (slots[date].some((slot) => !(slot?.away && !slot.toUser) && slots[date].length > 0)) {
+      nonEmptyDays.push(date);
+    }
+  });
+
+  return nonEmptyDays;
 };
 
 export const useNonEmptyScheduleDays = (slots?: Slots) => {

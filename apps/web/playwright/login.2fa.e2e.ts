@@ -15,7 +15,7 @@ test.describe.configure({ mode: "parallel" });
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
 test.describe("2FA Tests", async () => {
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
   test("should allow a user to enable 2FA and login using 2FA", async ({ page, users }) => {
@@ -83,9 +83,6 @@ test.describe("2FA Tests", async () => {
         page.waitForResponse("**/api/auth/callback/credentials**"),
       ]);
       const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
-
-      // expects the home page for an authorized user
-      await page.goto("/");
       await expect(shellLocator).toBeVisible();
     });
   });

@@ -1,0 +1,25 @@
+{
+  "name": "Twipla",
+  "slug": "twipla",
+  "type": "twipla_analytics",
+  "logo": "icon.svg",
+  "url": "https://cal.com/",
+  "variant": "analytics",
+  "categories": ["analytics"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Twipla.com, formerly known as Visitor Analytics, is a website intelligence platform that helps you understand how visitors interact with your website.",
+  "extendsFeature": "EventType",
+  "appData": {
+    "tag": {
+      "scripts": [
+        {
+          "content": "(function(v, i, s, a, t) {\n  v[t] = v[t] || function() {\n    (v[t].v = v[t].v || []).push(arguments);\n  };\n  if (!v._visaSettings) {\n    v._visaSettings = {};\n  }\n  v._visaSettings[a] = {\n    v: '1.0',\n    s: a,\n    a: '1',\n    t: t\n  };\n  var b = i.getElementsByTagName('body')[0];\n  var p = i.createElement('script');\n  p.defer = 1;\n  p.async = 1;\n  p.src = s + '?s=' + a;\n  b.appendChild(p);\n})(window, document, '//app-worker.visitor-analytics.io/main.js', '{SITE_ID}', 'va');"
+        }
+      ]
+    }
+  },
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "booking-pages-tag"
+}

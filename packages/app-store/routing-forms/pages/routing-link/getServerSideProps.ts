@@ -15,7 +15,7 @@ export async function isAuthorizedToViewTheForm({
     metadata: Prisma.JsonValue;
     movedToProfileId: number | null;
     profile: {
-      organization: { slug: string | null } | null;
+      organization: { slug: string | null; requestedSlug: string | null } | null;
     };
     id: number;
   };
@@ -25,11 +25,12 @@ export async function isAuthorizedToViewTheForm({
     ...user,
     metadata: userMetadata.parse(user.metadata),
   };
+  const orgSlug = formUser.profile.organization?.slug ?? formUser.profile.organization?.requestedSlug ?? null;
 
   if (!currentOrgDomain) {
     // If not on org domain, let's allow serving any form belong to any organization so that even if the form owner is migrate to an organization, old links for the form keep working
     return true;
-  } else if (currentOrgDomain !== formUser.profile.organization?.slug) {
+  } else if (currentOrgDomain !== orgSlug) {
     // If on org domain,
     // We don't serve the form that is of another org
     // We don't serve the form that doesn't belong to any org
@@ -57,6 +58,9 @@ export const getServerSideProps = async function getServerSideProps(
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const isEmbed = params.appPages[1] === "embed";
+  if (context.query["flag.coep"] === "true") {
+    context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  }
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {

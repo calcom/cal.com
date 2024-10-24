@@ -15,7 +15,10 @@ import {
   Form,
   Label,
   Sheet,
+  SheetBody,
+  SheetClose,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   showToast,
@@ -71,11 +74,7 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override"
-              disabled={disabled}>
+            <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }
@@ -155,22 +154,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             ...values,
           });
         }}>
-        <SheetContent
-          bottomActions={
-            <>
-              <Button color="secondary" className="w-full justify-center">
-                {t("cancel")}
-              </Button>
-              <Button
-                disabled={!hasEditPermission || !data.hasDefaultSchedule}
-                className="w-full justify-center"
-                type="submit"
-                loading={updateMutation.isPending}
-                form="availability-form">
-                {t("save")}
-              </Button>
-            </>
-          }>
+        <SheetContent>
           <SheetHeader>
             <SheetTitle>
               {t("edit_users_availability", {
@@ -189,7 +173,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <div className="mt-4 flex flex-col space-y-4">
+          <SheetBody className="mt-4 flex flex-col space-y-4">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -198,6 +182,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                 id="timezone"
                 isDisabled={!hasEditPermission || !data.hasDefaultSchedule}
                 value={watchTimezone ?? "Europe/London"}
+                data-testid="timezone-select"
                 onChange={(event) => {
                   if (event) form.setValue("timeZone", event.value, { shouldDirty: true });
                 }}
@@ -223,7 +208,22 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                 />
               )}
             </div>
-          </div>
+          </SheetBody>
+          <SheetFooter>
+            <SheetClose asChild>
+              <Button color="secondary" className="w-full justify-center">
+                {t("cancel")}
+              </Button>
+            </SheetClose>
+            <Button
+              disabled={!hasEditPermission || !data.hasDefaultSchedule}
+              className="w-full justify-center"
+              type="submit"
+              loading={updateMutation.isPending}
+              form="availability-form">
+              {t("save")}
+            </Button>
+          </SheetFooter>
         </SheetContent>
       </Form>
     </Sheet>

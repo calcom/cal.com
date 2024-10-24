@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
@@ -16,18 +17,19 @@ export const TotalBookingUsersTable = ({
       }[]
     | undefined;
 }) => {
+  const filteredData = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
   return (
     <Table>
       <TableBody>
         <>
-          {data && data?.length > 0 ? (
-            data?.map((item) => (
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => (
               <TableRow key={item.userId}>
                 <TableCell className="flex flex-row">
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={item.user.avatarUrl}
+                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
                     title={item.user.name || ""}
                     className="m-2"
                   />

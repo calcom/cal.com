@@ -48,7 +48,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const onSuccess = async () => {
     await utils.viewer.me.invalidate();
     nextStep();

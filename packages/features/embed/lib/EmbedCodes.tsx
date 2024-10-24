@@ -2,7 +2,7 @@ import { WEBSITE_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
-import { getApiName } from "./getApiName";
+import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
@@ -23,49 +23,60 @@ export const Codes = {
     }: {
       calLink: string;
       uiInstructionCode: string;
-      previewState: PreviewState;
+      previewState: PreviewState["inline"];
       embedCalOrigin: string;
       namespace: string;
     }) => {
-      const width = getDimension(previewState.inline.width);
-      const height = getDimension(previewState.inline.height);
+      const width = getDimension(previewState.width);
+      const height = getDimension(previewState.height);
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import Cal, { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi();
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
 	return <Cal ${namespaceProp}
 	  calLink="${calLink}"
 	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-	  ${previewState.layout ? `config={{layout: '${previewState.layout}'}}` : ""}
+	  config={${JSON.stringify(previewState.config)}}
     ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
 	  ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
 	/>;
   };`;
     },
     "floating-popup": ({
-      floatingButtonArg,
+      calLink,
       uiInstructionCode,
+      previewState,
+      embedCalOrigin,
       namespace,
     }: {
-      floatingButtonArg: string;
+      calLink: string;
+      embedCalOrigin: string;
       uiInstructionCode: string;
       namespace: string;
+      previewState: PreviewState["floatingPopup"];
     }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
+      const floatingButtonArg = JSON.stringify({
+        calLink,
+        ...(doWeNeedCalOriginProp(embedCalOrigin) ? { calOrigin: embedCalOrigin } : null),
+        ...previewState,
+      });
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
-		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+		${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -80,26 +91,25 @@ export const Codes = {
     }: {
       calLink: string;
       uiInstructionCode: string;
-      previewState: PreviewState;
+      previewState: PreviewState["elementClick"];
       embedCalOrigin: string;
       namespace: string;
     }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
 	return <button data-cal-namespace="${namespace}"
 	  data-cal-link="${calLink}"
     ${doWeNeedCalOriginProp(embedCalOrigin) ? `  data-cal-origin="${embedCalOrigin}"` : ""}
-	  ${`data-cal-config='${JSON.stringify({
-      layout: previewState.layout,
-    })}'`}
+	  ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
 	  >Click me</button>;
   };`;
     },
@@ -113,28 +123,37 @@ export const Codes = {
     }: {
       calLink: string;
       uiInstructionCode: string;
-      previewState: PreviewState;
+      previewState: PreviewState["inline"];
       namespace: string;
     }) => {
-      return code`${getApiName({ namespace })}("inline", {
-	elementOrSelector:"#my-cal-inline",
-	calLink: "${calLink}",
-	layout: "${previewState.layout}"
+      return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
+    elementOrSelector:"#my-cal-inline",
+    config: ${JSON.stringify(previewState.config)},
+    calLink: "${calLink}",
   });
 
   ${uiInstructionCode}`;
     },
 
     "floating-popup": ({
-      floatingButtonArg,
+      calLink,
       uiInstructionCode,
+      previewState,
       namespace,
     }: {
-      floatingButtonArg: string;
+      calLink: string;
       uiInstructionCode: string;
+      previewState: PreviewState["floatingPopup"];
       namespace: string;
     }) => {
-      return code`${getApiName({ namespace, mainApiName: "Cal" })}("floatingButton", ${floatingButtonArg});
+      const floatingButtonArg = JSON.stringify({
+        calLink,
+        ...previewState,
+      });
+      return code`${getApiNameForVanillaJsSnippet({
+        namespace,
+        mainApiName: "Cal",
+      })}("floatingButton", ${floatingButtonArg}); 
   ${uiInstructionCode}`;
     },
     "element-click": ({
@@ -145,16 +164,14 @@ export const Codes = {
     }: {
       calLink: string;
       uiInstructionCode: string;
-      previewState: PreviewState;
+      previewState: PreviewState["elementClick"];
       namespace: string;
     }) => {
       return code`
   // Important: Please add the following attributes to the element that should trigger the calendar to open upon clicking.
   // \`data-cal-link="${calLink}"\`
   // data-cal-namespace="${namespace}"
-  // \`data-cal-config='${JSON.stringify({
-    layout: previewState.layout,
-  })}'\`
+  // \`data-cal-config='${JSON.stringify(previewState.config)}'\`
 
   ${uiInstructionCode}`;
     },
@@ -196,3 +213,9 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
   }
   return constructedCode.join("");
 };
+
+function getArgumentForGetCalApi(namespace: string) {
+  const libUrl = IS_SELF_HOSTED ? embedLibUrl : undefined;
+  const argumentForGetCalApi = namespace ? { namespace, embedLibUrl: libUrl } : { embedLibUrl: libUrl };
+  return argumentForGetCalApi;
+}

@@ -14,14 +14,14 @@ export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendar
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
-      rest?.calendarsToLoad?.toString() ?? "",
+      rest?.calendarsToLoad?.length ?? 0,
       rest.dateFrom ?? "",
       rest.dateTo ?? "",
       rest.loggedInUsersTz,
     ],
     queryFn: () => {
       return http
-        .get<ApiResponse<EventBusyDate[]>>("/ee/calendars/busy-times", {
+        .get<ApiResponse<EventBusyDate[]>>("/calendars/busy-times", {
           params: rest,
         })
         .then((res) => {

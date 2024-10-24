@@ -3,7 +3,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, showToast } from "@calcom/ui";
 
 const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonation: boolean }) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { t } = useLocale();
 

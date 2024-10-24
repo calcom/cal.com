@@ -14,7 +14,7 @@ export const badgeStyles = cva("font-medium inline-flex items-center justify-cen
       orange: "bg-attention text-attention",
       success: "bg-success text-success",
       green: "bg-success text-success",
-      gray: "bg-subtle text-emphasis",
+      gray: "bg-emphasis text-emphasis",
       blue: "bg-info text-info",
       red: "bg-error text-error",
       error: "bg-error text-error",

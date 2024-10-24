@@ -69,6 +69,9 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  *                ownerId:
  *                  type: number
  *                  description: ID of the team owner - only admins can set this.
+ *                parentId:
+ *                  type: number
+ *                  description: ID of the parent organization.
  *     tags:
  *     - teams
  *     responses:
@@ -80,12 +83,12 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { body, userId, isAdmin } = req;
+  const { body, userId, isSystemWideAdmin } = req;
   const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);
 
-  const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
+  const effectiveUserId = isSystemWideAdmin && ownerId ? ownerId : userId;
 
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
@@ -99,7 +102,7 @@ async function postHandler(req: NextApiRequest) {
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
   }
 
-  // Check if parentId is related to this user
+  // Check if parentId is related to this user and is an organization
   if (data.parentId) {
     const parentTeam = await prisma.team.findFirst({
       where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
@@ -107,19 +110,28 @@ async function postHandler(req: NextApiRequest) {
     if (!parentTeam)
       throw new HttpError({
         statusCode: 401,
-        message: "Unauthorized: Invalid parent id. You can only use parent id of your own teams.",
+        message: "Unauthorized: Invalid parent id. You can only use parent id if you are org owner or admin.",
+      });
+
+    if (parentTeam.parentId)
+      throw new HttpError({
+        statusCode: 400,
+        message: "parentId must be of an organization, not a team.",
       });
   }
 
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
+    bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
   } = {
     ...data,
+    smsLockReviewedByAdmin: false,
+    bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits || undefined,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
 
-  if (!IS_TEAM_BILLING_ENABLED) {
+  if (!IS_TEAM_BILLING_ENABLED || data.parentId) {
     const team = await prisma.team.create({
       data: {
         ...cloneData,
@@ -135,7 +147,7 @@ async function postHandler(req: NextApiRequest) {
     return {
       team: schemaTeamReadPublic.parse(team),
       owner: schemaMembershipPublic.parse(team.members[0]),
-      message: `Team created successfully. We also made user with ID=${ownerId} the owner of this team.`,
+      message: `Team created successfully. We also made user with ID=${effectiveUserId} the owner of this team.`,
     };
   }
 
@@ -162,11 +174,11 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   const body = schemaTeamCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create teams for themselves */
-  if (!isAdmin && body.ownerId)
+  if (!isSystemWideAdmin && body.ownerId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `ownerId`",
@@ -205,6 +217,7 @@ const generateTeamCheckoutSession = async ({
     metadata: {
       pendingPaymentTeamId,
       ownerId,
+      dubCustomerId: ownerId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
     },
   });
 

@@ -1,5 +1,5 @@
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -20,6 +20,7 @@ interface Props {
     name?: string | null;
     slug?: string | null;
     bio?: string | null;
+    logoUrl?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;
     accepted: boolean;
@@ -33,7 +34,7 @@ interface Props {
 
 export default function TeamInviteListItem(props: Props) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const team = props.team;
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
@@ -64,7 +65,7 @@ export default function TeamInviteListItem(props: Props) {
     <div className="flex">
       <Avatar
         size="mdLg"
-        imageSrc={`${WEBAPP_URL}/team/${team.slug}/avatar.png`}
+        imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
         alt="Team Logo"
         className=""
       />

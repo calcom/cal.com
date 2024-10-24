@@ -1,3 +1,5 @@
+"use client";
+
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
@@ -371,12 +373,25 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         const nodes = $generateNodesFromDOM(editor, dom);
 
         $getRoot().select();
-        $insertNodes(nodes);
+        try {
+          $insertNodes(nodes);
+        } catch (e: unknown) {
+          // resolves: "topLevelElement is root node at RangeSelection.insertNodes"
+          // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
+          const paragraphNode = $createParagraphNode();
+          nodes.forEach((n) => paragraphNode.append(n));
+          $getRoot().append(paragraphNode);
+        }
 
         editor.registerUpdateListener(({ editorState, prevEditorState }) => {
           editorState.read(() => {
             const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-            props.setText(textInHtml);
+            props.setText(
+              textInHtml.replace(
+                /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
+                "<p class='editor-paragraph'></p>"
+              )
+            );
           });
           if (!prevEditorState._selection) editor.blur();
         });
@@ -492,11 +507,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           )}
         </>
         {props.variables && (
-          <div className="ml-auto">
+          <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>
             <AddVariablesDropdown
               addVariable={addVariable}
               isTextEditor={true}
               variables={props.variables || []}
+              addVariableButtonTop={props.addVariableButtonTop}
             />
           </div>
         )}

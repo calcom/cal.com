@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (user.identityProvider !== IdentityProvider.CAL) {
+  if (user.identityProvider !== IdentityProvider.CAL && !user.password?.hash) {
     return res.status(400).json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled });
   }
 

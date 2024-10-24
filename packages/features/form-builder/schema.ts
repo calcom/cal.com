@@ -3,7 +3,8 @@ import { z } from "zod";
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
-import { getVariantsConfig, preprocessNameFieldDataWithVariant } from "./utils";
+import { preprocessNameFieldDataWithVariant } from "./utils";
+import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
 const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
@@ -22,6 +23,7 @@ const fieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "boolean",
+  "url",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
@@ -82,6 +84,21 @@ const baseFieldSchema = z.object({
       })
     )
     .optional(),
+
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck = true
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @requires supportsLengthCheck = true
+   */
+  maxLength: z.number().optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -115,6 +132,11 @@ export const fieldTypeConfigSchema = z
     isTextType: z.boolean().default(false).optional(),
     systemOnly: z.boolean().default(false).optional(),
     needsOptions: z.boolean().default(false).optional(),
+    supportsLengthCheck: z
+      .object({
+        maxLength: z.number(),
+      })
+      .optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -216,6 +238,7 @@ export const fieldSchema = baseFieldSchema.merge(
         })
       )
       .optional(),
+    disableOnPrefill: z.boolean().default(false).optional(),
   })
 );
 
@@ -232,7 +255,7 @@ export const fieldTypesSchemaMap: Partial<
        */
       preprocess: (data: {
         field: z.infer<typeof fieldSchema>;
-        response: any;
+        response: string;
         isPartialSchema: boolean;
       }) => unknown;
       /**
@@ -242,7 +265,7 @@ export const fieldTypesSchemaMap: Partial<
        */
       superRefine: (data: {
         field: z.infer<typeof fieldSchema>;
-        response: any;
+        response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
         m: (key: string) => string;
@@ -307,14 +330,60 @@ export const fieldTypesSchemaMap: Partial<
         }
         const valueIdentified = response as unknown as Record<string, string>;
         if (subField.required) {
+          if (!isPartialSchema && !valueIdentified[subField.name])
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
           if (!schema.safeParse(valueIdentified[subField.name]).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
             return;
           }
-          if (!isPartialSchema && !valueIdentified[subField.name])
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
+    },
+  },
+  textarea: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ field, response, ctx, m }) => {
+      const fieldTypeConfig = fieldTypesConfigMap[field.type];
+      const value = response ?? "";
+      const maxLength = field.maxLength ?? fieldTypeConfig.supportsLengthCheck?.maxLength;
+      const minLength = field.minLength ?? 0;
+      if (!maxLength) {
+        throw new Error("maxLength must be there for textarea field");
+      }
+      const hasExceededMaxLength = value.length > maxLength;
+      const hasNotReachedMinLength = value.length < minLength;
+      if (hasExceededMaxLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`Max. ${maxLength} characters allowed`),
+        });
+        return;
+      }
+      if (hasNotReachedMinLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`Min. ${minLength} characters required`),
+        });
+        return;
+      }
+    },
+  },
+  url: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ response, ctx, m }) => {
+      const value = response ?? "";
+      const urlSchema = z.string().url();
+
+      if (!urlSchema.safeParse(value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("url_validation_error"),
+        });
+      }
     },
   },
 };

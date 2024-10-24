@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ZTestTriggerInputSchema } from "@calcom/trpc/server/routers/viewer/webhook/testTrigger.schema";
-import { Badge, Button, Icon, showToast } from "@calcom/ui";
+import { Badge, Button, showToast } from "@calcom/ui";
 
 export default function WebhookTestDisclosure() {
   const [subscriberUrl, webhookSecret]: [string, string] = useWatch({ name: ["subscriberUrl", "secret"] });

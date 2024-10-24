@@ -1,22 +1,27 @@
-import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
-
 import {
   isSMSAction,
-  isTextMessageToAttendeeAction,
+  isSMSOrWhatsappAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
+import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { deleteScheduledEmailReminder, scheduleEmailReminder } from "./emailReminderManager";
+import { scheduleEmailReminder } from "./emailReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
-import { deleteScheduledSMSReminder, scheduleSMSReminder } from "./smsReminderManager";
-import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./whatsappReminderManager";
+import { scheduleSMSReminder } from "./smsReminderManager";
+import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
-type ExtendedCalendarEvent = CalendarEvent & {
+export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
-  eventType: { slug?: string };
+  eventType: {
+    slug: string;
+    schedulingType?: SchedulingType | null;
+    hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
+  };
+  bookerUrl: string;
 };
 
 type ProcessWorkflowStepParams = {
@@ -25,15 +30,10 @@ type ProcessWorkflowStepParams = {
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
-  eventTypeRequiresConfirmation?: boolean;
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
-  workflows: (WorkflowsOnEventTypes & {
-    workflow: Workflow & {
-      steps: WorkflowStep[];
-    };
-  })[];
+  workflows: Workflow[];
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
@@ -48,10 +48,14 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
-    eventTypeRequiresConfirmation,
   }: ProcessWorkflowStepParams
 ) => {
-  if (isTextMessageToAttendeeAction(step.action) && !eventTypeRequiresConfirmation) return;
+  if (isSMSOrWhatsappAction(step.action)) {
+    await checkSMSRateLimit({
+      identifier: `sms:${workflow.teamId ? "team:" : "user:"}${workflow.teamId || workflow.userId}`,
+      rateLimitingType: "sms",
+    });
+  }
 
   if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -73,12 +77,26 @@ const processWorkflowStep = async (
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
     });
-  } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
+  } else if (
+    step.action === WorkflowActions.EMAIL_ATTENDEE ||
+    step.action === WorkflowActions.EMAIL_HOST ||
+    step.action === WorkflowActions.EMAIL_ADDRESS
+  ) {
     let sendTo: string[] = [];
 
     switch (step.action) {
+      case WorkflowActions.EMAIL_ADDRESS:
+        sendTo = [step.sendTo || ""];
+        break;
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
+
+        const schedulingType = evt.eventType.schedulingType;
+        const isTeamEvent =
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+        }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
         const attendees = !!emailAttendeeSendToOverride
@@ -137,18 +155,16 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     calendarEvent: evt,
     isNotConfirmed = false,
     isRescheduleEvent = false,
-    isFirstRecurringEvent = false,
+    isFirstRecurringEvent = true,
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
-    eventTypeRequiresConfirmation = false,
   } = args;
   if (isNotConfirmed || !workflows.length) return;
 
-  for (const workflowReference of workflows) {
-    if (workflowReference.workflow.steps.length === 0) continue;
+  for (const workflow of workflows) {
+    if (workflow.steps.length === 0) continue;
 
-    const workflow = workflowReference.workflow;
     const isNotBeforeOrAfterEvent =
       workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
       workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;
@@ -173,47 +189,24 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
-        eventTypeRequiresConfirmation,
       });
     }
   }
 };
 
-const reminderMethods: { [x: string]: (id: number, referenceId: string | null) => void } = {
-  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
-  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
-  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
-};
-
-export const cancelWorkflowReminders = async (
-  workflowReminders: { method: WorkflowMethods; id: number; referenceId: string | null }[]
-) => {
-  await Promise.all(
-    workflowReminders.map((reminder) => {
-      return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
-    })
-  );
-};
-
 export interface SendCancelledRemindersArgs {
-  workflows: (WorkflowsOnEventTypes & {
-    workflow: Workflow & {
-      steps: WorkflowStep[];
-    };
-  })[];
+  workflows: Workflow[];
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
-  eventTypeRequiresConfirmation?: boolean;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { workflows, smsReminderNumber, evt, hideBranding, eventTypeRequiresConfirmation } = args;
+  const { smsReminderNumber, evt, workflows, hideBranding } = args;
+
   if (!workflows.length) return;
 
-  for (const workflowRef of workflows) {
-    const { workflow } = workflowRef;
-
+  for (const workflow of workflows) {
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
@@ -221,7 +214,6 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
-        eventTypeRequiresConfirmation,
       });
     }
   }

@@ -5,111 +5,70 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import type { RawDataInput } from "./raw-data.schema";
 
-interface ITimeRange {
-  start: Dayjs;
-  end: Dayjs;
-}
-
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static getBookingsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const { start, end } = timeRange;
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const data = await prisma.bookingTimeStatus.groupBy({
+      where,
+      by: ["timeStatus", "noShowHost"],
+      _count: {
+        _all: true,
+      },
+    });
 
-    const events = await prisma.bookingTimeStatus.count({
+    return data.reduce(
+      (aggregate: { [x: string]: number }, item) => {
+        if (typeof item.timeStatus === "string" && item) {
+          aggregate[item.timeStatus] += item?._count?._all ?? 0;
+          aggregate["_all"] += item?._count?._all ?? 0;
+
+          if (item.noShowHost) {
+            aggregate["noShowHost"] += item?._count?._all ?? 0;
+          }
+        }
+        return aggregate;
+      },
+      {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        _all: 0,
+      }
+    );
+  };
+
+  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.aggregate({
+      _avg: {
+        rating: true,
+      },
       where: {
-        ...where,
-        createdAt: {
-          gte: start.toISOString(),
-          lte: end.toISOString(),
+        ...whereConditional,
+        rating: {
+          not: null, // Exclude null ratings
         },
       },
     });
-
-    return events;
   };
 
-  static getCreatedEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, where);
-
-    return result;
-  };
-
-  static getCancelledEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "cancelled",
-    });
-
-    return result;
-  };
-
-  static getCompletedEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "completed",
-    });
-
-    return result;
-  };
-
-  static getRescheduledEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "rescheduled",
-    });
-
-    return result;
-  };
-
-  static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const baseBookings = await prisma.bookingTimeStatus.count({
-      where,
-    });
-
-    return baseBookings;
-  };
-
-  static getTotalCompletedEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
+  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    const result = await prisma.bookingTimeStatus.findMany({
       where: {
         ...whereConditional,
-        timeStatus: "completed",
+        rating: {
+          not: null,
+        },
       },
+      select: { rating: true },
     });
-  };
 
-  static getTotalRescheduledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        timeStatus: "rescheduled",
-      },
-    });
-  };
+    const totalResponses = result.length;
+    const satisfactoryResponses = result.filter((item) => item.rating && item.rating > 3).length;
+    const csat = totalResponses > 0 ? (satisfactoryResponses / totalResponses) * 100 : 0;
 
-  static getTotalCancelledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        timeStatus: "cancelled",
-      },
-    });
+    return csat;
   };
 
   static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
@@ -210,9 +169,11 @@ class EventsInsights {
       return 0;
     }
     const result = (differenceActualVsPrevious * 100) / previousMetric;
+
     if (isNaN(result) || !isFinite(result)) {
       return 0;
     }
+
     return result;
   };
 
@@ -239,11 +200,55 @@ class EventsInsights {
         paid: true,
         userEmail: true,
         username: true,
+        rating: true,
+        ratingFeedback: true,
+        noShowHost: true,
       },
       where: whereConditional,
     });
 
-    return csvData;
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
+
+    if (uids.length === 0) {
+      return csvData;
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
+
+    return csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        return bookingTimeStatus;
+      }
+
+      const booker = bookingMap.get(bookingTimeStatus.uid);
+
+      if (!booker) {
+        return bookingTimeStatus;
+      }
+
+      return {
+        ...bookingTimeStatus,
+        bookerEmail: booker.email,
+        bookerName: booker.name,
+      };
+    });
   };
 
   /*
@@ -339,12 +344,13 @@ class EventsInsights {
             userId: {
               in: userIdsFromOrg,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
           {
             teamId: {
               in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
+            isTeamBooking: true,
           },
         ],
       };
@@ -366,12 +372,13 @@ class EventsInsights {
         OR: [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeam,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
       };

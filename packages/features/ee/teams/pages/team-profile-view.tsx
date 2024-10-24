@@ -44,8 +44,6 @@ import {
   TextField,
 } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
-
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
 const teamProfileFormSchema = z.object({
@@ -62,10 +60,18 @@ const teamProfileFormSchema = z.object({
 
 type FormValues = z.infer<typeof teamProfileFormSchema>;
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = ({
+  isAppDir,
+  title,
+  description,
+}: {
+  isAppDir?: boolean;
+  title: string;
+  description: string;
+}) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
+      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -81,12 +87,12 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
-const ProfileView = () => {
+const ProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const session = useSession();
 
   useLayoutEffect(() => {
@@ -98,7 +104,7 @@ const ProfileView = () => {
     isPending,
     error,
   } = trpc.viewer.teams.get.useQuery(
-    { teamId, includeTeamLogo: true },
+    { teamId },
     {
       enabled: !!teamId,
     }
@@ -107,7 +113,7 @@ const ProfileView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [error]
@@ -115,13 +121,19 @@ const ProfileView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
+  const permalink = team
+    ? `${getTeamUrlSync({
+        orgSlug: team.parent ? team.parent.slug : null,
+        teamSlug: team.slug,
+      })}`
+    : "";
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
@@ -147,18 +159,22 @@ const ProfileView = () => {
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
-        teamId: team.id,
-        memberId: session.data.user.id,
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
       });
   }
 
   if (isPending) {
-    return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
+    return (
+      <SkeletonLoader isAppDir={isAppDir} title={t("profile")} description={t("profile_team_description")} />
+    );
   }
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} borderInShellHeader={true} />
+      {!isAppDir ? (
+        <Meta title={t("profile")} description={t("profile_team_description")} borderInShellHeader={true} />
+      ) : null}
 
       {isAdmin ? (
         <TeamProfileForm team={team} />
@@ -174,7 +190,7 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio ?? null)) }}
                 />
               </>
             )}
@@ -249,7 +265,7 @@ const ProfileView = () => {
 export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
 
@@ -259,12 +275,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     },
     async onSuccess(res) {
       reset({
-        logo: (res?.logo || "") as string,
+        logo: res?.logoUrl,
         name: (res?.name || "") as string,
         bio: (res?.bio || "") as string,
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
+      // TODO: Not all changes require list invalidation
+      await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -320,7 +338,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
       }}>
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         {!team.parent && (
-          <div className="flex items-center">
+          <div className="flex items-center pb-8">
             <Controller
               control={form.control}
               name="logo"
@@ -330,25 +348,22 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                 return (
                   <>
                     <Avatar
-                      alt={defaultValues.name || ""}
-                      imageSrc={getPlaceholderAvatar(value, team?.name as string)}
+                      alt={form.getValues("name")}
+                      data-testid="profile-upload-logo"
+                      imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       size="lg"
                     />
                     <div className="ms-4 flex gap-2">
                       <ImageUploader
-                        target="avatar"
+                        target="logo"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
                         handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        imageSrc={value ?? undefined}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       />
                       {showRemoveLogoButton && (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
+                        <Button color="secondary" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}
@@ -406,6 +421,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
+            height="80px"
           />
         </div>
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
@@ -431,7 +447,5 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     </Form>
   );
 };
-
-ProfileView.getLayout = getLayout;
 
 export default ProfileView;

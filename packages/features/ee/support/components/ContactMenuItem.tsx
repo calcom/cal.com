@@ -1,11 +1,10 @@
-import { JOIN_DISCORD } from "@calcom/lib/constants";
+import { JOIN_COMMUNITY } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, UpgradeTeamsBadge } from "@calcom/ui";
 
 import FreshChatMenuItem from "../lib/freshchat/FreshChatMenuItem";
 import HelpscoutMenuItem from "../lib/helpscout/HelpscoutMenuItem";
-import IntercomMenuItem from "../lib/intercom/IntercomMenuItem";
 import ZendeskMenuItem from "../lib/zendesk/ZendeskMenuItem";
 
 interface ContactMenuItem {
@@ -20,7 +19,6 @@ export default function ContactMenuItem(props: ContactMenuItem) {
     <>
       {hasPaidPlan ? (
         <>
-          <IntercomMenuItem onHelpItemSelect={onHelpItemSelect} />
           <ZendeskMenuItem onHelpItemSelect={onHelpItemSelect} />
           <HelpscoutMenuItem onHelpItemSelect={onHelpItemSelect} />
           <FreshChatMenuItem onHelpItemSelect={onHelpItemSelect} />
@@ -32,9 +30,9 @@ export default function ContactMenuItem(props: ContactMenuItem) {
         </div>
       )}
       <a
-        href={JOIN_DISCORD}
+        href={JOIN_COMMUNITY}
         target="_blank"
-        className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium">
+        className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition">
         {t("community_support")}{" "}
         <Icon
           name="external-link"

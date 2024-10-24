@@ -26,7 +26,6 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
@@ -66,6 +65,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
     dayRanges?: string;
     timeRangeField?: string;
     labelAndSwitchContainer?: string;
+    scheduleContainer?: string;
   };
 }) => {
   const { watch, setValue } = useFormContext();
@@ -74,7 +74,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   return (
     <div
       className={classNames(
-        "mb-4 flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:px-0",
+        "flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:gap-6 sm:px-0",
         className?.scheduleDay
       )}
       data-testid={weekday}>
@@ -91,6 +91,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 disabled={!watchDayRange || disabled}
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
+                data-testid={`${weekday}-switch`}
                 onCheckedChange={(isChecked) => {
                   setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
                 }}
@@ -101,8 +102,9 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
         </div>
       </div>
       <>
-        {watchDayRange ? (
-          <div className="flex sm:ml-2">
+        {!watchDayRange && <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />}
+        {watchDayRange.length > 0 && (
+          <div className="flex sm:gap-2">
             <DayRanges
               userTimeFormat={userTimeFormat}
               labels={labels}
@@ -114,10 +116,8 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 timeRangeField: className?.timeRangeField,
               }}
             />
-            {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
+            {!disabled && <div className="block">{CopyButton}</div>}
           </div>
-        ) : (
-          <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
         )}
       </>
     </div>
@@ -214,7 +214,7 @@ export const ScheduleComponent = <
   const { i18n } = useLocale();
 
   return (
-    <div className={classNames("p-4", className?.schedule)}>
+    <div className={classNames("flex flex-col gap-4 p-2 sm:p-4", className?.schedule)}>
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
@@ -270,11 +270,13 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     name,
   });
 
+  if (!fields.length) return null;
+
   return (
-    <div className={classNames("", className?.dayRanges)}>
+    <div className={classNames("flex flex-col gap-2", className?.dayRanges)}>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="mb-2 flex last:mb-0">
+          <div className="flex gap-1 last:mb-0 sm:gap-2">
             <Controller
               name={`${name}.${index}`}
               render={({ field }) => (
@@ -290,7 +292,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 disabled={disabled}
                 data-testid="add-time-availability"
                 tooltip={labels?.addTime ?? t("add_time_availability")}
-                className="text-default mx-2 "
+                className="text-default"
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -313,7 +315,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
               />
             )}
             {index !== 0 && (
-              <RemoveTimeButton index={index} remove={remove} className="text-default mx-2 border-none" />
+              <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
             )}
           </div>
         </Fragment>
@@ -356,27 +358,39 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
-}: { className?: string; disabled?: boolean; userTimeFormat: number | null } & ControllerRenderProps) => {
+}: {
+  className?: string;
+  disabled?: boolean;
+  userTimeFormat: number | null;
+} & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("flex flex-row gap-1", className)}>
+    <div className={classNames("flex flex-row gap-2 sm:gap-3", className)}>
       <LazySelect
         userTimeFormat={userTimeFormat}
-        className="inline-block w-[100px]"
+        className="block w-[90px] sm:w-[100px]"
         isDisabled={disabled}
         value={value.start}
-        max={value.end}
+        menuPlacement="bottom"
         onChange={(option) => {
-          onChange({ ...value, start: new Date(option?.value as number) });
+          const newStart = new Date(option?.value as number);
+          if (newStart >= new Date(value.end)) {
+            const newEnd = new Date(option?.value as number);
+            newEnd.setMinutes(newEnd.getMinutes() + INCREMENT);
+            onChange({ ...value, start: newStart, end: newEnd });
+          } else {
+            onChange({ ...value, start: newStart });
+          }
         }}
       />
-      <span className="text-default mx-2 w-2 self-center"> - </span>
+      <span className="text-default w-2 self-center"> - </span>
       <LazySelect
         userTimeFormat={userTimeFormat}
-        className="inline-block w-[100px] rounded-md"
+        className="block w-[90px] rounded-md sm:w-[100px]"
         isDisabled={disabled}
         value={value.end}
         min={value.start}
+        menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
         }}
@@ -390,6 +404,7 @@ const LazySelect = ({
   min,
   max,
   userTimeFormat,
+  menuPlacement,
   ...props
 }: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
@@ -410,7 +425,9 @@ const LazySelect = ({
       onMenuOpen={() => {
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
+        if (!min && !max) filter({ offset: 0, limit: 0 });
       }}
+      menuPlacement={menuPlacement}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
       components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}

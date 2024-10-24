@@ -32,7 +32,7 @@ const querySchema = z.object({
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/core-features/event-types
+ *        url: https://docs.cal.com/docs/core-features/event-types
  *     responses:
  *       200:
  *         description: OK
@@ -42,13 +42,13 @@ const querySchema = z.object({
  *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
 
   const { teamId } = querySchema.parse(req.query);
 
   const args: Prisma.EventTypeFindManyArgs = {
     where: {
-      team: isAdmin
+      team: isSystemWideAdmin
         ? {
             id: teamId,
           }

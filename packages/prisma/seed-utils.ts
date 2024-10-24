@@ -24,7 +24,7 @@ export async function createUserAndEventType({
     timeZone?: string;
     role?: UserPermissionRole;
     theme?: "dark" | "light";
-    avatar?: string;
+    avatarUrl?: string | null;
   };
   eventTypes?: Array<
     Prisma.EventTypeUncheckedCreateInput & {
@@ -38,7 +38,7 @@ export async function createUserAndEventType({
     appId: string;
   } | null)[];
 }) {
-  const { password, ...restOfUser } = user;
+  const { password: _password, ...restOfUser } = user;
   const userData = {
     ...restOfUser,
     emailVerified: new Date(),

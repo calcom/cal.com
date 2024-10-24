@@ -49,6 +49,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  travelSchedules: [],
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -71,6 +72,7 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  forwardParamsSuccessRedirect: true,
   teamId: null,
   scheduleId: null,
   availability: [],
@@ -83,6 +85,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   id: 0,
   hideCalendarNotes: false,
+  hideCalendarEventDetails: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
@@ -94,6 +97,7 @@ const commons = {
   hidden: false,
   userId: 0,
   parentId: null,
+  parent: null,
   owner: null,
   workflows: [],
   users: [user],
@@ -101,12 +105,14 @@ const commons = {
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,
+  isRRWeightsEnabled: false,
+  rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,
   secondaryEmail: null,
 };
 
-const dynamicEvent = {
+export const dynamicEvent = {
   length: 30,
   slug: "dynamic",
   title: "Group Meeting",
@@ -115,10 +121,10 @@ const dynamicEvent = {
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
-  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 60, 90] }),
+  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
-const defaultEvents = [dynamicEvent];
+export const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
@@ -165,3 +171,5 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 };
 
 export default defaultEvents;
+
+export type DefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;

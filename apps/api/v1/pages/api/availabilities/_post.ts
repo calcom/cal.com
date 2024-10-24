@@ -62,7 +62,7 @@ import {
  *     tags:
  *     - availabilities
  *     externalDocs:
- *        url: https://docs.cal.com/availability
+ *        url: https://docs.cal.com/docs/core-features/availability
  *     responses:
  *       201:
  *         description: OK, availability created
@@ -86,8 +86,8 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  if (isAdmin) return;
+  const { userId, isSystemWideAdmin } = req;
+  if (isSystemWideAdmin) return;
   const data = schemaAvailabilityCreateBodyParams.parse(req.body);
   const schedule = await prisma.schedule.findFirst({
     where: { userId, id: data.scheduleId },

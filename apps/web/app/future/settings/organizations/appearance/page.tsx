@@ -1,4 +1,5 @@
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 
 import Page from "@calcom/features/ee/organizations/pages/settings/appearance";
 
@@ -8,4 +9,4 @@ export const generateMetadata = async () =>
     (t) => t("appearance_org_description")
   );
 
-export default Page;
+export default WithLayout({ Page });

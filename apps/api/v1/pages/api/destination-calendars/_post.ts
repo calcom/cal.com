@@ -61,11 +61,11 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin, body } = req;
+  const { userId, isSystemWideAdmin, body } = req;
   const parsedBody = schemaDestinationCalendarCreateBodyParams.parse(body);
   await checkPermissions(req, userId);
 
-  const assignedUserId = isAdmin && parsedBody.userId ? parsedBody.userId : userId;
+  const assignedUserId = isSystemWideAdmin && parsedBody.userId ? parsedBody.userId : userId;
 
   /* Check if credentialId data matches the ownership and integration passed in */
   const userCredentials = await prisma.credential.findMany({
@@ -120,19 +120,20 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, userId: number) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   const body = schemaDestinationCalendarCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create destination calendars for themselves */
-  if (!isAdmin && body.userId)
+  if (!isSystemWideAdmin && body.userId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `userId`",
     });
   /* Admin users are required to pass in a userId */
-  if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
+  if (isSystemWideAdmin && !body.userId)
+    throw new HttpError({ statusCode: 400, message: "`userId` required" });
   /* User should only be able to create for their own destination calendars*/
-  if (!isAdmin && body.eventTypeId) {
+  if (!isSystemWideAdmin && body.eventTypeId) {
     const ownsEventType = await prisma.eventType.findFirst({ where: { id: body.eventTypeId, userId } });
     if (!ownsEventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }

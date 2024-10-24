@@ -3,9 +3,9 @@ import type { NextMiddleware } from "next-api-middleware";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 
 export const verifyCredentialSyncEnabled: NextMiddleware = async (req, res, next) => {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
 
-  if (!isAdmin) {
+  if (!isSystemWideAdmin) {
     return res.status(403).json({ error: "Only admin API keys can access credential syncing endpoints" });
   }
 

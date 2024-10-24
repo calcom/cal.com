@@ -5,6 +5,7 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { IconSprites } from "@calcom/ui";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
@@ -66,6 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
         {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
@@ -83,9 +85,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
+        <IconSprites />
       </head>
       <body
-        className="dark:bg-darkgray-50 todesktop:!bg-transparent bg-subtle antialiased"
+        className="dark:bg-darkgray-50 bg-subtle antialiased"
         style={
           isEmbed
             ? {

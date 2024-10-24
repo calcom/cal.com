@@ -3,8 +3,11 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 export const enum ENTITY_PERMISSION_LEVEL {
   NONE,
+  // It is owned by user and user has write access to it
   USER_ONLY_WRITE,
+  // All members of the team has access to it and user has read access to it
   TEAM_READ_ONLY,
+  // All members of the team has access to it and user has write access to it
   TEAM_WRITE,
 }
 
@@ -16,6 +19,18 @@ export function canEditEntity(
   return (
     permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
     permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE
+  );
+}
+
+export function canAccessEntity(
+  entity: Parameters<typeof getEntityPermissionLevel>[0],
+  userId: Parameters<typeof getEntityPermissionLevel>[1]
+) {
+  const permissionLevel = getEntityPermissionLevel(entity, userId);
+  return (
+    permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
+    permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE ||
+    permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_READ_ONLY
   );
 }
 
@@ -64,7 +79,12 @@ async function getMembership(teamId: number | null, userId: number) {
           },
         },
         include: {
-          members: true,
+          members: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
         },
       })
     : null;
@@ -81,8 +101,7 @@ export async function canCreateEntity({
   if (targetTeamId) {
     // If it doesn't exist and it is being created for a team. Check if user is the member of the team
     const membership = await getMembership(targetTeamId, userId);
-    const creationAllowed = membership ? withRoleCanCreateEntity(membership.role) : false;
-    return creationAllowed;
+    return membership ? withRoleCanCreateEntity(membership.role) : false;
   }
   return true;
 }

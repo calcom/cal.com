@@ -15,6 +15,7 @@ type AuthRouterHandlerCache = {
   resendVerifyEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
   sendVerifyEmailCode?: typeof import("./sendVerifyEmailCode.handler").sendVerifyEmailCodeHandler;
   resendVerifySecondaryEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
+  createAccountPassword?: typeof import("./createAccountPassword.handler").createAccountPasswordHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AuthRouterHandlerCache = {};
@@ -104,6 +105,23 @@ export const authRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.resendVerifyEmail({
       input,
+      ctx,
+    });
+  }),
+
+  createAccountPassword: authedProcedure.mutation(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
+      UNSTABLE_HANDLER_CACHE.createAccountPassword = await import("./createAccountPassword.handler").then(
+        (mod) => mod.createAccountPasswordHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.createAccountPassword({
       ctx,
     });
   }),

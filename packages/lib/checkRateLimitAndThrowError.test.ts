@@ -19,6 +19,7 @@ describe("checkRateLimitAndThrowError", () => {
         limit: 10,
         remaining: -1,
         reset: Date.now() + 10000,
+        success: false,
       } as RatelimitResponse;
     });
 
@@ -35,6 +36,7 @@ describe("checkRateLimitAndThrowError", () => {
         limit: 10,
         remaining: 5,
         reset: Date.now() + 10000,
+        success: true,
       } as RatelimitResponse;
     });
 

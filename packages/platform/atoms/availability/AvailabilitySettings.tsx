@@ -1,7 +1,11 @@
+"use client";
+
+import type { SetStateAction, Dispatch } from "react";
 import { useMemo, useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
@@ -10,6 +14,8 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -59,7 +65,15 @@ export type CustomClassNames = {
     timeRanges?: string;
     labelAndSwitchContainer?: string;
   };
+  overridesModalClassNames?: string;
+  hiddenSwitchClassname?: {
+    container?: string;
+    thumb?: string;
+  };
+  deleteButtonClassname?: string;
 };
+
+export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
 
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
@@ -72,9 +86,12 @@ type AvailabilitySettingsProps = {
     workingHours: WorkingHours[];
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
-    schedule: Schedule[];
+    schedule: Availability[];
   };
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
+  allowDelete?: boolean;
+  allowSetToDefault?: boolean;
   isDeleting: boolean;
   isSaving: boolean;
   isLoading: boolean;
@@ -84,6 +101,14 @@ type AvailabilitySettingsProps = {
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
+  disableEditableHeading?: boolean;
+  enableOverrides?: boolean;
+  bulkUpdateModalProps?: {
+    isOpen: boolean;
+    setIsOpen: Dispatch<SetStateAction<boolean>>;
+    save: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
+    isSaving: boolean;
+  };
 };
 
 const DeleteDialogButton = ({
@@ -143,9 +168,15 @@ const useExcludedDates = () => {
 const DateOverride = ({
   workingHours,
   userTimeFormat,
+  travelSchedules,
+  weekStart,
+  overridesModalClassNames,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  overridesModalClassNames?: string;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -168,20 +199,21 @@ const DateOverride = ({
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
+          weekStart={weekStart}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
+          travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
+          className={overridesModalClassNames}
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
+          weekStart={weekStart}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -213,6 +245,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
 
 export function AvailabilitySettings({
   schedule,
+  travelSchedules,
   handleDelete,
   isDeleting,
   isLoading,
@@ -223,6 +256,11 @@ export function AvailabilitySettings({
   handleSubmit,
   isPlatform = false,
   customClassNames,
+  disableEditableHeading = false,
+  enableOverrides = false,
+  bulkUpdateModalProps,
+  allowSetToDefault = true,
+  allowDelete = true,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -244,7 +282,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -253,6 +291,7 @@ export function AvailabilitySettings({
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
+              disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
             />
@@ -263,9 +302,17 @@ export function AvailabilitySettings({
         schedule ? (
           schedule.schedule
             .filter((availability) => !!availability.days.length)
-            .map((availability) => (
-              <span key={availability.id} className={cn(customClassNames?.subtitlesClassName)}>
-                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+            .map((availability) =>
+              availabilityAsString(availability, {
+                locale: i18n.language,
+                hour12: timeFormat === 12,
+              })
+            )
+            // sort the availability strings as per user's weekstart (settings)
+            .sort(sortAvailabilityStrings(i18n.language, weekStart))
+            .map((availabilityString, index) => (
+              <span key={index} className={cn(customClassNames?.subtitlesClassName)}>
+                {availabilityString}
                 <br />
               </span>
             ))
@@ -275,8 +322,8 @@ export function AvailabilitySettings({
       }
       CTA={
         <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
-            {!openSidebar ? (
+          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+            {!openSidebar && allowSetToDefault ? (
               <>
                 <Skeleton
                   as={Label}
@@ -292,24 +339,45 @@ export function AvailabilitySettings({
                   render={({ field: { value, onChange } }) => (
                     <Switch
                       id="hiddenSwitch"
+                      classNames={{
+                        container: cn(customClassNames?.hiddenSwitchClassname?.container),
+                        thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
+                      }}
                       disabled={isSaving || schedule.isDefault}
                       checked={value}
-                      onCheckedChange={onChange}
+                      onCheckedChange={(checked) => {
+                        onChange(checked);
+                        bulkUpdateModalProps?.setIsOpen(checked);
+                      }}
                     />
                   )}
                 />
+                <VerticalDivider className="hidden sm:inline" />
               </>
             ) : null}
           </div>
 
-          <VerticalDivider className="hidden sm:inline" />
-          <DeleteDialogButton
-            buttonClassName="hidden sm:inline"
-            disabled={schedule.isLastSchedule}
-            isPending={isDeleting}
-            handleDelete={handleDelete}
-          />
-          <VerticalDivider className="hidden sm:inline" />
+          {bulkUpdateModalProps && bulkUpdateModalProps?.isOpen && (
+            <BulkEditDefaultForEventsModal
+              isPending={bulkUpdateModalProps?.isSaving}
+              open={bulkUpdateModalProps?.isOpen}
+              setOpen={bulkUpdateModalProps.setIsOpen}
+              bulkUpdateFunction={bulkUpdateModalProps?.save}
+              description={t("default_schedules_bulk_description")}
+            />
+          )}
+
+          {allowDelete && (
+            <>
+              <DeleteDialogButton
+                buttonClassName={cn("hidden sm:inline", customClassNames?.deleteButtonClassname)}
+                disabled={schedule.isLastSchedule}
+                isPending={isDeleting}
+                handleDelete={handleDelete}
+              />
+              <VerticalDivider className="hidden sm:inline" />
+            </>
+          )}
           <SmallScreenSideBar open={openSidebar}>
             <>
               <div
@@ -324,21 +392,19 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button
-                      StartIcon="arrow-left"
-                      color="minimal"
-                      onClick={() => setOpenSidebar(false)}
-                    />
+                    <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
-                    <DeleteDialogButton
-                      buttonClassName="ml-16 inline"
-                      disabled={schedule.isLastSchedule}
-                      isPending={isDeleting}
-                      handleDelete={handleDelete}
-                      onDeleteConfirmed={() => {
-                        setOpenSidebar(false);
-                      }}
-                    />
+                    {allowDelete && (
+                      <DeleteDialogButton
+                        buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
+                        disabled={schedule.isLastSchedule}
+                        isPending={isDeleting}
+                        handleDelete={handleDelete}
+                        onDeleteConfirmed={() => {
+                          setOpenSidebar(false);
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="flex flex-col px-2 py-2">
                     <Skeleton as={Label} waitForTranslation={!isPlatform}>
@@ -356,25 +422,33 @@ export function AvailabilitySettings({
                     />
                   </div>
                   <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
-                    <Skeleton
-                      as={Label}
-                      htmlFor="hiddenSwitch"
-                      className="mt-2 cursor-pointer self-center pr-2 sm:inline"
-                      waitForTranslation={!isPlatform}>
-                      {t("set_to_default")}
-                    </Skeleton>
-                    <Controller
-                      control={form.control}
-                      name="isDefault"
-                      render={({ field: { value, onChange } }) => (
-                        <Switch
-                          id="hiddenSwitch"
-                          disabled={isSaving || value}
-                          checked={value}
-                          onCheckedChange={onChange}
+                    {allowSetToDefault && (
+                      <>
+                        <Skeleton
+                          as={Label}
+                          htmlFor="hiddenSwitch"
+                          className="mt-2 cursor-pointer self-center pr-2 sm:inline"
+                          waitForTranslation={!isPlatform}>
+                          {t("set_to_default")}
+                        </Skeleton>
+                        <Controller
+                          control={form.control}
+                          name="isDefault"
+                          render={({ field: { value, onChange } }) => (
+                            <Switch
+                              classNames={{
+                                container: cn(customClassNames?.hiddenSwitchClassname?.container),
+                                thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
+                              }}
+                              id="hiddenSwitch"
+                              disabled={isSaving || value}
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          )}
                         />
-                      )}
-                    />
+                      </>
+                    )}
                   </div>
 
                   <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
@@ -481,14 +555,18 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
-            {!isPlatform ? (
-              <div className="border-subtle my-6 rounded-md border">
-                {schedule.workingHours && (
-                  <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
-                )}
-              </div>
-            ) : (
-              <></>
+            {enableOverrides && (
+              <DateOverride
+                workingHours={schedule.workingHours}
+                userTimeFormat={timeFormat}
+                travelSchedules={travelSchedules}
+                weekStart={
+                  ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                    weekStart
+                  ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                }
+                overridesModalClassNames={customClassNames?.overridesModalClassNames}
+              />
             )}
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">

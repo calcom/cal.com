@@ -199,6 +199,7 @@ export async function getCloseComLeadId(
     description: `Generic Lead for Contacts created by ${APP_NAME}`,
   }
 ): Promise<string> {
+  // TODO: Check for leads against email rather than name
   const closeComLeadNames = await closeCom.lead.list({ query: { _fields: ["name", "id"] } });
   const searchLeadFromCalCom: CloseComLead[] = closeComLeadNames.data.filter(
     (lead) => lead.name === leadInfo.companyName

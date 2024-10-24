@@ -48,7 +48,9 @@ export const EventTypeList = memo(() => {
     <AnimatedPopover text={getPopoverText()}>
       <FilterCheckboxFieldsContainer>
         {filterOptions?.map((eventType) => (
-          <div key={eventType.value} className="item-center hover:bg-muted flex cursor-pointer px-4 py-2">
+          <div
+            key={eventType.value}
+            className="item-center hover:bg-muted flex cursor-pointer px-4 py-2 transition">
             <CheckboxField
               checked={eventTypeValue?.value === eventType.value}
               onChange={(e) => {

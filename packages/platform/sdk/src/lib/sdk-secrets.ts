@@ -58,10 +58,7 @@ export class SdkSecrets {
     return !!this.accessToken;
   }
 
-  public _debug() {
-    return {
-      refreshedAt: this.refreshedAt,
-      accessToken: this.accessToken,
-    };
+  public getRefreshedAt(): Date | null {
+    return this.refreshedAt;
   }
 }

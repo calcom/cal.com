@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -58,8 +58,6 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
-    // TODO: Re-enable once we get confirmation from compliance that this is okay.
-    // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
   if (!userFromDb) {
@@ -67,7 +65,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const hasValidLicense = await checkLicense(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance();
+  const hasValidLicense = await licenseKeyService.checkLicense();
 
   let upId = token.upId;
 
@@ -97,8 +96,7 @@ export async function getServerSession(options: {
       email_verified: user.emailVerified !== null,
       role: user.role,
       image: getUserAvatarUrl({
-        ...user,
-        profile: user.profile,
+        avatarUrl: user.avatarUrl,
       }),
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,

@@ -79,14 +79,14 @@ function EmptyCalendarToggleItem() {
 
 export function CalendarToggleContainer() {
   const { t } = useLocale();
-  const { data, isPending } = trpc.viewer.connectedCalendars.useQuery();
+  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery();
 
   const hasConnectedCalendars = data && data?.connectedCalendars.length > 0;
 
   return (
     <div className="flex flex-col space-y-3">
       <p className="text-sm font-medium leading-none">{t("calendars_were_checking_for_conflicts")}</p>
-      {hasConnectedCalendars && !isPending ? (
+      {hasConnectedCalendars && !isLoading ? (
         <>
           {data.connectedCalendars.map((calendar) => {
             const foundPrimary = calendar.calendars?.find((item) => item.primary);

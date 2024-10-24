@@ -32,7 +32,7 @@ const FETCH_LIMIT = 25;
 function UsersTableBare() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -116,6 +116,7 @@ function UsersTableBare() {
           })),
         };
       });
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
@@ -150,7 +151,7 @@ function UsersTableBare() {
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (
-    <>
+    <div>
       <TextField
         placeholder="username or email"
         label="Search"
@@ -187,14 +188,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <span className="text-default">{user.name}</span>
-                      <span className="ml-3">/{user.username}</span>
-                      {user.locked && (
-                        <span className="ml-3">
-                          <Icon name="lock" />
-                        </span>
-                      )}
-                      <br />
+                      <div className="flex flex-row">
+                        <span className="text-default">{user.name}</span>
+                        <span className="ml-3">/{user.username}</span>
+                        {user.locked && (
+                          <span className="ml-3">
+                            <Icon name="lock" />
+                          </span>
+                        )}
+                        <br />
+                      </div>
                       <span className="break-all">{user.email}</span>
                     </div>
                   </div>
@@ -293,7 +296,7 @@ function UsersTableBare() {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 }
 

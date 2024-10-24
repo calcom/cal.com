@@ -1,89 +1,118 @@
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
-import * as crypto from "crypto";
 
-import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService
+    private readonly eventTypesService: EventTypesService_2024_04_15,
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly organizationsTeamsService: OrganizationsTeamsService
   ) {}
 
   async createOauthClientUser(
     oAuthClientId: string,
-    body: CreateManagedPlatformUserInput,
+    body: CreateManagedUserInput,
     isPlatformManaged: boolean,
     organizationId?: number
   ) {
+    const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
+    if (existingUser) {
+      throw new ConflictException(
+        `User with the provided e-mail already exists. Existing user ID=${existingUser.id}`
+      );
+    }
+
     let user: User;
     if (!organizationId) {
       throw new BadRequestException("You cannot create a managed user outside of an organization");
     } else {
-      const [username, emailDomain] = body.email.split("@");
-      const email = `${username}+${oAuthClientId}@${emailDomain}`;
+      const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
-          usernamesOrEmails: [email],
-          input: {
-            teamId: organizationId,
-            role: "MEMBER",
-            usernameOrEmail: [email],
-            isOrg: true,
-            language: "en",
-          },
+          invitations: [
+            {
+              usernameOrEmail: email,
+              role: "MEMBER",
+            },
+          ],
+          teamId: organizationId,
+          isOrg: true,
           parentId: null,
           autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
-          connectionInfoMap: {
+          orgConnectInfoByUsernameOrEmail: {
             [email]: {
               orgId: organizationId,
               autoAccept: true,
             },
           },
           isPlatformManaged,
+          timeFormat: body.timeFormat,
+          weekStart: body.weekStart,
+          timeZone: body.timeZone,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
+      const updatedUser = await this.userRepository.update(user.id, {
+        name: body.name,
+        locale: body.locale,
+      });
+      user.locale = updatedUser.locale;
+      user.name = updatedUser.name;
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       user.id
     );
+
     await this.eventTypesService.createUserDefaultEventTypes(user.id);
+
+    if (body.timeZone) {
+      const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
+      user.defaultScheduleId = defaultSchedule.id;
+    }
+
+    await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);
 
     return {
       user,
       tokens: {
         accessToken,
+        accessTokenExpiresAt,
         refreshToken,
       },
     };
   }
-}
 
-function generateShortHash(email: string, clientId: string): string {
-  // Get the current timestamp
-  const timestamp = Date.now().toString();
+  async getExistingUserByEmail(oAuthClientId: string, email: string) {
+    const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
+    return await this.userRepository.findByEmail(oAuthEmail);
+  }
 
-  // Concatenate the timestamp and email
-  const data = timestamp + email + clientId;
+  async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {
+    if (body.email) {
+      const emailWithOAuthId = this.getOAuthUserEmail(oAuthClientId, body.email);
+      body.email = emailWithOAuthId;
+      const newUsername = slugify(emailWithOAuthId);
+      await this.userRepository.updateUsername(userId, newUsername);
+    }
 
-  // Create a SHA256 hash
-  const hash = crypto
-    .createHash("sha256")
-    .update(data)
-    .digest("base64")
-    .replace("=", "")
-    .replace("/", "")
-    .replace("+", "");
+    return this.userRepository.update(userId, body);
+  }
 
-  return hash.toLowerCase();
+  getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+    const [username, emailDomain] = userEmail.split("@");
+    return `${username}+${oAuthClientId}@${emailDomain}`;
+  }
 }

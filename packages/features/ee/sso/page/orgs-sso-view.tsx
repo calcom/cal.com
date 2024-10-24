@@ -1,48 +1,34 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import { AppSkeletonLoader as SkeletonLoader, Meta } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import SSOConfiguration from "../components/SSOConfiguration";
 
-const SAMLSSO = () => {
+const SAMLSSO = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
-  const router = useRouter();
 
-  const {
-    data: currentOrg,
-    isPending,
-    error,
-  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
+  const { data, status } = useSession();
+  const org = data?.user.org;
 
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (error) {
-        router.push("/settings");
-      }
-    },
-    [error]
-  );
-
-  if (isPending)
+  if (status === "loading")
     <SkeletonLoader title={t("sso_saml_heading")} description={t("sso_configuration_description_orgs")} />;
-  if (!currentOrg) {
+
+  if (!org) {
     return null;
   }
 
-  const isAdminOrOwner =
-    currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
+  const isAdminOrOwner = org.role === MembershipRole.OWNER || org.role === MembershipRole.ADMIN;
 
-  return isAdminOrOwner ? (
+  return !!isAdminOrOwner ? (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
-      <Meta title={t("sso_configuration")} description={t("sso_configuration_description_orgs")} />
-      <SSOConfiguration teamId={currentOrg?.id} />
+      {!isAppDir ? (
+        <Meta title={t("sso_configuration")} description={t("sso_configuration_description_orgs")} />
+      ) : null}
+      <SSOConfiguration teamId={org.id} />
     </div>
   ) : (
     <div className="py-5">
@@ -50,7 +36,5 @@ const SAMLSSO = () => {
     </div>
   );
 };
-
-SAMLSSO.getLayout = getLayout;
 
 export default SAMLSSO;

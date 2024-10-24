@@ -22,9 +22,14 @@ export enum ApiVersion {
 }
 
 export type SdkAuthOptions = {
-  clientSecret: string;
+  clientSecret?: string;
   accessToken?: string;
   refreshToken?: string;
+};
+
+export type PaginationOptions = {
+  limit?: number;
+  skip?: number;
 };
 
 export * from "./endpoints/slots/types";

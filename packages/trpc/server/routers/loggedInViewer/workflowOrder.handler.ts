@@ -1,7 +1,7 @@
 import type { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -19,34 +19,36 @@ type RoutingFormOrderOptions = {
 export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptions) => {
   const { user } = ctx;
 
-  const includedFields = {
-    activeOn: {
-      select: {
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            parentId: true,
-            _count: {
-              select: {
-                children: true,
+  const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
+    include: {
+      activeOn: {
+        select: {
+          eventType: {
+            select: {
+              id: true,
+              title: true,
+              parentId: true,
+              _count: {
+                select: {
+                  children: true,
+                },
               },
             },
           },
         },
       },
-    },
-    steps: true,
-    team: {
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        members: true,
-        logo: true,
+      steps: true,
+      team: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          members: true,
+          logoUrl: true,
+        },
       },
     },
-  };
+  });
 
   const allWorkflows = await prisma.workflow.findMany({
     where: {

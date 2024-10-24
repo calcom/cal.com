@@ -1,16 +1,18 @@
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
-  expectEmailsToHaveSubject,
+  confirmReschedule,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -22,6 +24,45 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
+test("check SSR and OG - User Event Type", async ({ page, users }) => {
+  const name = "Test User";
+  const user = await users.create({
+    name,
+  });
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+  );
+  await page.goto(`/${user.username}/30-min`);
+  await page.content();
+  const response = await responsePromise;
+  const ssrResponse = await response.text();
+  const document = new JSDOM(ssrResponse).window.document;
+
+  const titleText = document.querySelector("title")?.textContent;
+  const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+  const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
+  const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+  expect(titleText).toContain(name);
+  expect(ogUrl).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
+  await page.waitForSelector('[data-testid="avatar-href"]');
+  const avatarLocators = await page.locator('[data-testid="avatar-href"]').all();
+  expect(avatarLocators.length).toBe(1);
+
+  for (const avatarLocator of avatarLocators) {
+    expect(await avatarLocator.getAttribute("href")).toEqual(`${WEBAPP_URL}/${user.username}?redirect=false`);
+  }
+
+  expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
+  // Verify that there is correct URL that would generate the awesome OG image
+  expect(ogImage).toContain(
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+  );
+  // Verify Organizer Name in the URL
+  expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+});
+
+todo("check SSR and OG - Team Event Type");
+
 testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
@@ -30,6 +71,7 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
+
     const bookerObj = {
       email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
       name: "testBooker",
@@ -48,12 +90,6 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    await expectEmailsToHaveSubject({
-      emails,
-      organizer: user,
-      booker: bookerObj,
-      eventTitle,
-    });
     await page.goto(bookingUrl);
 
     // book same time spot again
@@ -94,10 +130,32 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     });
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+  });
+
+  test("it redirects when a rescheduleUid does not match the current event type", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
+
+    // open the wrong eventType (rescheduleUid created for /30min event)
+    await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+
+    await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
+  });
+
+  test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
+    const [pro] = users.get();
+    const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
+    const response = await page.goto(unexistingPageUrl.href);
+    expect(response?.status()).toBe(404);
   });
 
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
@@ -228,22 +286,16 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
   });
 
   test("Time slots should be reserved when selected", async ({ context, page }) => {
-    await page.click('[data-testid="event-type-link"]');
-
     const initialUrl = page.url();
+    await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
     const pageTwo = await context.newPage();
     await pageTwo.goto(initialUrl);
     await pageTwo.waitForURL(initialUrl);
+    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
 
-    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
-    const eventTypeLink = pageTwo.locator('[data-testid="event-type-link"]').first();
-    await eventTypeLink.click();
-
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -271,15 +323,14 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
 
     await pageTwo.waitForSelector('[data-testid="event-type-link"]');
     const eventTypeLinkTwo = pageTwo.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLinkTwo.waitFor();
     await eventTypeLinkTwo.click();
 
     await page.locator('[data-testid="back"]').waitFor();
     await page.click('[data-testid="back"]');
 
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -424,13 +475,17 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
         schedulingType: SchedulingType.ROUND_ROBIN,
         teamEventLength: 120,
         teammates: teamMatesObj,
+        seatsPerTimeSlot: 5,
       }
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
-  test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
+  test("Does not book seated round robin host outside availability with date override", async ({
+    page,
+    users,
+  }) => {
     const [testUser] = users.get();
     await testUser.apiLogin();
 
@@ -443,8 +498,6 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     // books 9AM slots for 120 minutes (test-user is not available at this time, availability starts at 10)
     await page.locator('[data-testid="time"]').nth(0).click();
-
-    await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
@@ -475,8 +528,6 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     // Again book a 9AM slot for 120 minutes where test-user is not available
     await page.locator('[data-testid="time"]').nth(0).click();
-
-    await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);

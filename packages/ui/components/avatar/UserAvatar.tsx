@@ -1,5 +1,6 @@
 import { classNames } from "@calcom/lib";
-import { getOrgAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { Avatar } from "@calcom/ui";
@@ -39,13 +40,12 @@ function OrganizationIndicator({
   organization,
   user,
 }: Pick<UserAvatarProps, "size" | "user"> & { organization: Organization }) {
-  const organizationUrl = organization.logoUrl ?? getOrgAvatarUrl(organization);
   const indicatorSize = size && indicatorBySize[size];
   return (
     <div className={classNames("absolute bottom-0 right-0 z-10", indicatorSize)}>
       <img
         data-testid="organization-logo"
-        src={organizationUrl}
+        src={getPlaceholderAvatar(organization.logoUrl, organization.slug)}
         alt={user.username || ""}
         className="flex h-full items-center justify-center rounded-full"
       />

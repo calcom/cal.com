@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { getEventLocationTypeFromApp, type EventLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -33,7 +33,7 @@ interface AppListProps {
 
 export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
@@ -48,6 +48,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
       utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      setBulkUpdateModal(true);
     },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
@@ -91,14 +92,13 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                         color="secondary"
                         StartIcon="video"
                         onClick={() => {
-                          const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
+                          const locationType = getLocationFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
                             setLocationType({ ...locationType, slug: appSlug });
                           } else {
                             updateDefaultAppMutation.mutate({
                               appSlug,
                             });
-                            setBulkUpdateModal(true);
                           }
                         }}>
                         {t("set_as_default")}
@@ -139,7 +139,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
               ...app,
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
@@ -183,6 +183,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
           open={bulkUpdateModal}
           setOpen={setBulkUpdateModal}
           isPending={updateLocationsMutation.isPending}
+          description={t("default_conferencing_bulk_description")}
         />
       )}
     </>
@@ -201,7 +202,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   const { type, credentialId, isGlobal, installed, handleDisconnect, teamId } = props;
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const handleOpenChange = () => {
     utils.viewer.integrations.invalidate();
   };

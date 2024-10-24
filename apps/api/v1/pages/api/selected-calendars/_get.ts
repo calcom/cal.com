@@ -32,13 +32,14 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         description: No selected calendars were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   /* Admin gets all selected calendar by default, otherwise only the user's ones */
-  const args: Prisma.SelectedCalendarFindManyArgs = isAdmin ? {} : { where: { userId } };
+  const args: Prisma.SelectedCalendarFindManyArgs = isSystemWideAdmin ? {} : { where: { userId } };
 
   /** Only admins can query other users */
-  if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 403, message: "ADMIN required" });
-  if (isAdmin && req.query.userId) {
+  if (!isSystemWideAdmin && req.query.userId)
+    throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  if (isSystemWideAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     args.where = { userId: { in: userIds } };

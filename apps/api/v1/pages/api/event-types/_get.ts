@@ -33,7 +33,7 @@ import getCalLink from "./_utils/getCalLink";
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/core-features/event-types
+ *        url: https://docs.cal.com/docs/core-features/event-types
  *     responses:
  *       200:
  *         description: OK
@@ -43,10 +43,10 @@ import getCalLink from "./_utils/getCalLink";
  *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
   const { slug } = schemaQuerySlug.parse(req.query);
-  const shouldUseUserId = !isAdmin || !slug || !!req.query.userId;
+  const shouldUseUserId = !isSystemWideAdmin || !slug || !!req.query.userId;
   // When user is admin and no query params are provided we should return all event types.
   // But currently we return only the event types of the user. Not changing this for backwards compatibility.
   const data = await prisma.eventType.findMany({
@@ -56,6 +56,7 @@ async function getHandler(req: NextApiRequest) {
     },
     include: {
       customInputs: true,
+      hashedLink: { select: { link: true } },
       team: { select: { slug: true } },
       hosts: { select: { userId: true, isFixed: true } },
       owner: { select: { username: true, id: true } },
@@ -74,9 +75,9 @@ async function getHandler(req: NextApiRequest) {
   };
 }
 // TODO: Extract & reuse.
-function extractUserIdsFromQuery({ isAdmin, query }: NextApiRequest) {
+function extractUserIdsFromQuery({ isSystemWideAdmin, query }: NextApiRequest) {
   /** Guard: Only admins can query other users */
-  if (!isAdmin) {
+  if (!isSystemWideAdmin) {
     throw new HttpError({ statusCode: 401, message: "ADMIN required" });
   }
   const { userId: userIdOrUserIds } = schemaQuerySingleOrMultipleUserIds.parse(query);

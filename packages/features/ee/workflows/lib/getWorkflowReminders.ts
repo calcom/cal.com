@@ -3,7 +3,9 @@ import prisma from "@calcom/prisma";
 import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
-type PartialWorkflowStep = Partial<WorkflowStep> | null;
+type PartialWorkflowStep =
+  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+  | null;
 
 type Booking = Prisma.BookingGetPayload<{
   include: {
@@ -25,7 +27,16 @@ type PartialBooking =
       | "attendees"
       | "userPrimaryEmail"
       | "smsReminderNumber"
-    > & { eventType: (Partial<EventType> & { team: { parentId?: number } }) | null } & {
+      | "title"
+    > & {
+      eventType:
+        | (Partial<EventType> & {
+            slug: string;
+            team: { parentId?: number };
+            hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
+          })
+        | null;
+    } & {
       user: Partial<User> | null;
     })
   | null;
@@ -120,6 +131,12 @@ export const select: Prisma.WorkflowReminderSelect = {
       template: true,
       sender: true,
       includeCalendarEvent: true,
+      workflow: {
+        select: {
+          userId: true,
+          teamId: true,
+        },
+      },
     },
   },
   booking: {
@@ -151,6 +168,20 @@ export const select: Prisma.WorkflowReminderSelect = {
           bookingFields: true,
           title: true,
           slug: true,
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  destinationCalendar: {
+                    select: {
+                      primaryEmail: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           recurringEvent: true,
           team: {
             select: {

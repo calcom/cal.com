@@ -2,7 +2,7 @@ import { useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
@@ -19,7 +19,16 @@ type AvailableTimeSlotsProps = {
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
-  event: useEventReturnType;
+  event: {
+    data?: Pick<BookerEvent, "length"> | null;
+  };
+  customClassNames?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsHeaderContainer?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
+    availableTimes?: string;
+  };
 };
 
 /**
@@ -37,6 +46,7 @@ export const AvailableTimeSlots = ({
   schedule,
   isLoading,
   event,
+  customClassNames,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -81,13 +91,18 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      <div className="flex">
+      <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimesHeader
+              customClassNames={{
+                availableTimeSlotsHeaderContainer: customClassNames?.availableTimeSlotsHeaderContainer,
+                availableTimeSlotsTitle: customClassNames?.availableTimeSlotsTitle,
+                availableTimeSlotsTimeFormatToggle: customClassNames?.availableTimeSlotsTimeFormatToggle,
+              }}
               key={slots.date}
               date={dayjs(slots.date)}
               showTimeFormatToggle={!isColumnView}
@@ -100,20 +115,23 @@ export const AvailableTimeSlots = ({
           ))
         )}
       </div>
+
       <div
         ref={containerRef}
         className={classNames(
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
-          !limitHeight && "flex h-full w-full flex-row gap-4"
+          !limitHeight && "flex h-full w-full flex-row gap-4",
+          `${customClassNames?.availableTimeSlotsContainer}`
         )}>
-        {isLoading
-          ? // Shows exact amount of days as skeleton.
-            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
-          : slotsPerDay.length > 0 &&
-            slotsPerDay.map((slots) => (
+        {isLoading && // Shows exact amount of days as skeleton.
+          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
+        {!isLoading &&
+          slotsPerDay.length > 0 &&
+          slotsPerDay.map((slots) => (
+            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
               <AvailableTimes
-                className="scroll-bar w-full overflow-y-auto overflow-x-hidden"
-                key={slots.date}
+                className={customClassNames?.availableTimeSlotsContainer}
+                customClassNames={customClassNames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 slots={slots.slots}
@@ -121,7 +139,8 @@ export const AvailableTimeSlots = ({
                 showAvailableSeatsCount={showAvailableSeatsCount}
                 event={event}
               />
-            ))}
+            </div>
+          ))}
       </div>
     </>
   );

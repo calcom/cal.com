@@ -1,11 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-import { describe, expect } from "vitest";
-
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import logger from "@calcom/lib/logger";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getBooker,
@@ -27,6 +19,15 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { v4 as uuidv4 } from "uuid";
+import { describe, expect } from "vitest";
+
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import logger from "@calcom/lib/logger";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -159,14 +160,18 @@ describe("handleNewBooking", () => {
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
-            expect(createdBooking).toContain({
-              location: "integrations:daily",
-            });
+            expect(createdBooking).toEqual(
+              expect.objectContaining({
+                location: "integrations:daily",
+              })
+            );
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -507,14 +512,18 @@ describe("handleNewBooking", () => {
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
-            expect(createdBooking).toContain({
-              location: "integrations:daily",
-            });
+            expect(createdBooking).toEqual(
+              expect.objectContaining({
+                location: "integrations:daily",
+              })
+            );
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -722,14 +731,18 @@ describe("handleNewBooking", () => {
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
-            expect(createdBooking).toContain({
-              location: "integrations:daily",
-            });
+            expect(createdBooking).toEqual(
+              expect.objectContaining({
+                location: "integrations:daily",
+              })
+            );
 
             await expectBookingToBeInDatabase({
               description: "",

@@ -4,15 +4,19 @@ import { Prisma } from "@prisma/client";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
@@ -78,18 +82,20 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       darkBrandColor: true,
       slug: true,
       name: true,
-      logo: true,
+      logoUrl: true,
       theme: true,
       parent: {
         select: {
           slug: true,
           name: true,
           bannerUrl: true,
+          logoUrl: true,
         },
       },
     },
   },
   successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
   workflows: {
     include: {
       workflow: {
@@ -115,16 +121,92 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       timeZone: true,
     },
   },
+  instantMeetingSchedule: {
+    select: {
+      id: true,
+      timeZone: true,
+    },
+  },
+
   hidden: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
 });
 
+export async function isCurrentlyAvailable({
+  prisma,
+  instantMeetingScheduleId,
+  availabilityTimezone,
+  length,
+}: {
+  prisma: PrismaClient;
+  instantMeetingScheduleId: number;
+  availabilityTimezone: string;
+  length: number;
+}): Promise<boolean> {
+  const now = dayjs().tz(availabilityTimezone);
+  const currentDay = now.day();
+  const meetingEndTime = now.add(length, "minute");
+
+  const res = await prisma.schedule.findUniqueOrThrow({
+    where: {
+      id: instantMeetingScheduleId,
+    },
+    select: {
+      availability: true,
+    },
+  });
+
+  const dateOverride = res.availability.find((a) => a.date && dayjs(a.date).isSame(now, "day"));
+
+  if (dateOverride) {
+    return !isAvailableInTimeSlot(dateOverride, now, meetingEndTime);
+  }
+
+  for (const availability of res.availability) {
+    if (!availability.date && availability.days.includes(currentDay)) {
+      const isAvailable = isAvailableInTimeSlot(availability, now, meetingEndTime);
+      if (isAvailable) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function isAvailableInTimeSlot(
+  availability: { startTime: Date; endTime: Date; days: number[] },
+  now: dayjs.Dayjs,
+  meetingEndTime: dayjs.Dayjs
+): boolean {
+  const startTime = dayjs(availability.startTime).utc().format("HH:mm");
+  const endTime = dayjs(availability.endTime).utc().format("HH:mm");
+
+  const periodStart = now
+    .startOf("day")
+    .hour(parseInt(startTime.split(":")[0]))
+    .minute(parseInt(startTime.split(":")[1]));
+  const periodEnd = now
+    .startOf("day")
+    .hour(parseInt(endTime.split(":")[0]))
+    .minute(parseInt(endTime.split(":")[1]));
+
+  const isWithinPeriod =
+    now.isBetween(periodStart, periodEnd, null, "[)") &&
+    meetingEndTime.isBetween(periodStart, periodEnd, null, "(]");
+
+  return isWithinPeriod;
+}
+
+// TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  prisma: PrismaClient
+  prisma: PrismaClient,
+  fromRedirectOfNonOrgLink: boolean
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -160,6 +242,19 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
+    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
+    if (org) {
+      orgDetails = await prisma.team.findFirstOrThrow({
+        where: {
+          slug: org,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      });
+    }
+
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
@@ -171,26 +266,31 @@ export const getPublicEvent = async (
       })),
       locations: privacyFilteredLocations(locations),
       profile: {
-        username: users[0].username,
-        name: users[0].name,
         weekStart: users[0].weekStart,
-        image: getUserAvatarUrl({
-          ...users[0],
-          profile: users[0].profile,
-        }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
         bookerLayouts: bookerLayoutsSchema.parse(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
+        ...(orgDetails
+          ? {
+              image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+              name: orgDetails?.name,
+              username: org,
+            }
+          : {}),
       },
       entity: {
-        isUnpublished: unPublishedOrgUser !== undefined,
+        considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
+        fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
+        teamSlug: null,
+        logoUrl: null,
       },
       isInstantEvent: false,
+      showInstantEventConnectNowModal: false,
     };
   }
 
@@ -215,6 +315,7 @@ export const getPublicEvent = async (
                 }
               : {
                   username,
+                  profiles: { none: {} },
                 }),
           },
         },
@@ -222,7 +323,7 @@ export const getPublicEvent = async (
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
-  const event = await prisma.eventType.findFirst({
+  let event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
       ...usersOrTeamQuery,
@@ -230,19 +331,41 @@ export const getPublicEvent = async (
     select: publicEventSelect,
   });
 
+  // If no event was found, check for platform org user event
+  if (!event && !orgQuery) {
+    event = await prisma.eventType.findFirst({
+      where: {
+        slug: eventSlug,
+        users: {
+          some: {
+            username,
+            isPlatformManaged: false,
+            movedToProfile: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      },
+      select: publicEventSelect,
+    });
+  }
+
   if (!event) return null;
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const hosts = [];
-  for (const host of event.hosts) {
-    hosts.push({
-      ...host,
-      user: await UserRepository.enrichUserWithItsProfile({
-        user: host.user,
-      }),
-    });
-  }
+  const usersAsHosts = event.hosts.map((host) => host.user);
+
+  // Enrich users in a single batch call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+
+  // Map enriched users back to the hosts
+  const hosts = event.hosts.map((host, index) => ({
+    ...host,
+    user: enrichedUsers[index],
+  }));
 
   const eventWithUserProfiles = {
     ...event,
@@ -274,6 +397,33 @@ export const getPublicEvent = async (
     });
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
+
+  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
+  if (org) {
+    orgDetails = await prisma.team.findFirst({
+      where: {
+        slug: org,
+      },
+      select: {
+        logoUrl: true,
+        name: true,
+      },
+    });
+  }
+
+  let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
+
+  if (eventWithUserProfiles.isInstantEvent && eventWithUserProfiles.instantMeetingSchedule?.id) {
+    const { id, timeZone } = eventWithUserProfiles.instantMeetingSchedule;
+
+    showInstantEventConnectNowModal = await isCurrentlyAvailable({
+      prisma,
+      instantMeetingScheduleId: id,
+      availabilityTimezone: timeZone ?? "Europe/London",
+      length: eventWithUserProfiles.length,
+    });
+  }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -289,10 +439,12 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
-      isUnpublished:
-        eventWithUserProfiles.team?.slug === null ||
-        eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
-        eventWithUserProfiles.team?.parent?.slug === null,
+      fromRedirectOfNonOrgLink,
+      considerUnpublished:
+        !fromRedirectOfNonOrgLink &&
+        (eventWithUserProfiles.team?.slug === null ||
+          eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
+          eventWithUserProfiles.team?.parent?.slug === null),
       orgSlug: org,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
@@ -300,9 +452,17 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      ...(orgDetails
+        ? {
+            logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+            name: orgDetails?.name,
+          }
+        : {}),
     },
+
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
+    showInstantEventConnectNowModal,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
@@ -330,22 +490,10 @@ function getProfileFromEvent(event: Event) {
     name: profile.name,
     weekStart,
     image: team
-      ? undefined
-      : // TODO: There must be a better way to do this, maybe a prisma middleware?
-        // This should come pre-proccessed from the database IMO instead of replacing everywhere
-        getUserAvatarUrl({
-          username: username || "",
-          profile: {
-            id: nonTeamprofile?.id || null,
-            username: username || null,
-            organizationId: nonTeamprofile?.organization?.id || null,
-            organization: nonTeamprofile?.organization
-              ? { ...nonTeamprofile?.organization, requestedSlug: null }
-              : null,
-          },
+      ? getOrgOrTeamAvatar(team)
+      : getUserAvatarUrl({
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
@@ -411,18 +559,18 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
     },
   });
   if (!users.length) return null;
-  const usersWithUserProfile = [];
-  for (const user of users) {
-    const { profile } = await UserRepository.enrichUserWithItsProfile({
-      user: user,
-    });
-    usersWithUserProfile.push({
-      ...user,
-      organizationId: profile?.organization?.id ?? null,
-      organization: profile?.organization,
-      profile,
-    });
-  }
+
+  // Batch enrich users in a single call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(users);
+
+  // Map the enriched users back to include the organization info
+  const usersWithUserProfile = enrichedUsers.map((user) => ({
+    ...user,
+    organizationId: user.profile?.organization?.id ?? null,
+    organization: user.profile?.organization,
+    profile: user.profile,
+  }));
+
   return [
     {
       ...usersWithUserProfile[0],

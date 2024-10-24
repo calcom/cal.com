@@ -21,7 +21,7 @@ const querySchema = z.object({
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -60,7 +60,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     dateRange: [
       startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "week"),
       endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
-      "w",
+      !startTimeParsed && !endTimeParsed ? "w" : null,
     ],
     selectedTimeView: "week",
     selectedUserId: userIdParsed || null,
@@ -131,8 +131,8 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setParamsIfDefined("userId", selectedUserId || initialConfig?.userId);
           setParamsIfDefined("eventTypeId", selectedEventTypeId);
           setParamsIfDefined("isAll", isAll || initialConfig?.isAll);
-          setParamsIfDefined("startTime", startTime?.toISOString());
-          setParamsIfDefined("endTime", endTime?.toISOString());
+          setParamsIfDefined("startTime", startTime?.format("YYYY-MM-DD"));
+          setParamsIfDefined("endTime", endTime?.format("YYYY-MM-DD"));
           setParamsIfDefined("filter", selectedFilter?.[0]);
           router.push(`${pathname}?${newSearchParams.toString()}`);
         },

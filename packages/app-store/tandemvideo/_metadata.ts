@@ -24,6 +24,7 @@ export const metadata = {
     },
   },
   dirName: "tandemvideo",
+  isOAuth: true,
 } as AppMeta;
 
 export default metadata;

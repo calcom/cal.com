@@ -1,5 +1,5 @@
-import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { HttpError } from "@calcom/lib/http-error";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 export const throwIfNotHaveAdminAccessToTeam = async ({
   teamId,
@@ -11,8 +11,9 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   if (!teamId) {
     return;
   }
-  const teamsUserHasAdminAccessFor = await getUserAdminTeams({ userId });
-  const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((team) => team.id === teamId);
+  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const teamsUserHasAdminAccessFor = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
+  const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
 
   if (!hasAdminAccessToTeam) {
     throw new HttpError({ statusCode: 401, message: "You must be an admin of the team to do this" });

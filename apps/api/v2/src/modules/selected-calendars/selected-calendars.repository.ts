@@ -6,13 +6,26 @@ import { Injectable } from "@nestjs/common";
 export class SelectedCalendarsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  createSelectedCalendar(externalId: string, credentialId: number, userId: number, integration: string) {
-    return this.dbWrite.prisma.selectedCalendar.create({
-      data: {
+  upsertSelectedCalendar(externalId: string, credentialId: number, userId: number, integration: string) {
+    return this.dbWrite.prisma.selectedCalendar.upsert({
+      create: {
         userId,
         externalId,
         credentialId,
         integration,
+      },
+      update: {
+        userId,
+        externalId,
+        credentialId,
+        integration,
+      },
+      where: {
+        userId_integration_externalId: {
+          userId,
+          integration,
+          externalId,
+        },
       },
     });
   }
@@ -21,6 +34,55 @@ export class SelectedCalendarsRepository {
     return this.dbRead.prisma.selectedCalendar.findMany({
       where: {
         userId,
+      },
+    });
+  }
+
+  getUserSelectedCalendar(userId: number, integration: string, externalId: string) {
+    return this.dbRead.prisma.selectedCalendar.findUnique({
+      where: {
+        userId_integration_externalId: {
+          userId,
+          externalId,
+          integration,
+        },
+      },
+    });
+  }
+
+  async addUserSelectedCalendar(
+    userId: number,
+    integration: string,
+    externalId: string,
+    credentialId: number
+  ) {
+    return await this.dbWrite.prisma.selectedCalendar.upsert({
+      where: {
+        userId_integration_externalId: {
+          userId,
+          integration,
+          externalId,
+        },
+      },
+      create: {
+        userId,
+        integration,
+        externalId,
+        credentialId,
+      },
+      // already exists
+      update: {},
+    });
+  }
+
+  async removeUserSelectedCalendar(userId: number, integration: string, externalId: string) {
+    return await this.dbWrite.prisma.selectedCalendar.delete({
+      where: {
+        userId_integration_externalId: {
+          userId,
+          externalId,
+          integration,
+        },
       },
     });
   }

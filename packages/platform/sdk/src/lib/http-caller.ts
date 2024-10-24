@@ -35,7 +35,9 @@ export class HttpCaller {
     private readonly axiosClient: AxiosInstance,
     private readonly options?: HttpCallerOptions
   ) {
-    this.setupInterceptors();
+    if (options?.shouldHandleRefresh) {
+      this.setupInterceptors();
+    }
   }
 
   private async retryQueuedRequests() {
@@ -68,7 +70,7 @@ export class HttpCaller {
 
             try {
               await this.secrets?.refreshAccessToken(this.clientId);
-              this.retryQueuedRequests();
+              await this.retryQueuedRequests();
             } catch (refreshError) {
               console.error("Failed to refresh token:", refreshError);
               // Optionally, clear the queue on failure to prevent hanging requests
@@ -160,9 +162,5 @@ export class HttpCaller {
       headers,
       params,
     });
-  }
-
-  isAwaitingRefresh() {
-    return this.awaitingRefresh;
   }
 }

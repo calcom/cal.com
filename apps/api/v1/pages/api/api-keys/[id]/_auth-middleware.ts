@@ -6,10 +6,10 @@ import prisma from "@calcom/prisma";
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 export async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { id } = schemaQueryIdAsString.parse(req.query);
   // Admin can check any api key
-  if (isAdmin) return;
+  if (isSystemWideAdmin) return;
   // Check if user can access the api key
   const apiKey = await prisma.apiKey.findFirst({
     where: { id, userId },

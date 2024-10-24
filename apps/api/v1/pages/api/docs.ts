@@ -11,8 +11,8 @@ const swaggerHandler = withSwagger({
       { url: "https://api.cal.com/v1" },
     ],
     externalDocs: {
-      url: "https://docs.cal.com",
-      description: "Find more info at our main docs: https://docs.cal.com/",
+      url: "https://docs.cal.com/docs",
+      description: "Find more info at our main docs: https://docs.cal.com/docs/",
     },
     info: {
       title: `${pjson.name}: ${pjson.description}`,
@@ -25,6 +25,37 @@ const swaggerHandler = withSwagger({
           type: "array",
           items: {
             $ref: "#/components/schemas/Booking",
+          },
+        },
+        ArrayOfRecordings: {
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/Recording",
+          },
+        },
+        Recording: {
+          properties: {
+            id: {
+              type: "string",
+            },
+            room_name: {
+              type: "string",
+            },
+            start_ts: {
+              type: "number",
+            },
+            status: {
+              type: "string",
+            },
+            max_participants: {
+              type: "number",
+            },
+            duration: {
+              type: "number",
+            },
+            download_link: {
+              type: "string",
+            },
           },
         },
         Booking: {
@@ -56,6 +87,11 @@ const swaggerHandler = withSwagger({
             timeZone: {
               type: "string",
               example: "Europe/London",
+            },
+            fromReschedule: {
+              type: "string",
+              nullable: true,
+              format: "uuid",
             },
             attendees: {
               type: "array",

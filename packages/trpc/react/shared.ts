@@ -13,6 +13,7 @@ export const ENDPOINTS = [
   "dsync",
   "eventTypes",
   "features",
+  "highPerf",
   "insights",
   "payments",
   "public",
@@ -28,4 +29,5 @@ export const ENDPOINTS = [
   "appsRouter",
   "googleWorkspace",
   "oAuth",
+  "attributes",
 ] as const;

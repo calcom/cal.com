@@ -25,6 +25,8 @@ export type VerticalTabItemProps = {
   linkScroll?: boolean;
   avatar?: string;
   iconClassName?: string;
+  onClick?: (name: string) => void;
+  isActive?: boolean;
 };
 
 const VerticalTabItem = ({
@@ -38,13 +40,19 @@ const VerticalTabItem = ({
   ...props
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
-  const isCurrent = useUrlMatchesCurrentUrl(href);
+  const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
 
   return (
     <Fragment key={name}>
       {!props.hidden && (
         <>
           <Link
+            onClick={(e) => {
+              if (props.onClick) {
+                e.preventDefault();
+                props.onClick(name);
+              }
+            }}
             key={name}
             href={href}
             shallow={linkShallow}
@@ -52,10 +60,10 @@ const VerticalTabItem = ({
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",
-              "min-h-8 hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default group flex w-64 flex-row items-center rounded-md px-3 py-[10px] transition",
+              "min-h-7 hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default group flex w-64 flex-row items-center rounded-md px-3 py-2 transition",
               props.disabled && "pointer-events-none !opacity-30",
               (isChild || !props.icon) && "ml-7 w-auto ltr:mr-5 rtl:ml-5",
-              !info ? "h-6" : "h-14",
+              !info ? "h-6" : "h-auto",
               props.className
             )}
             data-testid={`vertical-tab-${name}`}
@@ -72,7 +80,7 @@ const VerticalTabItem = ({
             )}
             <div className="h-fit">
               <span className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
+                <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 truncate">
                   {t(name)}
                 </Skeleton>
                 {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}

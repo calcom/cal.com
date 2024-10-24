@@ -1,21 +1,21 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { User, Team } from "@prisma/client";
 import * as request from "supertest";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UserResponse } from "@calcom/platform-types";
@@ -27,16 +27,17 @@ describe("Me Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
-
+    let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     const userEmail = "me-controller-e2e@api.com";
     let user: User;
+    let org: Team;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, TokensModule],
-          providers: [SchedulesRepository, SchedulesService],
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule_2024_04_15],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -46,10 +47,28 @@ describe("Me Endpoints", () => {
         .compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        username: userEmail,
+      });
+
+      org = await organizationsRepositoryFixture.create({
+        name: "Test org team",
+        isOrganization: true,
+        isPlatform: true,
+      });
+
+      await profilesRepositoryFixture.create({
+        uid: "asd-asd",
+        username: userEmail,
+        user: { connect: { id: user.id } },
+        organization: { connect: { id: org.id } },
+        movedFromUser: { connect: { id: user.id } },
       });
 
       app = moduleRef.createNestApplication();
@@ -65,7 +84,7 @@ describe("Me Endpoints", () => {
 
     it("should get user associated with access token", async () => {
       return request(app.getHttpServer())
-        .get("/api/v2/ee/me")
+        .get("/v2/me")
         .expect(200)
         .then((response) => {
           const responseBody: ApiSuccessResponse<UserResponse> = response.body;
@@ -77,14 +96,16 @@ describe("Me Endpoints", () => {
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
           expect(responseBody.data.timeZone).toEqual(user.timeZone);
+          expect(responseBody.data.organization?.isPlatform).toEqual(true);
+          expect(responseBody.data.organization?.id).toEqual(org.id);
         });
     });
 
     it("should update user associated with access token", async () => {
-      const body: UpdateManagedPlatformUserInput = { timeZone: "Europe/Rome" };
+      const body: UpdateManagedUserInput = { timeZone: "Europe/Rome" };
 
       return request(app.getHttpServer())
-        .patch("/api/v2/ee/me")
+        .patch("/v2/me")
         .send(body)
         .expect(200)
         .then(async (response) => {
@@ -105,29 +126,42 @@ describe("Me Endpoints", () => {
         });
     });
 
-    it("should not update user associated with access token given invalid timezone", async () => {
-      const bodyWithIncorrectTimeZone: UpdateManagedPlatformUserInput = { timeZone: "Narnia/Woods" };
+    it("should update user associated with access token given badly formatted timezone", async () => {
+      const bodyWithBadlyFormattedTimeZone: UpdateManagedUserInput = { timeZone: "America/New_york" };
 
-      return request(app.getHttpServer()).patch("/api/v2/ee/me").send(bodyWithIncorrectTimeZone).expect(400);
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(bodyWithBadlyFormattedTimeZone)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data.timeZone).toEqual("America/New_York");
+        });
+    });
+
+    it("should not update user associated with access token given invalid timezone", async () => {
+      const bodyWithIncorrectTimeZone: UpdateManagedUserInput = { timeZone: "Narnia/Woods" };
+
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat: UpdateManagedPlatformUserInput = { timeFormat: 100 };
+      const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 as any };
 
-      return request(app.getHttpServer())
-        .patch("/api/v2/ee/me")
-        .send(bodyWithIncorrectTimeFormat)
-        .expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart: UpdateManagedPlatformUserInput = { weekStart: "waba luba dub dub" };
+      const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" as any };
 
-      return request(app.getHttpServer()).patch("/api/v2/ee/me").send(bodyWithIncorrectWeekStart).expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
   });
