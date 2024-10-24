@@ -25,6 +25,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
           description="You need to connect Stripe to use this feature. Pleae click on the button below to connect."
           buttonRaw={
             <StripeConnect
+              teamId={eventType.teamId}
               label="Connect to Stripe"
               loadingLabel="Connect to Stripe"
               alreadyConnectedLabel="Connect to Stripe"

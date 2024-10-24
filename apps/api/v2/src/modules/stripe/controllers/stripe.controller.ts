@@ -46,7 +46,8 @@ export class StripeController {
     @Headers("Authorization") authorization: string,
     @GetUser() user: UserWithProfile,
     @Query("redir") redir?: string | null,
-    @Query("errorRedir") errorRedir?: string | null
+    @Query("errorRedir") errorRedir?: string | null,
+    @Query("teamId") teamId?: string | null
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
     const accessToken = authorization.replace("Bearer ", "");
@@ -56,6 +57,7 @@ export class StripeController {
       fromApp: false,
       returnTo: !!redir ? redir : origin,
       accessToken,
+      teamId: teamId ?? null,
     };
 
     const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
