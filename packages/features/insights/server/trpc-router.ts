@@ -416,11 +416,12 @@ export const insightsRouter = router({
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-      const startDate = dayjs.utc(startDateString).startOf("day");
-      const endDate = dayjs.utc(endDateString).endOf("day");
-      const user = ctx.user;
 
-      if (selfUserId && user?.id !== selfUserId) {
+      // Convert to UTC without shifting the time zone
+      let startDate = dayjs.utc(startDateString).startOf("day");
+      let endDate = dayjs.utc(endDateString).endOf("day");
+
+      if (selfUserId && ctx.user?.id !== selfUserId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
@@ -430,12 +431,17 @@ export const insightsRouter = router({
 
       let timeView = inputTimeView;
 
-      if (timeView === "week") {
-        // Difference between start and end date is less than 14 days use day view
-        if (endDate.diff(startDate, "day") < 14) {
-          timeView = "day";
-        }
+      // Adjust the timeView if the range is less than 14 days
+      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
+        timeView = "day";
       }
+
+      // Align startDate to the Monday of the week if timeView is 'week'
+      if (timeView === "week") {
+        startDate = startDate.day(1); // Set startDate to Monday
+        endDate = endDate.day(1).add(6, "day").endOf("day"); // Set endDate to Sunday of the same week
+      }
+
       const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
@@ -458,28 +464,31 @@ export const insightsRouter = router({
 
       const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
 
+      // Align date ranges consistently with weeks starting on Monday
       const dateRanges = timeline.map((date) => {
-        let startDate = dayjs(date).startOf(timeView);
-        let endDate = dayjs(date).endOf(timeView);
+        let startOfRange = dayjs.utc(date).startOf(timeView);
+        let endOfRange = dayjs.utc(date).endOf(timeView);
 
         if (timeView === "week") {
-          startDate = dayjs(date).startOf("day");
-          endDate = dayjs(date).add(6, "day").endOf("day");
+          startOfRange = dayjs.utc(date).day(1); // Start at Monday in UTC
+          endOfRange = startOfRange.add(6, "day").endOf("day"); // End at Sunday in UTC
         }
 
         return {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          formattedDate: dayjs(date).format(dateFormat), // keep formatted date for later
+          startDate: startOfRange.toISOString(),
+          endDate: endOfRange.toISOString(),
+          formattedDate: startOfRange.format(dateFormat), // Align formatted date for consistency
         };
       });
-
+      // Fetch counts grouped by status for the entire range
       const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
         whereConditional,
         startDate,
         endDate,
         timeView
       );
+
+      // Construct the result by mapping date ranges to count data
       const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
           Month: formattedDate,
@@ -502,6 +511,7 @@ export const insightsRouter = router({
         }
         return EventData;
       });
+
       return result;
     }),
   popularEventTypes: userBelongsToTeamProcedure
