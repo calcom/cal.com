@@ -1,88 +1,28 @@
 import { expect, beforeEach, afterEach, it, vi, describe } from "vitest";
 
-import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
+import { addTimezonesToDropdown, handleOptionLabel, filterBySearchText } from "@calcom/lib/timezone";
 
-const cityData = [
-  {
-    city: "San Francisco",
-    timezone: "America/Argentina/Cordoba",
-  },
-  {
-    city: "Sao Francisco do Sul",
-    timezone: "America/Sao_Paulo",
-  },
-  {
-    city: "San Francisco de Macoris",
-    timezone: "America/Santo_Domingo",
-  },
-  {
-    city: "San Francisco Gotera",
-    timezone: "America/El_Salvador",
-  },
-  {
-    city: "San Francisco",
-    timezone: "America/Los_Angeles",
-  },
-  {
-    timezone: "America/New_York",
-    city: "Eastern Time - US & Canada",
-  },
-  {
-    timezone: "America/Los_Angeles",
-    city: "Pacific Time - US & Canada",
-  },
-  {
-    timezone: "America/Chicago",
-    city: "Central Time - US & Canada",
-  },
-  {
-    timezone: "America/Denver",
-    city: "Mountain Time - US & Canada",
-  },
-  {
-    timezone: "America/Halifax",
-    city: "Atlantic Time - Canada",
-  },
-  {
-    timezone: "Europe/Bucharest",
-    city: "Eastern European Time",
-  },
-  {
-    timezone: "Europe/Berlin",
-    city: "Central European Time",
-  },
-  {
-    timezone: "Europe/London",
-    city: "Western European Time",
-  },
-  {
-    timezone: "Australia/Sydney",
-    city: "Australian Eastern Time",
-  },
-  {
-    timezone: "Asia/Tokyo",
-    city: "Japan Standard Time",
-  },
-  {
-    timezone: "Asia/Kolkata",
-    city: "India Standard Time",
-  },
-  {
-    timezone: "Asia/Dubai",
-    city: "Gulf Standard Time",
-  },
-  {
-    timezone: "Africa/Johannesburg",
-    city: "South Africa Standard Time",
-  },
-  {
-    timezone: "America/Sao_Paulo",
-    city: "Brazil Time",
-  },
-  {
-    timezone: "Pacific/Honolulu",
-    city: "Hawaii-Aleutian Standard Time",
-  },
+const timezonesFixture = [
+  { label: "San Francisco", timezone: "America/Argentina/Cordoba" },
+  { label: "San Francisco", timezone: "America/Los_Angeles" },
+  { label: "Sao Francisco do Sul", timezone: "America/Sao_Paulo" },
+  { label: "San Francisco de Macoris", timezone: "America/Santo_Domingo" },
+  { label: "San Francisco Gotera", timezone: "America/El_Salvador" },
+  { label: "Eastern Time - US & Canada", timezone: "America/New_York" },
+  { label: "Pacific Time - US & Canada", timezone: "America/Los_Angeles" },
+  { label: "Central Time - US & Canada", timezone: "America/Chicago" },
+  { label: "Mountain Time - US & Canada", timezone: "America/Denver" },
+  { label: "Atlantic Time - Canada", timezone: "America/Halifax" },
+  { label: "Eastern European Time", timezone: "Europe/Bucharest" },
+  { label: "Central European Time", timezone: "Europe/Berlin" },
+  { label: "Western European Time", timezone: "Europe/London" },
+  { label: "Australian Eastern Time", timezone: "Australia/Sydney" },
+  { label: "Japan Standard Time", timezone: "Asia/Tokyo" },
+  { label: "India Standard Time", timezone: "Asia/Kolkata" },
+  { label: "Gulf Standard Time", timezone: "Asia/Dubai" },
+  { label: "South Africa Standard Time", timezone: "Africa/Johannesburg" },
+  { label: "Brazil Time", timezone: "America/Sao_Paulo" },
+  { label: "Hawaii-Aleutian Standard Time", timezone: "Pacific/Honolulu" },
 ];
 
 const option = {
@@ -104,34 +44,34 @@ describe("getTimezone", () => {
   });
 
   it("should return empty array for an empty string", () => {
-    expect(filterByCities("", cityData)).toMatchInlineSnapshot(`[]`);
+    expect(filterBySearchText("", timezonesFixture)).toMatchInlineSnapshot(`[]`);
   });
 
   it("should filter cities for a valid city name", () => {
-    expect(filterByCities("San Francisco", cityData)).toMatchInlineSnapshot(`
+    expect(filterBySearchText("San Francisco", timezonesFixture)).toMatchInlineSnapshot(`
       [
         {
-          "city": "San Francisco",
+          "label": "San Francisco",
           "timezone": "America/Argentina/Cordoba",
         },
         {
-          "city": "San Francisco de Macoris",
+          "label": "San Francisco",
+          "timezone": "America/Los_Angeles",
+        },
+        {
+          "label": "San Francisco de Macoris",
           "timezone": "America/Santo_Domingo",
         },
         {
-          "city": "San Francisco Gotera",
+          "label": "San Francisco Gotera",
           "timezone": "America/El_Salvador",
-        },
-        {
-          "city": "San Francisco",
-          "timezone": "America/Los_Angeles",
         },
       ]
     `);
   });
 
   it("should return appropriate timezone(s) for a given city name array", () => {
-    expect(addCitiesToDropdown(cityData)).toMatchInlineSnapshot(`
+    expect(addTimezonesToDropdown(timezonesFixture)).toMatchInlineSnapshot(`
       {
         "Africa/Johannesburg": "South Africa Standard Time",
         "America/Argentina/Cordoba": "San Francisco",
@@ -156,9 +96,9 @@ describe("getTimezone", () => {
   });
 
   it("should render city name as option label if cityData is not empty", () => {
-    expect(handleOptionLabel(option, cityData)).toMatchInlineSnapshot(`"San Francisco GMT -8:00"`);
+    expect(handleOptionLabel(option, timezonesFixture)).toMatchInlineSnapshot(`"San Francisco GMT -8:00"`);
     vi.setSystemTime(new Date("2020-06-01"));
-    expect(handleOptionLabel(option, cityData)).toMatchInlineSnapshot(`"San Francisco GMT -7:00"`);
+    expect(handleOptionLabel(option, timezonesFixture)).toMatchInlineSnapshot(`"San Francisco GMT -7:00"`);
   });
 
   it("should return timezone as option label if cityData is empty", () => {

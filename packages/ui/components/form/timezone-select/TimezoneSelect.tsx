@@ -6,28 +6,33 @@ import BaseSelect from "react-timezone-select";
 
 import { classNames } from "@calcom/lib";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { filterByKeys, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
+import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 
 import { getReactSelectProps } from "../select";
 
-const SELECT_SEARCH_DATA: Timezones = {
-  "Eastern Time - US & Canada": "America/New_York",
-  "Central Time - US & Canada": "America/Los_Angeles",
-  "Mountain Time - US & Canada": "America/Denver",
-  "Atlantic Time - Canada": "America/Halifax",
-  "Eastern European Time": "Europe/Bucharest",
-  "Central European Time": "Europe/Berlin",
-  "Western European Time": "Europe/London",
-  "Australian Eastern Time": "Australia/Sydney",
-  "Japan Standard Time": "Asia/Tokyo",
-  "India Standard Time": "Asia/Kolkata",
-  "Gulf Standard Time": "Asia/Dubai",
-  "South Africa Standard Time": "Africa/Johannesburg",
-  "Brazil Time": "America/Sao_Paulo",
-  "Hawaii-Aleutian Standard Time": "Pacific/Honolulu",
-};
+const SELECT_SEARCH_DATA: Timezones = [
+  { label: "San Francisco", timezone: "America/Los_Angeles" },
+  { label: "Sao Francisco do Sul", timezone: "America/Sao_Paulo" },
+  { label: "San Francisco de Macoris", timezone: "America/Santo_Domingo" },
+  { label: "San Francisco Gotera", timezone: "America/El_Salvador" },
+  { label: "Eastern Time - US & Canada", timezone: "America/New_York" },
+  { label: "Pacific Time - US & Canada", timezone: "America/Los_Angeles" },
+  { label: "Central Time - US & Canada", timezone: "America/Chicago" },
+  { label: "Mountain Time - US & Canada", timezone: "America/Denver" },
+  { label: "Atlantic Time - Canada", timezone: "America/Halifax" },
+  { label: "Eastern European Time", timezone: "Europe/Bucharest" },
+  { label: "Central European Time", timezone: "Europe/Berlin" },
+  { label: "Western European Time", timezone: "Europe/London" },
+  { label: "Australian Eastern Time", timezone: "Australia/Sydney" },
+  { label: "Japan Standard Time", timezone: "Asia/Tokyo" },
+  { label: "India Standard Time", timezone: "Asia/Kolkata" },
+  { label: "Gulf Standard Time", timezone: "Asia/Dubai" },
+  { label: "South Africa Standard Time", timezone: "Africa/Johannesburg" },
+  { label: "Brazil Time", timezone: "America/Sao_Paulo" },
+  { label: "Hawaii-Aleutian Standard Time", timezone: "Pacific/Honolulu" },
+];
 
 export type TimezoneSelectProps = SelectProps & {
   variant?: "default" | "minimal";
@@ -67,12 +72,11 @@ export function TimezoneSelectComponent({
   timezoneSelectCustomClassname,
   components,
   variant = "default",
-  data,
   isPending,
   value,
   ...props
 }: TimezoneSelectComponentProps) {
-  const combinedData = { ...data, ...SELECT_SEARCH_DATA };
+  const data = [...props.data, ...SELECT_SEARCH_DATA];
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -80,9 +84,9 @@ export function TimezoneSelectComponent({
    *
    * We make sure to be able to search through both options, and flip the key/value on final display.
    */
-  const [additionalTimezones, setAdditionalTimezones] = useState<Timezones>({});
+  const [additionalTimezones, setAdditionalTimezones] = useState<Timezones>([]);
   const handleInputChange = (searchText: string) => {
-    if (data) setAdditionalTimezones(filterByKeys(searchText, combinedData));
+    if (data) setAdditionalTimezones(filterBySearchText(searchText, combinedData));
   };
 
   const reactSelectProps = useMemo(() => {
@@ -100,7 +104,7 @@ export function TimezoneSelectComponent({
       isDisabled={isPending}
       {...reactSelectProps}
       timezones={{
-        ...(data ? addTimezonesToDropdown(combinedData) : {}),
+        ...(props.data ? addTimezonesToDropdown(data) : {}),
         ...addTimezonesToDropdown(additionalTimezones),
       }}
       onInputChange={handleInputChange}
