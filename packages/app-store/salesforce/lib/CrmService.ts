@@ -443,7 +443,6 @@ export default class SalesforceCRMService implements CRM {
         // Check to see if the lead exists already
         const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
         if (leadQuery.records.length) {
-          console.log("leadQuery", leadQuery.records);
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
         }
