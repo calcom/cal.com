@@ -369,7 +369,7 @@ describe("event tests", () => {
     expect(result).toBe("event duration: 15 mins");
   });
 
-  it("should support templating of location via {Scheduler first name}", () => {
+  it("should support templating of Scheduler first name", () => {
     const tFunc = vi.fn(() => "foo");
 
     const result = event.getEventName({
