@@ -244,18 +244,26 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
   const searchParams = useCompatSearchParams();
-  const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
-    | {
-        id: number;
-        name: string | null;
-        email: string;
-      }[]
-    | null
-  >([]);
+  const [membersRoutingResult, setMembersRoutingResult] = useState<{
+    contactOwnerEmail: string | null;
+    membersMatchingAttributeLogic:
+      | {
+          id: number;
+          name: string | null;
+          email: string;
+        }[]
+      | null;
+  }>({
+    membersMatchingAttributeLogic: null,
+    contactOwnerEmail: null,
+  });
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
       onSuccess(data) {
-        setTeamMembersMatchingAttributeLogic(data.result);
+        setMembersRoutingResult({
+          contactOwnerEmail: data.contactOwnerEmail,
+          membersMatchingAttributeLogic: data.result,
+        });
       },
       onError(e) {
         if (e instanceof TRPCClientError) {
@@ -386,8 +394,11 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   <span>{t("matching_members")}:</span>{" "}
                   {!findTeamMembersMatchingAttributeLogicMutation.isPending ? (
                     <div>
-                      {teamMembersMatchingAttributeLogic?.map((member) => member.email).join(", ") ||
-                        t("no_matching_members")}
+                      {membersRoutingResult.contactOwnerEmail
+                        ? `${t("contact_owner")}: ${membersRoutingResult.contactOwnerEmail}`
+                        : membersRoutingResult.membersMatchingAttributeLogic
+                            ?.map((member) => member.email)
+                            .join(", ") || t("no_matching_members")}
                     </div>
                   ) : (
                     <div>Loading...</div>

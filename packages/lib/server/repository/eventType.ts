@@ -648,6 +648,14 @@ export class EventTypeRepository {
     });
   }
 
+  static async findByIdMinimal({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
   static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
     return await prisma.eventType.findMany({
       where: {

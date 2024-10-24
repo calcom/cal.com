@@ -3,6 +3,7 @@ import async from "async";
 import type { ImmutableTree, JsonTree } from "react-awesome-query-builder";
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
@@ -22,6 +23,7 @@ import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
+import { routingFormResponseInDbSchema } from "../zod";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
 
 let tasker: Tasker;
@@ -207,6 +209,9 @@ export const enum TroubleshooterCase {
   NO_ROUTE_FOUND = "no-route-found",
 }
 
+/**
+ * Used by preview and live both
+ */
 export async function findTeamMembersMatchingAttributeLogicOfRoute(
   {
     form,
@@ -216,7 +221,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     isPreview,
   }: {
     form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
-    response: FormResponse;
+    response: z.infer<typeof routingFormResponseInDbSchema>;
     routeId: string;
     teamId: number;
     isPreview?: boolean;
@@ -429,6 +434,7 @@ export async function onFormSubmission(
       throw new Error(`Field with id ${fieldId} not found`);
     }
     // Use the label lowercased as the key to identify a field.
+    // TODO: We seem to be using label from the response, Can we not use the field.label
     const key =
       form.fields.find((f) => f.id === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
