@@ -50,6 +50,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
 
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();

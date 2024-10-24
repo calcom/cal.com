@@ -1,5 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { google } from "googleapis";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -14,7 +15,12 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES, IS_CALCOM } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  GOOGLE_OAUTH_SCOPES,
+  HOSTED_CAL_FEATURES,
+  IS_CALCOM,
+} from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -22,7 +28,9 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -250,6 +258,13 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: [...GOOGLE_OAUTH_SCOPES, ...GOOGLE_CALENDAR_SCOPES].join(" "),
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
     })
   );
 }
@@ -607,6 +622,62 @@ export const getOptions = ({
           return await autoMergeIdentities();
         }
 
+        if (account.provider === "google") {
+          // Installing Google Calendar by default
+
+          const isAlreadyInstalled = await CredentialRepository.findFirstByAppIdAndUserId({
+            appId: "google-calendar",
+            userId: user.id as number,
+          });
+          if (!isAlreadyInstalled) {
+            const credentialkey = {
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              id_token: account.id_token,
+              token_type: account.token_type,
+              expires_at: account.expires_at,
+            };
+
+            const [credential] = await Promise.all([
+              CredentialRepository.create({
+                type: "google_calendar",
+                userId: user.id as number,
+                appId: "google-calendar",
+                key: credentialkey,
+              }),
+              CredentialRepository.create({
+                type: "google_video",
+                key: {},
+                userId: user.id as number,
+                appId: "google-meet",
+              }),
+            ]);
+
+            const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+            oAuth2Client.setCredentials(credentialkey);
+
+            const calendar = google.calendar({
+              version: "v3",
+              auth: oAuth2Client,
+            });
+
+            const cals = await calendar.calendarList.list({
+              fields: "items(id,summary,primary,accessRole)",
+            });
+
+            const primaryCal = cals.data.items?.find((cal) => cal.primary) ?? cals.data.items?.[0];
+
+            if (primaryCal?.id) {
+              await SelectedCalendarRepository.create({
+                credentialId: credential.id,
+                userId: user.id as number,
+                externalId: primaryCal.id,
+                integration: "google_calendar",
+              });
+            }
+          }
+        }
+
         return {
           ...token,
           id: existingUser.id,
@@ -631,7 +702,6 @@ export const getOptions = ({
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const licenseKeyService = await LicenseKeySingleton.getInstance();
       const hasValidLicense = await licenseKeyService.checkLicense();
-
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
