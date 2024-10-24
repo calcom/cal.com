@@ -6,9 +6,13 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
-// import { EmailField } from "@calcom/ui";
 import * as getAttributesModule from "../../lib/getAttributes";
-import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
+import type {
+  Attribute,
+  AttributesQueryValue,
+  FormFieldsQueryValue,
+  SerializableFormTeamMembers,
+} from "../../types/types";
 import { findTeamMembersMatchingAttributeLogicOfRoute } from "../utils";
 
 vi.mock("../../lib/getAttributes");
@@ -17,34 +21,55 @@ vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
 }));
 vi.mock("@calcom/ui", () => ({}));
 
+const ensureStringAsArray = (valueToEnsure: string | string[]): string[] =>
+  typeof valueToEnsure === "string" ? [valueToEnsure] : valueToEnsure;
+
 function mockAttributesScenario({
   attributes,
   teamMembersWithAttributeOptionValuePerAttribute,
 }: {
-  attributes: Awaited<ReturnType<typeof getAttributesModule.getAttributesForTeam>>;
+  attributes: Attribute[];
   teamMembersWithAttributeOptionValuePerAttribute: {
     userId: number;
     attributes: Record<string, string | string[]>;
   }[];
-}) {
+}): SerializableFormTeamMembers {
   vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
-  vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
-    teamMembersWithAttributeOptionValuePerAttribute.map((member) => ({
-      ...member,
-      attributes: Object.fromEntries(
-        Object.entries(member.attributes).map(([attributeId, value]) => {
-          return [
-            attributeId,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-            { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
-          ];
-        })
-      ),
-    }))
-  );
+  return teamMembersWithAttributeOptionValuePerAttribute.map(({ userId, attributes: teamMemberAttrs }) => {
+    const newAttributes: SerializableFormTeamMembers[number]["attributes"] = {};
+    Object.keys(teamMemberAttrs).forEach((key) => {
+      const selectedAttr = attributes.find((attr) => attr.id === key);
+      if (!selectedAttr) {
+        throw new Error("Invalid attribute given.");
+      }
+      newAttributes[key] = {
+        ...selectedAttr,
+        options: ensureStringAsArray(teamMemberAttrs[key]).map((selectedAttrOptionValue) => {
+          const selectedOption = selectedAttr.options.find(
+            (option) => option.value === selectedAttrOptionValue
+          );
+          if (!selectedOption) {
+            throw new Error("Selected option was not found in provided attributes.");
+          }
+          return {
+            ...selectedOption,
+          };
+        }),
+      };
+    });
+
+    return {
+      userId,
+      email: `testuser-${userId}.example.com`,
+      avatarUrl: null,
+      name: null,
+      defaultScheduleId: null,
+      attributes: newAttributes,
+    };
+  });
 }
 
-function mockHugeAttributesOfTypeSingleSelect({
+function generateTeamMembersFixture({
   numAttributes,
   numOptionsPerAttribute,
   numTeamMembers,
@@ -54,7 +79,7 @@ function mockHugeAttributesOfTypeSingleSelect({
   numOptionsPerAttribute: number;
   numTeamMembers: number;
   numAttributesUsedPerTeamMember: number;
-}) {
+}): SerializableFormTeamMembers {
   if (numAttributesUsedPerTeamMember > numAttributes) {
     throw new Error("numAttributesUsedPerTeamMember cannot be greater than numAttributes");
   }
@@ -69,28 +94,26 @@ function mockHugeAttributesOfTypeSingleSelect({
       slug: `option-${i + 1}`,
     })),
   }));
-
   const assignedAttributeOptionIdForEachMember = 1;
 
-  const teamMembersWithAttributeOptionValuePerAttribute = Array.from({ length: numTeamMembers }, (_, i) => ({
+  const teamMembersFixture = Array.from({ length: numTeamMembers }, (_, i) => ({
     userId: i + 1,
+    email: `testuser-${i + 1}.example.com`,
+    defaultScheduleId: null,
+    name: null,
+    avatarUrl: null,
     attributes: Object.fromEntries(
       Array.from({ length: numAttributesUsedPerTeamMember }, (_, j) => [
         attributes[j].id,
-        attributes[j].options[assignedAttributeOptionIdForEachMember].value,
+        {
+          ...attributes[j],
+          options: [attributes[j].options[assignedAttributeOptionIdForEachMember]],
+        },
       ])
     ),
   }));
 
-  mockAttributesScenario({
-    attributes,
-    teamMembersWithAttributeOptionValuePerAttribute,
-  });
-
-  return {
-    attributes,
-    teamMembersWithAttributeOptionValuePerAttribute,
-  };
+  return teamMembersFixture;
 }
 
 function buildQueryValue({
@@ -191,10 +214,9 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
   it("should return null if route is not found and troubleshooter should also be null by default", async () => {
     const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
       await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: { routes: [], fields: [] },
+        form: { routes: [], fields: [], teamId: 1, teamMembers: [] },
         response: {},
         routeId: "non-existent-route",
-        teamId: 1,
       });
 
     expect(result).toBeNull();
@@ -212,10 +234,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           },
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: [],
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toBeNull();
@@ -231,7 +254,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -262,10 +285,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
             },
           ],
           fields: [],
+          teamId: 1,
+          teamMembers: teamMembersWithAttributeScenario,
         },
         response: {},
         routeId: "test-route",
-        teamId: 1,
       });
 
     expect(result).toEqual([
@@ -302,7 +326,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -335,6 +359,8 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
             options: [Option1OfField1],
           },
         ],
+        teamId: 1,
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {
         [Field1Id]: {
@@ -343,7 +369,6 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         },
       },
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -383,7 +408,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -410,10 +435,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           }),
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -453,7 +479,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         // user 1 has only one option selected for the attribute
@@ -481,10 +507,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           }),
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -524,7 +551,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
     };
 
-    mockAttributesScenario({
+    const teamMembersWithAttributeScenario = mockAttributesScenario({
       attributes: [Attribute1],
       teamMembersWithAttributeOptionValuePerAttribute: [
         {
@@ -544,7 +571,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           valueType: ["multiselect"],
         },
       ],
-    }) as AttributesQueryValue;
+    });
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
@@ -555,10 +582,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           }),
         ],
         fields: [],
+        teamId: 1,
+        teamMembers: teamMembersWithAttributeScenario,
       },
       response: {},
       routeId: "test-route",
-      teamId: 1,
     });
 
     expect(result).toEqual([
@@ -579,7 +607,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         slug: "attribute-1",
         options: [Option1OfAttribute1],
       };
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           {
@@ -607,10 +635,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
               }),
             ],
             fields: [],
+            teamId: 1,
+            teamMembers: teamMembersWithAttributeScenario,
           },
           response: {},
           routeId: "test-route",
-          teamId: 1,
         })
       ).rejects.toThrow("Unsupported attribute type");
     });
@@ -644,7 +673,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -673,10 +702,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 }),
               ],
               fields: [],
+              teamId: 1,
+              teamMembers: teamMembersWithAttributeScenario,
             },
             response: {},
             routeId: "test-route",
-            teamId: 1,
             isPreview: mode === "preview" ? true : false,
           });
         return result;
@@ -723,7 +753,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -747,10 +777,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 }),
               ],
               fields: [],
+              teamId: 1,
+              teamMembers: teamMembersWithAttributeScenario,
             },
             response: {},
             routeId: "test-route",
-            teamId: 1,
             isPreview: mode === "preview" ? true : false,
           });
         return result;
@@ -772,7 +803,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     describe("20 attributes, 4000 team members", async () => {
       // In tests, the performance is actually really bad than real world. So, skipping this test for now
       it("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
-        const { attributes } = mockHugeAttributesOfTypeSingleSelect({
+        const teamMembersWithSingleSelectAttributes = generateTeamMembersFixture({
           numAttributes: 20,
           numOptionsPerAttribute: 30,
           numTeamMembers: 4000,
@@ -781,12 +812,12 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         const attributesQueryValue = buildSelectTypeFieldQueryValue({
           rules: [
             {
-              raqbFieldId: attributes[0].id,
-              value: [attributes[0].options[1].id],
+              raqbFieldId: teamMembersWithSingleSelectAttributes[0].attributes.attr1.id,
+              value: [teamMembersWithSingleSelectAttributes[0].attributes.attr1.options[0].id],
               operator: "select_equals",
             },
           ],
-        }) as AttributesQueryValue;
+        });
 
         const { teamMembersMatchingAttributeLogic: result, timeTaken } =
           await findTeamMembersMatchingAttributeLogicOfRoute(
@@ -799,10 +830,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                   }),
                 ],
                 fields: [],
+                teamId: 1,
+                teamMembers: teamMembersWithSingleSelectAttributes,
               },
               response: {},
               routeId: "test-route",
-              teamId: 1,
             },
             {
               concurrency: 1,
@@ -880,7 +912,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const teamMembersWithAttributeScenario = mockAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
@@ -909,10 +941,11 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
                 }),
               ],
               fields: [],
+              teamId: 1,
+              teamMembers: teamMembersWithAttributeScenario,
             },
             response: {},
             routeId: "test-route",
-            teamId: 1,
           },
           {
             enableTroubleshooter: true,

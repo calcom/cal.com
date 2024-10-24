@@ -7,7 +7,7 @@ import { AttributeType } from "@calcom/prisma/enums";
 
 import type { AttributesQueryBuilderConfigWithRaqbFields } from "../lib/getQueryBuilderConfig";
 import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig";
-import type { Attribute } from "../types/types";
+import type { Attribute, AttributeOption } from "../types/types";
 import type { LocalRoute } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import type { SerializableField } from "../types/types";
@@ -199,21 +199,25 @@ const attributeChangeCompatibility = {
   },
 };
 
+export type AttributesData = Record<
+  string,
+  {
+    options: Pick<AttributeOption, "value">[];
+    type: Attribute["type"];
+  }
+>;
+
 function getAttributesData({
   attributesData,
   attributesQueryValue,
 }: {
-  attributesData: Record<
-    string,
-    {
-      value: string | string[];
-      type: Attribute["type"];
-    }
-  >;
+  attributesData: AttributesData;
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
-  return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
-    const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
+  return Object.entries(attributesData).reduce((acc, [attributeId, { options, type: attributeType }]) => {
+    const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(
+      options.length > 1 ? options.map((option) => option.value) : options[0].value
+    );
 
     // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
     // acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({

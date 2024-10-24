@@ -11,18 +11,17 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import type { AttributeType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import { RaqbLogicResult } from "../lib/evaluateRaqbLogic";
-import {
-  getTeamMembersWithAttributeOptionValuePerAttribute,
-  getAttributesForTeam,
-} from "../lib/getAttributes";
+import { getAttributesForTeam } from "../lib/getAttributes";
 import isRouter from "../lib/isRouter";
 import jsonLogic from "../lib/jsonLogic";
-import type { SerializableField, OrderedResponses } from "../types/types";
+import type { SerializableField, OrderedResponses, AttributeOption } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
+import type { AttributesData } from "./raqbUtils";
 
 let tasker: Tasker;
 
@@ -59,9 +58,10 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   }
 >;
 
-type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
-  ReturnType<typeof getTeamMembersWithAttributeOptionValuePerAttribute>
->[number];
+type TeamMemberWithAttributeOptionValuePerAttribute = {
+  userId: number;
+  attributes: AttributesData;
+};
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
@@ -212,13 +212,11 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     form,
     response,
     routeId,
-    teamId,
     isPreview,
   }: {
-    form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
+    form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields" | "teamMembers" | "teamId">;
     response: FormResponse;
     routeId: string;
-    teamId: number;
     isPreview?: boolean;
   },
   config: {
@@ -263,14 +261,68 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
   const teamMembersMatchingAttributeLogicMap = new Map<number, RaqbLogicResult>();
 
-  const [attributesForTeam, getAttributesForTeamTimeTaken] = await aPf(
-    async () => await getAttributesForTeam({ teamId: teamId })
+  const attributesForTeam = form.teamMembers.reduce(
+    (
+      attrsForTeam: {
+        [x: string]: {
+          teamId: number | null;
+          id: string;
+          name: string;
+          type: AttributeType;
+          slug: string;
+          options: {
+            [x: string]: {
+              slug: string;
+              value: string;
+              id: string;
+            };
+          };
+        };
+      },
+      { attributes }
+    ) => {
+      Object.entries(attributes).forEach(([key, value]) => {
+        const newOptions: { [x: string]: AttributeOption } = {};
+        value.options.forEach((option) => {
+          newOptions[option.id] = {
+            id: option.id,
+            slug: option.slug,
+            value: option.value,
+          };
+        });
+        if (attrsForTeam[key]) {
+          // merge options
+          attrsForTeam[key].options = {
+            ...attrsForTeam[key].options,
+            ...newOptions,
+          };
+          return attrsForTeam;
+        }
+        attrsForTeam[key] = {
+          teamId: form.teamId,
+          id: key,
+          name: value.name,
+          type: value.type,
+          slug: value.slug,
+          options: newOptions,
+        };
+        return attrsForTeam;
+      });
+
+      return attrsForTeam;
+    },
+    {}
   );
+
+  const flattenedAttributesForTeam = Object.values(attributesForTeam).map((attribute) => ({
+    ...attribute,
+    options: Object.values(attribute.options),
+  }));
 
   const [attributesQueryValue, getAttributesQueryValueTimeTaken] = pf(() =>
     getAttributesQueryValue({
       attributesQueryValue: route.attributesQueryValue,
-      attributes: attributesForTeam,
+      attributes: flattenedAttributesForTeam,
       response,
       fields: form.fields,
       getFieldResponse,
@@ -281,10 +333,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: {
-        gAtr: getAttributesForTeamTimeTaken,
         gQryVal: getAttributesQueryValueTimeTaken,
         gQryCnfg: null,
-        gMbrWtAtr: null,
         lgcFrMbrs: null,
       },
       troubleshooter: enableTroubleshooter
@@ -301,29 +351,64 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   const [attributesQueryBuilderConfig, getAttributesQueryBuilderConfigTimeTaken] = pf(() =>
     getAttributesQueryBuilderConfig({
       form,
-      attributes: attributesForTeam,
+      attributes: flattenedAttributesForTeam,
       attributesQueryValue,
     })
   );
 
-  const [
-    teamMembersWithAttributeOptionValuePerAttribute,
-    getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
-  ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
-
-  const logic = getJsonLogic({
-    attributesQueryValue: attributesQueryValue as JsonTree,
-    attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
-    isPreview: !!isPreview,
-  });
+  let logic: object | undefined;
+  // isPreview getJsonLogic may throw errors that make sense in context
+  try {
+    logic = getJsonLogic({
+      attributesQueryValue: attributesQueryValue as JsonTree,
+      attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
+      isPreview: !!isPreview,
+    });
+  } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
+    // bail early as an out-of-bounds entry was not found in the error message.
+    if (!/Value (.+?) is not in list of values/.test(e.message)) {
+      throw e;
+    }
+    const errors = (e.message as string).split(",");
+    // because jsonLogic only runs for the actually assigned attributes, it may be missing.
+    // When it is missing (and ONLY THEN) we check against all attributes of the team.
+    if (form.teamId) {
+      const allAttributes = await getAttributesForTeam({ teamId: form.teamId });
+      Object.values(attributesQueryValue.children1).forEach((rule) => {
+        // get all options for the field that (may have) got validated.
+        const fieldOptions = allAttributes.find(
+          ({ id: fieldId }) => fieldId === (rule as { properties: { field: string } }).properties.field
+        )?.options;
+        const values = (rule as { properties: { value: string[] } }).properties.value;
+        // Value provided could be valid but not found with any members. - if not we error
+        const match = fieldOptions?.find(({ value }) => values.flat().includes(value.toLowerCase()));
+        // isValid
+        if (!!match) {
+          errors.splice(
+            errors.findIndex(
+              (error) => error === `Value ${match.value.toLowerCase()} is not in list of values`
+            ),
+            1
+          );
+        }
+      });
+      if (errors.length) {
+        throw new Error(errors.join(","));
+      }
+    } else {
+      // handle as normal for non-teams?
+      throw e;
+    }
+  }
 
   if (!logic) {
     return {
       teamMembersMatchingAttributeLogic: null,
       timeTaken: {
-        gAtr: getAttributesForTeamTimeTaken,
         gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
-        gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
         lgcFrMbrs: null,
         gQryVal: getAttributesQueryValueTimeTaken,
       },
@@ -333,7 +418,6 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
             data: {
               attributesQueryValue,
               attributesQueryBuilderConfig,
-              teamMembersWithAttributeOptionValuePerAttribute,
             },
           }
         : null,
@@ -344,7 +428,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
   const [_, teamMembersMatchingAttributeLogicTimeTaken] = await aPf(async () => {
     return await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
-      teamMembersWithAttributeOptionValuePerAttribute,
+      form.teamMembers,
       concurrency,
       async (member: TeamMemberWithAttributeOptionValuePerAttribute) => {
         const attributesData = getAttributes({
@@ -374,9 +458,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       result: item[1],
     })),
     timeTaken: {
-      gAtr: getAttributesForTeamTimeTaken,
       gQryCnfg: getAttributesQueryBuilderConfigTimeTaken,
-      gMbrWtAtr: getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
       lgcFrMbrs: teamMembersMatchingAttributeLogicTimeTaken,
       gQryVal: getAttributesQueryValueTimeTaken,
     },
@@ -388,7 +470,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
             attributesQueryValue,
             attributesQueryBuilderConfig,
             logic,
-            attributesForTeam,
+            flattenedAttributesForTeam,
           },
         }
       : null,

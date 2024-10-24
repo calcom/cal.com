@@ -59,7 +59,6 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       response,
       routeId,
       form: serializableForm,
-      teamId: form.teamId,
       isPreview: !!isPreview,
     },
     {
@@ -96,13 +95,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   };
 };
 
-function getServerTimingHeader(timeTaken: {
-  gAtr: number | null;
-  gQryCnfg: number | null;
-  gMbrWtAtr: number | null;
-  lgcFrMbrs: number | null;
-  gQryVal: number | null;
-}) {
+function getServerTimingHeader(timeTaken: { [x: string]: number | null }) {
   const headerParts = Object.entries(timeTaken)
     .map(([key, value]) => {
       if (value !== null) {

@@ -27,24 +27,32 @@ export type Route = NonNullable<Routes>[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
 
 export type SerializableFormTeamMembers = {
-  id: number;
-  name: string | null;
+  userId: number;
   email: string;
   avatarUrl: string | null;
+  name: string | null;
   defaultScheduleId: number | null;
-};
-export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
-  T,
-  "fields" | "routes" | "createdAt" | "updatedAt" | "settings"
-> & {
-  routes: Routes;
-  fields: Fields;
+  attributes: Record<
+    string,
+    {
+      type: AttributeType;
+      options: AttributeOption[];
+      name: string;
+      slug: string;
+      id: string;
+    }
+  >;
+}[];
+
+export type SerializableForm<T> = Omit<T, "fields" | "routes" | "createdAt" | "updatedAt" | "settings"> & {
+  routes: NonNullable<Routes>;
+  fields: NonNullable<Fields>;
   settings: z.infer<typeof RoutingFormSettings>;
   createdAt: string;
   updatedAt: string;
   connectedForms: { name: string; description: string | null; id: string }[];
   routers: { name: string; description: string | null; id: string }[];
-  teamMembers: SerializableFormTeamMembers[];
+  teamMembers: SerializableFormTeamMembers;
 };
 
 export type LocalRoute = z.infer<typeof zodNonRouterRoute>;
@@ -59,16 +67,18 @@ export type SerializableRoute =
 
 export type OrderedResponses = FormResponse[string][];
 
+export type AttributeOption = {
+  id: string;
+  value: string;
+  slug: string;
+};
+
 export type Attribute = {
   name: string;
   slug: string;
   type: AttributeType;
   id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-  }[];
+  options: AttributeOption[];
 };
 
 export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;

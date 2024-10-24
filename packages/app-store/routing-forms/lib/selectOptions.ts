@@ -20,22 +20,14 @@ const buildOptionsFromLegacySelectText = ({ legacySelectText }: { legacySelectTe
 };
 
 export const getFieldWithOptions = <T extends Field>(field: T) => {
-  const legacySelectText = field.selectText;
-  if (field.options) {
-    return {
-      ...field,
-      options: field.options,
-    };
-  } else if (legacySelectText) {
-    const options = buildOptionsFromLegacySelectText({ legacySelectText });
-    return {
-      ...field,
-      options,
-    };
-  }
+  // get options from field.options or buildOptionsFromLegacySelectText
+  const options =
+    field.options ||
+    (field.selectText ? buildOptionsFromLegacySelectText({ legacySelectText: field.selectText }) : []);
   return {
     ...field,
-  } as typeof field & z.BRAND<"FIELD_WITH_OPTIONS">;
+    options,
+  };
 };
 
 export function areSelectOptionsInLegacyFormat(

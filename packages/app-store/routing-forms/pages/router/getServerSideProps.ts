@@ -64,6 +64,7 @@ export const getServerSideProps = async function getServerSideProps(
         select: {
           id: true,
           username: true,
+          email: true,
           movedToProfileId: true,
           metadata: true,
           organization: {
@@ -130,22 +131,24 @@ export const getServerSideProps = async function getServerSideProps(
   }
 
   const decidedAction = matchingRoute.action;
-
-  const { createContext } = await import("@calcom/trpc/server/createContext");
-  const ctx = await createContext(context);
-
-  const { default: trpcRouter } = await import("@calcom/app-store/routing-forms/trpc/_router");
-  const caller = trpcRouter.createCaller(ctx);
   const { v4: uuidv4 } = await import("uuid");
+
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
   try {
-    const result = await caller.public.response({
-      formId: form.id,
-      formFillerId: uuidv4(),
-      response: response,
-      chosenRouteId: matchingRoute.id,
+    const { responseHandler } = await import("../../trpc/response.handler");
+    const result = await responseHandler({
+      ctx: {
+        prisma,
+        serializableForm,
+      },
+      input: {
+        formId: form.id,
+        formFillerId: uuidv4(),
+        response,
+        chosenRouteId: matchingRoute.id,
+      },
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;

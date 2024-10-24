@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+// eslint-disable-next-line @calcom/eslint/avoid-prisma-client-import-for-enums
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
@@ -6,8 +8,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
-import type { zodRoutesView, zodFieldsView } from "../zod";
+import type { Fields, SerializableForm, SerializableFormTeamMembers } from "../types/types";
+import type { zodRoutesView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
@@ -15,6 +17,82 @@ import isRouterLinkedField from "./isRouterLinkedField";
 import { getFieldWithOptions } from "./selectOptions";
 
 const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
+
+const teamMemberSelect = Prisma.validator<Prisma.AttributeToUserDefaultArgs>()({
+  select: {
+    member: {
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            defaultScheduleId: true,
+          },
+        },
+      },
+    },
+    attributeOption: {
+      select: {
+        id: true,
+        value: true,
+        slug: true,
+        attribute: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            slug: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+type NormalizeTeamMembersInput = Prisma.AttributeToUserGetPayload<typeof teamMemberSelect>[];
+
+const normalizeTeamMembers = (attributesToUser: NormalizeTeamMembersInput) =>
+  Object.values(
+    attributesToUser.reduce((acc: { [x: string]: SerializableFormTeamMembers[number] }, attributeToUser) => {
+      const { id: userId, email, avatarUrl, name, defaultScheduleId } = attributeToUser.member.user;
+      const { attribute, value, slug, id: attributeOptionId } = attributeToUser.attributeOption;
+
+      if (!acc[userId]) {
+        acc[userId] = { userId, email, avatarUrl, name, defaultScheduleId, attributes: {} };
+      }
+
+      const attributes = acc[userId].attributes;
+      const attributeOptions = attributes[attribute.id]?.options;
+
+      if (attributeOptions) {
+        attributeOptions.push({
+          id: attributeOptionId,
+          value,
+          slug,
+        });
+      } else {
+        attributes[attribute.id] = {
+          type: attribute.type,
+          options: [
+            {
+              id: attributeOptionId,
+              value,
+              slug,
+            },
+          ],
+          name: attribute.name,
+          slug: attribute.slug,
+          id: attribute.id,
+        };
+      }
+      return acc;
+    }, {})
+  );
+
+type NormalizeTeamMembersResult = ReturnType<typeof normalizeTeamMembers>;
+
 /**
  * Doesn't have deleted fields by default
  */
@@ -24,7 +102,8 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 }: {
   form: TForm;
   withDeletedFields?: boolean;
-}) {
+  // this is not an optional thing; auto-infer doesn't completely work when you deconstruct ...form
+}): Promise<SerializableForm<TForm>> {
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
@@ -48,13 +127,15 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const parsedFields =
     (withDeletedFields ? fieldsParsed.data : fieldsParsed.data?.filter((f) => !f.deleted)) || [];
   const parsedRoutes = routesParsed.data;
-  const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
   const fieldsExistInForm: Record<string, true> = {};
   parsedFields?.forEach((f) => {
     fieldsExistInForm[f.id] = true;
   });
-
+  // here we convert parsedFields to NonNullable<Fields> (fieldsParsed)
+  // contains only db values; Fields allows extension further down the line for display (zodFieldView)
+  const fields: NonNullable<Fields> = parsedFields.map((field) => getFieldWithOptions(field));
+  // also side-effects fields (useful tidbit)
   const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, form.userId);
 
   const connectedForms = (await getConnectedForms(prisma, form)).map((f) => ({
@@ -63,34 +144,31 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     description: f.description,
   }));
 
-  const finalFields = fields.map((field) => getFieldWithOptions(field));
-
-  let teamMembers: SerializableFormTeamMembers[] = [];
+  let teamMembers: NormalizeTeamMembersResult = [];
   if (form.teamId) {
-    teamMembers = await prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            teamId: form.teamId,
-            accepted: true,
+    teamMembers = normalizeTeamMembers(
+      await prisma.attributeToUser.findMany({
+        where: {
+          member: {
+            user: {
+              teams: {
+                some: {
+                  teamId: form.teamId,
+                  accepted: true,
+                },
+              },
+            },
           },
         },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatarUrl: true,
-        defaultScheduleId: true,
-      },
-    });
+        ...teamMemberSelect,
+      })
+    );
   }
 
-  // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
-  const serializableForm: SerializableForm<TForm> = {
+  const serializableForm = {
     ...form,
     settings,
-    fields: finalFields,
+    fields,
     routes,
     routers,
     connectedForms,
@@ -98,6 +176,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
   };
+
   return serializableForm;
 
   /**
@@ -139,7 +218,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
           routes: parsedRouter.routes || [],
         });
 
-        parsedRouter.fields?.forEach((field) => {
+        parsedRouter.fields.forEach((field) => {
           if (!fieldsExistInForm[field.id]) {
             // Instead of throwing error, Log it instead of breaking entire routing forms feature
             console.error(
