@@ -105,9 +105,7 @@ class EventsInsights {
       "periodStart";
   `;
 
-    // Initialize an empty aggregate result based on the selected timeView and date ranges
     const aggregate: AggregateResult = {};
-    // Process each row in the returned data
     data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost }) => {
       const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
