@@ -16,6 +16,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -343,11 +344,14 @@ async function handleWorkflowsUpdate({
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
   orgId: number | null;
 }) {
-  const workflowRemindersHost = await prisma.workflowReminder.findMany({
+  const workflowReminders = await prisma.workflowReminder.findMany({
     where: {
       bookingUid: booking.uid,
       method: WorkflowMethods.EMAIL,
       scheduled: true,
+      cancelled: {
+        not: true,
+      },
       workflowStep: {
         workflow: {
           trigger: {
@@ -365,6 +369,7 @@ async function handleWorkflowsUpdate({
       referenceId: true,
       workflowStep: {
         select: {
+          id: true,
           template: true,
           workflow: {
             select: {
@@ -373,35 +378,14 @@ async function handleWorkflowsUpdate({
               timeUnit: true,
             },
           },
+          emailSubject: true,
+          reminderBody: true,
+          sender: true,
+          includeCalendarEvent: true,
         },
       },
     },
   });
-
-  const scheduledWorkflowRemindersAttendee = await prisma.workflowReminder.findMany({
-    where: {
-      bookingUid: booking.uid,
-      method: WorkflowMethods.EMAIL,
-      scheduled: true,
-      workflowStep: {
-        action: {
-          in: [WorkflowActions.EMAIL_ADDRESS, WorkflowActions.EMAIL_HOST],
-        },
-        workflow: {
-          trigger: {
-            in: [
-              WorkflowTriggerEvents.BEFORE_EVENT,
-              WorkflowTriggerEvents.NEW_EVENT,
-              WorkflowTriggerEvents.AFTER_EVENT,
-            ],
-          },
-        },
-      },
-    },
-    select,
-  });
-
-  const workflowReminders = [...workflowRemindersHost, ...scheduledWorkflowRemindersAttendee];
 
   const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
   const bookerUrl = await getBookerBaseUrl(orgId);
@@ -426,6 +410,11 @@ async function handleWorkflowsUpdate({
         },
         sendTo: newUser.email,
         template: workflowStep.template,
+        emailSubject: workflowStep.emailSubject || undefined,
+        emailBody: workflowStep.reminderBody || undefined,
+        sender: workflowStep.sender || SENDER_NAME,
+        hideBranding: true,
+        includeCalendarEvent: workflowStep.includeCalendarEvent,
       });
     }
 

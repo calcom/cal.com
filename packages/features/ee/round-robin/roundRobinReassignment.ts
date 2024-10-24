@@ -18,6 +18,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -387,6 +388,9 @@ export const roundRobinReassignment = async ({
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
         scheduled: true,
+        // cancelled: {
+        //   not: true,
+        // },
         workflowStep: {
           workflow: {
             trigger: {
@@ -404,6 +408,7 @@ export const roundRobinReassignment = async ({
         referenceId: true,
         workflowStep: {
           select: {
+            id: true,
             template: true,
             workflow: {
               select: {
@@ -412,6 +417,10 @@ export const roundRobinReassignment = async ({
                 timeUnit: true,
               },
             },
+            emailSubject: true,
+            reminderBody: true,
+            sender: true,
+            includeCalendarEvent: true,
           },
         },
       },
@@ -441,6 +450,11 @@ export const roundRobinReassignment = async ({
           },
           sendTo: reassignedRRHost.email,
           template: workflowStep.template,
+          emailSubject: workflowStep.emailSubject || undefined,
+          emailBody: workflowStep.reminderBody || undefined,
+          sender: workflowStep.sender || SENDER_NAME,
+          hideBranding: true,
+          includeCalendarEvent: workflowStep.includeCalendarEvent,
         });
       }
 
