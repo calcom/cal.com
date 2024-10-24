@@ -55,8 +55,17 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
   // Get event type
   const eventType = await getEventTypesFromDB(booking.eventType.id);
 
-  if (!eventType || !eventType.teamId) {
+  if (!eventType) {
     throw new Error("Event type not found");
+  }
+
+  if (!eventType.teamId) {
+    gettingRoundRobinHostsToReassignLogger.warn("Booking with event type that has no teamId", {
+      bookingId: input.bookingId,
+      eventTypeId: eventType.id,
+      teamId: eventType.teamId ?? -1,
+    });
+    return [];
   }
 
   const availableEventTypeUsers = eventType.hosts
