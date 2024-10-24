@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 /**
  * Checks if a user, identified by the provided userId, has ownership (or admin rights) over
@@ -18,8 +19,13 @@ export default async function checkParentEventOwnership(req: NextApiRequest) {
   /** These are already parsed upstream, we can assume they're good here. */
   const parentId = Number(body.parentId);
   const parentEventType = await prisma.eventType.findUnique({
-    where: { id: parentId },
-    select: { teamId: true },
+    where: {
+      id: parentId,
+    },
+    select: {
+      teamId: true,
+      schedulingType: true,
+    },
   });
 
   if (!parentEventType) {
@@ -29,7 +35,7 @@ export default async function checkParentEventOwnership(req: NextApiRequest) {
     });
   }
 
-  if (!parentEventType.teamId) {
+  if (!parentEventType.teamId || parentEventType.schedulingType != SchedulingType.MANAGED) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type is not capable of having children",
