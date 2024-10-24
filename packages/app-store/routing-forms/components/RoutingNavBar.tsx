@@ -20,6 +20,11 @@ export default function RoutingNavBar({
       className: "pointer-events-none opacity-30 lg:pointer-events-auto lg:opacity-100",
     },
     {
+      name: "Queues",
+      href: `${appUrl}/queues/${form?.id}`,
+      className: "pointer-events-none opacity-30 lg:pointer-events-auto lg:opacity-100",
+    },
+    {
       name: "Reporting",
       target: "_blank",
       href: `${appUrl}/reporting/${form?.id}`,
