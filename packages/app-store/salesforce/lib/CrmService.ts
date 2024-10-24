@@ -439,7 +439,7 @@ export default class SalesforceCRMService implements CRM {
           });
       }
 
-      if (appOptions.createLeadIfAccountNull && !contactCreated) {
+      if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
         // Check to see if the lead exists already
         const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
         if (leadQuery.records.length) {
