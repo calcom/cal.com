@@ -6,22 +6,35 @@ import BaseSelect from "react-timezone-select";
 
 import { classNames } from "@calcom/lib";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
+import { filterByKeys, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
+import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 
 import { getReactSelectProps } from "../select";
 
-export interface ICity {
-  city: string;
-  timezone: string;
-}
+const SELECT_SEARCH_DATA: Timezones = {
+  "Eastern Time - US & Canada": "America/New_York",
+  "Central Time - US & Canada": "America/Los_Angeles",
+  "Mountain Time - US & Canada": "America/Denver",
+  "Atlantic Time - Canada": "America/Halifax",
+  "Eastern European Time": "Europe/Bucharest",
+  "Central European Time": "Europe/Berlin",
+  "Western European Time": "Europe/London",
+  "Australian Eastern Time": "Australia/Sydney",
+  "Japan Standard Time": "Asia/Tokyo",
+  "India Standard Time": "Asia/Kolkata",
+  "Gulf Standard Time": "Asia/Dubai",
+  "South Africa Standard Time": "Africa/Johannesburg",
+  "Brazil Time": "America/Sao_Paulo",
+  "Hawaii-Aleutian Standard Time": "Pacific/Honolulu",
+};
 
 export type TimezoneSelectProps = SelectProps & {
   variant?: "default" | "minimal";
   timezoneSelectCustomClassname?: string;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
+  const { data = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
     {
       CalComVersion: CALCOM_VERSION,
     },
@@ -30,13 +43,22 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
     }
   );
 
-  return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
+  return (
+    <TimezoneSelectComponent
+      data={data.reduce((acc: { [label: string]: string }, { city, timezone }) => {
+        acc[city] = timezone;
+        return acc;
+      }, {})}
+      isPending={isPending}
+      {...props}
+    />
+  );
 }
 
 export type TimezoneSelectComponentProps = SelectProps & {
   variant?: "default" | "minimal";
   isPending: boolean;
-  data: ICity[] | undefined;
+  data: Record<string, string> | undefined;
   timezoneSelectCustomClassname?: string;
 };
 export function TimezoneSelectComponent({
@@ -50,6 +72,7 @@ export function TimezoneSelectComponent({
   value,
   ...props
 }: TimezoneSelectComponentProps) {
+  const combinedData = { ...data, ...SELECT_SEARCH_DATA };
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -57,11 +80,10 @@ export function TimezoneSelectComponent({
    *
    * We make sure to be able to search through both options, and flip the key/value on final display.
    */
-  const [cities, setCities] = useState<ICity[]>([]);
-  const handleInputChange = (tz: string) => {
-    if (data) setCities(filterByCities(tz, data));
+  const [additionalTimezones, setAdditionalTimezones] = useState<Timezones>({});
+  const handleInputChange = (searchText: string) => {
+    if (data) setAdditionalTimezones(filterByKeys(searchText, combinedData));
   };
-  console.log(data, cities);
 
   const reactSelectProps = useMemo(() => {
     return getReactSelectProps({
@@ -78,15 +100,15 @@ export function TimezoneSelectComponent({
       isDisabled={isPending}
       {...reactSelectProps}
       timezones={{
-        ...(data ? addCitiesToDropdown(data) : {}),
-        ...addCitiesToDropdown(cities),
+        ...(data ? addTimezonesToDropdown(combinedData) : {}),
+        ...addTimezonesToDropdown(additionalTimezones),
       }}
       onInputChange={handleInputChange}
       {...props}
       formatOptionLabel={(option) => (
         <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
       )}
-      getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, cities)}
+      getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, additionalTimezones)}
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
