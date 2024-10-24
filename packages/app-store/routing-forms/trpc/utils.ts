@@ -63,6 +63,22 @@ type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
   ReturnType<typeof getTeamMembersWithAttributeOptionValuePerAttribute>
 >[number];
 
+
+type RunAttributeLogicData = {
+  attributesQueryValue: AttributesQueryValue | undefined;
+  attributesForTeam: Attribute[];
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
+  teamId: number;
+  response: FormResponse;
+};
+
+type RunAttributeLogicOptions = {
+  concurrency: number;
+  enablePerf: boolean;
+  isPreview: boolean;
+  enableTroubleshooter: boolean;
+};
+
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
 }
@@ -210,6 +226,15 @@ export const enum TroubleshooterCase {
   MATCHES_ALL_MEMBERS = "matches-all-members",
 }
 
+function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
+  return {
+    troubleshooter: {
+      type,
+      data,
+    },
+  };
+}
+
 async function getLogicResultForAllMembers(
   {
     teamMembersWithAttributeOptionValuePerAttribute,
@@ -258,30 +283,6 @@ async function getLogicResultForAllMembers(
     attributesDataPerUser,
   };
 }
-
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
-  return {
-    troubleshooter: {
-      type,
-      data,
-    },
-  };
-}
-
-type RunAttributeLogicData = {
-  attributesQueryValue: AttributesQueryValue | undefined;
-  attributesForTeam: Attribute[];
-  form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
-  teamId: number;
-  response: FormResponse;
-};
-
-type RunAttributeLogicOptions = {
-  concurrency: number;
-  enablePerf: boolean;
-  isPreview: boolean;
-  enableTroubleshooter: boolean;
-};
 
 async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttributeLogicOptions) {
   const { attributesQueryValue: _attributesQueryValue, attributesForTeam, form, teamId, response } = data;
