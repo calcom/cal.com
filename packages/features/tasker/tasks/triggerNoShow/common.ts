@@ -67,12 +67,8 @@ const getGoogleCalendarCredential = async (destinationCalendar: DestinationCalen
       userId: destinationCalendar?.userId,
       externalId: destinationCalendar?.externalId,
     },
-    include: {
-      user: {
-        select: {
-          email: true,
-        },
-      },
+    select: {
+      credentialId: true,
     },
   });
 
@@ -87,6 +83,20 @@ const getGoogleCalendarCredential = async (destinationCalendar: DestinationCalen
   const newCredential = await prisma.credential.findUnique({
     where: {
       id: destinationCalendars[0].credentialId,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+      userId: true,
+      teamId: true,
+      appId: true,
+      invalid: true,
+      user: {
+        select: {
+          email: true,
+        },
+      },
     },
   });
 

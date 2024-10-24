@@ -677,8 +677,6 @@ export default class GoogleCalendarService implements Calendar {
       throw new Error("Invalid grant for Google Calendar app");
     }
 
-    console.log("getParticipants.token", token);
-
     const googleAuth = new GoogleAuth({
       authClient: new OAuth2Client({
         credentials: {
@@ -716,8 +714,6 @@ export default class GoogleCalendarService implements Calendar {
         return participants;
       })
     );
-
-    console.log("participantsByConferenceRecord", participantsByConferenceRecord);
 
     const participantsWithEmails = await Promise.all(
       participantsByConferenceRecord.map(async (participants) => {
