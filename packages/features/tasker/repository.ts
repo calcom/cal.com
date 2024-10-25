@@ -18,7 +18,8 @@ const whereMaxAttemptsReached: Prisma.TaskWhereInput = {
   },
 };
 
-const whereUpcomingTasks: Prisma.TaskWhereInput = {
+/** This is a function to ensure new Date is always fresh */
+const makeWhereUpcomingTasks = (): Prisma.TaskWhereInput => ({
   // Get only tasks that have not succeeded yet
   succeededAt: null,
   // Get only tasks that are scheduled to run now or in the past
@@ -33,7 +34,7 @@ const whereUpcomingTasks: Prisma.TaskWhereInput = {
       _container: "Task",
     },
   },
-};
+});
 
 export class Task {
   static async create(
@@ -55,9 +56,9 @@ export class Task {
   }
 
   static async getNextBatch() {
-    console.info("Getting next batch of tasks", whereUpcomingTasks);
+    console.info("Getting next batch of tasks", makeWhereUpcomingTasks);
     return db.task.findMany({
-      where: whereUpcomingTasks,
+      where: makeWhereUpcomingTasks(),
       orderBy: {
         scheduledAt: "asc",
       },
@@ -87,7 +88,7 @@ export class Task {
 
   static async countUpcoming() {
     return db.task.count({
-      where: whereUpcomingTasks,
+      where: makeWhereUpcomingTasks(),
     });
   }
 
