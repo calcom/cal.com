@@ -3,9 +3,9 @@ import * as React from "react";
 
 import { classNames } from "@calcom/lib";
 
-export const Popover = PopoverPrimitive.Root;
+const Popover = PopoverPrimitive.Root;
 
-export const PopoverTrigger = PopoverPrimitive.Trigger;
+const PopoverTrigger = PopoverPrimitive.Trigger;
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
@@ -27,4 +27,4 @@ const PopoverContent = React.forwardRef<
 
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { PopoverContent };
+export { Popover, PopoverTrigger, PopoverContent };
