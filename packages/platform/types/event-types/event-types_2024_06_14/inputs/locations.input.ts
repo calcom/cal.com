@@ -43,16 +43,16 @@ export class InputLinkLocation_2024_06_14 {
   public!: boolean;
 }
 
-const integrations = ["cal-video"] as const;
-export type Integration_2024_06_14 = (typeof integrations)[number];
+export const supportedIntegrations = ["cal-video", "google-meet"] as const;
+export type Integration_2024_06_14 = (typeof supportedIntegrations)[number];
 
 export class InputIntegrationLocation_2024_06_14 {
   @IsIn(inputLocations)
   @DocsProperty({ example: "integration", description: "only allowed value for type is `integration`" })
   type!: "integration";
 
-  @IsIn(integrations)
-  @DocsProperty({ example: integrations[0], enum: integrations })
+  @IsIn(supportedIntegrations)
+  @DocsProperty({ example: supportedIntegrations[0], enum: supportedIntegrations })
   integration!: Integration_2024_06_14;
 }
 

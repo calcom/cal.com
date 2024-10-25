@@ -129,6 +129,7 @@ export {
   InternalLocationsSchema,
   InternalLocationSchema,
   BookingFieldsSchema,
+  BookingFieldSchema,
   // note(Lauris): constants
   systemBeforeFieldName,
   systemBeforeFieldEmail,

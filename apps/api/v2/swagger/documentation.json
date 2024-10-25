@@ -5908,7 +5908,8 @@
             "type": "string",
             "example": "cal-video",
             "enum": [
-              "cal-video"
+              "cal-video",
+              "google-meet"
             ]
           }
         },
@@ -7067,7 +7068,7 @@
           "link": {
             "type": "string"
           },
-          "credentialdId": {
+          "credentialId": {
             "type": "number"
           }
         },
@@ -12740,7 +12741,7 @@
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }

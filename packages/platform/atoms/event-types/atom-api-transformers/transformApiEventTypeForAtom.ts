@@ -230,6 +230,8 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 function isAtomSupportedLocation(
   location: EventTypeOutput_2024_06_14["locations"][number]
 ): location is InputLocation_2024_06_14 {
+  const supportedIntegrations = ["cal-video", "google-meet"];
+
   return (
     location.type === "address" ||
     location.type === "attendeeAddress" ||
@@ -237,7 +239,7 @@ function isAtomSupportedLocation(
     location.type === "phone" ||
     location.type === "attendeePhone" ||
     location.type === "attendeeDefined" ||
-    (location.type === "integration" && location.integration === "cal-video")
+    (location.type === "integration" && supportedIntegrations.includes(location.integration))
   );
 }
 
@@ -291,7 +293,7 @@ function getBookingFields(
 function isCustomField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
 ): field is CustomFieldOutput_2024_06_14 {
-  return !field.isDefault;
+  return field.type !== "unknown" && !field.isDefault;
 }
 
 function isDefaultEditableField(
