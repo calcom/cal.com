@@ -406,6 +406,8 @@ export default class SalesforceCRMService implements CRM {
 
       const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
+      let contactCreated = false;
+
       if (accountId && appOptions.createNewContactUnderAccount) {
         // First see if the contact already exists and connect it to the account
         const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
@@ -432,11 +434,12 @@ export default class SalesforceCRMService implements CRM {
           .then((result) => {
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
+              contactCreated = true;
             }
           });
       }
 
-      if (appOptions.createLeadIfAccountNull) {
+      if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
         // Check to see if the lead exists already
         const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
         if (leadQuery.records.length) {
