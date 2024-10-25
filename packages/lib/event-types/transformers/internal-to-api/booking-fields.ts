@@ -397,7 +397,8 @@ const SystemFieldsSchema = z.union([
   GuestsSystemFieldSchema,
 ]);
 
-export const BookingFieldsSchema = z.array(z.union([CustomFieldsSchema, SystemFieldsSchema]));
+export const BookingFieldSchema = z.union([CustomFieldsSchema, SystemFieldsSchema]);
+export const BookingFieldsSchema = z.array(BookingFieldSchema);
 
 export const systemBeforeFieldName: NameSystemField = {
   type: "name",

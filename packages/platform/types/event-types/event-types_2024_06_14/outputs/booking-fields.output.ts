@@ -341,6 +341,17 @@ export class BooleanFieldOutput_2024_06_14 extends BooleanFieldInput_2024_06_14 
   isDefault = false;
 }
 
+export class OutputUnknownBookingField_2024_06_14 {
+  @DocsProperty({ example: "unknown", description: "only allowed value for type is `unknown`" })
+  type!: "unknown";
+
+  @DocsProperty({ example: "unknown", description: "only allowed value for type is `unknown`" })
+  slug!: "unknown";
+
+  @IsString()
+  bookingField!: string;
+}
+
 export type DefaultFieldOutput_2024_06_14 =
   | NameDefaultFieldOutput_2024_06_14
   | EmailDefaultFieldOutput_2024_06_14
@@ -349,7 +360,8 @@ export type DefaultFieldOutput_2024_06_14 =
   | TitleDefaultFieldOutput_2024_06_14
   | NotesDefaultFieldOutput_2024_06_14
   | GuestsDefaultFieldOutput_2024_06_14
-  | PhoneDefaultFieldOutput_2024_06_14;
+  | PhoneDefaultFieldOutput_2024_06_14
+  | OutputUnknownBookingField_2024_06_14;
 
 export type CustomFieldOutput_2024_06_14 =
   | PhoneFieldOutput_2024_06_14
@@ -362,7 +374,8 @@ export type CustomFieldOutput_2024_06_14 =
   | MultiEmailFieldOutput_2024_06_14
   | CheckboxGroupFieldOutput_2024_06_14
   | RadioGroupFieldOutput_2024_06_14
-  | BooleanFieldOutput_2024_06_14;
+  | BooleanFieldOutput_2024_06_14
+  | OutputUnknownBookingField_2024_06_14;
 
 export type OutputBookingField_2024_06_14 = DefaultFieldOutput_2024_06_14 | CustomFieldOutput_2024_06_14;
 
@@ -377,6 +390,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     notes: NotesDefaultFieldOutput_2024_06_14,
     guests: GuestsDefaultFieldOutput_2024_06_14,
     attendeePhoneNumber: PhoneDefaultFieldOutput_2024_06_14,
+    unknown: OutputUnknownBookingField_2024_06_14,
   };
 
   private customOutputTypeMap: { [key: string]: new () => CustomFieldOutput_2024_06_14 } = {
@@ -391,6 +405,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     checkbox: CheckboxGroupFieldOutput_2024_06_14,
     radio: RadioGroupFieldOutput_2024_06_14,
     boolean: BooleanFieldOutput_2024_06_14,
+    unknown: OutputUnknownBookingField_2024_06_14,
   };
 
   async validate(bookingFields: OutputBookingField_2024_06_14[]) {
@@ -431,7 +446,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
   }
 
   isDefaultField(field: OutputBookingField_2024_06_14): field is DefaultFieldOutput_2024_06_14 {
-    return field.isDefault === true;
+    return "isDefault" in field && field.isDefault === true;
   }
 
   async validateDefaultField(field: DefaultFieldOutput_2024_06_14) {
