@@ -50,7 +50,8 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
-  Input,
+  Icon,
+  TextField,
   Label,
   showToast,
   Skeleton,
@@ -130,14 +131,28 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
 
   return (
     <div>
-      <Input
-        className="max-w-64 mb-2 mr-auto rounded-md"
+      <TextField
+        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnClassname="!border-muted"
+        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+        type="search"
+        value={searchTerm}
+        autoComplete="false"
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
+        placeholder={t("search")}
+      />
+      {/* <Input
+        Icon="link"
+        className="max-w-64 mb-4 mr-auto rounded-md"
         placeholder="Search"
         value={searchTerm}
         onChange={(e) => {
           setSearchTerm(e.target.value);
         }}
-      />
+      /> */}
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
