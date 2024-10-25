@@ -2,11 +2,11 @@ import { z } from "zod";
 
 const integrationsApiAvailable = {
   "cal-video": z.literal("integrations:daily"),
+  "google-meet": z.literal("integrations:google:meet"),
 };
 
 // note(Lauris): these are read only aka they exist in database and are to be returned by a READ operation
 const integrationsApiUnavailable = {
-  "google-meet": z.literal("integrations:google:meet"),
   zoom: z.literal("integrations:zoom"),
   "whereby-video": z.literal("integrations:whereby_video"),
   "whatsapp-video": z.literal("integrations:whatsapp_video"),
