@@ -205,6 +205,32 @@ export class GuestsDefaultFieldOutput_2024_06_14 {
   required!: false;
 }
 
+export class PhoneDefaultFieldOutput_2024_06_14 {
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
+  isDefault = true;
+
+  @IsString()
+  @DocsProperty({
+    default: "attendeePhoneNumber",
+  })
+  slug!: "attendeePhoneNumber";
+
+  @IsString()
+  @DocsProperty({
+    default: "phone",
+  })
+  type!: "phone";
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+}
+
 export class PhoneFieldOutput_2024_06_14 extends PhoneFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
@@ -322,7 +348,8 @@ export type DefaultFieldOutput_2024_06_14 =
   | RescheduleReasonDefaultFieldOutput_2024_06_14
   | TitleDefaultFieldOutput_2024_06_14
   | NotesDefaultFieldOutput_2024_06_14
-  | GuestsDefaultFieldOutput_2024_06_14;
+  | GuestsDefaultFieldOutput_2024_06_14
+  | PhoneDefaultFieldOutput_2024_06_14;
 
 export type CustomFieldOutput_2024_06_14 =
   | PhoneFieldOutput_2024_06_14
@@ -349,6 +376,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     title: TitleDefaultFieldOutput_2024_06_14,
     notes: NotesDefaultFieldOutput_2024_06_14,
     guests: GuestsDefaultFieldOutput_2024_06_14,
+    attendeePhoneNumber: PhoneDefaultFieldOutput_2024_06_14,
   };
 
   private customOutputTypeMap: { [key: string]: new () => CustomFieldOutput_2024_06_14 } = {
@@ -409,7 +437,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
   async validateDefaultField(field: DefaultFieldOutput_2024_06_14) {
     const ClassType = this.defaultOutputNameMap[field.slug];
     if (!ClassType) {
-      throw new BadRequestException(`Unsupported booking field slgu '${field.slug}'.`);
+      throw new BadRequestException(`Unsupported default booking field slug '${field.slug}'.`);
     }
 
     const instance = plainToInstance(ClassType, field);

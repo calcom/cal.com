@@ -74,6 +74,13 @@ export function transformBookingFieldsInternalToApi(
           slug: field.name,
           required: field.required,
         };
+      case "attendeePhoneNumber":
+        return {
+          isDefault: true,
+          type: field.type,
+          slug: field.name,
+          required: field.required,
+        };
       default:
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -316,6 +323,12 @@ const NameSystemFieldSchema = SystemFieldSchema.extend({
     .optional(),
 });
 
+const PhoneSystemFieldSchema = SystemFieldSchema.extend({
+  name: z.literal("attendeePhoneNumber"),
+  type: z.literal("phone"),
+  required: z.boolean(),
+});
+
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("email"),
   type: z.literal("email"),
@@ -359,10 +372,12 @@ type LocationReasonSystemField = z.infer<typeof LocationReasonSystemFieldSchema>
 type TitleSystemField = z.infer<typeof TitleSystemFieldSchema>;
 type NotesSystemField = z.infer<typeof NotesSystemFieldSchema>;
 type GuestsSystemField = z.infer<typeof GuestsSystemFieldSchema>;
+type PhoneSystemField = z.infer<typeof PhoneSystemFieldSchema>;
 
 export type SystemField =
   | NameSystemField
   | EmailSystemField
+  | PhoneSystemField
   | RescheduleReasonSystemField
   | LocationReasonSystemField
   | TitleSystemField
@@ -374,6 +389,7 @@ export type CustomField = z.infer<typeof CustomFieldsSchema>;
 const SystemFieldsSchema = z.union([
   NameSystemFieldSchema,
   EmailSystemFieldSchema,
+  PhoneSystemFieldSchema,
   LocationReasonSystemFieldSchema,
   RescheduleReasonSystemFieldSchema,
   TitleSystemFieldSchema,
