@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
@@ -5,7 +7,7 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Avatar } from "@calcom/ui";
+import { AnimatedPopover, Avatar, FilterSearchField } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -23,6 +25,7 @@ export const UserListInTeam = () => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
+  const [searchText, setSearchText] = useState("");
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
     teamId: selectedTeamId ?? -1,
     isAll: !!isAll,
@@ -34,6 +37,12 @@ export const UserListInTeam = () => {
   const userListOptions = data?.map(mapUserToOption);
   const selectedTeamUser = data?.find((item) => item.id === selectedMemberUserId);
   const userValue = selectedTeamUser ? mapUserToOption(selectedTeamUser) : null;
+  const filteredUserListOptions = userListOptions?.filter((member) =>
+    searchText.trim() !== ""
+      ? member.label.toLowerCase().includes(searchText.toLowerCase()) ||
+        member.username?.toLowerCase().includes(searchText.toLowerCase())
+      : true
+  );
 
   if (!isSuccess || data?.length === 0) return null;
 
@@ -47,7 +56,8 @@ export const UserListInTeam = () => {
   return (
     <AnimatedPopover text={getTextForPopover()}>
       <FilterCheckboxFieldsContainer>
-        {userListOptions?.map((member) => (
+        <FilterSearchField onChange={(e) => setSearchText(e.target.value)} placeholder={t("search")} />
+        {filteredUserListOptions?.map((member) => (
           <FilterCheckboxField
             key={member.value}
             id={member?.value?.toString()}
@@ -67,7 +77,7 @@ export const UserListInTeam = () => {
             icon={<Avatar alt={`${member?.value} avatar`} imageSrc={member.avatarUrl} size="xs" />}
           />
         ))}
-        {userListOptions?.length === 0 && (
+        {filteredUserListOptions?.length === 0 && (
           <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
         )}
       </FilterCheckboxFieldsContainer>
