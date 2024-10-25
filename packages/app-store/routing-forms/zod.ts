@@ -64,6 +64,7 @@ export enum RouteActionType {
 export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
 /**
  * Stricter schema for validating before saving to DB
+ * It doesn't decide what will be saved, it is just to validate the data before saving
  */
 export const queryValueSaveValidationSchema = queryValueSchema
   .omit({ children1: true })
@@ -78,6 +79,7 @@ export const queryValueSaveValidationSchema = queryValueSchema
                 field: z.any().optional(),
                 operator: z.any().optional(),
                 value: z.any().optional(),
+                valueSrc: z.any().optional(),
               })
               .optional(),
           })
@@ -94,7 +96,13 @@ export const queryValueSaveValidationSchema = queryValueSchema
             if (!isObject(rule.properties)) return;
 
             const value = rule.properties.value || [];
-            if (!(value instanceof Array)) {
+            const valueSrc = rule.properties.valueSrc;
+            if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+              return;
+            }
+
+            if (!valueSrc.length) {
+              // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
               return;
             }
 
