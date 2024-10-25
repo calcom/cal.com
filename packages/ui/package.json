@@ -5,7 +5,7 @@
   "version": "0.0.0",
   "main": "./index.tsx",
   "exports": {
-    ".": "./index.tsx",
+    ".": "./index.ts",
     "./alert": "./components/alert/index.ts",
     "./app-list-card": "./components/app-list-card/index.ts",
     "./apps": "./components/apps/index.ts",

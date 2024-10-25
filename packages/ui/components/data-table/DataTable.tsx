@@ -7,7 +7,7 @@ import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
 
-import Icon from "../icon/Icon";
+import { Icon } from "../icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
 
 export interface DataTableProps<TData, TValue> {
