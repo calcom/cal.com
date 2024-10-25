@@ -164,9 +164,7 @@ export const roundRobinManualReassignment = async ({
         userId: newUserId,
         title: newBookingTitle,
         userPrimaryEmail: newUser.email,
-        reassignReason: reassignReason
-          ? `${reassignReason}: Reassigned by ${originalOrganizer.name}`
-          : undefined,
+        reassignReason,
       },
       select: bookingSelect,
     });
@@ -294,8 +292,6 @@ export const roundRobinManualReassignment = async ({
       },
     ],
     reassigned: {
-      name: originalOrganizer.name || "",
-      email: originalOrganizer.email,
       reason: reassignReason,
       byUser: originalOrganizer.name,
     },

@@ -153,7 +153,7 @@ export const sendRoundRobinScheduledEmailsAndSMS = async ({
   calEvent: CalendarEvent;
   members: Person[];
   eventTypeMetadata?: EventTypeMetadata;
-  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+  reassigned?: { reason?: string; byUser?: string };
 }) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const formattedCalEvent = formatCalEvent(calEvent);
@@ -205,7 +205,6 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
-
   for (const teamMember of members) {
     if (!reassignedTo) {
       emailsAndSMSToSend.push(
@@ -213,7 +212,10 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
       );
     } else {
       emailsAndSMSToSend.push(
-        sendEmail(() => new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassignedTo }))
+        sendEmail(
+          () =>
+            new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
+        )
       );
     }
 
