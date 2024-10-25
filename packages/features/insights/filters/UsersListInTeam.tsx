@@ -37,12 +37,15 @@ export const UserListInTeam = () => {
   const userListOptions = data?.map(mapUserToOption);
   const selectedTeamUser = data?.find((item) => item.id === selectedMemberUserId);
   const userValue = selectedTeamUser ? mapUserToOption(selectedTeamUser) : null;
-  const filteredUserListOptions = userListOptions?.filter((member) =>
-    searchText.trim() !== ""
-      ? member.label.toLowerCase().includes(searchText.toLowerCase()) ||
-        member.username?.toLowerCase().includes(searchText.toLowerCase())
-      : true
-  );
+  const filteredUserListOptions = userListOptions?.filter((member) => {
+    if (searchText.trim() === "") return true;
+
+    const searchLower = searchText.toLowerCase();
+    const labelMatch = member.label.toLowerCase().includes(searchLower);
+    const usernameMatch = member.username?.toLowerCase().includes(searchLower);
+
+    return labelMatch || usernameMatch;
+  });
 
   if (!isSuccess || data?.length === 0) return null;
 
