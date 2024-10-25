@@ -9,7 +9,7 @@ import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
 // import { EmailField } from "@calcom/ui";
 import * as getAttributesModule from "../../lib/getAttributes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "../utils";
+import { findTeamMembersMatchingAttributeLogicOfRoute } from "../findTeamMembersMatchingAttributeLogicOfRoute";
 
 vi.mock("../../lib/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
@@ -644,26 +644,29 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     it("should return matching members when main attribute logic fails and but fallback matches", async () => {
       const { failingAttributesQueryValue, matchingAttributesQueryValue } =
         buildScenarioWhereMainAttributeLogicFails();
-      const { teamMembersMatchingAttributeLogic: result, checkedFallback, troubleshooter } =
-        await findTeamMembersMatchingAttributeLogicOfRoute({
-          form: {
-            routes: [
-              {
-                id: "test-route",
-                action: { type: RouteActionType.CustomPageMessage, value: "test" },
-                queryValue: {
-                  type: "group",
-                } as unknown as FormFieldsQueryValue,
-                attributesQueryValue: failingAttributesQueryValue,
-                fallbackAttributesQueryValue: matchingAttributesQueryValue,
-              },
-            ],
-            fields: [],
-          },
-          response: {},
-          routeId: "test-route",
-          teamId: 1,
-        });
+      const {
+        teamMembersMatchingAttributeLogic: result,
+        checkedFallback,
+        troubleshooter,
+      } = await findTeamMembersMatchingAttributeLogicOfRoute({
+        form: {
+          routes: [
+            {
+              id: "test-route",
+              action: { type: RouteActionType.CustomPageMessage, value: "test" },
+              queryValue: {
+                type: "group",
+              } as unknown as FormFieldsQueryValue,
+              attributesQueryValue: failingAttributesQueryValue,
+              fallbackAttributesQueryValue: matchingAttributesQueryValue,
+            },
+          ],
+          fields: [],
+        },
+        response: {},
+        routeId: "test-route",
+        teamId: 1,
+      });
 
       expect(checkedFallback).toEqual(true);
       expect(result).toEqual([
