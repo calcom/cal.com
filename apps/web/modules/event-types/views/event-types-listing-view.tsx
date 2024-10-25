@@ -26,12 +26,10 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-// import type { User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-// import type { UserProfile } from "@calcom/types/UserProfile";
 import {
   Alert,
   Badge,
@@ -51,11 +49,11 @@ import {
   HeadSeo,
   HorizontalTabs,
   Icon,
-  TextField,
   Label,
   showToast,
   Skeleton,
   Switch,
+  TextField,
   Tooltip,
   ArrowButton,
   UserAvatarGroup,
@@ -75,13 +73,6 @@ type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eve
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
-
-// type DeNormalizedEventType = Omit<EventType, "userIds"> & {
-//   users: (Pick<User, "id" | "name" | "username" | "avatarUrl"> & {
-//     nonProfileUsername: string | null;
-//     profile: UserProfile;
-//   })[];
-// };
 
 const LIMIT = 10;
 
@@ -144,15 +135,6 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
         }}
         placeholder={t("search")}
       />
-      {/* <Input
-        Icon="link"
-        className="max-w-64 mb-4 mr-auto rounded-md"
-        placeholder="Search"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-        }}
-      /> */}
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
