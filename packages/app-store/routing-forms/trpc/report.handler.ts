@@ -38,13 +38,13 @@ const getRows = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
   const prismaWhere: Record<string, any> = input.jsonLogicQuery
     ? jsonLogicToPrisma(input.jsonLogicQuery)
     : {};
+  const skip = input.cursor ?? 0;
+  const take = 50;
   logger.debug(
     `Built Prisma where ${JSON.stringify(prismaWhere)} from jsonLogicQuery ${JSON.stringify(
       input.jsonLogicQuery
     )}`
   );
-  const skip = input.cursor ?? 0;
-  const take = 50;
   const rows = await prisma.app_RoutingForms_FormResponse.findMany({
     where: {
       formId: input.formId,
