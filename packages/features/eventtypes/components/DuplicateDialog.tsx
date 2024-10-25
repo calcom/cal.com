@@ -46,6 +46,8 @@ const DuplicateDialog = () => {
   const {
     data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // react hook form
   const form = useForm({
@@ -77,6 +79,7 @@ const DuplicateDialog = () => {
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
         limit: 10,
+        searchQuery: debouncedSearchTerm,
         group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
       });
 
