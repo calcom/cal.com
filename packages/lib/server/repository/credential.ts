@@ -34,12 +34,7 @@ export class CredentialRepository {
         },
       },
     });
-    await BookingReferenceRepository.reconnectWithNewCredential({
-      credentialId: newCredential.id,
-      credentialType: newCredential.type,
-      userId: newCredential.userId,
-      selectedCalendars: newCredential.selectedCalendars,
-    });
+    await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
     return newCredential;
   }
 
@@ -60,7 +55,7 @@ export class CredentialRepository {
     });
   }
 
-  static async findFirstByIdWithSelectedCalendar({ id }: { id: number }) {
+  static async findByIdWithSelectedCalendar({ id }: { id: number }) {
     return await prisma.credential.findFirst({
       where: { id },
       select: {

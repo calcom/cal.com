@@ -32,16 +32,10 @@ export class SelectedCalendarRepository {
     }
 
     if (!!selectedCalendar.credentialId) {
-      const credential = await CredentialRepository.findFirstByIdWithSelectedCalendar({
+      const credential = await CredentialRepository.findByIdWithSelectedCalendar({
         id: selectedCalendar.credentialId,
       });
-      if (!!credential)
-        await BookingReferenceRepository.reconnectWithNewCredential({
-          credentialId: credential.id,
-          credentialType: credential.type,
-          userId: credential.userId,
-          selectedCalendars: credential.selectedCalendars,
-        });
+      if (!!credential) await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     }
 
     return selectedCalendar;

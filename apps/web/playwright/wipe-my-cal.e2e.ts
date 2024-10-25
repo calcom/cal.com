@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import _dayjs from "@calcom/dayjs";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 
@@ -20,11 +20,13 @@ test.describe("Wipe my Cal App Test", () => {
   }) => {
     const pro = await users.create();
     const [eventType] = pro.eventTypes;
-    await CredentialRepository.create({
-      key: {},
-      type: "wipemycal_other",
-      userId: pro.id,
-      appId: "wipe-my-cal",
+    await prisma.credential.create({
+      data: {
+        key: {},
+        type: "wipemycal_other",
+        userId: pro.id,
+        appId: "wipe-my-cal",
+      },
     });
     await bookings.create(
       pro.id,
