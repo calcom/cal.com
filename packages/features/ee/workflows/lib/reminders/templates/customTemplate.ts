@@ -89,7 +89,7 @@ const customTemplate = (
     .replaceAll("{NO_SHOW_URL}", variables.noShowUrl || "")
     .replaceAll("{ATTENDEE_TIMEZONE}", variables.attendeeTimezone || "")
     .replaceAll(
-      "{EVENT_TIME_IN_ATTENDEE_TIMEZONE}",
+      "{EVENT_START_TIME_IN_ATTENDEE_TIMEZONE}",
       variables.eventTimeInAttendeeTimezone?.format(currentTimeFormat) || ""
     )
     .replaceAll(
