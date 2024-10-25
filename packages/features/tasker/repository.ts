@@ -23,7 +23,7 @@ const whereUpcomingTasks: Prisma.TaskWhereInput = {
   succeededAt: null,
   // Get only tasks that are scheduled to run now or in the past
   scheduledAt: {
-    lt: new Date().toUTCString(),
+    lt: new Date(),
   },
   // Get only tasks where maxAttemps has not been reached
   attempts: {
