@@ -10,7 +10,7 @@ export const OrganizerScheduledEmail = (
     newSeat?: boolean;
     attendeeCancelled?: boolean;
     teamMember?: Person;
-    reassignedTo?: { email: string; name: string | null };
+    reassignedTo?: { email: string; name: string | null; reason?: string };
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
   let subject;

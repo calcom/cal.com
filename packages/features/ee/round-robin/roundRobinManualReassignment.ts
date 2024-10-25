@@ -314,7 +314,13 @@ export const roundRobinManualReassignment = async ({
         },
       ],
       eventType?.metadata as EventTypeMetadata,
-      { name: newUser.name, email: newUser.email }
+      {
+        name: newUser.name,
+        email: newUser.email,
+        reason: reassignReason
+          ? `${reassignReason}: Reassigned by ${originalOrganizer.name}`
+          : `Reassigned by ${originalOrganizer.name}`,
+      }
     );
   }
 
