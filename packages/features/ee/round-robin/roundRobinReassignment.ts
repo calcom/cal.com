@@ -324,15 +324,18 @@ export const roundRobinReassignment = async ({
   });
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmailsAndSMS(evt, [
-    {
-      ...reassignedRRHost,
-      name: reassignedRRHost.name || "",
-      username: reassignedRRHost.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
-      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
-    },
-  ]);
+  await sendRoundRobinScheduledEmailsAndSMS({
+    calEvent: evt,
+    members: [
+      {
+        ...reassignedRRHost,
+        name: reassignedRRHost.name || "",
+        username: reassignedRRHost.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
+        language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
+      },
+    ],
+  });
 
   if (previousRRHost) {
     // Send to cancelled RR host
