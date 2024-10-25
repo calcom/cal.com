@@ -153,7 +153,7 @@ export const sendRoundRobinScheduledEmailsAndSMS = async ({
   calEvent: CalendarEvent;
   members: Person[];
   eventTypeMetadata?: EventTypeMetadata;
-  reassigned?: { reason?: string; byUser?: string };
+  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
 }) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const formattedCalEvent = formatCalEvent(calEvent);

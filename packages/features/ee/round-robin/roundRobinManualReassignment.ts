@@ -292,8 +292,10 @@ export const roundRobinManualReassignment = async ({
       },
     ],
     reassigned: {
+      name: newUser.name,
+      email: newUser.email,
       reason: reassignReason,
-      byUser: originalOrganizer.name,
+      byUser: originalOrganizer.name | undefined,
     },
   });
 
