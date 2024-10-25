@@ -12,7 +12,9 @@ const querySchema = z.object({
   workflow: z.string(),
 });
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+export const generateMetadata = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
   if (!parsed.success) {
     notFound();

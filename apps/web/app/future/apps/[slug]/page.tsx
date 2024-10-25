@@ -15,8 +15,10 @@ import Page from "~/apps/[slug]/slug-view";
 
 const getData = withAppDirSsg<PageProps>(getStaticProps);
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
+export const generateMetadata = async (props: _PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const legacyContext = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
   const res = await getData(legacyContext);
 
   return await _generateMetadata(

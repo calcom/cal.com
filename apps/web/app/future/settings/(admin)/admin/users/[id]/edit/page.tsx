@@ -10,7 +10,8 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
-export const generateMetadata = async ({ params }: { params: Params }) => {
+export const generateMetadata = async (props: { params: Promise<Params> }) => {
+  const params = await props.params;
   const input = userIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
@@ -27,7 +28,8 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   );
 };
 
-const Page = async ({ params }: { params: Params }) => {
+const Page = async (props: { params: Promise<Params> }) => {
+  const params = await props.params;
   const input = userIdSchema.safeParse(params);
 
   if (!input.success) {

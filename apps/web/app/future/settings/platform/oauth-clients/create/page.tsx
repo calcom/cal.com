@@ -4,7 +4,9 @@ import { WithLayout } from "app/layoutHOC";
 
 import CreateNewView from "~/settings/platform/oauth-clients/create-new-view";
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+export const generateMetadata = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const p = { ...params, ...searchParams };
   const clientId = p?.clientId ?? "";
   return await _generateMetadata(

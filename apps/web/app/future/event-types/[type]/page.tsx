@@ -10,8 +10,10 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
 import type { PageProps as EventTypePageProps } from "@lib/event-types/[type]/getServerSideProps";
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+export const generateMetadata = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
   const { eventType } = await getData(legacyCtx);
 
   return await _generateMetadata(

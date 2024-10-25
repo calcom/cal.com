@@ -14,8 +14,10 @@ import { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slu
 import type { PageProps } from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
 import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+export const generateMetadata = async (props: _PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const context = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
   const { slug: eventSlug, user: username } = await getData(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 

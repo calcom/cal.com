@@ -13,10 +13,12 @@ import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 import type { PageProps as LegacyPageProps } from "~/users/views/users-public-view";
 import LegacyPage from "~/users/views/users-public-view";
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+export const generateMetadata = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const data = await getData(buildLegacyCtx(await headers(), await cookies(), params, searchParams));
 
-  const { profile, markdownStrippedBio } = props;
+  const { profile, markdownStrippedBio } = data;
   return await _generateMetadata(
     () => profile.name,
     () => markdownStrippedBio

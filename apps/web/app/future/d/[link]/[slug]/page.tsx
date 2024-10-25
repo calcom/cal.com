@@ -13,8 +13,10 @@ import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
 import Type from "~/d/[link]/d-type-view";
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+export const generateMetadata = async (props: _PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
   const pageProps = await getData(legacyCtx);
 
   const { booking, user: username, slug: eventSlug, isTeamEvent } = pageProps;

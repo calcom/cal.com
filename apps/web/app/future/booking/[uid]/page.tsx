@@ -11,9 +11,11 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import OldPage from "~/bookings/views/bookings-single-view";
 import { getServerSideProps, type PageProps } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+export const generateMetadata = async (props: _PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { bookingInfo, eventType, recurringBookings } = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams)
+    buildLegacyCtx(await headers(), await cookies(), params, searchParams)
   );
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
 

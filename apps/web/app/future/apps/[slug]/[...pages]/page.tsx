@@ -17,14 +17,16 @@ const paramsSchema = z.object({
   pages: z.array(z.string()),
 });
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+export const generateMetadata = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const p = paramsSchema.safeParse(params);
 
   if (!p.success) {
     return notFound();
   }
 
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const legacyContext = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
   const formName = form?.name;

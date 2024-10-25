@@ -7,7 +7,8 @@ import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSid
 
 import Page, { type PageProps } from "~/apps/[slug]/setup/setup-view";
 
-export const generateMetadata = async ({ params }: _PageProps) => {
+export const generateMetadata = async (props: _PageProps) => {
+  const params = await props.params;
   return await _generateMetadata(
     () => `${params.slug}`,
     () => ""

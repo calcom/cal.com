@@ -17,7 +17,9 @@ const querySchema = z.object({
   t: z.string().optional(),
 });
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+export const generateMetadata = async (props: _PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const p = { ...params, ...searchParams };
   const { sessionId, stripeCustomerId } = querySchema.parse(p);
 

@@ -13,7 +13,8 @@ export const generateMetadata = async () =>
     (t) => t("add_webhook_description", { appName: APP_NAME })
   );
 
-const Page = async ({ params }: PageProps) => {
+const Page = async (props: PageProps) => {
+  const params = await props.params;
   const session = await getServerSessionForAppDir();
 
   const t = await getFixedT(session?.user.locale || "en");

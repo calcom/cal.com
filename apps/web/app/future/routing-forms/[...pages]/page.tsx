@@ -10,7 +10,9 @@ const paramsSchema = z
     pages: [],
   });
 
-const Page = ({ params, searchParams }: PageProps) => {
+const Page = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { pages } = paramsSchema.parse({ ...params, ...searchParams });
 
   redirect(`/apps/routing-forms/${pages.length ? pages.join("/") : ""}`);

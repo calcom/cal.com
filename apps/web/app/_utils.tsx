@@ -32,7 +32,7 @@ export const _generateMetadata = async (
   getDescription: (t: TFunction<string, undefined>) => string,
   excludeAppNameFromTitle?: boolean
 ) => {
-  const h = headers();
+  const h = await headers();
   const canonical = h.get("x-pathname") ?? "";
   const locale = h.get("x-locale") ?? "en";
 

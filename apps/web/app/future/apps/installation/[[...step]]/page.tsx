@@ -10,8 +10,10 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import type { OnboardingPageProps } from "~/apps/installation/[[...step]]/step-view";
 import Page from "~/apps/installation/[[...step]]/step-view";
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+export const generateMetadata = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
 
   const { appMetadata } = await getData(legacyCtx);
   return await _generateMetadata(

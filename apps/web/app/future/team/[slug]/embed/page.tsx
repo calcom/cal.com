@@ -11,8 +11,10 @@ import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 import type { PageProps } from "~/team/team-view";
 import LegacyPage from "~/team/team-view";
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+export const generateMetadata = async (_props: _PageProps) => {
+  const searchParams = await _props.searchParams;
+  const params = await _props.params;
+  const props = await getData(buildLegacyCtx(await headers(), await cookies(), params, searchParams));
   const teamName = props.team.name || "Nameless Team";
 
   return await _generateMetadata(

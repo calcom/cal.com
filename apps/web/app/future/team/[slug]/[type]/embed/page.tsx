@@ -14,8 +14,10 @@ import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { PageProps } from "~/team/type-view";
 import LegacyPage from "~/team/type-view";
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+export const generateMetadata = async (_props: _PageProps) => {
+  const searchParams = await _props.searchParams;
+  const params = await _props.params;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), params, searchParams);
   const props = await getData(legacyCtx);
   const { user: username, slug: eventSlug, booking } = props;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
