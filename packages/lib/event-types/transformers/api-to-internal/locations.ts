@@ -11,8 +11,12 @@ import type {
   OrganizerPhoneLocation,
 } from "../internal/locations";
 
-const apiToInternalintegrationsMapping: Record<Integration_2024_06_14, "integrations:daily"> = {
+const apiToInternalintegrationsMapping: Record<
+  Integration_2024_06_14,
+  "integrations:daily" | "integrations:google:meet"
+> = {
   "cal-video": "integrations:daily",
+  "google-meet": "integrations:google:meet",
 };
 
 export function transformLocationsApiToInternal(inputLocations: InputLocation_2024_06_14[] | undefined) {
