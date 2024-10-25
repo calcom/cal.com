@@ -42,10 +42,12 @@ export const roundRobinManualReassignment = async ({
   bookingId,
   newUserId,
   orgId,
+  reassignReason,
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
+  reassignReason?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -162,6 +164,9 @@ export const roundRobinManualReassignment = async ({
         userId: newUserId,
         title: newBookingTitle,
         userPrimaryEmail: newUser.email,
+        reassignReason: reassignReason
+          ? `${reassignReason}: Reassigned by ${originalOrganizer.name}`
+          : undefined,
       },
       select: bookingSelect,
     });

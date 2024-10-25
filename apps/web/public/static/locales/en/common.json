@@ -2699,6 +2699,7 @@
   "confirm_reassign_unavailable": "Manual Reassign to unavailable host",
   "reassign_unavailable_team_member_description": "Are you sure you want to reassign this booking to an unavailable host?",
   "yes_reassign": "Yes, reassign",
+  "reassign_reason": "Reason for reassigning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
 
