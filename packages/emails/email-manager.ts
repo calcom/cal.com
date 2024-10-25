@@ -193,7 +193,7 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   members: Person[],
   eventTypeMetadata?: EventTypeMetadata,
-  reassignedTo?: { name: string | null; email: string; reason?: string }
+  reassignedTo?: { name: string | null; email: string }
 ) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
