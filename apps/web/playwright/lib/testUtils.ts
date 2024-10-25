@@ -445,7 +445,7 @@ export async function bookUserEvent(page: Page, user: User, eventType: EventType
   await assertBookingIsCorrect(page, bookingTitle);
 }
 
-export async function assertBookingIsCorrect(page: Page, bookingTitle: string) {
+export async function assertBookingIsCorrect(page: Page, bookingTitle?: string) {
   // for round-robin events we cannot guess the bookings title as the host is selected randomly
   !!bookingTitle && (await expect(page.locator("[data-testid=booking-title]")).toHaveText(bookingTitle));
   // The booker should be in the attendee list
