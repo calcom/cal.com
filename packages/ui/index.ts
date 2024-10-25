@@ -154,6 +154,8 @@ export { WizardLayout } from "./layouts/WizardLayout";
 export * from "./components/data-table";
 export * from "./components/sheet";
 export * from "./components/table";
+export * from "./components/popover";
+export * from "./components/dropdown";
 export {
   Command,
   CommandDialog,
@@ -166,7 +168,6 @@ export {
   CommandShortcut,
 } from "./components/command";
 
-export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
 export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";
 
