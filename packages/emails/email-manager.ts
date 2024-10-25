@@ -144,11 +144,17 @@ export const sendScheduledEmailsAndSMS = async (
 };
 
 // for rescheduled round robin booking that assigned new members
-export const sendRoundRobinScheduledEmailsAndSMS = async (
-  calEvent: CalendarEvent,
-  members: Person[],
-  eventTypeMetadata?: EventTypeMetadata
-) => {
+export const sendRoundRobinScheduledEmailsAndSMS = async ({
+  calEvent,
+  members,
+  eventTypeMetadata,
+  reassigned,
+}: {
+  calEvent: CalendarEvent;
+  members: Person[];
+  eventTypeMetadata?: EventTypeMetadata;
+  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+}) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
@@ -156,7 +162,7 @@ export const sendRoundRobinScheduledEmailsAndSMS = async (
 
   for (const teamMember of members) {
     emailsAndSMSToSend.push(
-      sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent, teamMember }))
+      sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent, teamMember, reassigned }))
     );
     if (teamMember.phoneNumber) {
       emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(teamMember));

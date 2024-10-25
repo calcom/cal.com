@@ -282,15 +282,24 @@ export const roundRobinManualReassignment = async ({
   const { cancellationReason, ...evtWithoutCancellationReason } = evt;
 
   // Send emails
-  await sendRoundRobinScheduledEmailsAndSMS(evtWithoutCancellationReason, [
-    {
-      ...newUser,
-      name: newUser.name || "",
-      username: newUser.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
-      language: { translate: newUserT, locale: newUser.locale || "en" },
+  await sendRoundRobinScheduledEmailsAndSMS({
+    calEvent: evtWithoutCancellationReason,
+    members: [
+      {
+        ...newUser,
+        name: newUser.name || "",
+        username: newUser.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
+        language: { translate: newUserT, locale: newUser.locale || "en" },
+      },
+    ],
+    reassigned: {
+      name: originalOrganizer.name || "",
+      email: originalOrganizer.email,
+      reason: reassignReason,
+      byUser: originalOrganizer.name,
     },
-  ]);
+  });
 
   // Send cancellation email to previous RR host
   const cancelledEvt = cloneDeep(evt);

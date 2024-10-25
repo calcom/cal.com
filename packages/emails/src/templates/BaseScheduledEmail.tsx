@@ -82,13 +82,21 @@ export const BaseScheduledEmail = (
         />
       )}
       {props.reassignedTo && (
-        <Info
-          label={t("reassigned_to")}
-          description={
-            <PersonInfo name={props.reassignedTo.name || undefined} email={props.reassignedTo.email} />
-          }
-          withSpacer
-        />
+        <>
+          <Info
+            label={t("reassigned_to")}
+            description={
+              <PersonInfo name={props.reassignedTo.name || undefined} email={props.reassignedTo.email} />
+            }
+            withSpacer
+          />
+          {props.reassigned?.byUser && (
+            <Info label={t("reassigned_by")} description={props.reassigned.byUser} withSpacer />
+          )}
+          {props.reassigned?.reason && (
+            <Info label={t("reason")} description={props.reassigned.reason} withSpacer />
+          )}
+        </>
       )}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
