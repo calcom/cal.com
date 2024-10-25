@@ -435,6 +435,13 @@ export async function bookTeamEvent(page: Page, team: Team, eventType: EventType
   const bookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
   await assertBookingIsCorrect(page, bookingTitle);
 }
+
+export async function bookRoundRobinTeamEvent(page: Page, team: Team, eventType: EventType) {
+  await page.goto(`/team/${team.slug}/${eventType.slug}/`);
+  await bookEventOnThisPage(page);
+  await assertBookingIsCorrect(page);
+}
+
 export async function bookUserEvent(page: Page, user: User, eventType: EventType) {
   await page.goto(`/${user.username}/${eventType.slug}/`);
   await bookEventOnThisPage(page);
@@ -443,7 +450,8 @@ export async function bookUserEvent(page: Page, user: User, eventType: EventType
 }
 
 export async function assertBookingIsCorrect(page: Page, bookingTitle: string) {
-  await expect(page.locator("[data-testid=booking-title]")).toHaveText(bookingTitle);
+  // for round-robin events we cannot guess the bookings title as the host is selected randomly
+  !!bookingTitle && (await expect(page.locator("[data-testid=booking-title]")).toHaveText(bookingTitle));
   // The booker should be in the attendee list
   await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 }

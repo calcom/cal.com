@@ -249,6 +249,7 @@ async function bookTeamEvent({
   page,
   team,
   event,
+  isRoundRobin = false,
 }: {
   page: Page;
   team: {
@@ -256,6 +257,7 @@ async function bookTeamEvent({
     name: string | null;
   };
   event: { slug: string; title: string };
+  isRoundRobin?: boolean;
 }) {
   // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
   // So, we are using /team in the URL to access the team booking
@@ -269,7 +271,9 @@ async function bookTeamEvent({
 
   // The title of the booking
   const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-  await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+
+  // for round-robin events we cannot guess the bookings title as the host is selected randomly
+  !isRoundRobin && (await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle));
   // The booker should be in the attendee list
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }

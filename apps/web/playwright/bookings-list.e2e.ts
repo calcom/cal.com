@@ -9,7 +9,12 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { assertBookingVisibleFor, bookTeamEvent, bookUserEvent } from "./lib/testUtils";
+import {
+  assertBookingVisibleFor,
+  bookTeamEvent,
+  bookRoundRobinTeamEvent,
+  bookUserEvent,
+} from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -147,7 +152,7 @@ test.describe("Bookings", () => {
         },
       });
 
-      await bookTeamEvent(page, team1, eventType);
+      await bookRoundRobinTeamEvent(page, team1, eventType);
 
       // booking should be visible for the team host even though he is not part of the booking
       await assertBookingVisibleFor(owner1, page, eventType, true);
