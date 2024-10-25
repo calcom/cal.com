@@ -776,6 +776,73 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform system phone field", () => {
+    const transformedField: SystemField[] = [
+      {
+        name: "attendeePhoneNumber",
+        type: "phone",
+        hidden: true,
+        sources: [
+          {
+            id: "default",
+            type: "default",
+            label: "Default",
+          },
+        ],
+        editable: "system-but-optional",
+        required: false,
+        defaultLabel: "phone_number",
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        isDefault: true,
+        type: "phone",
+        slug: "attendeePhoneNumber",
+        required: false,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform unknown field", () => {
+    const transformedField = [
+      {
+        name: "blabla",
+        type: "blabla",
+        hidden: true,
+        sources: [
+          {
+            id: "default",
+            type: "default",
+            label: "Default",
+          },
+        ],
+        editable: "system-but-optional",
+        required: false,
+        defaultLabel: "phone_number",
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        type: "unknown",
+        slug: "unknown",
+        bookingField: JSON.stringify(transformedField[0]),
+      },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformIntervalLimitsInternalToApi", () => {

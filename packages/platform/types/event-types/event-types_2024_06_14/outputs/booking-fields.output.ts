@@ -360,8 +360,7 @@ export type DefaultFieldOutput_2024_06_14 =
   | TitleDefaultFieldOutput_2024_06_14
   | NotesDefaultFieldOutput_2024_06_14
   | GuestsDefaultFieldOutput_2024_06_14
-  | PhoneDefaultFieldOutput_2024_06_14
-  | OutputUnknownBookingField_2024_06_14;
+  | PhoneDefaultFieldOutput_2024_06_14;
 
 export type CustomFieldOutput_2024_06_14 =
   | PhoneFieldOutput_2024_06_14
@@ -374,10 +373,12 @@ export type CustomFieldOutput_2024_06_14 =
   | MultiEmailFieldOutput_2024_06_14
   | CheckboxGroupFieldOutput_2024_06_14
   | RadioGroupFieldOutput_2024_06_14
-  | BooleanFieldOutput_2024_06_14
-  | OutputUnknownBookingField_2024_06_14;
+  | BooleanFieldOutput_2024_06_14;
 
-export type OutputBookingField_2024_06_14 = DefaultFieldOutput_2024_06_14 | CustomFieldOutput_2024_06_14;
+export type OutputBookingField_2024_06_14 =
+  | DefaultFieldOutput_2024_06_14
+  | CustomFieldOutput_2024_06_14
+  | OutputUnknownBookingField_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
@@ -390,7 +391,6 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     notes: NotesDefaultFieldOutput_2024_06_14,
     guests: GuestsDefaultFieldOutput_2024_06_14,
     attendeePhoneNumber: PhoneDefaultFieldOutput_2024_06_14,
-    unknown: OutputUnknownBookingField_2024_06_14,
   };
 
   private customOutputTypeMap: { [key: string]: new () => CustomFieldOutput_2024_06_14 } = {
@@ -405,7 +405,6 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     checkbox: CheckboxGroupFieldOutput_2024_06_14,
     radio: RadioGroupFieldOutput_2024_06_14,
     boolean: BooleanFieldOutput_2024_06_14,
-    unknown: OutputUnknownBookingField_2024_06_14,
   };
 
   async validate(bookingFields: OutputBookingField_2024_06_14[]) {
@@ -433,9 +432,13 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
           `Duplicate bookingFields slug '${slug}' found. All bookingFields slugs must be unique.`
         );
       }
-      slugs.push(slug);
+      if (slug !== "unknown") {
+        slugs.push(slug);
+      }
 
-      if (this.isDefaultField(field)) {
+      if (this.isUnknownField(field)) {
+        await this.validateUnknownField(field);
+      } else if (this.isDefaultField(field)) {
         await this.validateDefaultField(field);
       } else {
         await this.validateCustomField(field);
@@ -446,7 +449,20 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
   }
 
   isDefaultField(field: OutputBookingField_2024_06_14): field is DefaultFieldOutput_2024_06_14 {
-    return "isDefault" in field && field.isDefault === true;
+    return field.type !== "unknown" && "isDefault" in field && field.isDefault === true;
+  }
+
+  isUnknownField(field: OutputBookingField_2024_06_14): field is OutputUnknownBookingField_2024_06_14 {
+    return field.type === "unknown";
+  }
+
+  async validateUnknownField(field: OutputUnknownBookingField_2024_06_14) {
+    const instance = plainToInstance(OutputUnknownBookingField_2024_06_14, field);
+    const errors = await validate(instance);
+    if (errors.length > 0) {
+      const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
+      throw new BadRequestException(`Validation failed for ${field.slug} booking field: ${message}`);
+    }
   }
 
   async validateDefaultField(field: DefaultFieldOutput_2024_06_14) {

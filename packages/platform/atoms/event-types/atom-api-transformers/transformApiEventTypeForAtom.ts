@@ -293,7 +293,7 @@ function getBookingFields(
 function isCustomField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
 ): field is CustomFieldOutput_2024_06_14 {
-  return !field.isDefault;
+  return field.type !== "unknown" && !field.isDefault;
 }
 
 function isDefaultEditableField(
