@@ -408,10 +408,6 @@ export async function doOnOrgDomain(
   return callbackResult;
 }
 
-// When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
-export const NotFoundPageTextAppDir = "This page does not exist.";
-// export const NotFoundPageText = "ERROR 404";
-
 export type Team = {
   id: number;
   slug: string | null;

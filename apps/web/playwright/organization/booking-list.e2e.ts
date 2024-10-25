@@ -13,7 +13,6 @@ import {
   assertBookingVisibleFor,
   bookTimeSlot,
   doOnOrgDomain,
-  NotFoundPageTextAppDir,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
 } from "../lib/testUtils";
@@ -126,7 +125,7 @@ test.describe("Bookings list for organizations", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team: team1, event: eventType });
+          await bookTeamEvent({ page, team: team1, event: eventType, isRoundRobin: true });
         }
       );
       // booking should be visible for the Org OWNER even though he is not part of the booking
@@ -193,7 +192,7 @@ test.describe("Bookings list for organizations", () => {
 
       await page.goto(`/${commonUser.username}/${event.slug}`);
       // Shouldn't be servable on the non-org domain
-      await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+      await expect(page.getByTestId(`404-page`)).toBeVisible();
 
       await doOnOrgDomain(
         {
@@ -280,7 +279,7 @@ async function bookTeamEvent({
 
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
 
 const createOrg = async (orgs: Fixtures["orgs"], userFixture: Fixtures["users"]) => {

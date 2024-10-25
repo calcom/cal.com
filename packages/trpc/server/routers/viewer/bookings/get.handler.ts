@@ -283,11 +283,11 @@ export async function getBookings({
   };
 
   // Retrieve bookings where the user is an attendee
-  const userAttendingBookings = await prisma.attendee.findMany({
+  const userEmailAttendingBookings = await prisma.attendee.findMany({
     where: { email: user.email },
     select: { bookingId: true },
   });
-  const userAttendingBookingIds = userAttendingBookings.map((item) => item.bookingId);
+  const userEmailAttendingBookingIds = userEmailAttendingBookings.map((item) => item.bookingId);
 
   // Retrieve team bookings for team-admins and team-owners
   const teamBookings = await prisma.membership.findMany({
@@ -308,7 +308,7 @@ export async function getBookings({
     },
   });
 
-  const allTeamBookingIds = teamBookings
+  const teamBookingIds = teamBookings
     .flatMap((membership) =>
       membership.team.eventTypes.flatMap((eventType) => {
         const directBookingIds = eventType.bookings.map((booking) => booking.id);
@@ -320,10 +320,9 @@ export async function getBookings({
       })
     )
     .filter((id): id is number => id !== null);
-  console.log("Team Booking IDs:", allTeamBookingIds);
 
-  // Retrieve organization bookings for org-admins and org-owners
-  const organizationBookings = await prisma.membership.findMany({
+  // Retrieve all sub-teams team bookings for org-admins and org-owners
+  const organizationTeamBookings = await prisma.membership.findMany({
     where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
     select: {
       team: {
@@ -343,7 +342,7 @@ export async function getBookings({
     },
   });
 
-  const allOrganizationBookingIds = organizationBookings
+  const organizationTeamBookingIds = organizationTeamBookings
     .flatMap((membership) =>
       membership.team.children.flatMap((childTeam) =>
         childTeam.eventTypes.flatMap((eventType) => {
@@ -357,9 +356,8 @@ export async function getBookings({
       )
     )
     .filter((id): id is number => id !== null);
-  console.log("Organization Booking IDs:", allOrganizationBookingIds);
 
-  // Retrieve personal bookings for org-admins and org-owners
+  // Retrieve all team users personal bookings for org-admins and org-owners
   const organizationPersonalBookings = await prisma.membership.findMany({
     where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
     select: {
@@ -397,10 +395,47 @@ export async function getBookings({
     )
     .filter((id): id is number => id !== null);
 
+  // Retrieve all team users personal bookings for org-team-admins and org-team-owners
+  const organizationTeamPersonalBookings = await prisma.membership.findMany({
+    where: {
+      userId: user.id,
+      role: { in: ["ADMIN", "OWNER"] },
+      team: {
+        parentId: { gte: 0 },
+      },
+    },
+    select: {
+      team: {
+        select: {
+          members: {
+            select: {
+              user: {
+                select: {
+                  eventTypes: {
+                    select: {
+                      bookings: { select: { id: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  const organizationTeamPersonalBookingIds = organizationTeamPersonalBookings
+    .flatMap((membership) =>
+      membership.team.members.flatMap((member) =>
+        member.user.eventTypes.flatMap((eventType) => eventType.bookings.map((booking) => booking.id))
+      )
+    )
+    .filter((id): id is number => id !== null);
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
-    userAndAttendingBookings,
+    userAttendingBookings,
     recurringInfoBasic,
     recurringInfoExtended,
     // We need all promises to be successful, so we are not using Promise.allSettled
@@ -409,10 +444,7 @@ export async function getBookings({
       where: {
         userId: user.id,
       },
-      // orderBy,
       select: { id: true },
-      // take: take + 1,
-      // skip,
     }),
     prisma.booking.groupBy({
       by: ["recurringEventId"],
@@ -442,8 +474,7 @@ export async function getBookings({
       },
     }),
   ]);
-  // const bookingIdssssssss = bookingsQueryUserId.map((item) => item.id);
-  const userAndAttendingBookingIds = userAndAttendingBookings.map((item) => item.id);
+  const userAttendingBookingIds = userAttendingBookings.map((item) => item.id);
 
   const recurringInfo = recurringInfoBasic.map(
     (
@@ -479,10 +510,11 @@ export async function getBookings({
   // It's going to mess up the orderBy as we are concatenating independent queries results
   const uniqueBookingIds = getUniqueBookings([
     ...organizationPersonalBookingIds,
-    ...allOrganizationBookingIds,
-    ...allTeamBookingIds,
+    ...organizationTeamPersonalBookingIds,
+    ...organizationTeamBookingIds,
+    ...teamBookingIds,
+    ...userEmailAttendingBookingIds,
     ...userAttendingBookingIds,
-    ...userAndAttendingBookingIds,
   ]);
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
@@ -500,7 +532,7 @@ export async function getBookings({
         select: bookingSelect,
         // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
         orderBy,
-        take,
+        take: take + 1,
         skip,
       })
     ).map(async (booking) => {
