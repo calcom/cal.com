@@ -420,7 +420,7 @@ const EmailEmbedPreview = ({
                                       selectedDateAndTime[key].map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${WEBSITE_URL}/${
+                                        const bookingURL = `${eventType.bookerUrl}/${
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length
