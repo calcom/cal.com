@@ -182,6 +182,8 @@ const nextConfig = {
   },
   i18n: {
     ...i18n,
+    defaultLocale: "en",
+    locales: ["en"],
     localeDetection: false,
   },
   productionBrowserSourceMaps: false,

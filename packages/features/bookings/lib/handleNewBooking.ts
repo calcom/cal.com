@@ -810,6 +810,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -818,6 +819,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);

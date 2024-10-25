@@ -44,11 +44,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
-  let key;
-
   if (code) {
     const token = await oAuth2Client.getToken(code);
-    key = token.tokens;
+    const key = token.tokens;
     const grantedScopes = token.tokens.scope?.split(" ") ?? [];
     // Check if we have granted all required permissions
     const hasMissingRequiredScopes = REQUIRED_SCOPES.some((scope) => !grantedScopes.includes(scope));
@@ -77,7 +75,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    let primaryCal = cals.data.items?.find((cal) => cal.primary);
+    const tokenInfo = key.access_token ? await oAuth2Client.getTokenInfo(key.access_token) : null;
+    const userEmail = tokenInfo?.email ?? null;
+
+    let primaryCal = cals.data.items?.find(
+      (cal) => cal.primary || cal.accessRole === "owner" || cal.id === userEmail
+    );
     if (!primaryCal?.id) {
       // If the primary calendar is not set, set it to the first calendar
       primaryCal = cals.data.items?.[0];
