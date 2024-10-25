@@ -4,7 +4,6 @@ import type { SelectedCalendar as PrismaSelectedCalendar } from "@prisma/client"
 import { prisma } from "@calcom/prisma";
 
 import { BookingReferenceRepository } from "./bookingReference";
-import { CredentialRepository } from "./credential";
 
 type ISelectedCalendar = Omit<Prisma.SelectedCalendarCreateInput, "user"> & {
   credentialId?: PrismaSelectedCalendar["credentialId"];
@@ -32,10 +31,7 @@ export class SelectedCalendarRepository {
     }
 
     if (!!selectedCalendar.credentialId) {
-      const credential = await CredentialRepository.findByIdWithSelectedCalendar({
-        id: selectedCalendar.credentialId,
-      });
-      if (!!credential) await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
+      await BookingReferenceRepository.reconnectWithNewCredential(selectedCalendar.credentialId);
     }
 
     return selectedCalendar;
