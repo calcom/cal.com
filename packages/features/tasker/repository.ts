@@ -56,7 +56,7 @@ export class Task {
   }
 
   static async getNextBatch() {
-    console.info("Getting next batch of tasks", makeWhereUpcomingTasks);
+    console.info("Getting next batch of tasks", makeWhereUpcomingTasks());
     return db.task.findMany({
       where: makeWhereUpcomingTasks(),
       orderBy: {
