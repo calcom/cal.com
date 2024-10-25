@@ -83,7 +83,7 @@ interface InfiniteEventTypeListProps {
   pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
   lockedByOrg?: boolean;
   isPending?: boolean;
-  searchTerm?: string;
+  debouncedSearchTerm?: string;
 }
 
 interface InfiniteTeamsTabProps {
