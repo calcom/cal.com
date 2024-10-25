@@ -5908,7 +5908,8 @@
             "type": "string",
             "example": "cal-video",
             "enum": [
-              "cal-video"
+              "cal-video",
+              "google-meet"
             ]
           }
         },
@@ -7067,7 +7068,7 @@
           "link": {
             "type": "string"
           },
-          "credentialdId": {
+          "credentialId": {
             "type": "number"
           }
         },
