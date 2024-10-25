@@ -229,31 +229,90 @@ type SingleFormComponentProps = {
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
-  enrichedWithUserProfileForm?: inferSSRProps<
+  enrichedWithUserProfileForm: inferSSRProps<
     typeof getServerSidePropsForSingleFormView
   >["enrichedWithUserProfileForm"];
 };
 
-function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
-  const utils = trpc.useUtils();
+type MembersMatchResult = {
+  teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
+  checkedFallback: boolean;
+};
+
+const MembersMatchResult = ({
+  membersMatchResult,
+  chosenRouteName,
+}: {
+  membersMatchResult: MembersMatchResult;
+  chosenRouteName: string;
+}) => {
   const { t } = useLocale();
-  const isTeamForm = !!form.teamId;
-  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
+  return (
+    <div className="text-default mt-2 space-y-2">
+      <div data-testid="chosen-route">
+        {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
+      </div>
+      <div data-testid="attribute-logic-matched">
+        {t("attribute_logic_matched")}:{" "}
+        <span className="font-semibold">{!membersMatchResult.checkedFallback ? "Yes" : "No"}</span>
+      </div>
+      <div data-testid="attribute-logic-fallback-matched">
+        {t("attribute_logic_fallback_matched")}:{" "}
+        <span className="font-semibold">
+          {!membersMatchResult.checkedFallback
+            ? "Not needed"
+            : membersMatchResult.checkedFallback
+            ? "Yes"
+            : "No"}
+        </span>
+      </div>
+      <div data-testid="matching-members">
+        {t("matching_members")}:{" "}
+        {isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic) ? (
+          membersMatchResult.checkedFallback ? (
+            <span className="font-semibold">
+              {t(
+                "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
+              )}
+            </span>
+          ) : (
+            <span className="font-semibold">
+              {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
+            </span>
+          )
+        ) : (
+          <span className="font-semibold">
+            {membersMatchResult.teamMembersMatchingAttributeLogic.map((member) => member.email).join(", ") ||
+              t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+
+  function isNoLogicFound(
+    teamMembersMatchingAttributeLogic: MembersMatchResult["teamMembersMatchingAttributeLogic"]
+  ): teamMembersMatchingAttributeLogic is null {
+    return !teamMembersMatchingAttributeLogic;
+  }
+};
+
+export const TestFormDialog = ({
+  form,
+  isTestPreviewOpen,
+  setIsTestPreviewOpen,
+}: {
+  form: NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>;
+  isTestPreviewOpen: boolean;
+  setIsTestPreviewOpen: (value: boolean) => void;
+}) => {
+  const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
   const searchParams = useCompatSearchParams();
-  const [membersMatchResult, setMembersMatchResult] = useState<{
-    teamMembersMatchingAttributeLogic:
-      | {
-          id: number;
-          name: string | null;
-          email: string;
-        }[]
-      | null;
-    checkedFallback: boolean;
-  }>({
+  const isTeamForm = !!form.teamId;
+  const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResult>({
     teamMembersMatchingAttributeLogic: null,
     checkedFallback: false,
   });
@@ -283,16 +342,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
-
     if (route?.action?.type === "eventTypeRedirectUrl") {
       setEventTypeUrl(
-        enrichedWithUserProfileForm
-          ? getAbsoluteEventTypeRedirectUrl({
-              eventTypeRedirectUrl: route.action.value,
-              form: enrichedWithUserProfileForm,
-              allURLSearchParams: new URLSearchParams(),
-            })
-          : ""
+        getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: route.action.value,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        })
       );
     }
 
@@ -309,6 +365,117 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     });
   }
 
+  const renderTestResult = () => {
+    if (!form.routes || !chosenRoute) return null;
+
+    const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
+
+    const chosenRouteName = () => {
+      if (chosenRoute.isFallback) {
+        return t("fallback_route");
+      }
+      return `Route ${chosenRouteIndex + 1}`;
+    };
+
+    return (
+      <div className="bg-subtle text-default mt-5 rounded-md p-3">
+        <div className="font-bold ">{t("route_to")}:</div>
+        <div className="mt-2">
+          {RoutingPages.map((page) => {
+            if (page.value !== chosenRoute.action.type) return null;
+            return (
+              <span key={page.value} data-testid="test-routing-result-type">
+                {page.label}
+              </span>
+            );
+          })}
+          :{" "}
+          {chosenRoute.action.type === "customPageMessage" ? (
+            <span className="text-default" data-testid="test-routing-result">
+              {chosenRoute.action.value}
+            </span>
+          ) : chosenRoute.action.type === "externalRedirectUrl" ? (
+            <span className="text-default underline">
+              <a
+                target="_blank"
+                data-testid="test-routing-result"
+                href={
+                  chosenRoute.action.value.includes("https://") ||
+                  chosenRoute.action.value.includes("http://")
+                    ? chosenRoute.action.value
+                    : `http://${chosenRoute.action.value}`
+                }
+                rel="noreferrer">
+                {chosenRoute.action.value}
+              </a>
+            </span>
+          ) : (
+            <div className="flex flex-col space-y-2">
+              <span className="text-default underline">
+                <a target="_blank" href={eventTypeUrl} rel="noreferrer" data-testid="test-routing-result">
+                  {chosenRoute.action.value}
+                </a>
+              </span>
+              {isTeamForm ? (
+                !findTeamMembersMatchingAttributeLogicMutation.isPending ? (
+                  <div>
+                    <MembersMatchResult
+                      chosenRouteName={chosenRouteName()}
+                      membersMatchResult={membersMatchResult}
+                    />
+                  </div>
+                ) : (
+                  <div>Loading...</div>
+                )
+              ) : null}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
+      <DialogContent enableOverflow>
+        <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+        <div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              resetMembersMatchResult();
+              testRouting();
+            }}>
+            <div className="px-1">
+              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+            </div>
+            <div>{renderTestResult()}</div>
+            <DialogFooter>
+              <DialogClose
+                color="secondary"
+                onClick={() => {
+                  setIsTestPreviewOpen(false);
+                  setChosenRoute(null);
+                  setResponse({});
+                }}>
+                {t("close")}
+              </DialogClose>
+              <Button type="submit" data-testid="test-routing">
+                {t("test_routing")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
+  const utils = trpc.useUtils();
+  const { t } = useLocale();
+  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
+  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -355,153 +522,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     },
   });
   const connectedForms = form.connectedForms;
-
-  const testFormDialog = (() => {
-    const renderMatchResult = () => {
-      const isNoLogicFound = !membersMatchResult.teamMembersMatchingAttributeLogic;
-      if (!form.routes || !chosenRoute) return null;
-      const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
-      const chosenRouteName = () => {
-        if (chosenRoute.isFallback) {
-          return <span>{t("fallback_route")}</span>;
-        }
-        return <span>{`Route ${chosenRouteIndex + 1}`}</span>;
-      };
-      return (
-        <div className="mt-2 space-y-2 text-sm">
-          <div>
-            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName()}</span>
-          </div>
-          <div>
-            {t("attribute_logic_matched")}:{" "}
-            <span className="font-semibold">{!membersMatchResult.checkedFallback ? "Yes" : "No"}</span>
-          </div>
-          <div>
-            {t("attribute_logic_fallback_matched")}:{" "}
-            <span className="font-semibold">
-              {!membersMatchResult.checkedFallback
-                ? "Not needed"
-                : membersMatchResult.checkedFallback
-                ? "Yes"
-                : "No"}
-            </span>
-          </div>
-          <div>
-            {t("matching_members")}:{" "}
-            {isNoLogicFound ? (
-              membersMatchResult.checkedFallback ? (
-                <span className="font-semibold">
-                  {t(
-                    "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
-                  )}
-                </span>
-              ) : (
-                <span className="font-semibold">
-                  {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
-                </span>
-              )
-            ) : (
-              <span className="font-semibold">
-                {membersMatchResult.teamMembersMatchingAttributeLogic
-                  .map((member) => member.email)
-                  .join(", ") ||
-                  t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
-              </span>
-            )}
-          </div>
-        </div>
-      );
-    };
-
-    const testResult = chosenRoute ? (
-      <div className="bg-subtle text-default mt-5 rounded-md p-3">
-        <div className="font-bold ">{t("route_to")}:</div>
-        <div className="mt-2">
-          {RoutingPages.map((page) => {
-            if (page.value !== chosenRoute.action.type) return null;
-            return (
-              <span key={page.value} data-testid="test-routing-result-type">
-                {page.label}
-              </span>
-            );
-          })}
-          :{" "}
-          {chosenRoute.action.type === "customPageMessage" ? (
-            <span className="text-default" data-testid="test-routing-result">
-              {chosenRoute.action.value}
-            </span>
-          ) : chosenRoute.action.type === "externalRedirectUrl" ? (
-            <span className="text-default underline">
-              <a
-                target="_blank"
-                data-testid="test-routing-result"
-                href={
-                  chosenRoute.action.value.includes("https://") ||
-                  chosenRoute.action.value.includes("http://")
-                    ? chosenRoute.action.value
-                    : `http://${chosenRoute.action.value}`
-                }
-                rel="noreferrer">
-                {chosenRoute.action.value}
-              </a>
-            </span>
-          ) : (
-            <div className="flex flex-col space-y-2">
-              <span className="text-default underline">
-                <a target="_blank" href={eventTypeUrl} rel="noreferrer" data-testid="test-routing-result">
-                  {chosenRoute.action.value}
-                </a>
-              </span>
-              {isTeamForm ? (
-                <div>
-                  {!findTeamMembersMatchingAttributeLogicMutation.isPending ? (
-                    <div>{renderMatchResult()}</div>
-                  ) : (
-                    <div>Loading...</div>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-      </div>
-    ) : null;
-
-    return (
-      <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent enableOverflow>
-          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-          <div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                resetMembersMatchResult();
-                testRouting();
-              }}>
-              <div className="px-1">
-                {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-              </div>
-              <div>{testResult}</div>
-              <DialogFooter>
-                <DialogClose
-                  color="secondary"
-                  onClick={() => {
-                    setIsTestPreviewOpen(false);
-                    setChosenRoute(null);
-                    setResponse({});
-                  }}>
-                  {t("close")}
-                </DialogClose>
-                <Button type="submit" data-testid="test-routing">
-                  {t("test_routing")}
-                </Button>
-              </DialogFooter>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  })();
 
   return (
     <>
@@ -702,7 +722,11 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
-      {testFormDialog}
+      <TestFormDialog
+        form={enrichedWithUserProfileForm}
+        isTestPreviewOpen={isTestPreviewOpen}
+        setIsTestPreviewOpen={setIsTestPreviewOpen}
+      />
     </>
   );
 }

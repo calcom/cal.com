@@ -9,7 +9,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
+import { findTeamMembersMatchingAttributeLogicOfRoute } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   ctx: {

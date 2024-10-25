@@ -155,6 +155,7 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
       type: RouteActionType.EventTypeRedirectUrl,
       value: "",
     },
+    // It is actually formFieldsQueryValue
     queryValue: formFieldsQueryValue,
     attributesQueryValue: attributesQueryValue,
     fallbackAttributesQueryValue: fallbackAttributesQueryValue,
@@ -681,9 +682,16 @@ const Routes = ({
       const _routes = serializedRoutes || [getEmptyRoute()];
       _routes.forEach((r) => {
         if (isRouter(r)) return;
+
+        // Add default empty queries to existing routes otherwise they won't have 'Add Rule' button for those RAQB queries.
         if (!r.queryValue?.id) {
           r.queryValue = getEmptyQueryValue() as LocalRoute["queryValue"];
         }
+        
+        if (!r.attributesQueryValue) {
+          r.attributesQueryValue = getEmptyQueryValue() as LocalRoute["attributesQueryValue"];
+        }
+
         if (!r.fallbackAttributesQueryValue) {
           r.fallbackAttributesQueryValue = getEmptyQueryValue() as LocalRoute["fallbackAttributesQueryValue"];
         }
@@ -1020,6 +1028,7 @@ export default function RouteBuilder({
         }
 
         if (!eventTypesByGroup) {
+          console.error("Events not available");
           return <div>{t("something_went_wrong")}</div>;
         }
 

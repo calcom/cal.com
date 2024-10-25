@@ -19,6 +19,10 @@ const {
   getAttributesQueryValue,
 } = acrossQueryValueCompatiblity;
 
+type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
+  ReturnType<typeof getTeamMembersWithAttributeOptionValuePerAttribute>
+>[number];
+
 type RunAttributeLogicData = {
   attributesQueryValue: AttributesQueryValue | undefined;
   attributesForTeam: Attribute[];
@@ -33,6 +37,18 @@ type RunAttributeLogicOptions = {
   isPreview: boolean;
   enableTroubleshooter: boolean;
 };
+
+export const enum TroubleshooterCase {
+  EMPTY_QUERY_VALUE = "empty-query-value",
+  IS_A_ROUTER = "is-a-router",
+  NO_LOGIC_FOUND = "no-logic-found",
+  MATCH_RESULTS_READY = "match-results-ready",
+  MATCH_RESULTS_READY_WITH_FALLBACK = "match-results-ready-with-fallback",
+  NO_FALLBACK_LOGIC_FOUND = "no-fallback-logic-found",
+  NO_ROUTE_FOUND = "no-route-found",
+  MATCHES_ALL_MEMBERS = "matches-all-members",
+}
+
 /**
  * Performance wrapper for async functions
  */
@@ -116,17 +132,6 @@ function getJsonLogic({
   }
 
   return logic;
-}
-
-export const enum TroubleshooterCase {
-  EMPTY_QUERY_VALUE = "empty-query-value",
-  IS_A_ROUTER = "is-a-router",
-  NO_LOGIC_FOUND = "no-logic-found",
-  MATCH_RESULTS_READY = "match-results-ready",
-  MATCH_RESULTS_READY_WITH_FALLBACK = "match-results-ready-with-fallback",
-  NO_FALLBACK_LOGIC_FOUND = "no-fallback-logic-found",
-  NO_ROUTE_FOUND = "no-route-found",
-  MATCHES_ALL_MEMBERS = "matches-all-members",
 }
 
 function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
@@ -338,8 +343,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     routeId: string;
     teamId: number;
     isPreview?: boolean;
-  },
-  config: {
+  },  
+  options: {
     enablePerf?: boolean;
     concurrency?: number;
     enableTroubleshooter?: boolean;
@@ -347,12 +352,13 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 ) {
   const route = form.routes?.find((route) => route.id === routeId);
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false } = config;
+  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false } = options;
 
+  const checkedFallback = false;
   if (!route) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      checkedFallback: false,
+      checkedFallback,
       timeTaken: null,
       ...buildTroubleshooterData({
         type: TroubleshooterCase.NO_ROUTE_FOUND,
@@ -364,7 +370,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   if (isRouter(route)) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      checkedFallback: false,
+      checkedFallback,
       timeTaken: null,
       ...buildTroubleshooterData({
         type: TroubleshooterCase.IS_A_ROUTER,
@@ -377,14 +383,16 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     async () => await getAttributesForTeam({ teamId: teamId })
   );
 
-  const attributeRunningOptions = {
+  const runAttributeLogicOptions = {
     concurrency,
     enablePerf,
     isPreview,
     enableTroubleshooter,
   };
 
-  const attributeRunningData = {
+  const runAttributeLogicData = {
+    // Change it as per the main/fallback query
+    attributesQueryValue: null,
     attributesForTeam,
     form,
     teamId,
@@ -397,16 +405,18 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     troubleshooter,
   } = await runMainAttributeLogic(
     {
+      ...runAttributeLogicData,
       attributesQueryValue: route.attributesQueryValue,
-      ...attributeRunningData,
     },
-    attributeRunningOptions
+    runAttributeLogicOptions
   );
 
+  // It being null means that no logic was found and thus all members match. In such case, we don't fallback intentionally.
+  // This is the case when user added no rules so, he expects to match all members
   if (!teamMembersMatchingMainAttributeLogic) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      checkedFallback: false,
+      checkedFallback,
       timeTaken: {
         ...teamMembersMatchingMainAttributeLogicTimeTaken,
         getAttributesForTeamTimeTaken,
@@ -420,17 +430,19 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     };
   }
 
-  if (!teamMembersMatchingMainAttributeLogic.length) {
+  const noMatchingMembersFound = !teamMembersMatchingMainAttributeLogic.length;
+
+  if (noMatchingMembersFound) {
     const {
       teamMembersMatchingFallbackLogic,
       timeTaken: teamMembersMatchingFallbackLogicTimeTaken,
       troubleshooter,
     } = await runFallbackAttributeLogic(
       {
+        ...runAttributeLogicData,
         attributesQueryValue: route.fallbackAttributesQueryValue,
-        ...attributeRunningData,
       },
-      attributeRunningOptions
+      runAttributeLogicOptions
     );
 
     return {
@@ -451,7 +463,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
 
   return {
     teamMembersMatchingAttributeLogic: teamMembersMatchingMainAttributeLogic,
-    checkedFallback: false,
+    checkedFallback,
     timeTaken: {
       ...teamMembersMatchingMainAttributeLogicTimeTaken,
       getAttributesForTeamTimeTaken,

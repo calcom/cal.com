@@ -9,7 +9,6 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import type { getTeamMembersWithAttributeOptionValuePerAttribute } from "../lib/getAttributes";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 
@@ -41,10 +40,6 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     value: FormResponse[keyof FormResponse]["value"];
   }
 >;
-
-type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
-  ReturnType<typeof getTeamMembersWithAttributeOptionValuePerAttribute>
->[number];
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
