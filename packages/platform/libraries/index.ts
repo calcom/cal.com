@@ -88,8 +88,8 @@ export type { AppsStatus } from "@calcom/types/Calendar";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 
-export { cityTimezonesHandler } from "@calcom/lib/cityTimezonesHandler";
-export type { CityTimezones } from "@calcom/lib/cityTimezonesHandler";
+export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
+export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
@@ -126,7 +126,8 @@ export {
   transformEventTypeColorsInternalToApi,
   transformSeatsInternalToApi,
   // note(Lauris): schemas
-  TransformedLocationsSchema,
+  InternalLocationsSchema,
+  InternalLocationSchema,
   BookingFieldsSchema,
   // note(Lauris): constants
   systemBeforeFieldName,
@@ -140,6 +141,7 @@ export type {
   CustomField,
   NameSystemField,
   EmailSystemField,
+  InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
