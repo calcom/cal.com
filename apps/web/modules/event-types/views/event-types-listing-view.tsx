@@ -276,6 +276,7 @@ export const InfiniteEventTypeList = ({
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
         limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
       });
 
@@ -294,7 +295,11 @@ export const InfiniteEventTypeList = ({
     onError: async (err, _, context) => {
       if (context?.previousValue) {
         utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
           context.previousValue
         );
       }
@@ -327,12 +332,17 @@ export const InfiniteEventTypeList = ({
     await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
     const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
       limit: LIMIT,
+      searchQuery: debouncedSearchTerm,
       group: { teamId: group?.teamId, parentId: group?.parentId },
     });
 
     if (previousValue) {
       utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-        { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+        {
+          limit: LIMIT,
+          searchQuery: debouncedSearchTerm,
+          group: { teamId: group?.teamId, parentId: group?.parentId },
+        },
         (data) => {
           return {
             pageParams: data?.pageParams ?? [],
@@ -378,12 +388,17 @@ export const InfiniteEventTypeList = ({
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
         limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
       });
 
       if (previousValue) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
           (data) => {
             if (!data) {
               return {
@@ -407,7 +422,11 @@ export const InfiniteEventTypeList = ({
     onError: (err, _, context) => {
       if (context?.previousValue) {
         utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
           context.previousValue
         );
       }
