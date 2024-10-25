@@ -41,12 +41,14 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
-const getUniqueBookings = <T extends { id: number }>(arr: T[]) => {
+const getUniqueBookings = (arr: (number | null)[]) => {
   const unique = new Set<number>();
-  arr.forEach((booking) => {
-    unique.add(booking.id);
+  arr.forEach((id) => {
+    if (id !== null) {
+      unique.add(id);
+    }
   });
-  return Array.from(unique.values());
+  return Array.from(unique);
 };
 
 export async function getBookings({
@@ -280,78 +282,58 @@ export async function getBookings({
     },
   };
 
-  const userBookingsFilter: Prisma.BookingWhereInput = {
-    userId: user.id,
-  };
-  const userAttendingBookingsFilter: Prisma.BookingWhereInput = {
-    attendees: {
-      some: {
-        email: user.email,
-      },
-    },
-  };
-  // all (collective + round-robin) team bookings should be visible to team-owner and team-admins
-  const teamBookingsFilter: Prisma.BookingWhereInput = {
-    eventType: {
-      team: {
-        members: {
-          some: {
-            userId: user.id,
-            role: {
-              in: ["ADMIN", "OWNER"],
-            },
-          },
-        },
-      },
-    },
-  };
-  // all (collective + round-robin) team bookings should be visible to org-owner and org-admins
-  const organizationBookingsFilter: Prisma.BookingWhereInput = {
-    eventType: {
-      team: {
-        parent: {
-          members: {
-            some: {
-              userId: user.id,
-              role: {
-                in: ["ADMIN", "OWNER"],
-              },
-            },
-          },
-        },
-      },
-    },
-  };
+  // Retrieve bookings where the user is an attendee
+  const userAttendingBookings = await prisma.attendee.findMany({
+    where: { email: user.email },
+    select: { bookingId: true },
+  });
+  const userAttendingBookingIds = userAttendingBookings.map((item) => item.bookingId);
 
-  // all managed team bookings should be visible to team-owner and team-admins
-  const teamManagedBookingsFilter: Prisma.BookingWhereInput = {
-    eventType: {
-      parent: {
-        team: {
-          members: {
-            some: {
-              userId: user.id,
-              role: {
-                in: ["ADMIN", "OWNER"],
+  // Retrieve team bookings for team-admins and team-owners
+  const teamBookings = await prisma.membership.findMany({
+    where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, accepted: true },
+    select: {
+      team: {
+        select: {
+          eventTypes: {
+            select: {
+              children: {
+                select: { bookings: { select: { id: true } } },
               },
+              bookings: { select: { id: true } },
             },
           },
         },
       },
     },
-  };
+  });
 
-  // all managed team bookings should be visible to org-owner and org-admins
-  const organizationManagedBookingsFilter: Prisma.BookingWhereInput = {
-    eventType: {
-      parent: {
-        team: {
-          parent: {
-            members: {
-              some: {
-                userId: user.id,
-                role: {
-                  in: ["ADMIN", "OWNER"],
+  const allTeamBookingIds = teamBookings
+    .flatMap((membership) =>
+      membership.team.eventTypes.flatMap((eventType) => {
+        const directBookingIds = eventType.bookings.map((booking) => booking.id);
+        const childBookingIds = eventType.children.flatMap((child) =>
+          child.bookings.map((booking) => booking.id)
+        );
+
+        return [...directBookingIds, ...childBookingIds];
+      })
+    )
+    .filter((id): id is number => id !== null);
+  console.log("Team Booking IDs:", allTeamBookingIds);
+
+  // Retrieve organization bookings for org-admins and org-owners
+  const organizationBookings = await prisma.membership.findMany({
+    where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
+    select: {
+      team: {
+        select: {
+          children: {
+            select: {
+              eventTypes: {
+                select: {
+                  children: { select: { bookings: { select: { id: true } } } },
+                  bookings: { select: { id: true } },
                 },
               },
             },
@@ -359,36 +341,39 @@ export async function getBookings({
         },
       },
     },
-  };
+  });
 
-  // show personal booking to org-owner and org-admins
-  const organizationPersonalBookingsFilter: Prisma.BookingWhereInput = {
-    AND: [
-      {
-        user: {
-          teams: {
-            some: {
-              team: {
-                parentId: { gt: 0 },
-              },
-            },
-          },
-        },
-      },
-      {
-        OR: [
-          {
-            user: {
-              teams: {
-                some: {
-                  team: {
-                    parent: {
-                      members: {
-                        some: {
-                          userId: user.id,
-                          role: {
-                            in: ["ADMIN", "OWNER"],
-                          },
+  const allOrganizationBookingIds = organizationBookings
+    .flatMap((membership) =>
+      membership.team.children.flatMap((childTeam) =>
+        childTeam.eventTypes.flatMap((eventType) => {
+          const directBookingIds = eventType.bookings.map((booking) => booking.id);
+          const childBookingIds = eventType.children.flatMap((child) =>
+            child.bookings.map((booking) => booking.id)
+          );
+
+          return [...directBookingIds, ...childBookingIds];
+        })
+      )
+    )
+    .filter((id): id is number => id !== null);
+  console.log("Organization Booking IDs:", allOrganizationBookingIds);
+
+  // Retrieve personal bookings for org-admins and org-owners
+  const organizationPersonalBookings = await prisma.membership.findMany({
+    where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
+    select: {
+      team: {
+        select: {
+          children: {
+            select: {
+              members: {
+                select: {
+                  user: {
+                    select: {
+                      eventTypes: {
+                        select: {
+                          bookings: { select: { id: true } },
                         },
                       },
                     },
@@ -397,76 +382,37 @@ export async function getBookings({
               },
             },
           },
-          {
-            user: {
-              teams: {
-                some: {
-                  team: {
-                    members: {
-                      some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-      // filter out all (collective + round-robin) event bookings
-      {
-        eventType: {
-          teamId: null,
-        },
-      },
-      // filter out all (managed) event bookings
-      {
-        eventType: {
-          parentId: null,
-        },
-      },
-    ],
-  };
-
-  const seatsReferenceFilter: Prisma.BookingWhereInput = {
-    seatsReferences: {
-      some: {
-        attendee: {
-          email: user.email,
         },
       },
     },
-  };
+  });
+
+  const organizationPersonalBookingIds = organizationPersonalBookings
+    .flatMap((org) =>
+      org.team.children.flatMap((child) =>
+        child.members.flatMap((member) =>
+          member.user.eventTypes.flatMap((eventType) => eventType.bookings.map((booking) => booking.id))
+        )
+      )
+    )
+    .filter((id): id is number => id !== null);
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
-    bookingsQueryUserId,
+    userAndAttendingBookings,
     recurringInfoBasic,
     recurringInfoExtended,
     // We need all promises to be successful, so we are not using Promise.allSettled
   ] = await Promise.all([
     prisma.booking.findMany({
       where: {
-        OR: [
-          userBookingsFilter,
-          userAttendingBookingsFilter,
-          teamBookingsFilter,
-          organizationBookingsFilter,
-          teamManagedBookingsFilter,
-          organizationManagedBookingsFilter,
-          organizationPersonalBookingsFilter,
-          seatsReferenceFilter,
-        ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
+        userId: user.id,
       },
-      orderBy,
+      // orderBy,
       select: { id: true },
-      take: take + 1,
-      skip,
+      // take: take + 1,
+      // skip,
     }),
     prisma.booking.groupBy({
       by: ["recurringEventId"],
@@ -496,6 +442,8 @@ export async function getBookings({
       },
     }),
   ]);
+  // const bookingIdssssssss = bookingsQueryUserId.map((item) => item.id);
+  const userAndAttendingBookingIds = userAndAttendingBookings.map((item) => item.id);
 
   const recurringInfo = recurringInfoBasic.map(
     (
@@ -528,10 +476,14 @@ export async function getBookings({
     }
   );
 
-  const plainBookings = getUniqueBookings(
-    // It's going to mess up the orderBy as we are concatenating independent queries results
-    bookingsQueryUserId
-  );
+  // It's going to mess up the orderBy as we are concatenating independent queries results
+  const uniqueBookingIds = getUniqueBookings([
+    ...organizationPersonalBookingIds,
+    ...allOrganizationBookingIds,
+    ...allTeamBookingIds,
+    ...userAttendingBookingIds,
+    ...userAndAttendingBookingIds,
+  ]);
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
@@ -541,12 +493,15 @@ export async function getBookings({
       await prisma.booking.findMany({
         where: {
           id: {
-            in: plainBookings.map((booking) => booking.id),
+            in: uniqueBookingIds,
           },
+          AND: [passedBookingsStatusFilter, ...filtersCombined],
         },
         select: bookingSelect,
         // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
         orderBy,
+        take,
+        skip,
       })
     ).map(async (booking) => {
       // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
