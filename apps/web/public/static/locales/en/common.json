@@ -1710,7 +1710,7 @@
   "invalid_credential_action": "Reinstall app",
   "reschedule_reason": "Reschedule reason",
   "choose_common_schedule_team_event": "Choose a common schedule",
-  "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule or their choosen schedule.",
+  "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule or their chosen schedule.",
   "reason": "Reason",
   "sender_id": "Sender ID",
   "sender_id_error_message": "Only letters, numbers and spaces allowed (max. 11 characters)",
@@ -2701,4 +2701,3 @@
   "yes_reassign": "Yes, reassign",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
-
