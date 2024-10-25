@@ -76,9 +76,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const tokenInfo = key.access_token ? await oAuth2Client.getTokenInfo(key.access_token) : null;
     const userEmail = tokenInfo?.email ?? null;
 
-    let primaryCal = cals.data.items?.find((cal) => {
-      cal.primary || cal.accessRole === "owner" || cal.id === userEmail;
-    });
+    let primaryCal = cals.data.items?.find(
+      (cal) => cal.primary || cal.accessRole === "owner" || cal.id === userEmail
+    );
     if (!primaryCal?.id) {
       // If the primary calendar is not set, set it to the first calendar
       primaryCal = cals.data.items?.[0];
