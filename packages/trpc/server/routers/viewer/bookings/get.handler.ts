@@ -282,162 +282,17 @@ export async function getBookings({
     },
   };
 
-  // Retrieve bookings where the user is an attendee
-  const userEmailAttendingBookings = await prisma.attendee.findMany({
-    where: { email: user.email },
-    select: { bookingId: true },
-  });
-  const userEmailAttendingBookingIds = userEmailAttendingBookings.map((item) => item.bookingId);
-
-  // Retrieve team bookings for team-admins and team-owners
-  const teamBookings = await prisma.membership.findMany({
-    where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, accepted: true },
-    select: {
-      team: {
-        select: {
-          eventTypes: {
-            select: {
-              children: {
-                select: { bookings: { select: { id: true } } },
-              },
-              bookings: { select: { id: true } },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const teamBookingIds = teamBookings
-    .flatMap((membership) =>
-      membership.team.eventTypes.flatMap((eventType) => {
-        const directBookingIds = eventType.bookings.map((booking) => booking.id);
-        const childBookingIds = eventType.children.flatMap((child) =>
-          child.bookings.map((booking) => booking.id)
-        );
-
-        return [...directBookingIds, ...childBookingIds];
-      })
-    )
-    .filter((id): id is number => id !== null);
-
-  // Retrieve all sub-teams team bookings for org-admins and org-owners
-  const organizationTeamBookings = await prisma.membership.findMany({
-    where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
-    select: {
-      team: {
-        select: {
-          children: {
-            select: {
-              eventTypes: {
-                select: {
-                  children: { select: { bookings: { select: { id: true } } } },
-                  bookings: { select: { id: true } },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const organizationTeamBookingIds = organizationTeamBookings
-    .flatMap((membership) =>
-      membership.team.children.flatMap((childTeam) =>
-        childTeam.eventTypes.flatMap((eventType) => {
-          const directBookingIds = eventType.bookings.map((booking) => booking.id);
-          const childBookingIds = eventType.children.flatMap((child) =>
-            child.bookings.map((booking) => booking.id)
-          );
-
-          return [...directBookingIds, ...childBookingIds];
-        })
-      )
-    )
-    .filter((id): id is number => id !== null);
-
-  // Retrieve all team users personal bookings for org-admins and org-owners
-  const organizationPersonalBookings = await prisma.membership.findMany({
-    where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
-    select: {
-      team: {
-        select: {
-          children: {
-            select: {
-              members: {
-                select: {
-                  user: {
-                    select: {
-                      eventTypes: {
-                        select: {
-                          bookings: { select: { id: true } },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const organizationPersonalBookingIds = organizationPersonalBookings
-    .flatMap((org) =>
-      org.team.children.flatMap((child) =>
-        child.members.flatMap((member) =>
-          member.user.eventTypes.flatMap((eventType) => eventType.bookings.map((booking) => booking.id))
-        )
-      )
-    )
-    .filter((id): id is number => id !== null);
-
-  // Retrieve all team users personal bookings for org-team-admins and org-team-owners
-  const organizationTeamPersonalBookings = await prisma.membership.findMany({
-    where: {
-      userId: user.id,
-      role: { in: ["ADMIN", "OWNER"] },
-      team: {
-        parentId: { gte: 0 },
-      },
-    },
-    select: {
-      team: {
-        select: {
-          members: {
-            select: {
-              user: {
-                select: {
-                  eventTypes: {
-                    select: {
-                      bookings: { select: { id: true } },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-  const organizationTeamPersonalBookingIds = organizationTeamPersonalBookings
-    .flatMap((membership) =>
-      membership.team.members.flatMap((member) =>
-        member.user.eventTypes.flatMap((eventType) => eventType.bookings.map((booking) => booking.id))
-      )
-    )
-    .filter((id): id is number => id !== null);
-
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
     userAttendingBookings,
     recurringInfoBasic,
     recurringInfoExtended,
+    userEmailAttendingBookings,
+    teamBookings,
+    organizationTeamBookings,
+    organizationPersonalBookings,
+    organizationTeamPersonalBookings,
     // We need all promises to be successful, so we are not using Promise.allSettled
   ] = await Promise.all([
     prisma.booking.findMany({
@@ -473,8 +328,158 @@ export async function getBookings({
         userId: user.id,
       },
     }),
+
+    // Retrieve bookings where the user is an attendee
+    prisma.attendee.findMany({
+      where: { email: user.email },
+      select: { bookingId: true },
+    }),
+    // Retrieve team bookings for team-admins and team-owners
+    prisma.membership.findMany({
+      where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, accepted: true },
+      select: {
+        team: {
+          select: {
+            eventTypes: {
+              select: {
+                children: {
+                  select: { bookings: { select: { id: true } } },
+                },
+                bookings: { select: { id: true } },
+              },
+            },
+          },
+        },
+      },
+    }),
+
+    // Retrieve all sub-teams team bookings for org-admins and org-owners
+    prisma.membership.findMany({
+      where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
+      select: {
+        team: {
+          select: {
+            children: {
+              select: {
+                eventTypes: {
+                  select: {
+                    children: { select: { bookings: { select: { id: true } } } },
+                    bookings: { select: { id: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+
+    // Retrieve all team users personal bookings for org-admins and org-owners
+    prisma.membership.findMany({
+      where: { userId: user.id, role: { in: ["ADMIN", "OWNER"] }, team: { isOrganization: true } },
+      select: {
+        team: {
+          select: {
+            children: {
+              select: {
+                members: {
+                  select: {
+                    user: {
+                      select: {
+                        eventTypes: {
+                          select: {
+                            bookings: { select: { id: true } },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+
+    // Retrieve all team users personal bookings for org-team-admins and org-team-owners
+    prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: { in: ["ADMIN", "OWNER"] },
+        team: {
+          parentId: { gte: 0 },
+        },
+      },
+      select: {
+        team: {
+          select: {
+            members: {
+              select: {
+                user: {
+                  select: {
+                    eventTypes: {
+                      select: {
+                        bookings: { select: { id: true } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
   ]);
+
   const userAttendingBookingIds = userAttendingBookings.map((item) => item.id);
+  const userEmailAttendingBookingIds = userEmailAttendingBookings.map((item) => item.bookingId);
+  const teamBookingIds = teamBookings
+    .flatMap((membership) =>
+      membership.team.eventTypes.flatMap((eventType) => {
+        const directBookingIds = eventType.bookings.map((booking) => booking.id);
+        const childBookingIds = eventType.children.flatMap((child) =>
+          child.bookings.map((booking) => booking.id)
+        );
+
+        return [...directBookingIds, ...childBookingIds];
+      })
+    )
+    .filter((id): id is number => id !== null);
+
+  const organizationTeamBookingIds = organizationTeamBookings
+    .flatMap((membership) =>
+      membership.team.children.flatMap((childTeam) =>
+        childTeam.eventTypes.flatMap((eventType) => {
+          const directBookingIds = eventType.bookings.map((booking) => booking.id);
+          const childBookingIds = eventType.children.flatMap((child) =>
+            child.bookings.map((booking) => booking.id)
+          );
+
+          return [...directBookingIds, ...childBookingIds];
+        })
+      )
+    )
+    .filter((id): id is number => id !== null);
+
+  const organizationPersonalBookingIds = organizationPersonalBookings
+    .flatMap((org) =>
+      org.team.children.flatMap((child) =>
+        child.members.flatMap((member) =>
+          member.user.eventTypes.flatMap((eventType) => eventType.bookings.map((booking) => booking.id))
+        )
+      )
+    )
+    .filter((id): id is number => id !== null);
+
+  const organizationTeamPersonalBookingIds = organizationTeamPersonalBookings
+    .flatMap((membership) =>
+      membership.team.members.flatMap((member) =>
+        member.user.eventTypes.flatMap((eventType) => eventType.bookings.map((booking) => booking.id))
+      )
+    )
+    .filter((id): id is number => id !== null);
 
   const recurringInfo = recurringInfoBasic.map(
     (
