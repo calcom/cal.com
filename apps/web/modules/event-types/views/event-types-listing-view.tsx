@@ -143,7 +143,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           bookerUrl={activeEventTypeGroup.bookerUrl}
           readOnly={activeEventTypeGroup.metadata.readOnly}
           isPending={query.isPending}
-          searchTerm={debouncedSearchTerm}
+          debouncedSearchTerm={debouncedSearchTerm}
         />
       )}
       <div className="text-default p-4 text-center" ref={buttonInView.ref}>
@@ -251,7 +251,7 @@ export const InfiniteEventTypeList = ({
   bookerUrl,
   lockedByOrg,
   isPending,
-  searchTerm,
+  debouncedSearchTerm,
 }: InfiniteEventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
