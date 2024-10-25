@@ -1,11 +1,14 @@
 import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
+import type z from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
+
+import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
 
 export const config = {
   api: {
@@ -41,6 +44,7 @@ function generateSignatureArray<T>(secret: string, vals: T) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    debugger;
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
@@ -79,12 +83,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!key) {
       throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
     }
-    const { salt_key } = key as { salt_key: string };
-    const signed = generateSignatureArray(salt_key, excluded as ExcludedWebhookReturn);
+
+    const { isSandbox, prod, sandbox } = key as z.infer<typeof hitpayCredentialKeysSchema>;
+    const keyObj = isSandbox ? sandbox : prod;
+    if (!keyObj) {
+      throw new HttpCode({
+        statusCode: 204,
+        message: `${isSandbox ? "Sandbox" : "Production"} Credentials not found`,
+      });
+    }
+
+    const { saltKey } = keyObj;
+    const signed = generateSignatureArray(saltKey, excluded as ExcludedWebhookReturn);
     if (signed !== obj.hmac) {
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
+    if (excluded.status !== "completed") {
+      throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
+    }
     return await handlePaymentSuccess(payment.id, payment.bookingId);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);

@@ -112,7 +112,7 @@ export class PaymentService implements IAbstractPaymentService {
       });
 
       if (!paymentData) {
-        throw new Error();
+        throw new Error("Failed to store Payment data");
       }
       return paymentData;
     } catch (error) {
