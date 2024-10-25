@@ -3,9 +3,9 @@ import * as React from "react";
 
 import { classNames } from "@calcom/lib";
 
-const Popover = PopoverPrimitive.Root;
+export const Popover = PopoverPrimitive.Root;
 
-const PopoverTrigger = PopoverPrimitive.Trigger;
+export const PopoverTrigger = PopoverPrimitive.Trigger;
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
@@ -24,9 +24,7 @@ const PopoverContent = React.forwardRef<
     />
   </PopoverPrimitive.Portal>
 ));
+
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverTrigger, PopoverContent };
-
-export { AnimatedPopover } from "./AnimatedPopover";
-export { default as MeetingTimeInTimezones } from "./MeetingTimeInTimezones";
+export { PopoverContent };

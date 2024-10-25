@@ -48,20 +48,6 @@ export {
   ColorPicker,
   FormStep,
   FilterSearchField,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuRadioGroup,
-  ButtonOrLink,
-  DropdownMenuGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTriggerItem,
   Steps,
   WizardForm,
   SettingsToggle,
@@ -70,6 +56,7 @@ export {
   NumberInput,
   InputError,
 } from "./components/form";
+
 export type {
   ITimezone,
   ITimezoneOption,
@@ -90,17 +77,6 @@ export {
 export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
-export { Table } from "./components/table/Table";
-export {
-  Table as TableNew,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./components/table/TableNew";
 export { TableActions, DropdownActions } from "./components/table/TableActions";
 export type { ActionType } from "./components/table/TableActions";
 export { ErrorBoundary } from "./components/errorBoundary";
@@ -173,20 +149,11 @@ export type { ButtonColor } from "./components/button/Button";
 export { CreateButton, CreateButtonWithTeamsList } from "./components/createButton";
 
 export { useCalcomTheme } from "./styles/useCalcomTheme";
-export { ScrollableArea } from "./components/scrollable/ScrollableArea";
+export { ScrollableArea } from "./components/scrollable";
 export { WizardLayout } from "./layouts/WizardLayout";
-export { DataTable } from "./components/data-table";
-export {
-  Sheet,
-  SheetBody,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./components/sheet/sheet";
+export * from "./components/data-table";
+export * from "./components/sheet";
+export * from "./components/table";
 export {
   Command,
   CommandDialog,
@@ -207,8 +174,3 @@ export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
 export { IconSprites } from "./components/icon/IconSprites";
-
-export { DataTableSelectionBar } from "./components/data-table/DataTableSelectionBar";
-export { DataTableToolbar } from "./components/data-table/DataTableToolbar";
-export { DataTableFilters } from "./components/data-table/filters";
-export { DataTablePagination } from "./components/data-table/DataTablePagination";
