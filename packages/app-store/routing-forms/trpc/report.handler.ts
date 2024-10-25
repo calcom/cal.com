@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
+import type { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -31,20 +32,19 @@ const makeFormatDate = (locale: string, timeZone: string) => {
   return formatDate;
 };
 
-async function getRows({ ctx: { prisma, user }, input }: ReportHandlerOptions) {
-  const formatDate = makeFormatDate(user.locale, user.timeZone);
+const getRows = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
   // Can be any prisma `where` clause
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const prismaWhere: Record<string, any> = input.jsonLogicQuery
     ? jsonLogicToPrisma(input.jsonLogicQuery)
     : {};
-  const skip = input.cursor ?? 0;
-  const take = 50;
   logger.debug(
     `Built Prisma where ${JSON.stringify(prismaWhere)} from jsonLogicQuery ${JSON.stringify(
       input.jsonLogicQuery
     )}`
   );
+  const skip = input.cursor ?? 0;
+  const take = 50;
   const rows = await prisma.app_RoutingForms_FormResponse.findMany({
     where: {
       formId: input.formId,
@@ -63,26 +63,14 @@ async function getRows({ ctx: { prisma, user }, input }: ReportHandlerOptions) {
     take,
     skip,
   });
-  return {
-    skip,
-    take,
-    rows: rows.map((r) => ({
-      ...r,
-      routedToBooking: r.routedToBooking
-        ? { ...r.routedToBooking, createdAt: formatDate(r.routedToBooking.createdAt) }
-        : null,
-    })),
-  };
-}
-
-type Rows = Awaited<ReturnType<typeof getRows>>["rows"];
+  return { skip, take, rows };
+};
 
 export const reportHandler = async (options: ReportHandlerOptions) => {
   const {
     ctx: { prisma },
     input,
   } = options;
-
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: input.formId,
@@ -97,22 +85,51 @@ export const reportHandler = async (options: ReportHandlerOptions) => {
   }
   // TODO: Second argument is required to return deleted operators.
   const serializedForm = await getSerializableForm({ form, withDeletedFields: true });
-
-  const { skip, take, rows } = await getRows(options);
+  const { rows, skip, take } = await getRows(options);
 
   const fields = serializedForm?.fields || [];
   const { responses, headers } = buildResponsesForReporting({
-    responsesFromDb: rows,
+    responsesFromDb: rows.map((r) => r.response),
     fields,
   });
 
   const areThereNoResultsOrLessThanAskedFor = !rows.length || rows.length < take;
-  return {
+  return presenter({
+    rows,
+    options,
     headers,
     responses,
     nextCursor: areThereNoResultsOrLessThanAskedFor ? null : skip + rows.length,
-  };
+  });
 };
+
+/**
+ * This is a temporary solution to make the report work. It should be incorporated into the report data itself.
+ * Right now we cannot filter by Routed To and Booked At because they are not part of the response data.
+ */
+function presenter(args: {
+  rows: Awaited<ReturnType<typeof getRows>>["rows"];
+  options: ReportHandlerOptions;
+  headers: string[];
+  responses: string[][];
+  nextCursor: number | null;
+}) {
+  const { headers, responses, nextCursor, options, rows } = args;
+  const { ctx } = options;
+  const formatDate = makeFormatDate(ctx.user.locale, ctx.user.timeZone);
+  return {
+    nextCursor,
+    headers: [...headers, "Routed To", "Booked At"],
+    responses: responses.map((r, i) => {
+      const currentRow = rows[i];
+      return [
+        ...r,
+        currentRow.routedToBooking?.user?.email || "",
+        currentRow.routedToBooking?.createdAt ? formatDate(currentRow.routedToBooking.createdAt) : "",
+      ];
+    }),
+  };
+}
 
 export default reportHandler;
 
@@ -120,12 +137,10 @@ export function buildResponsesForReporting({
   responsesFromDb,
   fields,
 }: {
-  responsesFromDb: Rows;
+  responsesFromDb: App_RoutingForms_FormResponse["response"][];
   fields: Pick<z.infer<typeof zodFieldView>, "id" | "options" | "label" | "deleted">[];
 }) {
   const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
-  headers.push("Routed To");
-  headers.push("Booked At");
   const responses: string[][] = [];
   responsesFromDb.forEach((r) => {
     const rowResponses: string[] = [];
@@ -134,7 +149,7 @@ export function buildResponsesForReporting({
       if (!r) {
         return;
       }
-      const response = r.response as FormResponse;
+      const response = r as FormResponse;
       const value = response[field.id]?.value || "";
       if (field.options) {
         const optionIds = ensureStringOrStringArray(value);
@@ -146,8 +161,6 @@ export function buildResponsesForReporting({
         rowResponses.push(transformedValue);
       }
     });
-    rowResponses.push(r.routedToBooking ? r.routedToBooking?.user?.email || "" : "");
-    rowResponses.push(r.routedToBooking?.createdAt || "");
   });
 
   return { responses, headers };
