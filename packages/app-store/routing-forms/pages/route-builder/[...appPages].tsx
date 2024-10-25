@@ -60,6 +60,8 @@ type LocalRouteWithRaqbStates = LocalRoute & {
   fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
 };
 
+type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
+
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
 type Route = LocalRouteWithRaqbStates | GlobalRoute;
@@ -164,7 +166,7 @@ const buildEventsData = ({
   form,
   route,
 }: {
-  eventTypesByGroup: RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
+  eventTypesByGroup: EventTypesByGroup | undefined;
   form: Form;
   route: Route;
 }) => {
@@ -239,7 +241,7 @@ const Route = ({
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
-  eventTypesByGroup: RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
+  eventTypesByGroup: EventTypesByGroup;
 }) => {
   const { t } = useLocale();
   const isTeamForm = form.teamId !== null;
@@ -431,7 +433,7 @@ const Route = ({
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
         <span className="text-emphasis flex w-full items-center text-sm">
-          Fallback: If no Team Members match, use those that match the following criteria(Matches all assigned team members of the event by default)
+          {t("fallback_attribute_logic_description")}
         </span>
         <div className="mt-2">
           {route.fallbackAttributesQueryBuilderState && attributesQueryBuilderConfig && (
@@ -661,7 +663,7 @@ const Routes = ({
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
   attributes: Attribute[] | null;
-  eventTypesByGroup: RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
+  eventTypesByGroup: EventTypesByGroup;
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
