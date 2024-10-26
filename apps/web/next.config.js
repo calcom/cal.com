@@ -174,13 +174,13 @@ const matcherConfigUserTypeEmbedRoute = {
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
-    // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
     serverActions: true,
     turbo: true,
   },
+  // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
+  serverExternalPackages: ["next-i18next"],
   i18n: {
     ...i18n,
     defaultLocale: "en",
