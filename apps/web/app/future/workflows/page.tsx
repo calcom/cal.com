@@ -13,7 +13,9 @@ export const generateMetadata = async () =>
     (t) => t("workflows_to_automate_notifications")
   );
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async (props: PageProps) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   // FIXME: Refactor me once next-auth endpoint is migrated to App Router
   const session = await getServerSessionForAppDir();
   const user = session?.user;

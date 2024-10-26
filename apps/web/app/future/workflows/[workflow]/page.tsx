@@ -30,7 +30,9 @@ export const generateMetadata = async (props: PageProps) => {
 
 export const generateStaticParams = () => [];
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async (props: PageProps) => {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   // FIXME: Refactor me once next-auth endpoint is migrated to App Router
   const session = await getServerSessionForAppDir();
   const user = session?.user;
