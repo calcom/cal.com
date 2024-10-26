@@ -56,6 +56,7 @@ export const buildBooking = (
     cancelledBy: null,
     rescheduledBy: null,
     cancellationReason: null,
+    reassignReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,

@@ -5,7 +5,6 @@ import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBo
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TGetRoundRobinHostsToReassignInputSchema } from "./getRoundRobinHostsToReasign.schema";
@@ -18,16 +17,8 @@ type GetRoundRobinHostsToReassignOptions = {
   input: TGetRoundRobinHostsToReassignInputSchema;
 };
 
-async function isTeamAdmin(prisma: PrismaClient, userId: number, teamId: number) {
-  const membership = await prisma.membership.findFirst({
-    where: { userId, teamId, role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } },
-  });
-  return membership?.role ?? false;
-}
-
 export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobinHostsToReassignOptions) => {
   const { prisma } = ctx;
-  const { isOrgAdmin } = ctx.user.organization;
 
   const gettingRoundRobinHostsToReassignLogger = logger.getSubLogger({
     prefix: ["gettingRoundRobinHostsToReassign", `${input.bookingId}`],
@@ -100,18 +91,14 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
 
   const availableUserIds = new Set(availableUsers.map((u) => u.id));
 
-  const canViewReassignBusyUsers = isOrgAdmin || (await isTeamAdmin(prisma, ctx.user.id, eventType.teamId));
-
   const roundRobinHostsToReassign = availableEventTypeUsers.reduce((acc, host) => {
     const status = availableUserIds.has(host.id) ? "available" : "unavailable";
-    if (canViewReassignBusyUsers || status === "available") {
-      acc.push({
-        id: host.id,
-        name: host.name,
-        email: host.email,
-        status,
-      });
-    }
+    acc.push({
+      id: host.id,
+      name: host.name,
+      email: host.email,
+      status,
+    });
     return acc;
   }, [] as { id: number; name: string | null; email: string; status: string }[]);
 

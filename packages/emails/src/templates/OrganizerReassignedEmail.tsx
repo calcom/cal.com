@@ -9,7 +9,7 @@ export const OrganizerReassignedEmail = (props: React.ComponentProps<typeof Orga
       subject="event_reassigned_subject"
       subtitle={<>{t("event_reassigned_subtitle")}</>}
       callToAction={null}
-      reassignedTo={props.reassignedTo}
+      reassigned={props.reassigned}
       {...props}
     />
   );
