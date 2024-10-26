@@ -1,11 +1,11 @@
 import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
@@ -37,7 +37,7 @@ export class StripeService {
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly membershipRepository: MembershipsRepository
   ) {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
@@ -126,8 +126,15 @@ export class StripeService {
     return { url: getReturnToValueFromQueryState(state) };
   }
 
-  async checkIfStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
+  async checkIfStripeAccountConnected(
+    userId: number,
+    teamId?: number | null
+  ): Promise<{ status: typeof SUCCESS_STATUS }> {
+    let stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
+
+    if (teamId) {
+      stripeCredentials = await this.credentialRepository.getByTypeAndTeamId("stripe_payment", teamId);
+    }
 
     if (!stripeCredentials) {
       throw new NotFoundException("Credentials for stripe not found.");
@@ -153,12 +160,11 @@ export class StripeService {
   }
 
   async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
-    const userAdminTeams = await this.usersRepository.getUserAdminTeams(userId);
-    const teamsUserHasAdminAccessFor = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
-    const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
+    const teamMembership = await this.membershipRepository.findMembershipByTeamId(teamId, userId);
+    const hasAdminAccessToTeam = teamMembership?.role === "ADMIN" || teamMembership?.role === "OWNER";
 
     if (!hasAdminAccessToTeam) {
-      throw new BadRequestException("You must be team admin to do this");
+      throw new BadRequestException("You must be team owner or admin to do this");
     }
   }
 }
