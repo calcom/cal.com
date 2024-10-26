@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
@@ -75,7 +76,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         }
         let schema;
         if (field.type === "email") {
-          schema = z.string().email();
+          schema = emailSchema;
         } else if (field.type === "phone") {
           schema = z.any();
         } else {
@@ -137,13 +138,9 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       safeStringify({ teamMembersMatchingAttributeLogicWithResult })
     );
 
-    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult
-      ? teamMembersMatchingAttributeLogicWithResult?.map((member) => member.userId)
+    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+      ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map((member) => member.userId)
       : null;
-    await onFormSubmission(
-      { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as FormResponse
-    );
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     if (!chosenRoute) {
@@ -152,6 +149,13 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         message: "Chosen route not found",
       });
     }
+
+    await onFormSubmission(
+      { ...serializableFormWithFields, userWithEmails },
+      dbFormResponse.response as FormResponse,
+      dbFormResponse.id,
+      "action" in chosenRoute ? chosenRoute.action : undefined
+    );
     return {
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,

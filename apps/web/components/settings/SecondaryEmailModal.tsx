@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dialog,
@@ -37,7 +38,7 @@ const SecondaryEmailModal = ({
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(
       z.object({
-        email: z.string().email(),
+        email: emailSchema,
       })
     ),
   });
@@ -56,6 +57,7 @@ const SecondaryEmailModal = ({
         type="creation"
         data-testid="secondary-email-add-dialog">
         <Form form={formMethods} handleSubmit={handleAddEmail}>
+          <div className="text-subtle mb-4 text-sm">{t("change_email_hint")}</div>
           <TextField
             label={t("email_address")}
             data-testid="secondary-email-input"

@@ -107,7 +107,12 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
 }
 
 type AttributeId = string;
-type AttributeOptionValue = string | string[];
+type AttributeOptionValueWithType = {
+  type: Attribute["type"];
+  value: string | string[];
+};
+
+type UserId = number;
 
 export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
   const attributesToUser = await getAttributeToUserWithMembershipAndAttributesForTeam({ teamId });
@@ -121,19 +126,25 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
     }
 
     const attributes = acc[userId].attributes;
-    const attributeValue = attributes[attribute.id];
+    const attributeValue = attributes[attribute.id]?.value;
     if (attributeValue instanceof Array) {
-      // Push to existing array
+      // Value already exists, so push to it
       attributeValue.push(value);
     } else if (attributeValue) {
-      // Make it an array
-      attributes[attribute.id] = [attributeValue, value];
+      // Value already exists, so push to it and also make it an array before pushing
+      attributes[attribute.id] = {
+        type: attribute.type,
+        value: [attributeValue, value],
+      };
     } else {
-      // Set it as a string
-      attributes[attribute.id] = value;
+      // Set the first value
+      attributes[attribute.id] = {
+        type: attribute.type,
+        value,
+      };
     }
     return acc;
-  }, {} as Record<number, { userId: number; attributes: Record<AttributeId, AttributeOptionValue> }>);
+  }, {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>);
 
   return Object.values(teamMembers);
 }

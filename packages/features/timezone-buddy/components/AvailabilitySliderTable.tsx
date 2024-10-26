@@ -1,4 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
+import { getCoreRowModel, useReactTable, getFilteredRowModel } from "@tanstack/react-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -9,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { Button, ButtonGroup, DataTable, UserAvatar } from "@calcom/ui";
+import { Button, ButtonGroup, DataTable, DataTableToolbar, UserAvatar } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { createTimezoneBuddyStore, TBContext } from "../store";
@@ -57,7 +58,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable(props: { userTimeFormat: number | null }) {
+export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
@@ -80,7 +81,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
     const cols: ColumnDef<SliderUser>[] = [
       {
         id: "member",
-        accessorFn: (data) => data.email,
+        accessorFn: (data) => data.username,
         header: "Member",
         cell: ({ row }) => {
           const { username, email, timeZone, name, avatarUrl, profile } = row.original;
@@ -103,6 +104,9 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
               </div>
             </div>
           );
+        },
+        filterFn: (row, id, value) => {
+          return row.original.username?.toLowerCase().includes(value.toLowerCase()) || false;
         },
       },
       {
@@ -185,6 +189,13 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
 
+  const table = useReactTable({
+    data: flatData,
+    columns: memorisedColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
+
   // This means they are not apart of any teams so we show the upgrade tip
   if (!flatData.length) return <UpgradeTeamTip />;
 
@@ -196,19 +207,20 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
       <>
         <div className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6">
           <DataTable
-            variant="compact"
-            searchKey="member"
+            table={table}
             tableContainerRef={tableContainerRef}
-            columns={memorisedColumns}
             onRowMouseclick={(row) => {
-              setEditSheetOpen(true);
-              setSelectedUser(row.original);
+              if (props.isOrg) {
+                setEditSheetOpen(true);
+                setSelectedUser(row.original);
+              }
             }}
-            data={flatData}
             isPending={isPending}
-            // tableOverlay={<HoverOverview />}
-            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-          />
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+            <DataTableToolbar.Root>
+              <DataTableToolbar.SearchBar table={table} searchKey="member" />
+            </DataTableToolbar.Root>
+          </DataTable>
         </div>
         {selectedUser && editSheetOpen ? (
           <AvailabilityEditSheet

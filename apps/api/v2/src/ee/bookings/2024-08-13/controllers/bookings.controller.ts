@@ -34,7 +34,14 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingOutput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
+import {
+  CancelBookingInput,
+  CancelBookingInputPipe,
+  GetBookingOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  RescheduleBookingInput,
+  RescheduleBookingInputPipe,
+} from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
   CreateBookingInput,
@@ -166,7 +173,8 @@ export class BookingsController_2024_08_13 {
   })
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: RescheduleBookingInput_2024_08_13,
+    @Body(new RescheduleBookingInputPipe())
+    body: RescheduleBookingInput,
     @Req() request: Request
   ): Promise<RescheduleBookingOutput_2024_08_13> {
     const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
@@ -185,7 +193,8 @@ export class BookingsController_2024_08_13 {
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
-    @Body() body: CancelBookingInput_2024_08_13
+    @Body(new CancelBookingInputPipe())
+    body: CancelBookingInput
   ): Promise<CancelBookingOutput_2024_08_13> {
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 

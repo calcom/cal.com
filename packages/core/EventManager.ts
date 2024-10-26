@@ -976,7 +976,7 @@ export default class EventManager {
       let success = true;
       const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
         success = false;
-        log.warn(`Error creating crm event for ${credential.type}`, error);
+        log.warn(`Error creating crm event for ${credential.type}`, JSON.stringify(error));
       });
 
       if (createdEvent) {
