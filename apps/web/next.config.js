@@ -175,9 +175,6 @@ const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     optimizePackageImports: ["@calcom/ui"],
-    instrumentationHook: true,
-    serverActions: true,
-    turbo: true,
   },
   // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
   serverExternalPackages: ["next-i18next"],
