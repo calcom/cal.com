@@ -13,8 +13,11 @@ import { useCheck } from "../../hooks/stripe/useCheck";
 import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeAppIntegration";
 
 const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
-  const { allowConnect, checked } = useCheck({});
-  const isStripeConnected = !checked || !allowConnect;
+  const { allowConnect, checked } = useCheck({ teamId: eventType.teamId });
+  const isChecking = !checked;
+  const isStripeConnected = isChecking || !allowConnect;
+
+  if (isChecking) return <div>Checking...</div>;
 
   return (
     <div>
@@ -63,7 +66,7 @@ const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventTyp
           transformedAppData.userCredentialIds && (transformedAppData.userCredentialIds[0] as number)
         )}
         key={transformedAppData.slug}
-        app={transformedAppData as EventTypeApp}
+        app={transformedAppData as unknown as EventTypeApp}
         eventType={eventType as unknown as EventTypeForAppCard}
         eventTypeFormMetadata={eventTypeFormMetadata}
       />

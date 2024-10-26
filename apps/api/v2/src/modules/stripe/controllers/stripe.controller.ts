@@ -57,7 +57,7 @@ export class StripeController {
       fromApp: false,
       returnTo: !!redir ? redir : origin,
       accessToken,
-      teamId: teamId ?? null,
+      teamId: Number(teamId) ?? null,
     };
 
     const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
@@ -100,7 +100,10 @@ export class StripeController {
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Check stripe connection" })
-  async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
-    return await this.stripeService.checkIfStripeAccountConnected(user.id);
+  async check(
+    @GetUser() user: UserWithProfile,
+    @Query("teamId") teamId?: string | null
+  ): Promise<StripCredentialsCheckOutputResponseDto> {
+    return await this.stripeService.checkIfStripeAccountConnected(user.id, Number(teamId));
   }
 }

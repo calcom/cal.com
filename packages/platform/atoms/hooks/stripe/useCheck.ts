@@ -8,6 +8,7 @@ import http from "../../lib/http";
 import { useAtomsContext } from "../useAtomsContext";
 
 export interface UseCheckProps {
+  teamId?: number | null;
   onCheckError?: OnCheckErrorType;
   onCheckSuccess?: () => void;
   initialData?: {
@@ -22,17 +23,18 @@ const stripeQueryKey = ["get-stripe-check"];
 export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
-export const useCheck = ({ onCheckError, initialData, onCheckSuccess }: UseCheckProps) => {
+export const useCheck = ({ teamId, onCheckError, initialData, onCheckSuccess }: UseCheckProps) => {
   const { isInit, accessToken } = useAtomsContext();
   const queryClient = useQueryClient();
 
   const { data: check, refetch } = useQuery({
     queryKey: stripeQueryKey,
-    staleTime: 6000,
     enabled: isInit && !!accessToken,
     queryFn: () => {
       return http
-        ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/stripe/check`)
+        ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(
+          `/stripe/check${teamId ? `?teamId=${teamId}` : ""}`
+        )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
             onCheckSuccess?.();

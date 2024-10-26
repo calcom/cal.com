@@ -45,6 +45,7 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   const { t } = useLocale();
   const { connect } = useConnect(redir, errorRedir, teamId);
   const { allowConnect, checked } = useCheck({
+    teamId,
     onCheckError,
     onCheckSuccess,
     initialData,
