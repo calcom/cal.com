@@ -67,7 +67,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       {!isPending && (
         <div className="text-default text-md mx-4 mb-2">
-          {`${numberOfRows} ${numberOfRows === 1 ? t("row") : t("rows")}`}
+          {`${numberOfRows} ` + (numberOfRows === 1 ? t("row") : t("rows"))}
         </div>
       )}
       <table
