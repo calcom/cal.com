@@ -28,7 +28,8 @@ export const generateMetadata = async (props: PageProps) => {
   );
 };
 
-const Page = async ({ params }: PageProps) => {
+const Page = async ({ params: _params }: PageProps) => {
+  const params = await _params;
   if (params?.schedule) {
     notFound();
   }
