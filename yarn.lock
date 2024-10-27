@@ -4125,7 +4125,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.51"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.53"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4553,6 +4553,15 @@ __metadata:
 "@calcom/demodesk@workspace:packages/app-store/demodesk":
   version: 0.0.0-use.local
   resolution: "@calcom/demodesk@workspace:packages/app-store/demodesk"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/dialpad@workspace:packages/app-store/dialpad":
+  version: 0.0.0-use.local
+  resolution: "@calcom/dialpad@workspace:packages/app-store/dialpad"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -5132,14 +5141,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.51":
-  version: 0.0.51
-  resolution: "@calcom/platform-libraries@npm:0.0.51"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.53":
+  version: 0.0.53
+  resolution: "@calcom/platform-libraries@npm:0.0.53"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: f7b97302730da01067e7417da94aa3e1a3e0e967698516edd15d72be1f2d57f40c382f5b70401aa3758a46f3a9a5a4f29e0fc4b7c8565a9cb4a4ff10ed4b5dc2
+  checksum: 5a9dadad9f1ffdb831353594acd40bbc96e12130eff1685c9be49dfdc7ce2e44b2086696273b3bb74a28db20d863e0814d95f50043a4ba5b451987bd6f401294
   languageName: node
   linkType: hard
 

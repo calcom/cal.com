@@ -16,6 +16,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -41,10 +42,12 @@ export const roundRobinManualReassignment = async ({
   bookingId,
   newUserId,
   orgId,
+  reassignReason,
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
+  reassignReason?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -161,6 +164,7 @@ export const roundRobinManualReassignment = async ({
         userId: newUserId,
         title: newBookingTitle,
         userPrimaryEmail: newUser.email,
+        reassignReason,
       },
       select: bookingSelect,
     });
@@ -276,15 +280,24 @@ export const roundRobinManualReassignment = async ({
   const { cancellationReason, ...evtWithoutCancellationReason } = evt;
 
   // Send emails
-  await sendRoundRobinScheduledEmailsAndSMS(evtWithoutCancellationReason, [
-    {
-      ...newUser,
-      name: newUser.name || "",
-      username: newUser.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
-      language: { translate: newUserT, locale: newUser.locale || "en" },
+  await sendRoundRobinScheduledEmailsAndSMS({
+    calEvent: evtWithoutCancellationReason,
+    members: [
+      {
+        ...newUser,
+        name: newUser.name || "",
+        username: newUser.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
+        language: { translate: newUserT, locale: newUser.locale || "en" },
+      },
+    ],
+    reassigned: {
+      name: newUser.name,
+      email: newUser.email,
+      reason: reassignReason,
+      byUser: originalOrganizer.name || undefined,
     },
-  ]);
+  });
 
   // Send cancellation email to previous RR host
   const cancelledEvt = cloneDeep(evt);
@@ -347,8 +360,9 @@ async function handleWorkflowsUpdate({
     where: {
       bookingUid: booking.uid,
       method: WorkflowMethods.EMAIL,
+      scheduled: true,
+      OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
-        action: WorkflowActions.EMAIL_HOST,
         workflow: {
           trigger: {
             in: [
@@ -365,6 +379,7 @@ async function handleWorkflowsUpdate({
       referenceId: true,
       workflowStep: {
         select: {
+          id: true,
           template: true,
           workflow: {
             select: {
@@ -373,6 +388,10 @@ async function handleWorkflowsUpdate({
               timeUnit: true,
             },
           },
+          emailSubject: true,
+          reminderBody: true,
+          sender: true,
+          includeCalendarEvent: true,
         },
       },
     },
@@ -382,10 +401,10 @@ async function handleWorkflowsUpdate({
   const bookerUrl = await getBookerBaseUrl(orgId);
 
   for (const workflowReminder of workflowReminders) {
-    const workflowStep = workflowReminder?.workflowStep;
-    const workflow = workflowStep?.workflow;
+    const workflowStep = workflowReminder.workflowStep;
 
-    if (workflowStep && workflow) {
+    if (workflowStep) {
+      const workflow = workflowStep.workflow;
       await scheduleEmailReminder({
         evt: {
           ...evt,
@@ -401,6 +420,12 @@ async function handleWorkflowsUpdate({
         },
         sendTo: newUser.email,
         template: workflowStep.template,
+        emailSubject: workflowStep.emailSubject || undefined,
+        emailBody: workflowStep.reminderBody || undefined,
+        sender: workflowStep.sender || SENDER_NAME,
+        hideBranding: true,
+        includeCalendarEvent: workflowStep.includeCalendarEvent,
+        workflowStepId: workflowStep.id,
       });
     }
 
