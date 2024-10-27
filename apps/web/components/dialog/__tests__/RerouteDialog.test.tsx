@@ -1,5 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { useRouter } from "next/navigation";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
@@ -209,7 +208,7 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-let mockMutateFn = vi.fn(({ __testOnSuccess }) => {
+const mockMutateFn = vi.fn(({ __testOnSuccess }) => {
   __testOnSuccess({
     uid: "RESCHEDULED_BOOKING_UID_SAME_TIMESLOT",
   });
@@ -351,7 +350,7 @@ describe("RerouteDialog", () => {
 
   test("verify_new_route button is enabled even when form fields are not filled", async () => {
     render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
-    expect(screen.getByText("verify_new_route")).toBeEnabled();
+    await expect(screen.getByText("verify_new_route")).toBeEnabled();
   });
 
   test("disabledFields are passed to FormInputFields with value ['email'] - email field is disabled", async () => {
@@ -388,7 +387,7 @@ describe("RerouteDialog", () => {
         eventTypeText: "team/test-team/new-test-event",
         eventTypeHref: "https://cal.com/team/test-team/new-test-event",
       });
-      expect(screen.getByText("verify_new_route")).toBeEnabled();
+      await expect(screen.getByText("verify_new_route")).toBeEnabled();
       expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("reroute_preview_possible_host");
       expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("matching-user-1@example.com");
 
