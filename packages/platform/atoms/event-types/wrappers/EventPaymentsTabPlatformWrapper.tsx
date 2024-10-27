@@ -9,13 +9,17 @@ import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { EmptyScreen } from "@calcom/ui";
 
 import { StripeConnect } from "../../connect/stripe/StripeConnect";
-import { useCheck } from "../../hooks/stripe/useCheck";
+import { useCheck, useTeamCheck } from "../../hooks/stripe/useCheck";
 import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeAppIntegration";
 
 const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
-  const { allowConnect, checked } = useCheck({ teamId: eventType.teamId });
-  const isChecking = !checked;
-  const isStripeConnected = isChecking || !allowConnect;
+  const { allowConnect, checked } = useCheck({});
+  const { allowConnect: allowConnectTeam, checked: checkedTeam } = useTeamCheck({ teamId: eventType.teamId });
+
+  const isAllowConnect = eventType.teamId ? allowConnectTeam : allowConnect;
+  const isChecking = eventType.teamId ? !checkedTeam : !checked;
+
+  const isStripeConnected = isChecking || !isAllowConnect;
 
   if (isChecking) return <div>Checking...</div>;
 

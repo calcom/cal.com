@@ -8,7 +8,7 @@ import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Credential } from "@prisma/client";
 import Stripe from "stripe";
 import { z } from "zod";
 
@@ -126,25 +126,39 @@ export class StripeService {
     return { url: getReturnToValueFromQueryState(state) };
   }
 
-  async checkIfStripeAccountConnected(
-    userId: number,
-    teamId?: number | null
-  ): Promise<{ status: typeof SUCCESS_STATUS }> {
-    let stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
+  async checkIfIndividualStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+    const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
 
-    if (teamId) {
-      stripeCredentials = await this.credentialRepository.getByTypeAndTeamId("stripe_payment", teamId);
+    return await this.validateStripeCredentials(stripeCredentials);
+  }
+
+  async checkIfTeamStripeAccountConnected(teamId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+    const stripeCredentials = await this.credentialRepository.getByTypeAndTeamId("stripe_payment", teamId);
+
+    return await this.validateStripeCredentials(stripeCredentials);
+  }
+
+  async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
+    const teamMembership = await this.membershipRepository.findMembershipByTeamId(teamId, userId);
+    const hasAdminAccessToTeam = teamMembership?.role === "ADMIN" || teamMembership?.role === "OWNER";
+
+    if (!hasAdminAccessToTeam) {
+      throw new BadRequestException("You must be team owner or admin to do this");
     }
+  }
 
-    if (!stripeCredentials) {
+  async validateStripeCredentials(
+    credentials?: Credential | null
+  ): Promise<{ status: typeof SUCCESS_STATUS }> {
+    if (!credentials) {
       throw new NotFoundException("Credentials for stripe not found.");
     }
 
-    if (stripeCredentials.invalid) {
+    if (credentials.invalid) {
       throw new BadRequestException("Invalid stripe credentials.");
     }
 
-    const stripeKey = JSON.stringify(stripeCredentials.key);
+    const stripeKey = JSON.stringify(credentials.key);
     const stripeKeyObject = JSON.parse(stripeKey);
 
     const stripeAccount = await stripeInstance.accounts.retrieve(stripeKeyObject?.stripe_user_id);
@@ -157,14 +171,5 @@ export class StripeService {
     return {
       status: SUCCESS_STATUS,
     };
-  }
-
-  async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
-    const teamMembership = await this.membershipRepository.findMembershipByTeamId(teamId, userId);
-    const hasAdminAccessToTeam = teamMembership?.role === "ADMIN" || teamMembership?.role === "OWNER";
-
-    if (!hasAdminAccessToTeam) {
-      throw new BadRequestException("You must be team owner or admin to do this");
-    }
   }
 }

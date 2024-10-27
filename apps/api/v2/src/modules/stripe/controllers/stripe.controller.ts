@@ -21,6 +21,7 @@ import {
   Req,
   BadRequestException,
   Headers,
+  Param,
 } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiOperation } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
@@ -100,10 +101,17 @@ export class StripeController {
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Check stripe connection" })
-  async check(
-    @GetUser() user: UserWithProfile,
-    @Query("teamId") teamId?: string | null
+  async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
+    return await this.stripeService.checkIfIndividualStripeAccountConnected(user.id);
+  }
+
+  @Get("/check/:teamId")
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Check team stripe connection" })
+  async checkTeamStripeConnection(
+    @Param("teamId") teamId: string
   ): Promise<StripCredentialsCheckOutputResponseDto> {
-    return await this.stripeService.checkIfStripeAccountConnected(user.id, Number(teamId));
+    return await this.stripeService.checkIfTeamStripeAccountConnected(Number(teamId));
   }
 }

@@ -6,7 +6,7 @@ import type { IconName } from "@calcom/ui";
 import type { ButtonColor } from "@calcom/ui";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
-import { useCheck } from "../../hooks/stripe/useCheck";
+import { useTeamCheck, useCheck } from "../../hooks/stripe/useCheck";
 import { useConnect } from "../../hooks/stripe/useConnect";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
@@ -43,18 +43,25 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   onCheckSuccess,
 }) => {
   const { t } = useLocale();
+  let displayedLabel = label || t("stripe_connect_atom_label");
+
   const { connect } = useConnect(redir, errorRedir, teamId);
   const { allowConnect, checked } = useCheck({
+    onCheckError,
+    onCheckSuccess,
+    initialData,
+  });
+  const { allowConnect: allowConnectTeam, checked: checkedTeam } = useTeamCheck({
     teamId,
     onCheckError,
     onCheckSuccess,
     initialData,
   });
 
-  let displayedLabel = label || t("stripe_connect_atom_label");
+  const isChecking = teamId ? !checkedTeam : !checked;
+  const isAllowConnect = teamId ? allowConnectTeam : allowConnect;
 
-  const isChecking = !checked;
-  const isDisabled = isChecking || !allowConnect;
+  const isDisabled = isChecking || !isAllowConnect;
 
   if (isChecking) {
     displayedLabel = loadingLabel || t("stripe_connect_atom_loading_label");
