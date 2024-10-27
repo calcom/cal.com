@@ -11,7 +11,7 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -69,7 +69,7 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
-
+  const [mounted, setMounted] = useState(false);
   const session = useSession();
   const fallbackLocale =
     typeof window !== "undefined" && window.document.documentElement.lang
@@ -107,8 +107,16 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
     window.document.dir = dir(locale);
   }, [locale]);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const clientViewerI18n = useViewerI18n(locale);
   const i18n = clientViewerI18n.data?.i18n ?? props.i18n;
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     // @ts-expect-error AppWithTranslationHoc expects AppProps
