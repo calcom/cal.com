@@ -1,14 +1,10 @@
-import dynamic from "next/dynamic";
 import React from "react";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 
 import type { AdminLayoutProps } from "./AdminLayoutAppDirClient";
-
-const AdminLayoutAppDirClient = dynamic(() => import("./AdminLayoutAppDirClient"), {
-  ssr: false,
-});
+import AdminLayoutAppDirClient from "./AdminLayoutAppDirClient";
 
 type AdminLayoutAppDirProps = Omit<AdminLayoutProps, "userRole">;
 

@@ -1,14 +1,10 @@
-import dynamic from "next/dynamic";
 import React from "react";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
-
-const SettingsLayoutAppDirClient = dynamic(() => import("./SettingsLayoutAppDirClient"), {
-  ssr: false,
-});
+import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
 type SettingsLayoutAppDir = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
 
