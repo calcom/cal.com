@@ -58,7 +58,7 @@
     "ioredis": "^5.3.2",
     "luxon": "^3.4.4",
     "nest-winston": "^1.9.4",
-    "next-auth": "^4.22.1",
+    "next-auth": "^4.24.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "qs-stringify": "^1.2.1",
