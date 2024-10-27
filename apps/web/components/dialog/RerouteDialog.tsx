@@ -26,7 +26,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 import { Button, Tooltip } from "@calcom/ui";
-import { showToast } from "@calcom/ui/components/toast";
+import { showToast } from "@calcom/ui/toast";
 
 const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
@@ -278,10 +278,12 @@ const NewRoutingManager = ({
   const router = useRouter();
   const bookerUrl = useBookerUrl();
   const teamMemberIdsMatchingAttributeLogic =
-    teamMembersMatchingAttributeLogic?.data?.map((member) => member.id).filter((id) => {
-      // We don't want to reroute to the same user who booked the booking
-      return id !== booking.user?.id;
-    }) || null;
+    teamMembersMatchingAttributeLogic?.data
+      ?.map((member) => member.id)
+      .filter((id) => {
+        // We don't want to reroute to the same user who booked the booking
+        return id !== booking.user?.id;
+      }) || null;
   const routedFromRoutingFormReponseId = booking.routedFromRoutingFormReponse.id;
 
   const bookingEventType = booking.eventType;
