@@ -11,7 +11,7 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -107,7 +107,7 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
     window.document.dir = dir(locale);
   }, [locale]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setMounted(true);
   }, []);
 
@@ -115,7 +115,7 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   const i18n = clientViewerI18n.data?.i18n ?? props.i18n;
 
   if (!mounted) {
-    return null;
+    return <div style={{ visibility: "hidden" }}>{props.children}</div>;
   }
 
   return (
