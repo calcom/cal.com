@@ -681,7 +681,7 @@ export default class GoogleCalendarService implements Calendar {
             externalId: cal.id ?? "No id",
             integration: this.integrationName,
             name: cal.summary ?? "No name",
-            primary: cal.primary ?? cal.accessRole === "owner" ?? false,
+            primary: cal.primary || cal.accessRole === "owner" || this.credential.user?.email === cal.id,
             readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
             email: cal.id ?? "",
           } satisfies IntegrationCalendar)
