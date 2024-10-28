@@ -235,6 +235,8 @@ async function handler(
     rescheduleReason,
     luckyUsers,
     routedTeamMemberIds,
+    reroutingFormResponses,
+    routingFormResponseId,
     ...reqBody
   } = bookingData;
 
@@ -808,6 +810,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -816,6 +819,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
@@ -918,24 +922,12 @@ async function handler(
     })
   );
 
-  // update original rescheduled booking (no seats event)
-  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
-    await prisma.booking.update({
-      where: {
-        id: originalRescheduledBooking.id,
-      },
-      data: {
-        rescheduled: true,
-        status: BookingStatus.CANCELLED,
-        rescheduledBy: reqBody.rescheduledBy,
-      },
-    });
-  }
-
   try {
     booking = await createBooking({
       uid,
-      routedFromRoutingFormResponseId: reqBody.routingFormResponseId,
+      rescheduledBy: reqBody.rescheduledBy,
+      routingFormResponseId: routingFormResponseId,
+      reroutingFormResponses: reroutingFormResponses ?? null,
       reqBody: {
         user: reqBody.user,
         metadata: reqBody.metadata,
@@ -1239,7 +1231,11 @@ async function handler(
           rescheduledMembers,
           eventType.metadata
         );
-        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
+        sendRoundRobinScheduledEmailsAndSMS({
+          calEvent: copyEventAdditionalInfo,
+          members: newBookedMembers,
+          eventTypeMetadata: eventType.metadata,
+        });
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)

@@ -659,6 +659,15 @@
   <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" ></path>
   <rect x="2" y="6" width="14" height="12" rx="2" ></rect>
 </symbol>
+<symbol class="lucide lucide-waypoints" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="waypoints">
+  <circle cx="12" cy="4.5" r="2.5" ></circle>
+  <path d="m10.2 6.3-3.9 3.9" ></path>
+  <circle cx="4.5" cy="12" r="2.5" ></circle>
+  <path d="M7 12h10" ></path>
+  <circle cx="19.5" cy="12" r="2.5" ></circle>
+  <path d="m13.8 17.7 3.9-3.9" ></path>
+  <circle cx="12" cy="19.5" r="2.5" ></circle>
+</symbol>
 <symbol class="lucide lucide-webhook" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="webhook">
   <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" ></path>
   <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" ></path>

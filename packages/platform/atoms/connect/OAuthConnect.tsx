@@ -75,6 +75,7 @@ export const OAuthConnect: FC<
           tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance={calendar} />}
           tooltipSide={tooltipSide}
           tooltipOffset={10}
+          tooltipClassName="p-0 text-inherit bg-inherit"
           className={cn("", !isDisabled && "cursor-pointer", className)}
           onClick={() => {
             connect();
