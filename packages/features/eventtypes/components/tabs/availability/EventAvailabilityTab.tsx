@@ -42,7 +42,7 @@ type ScheduleType = Array<Pick<ScheduleQueryData["schedule"][number], "days" | "
 
 type EventTypeScheduleDetailsProps = {
   scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly" | "timeBlocks"> & {
-    schedule: SchedueType;
+    schedule: ScheduleType;
   };
   isSchedulePending?: boolean;
   user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
