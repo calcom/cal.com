@@ -27,12 +27,12 @@ export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
 
 type LocationInputCustomClassnames = {
-  organizerAddressInputClassname?: string;
-  organizerPhoneInputClassName?: string;
+  organizerAddressInput?: string;
+  organizerPhoneInput?: string;
 };
 
 export type LocationCustomClassNames = {
-  locationSelectClassnames: locationSelectCustomClassnames;
+  locationSelectClassnames?: locationSelectCustomClassnames;
   removeLocationButton?: string;
   removeLocationIcon?: string;
   addLocationButton?: string;
@@ -177,7 +177,7 @@ const Locations: React.FC<LocationsProps> = ({
                 onChange={onChange}
                 value={value}
                 {...(disableLocationProp ? { disabled: true } : {})}
-                className={classNames("my-0", customClassnames?.organizerAddressInputClassname)}
+                className={classNames("my-0", customClassnames?.organizerAddressInput)}
                 {...rest}
               />
             );
@@ -198,7 +198,7 @@ const Locations: React.FC<LocationsProps> = ({
                 disabled={disableLocationProp}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                 name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                className={customClassnames?.organizerPhoneInputClassName}
+                className={customClassnames?.organizerPhoneInput}
                 value={value}
                 onChange={onChange}
                 {...rest}
