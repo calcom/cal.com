@@ -138,8 +138,6 @@ export const roundRobinManualReassignment = async ({
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
-    console.log("booking.location", bookingLocation);
-    console.log("eventType", eventType);
     if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
       const newUserMetadataSafeParse = userMetadataSchema.safeParse(newUser.metadata);
       const defaultLocationUrl = newUserMetadataSafeParse.success
@@ -149,8 +147,6 @@ export const roundRobinManualReassignment = async ({
       bookingLocation =
         defaultLocationUrl ||
         getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
-
-      console.log("bookingLocation", bookingLocation);
     }
 
     const newBookingTitle = getEventName({
@@ -287,9 +283,6 @@ export const roundRobinManualReassignment = async ({
   let metadata: AdditionalInformation = {};
   metadata = videoMetadata;
 
-  console.log("results,eventManager.reschedule", updateManager);
-  let videoCallUrl;
-
   if (results.length) {
     // Handle Google Meet results
     // We use the original booking location since the evt location changes to daily
@@ -352,12 +345,6 @@ export const roundRobinManualReassignment = async ({
     metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
     metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
     metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
-    videoCallUrl =
-      metadata.hangoutLink ||
-      createdOrUpdatedEvent?.url ||
-      organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
-      getVideoCallUrlFromCalEvent(evt) ||
-      videoCallUrl;
 
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
@@ -384,8 +371,6 @@ export const roundRobinManualReassignment = async ({
   };
 
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
-
-  console.log("evtWithoutCancellationReason", evtWithoutCancellationReason);
 
   // Send emails
   await sendRoundRobinScheduledEmailsAndSMS({
