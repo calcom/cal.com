@@ -13,8 +13,6 @@ import utc from "dayjs/plugin/utc";
 
 import BusinessDaysPlugin from "./plugins/business-days-plugin";
 
-require("dayjs/locale/es");
-
 dayjs.extend(customParseFormat);
 dayjs.extend(BusinessDaysPlugin);
 dayjs.extend(isBetween);
@@ -26,8 +24,6 @@ dayjs.extend(toArray);
 dayjs.extend(utc);
 dayjs.extend(minmax);
 dayjs.extend(duration);
-
-dayjs.locale("en");
 
 export type Dayjs = dayjs.Dayjs;
 
