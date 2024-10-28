@@ -42,6 +42,7 @@ import {
 import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
 import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
+import { RouteActionType } from "../../zod";
 
 type FormFieldsQueryBuilderState = {
   tree: ImmutableTree;
@@ -61,6 +62,7 @@ type LocalRouteWithRaqbStates = LocalRoute & {
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
 type Route = LocalRouteWithRaqbStates | GlobalRoute;
+type SetRoute = (id: string, route: Partial<Route>) => void;
 
 const RoundRobinContactOwnerOverrideSwitch = ({
   route,
@@ -93,6 +95,42 @@ type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 
+/**
+ * We need eventTypeId in every redirect url action now for Rerouting to work smoothly.
+ * This hook ensures that it is there as soon as someone lands on a Routing Form and next save would automatically update it for them.
+ */
+function useEnsureEventTypeIdInRedirectUrlAction({
+  route,
+  eventOptions,
+  setRoute,
+}: {
+  route: Route;
+  eventOptions: { label: string; value: string; eventTypeId: number }[];
+  setRoute: SetRoute;
+}) {
+  useEffect(() => {
+    if (isRouter(route)) {
+      return;
+    }
+
+    if (
+      route.action.type !== RouteActionType.EventTypeRedirectUrl ||
+      // Must not be set already. Could be zero as well for custom
+      route.action.eventTypeId !== undefined
+    ) {
+      return;
+    }
+
+    const matchingOption = eventOptions.find((eventOption) => eventOption.value === route.action.value);
+    if (!matchingOption) {
+      return;
+    }
+    setRoute(route.id, {
+      action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
+    });
+  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+}
+
 const hasRules = (route: Route) => {
   if (isRouter(route)) return false;
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
@@ -106,7 +144,7 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   return {
     id: uuid,
     action: {
-      type: "eventTypeRedirectUrl",
+      type: RouteActionType.EventTypeRedirectUrl,
       value: "",
     },
     // It is actually formFieldsQueryValue
@@ -184,7 +222,7 @@ const Route = ({
   form: Form;
   route: Route;
   routes: Route[];
-  setRoute: (id: string, route: Partial<Route>) => void;
+  setRoute: SetRoute;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
@@ -220,6 +258,12 @@ const Route = ({
       setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
     }
   }, [isLoading]);
+
+  useEnsureEventTypeIdInRedirectUrlAction({
+    route,
+    eventOptions,
+    setRoute,
+  });
 
   const onChangeFormFieldsQuery = (
     route: Route,
@@ -336,7 +380,7 @@ const Route = ({
   ) : null;
 
   const attributesQueryBuilder =
-    route.action?.type === "eventTypeRedirectUrl" && isTeamForm ? (
+    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
         <span className="text-emphasis flex w-full items-center text-sm">
           and use only the Team Members that match the following criteria(matches all by default)
@@ -453,11 +497,13 @@ const Route = ({
                         }
                         if (option.value !== "custom") {
                           setRoute(route.id, {
-                            action: { ...route.action, value: option.value },
+                            action: { ...route.action, value: option.value, eventTypeId: option.eventTypeId },
                           });
                           setCustomEventTypeSlug("");
                         } else {
-                          setRoute(route.id, { action: { ...route.action, value: "custom" } });
+                          setRoute(route.id, {
+                            action: { ...route.action, value: "custom", eventTypeId: 0 },
+                          });
                           setCustomEventTypeSlug("");
                         }
                       }}

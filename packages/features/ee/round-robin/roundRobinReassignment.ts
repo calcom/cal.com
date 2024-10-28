@@ -18,6 +18,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -30,26 +31,9 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const bookingSelect = {
-  uid: true,
-  title: true,
-  startTime: true,
-  endTime: true,
-  userId: true,
-  customInputs: true,
-  responses: true,
-  description: true,
-  location: true,
-  eventTypeId: true,
-  destinationCalendar: true,
-  user: {
-    include: {
-      destinationCalendar: true,
-    },
-  },
-  attendees: true,
-  references: true,
-};
+import { bookingSelect } from "./utils/bookingSelect";
+import { getDestinationCalendar } from "./utils/getDestinationCalendar";
+import { getTeamMembers } from "./utils/getTeamMembers";
 
 export const roundRobinReassignment = async ({
   bookingId,
@@ -70,26 +54,26 @@ export const roundRobinReassignment = async ({
   });
 
   if (!booking) {
-    roundRobinReassignLogger.error(`Booking ${bookingId} not found`);
+    logger.error(`Booking ${bookingId} not found`);
     throw new Error("Booking not found");
   }
 
-  if (!booking?.user) {
-    roundRobinReassignLogger.error(`No user associated with booking ${bookingId}`);
+  if (!booking.user) {
+    logger.error(`No user associated with booking ${bookingId}`);
     throw new Error("Booking not found");
   }
 
   const eventTypeId = booking.eventTypeId;
 
   if (!eventTypeId) {
-    roundRobinReassignLogger.error(`Booking ${bookingId} does not have an event type id`);
+    logger.error(`Booking ${bookingId} does not have an event type id`);
     throw new Error("Event type not found");
   }
 
   const eventType = await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) {
-    roundRobinReassignLogger.error(`Event type ${eventTypeId} not found`);
+    logger.error(`Event type ${eventTypeId} not found`);
     throw new Error("Event type not found");
   }
 
@@ -101,6 +85,7 @@ export const roundRobinReassignment = async ({
         priority: 2,
         weight: 100,
         weightAdjustment: 0,
+        schedule: null,
       }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
@@ -144,7 +129,7 @@ export const roundRobinReassignment = async ({
   const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
     availableUsers,
     eventType: {
-      id: eventTypeId,
+      id: eventType.id,
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
     },
     allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
@@ -159,39 +144,13 @@ export const roundRobinReassignment = async ({
 
   const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
-  const teamMemberPromises = [];
-  for (const teamMember of eventType.hosts) {
-    const user = teamMember.user;
-    // Need to skip over the reassigned user and the organizer user
-    if (user.email === previousRRHost?.email || user.email === organizer.email) {
-      continue;
-    }
-
-    // Check that the team member is a part of the booking
-    if (booking.attendees.some((attendee) => attendee.email === user.email)) {
-      teamMemberPromises.push(
-        getTranslation(user.locale ?? "en", "common").then((tTeamMember) => ({
-          id: user.id,
-          email: user.email,
-          name: user.name || "",
-          timeZone: user.timeZone,
-          language: { translate: tTeamMember, locale: user.locale ?? "en" },
-        }))
-      );
-    }
-  }
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-  // Assume the RR host was labelled as a team member
-  if (reassignedRRHost.email !== organizer.email) {
-    teamMembers.push({
-      id: reassignedRRHost.id,
-      email: reassignedRRHost.email,
-      name: reassignedRRHost.name || "",
-      timeZone: reassignedRRHost.timeZone,
-      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale ?? "en" },
-    });
-  }
+  const teamMembers = await getTeamMembers({
+    eventTypeHosts: eventType.hosts,
+    attendees: booking.attendees,
+    organizer: organizer,
+    previousHost: previousRRHost || null,
+    reassignedHost: reassignedRRHost,
+  });
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
@@ -287,24 +246,12 @@ export const roundRobinReassignment = async ({
     });
   }
 
-  const destinationCalendar = await (async () => {
-    if (eventType?.destinationCalendar) {
-      return [eventType.destinationCalendar];
-    }
-
-    if (hasOrganizerChanged) {
-      const organizerDestinationCalendar = await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: reassignedRRHost.id,
-        },
-      });
-      if (organizerDestinationCalendar) {
-        return [organizerDestinationCalendar];
-      }
-    } else {
-      if (booking.user?.destinationCalendar) return [booking.user?.destinationCalendar];
-    }
-  })();
+  const destinationCalendar = await getDestinationCalendar({
+    eventType,
+    booking,
+    newUserId: reassignedRRHost.id,
+    hasOrganizerChanged,
+  });
 
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
@@ -377,15 +324,18 @@ export const roundRobinReassignment = async ({
   });
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmailsAndSMS(evt, [
-    {
-      ...reassignedRRHost,
-      name: reassignedRRHost.name || "",
-      username: reassignedRRHost.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
-      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
-    },
-  ]);
+  await sendRoundRobinScheduledEmailsAndSMS({
+    calEvent: evt,
+    members: [
+      {
+        ...reassignedRRHost,
+        name: reassignedRRHost.name || "",
+        username: reassignedRRHost.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
+        language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
+      },
+    ],
+  });
 
   if (previousRRHost) {
     // Send to cancelled RR host
@@ -429,18 +379,20 @@ export const roundRobinReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      eventType?.metadata as EventTypeMetadata
+      eventType?.metadata as EventTypeMetadata,
+      { name: reassignedRRHost.name, email: reassignedRRHost.email }
     );
   }
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
-    const workflowReminders = await prisma.workflowReminder.findMany({
+    const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
+        scheduled: true,
+        OR: [{ cancelled: false }, { cancelled: null }],
         workflowStep: {
-          action: WorkflowActions.EMAIL_HOST,
           workflow: {
             trigger: {
               in: [
@@ -457,6 +409,7 @@ export const roundRobinReassignment = async ({
         referenceId: true,
         workflowStep: {
           select: {
+            id: true,
             template: true,
             workflow: {
               select: {
@@ -465,6 +418,10 @@ export const roundRobinReassignment = async ({
                 timeUnit: true,
               },
             },
+            emailSubject: true,
+            reminderBody: true,
+            sender: true,
+            includeCalendarEvent: true,
           },
         },
       },
@@ -474,7 +431,7 @@ export const roundRobinReassignment = async ({
 
     const bookerUrl = await getBookerBaseUrl(orgId);
 
-    for (const workflowReminder of workflowReminders) {
+    for (const workflowReminder of scheduledWorkflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
 
@@ -494,6 +451,12 @@ export const roundRobinReassignment = async ({
           },
           sendTo: reassignedRRHost.email,
           template: workflowStep.template,
+          emailSubject: workflowStep.emailSubject || undefined,
+          emailBody: workflowStep.reminderBody || undefined,
+          sender: workflowStep.sender || SENDER_NAME,
+          hideBranding: true,
+          includeCalendarEvent: workflowStep.includeCalendarEvent,
+          workflowStepId: workflowStep.id,
         });
       }
 

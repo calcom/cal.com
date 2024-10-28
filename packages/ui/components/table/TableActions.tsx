@@ -1,7 +1,6 @@
 import type { FC } from "react";
 import React from "react";
 
-import type { IconName } from "../..";
 import type { ButtonBaseProps } from "../button";
 import { Button } from "../button";
 import {
@@ -11,7 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
-} from "../form/dropdown";
+} from "../dropdown";
+import type { IconName } from "../icon";
 
 export type ActionType = {
   id: string;

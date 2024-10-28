@@ -42,11 +42,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
-  let key;
-
   if (code) {
     const token = await oAuth2Client.getToken(code);
-    key = token.tokens;
+    const key = token.tokens;
     const grantedScopes = token.tokens.scope?.split(" ") ?? [];
     // Check if we have granted all required permissions
     const hasMissingRequiredScopes = REQUIRED_SCOPES.some((scope) => !grantedScopes.includes(scope));
@@ -75,10 +73,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    const primaryCal = cals.data.items?.find((cal) => cal.primary);
-    // Primary calendar won't be null, this check satisfies typescript.
+    const tokenInfo = key.access_token ? await oAuth2Client.getTokenInfo(key.access_token) : null;
+    const userEmail = tokenInfo?.email ?? null;
+
+    let primaryCal = cals.data.items?.find(
+      (cal) => cal.primary || cal.accessRole === "owner" || cal.id === userEmail
+    );
     if (!primaryCal?.id) {
-      throw new HttpError({ message: "Internal Error", statusCode: 500 });
+      // If the primary calendar is not set, set it to the first calendar
+      primaryCal = cals.data.items?.[0];
     }
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
@@ -94,6 +97,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         appId: "google-calendar",
       },
     });
+
+    // If we still don't have a primary calendar skip creating the selected calendar.
+    // It can be toggled on later.
+    if (!primaryCal?.id) {
+      res.redirect(
+        getSafeRedirectUrl(state?.returnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+      );
+      return;
+    }
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,

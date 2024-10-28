@@ -61,9 +61,15 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
+  const numberOfRows = data?.pages.reduce((total, page) => total + (page.responses?.length || 0), 0);
 
   return (
     <div className="w-full max-w-[2000px] overflow-x-scroll">
+      {!isPending && (
+        <div className="text-default text-md mx-4 mb-2">
+          {`${numberOfRows} ` + (numberOfRows === 1 ? t("row") : t("rows"))}
+        </div>
+      )}
       <table
         data-testid="reporting-table"
         className="border-default bg-subtle mx-3 mb-4 table-fixed border-separate border-spacing-0 overflow-hidden rounded-md border">
