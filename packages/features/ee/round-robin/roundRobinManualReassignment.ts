@@ -29,7 +29,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
 
 import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
@@ -300,12 +300,14 @@ export const roundRobinManualReassignment = async ({
       );
       const googleCalResult = results[googleCalIndex];
 
+      const t = await getTranslation("en", "common");
+
       if (!googleCalResult) {
-        loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+        roundRobinReassignLogger.warn("Google Calendar not installed but using Google Meet as location");
         results.push({
           ...googleMeetResult,
           success: false,
-          calWarnings: [tOrganizer("google_meet_warning")],
+          calWarnings: [t("google_meet_warning")],
         });
       }
 
