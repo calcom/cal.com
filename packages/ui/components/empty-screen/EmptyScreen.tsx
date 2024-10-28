@@ -3,9 +3,9 @@ import React from "react";
 
 import { classNames } from "@calcom/lib";
 
-import type { IconName } from "../..";
-import { Icon } from "../..";
-import { Button } from "../../components/button";
+import { Button } from "../button";
+import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export function EmptyScreen({
   Icon: icon,

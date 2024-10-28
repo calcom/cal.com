@@ -18,6 +18,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -323,15 +324,18 @@ export const roundRobinReassignment = async ({
   });
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmailsAndSMS(evt, [
-    {
-      ...reassignedRRHost,
-      name: reassignedRRHost.name || "",
-      username: reassignedRRHost.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
-      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
-    },
-  ]);
+  await sendRoundRobinScheduledEmailsAndSMS({
+    calEvent: evt,
+    members: [
+      {
+        ...reassignedRRHost,
+        name: reassignedRRHost.name || "",
+        username: reassignedRRHost.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
+        language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
+      },
+    ],
+  });
 
   if (previousRRHost) {
     // Send to cancelled RR host
@@ -382,12 +386,13 @@ export const roundRobinReassignment = async ({
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
-    const workflowReminders = await prisma.workflowReminder.findMany({
+    const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
+        scheduled: true,
+        OR: [{ cancelled: false }, { cancelled: null }],
         workflowStep: {
-          action: WorkflowActions.EMAIL_HOST,
           workflow: {
             trigger: {
               in: [
@@ -404,6 +409,7 @@ export const roundRobinReassignment = async ({
         referenceId: true,
         workflowStep: {
           select: {
+            id: true,
             template: true,
             workflow: {
               select: {
@@ -412,6 +418,10 @@ export const roundRobinReassignment = async ({
                 timeUnit: true,
               },
             },
+            emailSubject: true,
+            reminderBody: true,
+            sender: true,
+            includeCalendarEvent: true,
           },
         },
       },
@@ -421,7 +431,7 @@ export const roundRobinReassignment = async ({
 
     const bookerUrl = await getBookerBaseUrl(orgId);
 
-    for (const workflowReminder of workflowReminders) {
+    for (const workflowReminder of scheduledWorkflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
 
@@ -441,6 +451,12 @@ export const roundRobinReassignment = async ({
           },
           sendTo: reassignedRRHost.email,
           template: workflowStep.template,
+          emailSubject: workflowStep.emailSubject || undefined,
+          emailBody: workflowStep.reminderBody || undefined,
+          sender: workflowStep.sender || SENDER_NAME,
+          hideBranding: true,
+          includeCalendarEvent: workflowStep.includeCalendarEvent,
+          workflowStepId: workflowStep.id,
         });
       }
 

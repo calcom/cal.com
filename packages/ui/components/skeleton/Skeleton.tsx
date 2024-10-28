@@ -114,4 +114,3 @@ const SelectSkeletonLoader: React.FC<SkeletonLoaderProps> = ({ className }) => {
 };
 
 export { Skeleton, SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer, SelectSkeletonLoader };
-export { default as Loader } from "./Loader";

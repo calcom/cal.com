@@ -4,7 +4,7 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
 type ConfirmBtnType =
