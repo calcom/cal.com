@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
+import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
@@ -9,6 +11,7 @@ import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSM
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -124,6 +127,7 @@ export const roundRobinManualReassignment = async ({
   })();
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
+  let bookingLocation = booking.location;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -134,8 +138,9 @@ export const roundRobinManualReassignment = async ({
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
-    let bookingLocation = booking.location;
-    if (eventType.locations.includes({ type: OrganizerDefaultConferencingAppType })) {
+    console.log("booking.location", bookingLocation);
+    console.log("eventType", eventType);
+    if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
       const newUserMetadataSafeParse = userMetadataSchema.safeParse(newUser.metadata);
       const defaultLocationUrl = newUserMetadataSafeParse.success
         ? newUserMetadataSafeParse?.data?.defaultConferencingApp?.appLink
@@ -144,6 +149,8 @@ export const roundRobinManualReassignment = async ({
       bookingLocation =
         defaultLocationUrl ||
         getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
+
+      console.log("bookingLocation", bookingLocation);
     }
 
     const newBookingTitle = getEventName({
@@ -248,6 +255,7 @@ export const roundRobinManualReassignment = async ({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
+    location: bookingLocation,
   };
 
   const credentials = await prisma.credential.findMany({
@@ -262,7 +270,7 @@ export const roundRobinManualReassignment = async ({
       })
     : null;
 
-  const results = await eventManager.reschedule(
+  const updateManager = await eventManager.reschedule(
     evt,
     booking.uid,
     undefined,
@@ -270,14 +278,114 @@ export const roundRobinManualReassignment = async ({
     previousHostDestinationCalendar ? [previousHostDestinationCalendar] : []
   );
 
-  const newReferencesToCreate = structuredClone(results.referencesToCreate);
+  const results = updateManager.results;
+
+  const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
+    results: results,
+  });
+
+  let metadata: AdditionalInformation = {};
+  metadata = videoMetadata;
+
+  console.log("results,eventManager.reschedule", updateManager);
+  let videoCallUrl;
+
+  if (results.length) {
+    // Handle Google Meet results
+    // We use the original booking location since the evt location changes to daily
+    if (bookingLocation === MeetLocationType) {
+      const googleMeetResult = {
+        appName: GoogleMeetMetadata.name,
+        type: "conferencing",
+        uid: results[0].uid,
+        originalEvent: results[0].originalEvent,
+      };
+
+      // Find index of google_calendar inside createManager.referencesToCreate
+      const googleCalIndex = updateManager.referencesToCreate.findIndex(
+        (ref) => ref.type === "google_calendar"
+      );
+      const googleCalResult = results[googleCalIndex];
+
+      if (!googleCalResult) {
+        loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+        results.push({
+          ...googleMeetResult,
+          success: false,
+          calWarnings: [tOrganizer("google_meet_warning")],
+        });
+      }
+
+      const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
+        ? googleCalResult.updatedEvent[0]?.hangoutLink
+        : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+
+      if (googleHangoutLink) {
+        results.push({
+          ...googleMeetResult,
+          success: true,
+        });
+
+        // Add google_meet to referencesToCreate in the same index as google_calendar
+        updateManager.referencesToCreate[googleCalIndex] = {
+          ...updateManager.referencesToCreate[googleCalIndex],
+          meetingUrl: googleHangoutLink,
+        };
+
+        // Also create a new referenceToCreate with type video for google_meet
+        updateManager.referencesToCreate.push({
+          type: "google_meet_video",
+          meetingUrl: googleHangoutLink,
+          uid: googleCalResult.uid,
+          credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
+        });
+      } else if (googleCalResult && !googleHangoutLink) {
+        results.push({
+          ...googleMeetResult,
+          success: false,
+        });
+      }
+    }
+    const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+      ? results[0]?.updatedEvent[0]
+      : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+    metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+    metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
+    metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
+    videoCallUrl =
+      metadata.hangoutLink ||
+      createdOrUpdatedEvent?.url ||
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+      getVideoCallUrlFromCalEvent(evt) ||
+      videoCallUrl;
+
+    const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+    evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+      ? calendarResult?.updatedEvent[0]?.iCalUID
+      : calendarResult?.updatedEvent?.iCalUID || undefined;
+  }
+
+  const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
 
   await BookingReferenceRepository.replaceBookingReferences({
     bookingId,
     newReferencesToCreate,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evt;
+  prisma.booking.update({
+    where: { id: bookingId },
+    data: { metadata },
+  });
+
+  const evtWithAdditionalInfo = {
+    ...evt,
+    additionalInformation: metadata,
+  };
+
+  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+
+  console.log("evtWithoutCancellationReason", evtWithoutCancellationReason);
 
   // Send emails
   await sendRoundRobinScheduledEmailsAndSMS({
@@ -300,7 +408,7 @@ export const roundRobinManualReassignment = async ({
   });
 
   // Send cancellation email to previous RR host
-  const cancelledEvt = cloneDeep(evt);
+  const cancelledEvt = cloneDeep(evtWithAdditionalInfo);
   cancelledEvt.organizer = {
     email: originalOrganizer.email,
     name: originalOrganizer.name || "",
