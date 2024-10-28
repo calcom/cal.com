@@ -42,10 +42,12 @@ export const roundRobinManualReassignment = async ({
   bookingId,
   newUserId,
   orgId,
+  reassignReason,
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
+  reassignReason?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -162,6 +164,7 @@ export const roundRobinManualReassignment = async ({
         userId: newUserId,
         title: newBookingTitle,
         userPrimaryEmail: newUser.email,
+        reassignReason,
       },
       select: bookingSelect,
     });
@@ -277,15 +280,24 @@ export const roundRobinManualReassignment = async ({
   const { cancellationReason, ...evtWithoutCancellationReason } = evt;
 
   // Send emails
-  await sendRoundRobinScheduledEmailsAndSMS(evtWithoutCancellationReason, [
-    {
-      ...newUser,
-      name: newUser.name || "",
-      username: newUser.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
-      language: { translate: newUserT, locale: newUser.locale || "en" },
+  await sendRoundRobinScheduledEmailsAndSMS({
+    calEvent: evtWithoutCancellationReason,
+    members: [
+      {
+        ...newUser,
+        name: newUser.name || "",
+        username: newUser.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
+        language: { translate: newUserT, locale: newUser.locale || "en" },
+      },
+    ],
+    reassigned: {
+      name: newUser.name,
+      email: newUser.email,
+      reason: reassignReason,
+      byUser: originalOrganizer.name || undefined,
     },
-  ]);
+  });
 
   // Send cancellation email to previous RR host
   const cancelledEvt = cloneDeep(evt);

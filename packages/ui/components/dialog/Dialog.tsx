@@ -10,10 +10,10 @@ import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { IconName } from "../..";
-import { Icon } from "../..";
-import type { ButtonProps } from "../../components/button";
-import { Button } from "../../components/button";
+import type { ButtonProps } from "../button";
+import { Button } from "../button";
+import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
