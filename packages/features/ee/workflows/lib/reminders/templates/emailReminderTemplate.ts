@@ -3,6 +3,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
+require("dayjs/locale/en");
+
 const emailReminderTemplate = (
   isEditingMode: boolean,
   action?: WorkflowActions,
@@ -28,9 +30,9 @@ const emailReminderTemplate = (
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = `{EVENT_DATE_${dateTimeFormat}}`;
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).format(dateTimeFormat);
+    eventDate = dayjs(startTime).locale("en").tz(timeZone).format(dateTimeFormat);
 
-    endTime = dayjs(endTime).tz(timeZone).format(currentTimeFormat);
+    endTime = dayjs(endTime).locale("en").tz(timeZone).format(currentTimeFormat);
   }
 
   const emailSubject = `Reminder: ${eventName} - ${eventDate}`;
@@ -51,6 +53,7 @@ const emailReminderTemplate = (
 
   const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
+  console.log({ emailSubject, emailBody });
   return { emailSubject, emailBody };
 };
 
