@@ -1,3 +1,4 @@
+import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { z } from "zod";
 
 export const zodNonRouterField = z.object({
@@ -48,12 +49,7 @@ export const zodRouterFieldView = zodRouterField.extend({
 export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
-const queryValueSchema = z.object({
-  id: z.string().optional(),
-  type: z.union([z.literal("group"), z.literal("switch_group")]),
-  children1: z.any(),
-  properties: z.any(),
-});
+const queryValueSchema = raqbQueryValueSchema
 
 export enum RouteActionType {
   CustomPageMessage = "customPageMessage",

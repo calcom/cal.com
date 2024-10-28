@@ -111,10 +111,13 @@ function transformAttributesToCompatibleFormat(attributes: Attribute[]) {
 
 export function getQueryBuilderConfigForAttributes({
   attributes,
-  form,
+  fieldsAsAdditionalSelectOptions = [],
 }: {
   attributes: Attribute[];
-  form: Pick<RoutingForm, "fields">;
+  fieldsAsAdditionalSelectOptions: {
+    label: string;
+    id: string;
+  }[];
 }) {
   const transformedAttributes = transformAttributesToCompatibleFormat(attributes);
   const fields: RaqbConfigFields = {};
@@ -126,8 +129,7 @@ export function getQueryBuilderConfigForAttributes({
       const widgetType = widget.type;
       const attributeOptions = attribute.options.concat(
         (() => {
-          const formFields = form.fields || [];
-          const formFieldsOptions = formFields.map((field) => ({
+          const formFieldsOptions = fieldsAsAdditionalSelectOptions.map((field) => ({
             title: `Value of field '${field.label}'`,
             value: `{field:${field.id}}`,
           }));

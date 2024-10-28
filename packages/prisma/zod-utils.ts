@@ -22,7 +22,7 @@ import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
-
+import { raqbQueryValueSchema as _raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 // Let's not import 118kb just to get an enum
 export enum Frequency {
   YEARLY = 0,
@@ -752,3 +752,5 @@ export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
 });
+
+export const raqbQueryValueSchema = _raqbQueryValueSchema.nullish();

@@ -30,7 +30,6 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import "../../components/react-awesome-query-builder/styles.css";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import {
@@ -43,6 +42,7 @@ import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
 import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
 import { RouteActionType } from "../../zod";
+import { buildEmptyQueryValue, raqbQueryValueUtils } from "../../lib/raqbUtils";
 
 type FormFieldsQueryBuilderState = {
   tree: ImmutableTree;
@@ -140,7 +140,7 @@ const hasRules = (route: Route) => {
 };
 
 function getEmptyQueryValue() {
-  return { id: QbUtils.uuid(), type: "group" };
+  return buildEmptyQueryValue();
 }
 
 const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
@@ -673,7 +673,7 @@ const Routes = ({
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
         attributes: attributes,
-        form: hookForm.getValues(),
+        fieldsAsAdditionalSelectOptions: hookForm.getValues().fields,
       })
     : null;
 

@@ -145,6 +145,9 @@ model EventType {
   instantMeetingScheduleId                Int?
   instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   assignAllTeamMembers                    Boolean                   @default(false)
+  assignTeamMembersInSegment              Boolean                   @default(false)
+  /// @zod.custom(imports.raqbQueryValueSchema)
+  membersAssignmentSegmentQueryValue      Json?
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)

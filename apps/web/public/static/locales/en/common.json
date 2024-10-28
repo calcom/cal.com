@@ -2708,6 +2708,7 @@
   "reassign_unavailable_team_member_description": "Are you sure you want to reassign this booking to an unavailable host?",
   "yes_reassign": "Yes, reassign",
   "fallback_attribute_logic_description": "Fallback: If no Team Members match, use those that match the following criteria(Matches all assigned team members of the event by default)",
+  "filter_by_attributes": "Filter by attributes",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
 

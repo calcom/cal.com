@@ -96,18 +96,24 @@ const FixedHostHelper = (
 );
 
 const FixedHosts = ({
+  teamId,
   teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
+  assignTeamMembersInSegment,
+  setAssignTeamMembersInSegment,
   setAssignAllTeamMembers,
   isRoundRobinEvent = false,
 }: {
+  teamId: number;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  assignTeamMembersInSegment: boolean;
+  setAssignTeamMembersInSegment: Dispatch<SetStateAction<boolean>>;
   isRoundRobinEvent?: boolean;
 }) => {
   const { t } = useLocale();
@@ -127,12 +133,15 @@ const FixedHosts = ({
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
+              assignTeamMembersInSegment={assignTeamMembersInSegment}
+              setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
               isFixed={true}
               onActive={() => {
                 const currentHosts = getValues("hosts");
@@ -176,11 +185,14 @@ const FixedHosts = ({
           childrenClassName="lg:ml-0">
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
+              assignTeamMembersInSegment={assignTeamMembersInSegment}
+              setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
               onActive={() => {
@@ -216,12 +228,18 @@ const RoundRobinHosts = ({
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  assignTeamMembersInSegment,
+  setAssignTeamMembersInSegment,
+  teamId,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  assignTeamMembersInSegment: boolean;
+  setAssignTeamMembersInSegment: Dispatch<SetStateAction<boolean>>;
+  teamId: number;
 }) => {
   const { t } = useLocale();
 
@@ -239,7 +257,7 @@ const RoundRobinHosts = ({
         <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && (
+        {!assignAllTeamMembers && !assignTeamMembersInSegment && (
           <Controller<FormValues>
             name="isRRWeightsEnabled"
             render={({ field: { value, onChange } }) => (
@@ -259,11 +277,14 @@ const RoundRobinHosts = ({
           />
         )}
         <AddMembersWithSwitch
+          teamId={teamId}
           teamMembers={teamMembers}
           value={value}
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
+          assignTeamMembersInSegment={assignTeamMembersInSegment}
+          setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
@@ -328,13 +349,19 @@ const ChildrenEventTypes = ({
 };
 
 const Hosts = ({
+  teamId,
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  assignTeamMembersInSegment,
+  setAssignTeamMembersInSegment,
 }: {
+  teamId: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  assignTeamMembersInSegment: boolean;
+  setAssignTeamMembersInSegment: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { t } = useLocale();
   const {
@@ -388,6 +415,7 @@ const Hosts = ({
         const schedulingTypeRender = {
           COLLECTIVE: (
             <FixedHosts
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={(changeValue) => {
@@ -395,11 +423,14 @@ const Hosts = ({
               }}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
+              assignTeamMembersInSegment={assignTeamMembersInSegment}
+              setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
             />
           ),
           ROUND_ROBIN: (
             <>
               <FixedHosts
+                teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -407,9 +438,12 @@ const Hosts = ({
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
+                assignTeamMembersInSegment={assignTeamMembersInSegment}
+                setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
                 isRoundRobinEvent={true}
               />
               <RoundRobinHosts
+                teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -418,6 +452,8 @@ const Hosts = ({
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
+                assignTeamMembersInSegment={assignTeamMembersInSegment}
+                setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
               />
             </>
           ),
@@ -471,6 +507,10 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
     getValues("assignAllTeamMembers") ?? false
   );
 
+  const [assignTeamMembersInSegment, setAssignTeamMembersInSegment] = useState<boolean>(
+    getValues("assignTeamMembersInSegment") ?? false
+  );
+
   return (
     <div>
       {team && !isManagedEventType && (
@@ -502,6 +542,9 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
             </div>
           </div>
           <Hosts
+            teamId={team.id}
+            assignTeamMembersInSegment={assignTeamMembersInSegment}
+            setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}

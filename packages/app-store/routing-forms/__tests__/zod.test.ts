@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 
 import { queryValueSaveValidationSchema } from "../zod";
-
+// FIXME: Verify that valueType is saved in the queryValue
+// Make sure that we test what we reuse everywhere
 describe("queryValueValidationSchema", () => {
   it("should allow a rule with value", () => {
     const validQueryValue = {

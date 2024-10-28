@@ -22,7 +22,6 @@ import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import "../../components/react-awesome-query-builder/styles.css";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
 import {
   getQueryBuilderConfigForFormFields,

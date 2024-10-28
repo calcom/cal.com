@@ -1,16 +1,18 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
+import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
+import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import type { AttributesQueryBuilderConfigWithRaqbFields } from "./getQueryBuilderConfig";
-import { getQueryBuilderConfigForAttributes } from "./getQueryBuilderConfig";
 import type { Attribute, AttributesQueryValue } from "../types/types";
 import type { LocalRoute } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import type { SerializableField } from "../types/types";
+import type { AttributesQueryBuilderConfigWithRaqbFields } from "./getQueryBuilderConfig";
+import { getQueryBuilderConfigForAttributes } from "./getQueryBuilderConfig";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 
@@ -84,6 +86,31 @@ export const raqbQueryValueUtils = {
     }
     return !queryValue.children1;
   },
+};
+
+export function buildEmptyQueryValue() {
+  return { id: QbUtils.uuid(), type: "group" };
+}
+
+export const buildStateFromQueryValue = ({
+  queryValue,
+  config,
+}: {
+  /**
+   * Allow null as the queryValue as initially there could be no queryValue and without that we can't build the state and can't show the UI
+   */
+  queryValue: JsonTree | null;
+  config: Config;
+}) => {
+  let queryValueToUse = queryValue || buildEmptyQueryValue();
+  const immutableTree = QbUtils.checkTree(QbUtils.loadTree(queryValueToUse), config);
+  return {
+    state: {
+      tree: immutableTree,
+      config,
+    },
+    queryValue: QbUtils.getTree(immutableTree),
+  };
 };
 
 /**

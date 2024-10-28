@@ -4,6 +4,7 @@ import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { customInputSchema, EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
@@ -66,6 +67,8 @@ export const EventTypeUpdateInput = _EventTypeModel
     multiplePrivateLinks: z.array(z.string()),
     assignAllTeamMembers: z.boolean().optional(),
     isRRWeightsEnabled: z.boolean().optional(),
+    assignTeamMembersInSegment: z.boolean().optional(),
+    membersAssignmentSegmentQueryValue: raqbQueryValueSchema.optional(),
   })
   .partial()
   .extend({
