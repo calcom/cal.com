@@ -1,0 +1,73 @@
+---
+title: "Payment form"
+---
+
+The Payment form atom is a streamlined interface that integrates with Stripe to facilitate secure payment processing for bookings. It allows users to easily enter their payment information, ensuring a smooth and efficient transaction experience at the time of booking.
+
+Below code snippet can be used to render the Payment form atom
+
+```js
+import { PaymentForm } from "@calcom/atoms";
+
+export default function StripePaymentForm(uid: string) {
+  return (
+    <main>
+      <PaymentForm paymentUid={uid} />
+    </main>
+  );
+}
+```
+
+For a demonstration of the Payment form, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      width="560"
+      height="315"
+      src="https://www.loom.com/embed/13cf66446b554d5c9405f9d4fef53f47?sid=d2994785-027e-4de7-937a-3b90fc357182"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+Below is a list of props that can be passed to the Payment form.
+
+<p></p>
+
+| Name                  | Required | Description                                                              |
+| :-------------------- | :------- | :----------------------------------------------------------------------- |
+| paymentUid            | Yes      | The uid of the payment                                                   |
+| onPaymentSuccess      | No       | Callback function to be executed upon successful payment processing      |
+| onPaymentCancellation | No       | Callback function to be executed upon payment processing failure         |
+| onEventTypePaymentInfoSuccess    | No       | Callback function to be executed when payment information is successfully processed. |
+| onEventTypePaymentInfoFailure    | No       | Callback function to be executed upon payment information processing failure. |
+
+The Payment form atom works best when combined with the event types atom to provide a seamless payment experience. In order to combine payment and event types atom, here are the steps we recommend:
+
+<Steps>
+    <Step title="Setup stripe in event types atom"> 
+
+    </Step>
+    <Step title="Use booker atom to access payment uid">
+
+    </Step>
+    <Step title="Setup a page for payments">
+
+    </Step>
+</Steps>
+
+<p></p>
+
+    <iframe
+      width="560"
+      height="315"
+      src="https://www.loom.com/embed/0c1bc59da8c34d83b8dfcbd7557f7eaa?sid=058cf5df-1e3a-4fe3-b721-8c5a9eac4f24"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
