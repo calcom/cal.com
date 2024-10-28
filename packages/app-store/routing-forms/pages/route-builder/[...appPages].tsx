@@ -378,7 +378,7 @@ const Route = ({
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
     <div>
       <span className="text-emphasis flex w-full items-center text-sm">
-        For responses matching the following criteria(matches all by default)
+        For responses matching the following criteria (matches all by default)
       </span>
       <Query
         {...(formFieldsQueryBuilderConfig as unknown as Config)}
@@ -393,7 +393,7 @@ const Route = ({
         renderBuilder={renderBuilder}
       />
       <Divider className="mt-6" />
-      <Divider className="mb-6" />
+      <Divider className="mb-6 " />
     </div>
   ) : null;
 
@@ -401,7 +401,7 @@ const Route = ({
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
         <span className="text-emphasis flex w-full items-center text-sm">
-          and use only the Team Members that match the following criteria(matches all by default)
+          and use only the Team Members that match the following criteria (matches all by default)
         </span>
 
         {isRoundRobinEventSelectedForRedirect ? (
@@ -687,7 +687,7 @@ const Routes = ({
         if (!r.queryValue?.id) {
           r.queryValue = getEmptyQueryValue() as LocalRoute["queryValue"];
         }
-        
+
         if (!r.attributesQueryValue) {
           r.attributesQueryValue = getEmptyQueryValue() as LocalRoute["attributesQueryValue"];
         }
