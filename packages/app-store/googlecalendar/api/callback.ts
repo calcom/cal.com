@@ -76,13 +76,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const tokenInfo = key.access_token ? await oAuth2Client.getTokenInfo(key.access_token) : null;
     const userEmail = tokenInfo?.email ?? null;
 
-    let primaryCal = cals.data.items?.find(
-      (cal) => cal.primary || cal.accessRole === "owner" || cal.id === userEmail
+    const calsSortedByScore = [...(cals.data.items ?? [])].sort(
+      (a, b) => getCalendarScore(b, userEmail) - getCalendarScore(a, userEmail)
     );
-    if (!primaryCal?.id) {
-      // If the primary calendar is not set, set it to the first calendar
-      primaryCal = cals.data.items?.[0];
-    }
+    const primaryCal = calsSortedByScore[0];
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
     if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
@@ -206,6 +203,18 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
   }
+}
+
+function getCalendarScore(cal: any, userEmail: string | null) {
+  let score = 0;
+
+  if (cal.primary === true) score += 100;
+
+  if (cal.accessRole === "owner") score += 50;
+
+  if (cal.id === userEmail) score += 25;
+
+  return score;
 }
 
 export default defaultHandler({
