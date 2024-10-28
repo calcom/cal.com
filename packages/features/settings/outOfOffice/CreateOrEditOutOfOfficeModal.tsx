@@ -140,6 +140,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onDatesChange={(values) => {
                         onChange(values);
                       }}
+                      disablePastDates={false}
                     />
                   )}
                 />

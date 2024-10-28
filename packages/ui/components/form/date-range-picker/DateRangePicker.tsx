@@ -16,6 +16,7 @@ type DatePickerWithRangeProps = {
   disabled?: boolean;
   minDate?: Date;
   maxDate?: Date;
+  disablePastDates?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -25,6 +26,7 @@ export function DatePickerWithRange({
   maxDate,
   onDatesChange,
   disabled,
+  disablePastDates = true,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   // Even though this is uncontrolled we need to do a bit of logic to improve the UX when selecting dates
   function _onDatesChange(onChangeValues: DateRange | undefined) {
@@ -65,6 +67,7 @@ export function DatePickerWithRange({
             initialFocus
             fromDate={minDate}
             toDate={maxDate}
+            disablePastDates={disablePastDates}
             mode="range"
             defaultMonth={dates?.startDate}
             selected={{ from: dates?.startDate, to: dates?.endDate }}
