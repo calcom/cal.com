@@ -63,8 +63,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       return;
     }
 
-    // Set the primary calendar as the first selected calendar
-
     oAuth2Client.setCredentials(key);
 
     const calendar = google.calendar({
