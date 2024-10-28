@@ -140,8 +140,12 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-
-    const primaryCal = cals.data.items?.find((cal) => cal.primary);
+    const tokenInfo = key.access_token ? await oAuth2Client.getTokenInfo(key.access_token) : null;
+    const userEmail = tokenInfo?.email ?? null;
+    const calsSortedByScore = [...(cals.data.items ?? [])].sort(
+      (a, b) => getCalendarScore(b, userEmail) - getCalendarScore(a, userEmail)
+    );
+    const primaryCal = calsSortedByScore[0];
 
     if (primaryCal?.id) {
       const alreadyExistingSelectedCalendar = await this.selectedCalendarsRepository.getUserSelectedCalendar(
@@ -183,4 +187,16 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     return { url: redir || origin };
   }
+}
+
+function getCalendarScore(cal: any, userEmail: string | null) {
+  let score = 0;
+
+  if (cal.primary === true) score += 100;
+
+  if (cal.accessRole === "owner") score += 50;
+
+  if (cal.id === userEmail) score += 25;
+
+  return score;
 }
