@@ -38,9 +38,11 @@ import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
+type ScheduleType = Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+
 type EventTypeScheduleDetailsProps = {
   scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly" | "timeBlocks"> & {
-    schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+    schedule: SchedueType;
   };
   isSchedulePending?: boolean;
   user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
@@ -181,8 +183,6 @@ const EventTypeScheduleDetails = memo(
 
 EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
-type ScheduleType = RouterOutputs["viewer"]["availability"]["schedule"]["get"]["schedule"];
-
 const EventTypeScheduleDayRange = ({
   schedule,
   isPending,
@@ -190,7 +190,7 @@ const EventTypeScheduleDayRange = ({
 }: {
   schedule: ScheduleType | undefined;
   isPending?: boolean;
-  loggedInUser?: RouterOutputs["viewer"]["me"];
+  loggedInUser?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
 }) => {
   const { t, i18n } = useLocale();
   const timeFormat = loggedInUser?.timeFormat;

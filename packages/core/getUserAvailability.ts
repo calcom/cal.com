@@ -98,6 +98,7 @@ const _getEventType = async (id: number) => {
               },
               timeZone: true,
               id: true,
+              timeBlocks: true,
             },
           },
         },
@@ -426,7 +427,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }
 
   let availabilitySource;
-  if (schedule?.timeBlocks.length) {
+  if (schedule?.timeBlocks?.length) {
     availabilitySource = timeBlocks;
   } else {
     availabilitySource =
