@@ -53,7 +53,6 @@ const emailReminderTemplate = (
 
   const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
-  console.log({ emailSubject, emailBody });
   return { emailSubject, emailBody };
 };
 
