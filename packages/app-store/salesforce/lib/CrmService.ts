@@ -581,7 +581,6 @@ export default class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
-    const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
-    return accountId;
+    return this.getDominantAccountId(response.records as { AccountId: string }[]);
   }
 }
