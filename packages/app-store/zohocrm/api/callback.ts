@@ -28,8 +28,8 @@ function isAuthorizedAccountsServerUrl(accountsServer: string) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
   const { code, "accounts-server": accountsServer } = req.query;
+
   if (code === undefined && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
@@ -71,7 +71,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
     },
   });
-
   // set expiry date as offset from current time.
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = accountsServer;
