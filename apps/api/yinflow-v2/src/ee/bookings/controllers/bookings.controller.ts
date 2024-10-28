@@ -422,7 +422,7 @@ export class BookingsController {
   }
 
   private async cancelUsageByBookingUid(req: BookingRequest, bookingId: string): Promise<any> {
-    const { allRemainingBookings, cancellationReason } = req.body;
+    const { cancellationReason } = req.body;
     const { data: bookingToDelete } = await supabase
       .from("Booking")
       .update({
@@ -433,21 +433,21 @@ export class BookingsController {
       .select("*")
       .maybeSingle();
 
-    let allBookingsUpdated = [bookingToDelete];
+    const allBookingsUpdated = [bookingToDelete];
 
     if (bookingToDelete?.eventType?.seatsPerTimeSlot)
       await supabase.from("Attendee").delete().eq("bookingId", bookingId).select("*");
 
-    if (allRemainingBookings) {
-      const recurringEventId = bookingToDelete.recurringEventId;
-      const { data: updatedBookings } = await supabase
-        .from("Booking")
-        .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
-        .eq("recurringEventId", recurringEventId)
-        .gte("startTime", new Date())
-        .select("*");
-      allBookingsUpdated = [...(updatedBookings as any[])];
-    }
+    // if (allRemainingBookings) {
+    //   const recurringEventId = bookingToDelete.recurringEventId;
+    //   const { data: updatedBookings } = await supabase
+    //     .from("Booking")
+    //     .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
+    //     .eq("recurringEventId", recurringEventId)
+    //     .gte("startTime", new Date())
+    //     .select("*");
+    //   allBookingsUpdated = [...(updatedBookings as any[])];
+    // }
 
     await supabase
       .from("Booking")

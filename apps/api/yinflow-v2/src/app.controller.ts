@@ -2,7 +2,7 @@ import { Controller, Get, Param, UseGuards, Version, VERSION_NEUTRAL } from "@ne
 
 import { ApiAuthGuard } from "./modules/auth/guards/api-auth/api-auth.guard";
 
-const SUPABASE_URL = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/";
+const SUPABASE_URL = process.env.SUPABASE_BASE_URL!;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
 
 @Controller()
@@ -13,7 +13,7 @@ export class AppController {
     return "OK";
   }
 
-  @Get("/supabase")
+  @Get("supabase/:scope/:eq")
   @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
   async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
