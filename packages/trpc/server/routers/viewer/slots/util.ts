@@ -6,8 +6,7 @@ import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailabilit
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
-import monitorCallbackAsync from "@calcom/core/sentryWrapper";
-import { monitorCallbackSync } from "@calcom/core/sentryWrapper";
+import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWrapper";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
