@@ -137,7 +137,7 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserFromOwnerId = async (ownerId: string) => {
     const conn = await this.conn;
-    return await conn.query(`SELECT Id, Email FROM User WHERE Id = '${ownerId}'`);
+    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${ownerId}'`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -153,7 +153,6 @@ export default class SalesforceCRMService implements CRM {
     options: { [key: string]: unknown }
   ) => {
     const conn = await this.conn;
-    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
 
     return await conn.sobject("Event").create({
       StartDateTime: new Date(event.startTime).toISOString(),
@@ -166,7 +165,6 @@ export default class SalesforceCRMService implements CRM {
         IsRecurrence2: true,
         Recurrence2PatternText: new RRule(event.recurringEvent).toString(),
       }),
-      ...(ownerId && { OwnerId: ownerId }),
     });
   };
 
@@ -188,9 +186,12 @@ export default class SalesforceCRMService implements CRM {
       confirmedCustomFieldInputs[field] = appOptions.onBookingWriteToEventObjectMap[field];
     }
 
+    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
+
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
       ...confirmedCustomFieldInputs,
+      ...(ownerId && { OwnerId: ownerId }),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
         this.calWarnings.push(
@@ -207,6 +208,10 @@ export default class SalesforceCRMService implements CRM {
         return Promise.reject();
       }
     });
+    // Check to see if we also need to change the record owner
+    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
+      await this.checkRecordOwnerNameFromRecordId(contacts[0].id, ownerId);
+    }
     return createdEvent;
   };
 
@@ -570,6 +575,35 @@ export default class SalesforceCRMService implements CRM {
     } catch (e) {
       console.error(e);
       return [];
+    }
+  }
+
+  private async checkRecordOwnerNameFromRecordId(id: string, newOwnerId: string) {
+    const conn = await this.conn;
+    const appOptions = this.getAppOptions();
+
+    // Get the associated record that the event was created on
+    const recordQuery = (await conn.query(
+      `SELECT OwnerId FROM ${appOptions?.createEventOn} WHERE Id = '${id}'`
+    )) as { records: { OwnerId: string }[] };
+
+    if (!recordQuery || !recordQuery.records.length) return;
+
+    const ownerId = recordQuery.records[0].OwnerId;
+
+    const ownerQuery = await this.getSalesforceUserFromOwnerId(ownerId);
+
+    if (!ownerQuery || !ownerQuery.records.length) return;
+
+    const owner = ownerQuery.records[0] as { Name: string };
+
+    // Check that the owner name matches the names where we need to change the organizer
+    if (appOptions?.onBookingChangeRecordOwnerName.includes(owner.Name)) {
+      await conn.sobject(appOptions?.createEventOn).update({
+        // First field is there WHERE statement
+        Id: id,
+        OwnerId: newOwnerId,
+      });
     }
   }
 
