@@ -1,9 +1,8 @@
 import dayjs from "@calcom/dayjs";
+import "@calcom/dayjs/locales";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
-
-require("dayjs/locale/en");
 
 const emailReminderTemplate = (
   isEditingMode: boolean,
