@@ -8,7 +8,8 @@
       "@pages/*": ["pages/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/ui/*": ["../../packages/ui/components/*"]
     },
     "plugins": [
       {

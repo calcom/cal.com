@@ -124,11 +124,19 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
+    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    if (!chosenRoute) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chosen route not found",
+      });
+    }
+
     const teamMembersMatchingAttributeLogicWithResult =
       form.teamId && chosenRouteId
         ? await findTeamMembersMatchingAttributeLogicOfRoute({
             response,
-            routeId: chosenRouteId,
+            route: chosenRoute,
             form: serializableForm,
             teamId: form.teamId,
           })
@@ -145,14 +153,6 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
             (member) => member.userId
           )
         : null;
-
-    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
-    if (!chosenRoute) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Chosen route not found",
-      });
-    }
 
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },

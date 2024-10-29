@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
 
-import { Label } from "..";
+import { Label } from "../inputs/Label";
 import Switch from "./Switch";
 
 type Props = {

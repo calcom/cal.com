@@ -320,7 +320,15 @@ export default class SalesforceCRMService implements CRM {
         const results = await conn.query(soql);
         if (results.records.length) {
           const contact = results.records[0] as { AccountId: string };
-          soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
+          if (contact) {
+            soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
+          }
+        } else {
+          // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
+          const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
+          if (accountId) {
+            soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${accountId}'`;
+          }
         }
       }
       // If creating events on contacts or leads
@@ -398,13 +406,7 @@ export default class SalesforceCRMService implements CRM {
       // Base this off of the first contact
       const attendee = contactsToCreate[0];
 
-      const emailDomain = attendee.email.split("@")[1];
-
-      const response = await conn.query(
-        `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
-      );
-
-      const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
+      const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
 
       let contactCreated = false;
 
@@ -569,5 +571,16 @@ export default class SalesforceCRMService implements CRM {
       console.error(e);
       return [];
     }
+  }
+
+  private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
+    const conn = await this.conn;
+    const emailDomain = email.split("@")[1];
+
+    const response = await conn.query(
+      `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
+    );
+
+    return this.getDominantAccountId(response.records as { AccountId: string }[]);
   }
 }

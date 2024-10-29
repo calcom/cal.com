@@ -17,13 +17,13 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   t: TFunction;
   newSeat?: boolean;
   teamMember?: Person;
-  reassignedTo?: { name: string | null; email: string };
+  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
 
   constructor(input: {
     calEvent: CalendarEvent;
     newSeat?: boolean;
     teamMember?: Person;
-    reassignedTo?: { email: string; name: string | null };
+    reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
   }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
@@ -31,7 +31,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     this.t = this.calEvent.organizer.language.translate;
     this.newSeat = input.newSeat;
     this.teamMember = input.teamMember;
-    this.reassignedTo = input.reassignedTo;
+    this.reassigned = input.reassigned;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -53,6 +53,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         attendee: this.calEvent.organizer,
         teamMember: this.teamMember,
         newSeat: this.newSeat,
+        reassigned: this.reassigned,
       }),
       text: this.getTextBody(),
     };

@@ -4,9 +4,10 @@ import type { ComponentProps } from "react";
 import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
-import { Icon, type IconName } from "@calcom/ui";
 
-import type { ButtonColor } from "../../button/Button";
+import type { ButtonColor } from "../button";
+import { Icon } from "../icon";
+import type { IconName } from "../icon";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 

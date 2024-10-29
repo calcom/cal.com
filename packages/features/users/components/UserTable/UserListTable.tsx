@@ -30,6 +30,7 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
 } from "@calcom/ui";
+import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -44,7 +45,6 @@ import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-import { useFetchMoreOnBottomReached } from "./useFetchMoreOnBottomReached";
 
 type CustomColumnMeta<TData, TValue> = ColumnMeta<TData, TValue> & {
   sticky?: boolean;

@@ -1,8 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { components } from "react-select";
+import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -20,6 +22,7 @@ import {
   showToast,
   Select,
   RadioGroup as RadioArea,
+  TextAreaField,
 } from "@calcom/ui";
 
 type ReassignDialog = {
@@ -32,7 +35,19 @@ type ReassignDialog = {
 type FormValues = {
   reassignType: "round_robin" | "team_member";
   teamMemberId?: number;
+  reassignReason?: string;
 };
+
+const formSchema = z.object({
+  reassignType: z.enum(["round_robin", "team_member"]),
+  teamMemberId: z.number().optional(),
+  reassignReason: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.length >= 10, {
+      message: "Reassign reason must be at least 10 characters long if provided",
+    }),
+});
 
 export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingId }: ReassignDialog) => {
   const { t } = useLocale();
@@ -65,6 +80,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   }, [teamMembers]);
 
   const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       reassignType: "round_robin",
     },
@@ -111,7 +127,11 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
         if (selectedMember && selectedMember.status === "unavailable") {
           setShowConfirmation(true);
         } else {
-          roundRobinManualReassignMutation.mutate({ bookingId, teamMemberId: values.teamMemberId });
+          roundRobinManualReassignMutation.mutate({
+            bookingId,
+            teamMemberId: values.teamMemberId,
+            reassignReason: values.reassignReason,
+          });
         }
       }
     }
@@ -207,10 +227,20 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
             if (!teamMemberId) {
               return;
             }
-            roundRobinManualReassignMutation.mutate({ bookingId, teamMemberId });
+            roundRobinManualReassignMutation.mutate({
+              bookingId,
+              teamMemberId,
+              reassignReason: form.getValues("reassignReason"),
+            });
             setShowConfirmation(false);
           }}>
-          {t("reassign_unavailable_team_member_description")}
+          <p className="mb-4">{t("reassign_unavailable_team_member_description")}</p>
+          <TextAreaField
+            name="reassignReason"
+            label={t("reassign_reason")}
+            onChange={(e) => form.setValue("reassignReason", e.target.value)}
+            required
+          />
         </ConfirmationDialogContent>
       </Dialog>
     </>
