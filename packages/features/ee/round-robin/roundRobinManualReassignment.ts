@@ -260,7 +260,7 @@ export const roundRobinManualReassignment = async ({
         where: { userId: originalOrganizer.id },
       })
     : null;
-
+  console.log("booking", booking);
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
     rescheduleUid: booking.uid,
@@ -272,7 +272,6 @@ export const roundRobinManualReassignment = async ({
     },
     bookingId,
     bookingLocation,
-    bookingMetadata: booking.metadata,
   });
 
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
@@ -328,7 +327,7 @@ export const roundRobinManualReassignment = async ({
     await handleWorkflowsUpdate({
       booking,
       newUser,
-      evt,
+      evt: evtWithAdditionalInfo,
       eventType,
       orgId,
     });

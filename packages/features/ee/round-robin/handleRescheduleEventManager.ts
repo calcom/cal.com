@@ -1,5 +1,4 @@
 import type { DestinationCalendar } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
@@ -21,7 +20,6 @@ export const handleRescheduleEventManager = async ({
   initParams,
   bookingLocation,
   bookingId,
-  bookingMetadata,
 }: {
   evt: CalendarEvent;
   rescheduleUid: string;
@@ -31,7 +29,6 @@ export const handleRescheduleEventManager = async ({
   initParams: EventManagerInitParams;
   bookingLocation: string | null;
   bookingId: number;
-  bookingMetadata?: Prisma.JsonValue;
 }) => {
   const handleRescheduleEventManager = logger.getSubLogger({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
@@ -140,7 +137,7 @@ export const handleRescheduleEventManager = async ({
       },
       data: {
         location: bookingLocation,
-        metadata: { ...(typeof bookingMetadata === "object" && bookingMetadata), ...metadata },
+        metadata,
       },
     });
   } catch (error) {
