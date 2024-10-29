@@ -13,11 +13,11 @@ export class AppController {
     return "OK";
   }
 
-  @Get("supabase/:scope/:eq")
+  @Get("/supabase")
   @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
   async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
-    const supabaseResponse = await fetch(`${SUPABASE_URL}?scope=${scope}&eq=${eq}`, {
+    const supabaseResponse = await fetch(`${SUPABASE_URL}/${scope}?select=${eq}`, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
       },
