@@ -8,11 +8,22 @@ import type { App } from "@calcom/types/App";
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import http from "../../lib/http";
 
+type UserTeams =
+  | []
+  | {
+      teamId: number;
+      name: string;
+      logoUrl: string | null;
+      credentialId: number;
+      isAdmin: boolean;
+    }[];
+
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
   credentials: CredentialDataWithTeamName[];
   userCredentialIds: number[];
   locationOption: LocationOption | null;
+  teams: UserTeams;
 };
 
 export const QUERY_KEY = "use-event-app-integration";
