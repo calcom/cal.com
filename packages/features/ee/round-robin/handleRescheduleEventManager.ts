@@ -131,10 +131,19 @@ export const handleRescheduleEventManager = async ({
     newReferencesToCreate,
   });
 
-  prisma.booking.update({
-    where: { id: bookingId },
-    data: { metadata },
-  });
+  try {
+    await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        location: bookingLocation,
+        metadata,
+      },
+    });
+  } catch (error) {
+    handleRescheduleEventManager.error("Error while updating booking metadata", JSON.stringify({ error }));
+  }
 
   const evtWithAdditionalInfo = {
     ...evt,
