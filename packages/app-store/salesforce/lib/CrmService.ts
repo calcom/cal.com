@@ -209,7 +209,7 @@ export default class SalesforceCRMService implements CRM {
       }
     });
     // Check to see if we also need to change the record owner
-    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName) {
+    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
       await this.checkRecordOwnerNameFromRecordId(contacts[0].id, ownerId);
     }
     return createdEvent;
@@ -583,9 +583,9 @@ export default class SalesforceCRMService implements CRM {
     const appOptions = this.getAppOptions();
 
     // Get the associated record that the event was created on
-    const recordQuery = await conn.query(
+    const recordQuery = (await conn.query(
       `SELECT OwnerId FROM ${appOptions?.createEventOn} WHERE Id = '${id}'`
-    );
+    )) as { records: { OwnerId: string }[] };
 
     if (!recordQuery || !recordQuery.records.length) return;
 
@@ -595,7 +595,7 @@ export default class SalesforceCRMService implements CRM {
 
     if (!ownerQuery || !ownerQuery.records.length) return;
 
-    const owner = ownerQuery.records[0];
+    const owner = ownerQuery.records[0] as { Name: string };
 
     // Check that the owner name matches the names where we need to change the organizer
     if (appOptions?.onBookingChangeRecordOwnerName.includes(owner.Name)) {
