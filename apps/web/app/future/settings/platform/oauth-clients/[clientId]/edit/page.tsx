@@ -5,7 +5,7 @@ import EditView from "~/settings/platform/oauth-clients/[clientId]/edit/edit-vie
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "OAuth client updation form",
+    (t) => t("oAuth_client_updation_form"),
     () => ""
   );
 

@@ -2267,6 +2267,7 @@
   "seat_options_doesnt_multiple_durations": "Seat option doesn't support multiple durations",
   "include_calendar_event": "Include calendar event",
   "oAuth": "OAuth",
+  "oAuth_client_updation_form": "OAuth client updation form",
   "recently_added": "Recently added",
   "connect_all_calendars": "Connect all your calendars",
   "connect_all_calendars_description": "{{appName}} reads availability from all your existing calendars.",
