@@ -329,7 +329,7 @@ export default class SalesforceCRMService implements CRM {
     }
     const results = await conn.query(soql);
 
-    let records: ContactRecord[];
+    let records: ContactRecord[] = [];
 
     // If falling back to contacts, check for the contact before returning the leads or empty array
     if (
@@ -343,7 +343,7 @@ export default class SalesforceCRMService implements CRM {
         )}')`
       );
 
-      if (contactSearch || contactSearch.records.length > 0)
+      if (contactSearch && contactSearch.records.length > 0)
         records = contactSearch.records as ContactRecord[];
     } else if (!results || !results.records.length) {
       return [];
