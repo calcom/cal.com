@@ -265,7 +265,9 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
                         </label>
                       ))}
                       {isFetching && (
-                        <div className="p-4 text-center text-sm text-gray-500">{t("loading")}...</div>
+                        <div className="flex items-center justify-center p-4">
+                          <div className="bg-subtle h-4 w-32 animate-pulse rounded-md" />
+                        </div>
                       )}
                       <div ref={observerTarget} className="h-4 w-full" />
                     </div>
