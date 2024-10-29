@@ -55,7 +55,6 @@ export const handleRescheduleEventManager = async ({
 
   if (results.length) {
     // Handle Google Meet results
-    // We use the original booking location since the evt location changes to daily
     if (bookingLocation === MeetLocationType) {
       const googleMeetResult = {
         appName: GoogleMeetMetadata.name,
