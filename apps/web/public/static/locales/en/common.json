@@ -1626,6 +1626,7 @@
   "format": "Format",
   "uppercase_for_letters": "Use uppercase for all letters",
   "replace_whitespaces_underscores": "Replace whitespaces with underscores",
+  "platform_billing": "Platform billing",
   "manage_billing": "Manage billing",
   "manage_billing_description": "Manage all things billing",
   "billing_freeplan_title": "You're currently on the FREE plan",
