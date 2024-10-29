@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi, Mock } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import type { Mock } from "vitest";
+import { vi } from "vitest";
 
 import { TestFormDialog } from "../components/SingleForm";
 import { findMatchingRoute } from "../lib/processRoute";

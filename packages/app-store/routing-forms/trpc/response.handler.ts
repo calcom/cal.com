@@ -123,7 +123,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
-   
+
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     if (!chosenRoute) {
       throw new TRPCError({
@@ -153,8 +153,6 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
             (member) => member.userId
           )
         : null;
-
-
 
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },

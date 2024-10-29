@@ -653,30 +653,17 @@ const deserializeRoute = ({
   };
 };
 
-const Routes = ({
-  form,
+function useRoutes({
+  serializedRoutes,
+  formFieldsQueryBuilderConfig,
+  attributesQueryBuilderConfig,
   hookForm,
-  appUrl,
-  attributes,
-  eventTypesByGroup,
 }: {
-  form: inferSSRProps<typeof getServerSideProps>["form"];
+  serializedRoutes: SerializableRoute[] | null | undefined;
+  formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
+  attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
-  appUrl: string;
-  attributes: Attribute[] | null;
-  eventTypesByGroup: EventTypesByGroup;
-}) => {
-  const { routes: serializedRoutes } = hookForm.getValues();
-  const { t } = useLocale();
-
-  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
-  const attributesQueryBuilderConfig = attributes
-    ? getQueryBuilderConfigForAttributes({
-        attributes: attributes,
-        form: hookForm.getValues(),
-      })
-    : null;
-
+}) {
   const [routes, _setRoutes] = useState(() => {
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
@@ -713,14 +700,14 @@ const Routes = ({
     _setRoutes((routes) => {
       if (typeof newRoutes === "function") {
         const newRoutesValue = newRoutes(routes);
-        hookForm.setValue("routes", routesToSave(newRoutesValue));
+        hookForm.setValue("routes", getRoutesToSave(newRoutesValue));
         return newRoutesValue;
       }
-      hookForm.setValue("routes", routesToSave(newRoutes));
+      hookForm.setValue("routes", getRoutesToSave(newRoutes));
       return newRoutes;
     });
 
-    function routesToSave(routes: Route[]) {
+    function getRoutesToSave(routes: Route[]) {
       return routes.map((route) => {
         if (isRouter(route)) {
           return route;
@@ -737,6 +724,40 @@ const Routes = ({
       });
     }
   };
+
+  return { routes, setRoutes };
+}
+
+const Routes = ({
+  form,
+  hookForm,
+  appUrl,
+  attributes,
+  eventTypesByGroup,
+}: {
+  form: inferSSRProps<typeof getServerSideProps>["form"];
+  hookForm: UseFormReturn<RoutingFormWithResponseCount>;
+  appUrl: string;
+  attributes: Attribute[] | null;
+  eventTypesByGroup: EventTypesByGroup;
+}) => {
+  const { routes: serializedRoutes } = hookForm.getValues();
+  const { t } = useLocale();
+
+  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
+  const attributesQueryBuilderConfig = attributes
+    ? getQueryBuilderConfigForAttributes({
+        attributes: attributes,
+        form: hookForm.getValues(),
+      })
+    : null;
+
+  const { routes, setRoutes } = useRoutes({
+    serializedRoutes,
+    formFieldsQueryBuilderConfig,
+    attributesQueryBuilderConfig,
+    hookForm,
+  });
 
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 

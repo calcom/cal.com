@@ -13,6 +13,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { Brand } from "@calcom/types/utils";
 import {
   Alert,
   Badge,
@@ -340,12 +341,21 @@ const TeamMembersMatchResult = ({
   }
 };
 
+/**
+ * It has the the ongoing changes in the form along with enrichedWithUserProfileForm specific data.
+ * So, it can be used to test the form in the test preview dialog without saving the changes even.
+ */
+type UptoDateForm = Brand<
+  NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
+  "UptoDateForm"
+>;
+
 export const TestFormDialog = ({
   form,
   isTestPreviewOpen,
   setIsTestPreviewOpen,
 }: {
-  form: NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>;
+  form: UptoDateForm;
   isTestPreviewOpen: boolean;
   setIsTestPreviewOpen: (value: boolean) => void;
 }) => {
@@ -562,10 +572,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   });
   const connectedForms = form.connectedForms;
 
-  /**
-   * It has the the ongoing changes in the form along with enrichedWithUserProfileForm specific data
-   * So, it can be used to test the form in the test preview dialog without saving the changes even.
-   */
   const uptoDateForm = {
     ...hookForm.getValues(),
     routes: hookForm.watch("routes"),
@@ -575,7 +581,8 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     nonOrgTeamslug: enrichedWithUserProfileForm.nonOrgTeamslug,
     userOrigin: enrichedWithUserProfileForm.userOrigin,
     teamOrigin: enrichedWithUserProfileForm.teamOrigin,
-  }
+  } as UptoDateForm;
+
   return (
     <>
       <Form

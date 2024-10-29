@@ -5,7 +5,7 @@ import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import { getFieldResponse } from "../trpc/utils";
-import type { Attribute, AttributesQueryValue, LocalRoute, Route } from "../types/types";
+import type { Attribute, AttributesQueryValue, Route } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { RaqbLogicResult } from "./evaluateRaqbLogic";
 import { getTeamMembersWithAttributeOptionValuePerAttribute, getAttributesForTeam } from "./getAttributes";
