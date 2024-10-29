@@ -6,6 +6,7 @@ import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailabilit
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
+import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -399,7 +400,17 @@ export function getUsersWithCredentialsConsideringContactOwner({
   return contactOwnerAndFixedHosts;
 }
 
-export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+export const getAvailableSlots = async (
+  ...args: Parameters<typeof _getAvailableSlots>
+): Promise<ReturnType<typeof _getAvailableSlots>> => {
+  if (isEventTypeLoggingEnabled) {
+    return monitorCallbackAsync(_getAvailableSlots, ...args);
+  }
+
+  return _getAvailableSlots(...args);
+};
+
+async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const { _enableTroubleshooter: enableTroubleshooter = false } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -411,6 +422,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
   }
+
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
   const endPrismaEventTypeGet = performance.now();
