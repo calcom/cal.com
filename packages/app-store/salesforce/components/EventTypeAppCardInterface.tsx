@@ -28,6 +28,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectMap = getAppData("onBookingWriteToEventObjectMap") ?? {};
   const createEventOnLeadCheckForContact = getAppData("createEventOnLeadCheckForContact") ?? false;
+  const onBookingChangeRecordOwner = getAppData("onBookingChangeRecordOwner") ?? false;
+  const onBookingChangeRecordOwnerName = getAppData("onBookingChangeRecordOwnerName") ?? [];
   const { t } = useLocale();
 
   const recordOptions = [
@@ -220,6 +222,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             </div>
           ) : null}
         </div>
+
+        <div className="mt-4">
+          <Switch
+            label="Change record owner on booking"
+            labelOnLeading
+            checked={onBookingChangeRecordOwner}
+            onCheckedChange={(checked) => {
+              setAppData("onBookingChangeRecordOwner", checked);
+            }}
+          />
+        </div>
+        {onBookingChangeRecordOwner ? (
+          <div className="ml-2 mt-2">
+            <p className="mb-2">{t("salesforce_owner_name_to_change")}</p>
+            <InputField
+              value={onBookingChangeRecordOwnerName}
+              onChange={(e) => setAppData("onBookingChangeRecordOwnerName", e.target.value)}
+            />
+          </div>
+        ) : null}
 
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
           <div className="mt-4">
