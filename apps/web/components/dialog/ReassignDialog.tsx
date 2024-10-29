@@ -1,13 +1,14 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -24,7 +25,6 @@ import {
   Icon,
   RadioGroup as RadioArea,
   TextAreaField,
-  ScrollableArea,
 } from "@calcom/ui";
 
 type ReassignDialog = {
@@ -66,7 +66,6 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   });
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
-  const observerTarget = useRef<HTMLDivElement>(null);
 
   const { data, fetchNextPage, hasNextPage, isFetching } =
     trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
@@ -82,47 +81,23 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
       }
     );
 
-  useEffect(() => {
-    const currentTarget = observerTarget.current;
-    if (!currentTarget) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetching) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    observer.observe(currentTarget);
-
-    return () => {
-      if (currentTarget) observer.unobserve(currentTarget);
-    };
-  }, [fetchNextPage, hasNextPage, isFetching]);
-
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page.items) ?? [];
   }, [data]);
 
   const teamMemberOptions = useMemo(() => {
-    if (!data) {
-      return [
-        {
-          label: "Loading...",
-          value: 0,
-          status: "unavailable",
-        } as TeamMemberOption,
-      ];
-    }
-
     return allRows.map((member) => ({
-      label: member.name,
+      label: member.name || member.email,
       value: member.id,
       status: member.status,
     })) as TeamMemberOption[];
   }, [allRows]);
+
+  const { ref: observerRef } = useInViewObserver(() => {
+    if (hasNextPage && !isFetching) {
+      fetchNextPage();
+    }
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -224,52 +199,48 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
                     placeholder={t("search")}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <ScrollableArea className="h-[150px] rounded-md border">
-                    <div className="flex flex-col gap-0.5 p-1">
-                      {teamMemberOptions.map((member) => (
-                        <label
-                          key={member.value}
-                          tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
-                          role="radio"
-                          aria-checked={watchedTeamMemberId === member.value}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              form.setValue("teamMemberId", member.value);
-                            }
-                          }}
-                          className={classNames(
-                            "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
-                            watchedTeamMemberId === member.value && "bg-subtle"
-                          )}>
-                          <div className="flex flex-1 items-center space-x-3">
-                            <input
-                              type="radio"
-                              className="hidden"
-                              checked={watchedTeamMemberId === member.value}
-                              onChange={() => form.setValue("teamMemberId", member.value)}
-                            />
-                            <div
-                              className={classNames(
-                                "h-3 w-3 flex-shrink-0 rounded-full",
-                                member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
-                              )}
-                            />
-                            <span className="text-emphasis w-full text-sm">{member.label}</span>
-                            {watchedTeamMemberId === member.value && (
-                              <div className="place-self-end pr-2">
-                                <Icon name="check" className="text-emphasis h-4 w-4" />
-                              </div>
+                  <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                    {teamMemberOptions.map((member) => (
+                      <label
+                        key={member.value}
+                        tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
+                        role="radio"
+                        aria-checked={watchedTeamMemberId === member.value}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            form.setValue("teamMemberId", member.value);
+                          }
+                        }}
+                        className={classNames(
+                          "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
+                          watchedTeamMemberId === member.value && "bg-subtle"
+                        )}>
+                        <div className="flex flex-1 items-center space-x-3">
+                          <input
+                            type="radio"
+                            className="hidden"
+                            checked={watchedTeamMemberId === member.value}
+                            onChange={() => form.setValue("teamMemberId", member.value)}
+                          />
+                          <div
+                            className={classNames(
+                              "h-3 w-3 flex-shrink-0 rounded-full",
+                              member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
                             )}
-                          </div>
-                        </label>
-                      ))}
-                      {isFetching && (
-                        <div className="ext-center text-sm text-gray-500">{t("loading")}...</div>
-                      )}
-                      <div ref={observerTarget} className="h-4 w-full" />
-                    </div>
-                  </ScrollableArea>
+                          />
+                          <span className="text-emphasis w-full text-sm">{member.label}</span>
+                          {watchedTeamMemberId === member.value && (
+                            <div className="place-self-end pr-2">
+                              <Icon name="check" className="text-emphasis h-4 w-4" />
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                    {isFetching && <div className="text-center text-sm text-gray-500">{t("loading")}...</div>}
+                    {hasNextPage && !isFetching && <div ref={observerRef} className="h-4" />}
+                  </div>
                 </div>
               </div>
             )}
