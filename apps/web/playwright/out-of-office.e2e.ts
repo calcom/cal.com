@@ -201,6 +201,57 @@ test.describe("Out of office", () => {
 
     await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
+
+  test("Overlapping entries", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    const team = await prisma.team.create({
+      data: {
+        name: "test-insights",
+        slug: `test-insights-${Date.now()}-${randomString(5)}}`,
+      },
+    });
+
+    // create memberships
+    await prisma.membership.createMany({
+      data: [
+        {
+          userId: user.id,
+          teamId: team.id,
+          accepted: true,
+          role: "ADMIN",
+        },
+      ],
+    });
+
+    // Skip creating the ooo entry through front-end as we can assume that it has already been tested above.
+    const uuid = uuidv4();
+    await prisma.outOfOfficeEntry.create({
+      data: {
+        start: dayjs().startOf("day").subtract(1, "w").toDate(),
+        end: dayjs().startOf("day").add(1, "w").toDate(),
+        uuid,
+        user: { connect: { id: user.id } },
+        createdAt: new Date(),
+        reason: {
+          connect: {
+            id: 1,
+          },
+        },
+      },
+    });
+
+    await user.apiLogin();
+
+    // submit default OOO as its +2 days from Date.now()
+    await page.goto("/settings/my-account/out-of-office");
+    await page.getByTestId("add_entry_ooo").click();
+    await page.getByTestId("dates-allow-overlap-switch").click();
+
+    // send request
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+  });
 });
 
 async function saveAndWaitForResponse(page: Page) {

@@ -38,11 +38,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
   }
 
-  // If start date is before to today throw error
-  if (inputStartTime.isBefore(dayjs().startOf("day").subtract(1, "day"))) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
-  }
-
   let toUserId: number | null = null;
 
   if (input.toTeamUserId) {
@@ -74,44 +69,46 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   }
 
   // Validate if OOO entry for these dates already exists
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          uuid: {
-            not: input.uuid ?? "",
-          },
-        },
-        {
-          OR: [
+  const outOfOfficeEntry = input.allowOverlap
+    ? null
+    : await prisma.outOfOfficeEntry.findFirst({
+        where: {
+          AND: [
+            { userId: ctx.user.id, allowOverlap: false },
             {
-              start: {
-                lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
-              },
-              end: {
-                gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
+              uuid: {
+                not: input.uuid ?? "",
               },
             },
             {
-              //existing start is within the new input range
-              start: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-            {
-              //existing end is within the new input range
-              end: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
+              OR: [
+                {
+                  start: {
+                    lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
+                  },
+                  end: {
+                    gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
+                  },
+                },
+                {
+                  //existing start is within the new input range
+                  start: {
+                    gt: inputStartTime.toISOString(),
+                    lt: inputEndTime.toISOString(),
+                  },
+                },
+                {
+                  //existing end is within the new input range
+                  end: {
+                    gt: inputStartTime.toISOString(),
+                    lt: inputEndTime.toISOString(),
+                  },
+                },
+              ],
             },
           ],
         },
-      ],
-    },
-  });
+      });
 
   // don't allow overlapping entries
   if (outOfOfficeEntry) {
@@ -189,6 +186,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       toUserId: toUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
+      allowOverlap: input.allowOverlap,
     },
     update: {
       start: startDateUtc.startOf("day").toISOString(),
@@ -197,6 +195,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       userId: ctx.user.id,
       reasonId: input.reasonId,
       toUserId: toUserId ? toUserId : null,
+      allowOverlap: input.allowOverlap,
     },
   });
   let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;

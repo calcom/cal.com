@@ -27,6 +27,7 @@ export type BookingRedirectForm = {
   reasonId: number;
   notes?: string;
   uuid?: string | null;
+  allowOverlap?: boolean;
 };
 
 type Option = { value: number; label: string };
@@ -86,6 +87,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
           reasonId: 1,
+          allowOverlap: false,
         },
   });
 
@@ -140,9 +142,27 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onDatesChange={(values) => {
                         onChange(values);
                       }}
+                      minDate={new Date(0)}
                     />
                   )}
                 />
+                <div className="p-2 pb-0">
+                  <Controller
+                    name="allowOverlap"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Switch
+                        data-testid="dates-allow-overlap-switch"
+                        checked={value}
+                        id="dates-allow-overlap-switch"
+                        onCheckedChange={(state) => {
+                          onChange(state);
+                        }}
+                        label={t("allow_overlapping_dates")}
+                      />
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
