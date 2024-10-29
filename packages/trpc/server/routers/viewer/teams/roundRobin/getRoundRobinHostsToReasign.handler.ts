@@ -84,6 +84,12 @@ async function getTeamHostsFromDB({
   };
 }
 
+async function getEventTypeFromDB(eventTypeId: number, prisma: PrismaClient) {
+  return prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
+  });
+}
+
 export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobinHostsToReassignOptions) => {
   const { prisma } = ctx;
   const { bookingId, limit, cursor, searchTerm } = input;
@@ -102,19 +108,28 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
     },
   });
 
+  if (!booking.eventTypeId) {
+    throw new Error("Booking requires a event type to reassign hosts");
+  }
+
   const { hosts, totalCount, nextCursor } = await getTeamHostsFromDB({
     eventTypeId: booking.eventTypeId,
     prisma,
     searchTerm,
     cursor,
     limit,
-    excludeUserId: booking.userId,
+    excludeUserId: booking.userId ?? undefined,
   });
 
   let availableUsers: IsFixedAwareUser[] = [];
   try {
+    const eventType = await getEventTypeFromDB(booking.eventTypeId, prisma);
     availableUsers = await ensureAvailableUsers(
-      { users: hosts as IsFixedAwareUser[] },
+      // @ts-expect-error - TODO: We need to make sure nothing in the app needs the return type of getEventTypeFromDB as it fetches everything under the sun
+      {
+        users: hosts as IsFixedAwareUser[],
+        ...eventType,
+      },
       {
         dateFrom: dayjs(booking.startTime).format(),
         dateTo: dayjs(booking.endTime).format(),
