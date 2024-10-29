@@ -1,8 +1,9 @@
 import { type Params } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getFixedT } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -14,16 +15,16 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
-      () => `Editing user`,
-      () => "Here you can edit a current user."
+      (t) => t("editing_user"),
+      (t) => t("admin_users_edit_description")
     );
   }
 
   const user = await UserRepository.adminFindById(input.data.id);
 
   return await _generateMetadata(
-    () => `Editing user: ${user.username}`,
-    () => "Here you can edit a current user."
+    (t) => `${t("editing_user")}: ${user.username}`,
+    (t) => t("admin_users_edit_description")
   );
 };
 
@@ -36,9 +37,11 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const user = await UserRepository.adminFindById(input.data.id);
+    const session = await getServerSessionForAppDir();
+    const t = await getFixedT(session?.user.locale || "en");
 
     return (
-      <SettingsHeader title="Editing user" description="Here you can edit a current user">
+      <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
         <LicenseRequired>
           <UsersEditView user={user} />
         </LicenseRequired>
