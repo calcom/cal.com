@@ -598,6 +598,7 @@ export default class SalesforceCRMService implements CRM {
     // Check that the owner name matches the names where we need to change the organizer
     if (appOptions?.onBookingChangeRecordOwnerName.includes(owner.Name)) {
       await conn.sobject(appOptions?.createEventOn).update({
+        // First field is there WHERE statement
         Id: id,
         OwnerId: newOwnerId,
       });
