@@ -343,7 +343,8 @@ export default class SalesforceCRMService implements CRM {
         )}')`
       );
 
-      if (contactSearch || contactSearch.records.length) records = contactSearch.records as ContactRecord[];
+      if (contactSearch || contactSearch.records.length > 0)
+        records = contactSearch.records as ContactRecord[];
     } else if (!results || !results.records.length) {
       return [];
     }
