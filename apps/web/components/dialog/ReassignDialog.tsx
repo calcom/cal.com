@@ -229,7 +229,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
                       {teamMemberOptions.map((member) => (
                         <label
                           key={member.value}
-                          tabIndex={0}
+                          tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
                           role="radio"
                           aria-checked={watchedTeamMemberId === member.value}
                           onKeyDown={(e) => {
