@@ -5,6 +5,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import type { EventManagerInitParams } from "@calcom/core/EventManager";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { prisma } from "@calcom/prisma";
@@ -29,6 +30,10 @@ export const handleRescheduleEventManager = async ({
   bookingLocation: string | null;
   bookingId: number;
 }) => {
+  const handleRescheduleEventManager = logger.getSubLogger({
+    prefix: ["handleRescheduleEventManager", `${bookingId}`],
+  });
+
   const eventManager = new EventManager(initParams.user, initParams?.eventTypeAppMetadata);
 
   const updateManager = await eventManager.reschedule(
@@ -68,7 +73,7 @@ export const handleRescheduleEventManager = async ({
       const t = await getTranslation("en", "common");
 
       if (!googleCalResult) {
-        roundRobinReassignLogger.warn("Google Calendar not installed but using Google Meet as location");
+        handleRescheduleEventManager.warn("Google Calendar not installed but using Google Meet as location");
         results.push({
           ...googleMeetResult,
           success: false,
