@@ -446,7 +446,7 @@ export class BookingsController {
         .eq("recurringEventId", recurringEventId)
         .gte("startTime", new Date())
         .select("*");
-      allBookingsUpdated = [...(updatedBookings as any[])];
+      allBookingsUpdated = allBookingsUpdated.concat(updatedBookings);
     }
 
     await supabase
