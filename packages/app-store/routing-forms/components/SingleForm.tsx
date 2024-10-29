@@ -7,6 +7,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
+import cn from "@calcom/lib/classNames";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -234,66 +235,108 @@ type SingleFormComponentProps = {
   >["enrichedWithUserProfileForm"];
 };
 
-type MembersMatchResult = {
+type MembersMatchResultType = {
   teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
   checkedFallback: boolean;
-};
+  mainWarnings: string[] | null;
+  fallbackWarnings: string[] | null;
+} | null;
 
-const MembersMatchResult = ({
+const TeamMembersMatchResult = ({
   membersMatchResult,
   chosenRouteName,
 }: {
-  membersMatchResult: MembersMatchResult;
+  membersMatchResult: MembersMatchResultType;
   chosenRouteName: string;
 }) => {
   const { t } = useLocale();
+  if (!membersMatchResult) return null;
+
+  const hasMainWarnings = (membersMatchResult.mainWarnings?.length ?? 0) > 0;
+  const hasFallbackWarnings = (membersMatchResult.fallbackWarnings?.length ?? 0) > 0;
+
+  const renderFallbackLogicStatus = () => {
+    if (!membersMatchResult.checkedFallback) {
+      return t("fallback_not_needed");
+    } else if (
+      isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic) ||
+      membersMatchResult.teamMembersMatchingAttributeLogic.length > 0
+    ) {
+      return t("yes");
+    } else {
+      return t("no");
+    }
+  };
+
+  const renderMainLogicStatus = () => {
+    return !membersMatchResult.checkedFallback ? t("yes") : t("no");
+  };
+
+  const renderMatchingMembers = () => {
+    if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
+      if (membersMatchResult.checkedFallback) {
+        return (
+          <span className="font-semibold">
+            {t(
+              "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
+            )}
+          </span>
+        );
+      }
+      return (
+        <span className="font-semibold">
+          {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
+        </span>
+      );
+    }
+
+    const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic.map(
+      (member) => member.email
+    );
+
+    if (matchingMembers.length) {
+      return <span className="font-semibold">{matchingMembers.join(", ")}</span>;
+    }
+
+    return (
+      <span className="font-semibold">
+        {t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
+      </span>
+    );
+  };
+
   return (
     <div className="text-default mt-2 space-y-2">
       <div data-testid="chosen-route">
         {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
       </div>
-      <div data-testid="attribute-logic-matched">
-        {t("attribute_logic_matched")}:{" "}
-        <span className="font-semibold">{!membersMatchResult.checkedFallback ? "Yes" : "No"}</span>
+      <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+        {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
+        {hasMainWarnings && (
+          <Alert className="mt-2" severity="warning" title={membersMatchResult.mainWarnings?.join(", ")} />
+        )}
       </div>
-      <div data-testid="attribute-logic-fallback-matched">
+      <div data-testid="attribute-logic-fallback-matched" className={cn(hasFallbackWarnings && "text-error")}>
         {t("attribute_logic_fallback_matched")}:{" "}
-        <span className="font-semibold">
-          {!membersMatchResult.checkedFallback
-            ? "Not needed"
-            : membersMatchResult.checkedFallback
-            ? "Yes"
-            : "No"}
-        </span>
+        <span className="font-semibold">{renderFallbackLogicStatus()}</span>
+        {hasFallbackWarnings && (
+          <Alert
+            className="mt-2"
+            severity="warning"
+            title={membersMatchResult.fallbackWarnings?.join(", ")}
+          />
+        )}
       </div>
       <div data-testid="matching-members">
-        {t("matching_members")}:{" "}
-        {isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic) ? (
-          membersMatchResult.checkedFallback ? (
-            <span className="font-semibold">
-              {t(
-                "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
-              )}
-            </span>
-          ) : (
-            <span className="font-semibold">
-              {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
-            </span>
-          )
-        ) : (
-          <span className="font-semibold">
-            {membersMatchResult.teamMembersMatchingAttributeLogic.map((member) => member.email).join(", ") ||
-              t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
-          </span>
-        )}
+        {t("matching_members")}: {renderMatchingMembers()}
       </div>
     </div>
   );
 
   function isNoLogicFound(
-    teamMembersMatchingAttributeLogic: MembersMatchResult["teamMembersMatchingAttributeLogic"]
+    teamMembersMatchingAttributeLogic: NonNullable<MembersMatchResultType>["teamMembersMatchingAttributeLogic"]
   ): teamMembersMatchingAttributeLogic is null {
-    return !teamMembersMatchingAttributeLogic;
+    return teamMembersMatchingAttributeLogic === null;
   }
 };
 
@@ -312,16 +355,10 @@ export const TestFormDialog = ({
   const [eventTypeUrl, setEventTypeUrl] = useState("");
   const searchParams = useCompatSearchParams();
   const isTeamForm = !!form.teamId;
-  const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResult>({
-    teamMembersMatchingAttributeLogic: null,
-    checkedFallback: false,
-  });
+  const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
 
   const resetMembersMatchResult = () => {
-    setMembersMatchResult({
-      teamMembersMatchingAttributeLogic: null,
-      checkedFallback: false,
-    });
+    setMembersMatchResult(null);
   };
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
@@ -329,6 +366,8 @@ export const TestFormDialog = ({
         setMembersMatchResult({
           teamMembersMatchingAttributeLogic: data.result,
           checkedFallback: data.checkedFallback,
+          mainWarnings: data.mainWarnings,
+          fallbackWarnings: data.fallbackWarnings,
         });
       },
       onError(e) {
@@ -419,7 +458,7 @@ export const TestFormDialog = ({
               {isTeamForm ? (
                 !findTeamMembersMatchingAttributeLogicMutation.isPending ? (
                   <div>
-                    <MembersMatchResult
+                    <TeamMembersMatchResult
                       chosenRouteName={chosenRouteName()}
                       membersMatchResult={membersMatchResult}
                     />

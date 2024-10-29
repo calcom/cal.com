@@ -69,15 +69,21 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 let findTeamMembersMatchingAttributeLogicResponse: {
   result: { email: string }[] | null;
   checkedFallback: boolean;
+  mainWarnings?: string[] | null;
+  fallbackWarnings?: string[] | null;
 } = {
   result: null,
   checkedFallback: false,
+  mainWarnings: null,
+  fallbackWarnings: null,
 };
 
 function resetFindTeamMembersMatchingAttributeLogicResponse() {
   findTeamMembersMatchingAttributeLogicResponse = {
     result: null,
     checkedFallback: false,
+    mainWarnings: null,
+    fallbackWarnings: null,
   };
 }
 
@@ -181,19 +187,18 @@ describe("TestFormDialog", () => {
       render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
-      screen.logTestingPlaygroundURL();
       expect(screen.getByText("route_to:")).toBeInTheDocument();
       expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
       expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 1");
-      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
-      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Not needed");
+      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("yes");
+      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("fallback_not_needed");
       expect(screen.getByTestId("matching-members")).toHaveTextContent(
         "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules"
       );
     });
 
-    it("Suggests to add fallback when matching members is empty and fallback is not checked", async () => {
+    it("suggests to add fallback when matching members is empty and fallback is not checked", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       mockFindTeamMembersMatchingAttributeLogicResponse({
         result: [],
@@ -202,13 +207,64 @@ describe("TestFormDialog", () => {
       render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
-      screen.logTestingPlaygroundURL();
       expect(screen.getByText("route_to:")).toBeInTheDocument();
       expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
       expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 1");
-      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
-      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Not needed");
+      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("yes");
+      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("fallback_not_needed");
+      expect(screen.getByTestId("matching-members")).toHaveTextContent(
+        "all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match"
+      );
+    });
+
+    it("shows warnings when there are warnings", async () => {
+      mockEventTypeRedirectUrlMatchingRoute();
+      mockFindTeamMembersMatchingAttributeLogicResponse({
+        result: null,
+        checkedFallback: false,
+        mainWarnings: ["Main-Error-1", "Main-Error-2"],
+        fallbackWarnings: ["Fallback-Error-1", "Fallback-Error-2"],
+      });
+      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.click(screen.getByText("test_routing"));
+      screen.logTestingPlaygroundURL();
+      const alerts = screen.getAllByTestId("alert");
+      expect(alerts).toHaveLength(2);
+      expect(alerts[0]).toHaveTextContent("Main-Error-1, Main-Error-2");
+      expect(alerts[1]).toHaveTextContent("Fallback-Error-1, Fallback-Error-2");
+    });
+
+    it("should not show warnings when there are no warnings", async () => {
+      mockEventTypeRedirectUrlMatchingRoute();
+      mockFindTeamMembersMatchingAttributeLogicResponse({
+        result: null,
+        checkedFallback: false,
+        mainWarnings: null,
+        fallbackWarnings: null,
+      });
+      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.click(screen.getByText("test_routing"));
+      screen.logTestingPlaygroundURL();
+      const alerts = screen.queryAllByTestId("alert");
+      expect(alerts).toHaveLength(0);
+    });
+
+    it("should show No in main and fallback matched", async () => {
+      mockEventTypeRedirectUrlMatchingRoute();
+      mockFindTeamMembersMatchingAttributeLogicResponse({
+        result: [],
+        checkedFallback: true,
+        mainWarnings: null,
+        fallbackWarnings: null,
+      });
+      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.click(screen.getByText("test_routing"));
+      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("no");
+      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("no");
       expect(screen.getByTestId("matching-members")).toHaveTextContent(
         "all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match"
       );

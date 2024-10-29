@@ -55,6 +55,8 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     timeTaken: teamMembersMatchingAttributeLogicTimeTaken,
     troubleshooter,
     checkedFallback,
+    mainAttributeLogicBuildingWarnings: mainWarnings,
+    fallbackAttributeLogicBuildingWarnings: fallbackWarnings,
   } = await findTeamMembersMatchingAttributeLogicOfRoute(
     {
       response,
@@ -75,6 +77,8 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     return {
       troubleshooter,
       checkedFallback,
+      mainWarnings,
+      fallbackWarnings,
       result: null,
     };
   }
@@ -91,6 +95,8 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   return {
     troubleshooter,
     checkedFallback,
+    mainWarnings,
+    fallbackWarnings,
     result: matchingTeamMembers.map((user) => ({
       id: user.id,
       name: user.name,
