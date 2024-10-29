@@ -65,7 +65,7 @@ async function getTeamHostsFromDB({
       },
       take: limit + 1, // Take one more to determine if there's a next page
       ...(cursor && { skip: 1, cursor: { userId_eventTypeId: { userId: cursor, eventTypeId } } }),
-      orderBy: { priority: "desc" },
+      orderBy: [{ user: { name: "asc" } }, { priority: "desc" }],
     }),
   ]);
 
