@@ -66,7 +66,7 @@ import {
   required: true,
 })
 export class BookingsController_2024_08_13 {
-  private readonly logger = new Logger("BookingsController");
+  private readonly logger = new Logger("BookingsController_2024_08_13");
 
   constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
 

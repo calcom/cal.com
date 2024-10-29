@@ -384,6 +384,14 @@ export class BookingsController_2024_04_15 {
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
+    const requestId = req.get("X-Request-Id");
+    this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
     Object.assign(clone, {
       userId,
       ...oAuthParams,
