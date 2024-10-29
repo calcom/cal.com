@@ -95,7 +95,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         {createEventOnSelectedOption.value === SalesforceRecordEnum.LEAD ? (
           <div>
             <Switch
-              label="Create event on contact, if it exists. Else fallback to lead"
+              label={t("salesforce_create_event_on_contact")}
               labelOnLeading
               checked={createEventOnLeadCheckForContact}
               onCheckedChange={(checked) => {
