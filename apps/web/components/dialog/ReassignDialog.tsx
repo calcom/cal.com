@@ -77,7 +77,6 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
       }
     );
 
