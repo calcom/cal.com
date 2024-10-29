@@ -67,7 +67,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const { data, fetchNextPage, hasNextPage, isFetching } =
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
     trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
       {
         bookingId,
@@ -97,7 +97,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     if (hasNextPage && !isFetching) {
       fetchNextPage();
     }
-  });
+  }, document.querySelector('[role="dialog"]'));
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -238,8 +238,15 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
                         </div>
                       </label>
                     ))}
-                    {isFetching && <div className="text-center text-sm text-gray-500">{t("loading")}...</div>}
-                    {hasNextPage && !isFetching && <div ref={observerRef} className="h-4" />}
+                    <div className="text-default text-center" ref={observerRef}>
+                      <Button
+                        color="minimal"
+                        loading={isFetchingNextPage}
+                        disabled={!hasNextPage}
+                        onClick={() => fetchNextPage()}>
+                        {hasNextPage ? t("load_more_results") : t("no_more_results")}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
