@@ -19,6 +19,8 @@ export const bookingSelect = {
   },
   attendees: true,
   references: true,
+  metadata: true,
+  iCalUID: true,
 };
 
 export type BookingSelectResult = Prisma.BookingGetPayload<{

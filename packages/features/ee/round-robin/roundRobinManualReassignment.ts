@@ -272,6 +272,8 @@ export const roundRobinManualReassignment = async ({
     },
     bookingId,
     bookingLocation,
+    bookingICalUID: booking.iCalUID,
+    bookingMetadata: booking.metadata,
   });
 
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;

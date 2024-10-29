@@ -5,6 +5,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import type { EventManagerInitParams } from "@calcom/core/EventManager";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
@@ -20,6 +21,8 @@ export const handleRescheduleEventManager = async ({
   initParams,
   bookingLocation,
   bookingId,
+  bookingICalUID,
+  bookingMetadata,
 }: {
   evt: CalendarEvent;
   rescheduleUid: string;
@@ -29,6 +32,8 @@ export const handleRescheduleEventManager = async ({
   initParams: EventManagerInitParams;
   bookingLocation: string | null;
   bookingId: number;
+  bookingICalUID?: string;
+  bookingMetadata?: Prisma.JsonObject;
 }) => {
   const handleRescheduleEventManager = logger.getSubLogger({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
@@ -50,6 +55,7 @@ export const handleRescheduleEventManager = async ({
     results: results,
   });
 
+  let videoCallUrl = _videoCallUrl;
   let metadata: AdditionalInformation = {};
   metadata = videoMetadata;
 
@@ -117,6 +123,13 @@ export const handleRescheduleEventManager = async ({
     metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
     metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
 
+    videoCallUrl =
+      metadata.hangoutLink ||
+      createdOrUpdatedEvent?.url ||
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+      getVideoCallUrlFromCalEvent(evt) ||
+      videoCallUrl;
+
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
     evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
@@ -131,13 +144,24 @@ export const handleRescheduleEventManager = async ({
   });
 
   try {
+    if (bookingLocation?.startsWith("http")) {
+      videoCallUrl = bookingLocation;
+    }
+
+    const newBookingMetaData = videoCallUrl
+      ? {
+          videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+        }
+      : undefined;
+
     await prisma.booking.update({
       where: {
         id: bookingId,
       },
       data: {
         location: bookingLocation,
-        metadata,
+        iCalUID: evt.iCalUID !== bookingICalUID ? evt.iCalUID : bookingICalUID,
+        metadata: { ...(typeof bookingMetadata === "object" && bookingMetadata), ...newBookingMetaData },
       },
     });
   } catch (error) {
