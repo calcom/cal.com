@@ -13,7 +13,7 @@ export class AppController {
     return "OK";
   }
 
-  @Get("/supabase")
+  @Get("/supabase/:scope/:eq")
   @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
   async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
