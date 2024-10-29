@@ -331,6 +331,7 @@ export default class SalesforceCRMService implements CRM {
 
     let records: ContactRecord[];
 
+    // If falling back to contacts, check for the contact before returning the leads or empty array
     if (
       appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
       appOptions.createEventOnLeadCheckForContact
