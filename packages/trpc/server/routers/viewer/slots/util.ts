@@ -241,6 +241,7 @@ export async function getEventType(
               },
               timeZone: true,
               id: true,
+              timeBlocks: true,
             },
           },
         },
