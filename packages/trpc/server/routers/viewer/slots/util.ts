@@ -403,11 +403,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
 export const getAvailableSlots = async (
   ...args: Parameters<typeof _getAvailableSlots>
 ): Promise<ReturnType<typeof _getAvailableSlots>> => {
-  if (isEventTypeLoggingEnabled({ eventTypeId: args[0]?.input?.eventTypeId })) {
-    return monitorCallbackAsync(_getAvailableSlots, ...args);
-  }
-
-  return _getAvailableSlots(...args);
+  return monitorCallbackAsync(_getAvailableSlots, ...args);
 };
 
 async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
