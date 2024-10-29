@@ -607,6 +607,7 @@ model Booking {
   destinationCalendarId        Int?
   cancellationReason           String?
   rejectionReason              String?
+  reassignReason               String?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?

@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventType } from "@prisma/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -42,6 +43,8 @@ export const useCreateEventType = (
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const { form, isManagedEventType } = useCreateEventTypeForm();
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
@@ -49,6 +52,7 @@ export const useCreateEventType = (
 
       await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
         group: { teamId: eventType.teamId, parentId: eventType.parentId },
+        searchQuery: debouncedSearchTerm,
         limit: 10,
       });
 

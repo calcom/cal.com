@@ -7,12 +7,8 @@ import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
 
-import Icon from "../icon/Icon";
+import { Icon } from "../icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
-
-// Export DataTable components under a common namespace for better clarity
-export { DataTableToolbar } from "./DataTableToolbar";
-export { DataTableFilters } from "./filters";
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
