@@ -225,7 +225,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <ScrollableArea className="h-[150px] rounded-md border">
-                    <div className="flex flex-col p-1">
+                    <div className="flex flex-col gap-0.5 p-1">
                       {teamMemberOptions.map((member) => (
                         <label
                           key={member.value}
