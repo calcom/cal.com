@@ -307,14 +307,14 @@ export async function getDynamicEventType(
   });
 }
 
-export function getRegularOrDynamicEventType(
+export async function getRegularOrDynamicEventType(
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking
-    ? getDynamicEventType(input, organizationDetails)
-    : getEventType(input, organizationDetails);
+    ? await getDynamicEventType(input, organizationDetails)
+    : await getEventType(input, organizationDetails);
 }
 
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
@@ -484,14 +484,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const skipContactOwner = input.skipContactOwner;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
 
-  let routedHostsWithContactOwnerAndFixedHosts = monitorCallbackSync(
-    getRoutedHostsWithContactOwnerAndFixedHosts,
-    {
-      hosts: eventHosts,
-      routedTeamMemberIds: input.routedTeamMemberIds ?? null,
-      contactOwnerEmail,
-    }
-  );
+  let routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
+    hosts: eventHosts,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    contactOwnerEmail,
+  });
 
   if (
     input.rescheduleUid &&
@@ -979,12 +976,22 @@ async function getTeamIdFromSlug(
 }
 
 async function getExistingBookings(
-  startTimeDate,
-  endTimeDate,
-  eventType,
-  sharedQuery,
-  usersWithCredentials,
-  allUserIds
+  startTimeDate: Date,
+  endTimeDate: Date,
+  eventType: Awaited<ReturnType<typeof getEventType>>,
+  sharedQuery: {
+    startTime: {
+      lte: Date;
+    };
+    endTime: {
+      gte: Date;
+    };
+    status: {
+      in: "ACCEPTED"[];
+    };
+  },
+  usersWithCredentials: ReturnType<typeof getUsersWithCredentialsConsideringContactOwner>,
+  allUserIds: number[]
 ) {
   const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
     id: true,
@@ -1043,7 +1050,7 @@ async function getExistingBookings(
       startTime: { lte: endTimeDate },
       endTime: { gte: startTimeDate },
       eventType: {
-        id: eventType.id,
+        id: eventType?.id,
         requiresConfirmation: true,
         requiresConfirmationWillBlockSlot: true,
       },
