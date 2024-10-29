@@ -1,18 +1,21 @@
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getFixedT } from "app/_utils";
 
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import LockedSMSView from "~/settings/admin/locked-sms-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Locked SMS",
-    () => "Lock or unlock SMS sending for users"
+    (t) => t("lockedSMS"),
+    (t) => t("admin_lockedSMS_description")
   );
 
-const Page = () => {
+const Page = async () => {
+  const session = await getServerSessionForAppDir();
+  const t = await getFixedT(session?.user.locale || "en");
   return (
-    <SettingsHeader title="Locked SMS" description="Lock or unlock SMS sending for users">
+    <SettingsHeader title={t("lockedSMS")} description={t("admin_lockedSMS_description")}>
       <LockedSMSView />
     </SettingsHeader>
   );

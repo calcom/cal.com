@@ -1,8 +1,9 @@
 import { type Params } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getFixedT } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { OrgForm } from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgEditPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -14,16 +15,16 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = orgIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
-      () => `Editing organization`,
-      () => "Here you can edit an organization."
+      (t) => t("editing_org"),
+      (t) => t("admin_orgs_edit_description")
     );
   }
 
   const org = await OrganizationRepository.adminFindById({ id: input.data.id });
 
   return await _generateMetadata(
-    () => `Editing organization: ${org.name}`,
-    () => "Here you can edit an organization."
+    (t) => `${t("editing_org")}: ${org.name}`,
+    (t) => t("admin_orgs_edit_description")
   );
 };
 
@@ -34,11 +35,12 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const org = await OrganizationRepository.adminFindById({ id: input.data.id });
-
+    const session = await getServerSessionForAppDir();
+    const t = await getFixedT(session?.user.locale || "en");
     return (
       <SettingsHeader
-        title={`Editing organization: ${org.name}`}
-        description="Here you can edit an organization.">
+        title={`${t("editing_org")}: ${org.name}`}
+        description={t("admin_orgs_edit_description")}>
         <LicenseRequired>
           <OrgForm org={org} />
         </LicenseRequired>
