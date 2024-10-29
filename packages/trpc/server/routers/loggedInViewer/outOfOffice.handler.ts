@@ -32,6 +32,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const inputStartTime = dayjs(startDate).startOf("day");
   const inputEndTime = dayjs(endDate).endOf("day");
+  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
+  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   // If start date is after end date throw error
   if (inputStartTime.isAfter(inputEndTime)) {
@@ -87,24 +89,24 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           OR: [
             {
               start: {
-                lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
+                lte: endDateUtc.toDate(), //existing start is less than or equal to input end time
               },
               end: {
-                gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
+                gte: startDateUtc.toDate(), //existing end is greater than or equal to input start time
               },
             },
             {
               //existing start is within the new input range
               start: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
+                gt: startDateUtc.toDate(),
+                lt: endDateUtc.toDate(),
               },
             },
             {
               //existing end is within the new input range
               end: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
+                gt: startDateUtc.toDate(),
+                lt: endDateUtc.toDate(),
               },
             },
           ],
@@ -135,17 +137,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       OR: [
         // Outside of range
         {
-          AND: [
-            { start: { lte: inputEndTime.toISOString() } },
-            { end: { gte: inputStartTime.toISOString() } },
-          ],
+          AND: [{ start: { lte: endDateUtc.toDate() } }, { end: { gte: startDateUtc.toDate() } }],
         },
         // Inside of range
         {
-          AND: [
-            { start: { gte: inputStartTime.toISOString() } },
-            { end: { lte: inputEndTime.toISOString() } },
-          ],
+          AND: [{ start: { gte: startDateUtc.toDate() } }, { end: { lte: endDateUtc.toDate() } }],
         },
       ],
     },
@@ -155,8 +151,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
-  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
-  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
