@@ -810,6 +810,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -818,6 +819,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
@@ -1229,7 +1231,11 @@ async function handler(
           rescheduledMembers,
           eventType.metadata
         );
-        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
+        sendRoundRobinScheduledEmailsAndSMS({
+          calEvent: copyEventAdditionalInfo,
+          members: newBookedMembers,
+          eventTypeMetadata: eventType.metadata,
+        });
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)

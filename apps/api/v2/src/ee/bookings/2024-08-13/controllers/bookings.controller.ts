@@ -34,7 +34,14 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingOutput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
+import {
+  CancelBookingInput,
+  CancelBookingInputPipe,
+  GetBookingOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  RescheduleBookingInput,
+  RescheduleBookingInputPipe,
+} from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
   CreateBookingInput,
@@ -59,7 +66,7 @@ import {
   required: true,
 })
 export class BookingsController_2024_08_13 {
-  private readonly logger = new Logger("BookingsController");
+  private readonly logger = new Logger("BookingsController_2024_08_13");
 
   constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
 
@@ -166,7 +173,8 @@ export class BookingsController_2024_08_13 {
   })
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: RescheduleBookingInput_2024_08_13,
+    @Body(new RescheduleBookingInputPipe())
+    body: RescheduleBookingInput,
     @Req() request: Request
   ): Promise<RescheduleBookingOutput_2024_08_13> {
     const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
@@ -185,8 +193,18 @@ export class BookingsController_2024_08_13 {
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
-    @Body() body: CancelBookingInput_2024_08_13
+    @Body(new CancelBookingInputPipe())
+    body: CancelBookingInput
   ): Promise<CancelBookingOutput_2024_08_13> {
+    // TODO: implement Idempotency middleware
+    const alreadyCancelledBooking = await this.bookingsService.getBooking(bookingUid);
+    if (!Array.isArray(alreadyCancelledBooking) && alreadyCancelledBooking.status === "cancelled") {
+      return {
+        status: SUCCESS_STATUS,
+        data: alreadyCancelledBooking,
+      };
+    }
+
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 
     return {
