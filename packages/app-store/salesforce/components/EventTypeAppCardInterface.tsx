@@ -27,6 +27,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const createEventOn = getAppData("createEventOn") ?? SalesforceRecordEnum.CONTACT;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectMap = getAppData("onBookingWriteToEventObjectMap") ?? {};
+  const createEventOnLeadCheckForContact = getAppData("createEventOnLeadCheckForContact") ?? false;
   const onBookingChangeRecordOwner = getAppData("onBookingChangeRecordOwner") ?? false;
   const onBookingChangeRecordOwnerName = getAppData("onBookingChangeRecordOwnerName") ?? [];
   const { t } = useLocale();
@@ -89,6 +90,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               checked={isSkipContactCreationEnabled}
               onCheckedChange={(checked) => {
                 setAppData("skipContactCreation", checked);
+              }}
+            />
+          </div>
+        ) : null}
+        {createEventOnSelectedOption.value === SalesforceRecordEnum.LEAD ? (
+          <div>
+            <Switch
+              label={t("salesforce_create_event_on_contact")}
+              labelOnLeading
+              checked={createEventOnLeadCheckForContact}
+              onCheckedChange={(checked) => {
+                setAppData("createEventOnLeadCheckForContact", checked);
               }}
             />
           </div>
