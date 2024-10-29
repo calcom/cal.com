@@ -337,21 +337,25 @@ export default function Success(props: PageProps) {
     if (pathname && pathname.includes("/booking/")) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
-      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase/EventType/*`;
+      // const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase/EventType/*`;
+      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/v2/bookings?status=accepted&eventTypeId=1325`;
       const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase/Booking/*`;
 
       fetch(getEventTypeSlugUrl, {
         headers: { Authorization: "cal_f63feaae3cc8fc723f1226917933fc7c" },
       }).then((data) => {
-        data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
-          const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
-          const eventSlugs = data.reduce((acc, { id, slug }) => {
-            if (eventTypeIds.includes(id)) {
-              return { ...acc, [id]: slug };
-            }
-            return acc;
-          }, eventTypes);
-          setEventTypes(eventSlugs);
+        // data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
+        //   const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
+        //   const eventSlugs = data.reduce((acc, { id, slug }) => {
+        //     if (eventTypeIds.includes(id)) {
+        //       return { ...acc, [id]: slug };
+        //     }
+        //     return acc;
+        //   }, eventTypes);
+        //   setEventTypes(eventSlugs);
+        // });
+        data.json().then((result) => {
+          console.log({ result });
         });
       });
 

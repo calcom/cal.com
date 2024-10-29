@@ -52,6 +52,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
       "Content-Type",
       "Origin",
     ],
+    credentials: true,
     maxAge: 86_400,
   });
 
