@@ -34,7 +34,7 @@ export const handleRescheduleEventManager = async ({
   bookingLocation: string | null;
   bookingId: number;
   bookingICalUID?: string | null;
-  bookingMetadata?: Prisma.JsonObject;
+  bookingMetadata?: Prisma.JsonValue;
 }) => {
   const handleRescheduleEventManager = logger.getSubLogger({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
