@@ -1,17 +1,13 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -23,14 +19,14 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
@@ -259,118 +255,24 @@ export const roundRobinManualReassignment = async ({
     include: { user: { select: { email: true } } },
   });
 
-  const eventManager = new EventManager({ ...newUser, credentials });
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
         where: { userId: originalOrganizer.id },
       })
     : null;
 
-  const updateManager = await eventManager.reschedule(
+  const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
-    booking.uid,
-    undefined,
-    hasOrganizerChanged,
-    previousHostDestinationCalendar ? [previousHostDestinationCalendar] : []
-  );
-
-  const results = updateManager.results;
-
-  const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
-    results: results,
-  });
-
-  let metadata: AdditionalInformation = {};
-  metadata = videoMetadata;
-
-  if (results.length) {
-    // Handle Google Meet results
-    // We use the original booking location since the evt location changes to daily
-    if (bookingLocation === MeetLocationType) {
-      const googleMeetResult = {
-        appName: GoogleMeetMetadata.name,
-        type: "conferencing",
-        uid: results[0].uid,
-        originalEvent: results[0].originalEvent,
-      };
-
-      // Find index of google_calendar inside createManager.referencesToCreate
-      const googleCalIndex = updateManager.referencesToCreate.findIndex(
-        (ref) => ref.type === "google_calendar"
-      );
-      const googleCalResult = results[googleCalIndex];
-
-      const t = await getTranslation("en", "common");
-
-      if (!googleCalResult) {
-        roundRobinReassignLogger.warn("Google Calendar not installed but using Google Meet as location");
-        results.push({
-          ...googleMeetResult,
-          success: false,
-          calWarnings: [t("google_meet_warning")],
-        });
-      }
-
-      const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
-        ? googleCalResult.updatedEvent[0]?.hangoutLink
-        : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
-
-      if (googleHangoutLink) {
-        results.push({
-          ...googleMeetResult,
-          success: true,
-        });
-
-        // Add google_meet to referencesToCreate in the same index as google_calendar
-        updateManager.referencesToCreate[googleCalIndex] = {
-          ...updateManager.referencesToCreate[googleCalIndex],
-          meetingUrl: googleHangoutLink,
-        };
-
-        // Also create a new referenceToCreate with type video for google_meet
-        updateManager.referencesToCreate.push({
-          type: "google_meet_video",
-          meetingUrl: googleHangoutLink,
-          uid: googleCalResult.uid,
-          credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
-        });
-      } else if (googleCalResult && !googleHangoutLink) {
-        results.push({
-          ...googleMeetResult,
-          success: false,
-        });
-      }
-    }
-    const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
-      ? results[0]?.updatedEvent[0]
-      : results[0]?.updatedEvent ?? results[0]?.createdEvent;
-    metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
-    metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
-    metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
-
-    const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-    evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-      ? calendarResult?.updatedEvent[0]?.iCalUID
-      : calendarResult?.updatedEvent?.iCalUID || undefined;
-  }
-
-  const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
-
-  await BookingReferenceRepository.replaceBookingReferences({
+    rescheduleUid: booking.uid,
+    newBookingId: undefined,
+    changedOrganizer: hasOrganizerChanged,
+    previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+    initParams: {
+      user: { ...newUser, credentials },
+    },
     bookingId,
-    newReferencesToCreate,
+    bookingLocation,
   });
-
-  prisma.booking.update({
-    where: { id: bookingId },
-    data: { metadata },
-  });
-
-  const evtWithAdditionalInfo = {
-    ...evt,
-    additionalInformation: metadata,
-  };
 
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
