@@ -1,13 +1,13 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { components } from "react-select";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -20,9 +20,11 @@ import {
   DialogFooter,
   ConfirmationDialogContent,
   showToast,
-  Select,
+  Input,
+  Icon,
   RadioGroup as RadioArea,
   TextAreaField,
+  ScrollableArea,
 } from "@calcom/ui";
 
 type ReassignDialog = {
@@ -49,6 +51,12 @@ const formSchema = z.object({
     }),
 });
 
+interface TeamMemberOption {
+  label: string;
+  value: number;
+  status: string;
+}
+
 export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingId }: ReassignDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -56,28 +64,65 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     duration: 150,
     easing: "ease-in-out",
   });
-  // Were using legacy list members here because we don't currently have an easy way to paginate a select via infinite scroll
-  const teamMembers = trpc.viewer.teams.getRoundRobinHostsToReassign.useQuery({
-    bookingId,
-    exclude: "fixedHosts",
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  const { data, fetchNextPage, hasNextPage, isFetching } =
+    trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
+      {
+        bookingId,
+        exclude: "fixedHosts",
+        limit: 10,
+        searchTerm: debouncedSearch,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        keepPreviousData: true,
+      }
+    );
+
+  useEffect(() => {
+    const currentTarget = observerTarget.current;
+    if (!currentTarget) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetching) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    observer.observe(currentTarget);
+
+    return () => {
+      if (currentTarget) observer.unobserve(currentTarget);
+    };
+  }, [fetchNextPage, hasNextPage, isFetching]);
+
+  const allRows = useMemo(() => {
+    return data?.pages.flatMap((page) => page.items) ?? [];
+  }, [data]);
 
   const teamMemberOptions = useMemo(() => {
-    if (teamMembers.isLoading)
+    if (!data) {
       return [
         {
           label: "Loading...",
           value: 0,
           status: "unavailable",
-        },
+        } as TeamMemberOption,
       ];
+    }
 
-    return teamMembers.data?.map((member) => ({
+    return allRows.map((member) => ({
       label: member.name,
       value: member.id,
       status: member.status,
-    }));
-  }, [teamMembers]);
+    })) as TeamMemberOption[];
+  }, [allRows]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -138,6 +183,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   };
 
   const watchedReassignType = form.watch("reassignType");
+  const watchedTeamMemberId = form.watch("teamMemberId");
 
   return (
     <>
@@ -150,24 +196,20 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
           title={t("reassign_round_robin_host")}
           description={t("reassign_to_another_rr_host")}
           enableOverflow>
-          {/* TODO add team member reassignment*/}
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
                 form.setValue("reassignType", val as "team_member" | "round_robin");
               }}
-              className={classNames("mt-1 flex flex-col gap-4")}>
+              className="mt-1 flex flex-col gap-4">
               <RadioArea.Item
                 value="round_robin"
-                className={classNames("w-full text-sm")}
-                classNames={{ container: classNames("w-full") }}>
+                className="w-full text-sm"
+                classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">{t("round_robin")}</strong>
                 <p>{t("round_robin_reassign_description")}</p>
               </RadioArea.Item>
-              <RadioArea.Item
-                value="team_member"
-                className={classNames("text-sm")}
-                classNames={{ container: classNames("w-full") }}>
+              <RadioArea.Item value="team_member" className="text-sm" classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">{t("team_member_round_robin_reassign")}</strong>
                 <p>{t("team_member_round_robin_reassign_description")}</p>
               </RadioArea.Item>
@@ -176,31 +218,59 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
             {watchedReassignType === "team_member" && (
               <div className="mb-2">
                 <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
-                <Select
-                  value={teamMemberOptions?.find((option) => option.value === form.getValues("teamMemberId"))}
-                  options={teamMemberOptions}
-                  onChange={(event) => {
-                    form.setValue("teamMemberId", event?.value);
-                  }}
-                  components={{
-                    Option: ({ children, ...props }) => {
-                      const status = props.data?.status;
-                      return (
-                        <components.Option {...props}>
-                          <div className="flex items-center gap-2">
+                <div className="mt-2">
+                  <Input
+                    type="text"
+                    placeholder={t("search")}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <ScrollableArea className="h-[150px] rounded-md border">
+                    <div className="flex flex-col p-1">
+                      {teamMemberOptions.map((member) => (
+                        <label
+                          key={member.value}
+                          tabIndex={0}
+                          role="radio"
+                          aria-checked={watchedTeamMemberId === member.value}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              form.setValue("teamMemberId", member.value);
+                            }
+                          }}
+                          className={classNames(
+                            "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
+                            watchedTeamMemberId === member.value && "bg-subtle"
+                          )}>
+                          <div className="flex flex-1 items-center space-x-3">
+                            <input
+                              type="radio"
+                              className="hidden"
+                              checked={watchedTeamMemberId === member.value}
+                              onChange={() => form.setValue("teamMemberId", member.value)}
+                            />
                             <div
                               className={classNames(
-                                "h-2 w-2 rounded-full",
-                                status === "available" ? "bg-green-500" : "bg-red-500"
+                                "h-3 w-3 rounded-full",
+                                member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
                               )}
                             />
-                            {children}
+                            <span className="text-emphasis w-full text-sm">{member.label}</span>
+                            {watchedTeamMemberId === member.value && (
+                              <div className="place-self-end pr-2">
+                                <Icon name="check" className="text-emphasis h-4 w-4" />
+                              </div>
+                            )}
                           </div>
-                        </components.Option>
-                      );
-                    },
-                  }}
-                />
+                        </label>
+                      ))}
+                      {isFetching && (
+                        <div className="p-4 text-center text-sm text-gray-500">{t("loading")}...</div>
+                      )}
+                      <div ref={observerTarget} className="h-4 w-full" />
+                    </div>
+                  </ScrollableArea>
+                </div>
               </div>
             )}
             <DialogFooter>
