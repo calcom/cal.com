@@ -52,7 +52,6 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
 const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
   const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe", eventType.teamId);
-
   const transformedAppData = {
     ...stripeData?.app,
     logo: `https://app.cal.com${stripeData?.app.logo}`,
@@ -60,21 +59,50 @@ const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventTyp
 
   if (isLoading || !stripeData) return null;
 
-  return (
-    <div>
+  if (!!transformedAppData.teams && transformedAppData.teams.length > 0) {
+    const eventTypeAssociatedTeam = transformedAppData.teams.find((team) => team.teamId === eventType.teamId);
+
+    if (!eventTypeAssociatedTeam) return null;
+
+    return (
       <EventTypeAppCard
         getAppData={getAppDataGetter(transformedAppData.slug as EventTypeAppsList)}
         setAppData={getAppDataSetter(
           transformedAppData.slug as EventTypeAppsList,
           transformedAppData.categories as string[],
-          transformedAppData.userCredentialIds && (transformedAppData.userCredentialIds[0] as number)
+          eventTypeAssociatedTeam.credentialId
         )}
-        key={transformedAppData.slug}
-        app={transformedAppData as unknown as EventTypeApp}
+        key={(transformedAppData.slug ?? stripeData.app.slug) + eventTypeAssociatedTeam.credentialId}
+        app={
+          {
+            ...transformedAppData,
+            credentialOwner: {
+              name: eventTypeAssociatedTeam.name,
+              avatar: eventTypeAssociatedTeam.logoUrl,
+              teamId: eventTypeAssociatedTeam.teamId,
+              credentialId: eventTypeAssociatedTeam.credentialId,
+            },
+          } as unknown as EventTypeApp
+        }
         eventType={eventType as unknown as EventTypeForAppCard}
         eventTypeFormMetadata={eventTypeFormMetadata}
       />
-    </div>
+    );
+  }
+
+  return (
+    <EventTypeAppCard
+      getAppData={getAppDataGetter(transformedAppData.slug as EventTypeAppsList)}
+      setAppData={getAppDataSetter(
+        transformedAppData.slug as EventTypeAppsList,
+        transformedAppData.categories as string[],
+        transformedAppData.userCredentialIds && (transformedAppData.userCredentialIds[0] as number)
+      )}
+      key={transformedAppData.slug}
+      app={transformedAppData as unknown as EventTypeApp}
+      eventType={eventType as unknown as EventTypeForAppCard}
+      eventTypeFormMetadata={eventTypeFormMetadata}
+    />
   );
 };
 
