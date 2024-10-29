@@ -341,7 +341,6 @@ export default function Success(props: PageProps) {
       const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase/Booking/*`;
 
       fetch(getEventTypeSlugUrl, {
-        mode: "no-cors",
         headers: { Authorization: "cal_f63feaae3cc8fc723f1226917933fc7c" },
       }).then((data) => {
         data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
@@ -357,7 +356,6 @@ export default function Success(props: PageProps) {
       });
 
       fetch(getBookedTimeUrl, {
-        mode: "no-cors",
         headers: { Authorization: "cal_f63feaae3cc8fc723f1226917933fc7c" },
       }).then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {

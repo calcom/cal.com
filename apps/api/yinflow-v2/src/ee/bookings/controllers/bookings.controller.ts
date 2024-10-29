@@ -444,9 +444,9 @@ export class BookingsController {
         .from("Booking")
         .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
         .eq("recurringEventId", recurringEventId)
-        .gte("startTime", new Date())
+        .gte("startTime", new Date().toISOString())
         .select("*");
-      allBookingsUpdated = allBookingsUpdated.concat(error);
+      allBookingsUpdated = allBookingsUpdated.concat(error).concat(updatedBookings);
     }
 
     await supabase
