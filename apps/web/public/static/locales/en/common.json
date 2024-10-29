@@ -2709,5 +2709,6 @@
   "attendee_timezone_info": "Attendee Timezone",
   "event_start_time_in_attendee_timezone_info": "Event Start Time In Attendee Timezone",
   "event_end_time_in_attendee_timezone_info": "Event End Time In Attendee Timezone",
+  "salesforce_owner_name_to_change": "Owner name to change",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
