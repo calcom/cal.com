@@ -132,6 +132,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
               },
               timeZone: true,
               id: true,
+              timeBlocks: true,
             },
           },
         },
