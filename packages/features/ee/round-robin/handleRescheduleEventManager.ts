@@ -39,7 +39,7 @@ export const handleRescheduleEventManager = async ({
     previousHostDestinationCalendar
   );
 
-  const results = updateManager.results;
+  const results = updateManager.results ?? [];
 
   const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
     results: results,
