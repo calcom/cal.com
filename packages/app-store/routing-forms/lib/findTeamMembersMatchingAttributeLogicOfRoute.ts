@@ -113,25 +113,19 @@ function getJsonLogic({
 
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
-
-  // We error only in preview mode to communicate any problem.
-  // In live mode, we don't error and instead prefer to let no members match which then causes all of the assignes of the team event to be used.
-  if (isPreview) {
-    const errors = getErrorsFromImmutableTree(state.tree).flat();
-    if (errors.length) {
-      throw new Error(errors.toString());
-    }
-    if (!logic) {
-      // Empty children1 is normal where it means that no rules are added by user.
-      if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
-        // Possible reasons for this
-        // 1. The attribute option value used is not in the options list. Happens if 'Value of field' value is chosen and that field's response value doesn't exist in attribute options list.
-        throw new Error("There is some error building the logic, please check the routes.");
-      }
+  // Considering errors as warnings as we want to continue with the flow without throwing actual errors
+  // We expect fallback logic to take effect in case of errors in main logic
+  const warnings = getErrorsFromImmutableTree(state.tree).flat();
+  if (!logic) {
+    // If children1 is not empty, it means that some rules were added by use
+    if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
+      // Possible reasons for this
+      // 1. The attribute option value used is not in the options list. Happens if 'Value of field' value is chosen and that field's response value doesn't exist in attribute options list.
+      return { logic, warnings: ["There is some error building the logic, please check the routes."] };
     }
   }
 
-  return logic;
+  return { logic, warnings };
 }
 
 function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
@@ -207,6 +201,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
 
   if (raqbQueryValueUtils.isQueryValueEmpty(attributesQueryValue)) {
     return {
+      logicBuildingWarnings: null,
       teamMembersMatchingAttributeLogic: null,
       ...buildTroubleshooterData({
         type: TroubleshooterCase.EMPTY_QUERY_VALUE,
@@ -231,7 +226,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     ttGetTeamMembersWithAttributeOptionValuePerAttribute,
   ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
 
-  const logic = getJsonLogic({
+  const { logic, warnings: logicBuildingWarnings } = getJsonLogic({
     attributesQueryValue: attributesQueryValue as JsonTree,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
     isPreview: !!isPreview,
@@ -240,6 +235,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
   if (!logic) {
     return {
       teamMembersMatchingAttributeLogic: null,
+      logicBuildingWarnings: null,
       timeTaken: {
         ttGetAttributesQueryValue,
         ttGetAttributesQueryBuilderConfig,
@@ -280,6 +276,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
 
   return {
     teamMembersMatchingAttributeLogic,
+    logicBuildingWarnings,
     timeTaken: {
       ttGetAttributesQueryBuilderConfig,
       ttGetTeamMembersWithAttributeOptionValuePerAttribute,
@@ -313,20 +310,18 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
 }
 
 async function runMainAttributeLogic(data: RunAttributeLogicData, options: RunAttributeLogicOptions) {
-  const result = await runAttributeLogic(data, options);
+  const { teamMembersMatchingAttributeLogic, ...rest } = await runAttributeLogic(data, options);
   return {
-    teamMembersMatchingMainAttributeLogic: result.teamMembersMatchingAttributeLogic,
-    timeTaken: result.timeTaken,
-    troubleshooter: result.troubleshooter,
+    teamMembersMatchingMainAttributeLogic: teamMembersMatchingAttributeLogic,
+    ...rest,
   };
 }
 
 async function runFallbackAttributeLogic(data: RunAttributeLogicData, options: RunAttributeLogicOptions) {
-  const result = await runAttributeLogic(data, options);
+  const { teamMembersMatchingAttributeLogic, ...rest } = await runAttributeLogic(data, options);
   return {
-    teamMembersMatchingFallbackLogic: result.teamMembersMatchingAttributeLogic,
-    timeTaken: result.timeTaken,
-    troubleshooter: result.troubleshooter,
+    teamMembersMatchingFallbackLogic: teamMembersMatchingAttributeLogic,
+    ...rest,
   };
 }
 
@@ -343,7 +338,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     routeId: string;
     teamId: number;
     isPreview?: boolean;
-  },  
+  },
   options: {
     enablePerf?: boolean;
     concurrency?: number;
@@ -358,6 +353,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   if (!route) {
     return {
       teamMembersMatchingAttributeLogic: null,
+      mainAttributeLogicBuildingWarnings: null,
+      fallbackAttributeLogicBuildingWarnings: null,
       checkedFallback,
       timeTaken: null,
       ...buildTroubleshooterData({
@@ -370,6 +367,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   if (isRouter(route)) {
     return {
       teamMembersMatchingAttributeLogic: null,
+      mainAttributeLogicBuildingWarnings: null,
+      fallbackAttributeLogicBuildingWarnings: null,
       checkedFallback,
       timeTaken: null,
       ...buildTroubleshooterData({
@@ -403,6 +402,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     teamMembersMatchingMainAttributeLogic,
     timeTaken: teamMembersMatchingMainAttributeLogicTimeTaken,
     troubleshooter,
+    logicBuildingWarnings: mainAttributeLogicBuildingWarnings,
   } = await runMainAttributeLogic(
     {
       ...runAttributeLogicData,
@@ -417,6 +417,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     return {
       teamMembersMatchingAttributeLogic: null,
       checkedFallback,
+      mainAttributeLogicBuildingWarnings,
+      fallbackAttributeLogicBuildingWarnings: [],
       timeTaken: {
         ...teamMembersMatchingMainAttributeLogicTimeTaken,
         getAttributesForTeamTimeTaken,
@@ -437,6 +439,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       teamMembersMatchingFallbackLogic,
       timeTaken: teamMembersMatchingFallbackLogicTimeTaken,
       troubleshooter,
+      logicBuildingWarnings: fallbackAttributeLogicBuildingWarnings,
     } = await runFallbackAttributeLogic(
       {
         ...runAttributeLogicData,
@@ -448,6 +451,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     return {
       teamMembersMatchingAttributeLogic: teamMembersMatchingFallbackLogic,
       checkedFallback: true,
+      fallbackAttributeLogicBuildingWarnings,
+      mainAttributeLogicBuildingWarnings,
       timeTaken: {
         ...teamMembersMatchingFallbackLogicTimeTaken,
         getAttributesForTeamTimeTaken,
@@ -464,6 +469,8 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   return {
     teamMembersMatchingAttributeLogic: teamMembersMatchingMainAttributeLogic,
     checkedFallback,
+    mainAttributeLogicBuildingWarnings,
+    fallbackAttributeLogicBuildingWarnings: [],
     timeTaken: {
       ...teamMembersMatchingMainAttributeLogicTimeTaken,
       getAttributesForTeamTimeTaken,

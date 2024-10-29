@@ -758,7 +758,7 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ).rejects.toThrow("Unsupported attribute type");
     });
 
-    it("should not throw error in live (non-preview) mode but should throw in preview mode", async () => {
+    it("should return warnings in preview and live mode", async () => {
       const Option1OfAttribute1HumanReadableValue = "Option 1";
 
       const Option1OfAttribute1 = {
@@ -806,35 +806,36 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       }) as AttributesQueryValue;
 
       async function runInMode({ mode }: { mode: "preview" | "live" }) {
-        const { teamMembersMatchingAttributeLogic: result } =
-          await findTeamMembersMatchingAttributeLogicOfRoute({
-            form: {
-              routes: [
-                buildDefaultCustomPageRoute({
-                  id: "test-route",
-                  attributesQueryValue: attributesQueryValue,
-                }),
-              ],
-              fields: [],
-            },
-            response: {},
-            routeId: "test-route",
-            teamId: 1,
-            isPreview: mode === "preview" ? true : false,
-          });
+        const result = await findTeamMembersMatchingAttributeLogicOfRoute({
+          form: {
+            routes: [
+              buildDefaultCustomPageRoute({
+                id: "test-route",
+                attributesQueryValue: attributesQueryValue,
+              }),
+            ],
+            fields: [],
+          },
+          response: {},
+          routeId: "test-route",
+          teamId: 1,
+          isPreview: mode === "preview" ? true : false,
+        });
         return result;
       }
 
       await (async function liveMode() {
         const result = await runInMode({ mode: "live" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
-        expect(result).toEqual(null);
+        expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual(["Value NON_EXISTING_OPTION_1 is not in list of values"]);
       })();
 
       await (async function previewMode() {
-        expect(() => runInMode({ mode: "preview" })).rejects.toThrow(
-          /Value NON_EXISTING_OPTION_1 is not in list of values/
-        );
+        const result = await runInMode({ mode: "preview" });
+        // it will fallback to the fallback attribute logic which isn't defined and thus will return null
+        expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual(["Value NON_EXISTING_OPTION_1 is not in list of values"]);
       })();
     });
 

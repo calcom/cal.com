@@ -2704,11 +2704,14 @@
   "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules": "All assigned members of the team event type. Consider adding some attribute rules.",
   "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback": "All assigned members of the team event type. Consider adding some attribute rules to fallback.",
   "all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match": "All assigned members of the team event type. Consider tweaking fallback to have a match.",
+  "warning": "Warning",
   "confirm_reassign_unavailable": "Manual Reassign to unavailable host",
   "reassign_unavailable_team_member_description": "Are you sure you want to reassign this booking to an unavailable host?",
   "yes_reassign": "Yes, reassign",
-  "fallback_attribute_logic_description": "Fallback: If no Team Members match, use those that match the following criteria(Matches all assigned team members of the event by default)",
   "filter_by_attributes": "Filter by attributes",
+  "fallback_attribute_logic_description": "Fallback: If no Team Members match, use those that match the following criteria (matches all assigned team members of the event by default)",
+  "fallback_attribute_logic_warning": "Fallback warning",
+  "fallback_not_needed": "Not needed",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
 
