@@ -549,79 +549,19 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     allUserIds
   );
 
-  const outOfOfficeDaysAllUsers = await prisma.outOfOfficeEntry.findMany({
-    where: {
-      userId: {
-        in: allUserIds,
-      },
-      OR: [
-        // outside of range
-        // (start <= 'dateTo' AND end >= 'dateFrom')
-        {
-          start: {
-            lte: endTimeDate,
-          },
-          end: {
-            gte: startTimeDate,
-          },
-        },
-        // start is between dateFrom and dateTo but end is outside of range
-        // (start <= 'dateTo' AND end >= 'dateTo')
-        {
-          start: {
-            lte: endTimeDate,
-          },
-
-          end: {
-            gte: endTimeDate,
-          },
-        },
-        // end is between dateFrom and dateTo but start is outside of range
-        // (start <= 'dateFrom' OR end <= 'dateTo')
-        {
-          start: {
-            lte: startTimeDate,
-          },
-
-          end: {
-            lte: endTimeDate,
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      start: true,
-      end: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      toUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-        },
-      },
-      reason: {
-        select: {
-          id: true,
-          emoji: true,
-          reason: true,
-        },
-      },
-    },
-  });
+  const outOfOfficeDaysAllUsers = await monitorCallbackAsync(
+    getOOODates,
+    startTimeDate,
+    endTimeDate,
+    allUserIds
+  );
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
   if (eventType && (bookingLimits || durationLimits)) {
-    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+    busyTimesFromLimitsBookingsAllUsers = await monitorCallbackAsync(getBusyTimesForLimitChecks, {
       userIds: allUserIds,
       eventTypeId: eventType.id,
       startDate: startTime.format(),
@@ -632,40 +572,43 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     });
   }
 
-  const users = usersWithCredentials.map((currentUser) => {
-    return {
-      ...currentUser,
-      currentBookings: currentBookingsAllUsers
-        .filter((b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email))
-        .map((bookings) => {
-          const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
-          return bookingWithoutAttendees;
-        }),
-      outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
-    };
+  const users = monitorCallbackSync(function enrichUsersWithData() {
+    return usersWithCredentials.map((currentUser) => {
+      return {
+        ...currentUser,
+        currentBookings: currentBookingsAllUsers
+          .filter(
+            (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
+          )
+          .map((bookings) => {
+            const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+            return bookingWithoutAttendees;
+          }),
+        outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
+      };
+    });
   });
 
+  const premappedUsersAvailability = await getUsersAvailability({
+    users,
+    query: {
+      dateFrom: startTime.format(),
+      dateTo: endTime.format(),
+      eventTypeId: eventType.id,
+      afterEventBuffer: eventType.afterEventBuffer,
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      duration: input.duration || 0,
+      returnDateOverrides: false,
+    },
+    initialData: {
+      eventType,
+      currentSeats,
+      rescheduleUid: input.rescheduleUid,
+      busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+    },
+  });
   /* We get all users working hours and busy slots */
-  const allUsersAvailability = (
-    await getUsersAvailability({
-      users,
-      query: {
-        dateFrom: startTime.format(),
-        dateTo: endTime.format(),
-        eventTypeId: eventType.id,
-        afterEventBuffer: eventType.afterEventBuffer,
-        beforeEventBuffer: eventType.beforeEventBuffer,
-        duration: input.duration || 0,
-        returnDateOverrides: false,
-      },
-      initialData: {
-        eventType,
-        currentSeats,
-        rescheduleUid: input.rescheduleUid,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-      },
-    })
-  ).map(
+  const allUsersAvailability = premappedUsersAvailability.map(
     (
       { busy, dateRanges, oooExcludedDateRanges, currentSeats: _currentSeats, timeZone, datesOutOfOffice },
       index
@@ -688,11 +631,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     currentSeats,
   };
 
-  const getSlotsTime = 0;
-  const checkForAvailabilityTime = 0;
-  const getSlotsCount = 0;
-  const checkForAvailabilityCount = 0;
-  const aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+  const aggregatedAvailability = monitorCallbackSync(
+    getAggregatedAvailability,
+    allUsersAvailability,
+    eventType.schedulingType
+  );
 
   const isTeamEvent =
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
@@ -704,7 +647,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
   const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
-  const timeSlots = getSlots({
+  const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
@@ -809,45 +752,47 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     timeZone: input.timeZone,
   });
 
-  const slotsMappedToDate = availableTimeSlots.reduce(
-    (
-      r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
-      { time, ...passThroughProps }
-    ) => {
-      // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
+  const slotsMappedToDate = monitorCallbackSync(function mapSlotsToDate() {
+    return availableTimeSlots.reduce(
+      (
+        r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
+        { time, ...passThroughProps }
+      ) => {
+        // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
 
-      // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
-      // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
-      const dateString = formatter.format(time.toDate());
+        // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
+        // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
+        const dateString = formatter.format(time.toDate());
 
-      r[dateString] = r[dateString] || [];
-      if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+        r[dateString] = r[dateString] || [];
+        if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+          return r;
+        }
+        r[dateString].push({
+          ...passThroughProps,
+          time: time.toISOString(),
+          // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+          ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+            attendees:
+              currentSeats[
+                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+              ]._count.attendees,
+            bookingUid:
+              currentSeats[
+                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+              ].uid,
+          }),
+        });
         return r;
-      }
-      r[dateString].push({
-        ...passThroughProps,
-        time: time.toISOString(),
-        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-          attendees:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
-        }),
-      });
-      return r;
-    },
-    Object.create(null)
-  );
+      },
+      Object.create(null)
+    );
+  });
 
   loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
 
   const availableDates = Object.keys(slotsMappedToDate);
-  const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
+  const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
@@ -863,8 +808,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
-  const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
-    (withinBoundsSlotsMappedToDate, [date, slots]) => {
+  const withinBoundsSlotsMappedToDate = monitorCallbackSync(function mapWithinBoundsSlotsToDate() {
+    return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
       // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
       // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
       if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
@@ -892,9 +837,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
       withinBoundsSlotsMappedToDate[date] = filteredSlots;
       return withinBoundsSlotsMappedToDate;
-    },
-    {} as typeof slotsMappedToDate
-  );
+    }, {} as typeof slotsMappedToDate);
+  });
 
   // We only want to run this on single targeted events and not dynamic
   if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
@@ -1068,6 +1012,75 @@ async function getExistingBookings(
   ]);
 
   return [...resultOne, ...resultTwo, ...resultThree];
+}
+
+async function getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
+  return await prisma.outOfOfficeEntry.findMany({
+    where: {
+      userId: {
+        in: allUserIds,
+      },
+      OR: [
+        // outside of range
+        // (start <= 'dateTo' AND end >= 'dateFrom')
+        {
+          start: {
+            lte: endTimeDate,
+          },
+          end: {
+            gte: startTimeDate,
+          },
+        },
+        // start is between dateFrom and dateTo but end is outside of range
+        // (start <= 'dateTo' AND end >= 'dateTo')
+        {
+          start: {
+            lte: endTimeDate,
+          },
+
+          end: {
+            gte: endTimeDate,
+          },
+        },
+        // end is between dateFrom and dateTo but start is outside of range
+        // (start <= 'dateFrom' OR end <= 'dateTo')
+        {
+          start: {
+            lte: startTimeDate,
+          },
+
+          end: {
+            lte: endTimeDate,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      toUser: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+        },
+      },
+    },
+  });
 }
 
 export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
