@@ -440,13 +440,13 @@ export class BookingsController {
 
     if (allRemainingBookings) {
       const recurringEventId = bookingToDelete.recurringEventId;
-      const { data: updatedBookings } = await supabase
+      const { data: updatedBookings, error } = await supabase
         .from("Booking")
         .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
         .eq("recurringEventId", recurringEventId)
         .gte("startTime", new Date())
         .select("*");
-      allBookingsUpdated = allBookingsUpdated.concat(updatedBookings);
+      allBookingsUpdated = allBookingsUpdated.concat(error);
     }
 
     await supabase

@@ -340,49 +340,45 @@ export default function Success(props: PageProps) {
       const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase/EventType/*`;
       const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase/Booking/*`;
 
-      fetch(getEventTypeSlugUrl, { mode: "no-cors", headers: { Authorization: process.env.V2_API_KEY! } })
-        .then((data) => {
-          data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
-            const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
-            const eventSlugs = data.reduce((acc, { id, slug }) => {
-              if (eventTypeIds.includes(id)) {
-                return { ...acc, [id]: slug };
-              }
-              return acc;
-            }, eventTypes);
-            setEventTypes(eventSlugs);
-          });
-          console.error(data);
-        })
-        .catch((error) => {
-          console.error(error);
+      fetch(getEventTypeSlugUrl, {
+        mode: "no-cors",
+        headers: { Authorization: "cal_f63feaae3cc8fc723f1226917933fc7c" },
+      }).then((data) => {
+        data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
+          const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
+          const eventSlugs = data.reduce((acc, { id, slug }) => {
+            if (eventTypeIds.includes(id)) {
+              return { ...acc, [id]: slug };
+            }
+            return acc;
+          }, eventTypes);
+          setEventTypes(eventSlugs);
         });
+      });
 
-      fetch(getBookedTimeUrl, { mode: "no-cors", headers: { Authorization: process.env.V2_API_KEY! } })
-        .then((data) => {
-          data.json().then(({ data }: { data: BookingInfo[] }) => {
-            const findedBooking = data.find(({ uid }) => uid === bookingUID);
-            setPurchaseDate(dayjs(findedBooking?.createdAt));
-            setAppointmentType((_prev) => {
-              switch (true) {
-                case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
-                  return BookingTypes.URGENT_APPOINTMENT;
-                case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
-                  return BookingTypes.MEDIC_APPOINTMENT;
-                case findedBooking?.title.includes(BookingTypes.OCCUPATIONAL_THERAPY):
-                  return BookingTypes.OCCUPATIONAL_THERAPY;
-                case findedBooking?.title.includes(BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY):
-                  return BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
-                default:
-                  return null;
-              }
-            });
+      fetch(getBookedTimeUrl, {
+        mode: "no-cors",
+        headers: { Authorization: "cal_f63feaae3cc8fc723f1226917933fc7c" },
+      }).then((data) => {
+        data.json().then(({ data }: { data: BookingInfo[] }) => {
+          const findedBooking = data.find(({ uid }) => uid === bookingUID);
+          setPurchaseDate(dayjs(findedBooking?.createdAt));
+          setAppointmentType((_prev) => {
+            switch (true) {
+              case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
+                return BookingTypes.URGENT_APPOINTMENT;
+              case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
+                return BookingTypes.MEDIC_APPOINTMENT;
+              case findedBooking?.title.includes(BookingTypes.OCCUPATIONAL_THERAPY):
+                return BookingTypes.OCCUPATIONAL_THERAPY;
+              case findedBooking?.title.includes(BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY):
+                return BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
+              default:
+                return null;
+            }
           });
-          console.error(data);
-        })
-        .catch((error) => {
-          console.error({ error });
         });
+      });
     }
   }, [pathname]);
 
