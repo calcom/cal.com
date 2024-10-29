@@ -677,7 +677,7 @@ const Routes = ({
       })
     : null;
 
-  const [routes, setRoutes] = useState(() => {
+  const [routes, _setRoutes] = useState(() => {
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
       _routes.forEach((r) => {
@@ -708,6 +708,35 @@ const Routes = ({
       });
     });
   });
+
+  const setRoutes: typeof _setRoutes = (newRoutes) => {
+    _setRoutes((routes) => {
+      if (typeof newRoutes === "function") {
+        const newRoutesValue = newRoutes(routes);
+        hookForm.setValue("routes", routesToSave(newRoutesValue));
+        return newRoutesValue;
+      }
+      hookForm.setValue("routes", routesToSave(newRoutes));
+      return newRoutes;
+    });
+
+    function routesToSave(routes: Route[]) {
+      return routes.map((route) => {
+        if (isRouter(route)) {
+          return route;
+        }
+        return {
+          id: route.id,
+          attributeRoutingConfig: route.attributeRoutingConfig,
+          action: route.action,
+          isFallback: route.isFallback,
+          queryValue: route.queryValue,
+          attributesQueryValue: route.attributesQueryValue,
+          fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
+        };
+      });
+    }
+  };
 
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 
@@ -849,23 +878,6 @@ const Routes = ({
       return newRoutes;
     });
   };
-
-  const routesToSave = routes.map((route) => {
-    if (isRouter(route)) {
-      return route;
-    }
-    return {
-      id: route.id,
-      attributeRoutingConfig: route.attributeRoutingConfig,
-      action: route.action,
-      isFallback: route.isFallback,
-      queryValue: route.queryValue,
-      attributesQueryValue: route.attributesQueryValue,
-      fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
-    };
-  });
-
-  hookForm.setValue("routes", routesToSave);
 
   const fields = hookForm.getValues("fields");
 

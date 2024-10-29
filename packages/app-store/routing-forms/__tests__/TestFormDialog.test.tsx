@@ -127,6 +127,14 @@ const mockTeamForm = {
   ],
   routes: [
     {
+      id: "non-matching-route-id",
+      isFallback: false,
+      action: {
+        type: "customPageMessage",
+        value: "Not matching",
+      },
+    },
+    {
       id: "matching-route-id",
       isFallback: false,
       action: {
@@ -190,7 +198,7 @@ describe("TestFormDialog", () => {
       expect(screen.getByText("route_to:")).toBeInTheDocument();
       expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
-      expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 1");
+      expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 2");
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("yes");
       expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("fallback_not_needed");
       expect(screen.getByTestId("matching-members")).toHaveTextContent(
@@ -210,7 +218,7 @@ describe("TestFormDialog", () => {
       expect(screen.getByText("route_to:")).toBeInTheDocument();
       expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
-      expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 1");
+      expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 2");
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("yes");
       expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("fallback_not_needed");
       expect(screen.getByTestId("matching-members")).toHaveTextContent(

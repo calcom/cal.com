@@ -5,7 +5,7 @@ import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import { getFieldResponse } from "../trpc/utils";
-import type { Attribute, AttributesQueryValue } from "../types/types";
+import type { Attribute, AttributesQueryValue, LocalRoute, Route } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { RaqbLogicResult } from "./evaluateRaqbLogic";
 import { getTeamMembersWithAttributeOptionValuePerAttribute, getAttributesForTeam } from "./getAttributes";
@@ -44,8 +44,6 @@ export const enum TroubleshooterCase {
   NO_LOGIC_FOUND = "no-logic-found",
   MATCH_RESULTS_READY = "match-results-ready",
   MATCH_RESULTS_READY_WITH_FALLBACK = "match-results-ready-with-fallback",
-  NO_FALLBACK_LOGIC_FOUND = "no-fallback-logic-found",
-  NO_ROUTE_FOUND = "no-route-found",
   MATCHES_ALL_MEMBERS = "matches-all-members",
 }
 
@@ -329,13 +327,13 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
   {
     form,
     response,
-    routeId,
+    route,
     teamId,
     isPreview = false,
   }: {
-    form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
+    form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
     response: FormResponse;
-    routeId: string;
+    route: Route;
     teamId: number;
     isPreview?: boolean;
   },
@@ -345,24 +343,10 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     enableTroubleshooter?: boolean;
   } = {}
 ) {
-  const route = form.routes?.find((route) => route.id === routeId);
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
   const { enablePerf = false, concurrency = 2, enableTroubleshooter = false } = options;
 
   const checkedFallback = false;
-  if (!route) {
-    return {
-      teamMembersMatchingAttributeLogic: null,
-      mainAttributeLogicBuildingWarnings: null,
-      fallbackAttributeLogicBuildingWarnings: null,
-      checkedFallback,
-      timeTaken: null,
-      ...buildTroubleshooterData({
-        type: TroubleshooterCase.NO_ROUTE_FOUND,
-        data: { routeId },
-      }),
-    };
-  }
 
   if (isRouter(route)) {
     return {
@@ -373,7 +357,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
       timeTaken: null,
       ...buildTroubleshooterData({
         type: TroubleshooterCase.IS_A_ROUTER,
-        data: { routeId },
+        data: { route },
       }),
     };
   }

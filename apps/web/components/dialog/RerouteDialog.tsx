@@ -796,7 +796,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
     findTeamMembersMatchingAttributeLogicMutation.mutate({
       formId: form.id,
       response: currentResponse,
-      routeId: route.id,
+      route,
     });
   }
 

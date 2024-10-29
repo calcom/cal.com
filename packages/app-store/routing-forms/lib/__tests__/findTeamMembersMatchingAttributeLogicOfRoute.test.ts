@@ -228,33 +228,17 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     vi.resetAllMocks();
   });
 
-  it("should return null if route is not found and troubleshooter should reflect that", async () => {
-    const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
-      await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: { routes: [], fields: [] },
-        response: {},
-        routeId: "non-existent-route",
-        teamId: 1,
-      });
-
-    expect(result).toBeNull();
-    expect(troubleshooter).toEqual({ type: "no-route-found", data: { routeId: "non-existent-route" } });
-  });
-
   it("should return null if the route does not have an attributesQueryValue set", async () => {
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
-        routes: [
-          {
-            id: "test-route",
-            queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
-            action: { type: RouteActionType.CustomPageMessage, value: "test" },
-          },
-        ],
         fields: [],
       },
       response: {},
-      routeId: "test-route",
+      route: {
+        id: "test-route",
+        queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
+        action: { type: RouteActionType.CustomPageMessage, value: "test" },
+      },
       teamId: 1,
     });
 
@@ -291,20 +275,17 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
       await findTeamMembersMatchingAttributeLogicOfRoute({
         form: {
-          routes: [
-            {
-              id: "test-route",
-              action: { type: RouteActionType.CustomPageMessage, value: "test" },
-              queryValue: {
-                type: "group",
-              } as unknown as FormFieldsQueryValue,
-              attributesQueryValue: attributesQueryValue,
-            },
-          ],
           fields: [],
         },
         response: {},
-        routeId: "test-route",
+        route: {
+          id: "test-route",
+          action: { type: RouteActionType.CustomPageMessage, value: "test" },
+          queryValue: {
+            type: "group",
+          } as unknown as FormFieldsQueryValue,
+          attributesQueryValue: attributesQueryValue,
+        },
         teamId: 1,
       });
 
@@ -361,12 +342,6 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
-        routes: [
-          buildDefaultCustomPageRoute({
-            id: "test-route",
-            attributesQueryValue: attributesQueryValue,
-          }),
-        ],
         fields: [
           {
             id: Field1Id,
@@ -382,7 +357,10 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           label: Option1OfAttribute1HumanReadableValue,
         },
       },
-      routeId: "test-route",
+      route: buildDefaultCustomPageRoute({
+        id: "test-route",
+        attributesQueryValue: attributesQueryValue,
+      }),
       teamId: 1,
     });
 
@@ -443,16 +421,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
-        routes: [
-          buildDefaultCustomPageRoute({
-            id: "test-route",
-            attributesQueryValue: attributesQueryValue,
-          }),
-        ],
         fields: [],
       },
       response: {},
-      routeId: "test-route",
+      route: buildDefaultCustomPageRoute({
+        id: "test-route",
+        attributesQueryValue: attributesQueryValue,
+      }),
       teamId: 1,
     });
 
@@ -514,16 +489,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
-        routes: [
-          buildDefaultCustomPageRoute({
-            id: "test-route",
-            attributesQueryValue: attributesQueryValue,
-          }),
-        ],
         fields: [],
       },
       response: {},
-      routeId: "test-route",
+      route: buildDefaultCustomPageRoute({
+        id: "test-route",
+        attributesQueryValue: attributesQueryValue,
+      }),
       teamId: 1,
     });
 
@@ -588,16 +560,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
       form: {
-        routes: [
-          buildDefaultCustomPageRoute({
-            id: "test-route",
-            attributesQueryValue: attributesQueryValue,
-          }),
-        ],
         fields: [],
       },
       response: {},
-      routeId: "test-route",
+      route: buildDefaultCustomPageRoute({
+        id: "test-route",
+        attributesQueryValue: attributesQueryValue,
+      }),
       teamId: 1,
     });
 
@@ -618,20 +587,17 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         troubleshooter,
       } = await findTeamMembersMatchingAttributeLogicOfRoute({
         form: {
-          routes: [
-            {
-              id: "test-route",
-              action: { type: RouteActionType.CustomPageMessage, value: "test" },
-              queryValue: {
-                type: "group",
-              } as unknown as FormFieldsQueryValue,
-              attributesQueryValue: failingAttributesQueryValue,
-            },
-          ],
           fields: [],
         },
         response: {},
-        routeId: "test-route",
+        route: {
+          id: "test-route",
+          action: { type: RouteActionType.CustomPageMessage, value: "test" },
+          queryValue: {
+            type: "group",
+          } as unknown as FormFieldsQueryValue,
+          attributesQueryValue: failingAttributesQueryValue,
+        },
         teamId: 1,
       });
 
@@ -650,21 +616,18 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         troubleshooter,
       } = await findTeamMembersMatchingAttributeLogicOfRoute({
         form: {
-          routes: [
-            {
-              id: "test-route",
-              action: { type: RouteActionType.CustomPageMessage, value: "test" },
-              queryValue: {
-                type: "group",
-              } as unknown as FormFieldsQueryValue,
-              attributesQueryValue: failingAttributesQueryValue,
-              fallbackAttributesQueryValue: matchingAttributesQueryValue,
-            },
-          ],
           fields: [],
         },
         response: {},
-        routeId: "test-route",
+        route: {
+          id: "test-route",
+          action: { type: RouteActionType.CustomPageMessage, value: "test" },
+          queryValue: {
+            type: "group",
+          } as unknown as FormFieldsQueryValue,
+          attributesQueryValue: failingAttributesQueryValue,
+          fallbackAttributesQueryValue: matchingAttributesQueryValue,
+        },
         teamId: 1,
       });
 
@@ -688,21 +651,18 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         troubleshooter,
       } = await findTeamMembersMatchingAttributeLogicOfRoute({
         form: {
-          routes: [
-            {
-              id: "test-route",
-              action: { type: RouteActionType.CustomPageMessage, value: "test" },
-              queryValue: {
-                type: "group",
-              } as unknown as FormFieldsQueryValue,
-              attributesQueryValue: failingAttributesQueryValue,
-              fallbackAttributesQueryValue: failingAttributesQueryValue,
-            },
-          ],
           fields: [],
         },
         response: {},
-        routeId: "test-route",
+        route: {
+          id: "test-route",
+          action: { type: RouteActionType.CustomPageMessage, value: "test" },
+          queryValue: {
+            type: "group",
+          } as unknown as FormFieldsQueryValue,
+          attributesQueryValue: failingAttributesQueryValue,
+          fallbackAttributesQueryValue: failingAttributesQueryValue,
+        },
         teamId: 1,
       });
 
@@ -735,24 +695,21 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       await expect(
         findTeamMembersMatchingAttributeLogicOfRoute({
           form: {
-            routes: [
-              buildDefaultCustomPageRoute({
-                id: "test-route",
-                attributesQueryValue: buildSelectTypeFieldQueryValue({
-                  rules: [
-                    {
-                      raqbFieldId: Attribute1.id,
-                      value: [Option1OfAttribute1.id],
-                      operator: "select_equals",
-                    },
-                  ],
-                }) as AttributesQueryValue,
-              }),
-            ],
             fields: [],
           },
           response: {},
-          routeId: "test-route",
+          route: buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: buildSelectTypeFieldQueryValue({
+              rules: [
+                {
+                  raqbFieldId: Attribute1.id,
+                  value: [Option1OfAttribute1.id],
+                  operator: "select_equals",
+                },
+              ],
+            }) as AttributesQueryValue,
+          }),
           teamId: 1,
         })
       ).rejects.toThrow("Unsupported attribute type");
@@ -808,16 +765,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       async function runInMode({ mode }: { mode: "preview" | "live" }) {
         const result = await findTeamMembersMatchingAttributeLogicOfRoute({
           form: {
-            routes: [
-              buildDefaultCustomPageRoute({
-                id: "test-route",
-                attributesQueryValue: attributesQueryValue,
-              }),
-            ],
             fields: [],
           },
           response: {},
-          routeId: "test-route",
+          route: buildDefaultCustomPageRoute({
+            id: "test-route",
+            attributesQueryValue: attributesQueryValue,
+          }),
           teamId: 1,
           isPreview: mode === "preview" ? true : false,
         });
@@ -828,14 +782,18 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         const result = await runInMode({ mode: "live" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
-        expect(result.mainAttributeLogicBuildingWarnings).toEqual(["Value NON_EXISTING_OPTION_1 is not in list of values"]);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual([
+          "Value NON_EXISTING_OPTION_1 is not in list of values",
+        ]);
       })();
 
       await (async function previewMode() {
         const result = await runInMode({ mode: "preview" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
-        expect(result.mainAttributeLogicBuildingWarnings).toEqual(["Value NON_EXISTING_OPTION_1 is not in list of values"]);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual([
+          "Value NON_EXISTING_OPTION_1 is not in list of values",
+        ]);
       })();
     });
 
@@ -885,16 +843,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         const { teamMembersMatchingAttributeLogic: result } =
           await findTeamMembersMatchingAttributeLogicOfRoute({
             form: {
-              routes: [
-                buildDefaultCustomPageRoute({
-                  id: "test-route",
-                  attributesQueryValue: attributesQueryValue,
-                }),
-              ],
               fields: [],
             },
             response: {},
-            routeId: "test-route",
+            route: buildDefaultCustomPageRoute({
+              id: "test-route",
+              attributesQueryValue: attributesQueryValue,
+            }),
             teamId: 1,
             isPreview: mode === "preview" ? true : false,
           });
@@ -937,16 +892,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
           await findTeamMembersMatchingAttributeLogicOfRoute(
             {
               form: {
-                routes: [
-                  buildDefaultCustomPageRoute({
-                    id: "test-route",
-                    attributesQueryValue: attributesQueryValue,
-                  }),
-                ],
                 fields: [],
               },
               response: {},
-              routeId: "test-route",
+              route: buildDefaultCustomPageRoute({
+                id: "test-route",
+                attributesQueryValue: attributesQueryValue,
+              }),
               teamId: 1,
             },
             {
@@ -1047,16 +999,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         await findTeamMembersMatchingAttributeLogicOfRoute(
           {
             form: {
-              routes: [
-                buildDefaultCustomPageRoute({
-                  id: "test-route",
-                  attributesQueryValue: attributesQueryValue,
-                }),
-              ],
               fields: [],
             },
             response: {},
-            routeId: "test-route",
+            route: buildDefaultCustomPageRoute({
+              id: "test-route",
+              attributesQueryValue: attributesQueryValue,
+            }),
             teamId: 1,
           },
           {

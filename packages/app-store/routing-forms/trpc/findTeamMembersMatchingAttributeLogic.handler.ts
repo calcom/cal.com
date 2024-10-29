@@ -25,7 +25,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { prisma, user } = ctx;
-  const { formId, response, routeId, isPreview, _enablePerf, _concurrency } = input;
+  const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
@@ -49,7 +49,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   }
 
   const serializableForm = await getSerializableForm({ form });
-
+  
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     timeTaken: teamMembersMatchingAttributeLogicTimeTaken,
@@ -60,7 +60,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   } = await findTeamMembersMatchingAttributeLogicOfRoute(
     {
       response,
-      routeId,
+      route,
       form: serializableForm,
       teamId: form.teamId,
       isPreview: !!isPreview,
