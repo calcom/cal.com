@@ -66,7 +66,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       {!isPending && (
         <div className="mb-4 inline-block flex min-w-full items-center px-3">
-          <Button StartIcon="file-down" color="secondary" className="mr-2">
+          <Button StartIcon="file-down" color="secondary" className="mr-3">
             {t("download")}
           </Button>
           <div className="text-default text-md">
