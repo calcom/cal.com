@@ -196,6 +196,15 @@ function buildWhereClause(
             },
           },
         },
+        {
+          eventType: {
+            hosts: {
+              some: {
+                userId: { in: userIds },
+              },
+            },
+          },
+        },
       ],
     };
   }

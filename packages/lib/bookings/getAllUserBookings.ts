@@ -34,9 +34,6 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   const bookingListingFilters: Record<InputByStatus, Prisma.BookingWhereInput> = {
     upcoming: {
       endTime: { gte: new Date() },
-      // These changes are needed to not show confirmed recurring events,
-      // as rescheduling or cancel for recurring event bookings should be
-      // handled separately for each occurrence
       OR: [
         {
           recurringEventId: { not: null },
