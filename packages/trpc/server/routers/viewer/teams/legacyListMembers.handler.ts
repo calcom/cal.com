@@ -18,10 +18,13 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   const hasPermsToView = !ctx.user.organization.isPrivate || isOrgAdmin;
 
   if (!hasPermsToView) {
-    return [];
+    return {
+      members: [],
+      nextCursor: undefined,
+    };
   }
 
-  const limit = input.limit;
+  const limit = input.limit ?? 10;
   const cursor = input.cursor ?? 0;
 
   let teamsToQuery = input.teamIds;
@@ -47,7 +50,12 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     teamsToQuery = memberships.map((m) => m.teamId);
   }
 
-  if (!teamsToQuery.length) return [];
+  if (!teamsToQuery.length) {
+    return {
+      members: [],
+      nextCursor: undefined,
+    };
+  }
 
   // Fetch unique users through memberships
   const memberships = await prisma.membership.findMany({
@@ -77,7 +85,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     },
     distinct: ["userId"],
     cursor: cursor ? { id: cursor } : undefined,
-    take: limit ? limit + 1 : undefined,
+    take: limit + 1,
     orderBy: [
       { userId: "asc" }, // First order by userId to ensure consistent ordering
       { id: "asc" }, // Then by id as secondary sort
@@ -99,7 +107,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   const usersFetched = enrichedMembers.length;
 
   let nextCursor: typeof cursor | undefined = undefined;
-  if (limit && usersFetched > limit) {
+  if (usersFetched > limit) {
     const nextItem = enrichedMembers.pop();
     nextCursor = nextItem?.membershipId;
   }
