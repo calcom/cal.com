@@ -102,8 +102,10 @@ const convertSingleQueryToPrismaWhereClause = (
   const mainOperand = operands[0].var;
 
   let secondaryOperand;
+
   if (operatorName === "in") {
-    // For 'in' operator, second operand is an array of values
+    // case A: Item "in" array
+    // case B: String "in" string
     secondaryOperand = operands[1];
   } else if (operatorName === "all") {
     secondaryOperand = operands[1].in[1];
@@ -114,14 +116,11 @@ const convertSingleQueryToPrismaWhereClause = (
   const isNumberOperator = NumberOperators.includes(operatorName);
   const secondaryOperandAsNumber = typeof secondaryOperand === "string" ? Number(secondaryOperand) : null;
 
-  if (operatorName === "in") {
-    const valuesToCompareAgainst =
-      (Array.isArray(secondaryOperand) ? secondaryOperand : [secondaryOperand]) ?? [];
-
+  if (operatorName === "in" && Array.isArray(secondaryOperand)) {
     // Convert 'in' operator to union of OR clauses
     return negatePrismaWhereClauseIfNeeded(
       {
-        OR: valuesToCompareAgainst.map((value) => ({
+        OR: (secondaryOperand ?? []).map((value) => ({
           response: {
             path: [mainOperand, "value"],
             [`${OPERATOR_MAP["=="].operator}`]: value,
