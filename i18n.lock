@@ -636,6 +636,8 @@ checksums:
     role: 53743bbb6ca938f5b893552e839d067f
     edit_role: b5c3ab76d07ed0d4603b2025efffc025
     edit_team: 4680e0297af8351fa95489ad0daec442
+    editing_user: 9d39fd5b9365e11a80a66d017929a6fe
+    editing_org: 56ab4f073a9dcb55009ce9ec391527b9
     reject: 417c19f66db70a0548bdeb398cdc46e0
     reject_all: 4ac22ea1ecf45606d90ad1646b56ac2d
     accept: f8cc1de4f5e3c850cfdbbc0ec831ade7
@@ -994,6 +996,8 @@ checksums:
     access_token: 9fbfdaa764861ef02e91ef6b5b6b5579
     visit_roadmap: c60f4a1acf30e566861bf130f13b9ae7
     featured_categories: 1b2d206f0e2dcc49c03fbbd5c8a901d3
+    feature_flags: 549a317abe994ca2a75a91091cc5f56f
+    admin_flags_description: b610f48a9b3ac4bb30a2495c5204b6e4
     popular_categories: 12267f1482e37cfcf55ffc0f40b2c24d
     number_apps_one: 497e4aa1f3d0ef480f7f1316a55fcdcf
     number_apps_other: bdb76828901b2183fefb3581b4e160fd
@@ -1763,6 +1767,12 @@ checksums:
     disable_app_description: 00297d36cedb089d7c88559d66bd333c
     edit_keys: 13a333ab00dd21638972e7021444a129
     admin_apps_description: 51757ae6da78742a7d7678eef8e05e56
+    admin_users_description: 0368666b7c76ec837b0fd4b62e6ff945
+    admin_users_add_description: ecb0147eb2d5130cc76c05c126810883
+    admin_users_edit_description: c7f86c984bcd23441c9b3250061f3e1a
+    admin_orgs_edit_description: 8ff5b05a338f7921b95a39a4ac47c421
+    admin_oAuth_description: 51b7b6416f790ceef82cf211c6fb7b99
+    admin_lockedSMS_description: c259077b7de7acd006ee27a6507131d0
     no_available_apps: bd9c70aaec65a7f2eec371fd1a8582db
     no_available_apps_description: 30a7371fd3dd7fe37ce14524723d83ba
     no_apps: 5dc4413a4f08b5bb6ef0d0a3fabd12bb
@@ -2322,6 +2332,7 @@ checksums:
     add_client: 4350a77597fdbb929d6581835a413d58
     copy_client_secret_info: f409a20284bf3b8cf34bfe93ac76e4d1
     add_new_client: 9c491d558b889c96a98ac07c1f978f3b
+    add_new_user: eb419e41464b52e04effa4158ef5504e
     this_app_is_not_setup_already: d5b6d02fbc890d63b4d06d64c4a68f1f
     as_csv: f1edbee3721e3c5eb8f8544d0dc2493f
     overlay_my_calendar: 5afc9c3f5b6522832c2174b83bdb934f
@@ -2707,4 +2718,6 @@ checksums:
     attendee_timezone_info: 12ddea7f482713f29699e0a6283f0f52
     event_start_time_in_attendee_timezone_info: 8cc2234a6faeb881fe136f052d93d436
     event_end_time_in_attendee_timezone_info: 82ffc6118c662094eb130b74a1e59627
+    salesforce_create_event_on_contact: 82fe69b4ba08b1cb9c6465dc18f968b5
+    salesforce_owner_name_to_change: 000522ab557b02cfe4a5d49787259ef9
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
