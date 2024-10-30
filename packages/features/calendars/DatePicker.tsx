@@ -321,11 +321,6 @@ const DatePicker = ({
     };
     scrollToTimeSlots?: () => void;
   }) => {
-  // We need to set minDate to today's (or current) date w.r.t selected timezone.
-  // If we just do new Date(), we get browser's current date.
-  // getTodaysDateInTimeZone() function gets today's date w.r.t to selected timezone.
-  // Returned Date will be of type Date (native TS/JS Date type).
-  // As getAvailableDatesInMonth() function requires minDate in TS/JS Date type.
   const minDate = getTodaysDateInTimeZone(selectedTimeZone);
 
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
