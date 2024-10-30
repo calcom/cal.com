@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { RefObject } from "react";
-import { createRef, useRef, useState } from "react";
+import { createRef, useRef, useState, useCallback } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
@@ -17,10 +17,11 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -525,6 +526,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   namespace,
   eventTypeHideOptionDisabled,
   types,
+  defaultBrandColor,
 }: {
   embedType: EmbedType;
   embedUrl: string;
@@ -532,6 +534,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   namespace: string;
   eventTypeHideOptionDisabled: boolean;
   types: EmbedTypes;
+  defaultBrandColor: { brandColor?: string | null; darkBrandColor?: string | null };
 }) => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
@@ -541,6 +544,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
+  const { resolvedTheme, forcedTheme } = useGetTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
 
   const [month, selectedDatesAndTimes] = useBookerStore(
     (state) => [state.month, state.selectedDatesAndTimes],
@@ -578,6 +583,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
   };
+
+  const paletteDefaultValue = useCallback(
+    (paletteName: string) => {
+      if (paletteName === "brandColor") {
+        const color = hasDarkTheme ? defaultBrandColor.darkBrandColor : defaultBrandColor.brandColor;
+        return color ?? "#000000";
+      }
+
+      return "#000000";
+    },
+    [hasDarkTheme, defaultBrandColor]
+  );
+
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
@@ -594,7 +612,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
-      brandColor: "#000000",
+      brandColor: paletteDefaultValue("brandColor"),
     },
   });
 
@@ -1007,7 +1025,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             <ColorPicker
                               popoverAlign="start"
                               container={dialogContentRef?.current ?? undefined}
-                              defaultValue="#000000"
+                              defaultValue={paletteDefaultValue(palette.name)}
                               onChange={(color) => {
                                 addToPalette({
                                   [palette.name as keyof (typeof previewState)["palette"]]: color,
@@ -1164,10 +1182,12 @@ export const EmbedDialog = ({
   types,
   tabs,
   eventTypeHideOptionDisabled,
+  defaultBrandColor,
 }: {
   types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
+  defaultBrandColor: { brandColor?: string | null; darkBrandColor?: string | null };
 }) => {
   const searchParams = useCompatSearchParams();
   const embedUrl = (searchParams?.get("embedUrl") || "") as string;
@@ -1184,6 +1204,7 @@ export const EmbedDialog = ({
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
         />
       )}
     </Dialog>
