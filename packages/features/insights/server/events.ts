@@ -7,12 +7,6 @@ import type { RawDataInput } from "./raw-data.schema";
 
 type TimeViewType = "week" | "month" | "year" | "day";
 
-type DateRange = {
-  startDate: string; // ISO string format
-  endDate: string; // ISO string format
-  formattedDate: string;
-};
-
 type StatusAggregate = {
   completed: number;
   rescheduled: number;
