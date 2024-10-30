@@ -7,8 +7,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
+import isRouter from "../lib/isRouter";
 
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
+import { findTeamMembersMatchingAttributeLogic } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
@@ -132,12 +133,22 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
+    if (isRouter(chosenRoute)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chosen route is a router",
+      });
+    }
+
     const teamMembersMatchingAttributeLogicWithResult =
-      form.teamId && chosenRouteId
-        ? await findTeamMembersMatchingAttributeLogicOfRoute({
-            response,
-            route: chosenRoute,
-            form: serializableForm,
+      form.teamId
+        ? await findTeamMembersMatchingAttributeLogic({
+            additionalSelectOptions: {
+              response,
+              fields: serializableForm.fields,
+            },
+            attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+            fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
             teamId: form.teamId,
           })
         : null;

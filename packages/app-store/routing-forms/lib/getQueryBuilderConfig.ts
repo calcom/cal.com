@@ -114,7 +114,7 @@ export function getQueryBuilderConfigForAttributes({
   fieldsAsAdditionalSelectOptions = [],
 }: {
   attributes: Attribute[];
-  fieldsAsAdditionalSelectOptions: {
+  fieldsAsAdditionalSelectOptions?: {
     label: string;
     id: string;
   }[];

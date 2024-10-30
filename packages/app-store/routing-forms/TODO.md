@@ -1,3 +1,6 @@
+Major BUG
+- [ ] A team member without any attribute isn't considered at all and thus fails Not any in or similar negation operators.
+
 ## Ready for Review Requirements
 - Authorization check for fetch form response and form
 

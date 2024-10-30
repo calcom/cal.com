@@ -7,7 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
+import { findTeamMembersMatchingAttributeLogic } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 
@@ -57,11 +57,14 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     checkedFallback,
     mainAttributeLogicBuildingWarnings: mainWarnings,
     fallbackAttributeLogicBuildingWarnings: fallbackWarnings,
-  } = await findTeamMembersMatchingAttributeLogicOfRoute(
+  } = await findTeamMembersMatchingAttributeLogic(
     {
-      response,
-      route,
-      form: serializableForm,
+      additionalSelectOptions: {
+        response,
+        fields: serializableForm.fields,
+      },
+      attributesQueryValue: route.attributesQueryValue,
+      fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
       teamId: form.teamId,
       isPreview: !!isPreview,
     },

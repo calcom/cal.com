@@ -175,7 +175,7 @@ const operators: Operators = {
   },
   select_not_any_in: {
     isNotOp: true,
-    label: "Not in",
+    label: "Not any in",
     labelForFormat: "NOT IN",
     reversedOp: "select_any_in",
   },

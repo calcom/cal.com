@@ -4,6 +4,7 @@ import type { Options } from "react-select";
 
 import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import { Label } from "@calcom/ui";
 
@@ -102,37 +103,36 @@ const CheckedHostField = ({
   );
 };
 
-function SegmentWithToggle({
+function MembersSegmentWithToggle({
   teamId,
   assignTeamMembersInSegment,
   setAssignTeamMembersInSegment,
+  membersAssignmentSegmentQueryValue,
+  setMembersAssignmentSegmentQueryValue,
+  onToggle,
   className,
 }: {
   teamId: number;
   assignTeamMembersInSegment: boolean;
-  setAssignTeamMembersInSegment: Dispatch<SetStateAction<boolean>>;
+  setAssignTeamMembersInSegment: (value: boolean) => void;
+  membersAssignmentSegmentQueryValue: AttributesQueryValue | null;
+  setMembersAssignmentSegmentQueryValue: (value: AttributesQueryValue) => void;
+  onToggle?: (active: boolean) => void;
   className?: string;
 }) {
-  const { t } = useLocale();
-  const { setValue, getValues } = useFormContext<FormValues>();
-  const queryValue = getValues("membersAssignmentSegmentQueryValue");
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
-    setValue("membersAssignmentSegmentQueryValue", queryValue, { shouldDirty: true });
+    setMembersAssignmentSegmentQueryValue(queryValue);
   };
 
   return (
     <ToggleableSegment
       teamId={teamId}
       enabled={assignTeamMembersInSegment}
-      queryValue={queryValue}
+      queryValue={membersAssignmentSegmentQueryValue}
       onQueryValueChange={onQueryValueChange}
       onToggle={(active) => {
-        setValue("assignTeamMembersInSegment", active, { shouldDirty: true });
-        setValue("assignAllTeamMembers", false, { shouldDirty: true });
         setAssignTeamMembersInSegment(active);
-      }}
-      onChangeOfSegment={() => {
-        setValue("assignTeamMembersInSegment", false, { shouldDirty: true });
+        onToggle?.(active);
       }}
       className={className}
     />
@@ -150,14 +150,13 @@ type AddMembersWithSwitchProps = {
   isFixed: boolean;
   placeholder?: string;
   isRRWeightsEnabled?: boolean;
-  teamId: number;
-  assignTeamMembersInSegment: boolean;
-  setAssignTeamMembersInSegment: Dispatch<SetStateAction<boolean>>;
+  teamId?: number;
+  isSegmentApplicable?: boolean;
 };
 
 const enum AssignmentState {
-  TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_NOT_APPLICABLE = "TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_NOT_APPLICABLE",
-  TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_APPLICABLE = "TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_APPLICABLE",
+  TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE = "TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE",
+  TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE = "TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE",
   ALL_TEAM_MEMBERS_ENABLED = "ALL_TEAM_MEMBERS_ENABLED", // AssignAllTeamMembers is enabled - Means both manual list and segment toggle are hidden
   TEAM_MEMBERS_IN_SEGMENT_ENABLED = "TEAM_MEMBERS_IN_SEGMENT_ENABLED", // assignTeamMembersInSegment is enabled - Means both manual list and AssignAllTeamMembers are hidden
 }
@@ -166,12 +165,37 @@ function getAssignmentState({
   assignAllTeamMembers,
   assignTeamMembersInSegment,
   isAssigningAllTeamMembersApplicable,
+  isSegmentApplicable,
+}: {
+  assignAllTeamMembers: boolean;
+  assignTeamMembersInSegment: boolean;
+  isAssigningAllTeamMembersApplicable: boolean;
+  isSegmentApplicable?: boolean;
 }) {
   if (assignAllTeamMembers) return AssignmentState.ALL_TEAM_MEMBERS_ENABLED;
-  if (assignTeamMembersInSegment) return AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED;
-  if (isAssigningAllTeamMembersApplicable)
-    return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_APPLICABLE;
-  return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_NOT_APPLICABLE;
+  if (assignTeamMembersInSegment && isSegmentApplicable)
+    return AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED;
+  if (isAssigningAllTeamMembersApplicable) return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE;
+  return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE;
+}
+
+function useSegmentState() {
+  const { getValues, setValue } = useFormContext<FormValues>();
+  const assignTeamMembersInSegment = getValues("assignTeamMembersInSegment");
+
+  const setAssignTeamMembersInSegment = (value: boolean) =>
+    setValue("assignTeamMembersInSegment", value, { shouldDirty: true });
+
+  const membersAssignmentSegmentQueryValue = getValues("membersAssignmentSegmentQueryValue");
+  const setMembersAssignmentSegmentQueryValue = (value: AttributesQueryValue) =>
+    setValue("membersAssignmentSegmentQueryValue", value, { shouldDirty: true });
+
+  return {
+    assignTeamMembersInSegment,
+    setAssignTeamMembersInSegment,
+    membersAssignmentSegmentQueryValue,
+    setMembersAssignmentSegmentQueryValue,
+  };
 }
 
 function _AddMembersWithSwitch({
@@ -186,51 +210,72 @@ function _AddMembersWithSwitch({
   placeholder = "",
   isRRWeightsEnabled,
   teamId,
-  assignTeamMembersInSegment,
-  setAssignTeamMembersInSegment,
+  isSegmentApplicable,
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
+  const {
+    assignTeamMembersInSegment,
+    setAssignTeamMembersInSegment,
+    membersAssignmentSegmentQueryValue,
+    setMembersAssignmentSegmentQueryValue,
+  } = useSegmentState();
+
   const assignmentState = getAssignmentState({
     assignAllTeamMembers,
     assignTeamMembersInSegment,
     isAssigningAllTeamMembersApplicable: automaticAddAllEnabled,
+    isSegmentApplicable,
   });
 
   const utils = trpc.useUtils();
-  utils.viewer.appRoutingForms.getAttributesForTeam.prefetch({
-    teamId,
-  });
+  utils.viewer.appRoutingForms.getAttributesForTeam.prefetch(
+    {
+      teamId: teamId!,
+    },
+    {
+      enabled: teamId,
+    }
+  );
 
-  if (assignmentState === AssignmentState.ALL_TEAM_MEMBERS_ENABLED) {
+  const onAssignAllTeamMembersInactive = () => {
+    setValue("hosts", [], { shouldDirty: true });
+    setAssignTeamMembersInSegment(false);
+  };
+
+  if (
+    assignmentState === AssignmentState.ALL_TEAM_MEMBERS_ENABLED ||
+    assignmentState === AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED
+  ) {
+    if (!teamId) {
+      throw new Error("Team ID is required");
+    }
     return (
-      <div className="mb-2">
-        <AssignAllTeamMembers
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          onActive={() => {
-            setValue("assignTeamMembersInSegment", false, { shouldDirty: true });
-            onActive();
-          }}
-          onInactive={() => setValue("hosts", [], { shouldDirty: true })}
+      <>
+        <div className="mb-2">
+          <AssignAllTeamMembers
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            onActive={() => {
+              onActive();
+            }}
+            onInactive={onAssignAllTeamMembersInactive}
+          />
+        </div>
+        <MembersSegmentWithToggle
+          teamId={teamId}
+          assignTeamMembersInSegment={assignTeamMembersInSegment}
+          setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
+          membersAssignmentSegmentQueryValue={membersAssignmentSegmentQueryValue}
+          setMembersAssignmentSegmentQueryValue={setMembersAssignmentSegmentQueryValue}
         />
-      </div>
-    );
-  }
-
-  if (assignmentState === AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED) {
-    return (
-      <SegmentWithToggle
-        teamId={teamId}
-        assignTeamMembersInSegment={assignTeamMembersInSegment}
-        setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
-      />
+      </>
     );
   }
 
   if (
-    assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_NOT_APPLICABLE ||
-    assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_ENABLED_APPLICABLE
+    assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE ||
+    assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE
   ) {
     return (
       <>
@@ -239,7 +284,7 @@ function _AddMembersWithSwitch({
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             onActive={onActive}
-            onInactive={() => setValue("hosts", [], { shouldDirty: true })}
+            onInactive={onAssignAllTeamMembersInactive}
           />
         </div>
         <div className="mb-2">
@@ -251,13 +296,6 @@ function _AddMembersWithSwitch({
             options={teamMembers.sort(sortByLabel)}
             placeholder={placeholder ?? t("add_attendees")}
             isRRWeightsEnabled={isRRWeightsEnabled}
-          />
-        </div>
-        <div className="mb-2">
-          <SegmentWithToggle
-            teamId={teamId}
-            assignTeamMembersInSegment={assignTeamMembersInSegment}
-            setAssignTeamMembersInSegment={setAssignTeamMembersInSegment}
           />
         </div>
       </>

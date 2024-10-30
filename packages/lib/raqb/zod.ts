@@ -63,3 +63,5 @@ export const raqbQueryValueSchema = z
       }),
   })
   .strict();
+
+export const zodAttributesQueryValue = raqbQueryValueSchema.brand<"attributesQueryValue">();
