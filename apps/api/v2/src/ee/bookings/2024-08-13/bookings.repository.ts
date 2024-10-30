@@ -14,7 +14,7 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
-  async getByIdsWithAttendeesAndUser(ids: number[]) {
+  async getByIdsWithAttendeesAndUserAndEvent(ids: number[]) {
     return this.dbRead.prisma.booking.findMany({
       where: {
         id: {
@@ -24,6 +24,26 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+        eventType: true,
+      },
+    });
+  }
+
+  async getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(ids: number[]) {
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      include: {
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
+        user: true,
+        eventType: true,
       },
     });
   }
@@ -36,7 +56,7 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
-  async getByIdWithAttendeesAndUser(id: number) {
+  async getByIdWithAttendeesAndUserAndEvent(id: number) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
         id,
@@ -44,11 +64,29 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+        eventType: true,
       },
     });
   }
 
-  async getByUidWithAttendeesAndUser(uid: string) {
+  async getByIdWithAttendeesWithBookingSeatAndUserAndEvent(id: number) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
+        user: true,
+        eventType: true,
+      },
+    });
+  }
+
+  async getByUidWithAttendeesAndUserAndEvent(uid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
         uid,
@@ -56,11 +94,37 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+        eventType: true,
       },
     });
   }
 
-  async getRecurringByUidWithAttendeesAndUser(uid: string) {
+  async getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid,
+      },
+      include: {
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
+        user: true,
+        eventType: true,
+      },
+    });
+  }
+
+  async getRecurringByUid(uid: string) {
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        recurringEventId: uid,
+      },
+    });
+  }
+
+  async getRecurringByUidWithAttendeesAndUserAndEvent(uid: string) {
     return this.dbRead.prisma.booking.findMany({
       where: {
         recurringEventId: uid,
@@ -68,6 +132,7 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+        eventType: true,
       },
     });
   }

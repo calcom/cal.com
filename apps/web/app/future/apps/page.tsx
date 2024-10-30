@@ -4,7 +4,7 @@ import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@lib/apps/getServerSideProps";
 
-import AppsPage, { LayoutWrapper } from "~/apps/apps-view";
+import AppsPage from "~/apps/apps-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -14,7 +14,6 @@ export const generateMetadata = async () => {
 };
 
 export default WithLayout({
-  getLayout: LayoutWrapper,
   getData: withAppDirSsr(getServerSideProps),
   Page: AppsPage,
 });

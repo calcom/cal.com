@@ -56,6 +56,7 @@ export const buildBooking = (
     cancelledBy: null,
     rescheduledBy: null,
     cancellationReason: null,
+    reassignReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
@@ -153,6 +154,8 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     platformOAuthClientId: null,
+    time: null,
+    timeUnit: null,
     ...webhook,
     platform: false,
   };

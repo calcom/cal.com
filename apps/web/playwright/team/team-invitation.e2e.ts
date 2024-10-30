@@ -25,7 +25,7 @@ test.describe("Team", () => {
         username: "rick",
         domain: `domain-${Date.now()}.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
       const inviteLink = await expectInvitationEmailToBeReceived(
@@ -74,7 +74,8 @@ test.describe("Team", () => {
         email: `user-invite-${Date.now()}@domain.com`,
         password: "P4ssw0rd!",
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+
+      await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
@@ -105,7 +106,7 @@ test.describe("Team", () => {
         username: "rick",
         domain: `example.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
       await expectInvitationEmailToBeReceived(
