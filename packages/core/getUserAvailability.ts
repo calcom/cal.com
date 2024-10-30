@@ -437,8 +437,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
-  const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
   if (returnDateOverrides) {
+    const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
     const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
     for (let i = 0; i < availabilityWithDates.length; i++) {
