@@ -9,6 +9,7 @@ export type DateRange = {
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
+export type TimeBlock = Pick<Availability, "startTime" | "endTime"> & { isTimeBlock: boolean };
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
@@ -90,13 +91,13 @@ export function processWorkingHours({
   return results;
 }
 
-export function processDateOverride({
+export function processDateItem({
   item,
   itemDateAsUtc,
   timeZone,
   travelSchedules,
 }: {
-  item: DateOverride;
+  item: DateOverride | TimeBlock;
   itemDateAsUtc: Dayjs;
   timeZone: string;
   travelSchedules: TravelSchedule[];
@@ -153,7 +154,7 @@ export function buildDateRanges({
   outOfOffice,
 }: {
   timeZone: string;
-  availability: (DateOverride | WorkingHours)[];
+  availability: (DateOverride | WorkingHours | TimeBlock)[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
   travelSchedules: TravelSchedule[];
@@ -162,10 +163,27 @@ export function buildDateRanges({
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
-      if ("days" in item) {
+      if ("days" in item && item.days.length > 0) {
         processed = processed.concat(
           processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
         );
+      } else if ("isTimeBlock" in item && !!item.isTimeBlock) {
+        const itemDateAsUtc = dayjs(item.startTime).startOf("day").utc(true);
+        // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
+        // refactor this to actually work with correct dates.
+        // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
+        // and the dateFrom and dateTo fields, resulting in this if not returning true, which
+        // results in "no available users found" errors.
+        if (
+          itemDateAsUtc.isBetween(
+            dateFrom.subtract(1, "day").startOf("day"),
+            dateTo.add(1, "day").endOf("day"),
+            null,
+            "[]"
+          )
+        ) {
+          processed.push(processDateItem({ item, itemDateAsUtc, timeZone, travelSchedules }));
+        }
       }
       return processed;
     }, [])
@@ -193,7 +211,7 @@ export function buildDateRanges({
             "[]"
           )
         ) {
-          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone, travelSchedules }));
+          processed.push(processDateItem({ item, itemDateAsUtc, timeZone, travelSchedules }));
         }
       }
       return processed;

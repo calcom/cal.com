@@ -425,13 +425,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   ) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
+  const availabilitySource =
+    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability);
 
-  let availabilitySource;
-  if (schedule?.timeBlocks?.length) {
-    availabilitySource = timeBlocks;
-  } else {
-    availabilitySource =
-      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability);
+  if (timeBlocks.length > 0) {
+    availabilitySource.push(...timeBlocks);
   }
 
   const availability = availabilitySource.map((a) => ({
