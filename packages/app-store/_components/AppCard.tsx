@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
@@ -39,6 +40,7 @@ export default function AppCard({
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
+  const isPlatform = useIsPlatform();
 
   return (
     <div
@@ -79,7 +81,7 @@ export default function AppCard({
             </p>
           </div>
           <div className="ml-auto flex items-center space-x-2">
-            {app.credentialOwner && (
+            {app.credentialOwner && !isPlatform && (
               <div className="ml-auto">
                 <Badge variant="gray">
                   <div className="flex items-center">
@@ -128,7 +130,7 @@ export default function AppCard({
           {app?.isInstalled && switchChecked ? (
             app.isSetupAlready === undefined || app.isSetupAlready ? (
               <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
-                {!hideSettingsIcon && (
+                {!hideSettingsIcon && !isPlatform && (
                   <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
                     <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                   </Link>

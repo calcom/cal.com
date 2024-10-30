@@ -163,6 +163,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
+      attendeeTimezone: evt.attendees[0].timeZone,
+      eventTimeInAttendeeTimezone: dayjs(startTime).tz(evt.attendees[0].timeZone),
+      eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
     };
 
     const locale =

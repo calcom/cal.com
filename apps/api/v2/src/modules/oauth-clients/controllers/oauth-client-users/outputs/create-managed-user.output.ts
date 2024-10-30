@@ -34,4 +34,6 @@ export class CreateManagedUserOutput {
   @ValidateNested()
   @Type(() => CreateManagedUserData)
   data!: CreateManagedUserData;
+
+  error?: Error;
 }
