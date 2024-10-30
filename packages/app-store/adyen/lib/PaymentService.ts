@@ -164,6 +164,6 @@ export class PaymentService implements IAbstractPaymentService {
   }
 
   isSetupAlready(): boolean {
-    return true;
+    return !!this.credentials;
   }
 }
