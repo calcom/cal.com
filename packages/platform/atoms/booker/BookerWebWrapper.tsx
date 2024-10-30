@@ -30,7 +30,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const event = useEvent({ fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink });
+  const { data: session } = useSession();
+  const event = useEvent({
+    fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
+    currentUserId: session?.user?.id,
+  });
   const bookerLayout = useBookerLayout(event.data);
 
   const selectedDate = searchParams?.get("date");
@@ -62,7 +66,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
 
-  const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
   const firstNameQueryParam = searchParams?.get("firstName");
