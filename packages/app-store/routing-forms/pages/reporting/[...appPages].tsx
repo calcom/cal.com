@@ -12,12 +12,11 @@ import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
-
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
@@ -61,9 +60,15 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
+  const numberOfRows = data?.pages.reduce((total, page) => total + (page.responses?.length || 0), 0);
 
   return (
     <div className="w-full max-w-[2000px] overflow-x-scroll">
+      {!isPending && (
+        <div className="text-default text-md mx-4 mb-2">
+          {`${numberOfRows} ${numberOfRows === 1 ? t("row") : t("rows")}`}
+        </div>
+      )}
       <table
         data-testid="reporting-table"
         className="border-default bg-subtle mx-3 mb-4 table-fixed border-separate border-spacing-0 overflow-hidden rounded-md border">

@@ -1,4 +1,12 @@
-import type { Booking, Prisma, EventType as PrismaEventType } from "@prisma/client";
+import type {
+  Booking,
+  Prisma,
+  OutOfOfficeEntry,
+  OutOfOfficeReason,
+  User,
+  EventType as PrismaEventType,
+} from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -11,7 +19,6 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -152,7 +159,7 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
   });
 };
 
-type User = Awaited<ReturnType<typeof getUser>>;
+type GetUser = Awaited<ReturnType<typeof getUser>>;
 
 export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
@@ -238,7 +245,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     returnDateOverrides: boolean;
   },
   initialData?: {
-    user?: User;
+    user?: GetUser;
     eventType?: EventType;
     currentSeats?: CurrentSeats;
     rescheduleUid?: string | null;
@@ -250,6 +257,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       _count?: {
         seatsReferences: number;
       };
+    })[];
+    outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
+      user: Pick<User, "id" | "name">;
+      toUser: Pick<User, "id" | "username" | "name"> | null;
+      reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
     })[];
     busyTimesFromLimitsBookings: EventBusyDetails[];
   },
@@ -298,10 +310,10 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   )[0];
 
   const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-    
+
   // TODO: It uses default timezone of user. Should we use timezone of team ?
   const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
-  
+
   const fallbackSchedule = {
     availability: [
       {
@@ -313,10 +325,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ],
     id: 0,
 
-    timeZone: fallbackTimezoneIfScheduleIsMissing
+    timeZone: fallbackTimezoneIfScheduleIsMissing,
   };
 
-  const schedule = (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ?? fallbackSchedule
+  const schedule =
+    (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ??
+    fallbackSchedule;
   const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
@@ -361,7 +375,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  const busyTimes = await getBusyTimes({
+  const busyTimes = await monitorCallbackAsync(getBusyTimes, {
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -403,7 +417,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })
   );
 
-  const startGetWorkingHours = performance.now();
+  const getWorkingHoursSpan = Sentry.startInactiveSpan({ name: "getWorkingHours" });
 
   if (
     !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
@@ -419,14 +433,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
-
-  const endGetWorkingHours = performance.now();
+  getWorkingHoursSpan.end();
 
   const dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
   if (returnDateOverrides) {
+    const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
     const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
     for (let i = 0; i < availabilityWithDates.length; i++) {
@@ -445,15 +459,80 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         });
       }
     }
+
+    calculateDateOverridesSpan.end();
   }
 
-  const datesOutOfOffice = await getOutOfOfficeDays({
-    userId: user.id,
-    dateFrom,
-    dateTo,
-    availability,
-  });
+  const outOfOfficeDays =
+    initialData?.outOfOfficeDays ??
+    (await prisma.outOfOfficeEntry.findMany({
+      where: {
+        userId: user.id,
+        OR: [
+          // outside of range
+          // (start <= 'dateTo' AND end >= 'dateFrom')
+          {
+            start: {
+              lte: dateTo.toISOString(),
+            },
+            end: {
+              gte: dateFrom.toISOString(),
+            },
+          },
+          // start is between dateFrom and dateTo but end is outside of range
+          // (start <= 'dateTo' AND end >= 'dateTo')
+          {
+            start: {
+              lte: dateTo.toISOString(),
+            },
 
+            end: {
+              gte: dateTo.toISOString(),
+            },
+          },
+          // end is between dateFrom and dateTo but start is outside of range
+          // (start <= 'dateFrom' OR end <= 'dateTo')
+          {
+            start: {
+              lte: dateFrom.toISOString(),
+            },
+
+            end: {
+              lte: dateTo.toISOString(),
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        start: true,
+        end: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        toUser: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+        reason: {
+          select: {
+            id: true,
+            emoji: true,
+            reason: true,
+          },
+        },
+      },
+    }));
+
+  const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
+
+  const buildDateRangesSpan = Sentry.startInactiveSpan({ name: "buildDateRanges" });
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,
     dateTo,
@@ -471,25 +550,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     outOfOffice: datesOutOfOffice,
   });
 
+  buildDateRangesSpan.end();
+
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),
     end: dayjs(busy.end),
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
-
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
-
-  log.debug(
-    `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
-    JSON.stringify({
-      workingHoursInUtc: workingHours,
-      dateOverrides,
-      dateRangesAsPerAvailability: dateRanges,
-      dateRangesInWhichUserIsAvailable,
-      detailedBusyTimes,
-    })
-  );
 
   return {
     busy: detailedBusyTimes,
@@ -522,9 +591,6 @@ const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: Int
 };
 
 interface GetUserAvailabilityParamsDTO {
-  userId: number;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
   availability: (DateOverride | WorkingHours)[];
 }
 
@@ -548,83 +614,11 @@ export interface IOutOfOfficeData {
   };
 }
 
-const getOutOfOfficeDays = async (
-  ...args: Parameters<typeof _getOutOfOfficeDays>
-): Promise<ReturnType<typeof _getOutOfOfficeDays>> => {
-  return monitorCallbackAsync(_getOutOfOfficeDays, ...args);
-};
-
-const _getOutOfOfficeDays = async ({
-  userId,
-  dateFrom,
-  dateTo,
-  availability,
-}: GetUserAvailabilityParamsDTO): Promise<IOutOfOfficeData> => {
-  const outOfOfficeDays = await prisma.outOfOfficeEntry.findMany({
-    where: {
-      userId,
-      OR: [
-        // outside of range
-        // (start <= 'dateTo' AND end >= 'dateFrom')
-        {
-          start: {
-            lte: dateTo.toISOString(),
-          },
-          end: {
-            gte: dateFrom.toISOString(),
-          },
-        },
-        // start is between dateFrom and dateTo but end is outside of range
-        // (start <= 'dateTo' AND end >= 'dateTo')
-        {
-          start: {
-            lte: dateTo.toISOString(),
-          },
-
-          end: {
-            gte: dateTo.toISOString(),
-          },
-        },
-        // end is between dateFrom and dateTo but start is outside of range
-        // (start <= 'dateFrom' OR end <= 'dateTo')
-        {
-          start: {
-            lte: dateFrom.toISOString(),
-          },
-
-          end: {
-            lte: dateTo.toISOString(),
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      start: true,
-      end: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      toUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-        },
-      },
-      reason: {
-        select: {
-          id: true,
-          emoji: true,
-          reason: true,
-        },
-      },
-    },
-  });
-  if (!outOfOfficeDays.length) {
+const calculateOutOfOfficeRanges = (
+  outOfOfficeDays: GetUserAvailabilityInitialData["outOfOfficeDays"],
+  availability: GetUserAvailabilityParamsDTO["availability"]
+): IOutOfOfficeData => {
+  if (!outOfOfficeDays || outOfOfficeDays.length === 0) {
     return {};
   }
 
@@ -675,6 +669,7 @@ const _getUsersAvailability = async ({
 }: {
   users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
+    outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
@@ -692,6 +687,7 @@ const _getUsersAvailability = async ({
               ...initialData,
               user,
               currentBookings: user.currentBookings,
+              outOfOfficeDays: user.outOfOfficeDays,
             }
           : undefined
       )

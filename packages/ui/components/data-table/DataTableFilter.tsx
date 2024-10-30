@@ -5,8 +5,6 @@ import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 
-import type { IconName } from "../..";
-import { Icon } from "../..";
 import { Badge } from "../badge";
 import { Button } from "../button";
 import {
@@ -18,6 +16,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "../command";
+import type { IconName } from "../icon";
+import { Icon } from "../icon";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 
 interface FilterOption {
