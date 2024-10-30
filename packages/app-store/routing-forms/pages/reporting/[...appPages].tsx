@@ -18,6 +18,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 
+import { downloadAsCsv } from "../../../_utils/downloadAsCsv";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
@@ -30,7 +31,15 @@ import {
 
 export { getServerSideProps };
 
-const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
+const Result = ({
+  formName,
+  formId,
+  jsonLogicQuery,
+}: {
+  formName: string;
+  formId: string;
+  jsonLogicQuery: JsonLogicQuery | null;
+}) => {
   const { t } = useLocale();
 
   const { isPending, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
@@ -60,13 +69,32 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
+
   const numberOfRows = data?.pages.reduce((total, page) => total + (page.responses?.length || 0), 0);
+  const downloadButtonDisabled = !numberOfRows || !data || !headers.current;
+  const handleDownload = () => {
+    if (downloadButtonDisabled) {
+      return;
+    }
+
+    const header = `${headers.current.join(",")}\n`;
+    const rows = data.pages.flatMap((page) => page.responses.map((response) => `${response.join(",")}\n`));
+
+    const csvRaw = header + rows.join("");
+    const filename = `${formName}_${new Date().toISOString().split("T")[0]}.csv`; // e.g., ${FormName}_2024-10-30.csv
+    downloadAsCsv(csvRaw, filename);
+  };
 
   return (
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       {!isPending && (
         <div className="mb-4 inline-block flex min-w-full items-center px-3">
-          <Button StartIcon="file-down" color="secondary" className="mr-3">
+          <Button
+            disabled={downloadButtonDisabled}
+            StartIcon="file-down"
+            color="secondary"
+            className="mr-3"
+            onClick={() => handleDownload()}>
             {t("download")}
           </Button>
           <div className="text-default text-md">
@@ -185,7 +213,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
         }}
         renderBuilder={renderBuilder}
       />
-      <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
+      <Result formName={form.name} formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
     </div>
   );
 };
