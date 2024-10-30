@@ -65,20 +65,25 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   return (
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       {!isPending && (
-        <div className="text-default text-md mx-4 mb-2">
-          {`${numberOfRows} ${numberOfRows === 1 ? t("row") : t("rows")}`}
+        <div className="mb-4 inline-block flex min-w-full items-center px-3">
+          <Button StartIcon="file-down" color="secondary" className="mr-2">
+            {t("download")}
+          </Button>
+          <div className="text-default text-md">
+            {`${numberOfRows} ${numberOfRows === 1 ? t("row") : t("rows")}`}
+          </div>
         </div>
       )}
       <table
         data-testid="reporting-table"
-        className="border-default bg-subtle mx-3 mb-4 table-fixed border-separate border-spacing-0 overflow-hidden rounded-md border">
+        className="border-default bg-subtle mx-3 mb-4 min-w-full table-fixed border-separate border-spacing-0 overflow-hidden rounded-md border">
         <tr
           data-testid="reporting-header"
           className="border-default text-default bg-emphasis rounded-md border-b">
           {headers.current?.map((header, index) => (
             <th
               className={classNames(
-                "border-default border-b px-2 py-3  text-left text-base font-medium",
+                "border-default border-b px-2 py-3 text-left text-base font-medium",
                 index !== (headers.current?.length || 0) - 1 ? "border-r" : ""
               )}
               key={index}>
