@@ -138,9 +138,12 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       safeStringify({ teamMembersMatchingAttributeLogicWithResult })
     );
 
-    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-      ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map((member) => member.userId)
-      : null;
+    const teamMemberIdsMatchingAttributeLogic =
+      teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+        ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+            (member) => member.userId
+          )
+        : null;
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     if (!chosenRoute) {
