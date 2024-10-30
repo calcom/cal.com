@@ -6,7 +6,6 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
-// import { SchedulingType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
@@ -20,8 +19,6 @@ type GetByViewerOptions = {
   };
   input: TGetEventTypesFromGroupSchema;
 };
-
-const log = logger.getSubLogger({ prefix: ["getEventTypesFromGroup"] });
 
 type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 type MappedEventType = Awaited<ReturnType<typeof mapEventType>>;
@@ -48,7 +45,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   let isFetchingForFirstTime = true;
 
   const fetchAndFilterEventTypes = async () => {
-    const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor);
+    const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor, searchQuery);
     const filteredBatch = filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
 
     for (const eventType of filteredBatch) {
@@ -78,7 +75,8 @@ const fetchEventTypesBatch = async (
   ctx: GetByViewerOptions["ctx"],
   input: GetByViewerOptions["input"],
   shouldListUserEvents: boolean | undefined,
-  cursor: TGetEventTypesFromGroupSchema["cursor"]
+  cursor: TGetEventTypesFromGroupSchema["cursor"],
+  searchQuery: TGetEventTypesFromGroupSchema["searchQuery"]
 ) => {
   const userProfile = ctx.user.profile;
   const { group, limit, filters } = input;
@@ -163,7 +161,7 @@ const fetchEventTypesBatch = async (
   return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? undefined };
 };
 
-const filterEventTypes = (
+const filterEventTypes = async (
   eventTypes: MappedEventType[],
   userId: number,
   shouldListUserEvents: boolean | undefined,
