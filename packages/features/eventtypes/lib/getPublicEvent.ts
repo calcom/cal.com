@@ -432,6 +432,7 @@ export const getPublicEvent = async (
       teamId: event.teamId ?? -1,
       accepted: true,
       role: { in: ["ADMIN", "OWNER"] },
+      ...(event.team?.parentId ? { parentId: event.team.parentId } : {}),
     },
   });
 
