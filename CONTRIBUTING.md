@@ -231,3 +231,82 @@ If `yarn.lock` was committed a while ago and there have been several commits sin
      ```
 
 Lastly, make sure to keep the branches updated (e.g. click the `Update branch` button on GitHub PR).
+
+## Using the new ICS file upload feature
+
+We have introduced a new feature that allows you to upload an ICS file to override availability hours. Follow the steps below to use this feature:
+
+1. **Upload the ICS file**:
+   - Use the new API endpoint to upload your ICS file. The endpoint is available at `POST /api/availability`.
+   - The request body should include the `userId` and the `icsFile` (as a string).
+
+   Example request:
+
+   ```sh
+   curl -X POST https://your-domain.com/api/availability \
+   -H "Content-Type: application/json" \
+   -d '{
+     "userId": 123,
+     "icsFile": "BEGIN:VCALENDAR..."
+   }'
+   ```
+
+2. **Check the response**:
+   - If the upload is successful, you will receive a response with a message indicating that the ICS file was processed successfully.
+
+   Example response:
+
+   ```json
+   {
+     "message": "ICS file processed successfully"
+   }
+   ```
+
+3. **Verify the availability**:
+   - After uploading the ICS file, the availability hours will be updated in the database based on the events in the ICS file.
+   - You can verify the updated availability by using the existing `GET /api/availability` endpoint.
+
+   Example request:
+
+   ```sh
+   curl -X GET https://your-domain.com/api/availability?userId=123&dateFrom=2023-05-14&dateTo=2023-05-20
+   ```
+
+   Example response:
+
+   ```json
+   {
+     "busy": [
+       {
+         "start": "2023-05-14T10:00:00.000Z",
+         "end": "2023-05-14T11:00:00.000Z",
+         "title": "Team meeting between Alice and Bob"
+       },
+       {
+         "start": "2023-05-15T14:00:00.000Z",
+         "end": "2023-05-15T15:00:00.000Z",
+         "title": "Project review between Carol and Dave"
+       }
+     ],
+     "timeZone": "America/New_York",
+     "workingHours": [
+       {
+         "days": [1, 2, 3, 4, 5],
+         "startTime": 540,
+         "endTime": 1020,
+         "userId": 101
+       }
+     ],
+     "dateOverrides": [
+       {
+         "date": "2023-05-15",
+         "startTime": 600,
+         "endTime": 960,
+         "userId": 101
+       }
+     ],
+     "currentSeats": 4
+   }
+   ```
+
+By following these steps, you can easily upload an ICS file to override availability hours and ensure that your availability is up-to-date.
