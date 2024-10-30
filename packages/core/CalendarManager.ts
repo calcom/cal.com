@@ -206,7 +206,7 @@ export const getBusyCalendarTimes = async (
   selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
-  // const months = getMonths(dateFrom, dateTo);
+  const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
