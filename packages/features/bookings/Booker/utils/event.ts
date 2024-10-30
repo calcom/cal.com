@@ -32,7 +32,7 @@ export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; currentUs
       isTeamEvent,
       org: org ?? null,
       fromRedirectOfNonOrgLink: props?.fromRedirectOfNonOrgLink,
-      currentUserId: props.currentUserId,
+      currentUserId: props?.currentUserId,
     },
     {
       refetchOnWindowFocus: false,
