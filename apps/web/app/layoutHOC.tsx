@@ -6,7 +6,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
-type WithLayoutParams<T extends Record<string, any>> = {
+type WithLayoutParams<T extends Record<string, unknown>> = {
   getLayout?: ((page: React.ReactElement) => React.ReactNode) | null;
   getServerLayout?: (page: React.ReactElement) => Promise<React.ReactNode | null>;
   Page?: (props: T) => React.ReactElement | null;
@@ -16,7 +16,7 @@ type WithLayoutParams<T extends Record<string, any>> = {
   requiresLicense?: boolean;
 };
 
-export function WithLayout<T extends Record<string, any>>({
+export function WithLayout<T extends Record<string, unknown>>({
   getLayout,
   getServerLayout,
   getData,
