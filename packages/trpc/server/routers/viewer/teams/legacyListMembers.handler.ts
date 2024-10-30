@@ -101,7 +101,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   let nextCursor: typeof cursor | undefined = undefined;
   if (limit && usersFetched > limit) {
     const nextItem = enrichedMembers.pop();
-    nextCursor = nextItem.membershipId;
+    nextCursor = nextItem?.membershipId;
   }
 
   return {
