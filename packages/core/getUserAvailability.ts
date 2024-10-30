@@ -6,6 +6,7 @@ import type {
   User,
   EventType as PrismaEventType,
 } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -18,7 +19,6 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -374,7 +374,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  const busyTimes = await getBusyTimes({
+  const busyTimes = await monitorCallbackAsync(getBusyTimes, {
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -415,7 +415,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })
   );
 
-  const startGetWorkingHours = performance.now();
+  const getWorkingHoursSpan = Sentry.startInactiveSpan({ name: "getWorkingHours" });
 
   if (
     !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
@@ -431,13 +431,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
-
-  const endGetWorkingHours = performance.now();
+  getWorkingHoursSpan.end();
 
   const dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
+  const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
   if (returnDateOverrides) {
     const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
@@ -457,6 +457,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         });
       }
     }
+
+    calculateDateOverridesSpan.end();
   }
 
   const outOfOfficeDays =
@@ -528,6 +530,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
+  const buildDateRangesSpan = Sentry.startInactiveSpan({ name: "buildDateRanges" });
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,
     dateTo,
@@ -545,25 +548,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     outOfOffice: datesOutOfOffice,
   });
 
+  buildDateRangesSpan.end();
+
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),
     end: dayjs(busy.end),
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
-
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
-
-  log.debug(
-    `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
-    JSON.stringify({
-      workingHoursInUtc: workingHours,
-      dateOverrides,
-      dateRangesAsPerAvailability: dateRanges,
-      dateRangesInWhichUserIsAvailable,
-      detailedBusyTimes,
-    })
-  );
 
   return {
     busy: detailedBusyTimes,
