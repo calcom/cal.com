@@ -248,6 +248,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       {memberListOptions.map((member) => (
                         <label
                           key={member.value}
+                          data-testid={`team_username_select_${member.value}`}
                           tabIndex={watchedTeamUserId === member.value ? -1 : 0}
                           role="radio"
                           aria-checked={watchedTeamUserId === member.value}
