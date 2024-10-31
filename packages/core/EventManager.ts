@@ -96,6 +96,11 @@ export type EventManagerUser = {
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
+export type EventManagerInitParams = {
+  user: EventManagerUser;
+  eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>;
+};
+
 export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
