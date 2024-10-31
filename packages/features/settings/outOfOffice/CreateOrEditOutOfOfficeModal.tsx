@@ -71,7 +71,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       ?.filter((member) => me?.data?.id !== member.id)
       .map((member) => ({
         value: member.id,
-        label: member.name || "",
+        label: member.name || member.username || "",
         avatarUrl: member.avatarUrl,
       })) || [];
 
