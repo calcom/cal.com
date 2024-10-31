@@ -29,7 +29,7 @@ export default async function handleSendingAttendeeNoShowDataToApps(
         },
       },
     });
-    if (!eventTypeQuery && !eventTypeQuery?.eventType?.metadata) {
+    if (!eventTypeQuery || !eventTypeQuery?.eventType?.metadata) {
       log.warn(`For no show, could not find eventType for bookingUid ${bookingUid}`);
       return;
     }
@@ -39,11 +39,11 @@ export default async function handleSendingAttendeeNoShowDataToApps(
       log.error(`Malformed event type metadata for bookingUid ${bookingUid}`);
       return;
     }
-    const eventTypeAppMetadata = eventTypeMetadataParse.data.apps;
+    const eventTypeAppMetadata = eventTypeMetadataParse.data?.apps;
 
     for (const slug in eventTypeAppMetadata) {
       if (noShowEnabledApps.includes(slug)) {
-        const app = eventTypeAppMetadata[slug];
+        const app = eventTypeAppMetadata[slug as keyof typeof eventTypeAppMetadata];
 
         const appCategory = app.appCategories[0];
 
@@ -68,7 +68,19 @@ async function handleCRMNoShow(
     where: {
       id: appData.credentialId,
     },
+    include: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
   });
+
+  if (!credential) {
+    log.warn(`CRM credential not found for bookingUid ${bookingUid}`);
+    return;
+  }
 
   const crm = new CrmManager(credential, appData);
   await crm.handleAttendeeNoShow(bookingUid, attendees);

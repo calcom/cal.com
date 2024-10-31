@@ -75,6 +75,8 @@ export default class CrmManager {
 
   public async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
     const crmService = await this.getCrmService(this.credential);
-    await crmService?.handleAttendeeNoShow(bookingUid, attendees);
+    if (crmService?.handleAttendeeNoShow) {
+      await crmService?.handleAttendeeNoShow(bookingUid, attendees);
+    }
   }
 }
