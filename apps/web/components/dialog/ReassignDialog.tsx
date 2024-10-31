@@ -138,7 +138,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   const [confirmationModal, setConfirmationModal] = useState<{
     show: boolean;
     membersStatus: "unavailable" | "available" | null;
-  }>(null);
+  }>({
+    show: false,
+    membersStatus: null,
+  });
 
   const handleSubmit = (values: FormValues) => {
     if (values.reassignType === "round_robin") {
