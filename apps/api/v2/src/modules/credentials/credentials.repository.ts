@@ -37,6 +37,10 @@ export class CredentialsRepository {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, userId } });
   }
 
+  getByTypeAndTeamId(type: string, teamId: number) {
+    return this.dbWrite.prisma.credential.findFirst({ where: { type, teamId } });
+  }
+
   getAllUserCredentialsByTypeAndId(type: string, userId: number) {
     return this.dbRead.prisma.credential.findMany({ where: { type, userId } });
   }

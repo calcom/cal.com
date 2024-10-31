@@ -175,6 +175,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
     tabsNavigation.push({
       name: "event_payments_tab_title",
       onClick: () => onClick("payments"),
+      isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
       icon: "credit-card",
       info: `event_payments_tab_description`,
