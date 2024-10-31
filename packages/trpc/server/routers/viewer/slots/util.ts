@@ -533,8 +533,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     }
   }
 
-  console.log("🚀 ~ _getAvailableSlots ~ usersWithCredentials:", usersWithCredentials);
-
   const isTeamEvent =
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
