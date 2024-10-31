@@ -114,6 +114,7 @@ export async function getBookings({
                     userId: {
                       in: filters.userIds,
                     },
+                    isFixed: true,
                   },
                 },
               },
@@ -207,6 +208,7 @@ export async function getBookings({
         .map((key) => bookingWhereInputFilters[key])
         // On prisma 5.4.2 passing undefined to where "AND" causes an error
         .filter(Boolean);
+
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,

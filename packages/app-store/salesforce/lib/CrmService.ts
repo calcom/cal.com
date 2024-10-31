@@ -15,6 +15,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import { default as appMeta } from "../config.json";
 import { SalesforceRecordEnum } from "./recordEnum";
 
 type ExtendedTokenResponse = TokenResponse & {
@@ -500,6 +501,80 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return createdContacts;
+  }
+
+  async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+    const appOptions = this.getAppOptions();
+    const { sendNoShowAttendeeData, sendNoShowAttendeeDataField } = appOptions;
+    const conn = await this.conn;
+    // Check that no show is enabled
+    if (!sendNoShowAttendeeData && !sendNoShowAttendeeDataField) {
+      this.log.warn(`No show settings not set for bookingUid ${bookingUid}`);
+      return;
+    }
+    // Get all Salesforce events associated with the booking
+    const salesforceEvents = await prisma.bookingReference.findMany({
+      where: {
+        type: appMeta.type,
+        booking: {
+          uid: bookingUid,
+        },
+      },
+    });
+
+    const salesforceEntity = await conn.describe("Event");
+    const fields = salesforceEntity.fields;
+    const noShowField = fields.find((field) => field.name === sendNoShowAttendeeDataField);
+
+    if (!noShowField || (!noShowField.type as unknown as string) !== "boolean") {
+      this.log.warn(
+        `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingUid}`
+      );
+      return;
+    }
+
+    for (const event of salesforceEvents) {
+      const salesforceEvent = (await conn.query(`SELECT WhoId FROM Event WHERE Id = '${event.uid}'`)) as {
+        records: { WhoId: string }[];
+      };
+
+      let salesforceAttendeeEmail: string | undefined = undefined;
+      // Figure out if the attendee is a contact or lead
+      const contactQuery = (await conn.query(
+        `SELECT Email FROM Contact WHERE Id = '${salesforceEvent.records[0].WhoId}'`
+      )) as { records: { Email: string }[] };
+      const leadQuery = (await conn.query(
+        `SELECT Email FROM Lead WHERE Id = '${salesforceEvent.records[0].WhoId}'`
+      )) as { records: { Email: string }[] };
+
+      // Prioritize contacts over leads
+      if (contactQuery.records.length > 0) {
+        salesforceAttendeeEmail = contactQuery.records[0].Email;
+      } else if (leadQuery.records.length > 0) {
+        salesforceAttendeeEmail = leadQuery.records[0].Email;
+      } else {
+        this.log.warn(
+          `Could not find attendee for bookingUid ${bookingUid} and salesforce event id ${event.uid}`
+        );
+      }
+
+      if (salesforceAttendeeEmail) {
+        // Find the attendee no show data
+        const noShowData = attendees.find((attendee) => attendee.email === salesforceAttendeeEmail);
+
+        if (!noShowData) {
+          this.log.warn(
+            `No show data could not be found for ${salesforceAttendeeEmail} and bookingUid ${bookingUid}`
+          );
+        } else {
+          // Update the event with the no show data
+          await conn.sobject("Event").update({
+            Id: event.uid,
+            [sendNoShowAttendeeDataField]: noShowData.noShow,
+          });
+        }
+      }
+    }
   }
 
   private getExistingIdFromDuplicateError(error: any): string | null {

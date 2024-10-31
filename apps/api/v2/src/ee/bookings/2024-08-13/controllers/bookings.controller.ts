@@ -196,15 +196,6 @@ export class BookingsController_2024_08_13 {
     @Body(new CancelBookingInputPipe())
     body: CancelBookingInput
   ): Promise<CancelBookingOutput_2024_08_13> {
-    // TODO: implement Idempotency middleware
-    const alreadyCancelledBooking = await this.bookingsService.getBooking(bookingUid);
-    if (!Array.isArray(alreadyCancelledBooking) && alreadyCancelledBooking.status === "cancelled") {
-      return {
-        status: SUCCESS_STATUS,
-        data: alreadyCancelledBooking,
-      };
-    }
-
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 
     return {
