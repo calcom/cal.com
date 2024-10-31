@@ -534,7 +534,6 @@ export default class SalesforceCRMService implements CRM {
     }
 
     for (const event of salesforceEvents) {
-      // const salesforceEvent = await conn.sobject("Event").retrieve(event.uid)
       const salesforceEvent = await conn.query(`SELECT WhoId FROM Event WHERE Id = '${event.uid}'`);
 
       let salesforceAttendeeEmail: string | undefined = undefined;
@@ -574,8 +573,6 @@ export default class SalesforceCRMService implements CRM {
         }
       }
     }
-
-    return;
   }
 
   private getExistingIdFromDuplicateError(error: any): string | null {
