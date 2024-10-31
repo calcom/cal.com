@@ -74,11 +74,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     const cals = await getAllCalendars(calendar);
 
-    let primaryCal = cals.find((cal) => cal.primary);
-    if (!primaryCal?.id) {
-      // If the primary calendar is not set, set it to the first calendar
-      primaryCal = cals[0];
-    }
+    const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
     if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
