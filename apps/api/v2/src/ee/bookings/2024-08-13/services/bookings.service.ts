@@ -14,6 +14,7 @@ import {
   getAllUserBookings,
   handleInstantMeeting,
   handleCancelBooking,
+  roundRobinReassignment,
   handleMarkNoShow,
 } from "@calcom/platform-libraries";
 import {
@@ -340,6 +341,12 @@ export class BookingsService_2024_08_13 {
       uid: newBooking.uid,
       startTime: new Date(newBooking.start),
       fromReschedule: oldBookingUid,
+    });
+  }
+
+  async reassignAutoBooking(bookingUid: string) {
+    await roundRobinReassignment({
+      bookingId: bookingUid,
     });
   }
 }

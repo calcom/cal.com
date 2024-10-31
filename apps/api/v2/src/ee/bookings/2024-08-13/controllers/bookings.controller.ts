@@ -49,6 +49,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  ReassignAutoBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
@@ -221,6 +222,28 @@ export class BookingsController_2024_08_13 {
     @GetUser("id") ownerId: number
   ): Promise<MarkAbsentBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
+
+  @Post("/:bookingUid/reassign")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Reassign a booking to a new host" })
+  async reassignBooking(
+    @Param("bookingUid") bookingUid: string
+  ): Promise<ReassignAutoBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.reassignAutoBooking(bookingUid);
 
     return {
       status: SUCCESS_STATUS,
