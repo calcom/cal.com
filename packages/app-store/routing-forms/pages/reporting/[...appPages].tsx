@@ -78,7 +78,11 @@ const Result = ({
     }
 
     const header = `${headers.current ?? [].join(",")}\n`;
-    const rows = data.pages.flatMap((page) => page.responses.map((response) => `${response.join(",")}\n`));
+    const rows = data.pages.flatMap((page) =>
+      page.responses.map(
+        (response) => `${response.map((value) => (value.includes(",") ? `"${value}"` : value)).join(",")}\n`
+      )
+    );
 
     const csvRaw = header + rows.join("");
     const filename = `${formName}_${new Date().toISOString().split("T")[0]}.csv`; // e.g., ${FormName}_2024-10-30.csv
