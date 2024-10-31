@@ -15,46 +15,44 @@ export default async function handleSendingAttendeeNoShowDataToApps(
   bookingUid: string,
   attendees: NoShowAttendees
 ) {
-  try {
-    // Get event type metadata
-    const eventTypeQuery = await prisma.booking.findFirst({
-      where: {
-        uid: bookingUid,
-      },
-      select: {
-        eventType: {
-          select: {
-            metadata: true,
-          },
+  // Get event type metadata
+  const eventTypeQuery = await prisma.booking.findFirst({
+    where: {
+      uid: bookingUid,
+    },
+    select: {
+      eventType: {
+        select: {
+          metadata: true,
         },
       },
-    });
-    if (!eventTypeQuery || !eventTypeQuery?.eventType?.metadata) {
-      log.warn(`For no show, could not find eventType for bookingUid ${bookingUid}`);
-      return;
-    }
+    },
+  });
+  if (!eventTypeQuery || !eventTypeQuery?.eventType?.metadata) {
+    log.warn(`For no show, could not find eventType for bookingUid ${bookingUid}`);
+    return;
+  }
 
-    const eventTypeMetadataParse = EventTypeMetaDataSchema.safeParse(eventTypeQuery?.eventType?.metadata);
-    if (!eventTypeMetadataParse.success) {
-      log.error(`Malformed event type metadata for bookingUid ${bookingUid}`);
-      return;
-    }
-    const eventTypeAppMetadata = eventTypeMetadataParse.data?.apps;
+  const eventTypeMetadataParse = EventTypeMetaDataSchema.safeParse(eventTypeQuery?.eventType?.metadata);
+  if (!eventTypeMetadataParse.success) {
+    log.error(`Malformed event type metadata for bookingUid ${bookingUid}`);
+    return;
+  }
+  const eventTypeAppMetadata = eventTypeMetadataParse.data?.apps;
 
-    for (const slug in eventTypeAppMetadata) {
-      if (noShowEnabledApps.includes(slug)) {
-        const app = eventTypeAppMetadata[slug as keyof typeof eventTypeAppMetadata];
+  for (const slug in eventTypeAppMetadata) {
+    if (noShowEnabledApps.includes(slug)) {
+      const app = eventTypeAppMetadata[slug as keyof typeof eventTypeAppMetadata];
 
-        const appCategory = app.appCategories[0];
+      const appCategory = app.appCategories[0];
 
-        if (appCategory === "crm") {
-          await handleCRMNoShow(bookingUid, app, attendees);
-        }
+      if (appCategory === "crm") {
+        await handleCRMNoShow(bookingUid, app, attendees);
       }
     }
+  }
 
-    return;
-  } catch (e) {}
+  return;
 }
 
 async function handleCRMNoShow(
