@@ -1016,6 +1016,66 @@ const Routes = ({
   );
 };
 
+function Page({
+  hookForm,
+  form,
+  appUrl,
+}: {
+  form: RoutingFormWithResponseCount;
+  appUrl: string;
+  hookForm: UseFormReturn<RoutingFormWithResponseCount>;
+}) {
+  const { t } = useLocale();
+  const values = hookForm.getValues();
+  const { data: attributes, isPending: isAttributesLoading } =
+    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
+      { teamId: values.teamId! },
+      { enabled: !!values.teamId }
+    );
+
+  const { data: eventTypesByGroup, isLoading: areEventsLoading } =
+    trpc.viewer.eventTypes.getByViewer.useQuery({
+      forRoutingForms: true,
+    });
+
+  // If hookForm hasn't been initialized, don't render anything
+  // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values
+  if (!hookForm.getValues().id) {
+    return null;
+  }
+
+  // Only team form needs attributes
+  if (values.teamId) {
+    if (isAttributesLoading) {
+      return <div>Loading...</div>;
+    }
+    if (!attributes) {
+      return <div>{t("something_went_wrong")}</div>;
+    }
+  }
+
+  if (areEventsLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!eventTypesByGroup) {
+    console.error("Events not available");
+    return <div>{t("something_went_wrong")}</div>;
+  }
+
+  return (
+    <div className="route-config">
+      <Routes
+        hookForm={hookForm}
+        appUrl={appUrl}
+        eventTypesByGroup={eventTypesByGroup}
+        form={form}
+        attributes={attributes || null}
+      />
+    </div>
+  );
+}
+
 export default function RouteBuilder({
   form,
   appUrl,
@@ -1026,57 +1086,7 @@ export default function RouteBuilder({
       form={form}
       appUrl={appUrl}
       enrichedWithUserProfileForm={enrichedWithUserProfileForm}
-      Page={function Page({ hookForm, form }) {
-        const { t } = useLocale();
-        const values = hookForm.getValues();
-        const { data: attributes, isPending: isAttributesLoading } =
-          trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
-            { teamId: values.teamId! },
-            { enabled: !!values.teamId }
-          );
-
-        const { data: eventTypesByGroup, isLoading: areEventsLoading } =
-          trpc.viewer.eventTypes.getByViewer.useQuery({
-            forRoutingForms: true,
-          });
-
-        // If hookForm hasn't been initialized, don't render anything
-        // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values
-        if (!hookForm.getValues().id) {
-          return null;
-        }
-
-        // Only team form needs attributes
-        if (values.teamId) {
-          if (isAttributesLoading) {
-            return <div>Loading...</div>;
-          }
-          if (!attributes) {
-            return <div>{t("something_went_wrong")}</div>;
-          }
-        }
-
-        if (areEventsLoading) {
-          return <div>Loading...</div>;
-        }
-
-        if (!eventTypesByGroup) {
-          console.error("Events not available");
-          return <div>{t("something_went_wrong")}</div>;
-        }
-
-        return (
-          <div className="route-config">
-            <Routes
-              hookForm={hookForm}
-              appUrl={appUrl}
-              eventTypesByGroup={eventTypesByGroup}
-              form={form}
-              attributes={attributes || null}
-            />
-          </div>
-        );
-      }}
+      Page={Page}
     />
   );
 }
