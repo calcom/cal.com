@@ -526,7 +526,7 @@ export default class SalesforceCRMService implements CRM {
     const fields = salesforceEntity.fields;
     const noShowField = fields.find((field) => field.name === sendNoShowAttendeeDataField);
 
-    if (!noShowField && !noShowField.type !== "boolean") {
+    if (!noShowField || (!noShowField.type as unknown as string) !== "boolean") {
       this.log.warn(
         `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingUid}`
       );
@@ -534,16 +534,18 @@ export default class SalesforceCRMService implements CRM {
     }
 
     for (const event of salesforceEvents) {
-      const salesforceEvent = await conn.query(`SELECT WhoId FROM Event WHERE Id = '${event.uid}'`);
+      const salesforceEvent = (await conn.query(`SELECT WhoId FROM Event WHERE Id = '${event.uid}'`)) as {
+        records: { WhoId: string }[];
+      };
 
       let salesforceAttendeeEmail: string | undefined = undefined;
       // Figure out if the attendee is a contact or lead
-      const contactQuery = await conn.query(
+      const contactQuery = (await conn.query(
         `SELECT Email FROM Contact WHERE Id = '${salesforceEvent.records[0].WhoId}'`
-      );
-      const leadQuery = await conn.query(
+      )) as { records: { Email: string }[] };
+      const leadQuery = (await conn.query(
         `SELECT Email FROM Lead WHERE Id = '${salesforceEvent.records[0].WhoId}'`
-      );
+      )) as { records: { Email: string }[] };
 
       // Prioritize contacts over leads
       if (contactQuery.records.length > 0) {
