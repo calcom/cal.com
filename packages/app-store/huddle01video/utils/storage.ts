@@ -49,21 +49,3 @@ export async function getHuddle01Credential(userId: number) {
 
   return huddle01AppKeySchema.parse(credential?.key);
 }
-
-const huddle01APIKeySchema = z.object({
-  apiKey: z.string(),
-});
-
-export async function getHuddle01APIKey() {
-  const appCreds = await prisma.app.findFirst({
-    where: {
-      slug: "huddle01",
-    },
-  });
-
-  if (!appCreds) {
-    throw new Error("Huddle01 app credential not found");
-  }
-
-  return huddle01APIKeySchema.parse(appCreds?.keys);
-}
