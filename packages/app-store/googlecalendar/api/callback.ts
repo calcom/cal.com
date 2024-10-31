@@ -1,4 +1,4 @@
-import type { Auth } from "googleapis";
+import type { Auth, calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -42,11 +42,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
-  let key;
-
   if (code) {
     const token = await oAuth2Client.getToken(code);
-    key = token.tokens;
+    const key = token.tokens;
     const grantedScopes = token.tokens.scope?.split(" ") ?? [];
     // Check if we have granted all required permissions
     const hasMissingRequiredScopes = REQUIRED_SCOPES.some((scope) => !grantedScopes.includes(scope));
@@ -74,11 +72,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       auth: oAuth2Client,
     });
 
-    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    let primaryCal = cals.data.items?.find((cal) => cal.primary);
+    const cals = await getAllCalendars(calendar);
+
+    let primaryCal = cals.find((cal) => cal.primary);
     if (!primaryCal?.id) {
       // If the primary calendar is not set, set it to the first calendar
-      primaryCal = cals.data.items?.[0];
+      primaryCal = cals[0];
     }
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
@@ -203,6 +202,24 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
   }
+}
+
+async function getAllCalendars(calendar: calendar_v3.Calendar) {
+  let allCalendars: calendar_v3.Schema$CalendarListEntry[] = [];
+  let pageToken = null;
+
+  do {
+    const response: any = await calendar.calendarList.list({
+      fields: "items(id,summary,primary,accessRole),nextPageToken",
+      pageToken: pageToken,
+      maxResults: 250, // 250 is max
+    });
+
+    allCalendars = [...allCalendars, ...(response.data.items ?? [])];
+    pageToken = response.data.nextPageToken;
+  } while (pageToken);
+
+  return allCalendars;
 }
 
 export default defaultHandler({
