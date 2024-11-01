@@ -20,10 +20,10 @@ import {
   showToast,
 } from "@calcom/ui";
 
-import type { User } from "../UserListTable";
+import type { UserTableUser } from "../types";
 
 interface Props {
-  table: Table<User>;
+  table: Table<UserTableUser>;
 }
 
 export function TeamListBulkAction({ table }: Props) {

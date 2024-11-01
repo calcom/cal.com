@@ -54,7 +54,7 @@ async function seedAppData() {
               "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
                 type: "rule",
                 properties: {
-                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  field: "c1296635-9f12-47b1-8153-c3a854649182",
                   value: ["event-routing"],
                   operator: "equal",
                   valueSrc: ["value"],
@@ -74,7 +74,7 @@ async function seedAppData() {
               "b99b8a89-89ab-4cde-b012-31823f718ff5": {
                 type: "rule",
                 properties: {
-                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  field: "c1296635-9f12-47b1-8153-c3a854649182",
                   value: ["custom-page"],
                   operator: "equal",
                   valueSrc: ["value"],
@@ -94,7 +94,7 @@ async function seedAppData() {
               "998b9b9a-0123-4456-b89a-b1823f7232b9": {
                 type: "rule",
                 properties: {
-                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  field: "c1296635-9f12-47b1-8153-c3a854649182",
                   value: ["external-redirect"],
                   operator: "equal",
                   valueSrc: ["value"],
@@ -359,7 +359,12 @@ export default async function main() {
   await createApp("make", "make", ["automation"], "make_automation", {
     invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
   });
-  await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
+
+  if (process.env.HUDDLE01_API_TOKEN) {
+    await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video", {
+      apiKey: process.env.HUDDLE01_API_TOKEN,
+    });
+  }
 
   // Payment apps
   if (
