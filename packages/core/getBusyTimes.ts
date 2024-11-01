@@ -1,5 +1,6 @@
 import type { Booking, EventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
