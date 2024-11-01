@@ -75,51 +75,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     toUserId = user?.id;
   }
 
-  // Validate if OOO entry for these dates already exists
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          uuid: {
-            not: input.uuid ?? "",
-          },
-        },
-        {
-          OR: [
-            {
-              start: {
-                lte: endDateUtc.toDate(), //existing start is less than or equal to input end time
-              },
-              end: {
-                gte: startDateUtc.toDate(), //existing end is greater than or equal to input start time
-              },
-            },
-            {
-              //existing start is within the new input range
-              start: {
-                gt: startDateUtc.toDate(),
-                lt: endDateUtc.toDate(),
-              },
-            },
-            {
-              //existing end is within the new input range
-              end: {
-                gt: startDateUtc.toDate(),
-                lt: endDateUtc.toDate(),
-              },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  // don't allow overlapping entries
-  if (outOfOfficeEntry) {
-    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
-  }
-
   if (!input.reasonId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
   }

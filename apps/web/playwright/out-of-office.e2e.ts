@@ -247,6 +247,52 @@ test.describe("Out of office", () => {
     await saveAndWaitForResponse(page);
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
+
+  test("User can create overlapping out of office entries", async ({ page, users }) => {
+    const t = await localize("en");
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState();
+
+    const addOOOButton = await page.getByTestId("add_entry_ooo");
+    const dateButton = await page.locator('[id="date"]');
+
+    //Creates 2 OOO entries:
+    //First OOO is created on Next month 1st - 5th
+    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await dateButton.click();
+    await page.locator(`button[name="day"].rdp-day_range_start`).click();
+    await page.locator(`button[name="next-month"]`).click();
+    await page.locator(`button[name="day"]:has-text("1")`).nth(0).click();
+    await page.locator(`button[name="day"]:has-text("5")`).nth(0).click();
+    await page.locator(`text=${t("create_an_out_of_office")}`).click();
+    await page.getByTestId("reason_select").click();
+    await page.getByTestId("select-option-4").click();
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Demo notes");
+
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    //Second OOO is created on Next month 3rd - 8th
+    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await dateButton.click();
+    await page.locator(`button[name="day"].rdp-day_range_start`).click();
+    await page.locator(`button[name="next-month"]`).click();
+    await page.locator(`button[name="day"]:has-text("3")`).nth(0).click();
+    await page.locator(`button[name="day"]:has-text("8")`).nth(0).click();
+    await page.locator(`text=${t("create_an_out_of_office")}`).click();
+    await page.getByTestId("reason_select").click();
+    await page.getByTestId("select-option-4").click();
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Demo notes");
+
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+  });
 });
 
 async function saveAndWaitForResponse(page: Page) {
