@@ -186,6 +186,7 @@ export async function getBusyTimes(params: {
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const timeBlocks: {
+    date: Date | null;
     startTime: Date;
     endTime: Date;
     days: number[];
@@ -263,6 +264,7 @@ export async function getBusyTimes(params: {
       calendarBusyTimesWithTimeBlocks.forEach((busyTime) => {
         if (timeBlocksList?.some((timeBlock) => busyTime.title === timeBlock)) {
           timeBlocks.push({
+            date: null,
             startTime: dayjs(busyTime.start).utc(true).toDate(),
             endTime: dayjs(busyTime.end).utc(true).toDate(),
             days: [],

@@ -97,14 +97,14 @@ export function processDateItem({
   timeZone,
   travelSchedules,
 }: {
-  item: DateOverride | TimeBlock;
+  item: DateOverride;
   itemDateAsUtc: Dayjs;
   timeZone: string;
   travelSchedules: TravelSchedule[];
 }) {
-  const overrideDate = dayjs(item.date);
+  const itemDate = dayjs(item.date);
 
-  const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
+  const adjustedTimezone = getAdjustedTimezone(itemDate, timeZone, travelSchedules);
 
   const itemDateStartOfDay = itemDateAsUtc.startOf("day");
   const startDate = itemDateStartOfDay
@@ -168,7 +168,8 @@ export function buildDateRanges({
           processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
         );
       } else if ("isTimeBlock" in item && !!item.isTimeBlock) {
-        const itemDateAsUtc = dayjs(item.startTime).startOf("day").utc(true);
+        const itemDateAsUtc = dayjs(item.startTime).utc(true).startOf("day");
+        const timeBlockItem = { ...item, date: itemDateAsUtc.toDate() };
         // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
         // refactor this to actually work with correct dates.
         // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
@@ -182,7 +183,7 @@ export function buildDateRanges({
             "[]"
           )
         ) {
-          processed.push(processDateItem({ item, itemDateAsUtc, timeZone, travelSchedules }));
+          processed.push(processDateItem({ item: timeBlockItem, itemDateAsUtc, timeZone, travelSchedules }));
         }
       }
       return processed;
