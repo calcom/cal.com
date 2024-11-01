@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 import type { TEventInputSchema } from "@calcom/trpc/server/routers/publicViewer/event.schema";
 
 export class EventRepository {
-  static async getPublicEvent(input: TEventInputSchema) {
+  static async getPublicEvent(input: TEventInputSchema, userId?: number) {
     const event = await getPublicEvent(
       input.username,
       input.eventSlug,
@@ -11,7 +11,7 @@ export class EventRepository {
       input.org,
       prisma,
       input.fromRedirectOfNonOrgLink,
-      input.currentUserId
+      userId
     );
     return event;
   }
