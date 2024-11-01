@@ -191,23 +191,19 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
     const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
     const userDetails = await oauth2.userinfo.get();
     if (userDetails.data?.picture) {
-      // Check if the user has no avatar
-      const user = await prisma.user.findFirst({
+      // Using updateMany here since if the user already has a profile it would throw an error
+      // because no records were found to update the profile picture
+      await prisma.user.updateMany({
         where: {
           id: userId,
-          avatarUrl: null,
-        },
-        select: { id: true },
-      });
-
-      if (user) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            avatarUrl: userDetails.data.picture,
+          avatarUrl: {
+            equals: null,
           },
-        });
-      }
+        },
+        data: {
+          avatarUrl: userDetails.data.picture,
+        },
+      });
     }
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
