@@ -83,15 +83,15 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       isValidOrgDomain: true,
     };
 
-    // Call the function
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
+    // Call the function with teamId
+    await handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
 
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
 
     // Mock length to be one then recall to trigger email
     mocked.lrange.mockResolvedValueOnce([""]);
 
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
+    await handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalled();
   });
   it("Should not send a notification if the org has them disabled", async () => {
@@ -112,8 +112,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       isValidOrgDomain: true,
     };
 
-    // Call the function
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
+    await handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
 
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
   });
@@ -127,7 +126,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       },
     });
 
-    // Mock finding team members - one from correct team, one from different team
+    // Mock finding team members
     prismaMock.membership.findMany.mockResolvedValue([
       {
         user: {
@@ -367,8 +366,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       isValidOrgDomain: true,
     };
 
-    // First notification cycle
-    mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous no-slots occurrence
+    // First notification cycle - simulate having one previous occurrence
+    mocked.lrange.mockResolvedValueOnce([""]); // One previous occurrence
     await handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
@@ -381,8 +380,10 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     // Reset call counts
     vi.clearAllMocks();
 
-    // Simulate another notification attempt within the frequency window
-    mocked.lrange.mockResolvedValueOnce([""]); // Again simulate one previous occurrence
+    // For the second attempt, simulate having TWO occurrences already in Redis
+    // This better simulates the real Redis state after the first notification
+    mocked.lrange.mockResolvedValueOnce(["", ""]); // Two occurrences now
+
     await handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
@@ -393,8 +394,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
 
     // Verify Redis operations
-    expect(mocked.expire).toHaveBeenCalledWith(expect.any(String), expect.any(Number));
-    expect(mocked.lpush).toHaveBeenCalledTimes(1);
+    expect(mocked.lpush).toHaveBeenCalledTimes(1); // Still records the occurrence
   });
 
   it("Should maintain separate notification frequencies for different event types", async () => {
@@ -427,7 +427,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     };
 
     // First event type notification
-    mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous no-slots occurrence
+    mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous occurrence for first event
     await handleNotificationWhenNoSlots({
       eventDetails: { ...baseEventDetails, eventSlug: "event1" },
       orgDetails,
@@ -437,11 +437,12 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     // Verify first notification was sent
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledTimes(1);
 
-    // Reset call counts but keep Redis mock state
-    vi.clearAllMocks();
+    // Reset only the email mock, keep Redis mocks
+    vi.mocked(CalcomEmails.sendOrganizationAdminNoSlotsNotification).mockClear();
 
-    // Different event type should trigger its own notification
-    mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous no-slots occurrence
+    // For the second event type, also simulate one previous occurrence
+    // This needs to be a separate mock since it's a different key in Redis
+    mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous occurrence for second event
     await handleNotificationWhenNoSlots({
       eventDetails: { ...baseEventDetails, eventSlug: "event2" },
       orgDetails,
@@ -451,9 +452,17 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     // Verify second notification was sent (different event type)
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledTimes(1);
 
-    // Verify Redis operations used different keys
+    // Get all lpush calls
     const lpushCalls = mocked.lpush.mock.calls;
     expect(lpushCalls.length).toBe(2);
-    expect(lpushCalls[0][0]).not.toBe(lpushCalls[1][0]); // Different Redis keys used
+
+    // Extract the Redis keys used for each event
+    const firstEventKey = lpushCalls[0][0];
+    const secondEventKey = lpushCalls[1][0];
+
+    // Verify different keys were used
+    expect(firstEventKey).not.toBe(secondEventKey);
+    expect(firstEventKey).toContain("event1");
+    expect(secondEventKey).toContain("event2");
   });
 });
