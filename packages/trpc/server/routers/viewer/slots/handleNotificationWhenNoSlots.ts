@@ -40,12 +40,14 @@ const constructDataHash = (eventDetails: EventDetails) => {
 export const handleNotificationWhenNoSlots = async ({
   eventDetails,
   orgDetails,
+  teamId,
 }: {
   eventDetails: EventDetails;
   orgDetails: { currentOrgDomain: string | null };
+  teamId?: number;
 }) => {
   // Check for org
-  if (!orgDetails.currentOrgDomain) return;
+  if (!orgDetails.currentOrgDomain || !teamId) return;
   const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
   if (!UPSTASH_ENV_FOUND) return;
 
@@ -82,12 +84,14 @@ export const handleNotificationWhenNoSlots = async ({
 
   // We add one as we know we just added one to the list - saves us re-fetching the data
   if (usersExistingNoSlots.length + 1 === NO_SLOTS_COUNT_FOR_NOTIFICATION) {
-    // Get all org admins to send the email too
+    // Get all team admins to send the email too
     const foundAdmins = await prisma.membership.findMany({
       where: {
         team: {
-          slug: orgDetails.currentOrgDomain,
-          isOrganization: true,
+          id: teamId,
+          parentId: {
+            not: null,
+          },
         },
         role: {
           in: ["ADMIN", "OWNER"],

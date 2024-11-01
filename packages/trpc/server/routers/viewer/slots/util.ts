@@ -849,6 +849,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           eventSlug: eventType.slug,
         },
         orgDetails,
+        teamId: eventType.team?.id,
       });
     } catch (e) {
       loggerWithEventDetails.error(
