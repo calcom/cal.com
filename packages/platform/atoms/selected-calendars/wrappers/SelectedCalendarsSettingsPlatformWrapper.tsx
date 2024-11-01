@@ -269,10 +269,14 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
   );
 };
 
-const PlatformAdditionalCalendarSelector = ({
+export const PlatformAdditionalCalendarSelector = ({
   calendarRedirectUrls,
+  align,
+  side,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
+  align?: "center" | "end" | "start";
+  side?: "top" | "bottom" | "left" | "right";
 }) => {
   const { t } = useLocale();
   const { refetch } = useConnectedCalendars({});
@@ -284,7 +288,7 @@ const PlatformAdditionalCalendarSelector = ({
           {t("add")}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align={align} side={side}>
         <div>
           <div>
             <Connect.GoogleCalendar
