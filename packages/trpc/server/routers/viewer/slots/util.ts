@@ -400,12 +400,8 @@ export function getUsersWithCredentialsConsideringContactOwner({
   return contactOwnerAndFixedHosts;
 }
 
-const getStartTime = (
-  startTimeInput: string,
-  timeZone?: string,
-  eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>
-) => {
-  const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice || 1, "minutes");
+const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
+  const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
   const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
 
   return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
@@ -456,7 +452,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
-  const startTime = getStartTime(startTimeAdjustedForRollingWindowComputation, input.timeZone, eventType);
+  const startTime = getStartTime(
+    startTimeAdjustedForRollingWindowComputation,
+    input.timeZone,
+    eventType.minimumBookingNotice
+  );
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
@@ -570,6 +570,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   availableTimeSlots = timeSlots;
+
+  const availabilityCheckProps = {
+    eventLength: input.duration || eventType.length,
+    currentSeats,
+  };
 
   if (selectedSlots?.length > 0) {
     let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
@@ -1008,13 +1013,14 @@ const calculateHostsAndAvailabilities = async ({
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
-  routedHostsWithContactOwnerAndFixedHosts: Awaited<
-    ReturnType<typeof getRoutedHostsWithContactOwnerAndFixedHosts>
-  >;
+  routedHostsWithContactOwnerAndFixedHosts: {
+    isFixed?: boolean;
+    user: GetAvailabilityUser;
+  }[];
   contactOwnerEmail?: string | null;
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
-  endTime: string;
+  endTime: Dayjs;
   currentSeats?: CurrentSeats | undefined;
 }) => {
   if (
@@ -1152,11 +1158,6 @@ const calculateHostsAndAvailabilities = async ({
       };
     }
   );
-
-  const availabilityCheckProps = {
-    eventLength: input.duration || eventType.length,
-    currentSeats,
-  };
 
   const aggregatedAvailability = monitorCallbackSync(
     getAggregatedAvailability,
