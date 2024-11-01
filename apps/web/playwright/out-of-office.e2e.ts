@@ -202,10 +202,7 @@ test.describe("Out of office", () => {
     await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
 
-  test.only("User can create separate out of office entries for consecutive dates", async ({
-    page,
-    users,
-  }) => {
+  test("User can create separate out of office entries for consecutive dates", async ({ page, users }) => {
     const t = await localize("en");
     const user = await users.create({ name: "userOne" });
 
