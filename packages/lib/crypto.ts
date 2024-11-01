@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const ALGORITHM = "aes256";
+const ALGORITHM = "aes-256-cbc";
 const INPUT_ENCODING = "utf8";
 const OUTPUT_ENCODING = "hex";
 const IV_LENGTH = 16; // AES blocksize

@@ -127,7 +127,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           <Input
-            data-testid={`${dataTestid}-input` ?? "input-field"}
+            data-testid={dataTestid ? `${dataTestid}-input` : "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}

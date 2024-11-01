@@ -122,7 +122,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
                   router.replace(pathname);
                 }
               } else {
-                const _searchParams = new URLSearchParams(searchParams ?? undefined);
+                const _searchParams = new URLSearchParams(searchParams.toString());
                 _searchParams.set("category", cat);
                 router.replace(`${pathname}?${_searchParams.toString()}`);
               }

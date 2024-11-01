@@ -46,7 +46,9 @@ export const useSchedule = ({
     selectedDate,
   });
   const searchParams = useSearchParams();
-  const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
+  const routedTeamMemberIds = searchParams
+    ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
+    : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
 
   const input = {
