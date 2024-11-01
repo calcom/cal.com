@@ -21,7 +21,6 @@ import type { TrpcSessionUser } from "../../../trpc";
 import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
-  addWeightAdjustmentToNewHosts,
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
@@ -276,23 +275,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
-    const hostsWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
-      hosts,
-      isWeightsEnabled,
-      eventTypeId: id,
-      prisma: ctx.prisma,
-    });
-
     data.hosts = {
       deleteMany: {},
-      create: hostsWithWeightAdjustment.map((host) => {
-        const { ...rest } = host;
+      create: hosts.map((host) => {
         return {
-          ...rest,
+          ...host,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2, // default to medium priority
           weight: host.weight ?? 100,
-          weightAdjustment: host.weightAdjustment,
         };
       }),
     };

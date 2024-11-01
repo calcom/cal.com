@@ -54,6 +54,7 @@ model Host {
   weightAdjustment Int?
   schedule         Schedule? @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
+  createdAt        DateTime  @default(now())
 
   @@id([userId, eventTypeId])
   @@index([userId])

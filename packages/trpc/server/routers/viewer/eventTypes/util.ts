@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
@@ -199,7 +200,7 @@ type User = {
   email: string;
 };
 
-export async function addWeightAdjustmentToNewHosts({
+export async function calculateWeightAdjustmentToNewHosts({
   hosts,
   isWeightsEnabled,
   eventTypeId,
@@ -275,6 +276,8 @@ export async function addWeightAdjustmentToNewHosts({
     users: ongoingRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
+    startDate: dayjs().utc().startOf("month").toDate(),
+    endDate: dayjs().utc().endOf("month").toDate(),
   });
 
   const { ongoingHostsWeightAdjustment, ongoingHostsWeights } = ongoingRRHosts.reduce(
@@ -294,8 +297,9 @@ export async function addWeightAdjustmentToNewHosts({
         const existingBookings = await BookingRepository.getAllBookingsForRoundRobin({
           eventTypeId,
           users: [{ id: host.user.id, email: host.user.email }],
+          startDate: dayjs().utc().startOf("month").toDate(),
+          endDate: dayjs().utc().endOf("month").toDate(),
         });
-
         const proportionalNrOfBookings =
           ((ongoingHostBookings.length + ongoingHostsWeightAdjustment) / ongoingHostsWeights) * host.weight;
         weightAdjustment = proportionalNrOfBookings - existingBookings.length;
