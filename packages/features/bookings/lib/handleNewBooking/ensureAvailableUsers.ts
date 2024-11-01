@@ -87,6 +87,8 @@ export async function ensureAvailableUsers(
       returnDateOverrides: false,
       dateFrom: startDateTimeUtc.format(),
       dateTo: endDateTimeUtc.format(),
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      afterEventBuffer: eventType.afterEventBuffer,
     },
     initialData: {
       eventType,

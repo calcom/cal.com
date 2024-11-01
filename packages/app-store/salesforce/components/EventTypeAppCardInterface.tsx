@@ -27,6 +27,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const createEventOn = getAppData("createEventOn") ?? SalesforceRecordEnum.CONTACT;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectMap = getAppData("onBookingWriteToEventObjectMap") ?? {};
+  const createEventOnLeadCheckForContact = getAppData("createEventOnLeadCheckForContact") ?? false;
+  const onBookingChangeRecordOwner = getAppData("onBookingChangeRecordOwner") ?? false;
+  const onBookingChangeRecordOwnerName = getAppData("onBookingChangeRecordOwnerName") ?? [];
+  const sendNoShowAttendeeData = getAppData("sendNoShowAttendeeData") ?? false;
+  const sendNoShowAttendeeDataField = getAppData("sendNoShowAttendeeDataField") ?? "";
+
   const { t } = useLocale();
 
   const recordOptions = [
@@ -87,6 +93,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               checked={isSkipContactCreationEnabled}
               onCheckedChange={(checked) => {
                 setAppData("skipContactCreation", checked);
+              }}
+            />
+          </div>
+        ) : null}
+        {createEventOnSelectedOption.value === SalesforceRecordEnum.LEAD ? (
+          <div>
+            <Switch
+              label={t("salesforce_create_event_on_contact")}
+              labelOnLeading
+              checked={createEventOnLeadCheckForContact}
+              onCheckedChange={(checked) => {
+                setAppData("createEventOnLeadCheckForContact", checked);
               }}
             />
           </div>
@@ -208,6 +226,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           ) : null}
         </div>
 
+        <div className="mt-4">
+          <Switch
+            label="Change record owner on booking"
+            labelOnLeading
+            checked={onBookingChangeRecordOwner}
+            onCheckedChange={(checked) => {
+              setAppData("onBookingChangeRecordOwner", checked);
+            }}
+          />
+        </div>
+        {onBookingChangeRecordOwner ? (
+          <div className="ml-2 mt-2">
+            <p className="mb-2">{t("salesforce_owner_name_to_change")}</p>
+            <InputField
+              value={onBookingChangeRecordOwnerName}
+              onChange={(e) => setAppData("onBookingChangeRecordOwnerName", e.target.value)}
+            />
+          </div>
+        ) : null}
+
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
           <div className="mt-4">
             <Switch
@@ -243,6 +281,25 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
         ) : null}
+
+        <div className="ml-2 mt-4">
+          <Switch
+            label="Send no show attendee data to event object"
+            checked={sendNoShowAttendeeData}
+            onCheckedChange={(checked) => {
+              setAppData("sendNoShowAttendeeData", checked);
+            }}
+          />
+          {sendNoShowAttendeeData ? (
+            <div className="mt-2">
+              <p className="mb-2">Field name to check (must be checkbox data type)</p>
+              <InputField
+                value={sendNoShowAttendeeDataField}
+                onChange={(e) => setAppData("sendNoShowAttendeeDataField", e.target.value)}
+              />
+            </div>
+          ) : null}
+        </div>
       </>
     </AppCard>
   );

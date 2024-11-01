@@ -15,6 +15,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import { default as appMeta } from "../config.json";
 import { SalesforceRecordEnum } from "./recordEnum";
 
 type ExtendedTokenResponse = TokenResponse & {
@@ -129,7 +130,7 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
-    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
+    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true`);
     if (query.records.length > 0) {
       return (query.records[0] as { Email: string; Id: string }).Id;
     }
@@ -137,7 +138,8 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserFromOwnerId = async (ownerId: string) => {
     const conn = await this.conn;
-    return await conn.query(`SELECT Id, Email FROM User WHERE Id = '${ownerId}'`);
+
+    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${ownerId}' AND IsActive = true`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -153,7 +155,6 @@ export default class SalesforceCRMService implements CRM {
     options: { [key: string]: unknown }
   ) => {
     const conn = await this.conn;
-    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
 
     return await conn.sobject("Event").create({
       StartDateTime: new Date(event.startTime).toISOString(),
@@ -166,7 +167,6 @@ export default class SalesforceCRMService implements CRM {
         IsRecurrence2: true,
         Recurrence2PatternText: new RRule(event.recurringEvent).toString(),
       }),
-      ...(ownerId && { OwnerId: ownerId }),
     });
   };
 
@@ -188,9 +188,12 @@ export default class SalesforceCRMService implements CRM {
       confirmedCustomFieldInputs[field] = appOptions.onBookingWriteToEventObjectMap[field];
     }
 
+    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
+
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
       ...confirmedCustomFieldInputs,
+      ...(ownerId && { OwnerId: ownerId }),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
         this.calWarnings.push(
@@ -207,6 +210,10 @@ export default class SalesforceCRMService implements CRM {
         return Promise.reject();
       }
     });
+    // Check to see if we also need to change the record owner
+    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
+      await this.checkRecordOwnerNameFromRecordId(contacts[0].id, ownerId);
+    }
     return createdEvent;
   };
 
@@ -320,7 +327,15 @@ export default class SalesforceCRMService implements CRM {
         const results = await conn.query(soql);
         if (results.records.length) {
           const contact = results.records[0] as { AccountId: string };
-          soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
+          if (contact) {
+            soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
+          }
+        } else {
+          // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
+          const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
+          if (accountId) {
+            soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${accountId}'`;
+          }
         }
       }
       // If creating events on contacts or leads
@@ -329,9 +344,27 @@ export default class SalesforceCRMService implements CRM {
     }
     const results = await conn.query(soql);
 
-    if (!results || !results.records.length) return [];
+    let records: ContactRecord[] = [];
 
-    const records = results.records as ContactRecord[];
+    // If falling back to contacts, check for the contact before returning the leads or empty array
+    if (
+      appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
+      appOptions.createEventOnLeadCheckForContact
+    ) {
+      // Get any matching contacts
+      const contactSearch = await conn.query(
+        `SELECT Id, Email, OwnerId FROM ${SalesforceRecordEnum.CONTACT} WHERE Email IN ('${emailArray.join(
+          "','"
+        )}')`
+      );
+
+      if (contactSearch && contactSearch.records.length > 0)
+        records = contactSearch.records as ContactRecord[];
+    } else if (!results || !results.records.length) {
+      return [];
+    }
+
+    if (!records.length) records = results.records as ContactRecord[];
 
     if (includeOwner || forRoundRobinSkip) {
       const ownerIds: Set<string> = new Set();
@@ -345,7 +378,7 @@ export default class SalesforceCRMService implements CRM {
         })
       )) as { records: ContactRecord[] }[];
       const contactsWithOwners = records.map((record) => {
-        const ownerEmail = ownersQuery.find((user) => user.records[0].Id === record.OwnerId)?.records[0]
+        const ownerEmail = ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]
           .Email;
         return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
       });
@@ -398,13 +431,7 @@ export default class SalesforceCRMService implements CRM {
       // Base this off of the first contact
       const attendee = contactsToCreate[0];
 
-      const emailDomain = attendee.email.split("@")[1];
-
-      const response = await conn.query(
-        `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
-      );
-
-      const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
+      const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
 
       let contactCreated = false;
 
@@ -475,6 +502,80 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return createdContacts;
+  }
+
+  async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+    const appOptions = this.getAppOptions();
+    const { sendNoShowAttendeeData, sendNoShowAttendeeDataField } = appOptions;
+    const conn = await this.conn;
+    // Check that no show is enabled
+    if (!sendNoShowAttendeeData && !sendNoShowAttendeeDataField) {
+      this.log.warn(`No show settings not set for bookingUid ${bookingUid}`);
+      return;
+    }
+    // Get all Salesforce events associated with the booking
+    const salesforceEvents = await prisma.bookingReference.findMany({
+      where: {
+        type: appMeta.type,
+        booking: {
+          uid: bookingUid,
+        },
+      },
+    });
+
+    const salesforceEntity = await conn.describe("Event");
+    const fields = salesforceEntity.fields;
+    const noShowField = fields.find((field) => field.name === sendNoShowAttendeeDataField);
+
+    if (!noShowField || (!noShowField.type as unknown as string) !== "boolean") {
+      this.log.warn(
+        `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingUid}`
+      );
+      return;
+    }
+
+    for (const event of salesforceEvents) {
+      const salesforceEvent = (await conn.query(`SELECT WhoId FROM Event WHERE Id = '${event.uid}'`)) as {
+        records: { WhoId: string }[];
+      };
+
+      let salesforceAttendeeEmail: string | undefined = undefined;
+      // Figure out if the attendee is a contact or lead
+      const contactQuery = (await conn.query(
+        `SELECT Email FROM Contact WHERE Id = '${salesforceEvent.records[0].WhoId}'`
+      )) as { records: { Email: string }[] };
+      const leadQuery = (await conn.query(
+        `SELECT Email FROM Lead WHERE Id = '${salesforceEvent.records[0].WhoId}'`
+      )) as { records: { Email: string }[] };
+
+      // Prioritize contacts over leads
+      if (contactQuery.records.length > 0) {
+        salesforceAttendeeEmail = contactQuery.records[0].Email;
+      } else if (leadQuery.records.length > 0) {
+        salesforceAttendeeEmail = leadQuery.records[0].Email;
+      } else {
+        this.log.warn(
+          `Could not find attendee for bookingUid ${bookingUid} and salesforce event id ${event.uid}`
+        );
+      }
+
+      if (salesforceAttendeeEmail) {
+        // Find the attendee no show data
+        const noShowData = attendees.find((attendee) => attendee.email === salesforceAttendeeEmail);
+
+        if (!noShowData) {
+          this.log.warn(
+            `No show data could not be found for ${salesforceAttendeeEmail} and bookingUid ${bookingUid}`
+          );
+        } else {
+          // Update the event with the no show data
+          await conn.sobject("Event").update({
+            Id: event.uid,
+            [sendNoShowAttendeeDataField]: noShowData.noShow,
+          });
+        }
+      }
+    }
   }
 
   private getExistingIdFromDuplicateError(error: any): string | null {
@@ -569,5 +670,45 @@ export default class SalesforceCRMService implements CRM {
       console.error(e);
       return [];
     }
+  }
+
+  private async checkRecordOwnerNameFromRecordId(id: string, newOwnerId: string) {
+    const conn = await this.conn;
+    const appOptions = this.getAppOptions();
+
+    // Get the associated record that the event was created on
+    const recordQuery = (await conn.query(
+      `SELECT OwnerId FROM ${appOptions?.createEventOn} WHERE Id = '${id}'`
+    )) as { records: { OwnerId: string }[] };
+
+    if (!recordQuery || !recordQuery.records.length) return;
+
+    const ownerId = recordQuery.records[0].OwnerId;
+
+    const ownerQuery = await this.getSalesforceUserFromOwnerId(ownerId);
+
+    if (!ownerQuery || !ownerQuery.records.length) return;
+
+    const owner = ownerQuery.records[0] as { Name: string };
+
+    // Check that the owner name matches the names where we need to change the organizer
+    if (appOptions?.onBookingChangeRecordOwnerName.includes(owner.Name)) {
+      await conn.sobject(appOptions?.createEventOn).update({
+        // First field is there WHERE statement
+        Id: id,
+        OwnerId: newOwnerId,
+      });
+    }
+  }
+
+  private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
+    const conn = await this.conn;
+    const emailDomain = email.split("@")[1];
+
+    const response = await conn.query(
+      `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
+    );
+
+    return this.getDominantAccountId(response.records as { AccountId: string }[]);
   }
 }
