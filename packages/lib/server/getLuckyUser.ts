@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
@@ -221,11 +222,13 @@ export async function getLuckyUser<
     return availableUsers[0];
   }
 
-  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+  const currentMonthBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
       return { id: user.id, email: user.email };
     }),
+    startDate: dayjs().utc().startOf("month").toDate(),
+    endDate: dayjs().utc().endOf("month").toDate(),
   });
 
   switch (distributionAlgorithm) {
@@ -234,15 +237,25 @@ export async function getLuckyUser<
       if (eventType.isRRWeightsEnabled) {
         possibleLuckyUsers = await getUsersBasedOnWeights({
           ...getLuckyUserParams,
-          bookingsOfAvailableUsers,
+          bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
         });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
 
-      return leastRecentlyBookedUser<T>({
-        ...getLuckyUserParams,
-        availableUsers: highestPriorityUsers,
-        bookingsOfAvailableUsers,
-      });
+      if (highestPriorityUsers.length > 1) {
+        const allBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+          eventTypeId: eventType.id,
+          users: availableUsers.map((user) => {
+            return { id: user.id, email: user.email };
+          }),
+        });
+
+        return leastRecentlyBookedUser<T>({
+          ...getLuckyUserParams,
+          availableUsers: highestPriorityUsers,
+          bookingsOfAvailableUsers: allBookingsOfAvailableUsers,
+        });
+      }
+      return highestPriorityUsers[0];
   }
 }
