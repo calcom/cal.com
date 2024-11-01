@@ -77,6 +77,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(), // Mocking Dayjs format function
+      endTime: dayjs().add(1, "hour"),
     };
     const orgDetails = {
       currentOrgDomain: "org1",
@@ -106,6 +107,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(), // Mocking Dayjs format function
+      endTime: dayjs().add(1, "hour"),
     };
     const orgDetails = {
       currentOrgDomain: "org1",
@@ -140,6 +142,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
@@ -193,6 +196,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
@@ -220,6 +224,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
@@ -251,6 +256,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
@@ -303,6 +309,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
@@ -359,6 +366,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       username: "user1",
       eventSlug: "event1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
@@ -419,6 +427,7 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const baseEventDetails = {
       username: "user1",
       startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
     };
 
     const orgDetails = {
