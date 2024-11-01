@@ -90,7 +90,7 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
   return errors;
 }
 
-export function getJsonLogic({
+function getJsonLogic({
   attributesQueryValue,
   attributesQueryBuilderConfig,
 }: {
@@ -132,7 +132,7 @@ function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; dat
   };
 }
 
-export async function getLogicResultForAllMembers(
+async function getLogicResultForAllMembers(
   {
     teamMembersWithAttributeOptionValuePerAttribute,
     attributeJsonLogic,
@@ -177,7 +177,7 @@ export async function getLogicResultForAllMembers(
   };
 }
 
-export async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttributeLogicOptions) {
+async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttributeLogicOptions) {
   const {
     attributesQueryValue: _attributesQueryValue,
     attributesData: { attributesForTeam, teamMembersWithAttributeOptionValuePerAttribute },
@@ -185,7 +185,7 @@ export async function runAttributeLogic(data: RunAttributeLogicData, options: Ru
   } = data;
   const { concurrency, enablePerf, isPreview, enableTroubleshooter } = options;
   const attributesQueryValue = getAttributesQueryValue({
-    attributesQueryValue: _attributesQueryValue,
+    attributesQueryValue: _attributesQueryValue ?? null,
     attributes: attributesForTeam,
     additionalSelectOptions,
   });
@@ -323,7 +323,7 @@ export async function findTeamMembersMatchingAttributeLogic(
   data: {
     teamId: number;
     attributesQueryValue: AttributesQueryValue | null;
-    fallbackAttributesQueryValue?: AttributesQueryValue;
+    fallbackAttributesQueryValue?: AttributesQueryValue | null;
     additionalSelectOptions?: AdditionalSelectOptions;
     isPreview?: boolean;
   },
@@ -349,7 +349,7 @@ export async function findTeamMembersMatchingAttributeLogic(
   const runAttributeLogicOptions = {
     concurrency,
     enablePerf,
-    isPreview,
+    isPreview: !!isPreview,
     enableTroubleshooter,
   };
 
@@ -406,7 +406,7 @@ export async function findTeamMembersMatchingAttributeLogic(
     } = await runFallbackAttributeLogic(
       {
         ...runAttributeLogicData,
-        attributesQueryValue: fallbackAttributesQueryValue,
+        attributesQueryValue: fallbackAttributesQueryValue ?? null,
       },
       runAttributeLogicOptions
     );

@@ -7,10 +7,7 @@ import type {
   Operator as RAQBOperator,
 } from "react-awesome-query-builder";
 
-export type Conjunction = Omit<
-  RAQBConjunction,
-  "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj"
->;
+export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
 export type Operator = RAQBOperator & {
   _jsonLogicIsExclamationOp?: boolean;
@@ -30,11 +27,19 @@ const conjunctions: Conjunctions = {
     label: "And",
     jsonLogicConj: "and",
     reversedConj: "OR",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
   OR: {
     label: "Or",
     jsonLogicConj: "or",
     reversedConj: "AND",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
 };
 

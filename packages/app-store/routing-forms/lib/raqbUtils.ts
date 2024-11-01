@@ -7,7 +7,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import type { Attribute, AttributesQueryValue } from "../types/types";
+import type { Attribute, AttributesQueryValue, FormFieldsQueryValue } from "../types/types";
 import type { LocalRoute } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import type { SerializableField } from "../types/types";
@@ -23,26 +23,20 @@ function getFieldResponse({
 }: {
   fieldResponseValue: AdditionalSelectOptionsResponse[keyof AdditionalSelectOptionsResponse]["value"];
   field: {
-    type: "select" | "multiselect";
-    options: {
-      id: string;
+    type: string;
+    options?: {
+      id: string | null;
       label: string;
     }[];
   };
 }) {
-  // if (!isOptionsField(field)) {
-  //   return {
-  //     value: fieldResponseValue,
-  //     response: fieldResponseValue,
-  //   };
-  // }
 
-  // if (!field.options) {
-  //   return {
-  //     value: fieldResponseValue,
-  //     response: fieldResponseValue,
-  //   };
-  // }
+  if (!field.options) {
+    return {
+      value: fieldResponseValue,
+      response: fieldResponseValue,
+    };
+  }
 
   const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
 
@@ -322,7 +316,7 @@ function getAttributesQueryValue({
   attributes,
   additionalSelectOptions,
 }: {
-  attributesQueryValue: LocalRoute["attributesQueryValue"];
+  attributesQueryValue: LocalRoute["attributesQueryValue"] | null;
   attributes: Attribute[];
   additionalSelectOptions?: AdditionalSelectOptions;
 }) {

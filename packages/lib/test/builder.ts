@@ -64,6 +64,7 @@ export const buildBooking = (
     fromReschedule: null,
     recurringEventId: null,
     smsReminderNumber: null,
+    reassignById: null,
     scheduledJobs: [],
     metadata: null,
     responses: null,
@@ -136,6 +137,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
     eventTypeColor: null,
+    membersAssignmentSegmentQueryValue: null,
+    assignTeamMembersInSegment: false,
     ...eventType,
   };
 };

@@ -61,10 +61,10 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     {
       additionalSelectOptions: {
         response,
-        fields: serializableForm.fields,
+        fields: serializableForm.fields || [],
       },
-      attributesQueryValue: route.attributesQueryValue,
-      fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
+      attributesQueryValue: route.attributesQueryValue ?? null,
+      fallbackAttributesQueryValue: route.fallbackAttributesQueryValue ?? null,
       teamId: form.teamId,
       isPreview: !!isPreview,
     },

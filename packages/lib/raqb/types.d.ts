@@ -16,9 +16,9 @@ export type AdditionalSelectOptions = {
   fields: {
     id: string;
     label: string;
-    type: "select" | "multiselect";
-    options: {
-      id: string;
+    type: string;
+    options?: {
+      id: string | null;
       label: string;
     }[];
   }[];

@@ -117,6 +117,11 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventTypeColor: eventTypeColor ?? undefined,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
+      membersAssignmentSegmentQueryValue:
+        eventType.membersAssignmentSegmentQueryValue === null
+          ? Prisma.DbNull
+          : eventType.membersAssignmentSegmentQueryValue,
+      assignTeamMembersInSegment: eventType.assignTeamMembersInSegment,
     };
 
     // Validate the secondary email

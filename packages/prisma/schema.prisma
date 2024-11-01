@@ -146,7 +146,7 @@ model EventType {
   instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   assignAllTeamMembers                    Boolean                   @default(false)
   assignTeamMembersInSegment              Boolean                   @default(false)
-  /// @zod.custom(imports.raqbQueryValueSchema)
+  /// @zod.custom(imports.membersAssignmentSegmentQueryValueSchema)
   membersAssignmentSegmentQueryValue      Json?
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
@@ -346,6 +346,7 @@ model User {
   NotificationsSubscriptions NotificationsSubscriptions[]
   referralLinkId             String?
   features                   UserFeatures[]
+  reassignedBookings         Booking[]                    @relation("reassignByUser")
 
   @@unique([email])
   @@unique([email, username])
@@ -611,6 +612,8 @@ model Booking {
   cancellationReason           String?
   rejectionReason              String?
   reassignReason               String?
+  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById                 Int?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?

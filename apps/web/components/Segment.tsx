@@ -1,20 +1,18 @@
 import { isEqual } from "lodash";
-import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import { useFormContext, Controller } from "react-hook-form";
-import type { Options } from "react-select";
+import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import { Controller } from "react-hook-form";
 
 import {
   getQueryBuilderConfigForAttributes,
   type AttributesQueryBuilderConfigWithRaqbFields,
 } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { buildStateFromQueryValue } from "@calcom/app-store/routing-forms/lib/raqbUtils";
-import { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames as cn } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import { SettingsToggle } from "@calcom/ui";
 
@@ -64,7 +62,7 @@ function SegmentWithAttributes({
   );
 
   function onChange(immutableTree: ImmutableTree, config: AttributesQueryBuilderConfigWithRaqbFields) {
-    const jsonTree = QbUtils.getTree(immutableTree);
+    const jsonTree = QbUtils.getTree(immutableTree) as AttributesQueryValue;
     if (!isEqual(jsonTree, queryValue)) {
       setQueryValue(jsonTree);
       onQueryValueChange({
@@ -85,7 +83,7 @@ function SegmentWithAttributes({
         />
       </div>
       <div className="text-sm">
-        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />
+        {queryValue && <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />}
       </div>
     </div>
   );
@@ -143,6 +141,7 @@ export function Segment({
   className?: string;
 }) {
   const { attributes, isPending } = useAttributes(teamId);
+  const { t } = useLocale();
   if (isPending) return <span>Loading...</span>;
   if (!attributes) {
     console.log("Error fetching attributes");

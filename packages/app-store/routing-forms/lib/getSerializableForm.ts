@@ -51,7 +51,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
   const fieldsExistInForm: Record<string, true> = {};
-  parsedFields?.forEach((f) => {
+  parsedFields.forEach((f) => {
     fieldsExistInForm[f.id] = true;
   });
 

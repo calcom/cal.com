@@ -233,9 +233,6 @@ function _AddMembersWithSwitch({
     {
       teamId: teamId!,
     },
-    {
-      enabled: teamId,
-    }
   );
 
   const onAssignAllTeamMembersInactive = () => {

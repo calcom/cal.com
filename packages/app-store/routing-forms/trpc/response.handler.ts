@@ -145,7 +145,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         ? await findTeamMembersMatchingAttributeLogic({
             additionalSelectOptions: {
               response,
-              fields: serializableForm.fields,
+              fields: serializableForm.fields || [],
             },
             attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
             fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
