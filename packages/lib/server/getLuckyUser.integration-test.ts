@@ -42,6 +42,72 @@ describe("getLuckyUser tests", () => {
         },
       });
     });
+    it.only("RR reset", async () => {
+      const users = await prisma.user.findMany();
+      //  await prisma.user.deleteMany()
+      console.log(`users ${JSON.stringify(users)}`);
+      const host1 = await prisma.user.create({
+        data: {
+          email: "test-user3@example.com",
+          bookings: {
+            create: [
+              {
+                uid: "uuid-test-user3-booking1",
+                createdAt: new Date("2024-05-20T05:30:00.000Z"),
+                title: "Test user 1 Booking",
+                startTime: new Date(),
+                endTime: new Date(),
+                eventTypeId,
+              },
+              {
+                uid: "uuid-test-user1-booking2",
+                createdAt: new Date("2024-05-05T05:30:00.000Z"),
+                title: "Test user 1 Booking",
+                startTime: new Date(),
+                endTime: new Date(),
+                eventTypeId,
+              },
+              {
+                uid: "uuid-test-user1-booking3",
+                createdAt: new Date("2024-04-29T05:30:00.000Z"),
+                title: "Test user 1 Booking",
+                startTime: new Date(),
+                endTime: new Date(),
+                eventTypeId,
+              },
+            ],
+          },
+        },
+      });
+
+      const host2 = await prisma.user.create({
+        data: {
+          email: "test-user4@example.com",
+          bookings: {
+            create: [
+              {
+                uid: "uuid-test-user4-booking1",
+                createdAt: new Date("2024-03-20T05:30:00.000Z"),
+                title: "Test user 1 Booking",
+                startTime: new Date(),
+                endTime: new Date(),
+                eventTypeId,
+              },
+              {
+                uid: "uuid-test-user2-booking2",
+                createdAt: new Date("2024-04-29T05:30:00.000Z"),
+                title: "Test user 1 Booking",
+                startTime: new Date(),
+                endTime: new Date(),
+                eventTypeId,
+              },
+            ],
+          },
+        },
+      });
+
+      userIds.push(host1.id, host2.id);
+    });
 
     it("When a host is no show, that is chosen when competing with another host that showed up for the booking", async () => {
       const organizerThatShowedUp = await prisma.user.create({
