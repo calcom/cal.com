@@ -156,6 +156,8 @@ async function getUsersBasedOnWeights<
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
+    startDate: dayjs().utc().startOf("month").toDate(),
+    endDate: dayjs().utc().endOf("month").toDate(),
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
