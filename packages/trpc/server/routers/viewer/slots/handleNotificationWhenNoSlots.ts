@@ -9,6 +9,7 @@ type EventDetails = {
   username: string;
   eventSlug: string;
   startTime: Dayjs;
+  endTime: Dayjs;
   visitorTimezone?: string;
   visitorUid?: string;
 };
@@ -129,7 +130,8 @@ export const handleNotificationWhenNoSlots = async ({
         },
         user: eventDetails.username,
         slug: eventDetails.eventSlug,
-        startTime: eventDetails.startTime.format("YYYY-MM"),
+        startTime: eventDetails.startTime.format("YYYY-MM-DD"),
+        endTime: eventDetails.endTime.format("YYYY-MM-DD"),
         // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availability
         editLink: `${WEBAPP_URL}/availability?type=team`,
         teamSlug: teamSlug?.slug ?? "",
