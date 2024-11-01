@@ -12,6 +12,7 @@ export type OrganizationAdminNoSlotsEmailInput = {
   slug: string;
   startTime: string;
   editLink: string;
+  teamSlug: string;
 };
 
 export const OrganizationAdminNoSlotsEmail = (
@@ -33,7 +34,7 @@ export const OrganizationAdminNoSlotsEmail = (
           <br />
           <br />
           Please note: It has been brought to our attention that {props.user} has not had any availability
-          when a user has visited {props.user}/{props.slug}
+          when a user has visited {props.teamSlug}/{props.slug}
           <br />
           <br />
           There’s a few reasons why this could be happening

@@ -21,9 +21,9 @@ const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 7 * 24 * 3600 : 60;
 
 const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
 
-const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string) => {
+const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string, teamId?: number) => {
   return `${REDIS_KEY_VERSION}.${eventDetails.username}:${eventDetails.eventSlug}${
-    orgSlug ? `@${orgSlug}` : ""
+    orgSlug ? `@${orgSlug}:team_${teamId}` : ""
   }`;
 };
 
@@ -70,7 +70,7 @@ export const handleNotificationWhenNoSlots = async ({
 
   const redis = new RedisService();
 
-  const usersUniqueKey = constructRedisKey(eventDetails, orgDetails.currentOrgDomain);
+  const usersUniqueKey = constructRedisKey(eventDetails, orgDetails.currentOrgDomain, teamId);
   // Get only the required amount of data so the request is as small as possible
   // We may need to get more data and check the startDate occurrence of this
   // Not trigger email if the start months are the same
@@ -106,6 +106,15 @@ export const handleNotificationWhenNoSlots = async ({
         },
       },
     });
+
+    const teamSlug = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        slug: true,
+      },
+    });
     // TODO: use new tasker as we dont want this blocking loading slots (Just out of scope for this PR)
     // Tasker isn't 100% working with emails - will refactor after i have made changes to Tasker in another PR.
     const emailsToSend: Array<Promise<void>> = [];
@@ -123,6 +132,7 @@ export const handleNotificationWhenNoSlots = async ({
         startTime: eventDetails.startTime.format("YYYY-MM"),
         // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availability
         editLink: `${WEBAPP_URL}/availability?type=team`,
+        teamSlug: teamSlug?.slug ?? "",
       };
 
       emailsToSend.push(sendOrganizationAdminNoSlotsNotification(payload));
