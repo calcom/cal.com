@@ -431,13 +431,12 @@ export const getPublicEvent = async (
       userId: currentUserId ?? -1,
       teamId: event.teamId ?? -1,
       accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-      ...(event.team?.parentId ? { parentId: event.team.parentId } : {}),
+      role: "MEMBER",
     },
   });
 
-  if (!membership && event.team?.isPrivate) {
-    users = [];
+  if (event.team?.isPrivate) {
+    users = !currentUserId || membership ? [] : users;
   }
 
   return {
