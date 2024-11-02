@@ -50,7 +50,7 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: // eslint-disable-next-line @typescript-eslint/ban-types
+}: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 PageProps & WithNonceProps<{}>) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();

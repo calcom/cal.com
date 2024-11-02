@@ -5,12 +5,12 @@
   "version": "0.1.0",
   "main": "./src/index.js",
   "dependencies": {
-    "@typescript-eslint/parser": "^5.52.0",
-    "@typescript-eslint/utils": "^5.52.0",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.5",
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
     "typescript": "5.6.3"
   }
 }
