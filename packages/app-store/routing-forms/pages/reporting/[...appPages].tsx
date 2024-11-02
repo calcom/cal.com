@@ -80,7 +80,22 @@ const Result = ({
     const header = `${headers.current ?? [].join(",")}\n`;
     const rows = data.pages.flatMap((page) =>
       page.responses.map(
-        (response) => `${response.map((value) => (value.includes(",") ? `"${value}"` : value)).join(",")}\n`
+        (response) =>
+          `${response
+            .map((value) => {
+              // handling three cases:
+              // 1. quotes - we need to double quotes for CSV
+              // 2. commas
+              // 3. newlines
+              if (value.includes('"')) {
+                return `"${value.replace(/"/g, '""')}"`;
+              }
+              if (value.includes(",") || value.includes("\n")) {
+                return `"${value}"`;
+              }
+              return value;
+            })
+            .join(",")}\n`
       )
     );
 
