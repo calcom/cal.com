@@ -1,6 +1,9 @@
-import type { calendar_v3 } from "googleapis";
+import type { calendar_v3, Auth } from "googleapis";
+import { google } from "googleapis";
 
 import logger from "@calcom/lib/logger";
+
+import { UserRepository } from "./server/repository/user";
 
 export async function getAllCalendars(
   calendar: calendar_v3.Calendar,
@@ -30,5 +33,17 @@ export async function getAllCalendars(
   } catch (error) {
     logger.error("Error fetching all Google Calendars", { error });
     throw error;
+  }
+}
+
+export async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: number) {
+  try {
+    const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    const userDetails = await oauth2.userinfo.get();
+    if (userDetails.data?.picture) {
+      await UserRepository.updateAvatar({ id: userId, avatarUrl: userDetails.data.picture });
+    }
+  } catch (error) {
+    logger.error("Error updating avatarUrl from google calendar connect", error);
   }
 }
