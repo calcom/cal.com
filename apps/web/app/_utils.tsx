@@ -6,7 +6,8 @@ import { headers } from "next/headers";
 import { constructGenericImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { truncateOnWord } from "@calcom/lib/text";
-//@ts-expect-error no type definitions
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore No type definitions
 import config from "@calcom/web/next-i18next.config";
 
 const create = async (locale: string, ns: string) => {
