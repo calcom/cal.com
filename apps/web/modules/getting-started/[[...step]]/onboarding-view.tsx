@@ -43,6 +43,7 @@ const stepTransform = (step: (typeof steps)[number]) => {
 const stepRouteSchema = z.object({
   step: z.array(z.enum(steps)).default([INITIAL_STEP]),
   from: z.string().optional(),
+  provider: z.string().optional(),
 });
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
@@ -63,6 +64,7 @@ const OnboardingPage = (props: PageProps) => {
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
+  const provider = result.success ? result.data.provider : "";
   const headers = [
     {
       title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
@@ -104,6 +106,10 @@ const OnboardingPage = (props: PageProps) => {
 
   const goToIndex = (index: number) => {
     const newStep = steps[index];
+    if (["connected-calendar", "connected-video"].includes(newStep) && provider === "google") {
+      router.push("getting-started/setup-availability");
+    }
+
     router.push(`/getting-started/${stepTransform(newStep)}`);
   };
 
