@@ -1,7 +1,3 @@
-export const SCOPE_USERINFO_PROFILE = "https://www.googleapis.com/auth/userinfo.profile";
-export const SCOPE_CALENDAR_READONLY = "https://www.googleapis.com/auth/calendar.readonly";
-export const SCOPE_CALENDAR_EVENT = "https://www.googleapis.com/auth/calendar.events";
+import { GOOGLE_CALENDAR_SCOPES, GOOGLE_OAUTH_SCOPES } from "@calcom/lib/constants";
 
-export const REQUIRED_SCOPES = [SCOPE_CALENDAR_READONLY, SCOPE_CALENDAR_EVENT];
-
-export const SCOPES = [...REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE];
+export const SCOPES = [...GOOGLE_CALENDAR_SCOPES, ...GOOGLE_OAUTH_SCOPES];
