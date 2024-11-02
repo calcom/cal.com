@@ -23,7 +23,59 @@ import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, Tex
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
-export type EventLimitsTabProps = Pick<EventTypeSetupProps, "eventType">;
+type SettingsToggleClassnames = {
+  children?: string;
+  switchContainer?: string;
+  label?: string;
+  description?: string;
+};
+
+type SelectBaseClassnames = {
+  selectInnerClassNames: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+  select?: string;
+  label?: string;
+  container?: string;
+};
+
+export type EventLimitsTabCustomClassnames = {
+  beforeAfterSectionWrapper?: string;
+  beforeEventSelectClassnames: SelectBaseClassnames;
+  afterEventSelectClassnames: SelectBaseClassnames;
+  minimumBookingNoticeClassnames: SelectBaseClassnames & { input?: string };
+  slotIntervalClassnames: SelectBaseClassnames;
+  bookingFrequencyLimitClassnames: SettingsToggleClassnames & {
+    intervalLimitItemClassnames?: IntervalLimitItemCustomClassnames;
+  };
+  onlyShowFirstAvailableSlotClassnames?: SettingsToggleClassnames;
+  durationLimitsClassnames?: SettingsToggleClassnames & {
+    intervalLimitItemClassnames?: IntervalLimitItemCustomClassnames;
+  };
+  limitFutureBookingsClassnames?: SettingsToggleClassnames & {
+    rollingLimitClassnames: RollingLimitCustomClassnames;
+    rangeLimitClassnames: RangeLimitCustomClassnames;
+  };
+  offsetStartTimesClassnames?: SettingsToggleClassnames & {
+    offsetByInputClassnames?: {
+      container?: string;
+      label?: string;
+      input?: string;
+      suffix?: string;
+    };
+  };
+};
+
+export type EventLimitsTabProps = Pick<EventTypeSetupProps, "eventType"> & {
+  customClassnames?: EventLimitsTabCustomClassnames;
+};
 
 /**
  * We technically have a ROLLING_WINDOW future limit option that isn't shown as a Radio Option. Because UX is better by providing it as a toggle with ROLLING Limit radio option.
@@ -65,18 +117,30 @@ const getPeriodTypeFromUiValue = (uiValue: { value: PeriodType; rollingExcludeUn
   return uiValue.value;
 };
 
+type RangeLimitCustomClassnames = {
+  wrapper?: string;
+  datePickerWraper?: string;
+  datePicker?: string;
+};
+
 function RangeLimitRadioItem({
   isDisabled,
   formMethods,
   radioValue,
+  customClassnames,
 }: {
   radioValue: string;
   isDisabled: boolean;
   formMethods: UseFormReturn<FormValues>;
+  customClassnames?: RangeLimitCustomClassnames;
 }) {
   const { t } = useLocale();
   return (
-    <div className={classNames("text-default mb-2 flex flex-wrap items-center text-sm")}>
+    <div
+      className={classNames(
+        "text-default mb-2 flex flex-wrap items-center text-sm",
+        customClassnames?.wrapper
+      )}>
       {!isDisabled && (
         <RadioGroup.Item
           id={radioValue}
@@ -87,7 +151,11 @@ function RangeLimitRadioItem({
       )}
       <div>
         <span>{t("within_date_range")}&nbsp;</span>
-        <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
+        <div
+          className={classNames(
+            "me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse",
+            customClassnames?.datePickerWraper
+          )}>
           <Controller
             name="periodDates"
             render={({ field: { onChange } }) => (
@@ -103,6 +171,7 @@ function RangeLimitRadioItem({
                     endDate,
                   });
                 }}
+                className={customClassnames?.datePicker}
               />
             )}
           />
@@ -112,18 +181,26 @@ function RangeLimitRadioItem({
   );
 }
 
+type RollingLimitCustomClassnames = {
+  container?: string;
+  textField?: string;
+  selectClassnames?: Pick<SelectBaseClassnames, "select" | "selectInnerClassNames">;
+};
+
 function RollingLimitRadioItem({
   radioValue,
   isDisabled,
   formMethods,
   onChange,
   rollingExcludeUnavailableDays,
+  customClassnames,
 }: {
   radioValue: IPeriodType;
   isDisabled: boolean;
   formMethods: UseFormReturn<FormValues>;
   onChange: (opt: { value: number } | null) => void;
   rollingExcludeUnavailableDays: boolean;
+  customClassnames?: RollingLimitCustomClassnames;
 }) {
   const { t } = useLocale();
 
@@ -136,7 +213,11 @@ function RollingLimitRadioItem({
 
   const periodDaysWatch = formMethods.watch("periodDays");
   return (
-    <div className={classNames("text-default mb-2 flex flex-wrap items-baseline text-sm")}>
+    <div
+      className={classNames(
+        "text-default mb-2 flex flex-wrap items-baseline text-sm",
+        customClassnames?.container
+      )}>
       {!isDisabled && (
         <RadioGroup.Item
           id={radioValue}
@@ -151,7 +232,10 @@ function RollingLimitRadioItem({
           <TextField
             labelSrOnly
             type="number"
-            className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+            className={classNames(
+              "border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2",
+              customClassnames?.textField
+            )}
             placeholder="30"
             disabled={isDisabled}
             min={0}
@@ -166,6 +250,8 @@ function RollingLimitRadioItem({
             name="periodCoundCalendarDays"
             value={getSelectedOption()}
             defaultValue={getSelectedOption()}
+            className={customClassnames?.selectClassnames?.select}
+            innerClassNames={customClassnames?.selectClassnames?.selectInnerClassNames}
           />
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
@@ -200,8 +286,10 @@ function RollingLimitRadioItem({
 
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
-  Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref">
->(function MinimumBookingNoticeInput({ ...passThroughProps }, ref) {
+  Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
+    customClassnames?: SelectBaseClassnames & { input?: string };
+  }
+>(function MinimumBookingNoticeInput({ customClassnames, ...passThroughProps }, ref) {
   const { t } = useLocale();
   const { setValue, getValues } = useFormContext<FormValues>();
   const durationTypeOptions: {
@@ -262,15 +350,19 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
+          className={classNames("mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2", customClassnames?.input)}
           min={0}
-          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
       </div>
       <Select
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
-        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+        className={classNames(
+          "mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
+          customClassnames?.select
+        )}
+        innerClassNames={customClassnames?.selectInnerClassNames}
         defaultValue={durationTypeOptions.find(
           (option) => option.value === minimumBookingNoticeDisplayValues.type
         )}
@@ -288,7 +380,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   );
 });
 
-export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
+export const EventLimitsTab = ({ eventType, customClassnames }: EventLimitsTabProps) => {
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -314,10 +406,14 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
 
   return (
     <div>
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <div className="w-full">
-            <Label htmlFor="beforeBufferTime">
+      <div
+        className={classNames(
+          "border-subtle space-y-6 rounded-lg border p-6",
+          customClassnames?.beforeAfterSectionWrapper
+        )}>
+        <div className="flex flex-col space-y-4  lg:flex-row lg:space-x-4 lg:space-y-0">
+          <div className={classNames("w-full", customClassnames?.beforeEventSelectClassnames.container)}>
+            <Label htmlFor="beforeBufferTime" className={customClassnames?.beforeEventSelectClassnames.label}>
               {t("before_event")}
               {shouldLockIndicator("beforeBufferTime")}
             </Label>
@@ -345,13 +441,15 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
                       beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
                     }
                     options={beforeBufferOptions}
+                    className={classNames(customClassnames?.beforeEventSelectClassnames?.select)}
+                    innerClassNames={customClassnames?.beforeEventSelectClassnames?.selectInnerClassNames}
                   />
                 );
               }}
             />
           </div>
-          <div className="w-full">
-            <Label htmlFor="afterBufferTime">
+          <div className={classNames("w-full", customClassnames?.afterEventSelectClassnames.container)}>
+            <Label htmlFor="afterBufferTime" className={customClassnames?.afterEventSelectClassnames.label}>
               {t("after_event")}
               {shouldLockIndicator("afterBufferTime")}
             </Label>
@@ -379,6 +477,8 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
                       afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
                     }
                     options={afterBufferOptions}
+                    className={classNames(customClassnames?.afterEventSelectClassnames?.select)}
+                    innerClassNames={customClassnames?.afterEventSelectClassnames?.selectInnerClassNames}
                   />
                 );
               }}
@@ -386,18 +486,21 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
           </div>
         </div>
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <div className="w-full">
-            <Label htmlFor="minimumBookingNotice">
+          <div className={classNames("w-full", customClassnames?.minimumBookingNoticeClassnames.container)}>
+            <Label
+              htmlFor="minimumBookingNotice"
+              className={customClassnames?.minimumBookingNoticeClassnames.label}>
               {t("minimum_booking_notice")}
               {shouldLockIndicator("minimumBookingNotice")}
             </Label>
             <MinimumBookingNoticeInput
+              customClassnames={customClassnames?.minimumBookingNoticeClassnames}
               disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
               {...formMethods.register("minimumBookingNotice")}
             />
           </div>
-          <div className="w-full">
-            <Label htmlFor="slotInterval">
+          <div className={classNames("w-full", customClassnames?.slotIntervalClassnames?.container)}>
+            <Label htmlFor="slotInterval" className={customClassnames?.slotIntervalClassnames?.label}>
               {t("slot_interval")}
               {shouldLockIndicator("slotInterval")}
             </Label>
@@ -429,6 +532,8 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
                       ) || slotIntervalOptions[0]
                     }
                     options={slotIntervalOptions}
+                    className={customClassnames?.slotIntervalClassnames.select}
+                    innerClassNames={customClassnames?.slotIntervalClassnames?.selectInnerClassNames}
                   />
                 );
               }}
@@ -443,7 +548,7 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
-              labelClassName="text-sm"
+              labelClassName={classNames("text-sm", customClassnames?.bookingFrequencyLimitClassnames?.label)}
               title={t("limit_booking_frequency")}
               {...bookingLimitsLocked}
               description={t("limit_booking_frequency_description")}
@@ -463,15 +568,23 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
+                isChecked && "rounded-b-none",
+                customClassnames?.bookingFrequencyLimitClassnames?.switchContainer
               )}
-              childrenClassName="lg:ml-0">
+              childrenClassName={classNames(
+                "lg:ml-0",
+                customClassnames?.bookingFrequencyLimitClassnames?.children
+              )}
+              descriptionClassName={customClassnames?.bookingFrequencyLimitClassnames?.description}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <IntervalLimitsManager
                   disabled={bookingLimitsLocked.disabled}
                   propertyName="bookingLimits"
                   defaultLimit={1}
                   step={1}
+                  customClassnames={
+                    customClassnames?.bookingFrequencyLimitClassnames?.intervalLimitItemClassnames
+                  }
                 />
               </div>
             </SettingsToggle>
@@ -485,7 +598,10 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
-              labelClassName="text-sm"
+              labelClassName={classNames(
+                "text-sm",
+                customClassnames?.onlyShowFirstAvailableSlotClassnames?.label
+              )}
               title={t("only_show_first_available_slot")}
               description={t("only_show_first_available_slot_description")}
               checked={isChecked}
@@ -495,8 +611,11 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
+                isChecked && "rounded-b-none",
+                customClassnames?.onlyShowFirstAvailableSlotClassnames?.switchContainer
               )}
+              childrenClassName={customClassnames?.onlyShowFirstAvailableSlotClassnames?.children}
+              descriptionClassName={customClassnames?.onlyShowFirstAvailableSlotClassnames?.description}
             />
           );
         }}
@@ -507,13 +626,15 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName={classNames("text-sm", customClassnames?.durationLimitsClassnames?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
+                isChecked && "rounded-b-none",
+                customClassnames?.durationLimitsClassnames?.switchContainer
               )}
-              childrenClassName="lg:ml-0"
+              childrenClassName={classNames("lg:ml-0", customClassnames?.durationLimitsClassnames?.children)}
+              descriptionClassName={customClassnames?.durationLimitsClassnames?.description}
               title={t("limit_total_booking_duration")}
               description={t("limit_total_booking_duration_description")}
               {...durationLimitsLocked}
@@ -534,6 +655,7 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
                   disabled={durationLimitsLocked.disabled}
                   step={15}
                   textFieldSuffix={t("minutes")}
+                  customClassnames={customClassnames?.durationLimitsClassnames?.intervalLimitItemClassnames}
                 />
               </div>
             </SettingsToggle>
@@ -551,13 +673,18 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
 
           return (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName={classNames("text-sm", customClassnames?.limitFutureBookingsClassnames?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
+                isChecked && "rounded-b-none",
+                customClassnames?.limitFutureBookingsClassnames?.switchContainer
               )}
-              childrenClassName="lg:ml-0"
+              childrenClassName={classNames(
+                "lg:ml-0",
+                customClassnames?.limitFutureBookingsClassnames?.children
+              )}
+              descriptionClassName={customClassnames?.limitFutureBookingsClassnames?.description}
               title={t("limit_future_bookings")}
               description={t("limit_future_bookings_description")}
               {...periodTypeLocked}
@@ -589,6 +716,9 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
                       radioValue={PeriodType.ROLLING}
                       isDisabled={periodTypeLocked.disabled}
                       formMethods={formMethods}
+                      customClassnames={
+                        customClassnames?.limitFutureBookingsClassnames?.rollingLimitClassnames
+                      }
                       onChange={(opt) => {
                         formMethods.setValue("periodCountCalendarDays", opt?.value === 1, {
                           shouldDirty: true,
@@ -599,6 +729,7 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
                   {(periodTypeLocked.disabled ? watchPeriodTypeUiValue === PeriodType.RANGE : true) && (
                     <RangeLimitRadioItem
                       radioValue={PeriodType.RANGE}
+                      customClassnames={customClassnames?.limitFutureBookingsClassnames?.rangeLimitClassnames}
                       isDisabled={periodTypeLocked.disabled}
                       formMethods={formMethods}
                     />
@@ -610,14 +741,16 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
         }}
       />
       <SettingsToggle
-        labelClassName="text-sm"
+        labelClassName={classNames("text-sm", customClassnames?.offsetStartTimesClassnames?.label)}
         toggleSwitchAtTheEnd={true}
         switchContainerClassName={classNames(
           "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-          offsetToggle && "rounded-b-none"
+          offsetToggle && "rounded-b-none",
+          customClassnames?.offsetStartTimesClassnames?.switchContainer
         )}
-        childrenClassName="lg:ml-0"
+        childrenClassName={classNames("lg:ml-0", customClassnames?.offsetStartTimesClassnames?.children)}
         title={t("offset_toggle")}
+        descriptionClassName={customClassnames?.offsetStartTimesClassnames?.description}
         description={t("offset_toggle_description")}
         {...offsetStartLockedProps}
         checked={offsetToggle}
@@ -627,11 +760,17 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
             formMethods.setValue("offsetStart", 0, { shouldDirty: true });
           }
         }}>
-        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+        <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>
           <TextField
             required
             type="number"
-            containerClassName="max-w-80"
+            containerClassName={classNames(
+              "max-w-80",
+              customClassnames?.offsetStartTimesClassnames?.offsetByInputClassnames?.container
+            )}
+            labelClassName={customClassnames?.offsetStartTimesClassnames?.offsetByInputClassnames?.label}
+            addOnClassname={customClassnames?.offsetStartTimesClassnames?.offsetByInputClassnames?.suffix}
+            className={customClassnames?.offsetStartTimesClassnames?.offsetByInputClassnames?.input}
             label={t("offset_start")}
             {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
             addOnSuffix={<>{t("minutes")}</>}
@@ -653,6 +792,13 @@ const INTERVAL_LIMIT_OPTIONS = ascendingLimitKeys.map((key) => ({
   label: `Per ${intervalLimitKeyToUnit(key)}`,
 }));
 
+type IntervalLimitItemCustomClassnames = {
+  addLimitButton?: string;
+  limitText?: string;
+  limitSelect?: Omit<SelectBaseClassnames, "label" | "container">;
+  container?: string;
+};
+
 type IntervalLimitItemProps = {
   key: Key;
   limitKey: IntervalLimitsKey;
@@ -665,6 +811,7 @@ type IntervalLimitItemProps = {
   onDelete: (intervalLimitsKey: IntervalLimitsKey) => void;
   onLimitChange: (intervalLimitsKey: IntervalLimitsKey, limit: number) => void;
   onIntervalSelect: (interval: SingleValue<{ value: keyof IntervalLimit; label: string }>) => void;
+  customClassnames?: IntervalLimitItemCustomClassnames;
 };
 
 const IntervalLimitItem = ({
@@ -678,17 +825,21 @@ const IntervalLimitItem = ({
   onDelete,
   onLimitChange,
   onIntervalSelect,
+  customClassnames,
 }: IntervalLimitItemProps) => {
   return (
     <div
       data-testid="add-limit"
-      className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse"
+      className={classNames(
+        "mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse",
+        customClassnames?.container
+      )}
       key={limitKey}>
       <TextField
         required
         type="number"
         containerClassName={textFieldSuffix ? "w-44 -mb-1" : "w-16 mb-0"}
-        className="mb-0"
+        className={classNames("mb-0", customClassnames?.limitText)}
         placeholder={`${value}`}
         disabled={disabled}
         min={step}
@@ -703,14 +854,15 @@ const IntervalLimitItem = ({
         isDisabled={disabled}
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
         onChange={onIntervalSelect}
-        className="w-36"
+        className={classNames("w-36", customClassnames?.limitSelect?.select)}
+        innerClassNames={customClassnames?.limitSelect?.selectInnerClassNames}
       />
       {hasDeleteButton && !disabled && (
         <Button
           variant="icon"
           StartIcon="trash-2"
           color="destructive"
-          className="border-none"
+          className={classNames("border-none", customClassnames?.addLimitButton)}
           onClick={() => onDelete(limitKey)}
         />
       )}
@@ -724,6 +876,7 @@ type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = 
   step: number;
   textFieldSuffix?: string;
   disabled?: boolean;
+  customClassnames?: IntervalLimitItemCustomClassnames;
 };
 
 export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
@@ -732,6 +885,7 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
   step,
   textFieldSuffix,
   disabled,
+  customClassnames,
 }: IntervalLimitsManagerProps<K>) => {
   const { watch, setValue, control } = useFormContext<FormValues>();
   const watchIntervalLimits = watch(propertyName);
@@ -758,7 +912,6 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
 
           setValue(
             propertyName,
-            // @ts-expect-error FIXME Fix these typings
             {
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,
@@ -814,6 +967,7 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
                         };
                         onChange(newData);
                       }}
+                      customClassnames={customClassnames}
                     />
                   );
                 })}

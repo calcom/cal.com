@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventLimitsTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -30,6 +31,11 @@ import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatf
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
 
+export type EventTypeCustomClassNames = {
+  atomsWrapper?: string;
+  eventLimitsTabClassnames?: EventLimitsTabCustomClassnames;
+};
+
 export type EventTypePlatformWrapperProps = {
   id: number;
   tabs?: PlatformTabs[];
@@ -38,9 +44,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: {
-    atomsWrapper?: string;
-  };
+  customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -175,7 +179,14 @@ const EventType = ({
       <></>
     ),
     payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
-    limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
+    limits: tabs.includes("limits") ? (
+      <EventLimitsTabPlatformWrapper
+        eventType={eventType}
+        customClassnames={customClassNames?.eventLimitsTabClassnames}
+      />
+    ) : (
+      <></>
+    ),
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
       <EventRecurringTabPlatformWrapper eventType={eventType} />
