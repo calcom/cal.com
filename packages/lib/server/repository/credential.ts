@@ -43,15 +43,6 @@ export class CredentialRepository {
     });
   }
 
-  static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
-    return await prisma.credential.findFirst({
-      where: {
-        appId,
-        userId,
-      },
-    });
-  }
-
   static async findGoogleMeetCredential({ userId }: { userId: number }) {
     return await prisma.credential.findFirst({
       where: {
