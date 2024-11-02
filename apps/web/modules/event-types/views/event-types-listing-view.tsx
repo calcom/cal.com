@@ -367,7 +367,7 @@ export const InfiniteEventTypeList = ({
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: InfiniteEventType, group: InfiniteEventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
