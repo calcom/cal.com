@@ -126,3 +126,16 @@
   flex: 1;
   display: flex;
 }
+
+@media (max-width: 1024px) {
+  .rule--body {
+    flex-direction: column;
+  }
+
+
+  .cal-query-builder .rule--field,
+  .cal-query-builder .rule--operator,
+  .cal-query-builder .rule--value {
+    width: 100%;
+  }
+}
