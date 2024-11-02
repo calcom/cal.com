@@ -9,6 +9,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
+import { getAllCalendars } from "@calcom/app-store/googlecalendar/lib/utils";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -661,11 +662,9 @@ export const getOptions = ({
               auth: oAuth2Client,
             });
 
-            const cals = await calendar.calendarList.list({
-              fields: "items(id,summary,primary,accessRole)",
-            });
+            const cals = await getAllCalendars(calendar);
 
-            const primaryCal = cals.data.items?.find((cal) => cal.primary) ?? cals.data.items?.[0];
+            const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
             if (primaryCal?.id) {
               await SelectedCalendarRepository.create({
