@@ -8,6 +8,7 @@ import { getAllCalendars, updateProfilePhoto } from "@calcom/lib/google";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -81,7 +82,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       await updateProfilePhoto(oAuth2Client, req.session.user.id);
     }
 
-    const gcalCredential = await CredentialRepository.createGoogleCalendar({
+    const gcalCredential = await GoogleRepository.createGoogleCalendarCredential({
       key,
       userId: req.session.user.id,
     });
@@ -105,7 +106,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await SelectedCalendarRepository.createGoogleCalendar({
+      await GoogleRepository.createSelectedCalendar({
         credentialId: gcalCredential.id,
         externalId: selectedCalendarWhereUnique.externalId,
         userId: selectedCalendarWhereUnique.userId,
@@ -145,7 +146,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const existingGoogleMeetCredential = await CredentialRepository.findGoogleMeetCredential({
+  const existingGoogleMeetCredential = await GoogleRepository.findGoogleMeetCredential({
     userId: req.session.user.id,
   });
 
@@ -159,7 +160,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await CredentialRepository.createGoogleMeets({ userId: req.session.user.id });
+  await GoogleRepository.createGoogleMeetsCredential({ userId: req.session.user.id });
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
