@@ -156,7 +156,7 @@ const Result = ({
                     return (
                       <td
                         className={classNames(
-                          "border-default overflow-x-hidden px-2 py-3 text-left",
+                          "border-default overflow-x-hidden whitespace-pre-line px-2 py-3 text-left",
                           isLastRow ? "" : "border-b",
                           isLastColumn ? "" : "border-r"
                         )}
