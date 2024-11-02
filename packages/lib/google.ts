@@ -1,4 +1,5 @@
-import type { calendar_v3, Auth } from "googleapis";
+import type { OAuth2Client } from "google-auth-library";
+import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 
 import logger from "@calcom/lib/logger";
@@ -36,7 +37,7 @@ export async function getAllCalendars(
   }
 }
 
-export async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: number) {
+export async function updateProfilePhoto(oAuth2Client: OAuth2Client, userId: number) {
   try {
     const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
     const userDetails = await oauth2.userinfo.get();
