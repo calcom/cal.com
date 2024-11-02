@@ -18,8 +18,13 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
     WebhookTriggerEvents.OOO_CREATED,
+    WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+    WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   ] as const,
-  "routing-forms": [WebhookTriggerEvents.FORM_SUBMITTED] as const,
+  "routing-forms": [
+    WebhookTriggerEvents.FORM_SUBMITTED,
+    WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  ] as const,
 };
 
 export const WEBHOOK_TRIGGER_EVENTS = [
