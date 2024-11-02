@@ -191,7 +191,8 @@ export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/stop-recording.svg`
   : `https://app.cal.com/stop-recording.svg`;
 
-export const GOOGLE_OAUTH_SCOPES = ["https://www.googleapis.com/auth/userinfo.profile"];
+export const SCOPE_USERINFO_PROFILE = "https://www.googleapis.com/auth/userinfo.profile";
+export const GOOGLE_OAUTH_SCOPES = [SCOPE_USERINFO_PROFILE];
 export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.readonly",

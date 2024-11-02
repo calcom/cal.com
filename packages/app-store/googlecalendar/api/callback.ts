@@ -1,9 +1,14 @@
-import type { Auth, calendar_v3 } from "googleapis";
+import type { Auth } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  SCOPE_USERINFO_PROFILE,
+  WEBAPP_URL,
+  WEBAPP_URL_FOR_OAUTH,
+} from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -13,7 +18,6 @@ import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 import { getAllCalendars } from "../lib/utils";
 
@@ -48,7 +52,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const key = token.tokens;
     const grantedScopes = token.tokens.scope?.split(" ") ?? [];
     // Check if we have granted all required permissions
-    const hasMissingRequiredScopes = REQUIRED_SCOPES.some((scope) => !grantedScopes.includes(scope));
+    const hasMissingRequiredScopes = GOOGLE_CALENDAR_SCOPES.some((scope) => !grantedScopes.includes(scope));
     if (hasMissingRequiredScopes) {
       if (!state?.fromApp) {
         throw new HttpError({
