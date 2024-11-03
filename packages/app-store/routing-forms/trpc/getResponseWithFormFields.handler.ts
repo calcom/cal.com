@@ -64,10 +64,10 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
   });
 
   if (!formResponse) {
-  throw new TRPCError({
-    code: "NOT_FOUND",
-    message: translate("form_response_not_found"),
-  });
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: translate("form_response_not_found"),
+    });
   }
 
   const form = formResponse.form;
