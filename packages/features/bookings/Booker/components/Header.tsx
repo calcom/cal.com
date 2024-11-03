@@ -6,7 +6,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
+import { Button, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
 
 import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
@@ -105,7 +105,7 @@ export function Header({
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
       <div className="flex items-center gap-5 rtl:flex-grow">
         <FormattedSelectedDateRange />
-        <ButtonGroup>
+        {/* <ButtonGroup>
           <Button
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
@@ -131,7 +131,7 @@ export function Header({
               {t("today")}
             </Button>
           )}
-        </ButtonGroup>
+        </ButtonGroup> */}
       </div>
       {/* <div className="ml-auto flex gap-2">
         {renderOverlay?.()}

@@ -88,7 +88,7 @@ export const FormBuilderField = ({
             case "name":
               const { isValid: isValidName, maskedName } = nameMask(value || "");
               maskedValue = maskedName;
-              setNameError(isValidName);
+              setNameError(!isValidName);
               break;
             case "email":
               const { maskedEmail } = emailMask(value || "");
