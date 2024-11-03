@@ -273,10 +273,17 @@ export const PlatformAdditionalCalendarSelector = ({
   calendarRedirectUrls,
   align,
   side,
+  labels,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
   align?: "center" | "end" | "start";
   side?: "top" | "bottom" | "left" | "right";
+  labels?: {
+    addLabel?: string;
+    gcalLabel?: string;
+    outlookLabel?: string;
+    appleLabel?: string;
+  };
 }) => {
   const { t } = useLocale();
   const { refetch } = useConnectedCalendars({});
@@ -285,7 +292,7 @@ export const PlatformAdditionalCalendarSelector = ({
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
         <Button StartIcon="plus" color="secondary">
-          {t("add")}
+          {labels?.addLabel ?? t("add")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} side={side}>
@@ -296,7 +303,7 @@ export const PlatformAdditionalCalendarSelector = ({
               isClickable={true}
               tooltip={<></>}
               redir={calendarRedirectUrls?.google ?? window.location.href}
-              label={t("add_calendar_label", { calendar: "Google" })}
+              label={labels?.gcalLabel ?? t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
               className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
@@ -308,7 +315,7 @@ export const PlatformAdditionalCalendarSelector = ({
               isClickable={true}
               tooltip={<></>}
               redir={calendarRedirectUrls?.outlook ?? window.location.href}
-              label={t("add_calendar_label", { calendar: "Outlook" })}
+              label={labels?.outlookLabel ?? t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
               className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
@@ -320,7 +327,7 @@ export const PlatformAdditionalCalendarSelector = ({
               isClickable={true}
               isMultiCalendar={true}
               tooltip={<></>}
-              label={t("add_calendar_label", { calendar: "Apple" })}
+              label={labels?.appleLabel ?? t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
               className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
