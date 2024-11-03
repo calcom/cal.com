@@ -91,6 +91,7 @@ export class InputBookingsService_2024_08_13 {
   ): Promise<BookingRequest> {
     const bodyTransformed = await this.transformInputCreateBooking(body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+    const requestId = request.get("X-Request-Id");
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -99,6 +100,13 @@ export class InputBookingsService_2024_08_13 {
       : DEFAULT_PLATFORM_PARAMS;
 
     const location = request.body.location || request.body.meetingUrl;
+    this.logger.log(`createBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      location,
+      oAuthClientId,
+      ...oAuthParams,
+    });
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };

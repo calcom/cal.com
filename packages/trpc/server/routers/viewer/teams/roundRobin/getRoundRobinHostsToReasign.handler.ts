@@ -1,10 +1,11 @@
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
-import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { userSelect } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TGetRoundRobinHostsToReassignInputSchema } from "./getRoundRobinHostsToReasign.schema";
@@ -17,84 +18,147 @@ type GetRoundRobinHostsToReassignOptions = {
   input: TGetRoundRobinHostsToReassignInputSchema;
 };
 
-async function isTeamAdmin(prisma: PrismaClient, userId: number, teamId: number) {
-  const membership = await prisma.membership.findFirst({
-    where: { userId, teamId, role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } },
+async function getTeamHostsFromDB({
+  eventTypeId,
+  prisma,
+  searchTerm,
+  cursor,
+  limit = 20,
+  excludeUserId,
+}: {
+  eventTypeId: number;
+  prisma: PrismaClient;
+  searchTerm?: string;
+  cursor?: number;
+  limit?: number;
+  excludeUserId?: number;
+}) {
+  const queryWhere = {
+    eventTypeId,
+    isFixed: false,
+    ...(excludeUserId && { userId: { not: excludeUserId } }),
+    ...(searchTerm && {
+      user: {
+        OR: [
+          { name: { contains: searchTerm, mode: "insensitive" as const } },
+          { email: { contains: searchTerm, mode: "insensitive" as const } },
+        ],
+      },
+    }),
+  };
+
+  const [totalCount, hosts] = await Promise.all([
+    prisma.host.count({ where: queryWhere }),
+    prisma.host.findMany({
+      where: queryWhere,
+      select: {
+        isFixed: true,
+        priority: true,
+        user: {
+          select: {
+            ...userSelect.select,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
+          },
+        },
+      },
+      take: limit + 1, // Take one more to determine if there's a next page
+      ...(cursor && { skip: 1, cursor: { userId_eventTypeId: { userId: cursor, eventTypeId } } }),
+      orderBy: [{ user: { name: "asc" } }, { priority: "desc" }],
+    }),
+  ]);
+
+  const hasNextPage = hosts.length > limit;
+  const hosts_subset = hasNextPage ? hosts.slice(0, -1) : hosts;
+
+  return {
+    hosts: hosts_subset.map((host) => ({
+      ...host.user,
+      isFixed: host.isFixed,
+      priority: host.priority ?? 2,
+    })),
+    totalCount,
+    hasNextPage,
+    nextCursor: hasNextPage ? hosts_subset[hosts_subset.length - 1].user.id : null,
+  };
+}
+
+async function getEventTypeFromDB(eventTypeId: number, prisma: PrismaClient) {
+  return prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
   });
-  return membership?.role ?? false;
 }
 
 export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobinHostsToReassignOptions) => {
   const { prisma } = ctx;
-  const { isOrgAdmin } = ctx.user.organization;
+  const { bookingId, limit, cursor, searchTerm } = input;
 
   const gettingRoundRobinHostsToReassignLogger = logger.getSubLogger({
-    prefix: ["gettingRoundRobinHostsToReassign", `${input.bookingId}`],
+    prefix: ["gettingRoundRobinHostsToReassign", `${bookingId}`],
   });
 
   const booking = await prisma.booking.findUniqueOrThrow({
-    where: { id: input.bookingId },
+    where: { id: bookingId },
     select: {
       userId: true,
       startTime: true,
       endTime: true,
-      eventType: {
-        select: {
-          id: true,
-          timeZone: true,
-          teamId: true,
-        },
-      },
+      eventTypeId: true,
     },
   });
 
-  if (!booking?.eventType) {
-    throw new Error("Booking not found");
+  if (!booking.eventTypeId) {
+    throw new Error("Booking requires a event type to reassign hosts");
   }
 
-  // Get event type
-  const eventType = await getEventTypesFromDB(booking.eventType.id);
+  const { hosts, totalCount, nextCursor } = await getTeamHostsFromDB({
+    eventTypeId: booking.eventTypeId,
+    prisma,
+    searchTerm,
+    cursor,
+    limit,
+    excludeUserId: booking.userId ?? undefined,
+  });
 
-  if (!eventType || !eventType.teamId) {
-    throw new Error("Event type not found");
+  let availableUsers: IsFixedAwareUser[] = [];
+  try {
+    const eventType = await getEventTypeFromDB(booking.eventTypeId, prisma);
+    availableUsers = await ensureAvailableUsers(
+      // @ts-expect-error - TODO: We need to make sure nothing in the app needs the return type of getEventTypeFromDB as it fetches everything under the sun
+      {
+        users: hosts as IsFixedAwareUser[],
+        ...eventType,
+      },
+      {
+        dateFrom: dayjs(booking.startTime).format(),
+        dateTo: dayjs(booking.endTime).format(),
+        timeZone: "UTC",
+      },
+      gettingRoundRobinHostsToReassignLogger
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message === ErrorCode.NoAvailableUsersFound) {
+      availableUsers = [];
+    } else {
+      gettingRoundRobinHostsToReassignLogger.error(error);
+    }
   }
-
-  const availableEventTypeUsers = eventType.hosts
-    .filter((h) => !h.isFixed && h.user.id !== booking.userId)
-    .map((host) => ({
-      ...host.user,
-      isFixed: host.isFixed,
-      priority: host?.priority ?? 2,
-    }));
-
-  const availableUsers = await ensureAvailableUsers(
-    { ...eventType, users: availableEventTypeUsers as IsFixedAwareUser[] },
-    {
-      dateFrom: dayjs(booking.startTime).format(),
-      dateTo: dayjs(booking.endTime).format(),
-      timeZone: eventType.timeZone || "UTC",
-    },
-    gettingRoundRobinHostsToReassignLogger
-  );
 
   const availableUserIds = new Set(availableUsers.map((u) => u.id));
 
-  const canViewReassignBusyUsers = isOrgAdmin || (await isTeamAdmin(prisma, ctx.user.id, eventType.teamId));
+  const items = hosts.map((host) => ({
+    id: host.id,
+    name: host.name,
+    email: host.email,
+    status: availableUserIds.has(host.id) ? "available" : "unavailable",
+  }));
 
-  const roundRobinHostsToReassign = availableEventTypeUsers.reduce((acc, host) => {
-    const status = availableUserIds.has(host.id) ? "available" : "unavailable";
-    if (canViewReassignBusyUsers || status === "available") {
-      acc.push({
-        id: host.id,
-        name: host.name,
-        email: host.email,
-        status,
-      });
-    }
-    return acc;
-  }, [] as { id: number; name: string | null; email: string; status: string }[]);
-
-  return roundRobinHostsToReassign;
+  return {
+    items,
+    nextCursor,
+    totalCount,
+  };
 };
 
 export default getRoundRobinHostsToReassign;
