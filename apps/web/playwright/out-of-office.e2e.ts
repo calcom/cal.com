@@ -213,13 +213,13 @@ test.describe("Out of office", () => {
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3");
-    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
     //Second OOO is created on Next month 4th - 6th
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "6");
-    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
   });
 
   test("User can create overlapping out of office entries", async ({ page, users }) => {
@@ -237,13 +237,13 @@ test.describe("Out of office", () => {
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "5");
-    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
     //Second OOO is created on Next month 3rd - 8th
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
     await selectDateAndCreateOOO(page, "3", "8");
-    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
   });
 });
 
