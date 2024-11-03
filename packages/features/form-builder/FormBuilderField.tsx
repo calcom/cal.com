@@ -52,11 +52,13 @@ export const FormBuilderField = ({
   readOnly,
   className,
   setCPFError,
+  setNameError,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
   setCPFError: (value: boolean) => void;
+  setNameError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -78,14 +80,15 @@ export const FormBuilderField = ({
           let fieldStatus = "incomplete";
           switch (field.name) {
             case "CPF":
-              const { isValid, value: maskedCPF } = cpfMask(value || "");
+              const { isValid: isValidCPF, value: maskedCPF } = cpfMask(value || "");
               maskedValue = maskedCPF;
-              fieldStatus = isValid;
-              setCPFError(isValid !== "valid");
+              fieldStatus = isValidCPF;
+              setCPFError(isValidCPF !== "valid");
               break;
             case "name":
-              const { maskedName } = nameMask(value || "");
+              const { isValid: isValidName, maskedName } = nameMask(value || "");
               maskedValue = maskedName;
+              setNameError(isValidName);
               break;
             case "email":
               const { maskedEmail } = emailMask(value || "");

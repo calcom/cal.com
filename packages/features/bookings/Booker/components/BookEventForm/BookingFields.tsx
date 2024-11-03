@@ -18,6 +18,7 @@ export const BookingFields = ({
   isDynamicGroupBooking,
   bookingData,
   setCPFError,
+  setNameError,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
@@ -25,6 +26,7 @@ export const BookingFields = ({
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
   setCPFError: (value: boolean) => void;
+  setNameError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
@@ -142,6 +144,7 @@ export const BookingFields = ({
             readOnly={readOnly}
             key={index}
             setCPFError={setCPFError}
+            setNameError={setNameError}
           />
         );
       })}

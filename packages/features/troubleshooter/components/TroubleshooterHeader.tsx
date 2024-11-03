@@ -2,7 +2,6 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ButtonGroup } from "@calcom/ui";
 
 import { useTroubleshooterStore } from "../store";
 
@@ -47,7 +46,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
       <div className="flex items-center gap-5 rtl:flex-grow">
         <FormattedSelectedDateRange />
-        <ButtonGroup>
+        {/* <ButtonGroup>
           <Button
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
@@ -72,7 +71,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
               {t("today")}
             </Button>
           )}
-        </ButtonGroup>
+        </ButtonGroup> */}
       </div>
     </div>
   );

@@ -59,6 +59,7 @@ export const BookEventForm = ({
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const [cpfError, setCPFError] = useState(false);
+  const [nameError, setNameError] = useState(false);
   const [showError, setShowError] = useState(false);
 
   const [responseVercelIdHeader] = useState<string | null>(null);
@@ -118,6 +119,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
           setCPFError={setCPFError}
+          setNameError={setNameError}
         />
         {(errors.hasFormErrors || errors.hasDataErrors) && (
           <div data-testid="booking-fail">
@@ -179,7 +181,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={cpfError}
+                disabled={cpfError || nameError}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||

@@ -200,6 +200,7 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
+    const today = dayjs().get("date");
     const dateKey = yyyymmdd(day);
     const oooInfo = slots && slots?.[dateKey] ? slots?.[dateKey]?.find((slot) => slot.away) : null;
     const included = includedDates?.includes(dateKey);
@@ -207,7 +208,7 @@ const Days = ({
 
     const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
     const away = isOOOAllDay;
-    const disabled = away ? !oooInfo?.toUser : !included || excluded;
+    const disabled = (away ? !oooInfo?.toUser : !included || excluded) || day.date() > today + 7;
 
     return {
       day: day,

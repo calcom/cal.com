@@ -1,3 +1,6 @@
+const FULL_NAME_REGEX =
+  "(^[A-ZÀ-Úa-zà-ú]{2,}[ ]{1}([A-ZÀ-Úa-zà-ú]{1,})?[A-ZÀ-Úa-zà-ú]{2,}((([ ]|-){1}[A-ZÀ-Úa-zà-ú]{1,})?([ ]|-){1}([A-ZÀ-Úa-zà-ú]{1,})?[A-ZÀ-Úa-zà-ú]{2,})*)$";
+
 export const preprocessNameFieldDataWithVariant = (
   variantName: "fullName" | "firstAndLastName",
   value: string | Record<"firstName" | "lastName", string> | undefined
@@ -99,8 +102,12 @@ export const cpfMask = (value: string) => {
 };
 
 export const nameMask = (value: string) => {
-  if (!value) return { maskedName: "" };
-  return { maskedName: value.slice(0, 80) };
+  if (!value) return { maskedName: "", isValid: false };
+  const onlyLetters = value.replace(/[^a-zA-Z\s]/g, "");
+
+  const testName = new RegExp(FULL_NAME_REGEX);
+
+  return { maskedName: onlyLetters.slice(0, 80), isValid: testName.test(onlyLetters) };
 };
 
 export const emailMask = (value: string) => {
