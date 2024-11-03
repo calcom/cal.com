@@ -199,9 +199,7 @@ test.describe("Out of office", () => {
   });
 
   test("User can create separate out of office entries for consecutive dates", async ({ page, users }) => {
-    const t = await localize("en");
     const user = await users.create({ name: "userOne" });
-
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
@@ -214,40 +212,18 @@ test.describe("Out of office", () => {
     //First OOO is created on Next month 1st - 3rd
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
-    await page.locator(`button[name="day"].rdp-day_range_start`).click();
-    await page.locator(`button[name="next-month"]`).click();
-    await page.locator(`button[name="day"]:has-text("1")`).nth(0).click();
-    await page.locator(`button[name="day"]:has-text("3")`).nth(0).click();
-    await page.locator(`text=${t("create_an_out_of_office")}`).click();
-    await page.getByTestId("reason_select").click();
-    await page.getByTestId("select-option-4").click();
-    await page.getByTestId("notes_input").click();
-    await page.getByTestId("notes_input").fill("Demo notes");
-
-    await saveAndWaitForResponse(page);
+    await selectDateAndCreateOOO(page, "1", "3");
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     //Second OOO is created on Next month 4th - 6th
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
-    await page.locator(`button[name="day"].rdp-day_range_start`).click();
-    await page.locator(`button[name="next-month"]`).click();
-    await page.locator(`button[name="day"]:has-text("4")`).nth(0).click();
-    await page.locator(`button[name="day"]:has-text("6")`).nth(0).click();
-    await page.locator(`text=${t("create_an_out_of_office")}`).click();
-    await page.getByTestId("reason_select").click();
-    await page.getByTestId("select-option-4").click();
-    await page.getByTestId("notes_input").click();
-    await page.getByTestId("notes_input").fill("Demo notes");
-
-    await saveAndWaitForResponse(page);
+    await selectDateAndCreateOOO(page, "4", "6");
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 
   test("User can create overlapping out of office entries", async ({ page, users }) => {
-    const t = await localize("en");
     const user = await users.create({ name: "userOne" });
-
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
@@ -260,33 +236,13 @@ test.describe("Out of office", () => {
     //First OOO is created on Next month 1st - 5th
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
-    await page.locator(`button[name="day"].rdp-day_range_start`).click();
-    await page.locator(`button[name="next-month"]`).click();
-    await page.locator(`button[name="day"]:has-text("1")`).nth(0).click();
-    await page.locator(`button[name="day"]:has-text("5")`).nth(0).click();
-    await page.locator(`text=${t("create_an_out_of_office")}`).click();
-    await page.getByTestId("reason_select").click();
-    await page.getByTestId("select-option-4").click();
-    await page.getByTestId("notes_input").click();
-    await page.getByTestId("notes_input").fill("Demo notes");
-
-    await saveAndWaitForResponse(page);
+    await selectDateAndCreateOOO(page, "1", "5");
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     //Second OOO is created on Next month 3rd - 8th
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
-    await page.locator(`button[name="day"].rdp-day_range_start`).click();
-    await page.locator(`button[name="next-month"]`).click();
-    await page.locator(`button[name="day"]:has-text("3")`).nth(0).click();
-    await page.locator(`button[name="day"]:has-text("8")`).nth(0).click();
-    await page.locator(`text=${t("create_an_out_of_office")}`).click();
-    await page.getByTestId("reason_select").click();
-    await page.getByTestId("select-option-4").click();
-    await page.getByTestId("notes_input").click();
-    await page.getByTestId("notes_input").fill("Demo notes");
-
-    await saveAndWaitForResponse(page);
+    await selectDateAndCreateOOO(page, "3", "8");
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 });
@@ -295,4 +251,18 @@ async function saveAndWaitForResponse(page: Page) {
   await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
   });
+}
+
+async function selectDateAndCreateOOO(page: Page, from: string, to: string) {
+  const t = await localize("en");
+  await page.locator(`button[name="day"].rdp-day_range_start`).click();
+  await page.locator(`button[name="next-month"]`).click();
+  await page.locator(`button[name="day"]:has-text("${from}")`).nth(0).click();
+  await page.locator(`button[name="day"]:has-text("${to}")`).nth(0).click();
+  await page.locator(`text=${t("create_an_out_of_office")}`).click();
+  await page.getByTestId("reason_select").click();
+  await page.getByTestId("select-option-4").click();
+  await page.getByTestId("notes_input").click();
+  await page.getByTestId("notes_input").fill("Demo notes");
+  await saveAndWaitForResponse(page);
 }
