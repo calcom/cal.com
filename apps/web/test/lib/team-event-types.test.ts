@@ -1,6 +1,6 @@
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
-import { expect, it, describe, vi } from "vitest";
+import { expect, it, describe } from "vitest";
 
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
@@ -206,8 +206,6 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
 describe("maximize availability and weights", () => {
   it("can find lucky user if hosts have same weights", async () => {
-    vi.setSystemTime("2022-01-29T00:00:13Z");
-
     const user1 = buildUser({
       id: 1,
       username: "test1",
@@ -292,8 +290,6 @@ describe("maximize availability and weights", () => {
   });
 
   it("can find lucky user if hosts have different weights", async () => {
-    vi.setSystemTime("2022-01-20T00:00:13Z");
-
     const user1 = buildUser({
       id: 1,
       username: "test1",
@@ -386,8 +382,6 @@ describe("maximize availability and weights", () => {
   });
 
   it("can find lucky user with weights and adjusted weights", async () => {
-    vi.setSystemTime("2022-01-20T00:00:13Z");
-
     const user1 = buildUser({
       id: 1,
       username: "test1",
