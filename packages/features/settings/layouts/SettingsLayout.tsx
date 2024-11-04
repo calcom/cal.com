@@ -339,7 +339,7 @@ const TeamListCollapsible = () => {
                   />
                   <VerticalTabItem
                     name={t("event_types_page_title")}
-                    href={`/event-types?teamIds=${team.id}`}
+                    href={`/event-types?teamId=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
