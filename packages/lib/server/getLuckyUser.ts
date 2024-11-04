@@ -13,7 +13,6 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 type PartialUser = Pick<User, "id" | "email">;
 
 const startOfMonth = dayjs().utc().startOf("month").toDate();
-const endOfMonth = dayjs().utc().endOf("month").toDate();
 
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: T[];
@@ -136,7 +135,7 @@ async function getHostsWithCalibration(
         return { id: host.userId, email: host.email };
       }),
       startDate: startOfMonth,
-      endDate: dayjs.utc().toDate(),
+      endDate: new Date(),
     });
 
     // calculate calibration for new hosts
@@ -223,7 +222,7 @@ async function getUsersBasedOnWeights<
     eventTypeId: eventType.id,
     users: notAvailableHosts,
     startDate: startOfMonth,
-    endDate: endOfMonth,
+    endDate: new Date(),
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
@@ -306,7 +305,7 @@ export async function getLuckyUser<
       return { id: user.id, email: user.email };
     }),
     startDate: startOfMonth,
-    endDate: endOfMonth,
+    endDate: new Date(),
   });
 
   switch (distributionAlgorithm) {
