@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import appStore from "@calcom/app-store";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
+import { sendBookingRequestedRejectedReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -10,6 +11,7 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -30,6 +32,7 @@ import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentS
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { getAllWorkflowsFromEventType } from "../workflows/util";
 import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
@@ -64,6 +67,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         select: {
           id: true,
           owner: true,
+          schedulingType: true,
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  destinationCalendar: true,
+                },
+              },
+            },
+          },
           teamId: true,
           recurringEvent: true,
           title: true,
@@ -405,6 +419,26 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
+    const workflowEventWithMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+    const { eventType } = booking;
+    await sendBookingRequestedRejectedReminders({
+      workflows,
+      smsReminderNumber: booking.smsReminderNumber || null,
+      calendarEvent: {
+        ...evt,
+        metadata: workflowEventWithMetadata,
+        eventType: {
+          slug: eventType?.slug as string,
+          schedulingType: eventType?.schedulingType,
+          hosts: eventType?.hosts,
+        },
+        bookerUrl,
+      },
+      hideBranding: eventType?.owner?.hideBranding,
+      bookingStatus: BookingStatus.REJECTED,
+    });
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";

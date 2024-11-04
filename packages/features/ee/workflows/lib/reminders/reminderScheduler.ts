@@ -6,7 +6,7 @@ import {
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
@@ -214,6 +214,40 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
+      });
+    }
+  }
+};
+
+export interface SendBookingRejectedRequestedRemindersArgs {
+  workflows: Workflow[];
+  smsReminderNumber: string | null;
+  calendarEvent: ExtendedCalendarEvent;
+  hideBranding?: boolean;
+  bookingStatus: BookingStatus;
+}
+
+export const sendBookingRequestedRejectedReminders = async (
+  args: SendBookingRejectedRequestedRemindersArgs
+) => {
+  const { smsReminderNumber, calendarEvent, workflows, hideBranding, bookingStatus } = args;
+
+  if (!workflows.length) return;
+
+  for (const workflow of workflows) {
+    if (
+      (bookingStatus === BookingStatus.PENDING &&
+        workflow.trigger !== WorkflowTriggerEvents.BOOKING_REQUESTED) ||
+      (bookingStatus === BookingStatus.REJECTED &&
+        workflow.trigger !== WorkflowTriggerEvents.BOOKING_REJECTED)
+    )
+      continue;
+
+    for (const step of workflow.steps) {
+      await processWorkflowStep(workflow, step, {
+        smsReminderNumber,
+        hideBranding,
+        calendarEvent,
       });
     }
   }

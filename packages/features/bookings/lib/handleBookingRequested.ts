@@ -2,13 +2,15 @@ import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import { sendBookingRequestedRejectedReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -32,6 +34,7 @@ export async function handleBookingRequested(args: {
       title: string;
       teamId?: number | null;
       metadata: Prisma.JsonValue;
+      smsReminderNumber: string | null;
     } | null;
     eventTypeId: number | null;
     userId: number | null;
@@ -83,6 +86,15 @@ export async function handleBookingRequested(args: {
       })
     );
     await Promise.all(promises);
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
+
+    await sendBookingRequestedRejectedReminders({
+      bookingStatus: BookingStatus.PENDING,
+      workflows,
+      calendarEvent: evt,
+      smsReminderNumber: booking.smsReminderNumber | null,
+    });
   } catch (error) {
     // Silently fail
     log.error("Error in handleBookingRequested", safeStringify(error));
