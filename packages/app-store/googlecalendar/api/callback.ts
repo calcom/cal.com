@@ -15,6 +15,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
+import { getAllCalendars } from "../lib/utils";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -187,9 +188,15 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
     const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
     const userDetails = await oauth2.userinfo.get();
     if (userDetails.data?.picture) {
-      // Using updateMany here since if the user already has a profile it would throw an error because no records were found to update the profile picture
+      // Using updateMany here since if the user already has a profile it would throw an error
+      // because no records were found to update the profile picture
       await prisma.user.updateMany({
-        where: { id: userId, avatarUrl: null },
+        where: {
+          id: userId,
+          avatarUrl: {
+            equals: null,
+          },
+        },
         data: {
           avatarUrl: userDetails.data.picture,
         },
@@ -198,24 +205,6 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
   }
-}
-
-async function getAllCalendars(calendar: calendar_v3.Calendar) {
-  let allCalendars: calendar_v3.Schema$CalendarListEntry[] = [];
-  let pageToken = null;
-
-  do {
-    const response: any = await calendar.calendarList.list({
-      fields: "items(id,summary,primary,accessRole),nextPageToken",
-      pageToken: pageToken,
-      maxResults: 250, // 250 is max
-    });
-
-    allCalendars = [...allCalendars, ...(response.data.items ?? [])];
-    pageToken = response.data.nextPageToken;
-  } while (pageToken);
-
-  return allCalendars;
 }
 
 export default defaultHandler({

@@ -16,6 +16,7 @@ import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { downloadAsCsv, generateCsvRawForUsersTable } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -400,6 +401,18 @@ export function UserListTable() {
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
+  const handleDownload = () => {
+    const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
+    const HEADER_IDS_TO_EXCLUDE = ["select", "actions"];
+    const csvRaw = generateCsvRawForUsersTable(table, ATTRIBUTE_IDS, HEADER_IDS_TO_EXCLUDE);
+    if (!csvRaw) {
+      return;
+    }
+
+    const filename = `${org?.name ?? "Org"}_${new Date().toISOString().split("T")[0]}.csv`; // e.g., ${OrgName}_2024-11-04.csv
+    downloadAsCsv(csvRaw, filename);
+  };
+
   return (
     <>
       <DataTable
@@ -412,6 +425,14 @@ export function UserListTable() {
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.CTA
+              type="button"
+              color="secondary"
+              StartIcon="file-down"
+              onClick={() => handleDownload()}
+              data-testid="export-members-button">
+              {t("download")}
+            </DataTableToolbar.CTA>
             {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
             <DataTableFilters.FilterButton table={table} omit={["member"]} />
             <DataTableFilters.ColumnVisibilityButton table={table} />

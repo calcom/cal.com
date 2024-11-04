@@ -130,7 +130,7 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
-    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
+    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true`);
     if (query.records.length > 0) {
       return (query.records[0] as { Email: string; Id: string }).Id;
     }
@@ -138,7 +138,8 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserFromOwnerId = async (ownerId: string) => {
     const conn = await this.conn;
-    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${ownerId}'`);
+
+    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${ownerId}' AND IsActive = true`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -377,7 +378,7 @@ export default class SalesforceCRMService implements CRM {
         })
       )) as { records: ContactRecord[] }[];
       const contactsWithOwners = records.map((record) => {
-        const ownerEmail = ownersQuery.find((user) => user.records[0].Id === record.OwnerId)?.records[0]
+        const ownerEmail = ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]
           .Email;
         return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
       });
