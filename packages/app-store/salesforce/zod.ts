@@ -3,6 +3,17 @@ import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { SalesforceRecordEnum } from "./lib/recordEnum";
 
+enum WriteToRecordAction {
+  EVERY_BOOKING = "every_booking",
+  FIELD_EMPTY = "field_empty",
+}
+
+const writeToRecordEntry = z.object({
+  fieldName: z.string(),
+  value: z.string(),
+  action: z.nativeEnum(WriteToRecordAction),
+});
+
 export const appDataSchema = eventTypeAppCardZod.extend({
   roundRobinLeadSkip: z.boolean().optional(),
   roundRobinSkipCheckRecordOn: z
@@ -20,6 +31,8 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   onBookingChangeRecordOwnerName: z.string().optional(),
   sendNoShowAttendeeData: z.boolean().optional(),
   sendNoShowAttendeeDataField: z.string().optional(),
+  onBookingWriteToRecord: z.boolean().optional(),
+  onBookingWriteToRecordFields: z.array(writeToRecordEntry).optional(),
 });
 
 export const appKeysSchema = z.object({
