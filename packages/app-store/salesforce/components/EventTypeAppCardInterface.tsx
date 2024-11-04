@@ -32,6 +32,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingChangeRecordOwnerName = getAppData("onBookingChangeRecordOwnerName") ?? [];
   const sendNoShowAttendeeData = getAppData("sendNoShowAttendeeData") ?? false;
   const sendNoShowAttendeeDataField = getAppData("sendNoShowAttendeeDataField") ?? "";
+  const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
+  const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? [];
 
   const { t } = useLocale();
 
@@ -144,6 +146,98 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             }}
           />
           {onBookingWriteToEventObject ? (
+            <div className="ml-2 mt-2">
+              <div className="grid grid-cols-3 gap-4">
+                <div>{t("field_name")}</div>
+                <div>{t("value")}</div>
+              </div>
+              <div>
+                {...Object.keys(onBookingWriteToEventObjectMap).map((key) => (
+                  <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
+                    <div>
+                      <InputField value={key} readOnly />
+                    </div>
+                    <div>
+                      <InputField value={onBookingWriteToEventObjectMap[key]} readOnly />
+                    </div>
+                    <div>
+                      <Button
+                        StartIcon="trash"
+                        variant="icon"
+                        color="destructive"
+                        onClick={() => {
+                          const newObject = onBookingWriteToEventObjectMap;
+                          delete onBookingWriteToEventObjectMap[key];
+                          setAppData("onBookingWriteToEventObjectMap", newObject);
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div className="mt-2 grid grid-cols-3 gap-4">
+                  <div>
+                    <InputField
+                      value={newOnBookingWriteToEventObjectField.field}
+                      onChange={(e) =>
+                        setNewOnBookingWriteToEventObjectField({
+                          ...newOnBookingWriteToEventObjectField,
+                          field: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <InputField
+                      value={newOnBookingWriteToEventObjectField.value}
+                      onChange={(e) =>
+                        setNewOnBookingWriteToEventObjectField({
+                          ...newOnBookingWriteToEventObjectField,
+                          value: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+              <Button
+                className="mt-2"
+                size="sm"
+                disabled={
+                  !(newOnBookingWriteToEventObjectField.field && newOnBookingWriteToEventObjectField.value)
+                }
+                onClick={() => {
+                  if (
+                    Object.keys(onBookingWriteToEventObjectMap).includes(
+                      newOnBookingWriteToEventObjectField.field.trim()
+                    )
+                  ) {
+                    showToast("Field already exists", "error");
+                    return;
+                  }
+
+                  setAppData("onBookingWriteToEventObjectMap", {
+                    ...onBookingWriteToEventObjectMap,
+                    [newOnBookingWriteToEventObjectField.field.trim()]:
+                      newOnBookingWriteToEventObjectField.value.trim(),
+                  });
+                  setNewOnBookingWriteToEventObjectField({ field: "", value: "" });
+                }}>
+                {t("add_new_field")}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-4">
+          <Switch
+            label={t("salesforce_on_booking_write_to_record")}
+            labelOnLeading
+            checked={onBookingWriteToRecord}
+            onCheckedChange={(checked) => {
+              setAppData("onBookingWriteToRecord", checked);
+            }}
+          />
+          {onBookingWriteToRecord ? (
             <div className="ml-2 mt-2">
               <div className="grid grid-cols-3 gap-4">
                 <div>{t("field_name")}</div>
