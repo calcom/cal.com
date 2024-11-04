@@ -12,7 +12,7 @@ import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { downloadAsCsv } from "@calcom/lib/csvUtils";
+import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -77,26 +77,9 @@ const Result = ({
       return;
     }
 
-    const header = `${headers.current ?? [].join(",")}\n`;
+    const header = `${(headers.current ?? []).map((value) => sanitizeValue(value)).join(",")}\n`;
     const rows = data.pages.flatMap((page) =>
-      page.responses.map(
-        (response) =>
-          `${response
-            .map((value) => {
-              // handling three cases:
-              // 1. quotes - we need to double quotes for CSV
-              // 2. commas
-              // 3. newlines
-              if (value.includes('"')) {
-                return `"${value.replace(/"/g, '""')}"`;
-              }
-              if (value.includes(",") || value.includes("\n")) {
-                return `"${value}"`;
-              }
-              return value;
-            })
-            .join(",")}\n`
-      )
+      page.responses.map((response) => `${response.map((value) => sanitizeValue(value)).join(",")}\n`)
     );
 
     const csvRaw = header + rows.join("");
