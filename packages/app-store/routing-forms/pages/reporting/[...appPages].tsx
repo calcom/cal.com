@@ -17,7 +17,7 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
@@ -41,6 +41,7 @@ const Result = ({
   jsonLogicQuery: JsonLogicQuery | null;
 }) => {
   const { t } = useLocale();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { isPending, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
     trpc.viewer.appRoutingForms.report.useInfiniteQuery(
@@ -57,6 +58,22 @@ const Result = ({
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
     );
+  const exportQuery = trpc.viewer.appRoutingForms.report.useInfiniteQuery(
+    {
+      limit: 100, // 100 is max
+      formId: formId,
+      // Send jsonLogicQuery only if it's a valid logic, otherwise send a logic with no query.
+      jsonLogicQuery: jsonLogicQuery?.logic
+        ? jsonLogicQuery
+        : {
+            logic: {},
+          },
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      enabled: false,
+    }
+  );
   const buttonInView = useInViewObserver(() => {
     if (!isFetching && hasNextPage && status === "success") {
       fetchNextPage();
@@ -71,20 +88,45 @@ const Result = ({
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
 
   const numberOfRows = data?.pages.reduce((total, page) => total + (page.responses?.length || 0), 0);
-  const downloadButtonDisabled = !numberOfRows || !data || !headers.current;
-  const handleDownload = () => {
-    if (downloadButtonDisabled) {
-      return;
+  const downloadButtonDisabled = !numberOfRows || !data || !headers.current || isDownloading;
+
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true);
+
+      if (downloadButtonDisabled) {
+        return;
+      }
+
+      const result = await exportQuery.refetch();
+      if (!result.data) {
+        throw new Error("There are no routing forms found.");
+      }
+      const allRows = result.data.pages.flatMap((page) =>
+        page.responses.map((response) => `${response.map((value) => sanitizeValue(value)).join(",")}\n`)
+      );
+      let lastPage = result.data.pages[result.data.pages.length - 1];
+      while (lastPage.nextCursor) {
+        const nextPage = await exportQuery.fetchNextPage();
+        if (!nextPage.data) {
+          break;
+        }
+        const latestPageItems = nextPage.data.pages[nextPage.data.pages.length - 1].responses ?? [];
+        allRows.push(
+          ...latestPageItems.map((response) => `${response.map((value) => sanitizeValue(value)).join(",")}\n`)
+        );
+        lastPage = nextPage.data.pages[nextPage.data.pages.length - 1];
+      }
+
+      const header = `${(headers.current ?? []).map((value) => sanitizeValue(value)).join(",")}\n`;
+      const csvRaw = header + allRows.join("");
+      const filename = `${formName}_${new Date().toISOString().split("T")[0]}.csv`; // e.g., ${FormName}_2024-10-30.csv
+      downloadAsCsv(csvRaw, filename);
+    } catch (error) {
+      showToast(`Error: ${error}`, "error");
+    } finally {
+      setIsDownloading(false);
     }
-
-    const header = `${(headers.current ?? []).map((value) => sanitizeValue(value)).join(",")}\n`;
-    const rows = data.pages.flatMap((page) =>
-      page.responses.map((response) => `${response.map((value) => sanitizeValue(value)).join(",")}\n`)
-    );
-
-    const csvRaw = header + rows.join("");
-    const filename = `${formName}_${new Date().toISOString().split("T")[0]}.csv`; // e.g., ${FormName}_2024-10-30.csv
-    downloadAsCsv(csvRaw, filename);
   };
 
   return (
