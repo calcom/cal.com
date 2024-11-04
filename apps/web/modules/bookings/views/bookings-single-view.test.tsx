@@ -11,6 +11,14 @@ import { HeadSeo } from "@calcom/ui";
 
 import Success from "./bookings-single-view";
 
+vi.mock(import("@calcom/lib/date-fns"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    formatLocalizedDateTime: () => "2024-10-29T08:06:32.148Z",
+  };
+});
+
 function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof Success>>) {
   return {
     eventType: {
@@ -79,6 +87,7 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
       },
       rescheduled: false,
       fromReschedule: null,
+      createdAt: new Date(),
     },
     orgSlug: null,
     userTimeFormat: 12,
