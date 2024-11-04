@@ -2,6 +2,7 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
+import { sanitizeValue } from "@calcom/lib/csvUtils";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import prisma from "@calcom/prisma";
 
@@ -52,12 +53,11 @@ async function* getResponses(formId: string, fields: Fields) {
       fields.forEach((field) => {
         const fieldResponse = fieldResponses[field.id];
         const value = fieldResponse?.value || "";
-        const serializedValue = getHumanReadableFieldResponseValue({ field, value })
-          .map((value) => escapeCsvText(value))
-          .join(" | ");
+        const readableValues = getHumanReadableFieldResponseValue({ field, value });
+        const serializedValue = readableValues.map((value) => sanitizeValue(value)).join(" | ");
         csvCells.push(serializedValue);
       });
-      csvCells.push(response.createdAt.toISOString());
+      csvCells.push(sanitizeValue(response.createdAt.toISOString()));
       csv.push(csvCells.join(","));
     });
     skip += take;
