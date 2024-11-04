@@ -15,6 +15,7 @@ import {
   handleInstantMeeting,
   handleCancelBooking,
   roundRobinReassignment,
+  roundRobinManualReassignment,
   handleMarkNoShow,
 } from "@calcom/platform-libraries";
 import {
@@ -345,8 +346,15 @@ export class BookingsService_2024_08_13 {
   }
 
   async reassignAutoBooking(bookingUid: string) {
-    await roundRobinReassignment({
+    return roundRobinReassignment({
       bookingId: bookingUid,
+    });
+  }
+
+  async reassignManualBooking(bookingUid: string, userId: number) {
+    return roundRobinManualReassignment({
+      bookingId: bookingUid,
+      userId,
     });
   }
 }
