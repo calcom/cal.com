@@ -270,10 +270,12 @@ describe("maximize availability and weights", () => {
       {
         user: { id: user1.id, email: user1.email },
         weight: user1.weight,
+        createdAt: new Date(0),
       },
       {
         user: { id: user2.id, email: user2.email },
         weight: user2.weight,
+        createdAt: new Date(0),
       },
     ];
 
@@ -362,10 +364,12 @@ describe("maximize availability and weights", () => {
       {
         user: { id: user1.id, email: user1.email },
         weight: user1.weight,
+        createdAt: new Date(0),
       },
       {
         user: { id: user2.id, email: user2.email },
         weight: user2.weight,
+        createdAt: new Date(0),
       },
     ];
 
@@ -454,10 +458,12 @@ describe("maximize availability and weights", () => {
       {
         user: { id: user1.id, email: user1.email },
         weight: user1.weight,
+        createdAt: new Date(0),
       },
       {
         user: { id: user2.id, email: user2.email },
         weight: user2.weight,
+        createdAt: new Date(0),
       },
     ];
 
