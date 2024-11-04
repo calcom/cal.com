@@ -1,7 +1,12 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { useCallback, useState } from "react";
+import { useState } from "react";
+import { useCallback } from "react";
 
 import { IconSprites } from "@calcom/ui";
+import deTranslations from "@calcom/web/public/static/locales/de/common.json";
+import enTranslations from "@calcom/web/public/static/locales/en/common.json";
+import esTranslations from "@calcom/web/public/static/locales/es/common.json";
+import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
 import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
@@ -12,8 +17,17 @@ import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
-import type { CalProviderLanguagesType, CalProviderProps, ptBrTranslationKeys } from "./CalProvider";
-import { PT_BR } from "./CalProvider";
+import { EN } from "./CalProvider";
+import type {
+  CalProviderProps,
+  CalProviderLanguagesType,
+  translationKeys,
+  enTranslationKeys,
+  frTranslationKeys,
+  ptBrTranslationKeys,
+  deTranslationKeys,
+  esTranslationKeys,
+} from "./CalProvider";
 
 export function BaseCalProvider({
   clientId,
@@ -22,7 +36,7 @@ export function BaseCalProvider({
   children,
   labels,
   autoUpdateTimezone,
-  language = PT_BR,
+  language = EN,
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
@@ -84,13 +98,13 @@ export function BaseCalProvider({
         }
       }
 
-      return replaceOccurrences(translation, ptBrTranslations) ?? "";
+      return replaceOccurrences(translation, enTranslations) ?? "";
     },
     i18n: {
       language: language,
       defaultLocale: language,
       locales: [language],
-      exists: (key: ptBrTranslationKeys | string) => Boolean(ptBrTranslations[key as ptBrTranslationKeys]),
+      exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
 
@@ -148,5 +162,18 @@ function replaceOccurrences(input: string, replacementMap: { [key: string]: stri
 }
 
 function getTranslation(key: string, language: CalProviderLanguagesType) {
-  return ptBrTranslations[key as ptBrTranslationKeys];
+  switch (language) {
+    case "en":
+      return enTranslations[key as enTranslationKeys];
+    case "fr":
+      return frTranslations[key as frTranslationKeys];
+    case "pt-BR":
+      return ptBrTranslations[key as ptBrTranslationKeys];
+    case "de":
+      return deTranslations[key as deTranslationKeys];
+    case "es":
+      return esTranslations[key as esTranslationKeys];
+    default:
+      return enTranslations[key as enTranslationKeys];
+  }
 }
