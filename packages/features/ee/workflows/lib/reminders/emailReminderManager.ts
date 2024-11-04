@@ -91,6 +91,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   let name = "";
   let attendeeName = "";
   let timeZone = "";
+  const location = bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location;
 
   switch (action) {
     case WorkflowActions.EMAIL_ADDRESS:
@@ -191,6 +192,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       evt.title,
       timeZone,
+      location,
       attendeeName,
       name
     );
