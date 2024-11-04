@@ -168,22 +168,33 @@ export function buildDateRanges({
           processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
         );
       } else if ("isTimeBlock" in item && !!item.isTimeBlock) {
-        const itemDateAsUtc = dayjs(item.startTime).utc(true).startOf("day");
-        const timeBlockItem = { ...item, date: itemDateAsUtc.toDate() };
-        // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
-        // refactor this to actually work with correct dates.
-        // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
-        // and the dateFrom and dateTo fields, resulting in this if not returning true, which
-        // results in "no available users found" errors.
-        if (
-          itemDateAsUtc.isBetween(
-            dateFrom.subtract(1, "day").startOf("day"),
-            dateTo.add(1, "day").endOf("day"),
-            null,
-            "[]"
-          )
-        ) {
-          processed.push(processDateItem({ item: timeBlockItem, itemDateAsUtc, timeZone, travelSchedules }));
+        // porcess multi-day time blocks
+        const daysDiff = dayjs(item.endTime).diff(item.startTime, "day");
+        for (let i = 0; i <= daysDiff; i++) {
+          const currentDate = dayjs(item.startTime).utc(true).startOf("day").add(i, "day");
+          const timeBlockItem = {
+            ...item,
+            date: currentDate.toDate(),
+            startTime: i == 0 ? item.startTime : currentDate.toDate(),
+            endTime: i == daysDiff ? item.endTime : currentDate.endOf("day").toDate(),
+          };
+          if (
+            currentDate.isBetween(
+              dateFrom.subtract(1, "day").startOf("day"),
+              dateTo.add(1, "day").endOf("day"),
+              null,
+              "[]"
+            )
+          ) {
+            processed.push(
+              processDateItem({
+                item: timeBlockItem,
+                itemDateAsUtc: currentDate,
+                timeZone,
+                travelSchedules,
+              })
+            );
+          }
         }
       }
       return processed;
