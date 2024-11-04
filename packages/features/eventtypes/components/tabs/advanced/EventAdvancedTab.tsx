@@ -27,6 +27,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import type { SelectClassNames } from "@calcom/ui";
 import {
   Alert,
   Button,
@@ -43,7 +44,56 @@ import {
 
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
+import type { RequiredConfirmationCustomClassnames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+
+type SettingsToggleClassnames = {
+  // children?: string;
+  switchContainer?: string;
+  label?: string;
+  description?: string;
+};
+
+type SwitchClassnames = {
+  container?: string;
+  thumb?: string;
+};
+
+type InputClassnames = {
+  container?: string;
+  label?: string;
+  input?: string;
+  addOn?: string;
+};
+type CheckboxClassnames = {
+  checkbox?: string;
+  description?: string;
+  container?: string;
+};
+
+export type EventAdvancedTabCustomClassnames = {
+  destinationCalendarClassnames?: SelectClassNames;
+  eventNameInCalendarClassnames?: InputClassnames;
+  useAddToCalendarEmailAsOrganizerClassnames?: {
+    swichClassnames?: SwitchClassnames;
+    selectClassnames?: {
+      container?: string;
+      select?: string;
+      displayEmailAsOrganizer?: string;
+    };
+  };
+  requiredConfirmationClassnames?: RequiredConfirmationCustomClassnames;
+  requiresBookerEmailVerificationClassnames?: SettingsToggleClassnames;
+  hideCalendarNotesClassnames?: SettingsToggleClassnames;
+  hideCalendarEventDetailsClassnames?: SettingsToggleClassnames;
+  redirectOnBooking?: SettingsToggleClassnames & {
+    children?: string;
+    textFieldClassnames?: InputClassnames;
+    forwardParamsCheckboxClassnames?: CheckboxClassnames;
+    error?: string;
+  };
+  seatsClassnames: SettingsToggleClassnames & { children?: string };
+};
 
 type BookingField = z.infer<typeof fieldSchema>;
 
@@ -53,6 +103,7 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
+  customClassnames?: EventAdvancedTabCustomClassnames;
 };
 
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
@@ -68,6 +119,7 @@ export const EventAdvancedTab = ({
   isUserLoading,
   showToast,
   showBookerLayoutSelector,
+  customClassnames,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -211,8 +263,18 @@ export const EventAdvancedTab = ({
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           {displayDestinationCalendarSelector && (
-            <div className="flex w-full flex-col">
-              <Label className="text-emphasis mb-0 font-medium">{t("add_to_calendar")}</Label>
+            <div
+              className={classNames(
+                "flex w-full flex-col",
+                customClassnames?.destinationCalendarClassnames?.container
+              )}>
+              <Label
+                className={classNames(
+                  "text-emphasis mb-0 font-medium",
+                  customClassnames?.destinationCalendarClassnames?.label
+                )}>
+                {t("add_to_calendar")}
+              </Label>
               <Controller
                 name="destinationCalendar"
                 render={({ field: { onChange, value } }) => (
@@ -222,15 +284,19 @@ export const EventAdvancedTab = ({
                     hidePlaceholder
                     hideAdvancedText
                     calendarsQueryData={calendarsQueryData}
+                    customClassnames={customClassnames?.destinationCalendarClassnames}
                   />
                 )}
               />
               <p className="text-subtle text-sm">{t("select_which_cal")}</p>
             </div>
           )}
-          <div className="w-full">
+          <div className={classNames("w-full", customClassnames?.eventNameInCalendarClassnames?.container)}>
             <TextField
               label={t("event_name_in_calendar")}
+              labelClassName={customClassnames?.eventNameInCalendarClassnames?.label}
+              addOnClassname={customClassnames?.eventNameInCalendarClassnames?.addOn}
+              className={customClassnames?.eventNameInCalendarClassnames?.input}
               type="text"
               {...eventNameLocked}
               placeholder={eventNamePlaceholder}
@@ -253,6 +319,7 @@ export const EventAdvancedTab = ({
             <div className="w-full">
               <Switch
                 tooltip={t("if_enabled_email_address_as_organizer")}
+                classNames={customClassnames?.useAddToCalendarEmailAsOrganizerClassnames?.swichClassnames}
                 label={
                   <>
                     {t("display_add_to_calendar_organizer")}
@@ -283,6 +350,12 @@ export const EventAdvancedTab = ({
                     </span>
                   )
                 }
+                className={
+                  customClassnames?.useAddToCalendarEmailAsOrganizerClassnames?.selectClassnames?.select
+                }
+                containerClassName={
+                  customClassnames?.useAddToCalendarEmailAsOrganizerClassnames?.selectClassnames?.container
+                }
                 onChange={(option) =>
                   formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
                 }
@@ -292,7 +365,14 @@ export const EventAdvancedTab = ({
                 )}
                 options={verifiedSecondaryEmails}
               />
-              <p className="text-subtle mt-2 text-sm">{t("display_email_as_organizer")}</p>
+              <p
+                className={classNames(
+                  "text-subtle mt-2 text-sm",
+                  customClassnames?.useAddToCalendarEmailAsOrganizerClassnames?.selectClassnames
+                    ?.displayEmailAsOrganizer
+                )}>
+                {t("display_email_as_organizer")}
+              </p>
             </div>
           )}
         </div>
@@ -340,13 +420,20 @@ export const EventAdvancedTab = ({
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName={classNames(
+              "text-sm",
+              customClassnames?.requiresBookerEmailVerificationClassnames?.label
+            )}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassnames?.requiresBookerEmailVerificationClassnames?.switchContainer
+            )}
             title={t("requires_booker_email_verification")}
             data-testid="requires-booker-email-verification"
             {...requiresBookerEmailVerificationProps}
             description={t("description_requires_booker_email_verification")}
+            descriptionClassName={customClassnames?.requiresBookerEmailVerificationClassnames?.description}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
@@ -356,9 +443,13 @@ export const EventAdvancedTab = ({
         name="hideCalendarNotes"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName={classNames("text-sm", customClassnames?.hideCalendarNotesClassnames?.label)}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassnames?.hideCalendarNotesClassnames?.switchContainer
+            )}
+            descriptionClassName={customClassnames?.hideCalendarNotesClassnames?.description}
             data-testid="disable-notes"
             title={t("disable_notes")}
             {...hideCalendarNotesLocked}
@@ -372,9 +463,16 @@ export const EventAdvancedTab = ({
         name="hideCalendarEventDetails"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName={classNames(
+              "text-sm",
+              customClassnames?.hideCalendarEventDetailsClassnames?.label
+            )}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassnames?.hideCalendarEventDetailsClassnames?.switchContainer
+            )}
+            descriptionClassName={customClassnames?.hideCalendarEventDetailsClassnames?.description}
             title={t("hide_calendar_event_details")}
             {...hideCalendarEventDetailsLocked}
             description={t("description_hide_calendar_event_details")}
@@ -388,13 +486,15 @@ export const EventAdvancedTab = ({
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName={classNames("text-sm", customClassnames?.redirectOnBooking?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                redirectUrlVisible && "rounded-b-none"
+                redirectUrlVisible && "rounded-b-none",
+                customClassnames?.redirectOnBooking?.switchContainer
               )}
-              childrenClassName="lg:ml-0"
+              childrenClassName={classNames("lg:ml-0", customClassnames?.redirectOnBooking?.children)}
+              descriptionClassName={customClassnames?.redirectOnBooking?.description}
               title={t("redirect_success_booking")}
               data-testid="redirect-success-booking"
               {...successRedirectUrlLocked}
@@ -404,10 +504,18 @@ export const EventAdvancedTab = ({
                 setRedirectUrlVisible(e);
                 onChange(e ? value : "");
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div
+                className={classNames(
+                  "border-subtle rounded-b-lg border border-t-0 p-6",
+                  customClassnames?.redirectOnBooking?.textFieldClassnames?.container
+                )}>
                 <TextField
-                  className="w-full"
+                  className={classNames(
+                    "w-full",
+                    customClassnames?.redirectOnBooking?.textFieldClassnames?.input
+                  )}
                   label={t("redirect_success_booking")}
+                  labelClassName={customClassnames?.redirectOnBooking?.textFieldClassnames?.label}
                   labelSrOnly
                   disabled={successRedirectUrlLocked.disabled}
                   placeholder={t("external_redirect_url")}
@@ -417,13 +525,23 @@ export const EventAdvancedTab = ({
                   {...formMethods.register("successRedirectUrl")}
                 />
 
-                <div className="mt-4">
+                <div
+                  className={classNames(
+                    "mt-4",
+                    customClassnames?.redirectOnBooking?.forwardParamsCheckboxClassnames?.container
+                  )}>
                   <Controller
                     name="forwardParamsSuccessRedirect"
                     render={({ field: { value, onChange } }) => (
                       <CheckboxField
                         description={t("forward_params_redirect")}
                         disabled={successRedirectUrlLocked.disabled}
+                        className={
+                          customClassnames?.redirectOnBooking?.forwardParamsCheckboxClassnames?.checkbox
+                        }
+                        descriptionClassName={
+                          customClassnames?.redirectOnBooking?.forwardParamsCheckboxClassnames?.description
+                        }
                         onChange={(e) => onChange(e)}
                         checked={value}
                       />
@@ -433,7 +551,8 @@ export const EventAdvancedTab = ({
                 <div
                   className={classNames(
                     "p-1 text-sm text-orange-600",
-                    formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
+                    formMethods.getValues("successRedirectUrl") ? "block" : "hidden",
+                    customClassnames?.redirectOnBooking?.error
                   )}
                   data-testid="redirect-url-warning">
                   {t("redirect_url_warning")}
@@ -489,13 +608,14 @@ export const EventAdvancedTab = ({
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName={classNames("text-sm", customClassnames?.seatsClassnames?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                value && "rounded-b-none"
+                value && "rounded-b-none",
+                customClassnames?.seatsClassnames?.switchContainer
               )}
-              childrenClassName="lg:ml-0"
+              childrenClassName={classNames("lg:ml-0", customClassnames?.seatsClassnames?.children)}
               data-testid="offer-seats-toggle"
               title={t("offer_seats")}
               {...seatsLocked}

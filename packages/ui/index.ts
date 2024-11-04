@@ -62,6 +62,7 @@ export type {
   ITimezoneOption,
   TimezoneSelectProps,
   TimezoneSelectComponentProps,
+  SelectClassNames,
 } from "./components/form";
 export {
   AllApps,

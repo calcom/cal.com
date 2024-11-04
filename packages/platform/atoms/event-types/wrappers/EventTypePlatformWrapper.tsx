@@ -6,6 +6,8 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAdvancedTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
+import type { EventLimitsTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -29,6 +31,12 @@ import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
+
+export type EventTypeCustomClassNames = {
+  atomsWrapper?: string;
+  eventLimitsTabClassnames?: EventLimitsTabCustomClassnames;
+  eventAdvancedTabClassnames?: EventAdvancedTabCustomClassnames;
+};
 
 export type EventTypePlatformWrapperProps = {
   id: number;

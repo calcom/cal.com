@@ -9,6 +9,22 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "../inputs/Label";
 import { getReactSelectProps } from "./selectTheme";
 
+export type SelectClassNames = {
+  innerClassNames?: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+  select?: string;
+  label?: string;
+  container?: string;
+};
+
 export type SelectProps<
   Option,
   IsMulti extends boolean = false,
@@ -23,18 +39,7 @@ export const Select = <
   components,
   variant = "default",
   ...props
-}: SelectProps<Option, IsMulti, Group> & {
-  innerClassNames?: {
-    input?: string;
-    option?: string;
-    control?: string;
-    singleValue?: string;
-    valueContainer?: string;
-    multiValue?: string;
-    menu?: string;
-    menuList?: string;
-  };
-}) => {
+}: SelectProps<Option, IsMulti, Group> & Pick<SelectClassNames, "innerClassNames">) => {
   const { classNames, innerClassNames, menuPlacement = "auto", ...restProps } = props;
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({

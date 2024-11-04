@@ -5,6 +5,7 @@ import { components } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import type { SelectClassNames } from "@calcom/ui";
 import { Badge, Icon, Select } from "@calcom/ui";
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
   maxWidth?: number;
   hideAdvancedText?: boolean;
   calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
+  customClassnames?: SelectClassNames;
 }
 
 interface Option {
@@ -53,6 +55,7 @@ const DestinationCalendarSelector = ({
   hideAdvancedText,
   maxWidth,
   calendarsQueryData,
+  customClassnames,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const connectedCalendarsList = calendarsQueryData?.connectedCalendars;
@@ -157,8 +160,10 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm",
+          customClassnames?.select
         )}
+        innerClassNames={customClassnames?.innerClassNames}
         onChange={(newValue) => {
           setSelectedOption(newValue);
           if (!newValue) {
