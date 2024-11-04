@@ -83,7 +83,6 @@ export const roundRobinReassignment = async ({
         isFixed: false,
         priority: 2,
         weight: 100,
-        weightAdjustment: 0,
         schedule: null,
       }));
 

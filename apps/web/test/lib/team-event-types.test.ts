@@ -4,7 +4,6 @@ import { expect, it, describe, vi } from "vitest";
 
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
-import { calculateWeightAdjustmentToNewHosts } from "@calcom/trpc/server/routers/viewer/eventTypes/util";
 
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
@@ -271,12 +270,10 @@ describe("maximize availability and weights", () => {
       {
         user: { id: user1.id, email: user1.email },
         weight: user1.weight,
-        weightAdjustment: user1.weightAdjustment,
       },
       {
         user: { id: user2.id, email: user2.email },
         weight: user2.weight,
-        weightAdjustment: user2.weightAdjustment,
       },
     ];
 
@@ -365,12 +362,10 @@ describe("maximize availability and weights", () => {
       {
         user: { id: user1.id, email: user1.email },
         weight: user1.weight,
-        weightAdjustment: user1.weightAdjustment,
       },
       {
         user: { id: user2.id, email: user2.email },
         weight: user2.weight,
-        weightAdjustment: user2.weightAdjustment,
       },
     ];
 
@@ -396,7 +391,6 @@ describe("maximize availability and weights", () => {
       email: "test1@example.com",
       priority: 3,
       weight: 150,
-      weightAdjustment: 4, // + 3 = 7 bookings
       bookings: [
         {
           createdAt: new Date("2022-01-25T07:30:00.000Z"),
@@ -416,7 +410,6 @@ describe("maximize availability and weights", () => {
       email: "test2@example.com",
       priority: 3,
       weight: 100,
-      weightAdjustment: 3, // + 2 = 5 bookings
       bookings: [
         {
           createdAt: new Date("2022-01-25T06:30:00.000Z"),
@@ -461,12 +454,10 @@ describe("maximize availability and weights", () => {
       {
         user: { id: user1.id, email: user1.email },
         weight: user1.weight,
-        weightAdjustment: user1.weightAdjustment,
       },
       {
         user: { id: user2.id, email: user2.email },
         weight: user2.weight,
-        weightAdjustment: user2.weightAdjustment,
       },
     ];
 
@@ -489,7 +480,6 @@ function convertHostsToUsers(
     isFixed: boolean;
     priority: number;
     weight: number;
-    weightAdjustment?: number;
     newHost?: boolean;
   }[]
 ) {
@@ -503,174 +493,9 @@ function convertHostsToUsers(
             {
               isFixed: host.isFixed,
               priority: host.priority,
-              weightAdjustment: host.weightAdjustment,
               weight: host.weight,
             },
           ],
     };
   });
 }
-
-describe("caluclateWeightAdjustmentToNewHosts", () => {
-  it("weight adjustment is correctly added to host with two hosts that have the same weight", async () => {
-    const hosts = [
-      {
-        userId: 1,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-      },
-      {
-        userId: 2,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        newHost: true,
-      },
-    ];
-
-    const users = convertHostsToUsers(hosts);
-
-    prismaMock.user.findMany.mockResolvedValue(users);
-
-    // mock for allBookings (for ongoing RR hosts)
-    prismaMock.booking.findMany
-      .mockResolvedValueOnce([
-        buildBooking({
-          id: 1,
-          userId: 1,
-        }),
-        buildBooking({
-          id: 2,
-          userId: 1,
-        }),
-        buildBooking({
-          id: 3,
-          userId: 1,
-        }),
-        buildBooking({
-          id: 4,
-          userId: 1,
-        }),
-      ])
-      // mock for bookings of new RR host
-      .mockResolvedValueOnce([
-        buildBooking({
-          id: 5,
-          userId: 2,
-        }),
-      ]);
-
-    const hostsWithAdjustedWeight = await calculateWeightAdjustmentToNewHosts({
-      hosts,
-      isWeightsEnabled: true,
-      eventTypeId: 1,
-      prisma: prismaMock,
-    });
-    /*
-    both users have weight 100, user1 has 4 bookings user 2 has 1 bookings already
-    */
-    expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(3);
-  });
-
-  it("weight adjustment is correctly added to host with several hosts that have different weights", async () => {
-    // make different weights
-    const hosts = [
-      {
-        userId: 1,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-      },
-      {
-        userId: 2,
-        isFixed: false,
-        priority: 2,
-        weight: 200,
-        newHost: true,
-      },
-      {
-        userId: 3,
-        isFixed: false,
-        priority: 2,
-        weight: 200,
-      },
-      {
-        userId: 4,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-      },
-      {
-        userId: 5,
-        isFixed: false,
-        priority: 2,
-        weight: 50,
-        newHost: true,
-      },
-    ];
-
-    const users = convertHostsToUsers(hosts);
-
-    prismaMock.user.findMany.mockResolvedValue(users);
-
-    // mock for allBookings (for ongoing RR hosts)
-    prismaMock.booking.findMany
-      .mockResolvedValueOnce([
-        // 8 bookings for ongoing hosts (hosts that already existed before)
-        buildBooking({
-          id: 1,
-          userId: 1,
-        }),
-        buildBooking({
-          id: 2,
-          userId: 1,
-        }),
-        buildBooking({
-          id: 3,
-          userId: 3,
-        }),
-        buildBooking({
-          id: 4,
-          userId: 3,
-        }),
-        buildBooking({
-          id: 5,
-          userId: 4,
-        }),
-        buildBooking({
-          id: 6,
-          userId: 4,
-        }),
-        buildBooking({
-          id: 7,
-          userId: 4,
-        }),
-        buildBooking({
-          id: 8,
-          userId: 4,
-        }),
-      ])
-      // mock for bookings of new RR host
-      .mockResolvedValueOnce([
-        buildBooking({
-          id: 5,
-          userId: 2,
-        }),
-      ])
-      .mockResolvedValue([]);
-
-    const hostsWithAdjustedWeight = await calculateWeightAdjustmentToNewHosts({
-      hosts,
-      isWeightsEnabled: true,
-      eventTypeId: 1,
-      prisma: prismaMock,
-    });
-
-    // 8 bookings from ongoing hosts, 400 total weight --> average 0.02 bookings per weight unit --> 0.02 * 200 = 4 - 1 prev bookings = 3
-    expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(3);
-
-    // 8 bookings from ongoing hosts, 400 total weight --> average 0.02 bookings per weight unit --> 0.02 * 50 = 1 (no prev bookings)
-    expect(hostsWithAdjustedWeight.find((host) => host.userId === 5)?.weightAdjustment).toBe(1);
-  });
-});

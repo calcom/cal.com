@@ -22,7 +22,6 @@ interface GetLuckyUserParams<T extends PartialUser> {
     user: { id: number; email: string };
     createdAt: Date;
     weight?: number | null;
-    weightAdjustment?: number | null;
   }[];
 }
 
@@ -191,7 +190,6 @@ function getUsersWithHighestPriority<T extends PartialUser & { priority?: number
 async function getUsersBasedOnWeights<
   T extends PartialUser & {
     weight?: number | null;
-    weightAdjustment?: number | null;
   }
 >({
   availableUsers,
@@ -290,7 +288,6 @@ export async function getLuckyUser<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
-    weightAdjustment?: number | null;
   }
 >(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
