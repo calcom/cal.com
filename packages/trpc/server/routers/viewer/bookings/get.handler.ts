@@ -281,6 +281,7 @@ export async function getBookings({
         },
       },
     },
+    createdAt: true,
   };
 
   const [

@@ -188,6 +188,11 @@ class BaseBookingOutput_2024_08_13 {
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  createdAt!: string;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {

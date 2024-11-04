@@ -56,6 +56,7 @@ const getUserBooking = async (uid: string) => {
           referenceUid: true,
         },
       },
+      createdAt: true,
     },
   });
 
