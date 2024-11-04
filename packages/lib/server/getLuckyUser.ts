@@ -12,11 +12,15 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 
 type PartialUser = Pick<User, "id" | "email">;
 
+const startOfMonth = dayjs().utc().startOf("month").toDate();
+const endOfMonth = dayjs().utc().endOf("month").toDate();
+
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: T[];
   eventType: { id: number; isRRWeightsEnabled: boolean };
   allRRHosts: {
     user: { id: number; email: string };
+    createdAt: Date;
     weight?: number | null;
     weightAdjustment?: number | null;
   }[];
@@ -108,6 +112,70 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
   return leastRecentlyBookedUser;
 }
 
+async function getCalibration(
+  eventTypeId: number,
+  hosts: { userId: number; email: string; createdAt: Date }[]
+) {
+  // get calibration for newly added hosts
+  const newHosts = await prisma.host.findMany({
+    where: {
+      userId: {
+        in: hosts.map((host) => host.userId),
+      },
+      eventTypeId,
+      isFixed: false,
+      createdAt: {
+        gte: startOfMonth,
+      },
+    },
+  });
+
+  if (newHosts.length) {
+    const existingBookings = await BookingRepository.getAllBookingsForRoundRobin({
+      eventTypeId,
+      users: hosts.map((host) => {
+        return { id: host.userId, email: host.email };
+      }),
+      startDate: startOfMonth,
+      endDate: dayjs.utc().toDate(),
+    });
+
+    // calculate calibration for new hosts
+    if (newHosts.length && existingBookings.length) {
+      const newHostsWithCalibration = newHosts.map((newHost) => {
+        const existingBookingsBeforeAdded = existingBookings.filter(
+          (booking) =>
+            booking.userId !== newHost.userId && dayjs(booking.startTime).isBefore(dayjs(newHost.createdAt))
+        );
+
+        if (existingBookingsBeforeAdded.length) {
+          const hostsAddedBefore = hosts.filter(
+            (host) => host.userId !== newHost.userId && dayjs(host.createdAt).isBefore(newHost.createdAt)
+          );
+
+          const averageBookingsPerHost = existingBookingsBeforeAdded.length / hostsAddedBefore.length;
+          return {
+            ...newHost,
+            calibration: averageBookingsPerHost,
+          };
+        }
+
+        return {
+          ...newHost,
+          calibration: 0,
+        };
+      });
+
+      return hosts.map((host) => ({
+        ...host,
+        calibration:
+          newHostsWithCalibration.find((newHost) => host.userId === newHost.userId)?.calibration ?? 0,
+      }));
+    }
+  }
+  return hosts.map((host) => ({ ...host, calibration: 0 }));
+}
+
 function getUsersWithHighestPriority<T extends PartialUser & { priority?: number | null }>({
   availableUsers,
 }: {
@@ -156,21 +224,29 @@ async function getUsersBasedOnWeights<
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
-    startDate: dayjs().utc().startOf("month").toDate(),
-    endDate: dayjs().utc().endOf("month").toDate(),
+    startDate: startOfMonth,
+    endDate: endOfMonth,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
 
-  // Calculate the total weightAdjustments and weight of all round-robin hosts
-  const { allWeightAdjustments, totalWeight } = allRRHosts.reduce(
-    (acc, host) => {
-      acc.allWeightAdjustments += host.weightAdjustment ?? 0;
-      acc.totalWeight += host.weight ?? 100;
-      return acc;
-    },
-    { allWeightAdjustments: 0, totalWeight: 0 }
+  const allHostsWithCalibration = await getCalibration(
+    eventType.id,
+    allRRHosts.map((host) => {
+      return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
+    })
   );
+
+  // Calculate the total calibration and weight of all round-robin hosts
+  const totalWeight = allRRHosts.reduce((totalWeight, host) => {
+    totalWeight += host.weight ?? 100;
+    return totalWeight;
+  }, 0);
+
+  const totalCalibration = allHostsWithCalibration.reduce((totalCalibration, host) => {
+    totalCalibration += host.calibration;
+    return totalCalibration;
+  }, 0);
 
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
@@ -181,8 +257,10 @@ async function getUsersBasedOnWeights<
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
 
-    const targetNumberOfBookings = (allBookings.length + allWeightAdjustments) * targetPercentage;
-    const bookingShortfall = targetNumberOfBookings - (userBookings.length + (user.weightAdjustment ?? 0));
+    const targetNumberOfBookings = (allBookings.length + totalCalibration) * targetPercentage;
+    // I need to get the user's current calibration here
+    const userCalibration = allHostsWithCalibration.find((host) => host.userId === user.id)?.calibration ?? 0;
+    const bookingShortfall = targetNumberOfBookings - (userBookings.length + userCalibration);
 
     return {
       ...user,
@@ -229,8 +307,8 @@ export async function getLuckyUser<
     users: availableUsers.map((user) => {
       return { id: user.id, email: user.email };
     }),
-    startDate: dayjs().utc().startOf("month").toDate(),
-    endDate: dayjs().utc().endOf("month").toDate(),
+    startDate: startOfMonth,
+    endDate: endOfMonth,
   });
 
   switch (distributionAlgorithm) {

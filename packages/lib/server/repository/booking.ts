@@ -133,6 +133,7 @@ export class BookingRepository {
         userId: true,
         createdAt: true,
         status: true,
+        startTime: true,
       },
       orderBy: {
         createdAt: "desc",
