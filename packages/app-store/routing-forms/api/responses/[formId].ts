@@ -11,9 +11,6 @@ import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../../lib/rep
 import type { FormResponse, SerializableForm } from "../../types/types";
 
 type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;
-function escapeCsvText(str: string) {
-  return str.replace(/,/, "%2C");
-}
 
 function getHumanReadableFieldResponseValue({
   field,
@@ -57,7 +54,7 @@ async function* getResponses(formId: string, fields: Fields) {
         const serializedValue = readableValues.map((value) => sanitizeValue(value)).join(" | ");
         csvCells.push(serializedValue);
       });
-      csvCells.push(sanitizeValue(response.createdAt.toISOString()));
+      csvCells.push(response.createdAt.toISOString());
       csv.push(csvCells.join(","));
     });
     skip += take;
