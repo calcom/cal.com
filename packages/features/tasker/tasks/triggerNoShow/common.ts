@@ -66,7 +66,7 @@ export function sendWebhookPayload(
       startTime: booking.startTime,
       attendees: booking.attendees,
       endTime: booking.endTime,
-      ...(!!hostEmail ? { email: hostEmail } : {}),
+      ...(!!hostEmail ? { hostEmail } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
