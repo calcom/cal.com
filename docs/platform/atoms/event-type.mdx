@@ -1,0 +1,151 @@
+---
+title: "Event Type"
+---
+
+The event type atom enables a user to create events that others can use to book them. The events can be created for an individual or a team. However, a team event type can only be created by a team admin or owner.
+
+## Individual event type
+
+Below code snippet can be used to render the create event type atom, which is a form with all the required input fields needed to create an event type.
+
+```js
+import { CreateEventType } from "@calcom/atoms";
+
+export default function EventType() {
+  return (
+    <>
+       <CreateEventType
+          onSuccess={(eventType) => {
+            console.log("EventType created successfully", eventType);
+          }}
+          customClassNames={{
+            atomsWrapper: "border p-4 rounded-md",
+            buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+          }}
+       />
+    <>
+  )
+}
+```
+
+For a demonstration of the create event type atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      width="560"
+      height="315"
+      src="https://www.loom.com/embed/b0c5d0599b2c48cdbba288b0b772a676?sid=5a1dbf17-8fc4-41f1-8d77-b36332546989"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+## Team event type
+
+For creating an event type for a team, you need to provide the team id of your particular team as a prop to the create event type atom.
+
+Below code snippet can be used to render the create event type atom for a team.
+
+```js
+import { CreateEventType } from "@calcom/atoms";
+
+export default function TeamEventType(teamId: number) {
+  return (
+    <>
+       <CreateEventType
+          teamId={teamId}
+          onSuccess={(eventType) => {
+            console.log("EventType created successfully", eventType);
+          }}
+          customClassNames={{
+            atomsWrapper: "border p-4 rounded-md",
+            buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+          }}
+       />
+    <>
+  )
+}
+```
+
+For a demonstration of the create event type atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      width="560"
+      height="315"
+      src="https://www.loom.com/embed/281c18a1a61c4c44b0bdfd3c88ced8e8?sid=ca68ef1d-eb08-4e23-bd94-9a22a8f7aa7d"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+## Event type settings
+
+The event type settings contains various tabs that can be used to configure or make modifications to the event type that has just been created.
+
+Below code snippet can be used to render the event type settings atom.
+
+```js
+import { EventTypeSettings } from "@calcom/atoms";
+
+export default function EventTypeSettings(eventTypeId: number) {
+  return (
+    <>
+       <EventTypeSettings
+          id={eventTypeId}
+          allowDelete={true}
+          onSuccess={(eventType) => {
+            console.log("EventType settings updated successfully", eventType);
+          }}
+          customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
+       />
+    <>
+  )
+}
+```
+
+For a demonstration of the event type settings atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      width="560"
+      height="315"
+      src="https://www.loom.com/embed/2e94c5699dec4fd09d7804d2fd39d71e?sid=04ea09e9-25c3-43cc-be07-33b4b2f32c17"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+Following are the tabs that are available in the event type settings atom:
+
+<p></p>
+
+**1. Setup**
+
+**2. Availability**
+
+**3. Assignment**
+
+**3. Limits**
+
+**4. Advanced**
+
+**5. Recurring**
+
+**6. Team**
+
+**7. Payments**
+
+
+<Info>
+  Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.
+</Info>
