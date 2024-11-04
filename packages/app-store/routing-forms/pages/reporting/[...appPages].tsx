@@ -186,8 +186,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
 };
 
 export default function ReporterWrapper({
-  form,
-  appUrl,
+  ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const [isClient, setIsClient] = useState(false);
 
@@ -200,8 +199,7 @@ export default function ReporterWrapper({
 
   return (
     <SingleForm
-      form={form}
-      appUrl={appUrl}
+      {...props}
       Page={({ form }) => (
         <div className="route-config bg-default fixed inset-0 w-full overflow-scroll pt-12 ltr:mr-2 rtl:ml-2 sm:pt-0">
           {isClient && <Reporter form={form} />}

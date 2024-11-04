@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui";
 
@@ -18,6 +19,7 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
 export default function EditOAuthClientWebhooks() {
+  const { t } = useLocale();
   const router = useRouter();
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId || "";
@@ -40,7 +42,7 @@ export default function EditOAuthClientWebhooks() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title="OAuth client updation form" isPlatformUser={true}>
+        <Shell title={t("oAuth_client_updation_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">

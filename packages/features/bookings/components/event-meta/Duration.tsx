@@ -88,7 +88,7 @@ export const EventDuration = ({
     return () => clearTimeout(timeout);
   }, [selectedDuration, isEmbed]);
 
-  if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
+  if (!event?.metadata?.multipleDuration && !isDynamicEvent)
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
