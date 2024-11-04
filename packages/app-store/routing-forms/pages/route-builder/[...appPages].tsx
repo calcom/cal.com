@@ -10,6 +10,7 @@ import type { UseFormReturn } from "react-hook-form";
 import Shell from "@calcom/features/shell/Shell";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -42,7 +43,6 @@ import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
 import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
 import { RouteActionType } from "../../zod";
-import { buildEmptyQueryValue, raqbQueryValueUtils } from "../../lib/raqbUtils";
 
 type FormFieldsQueryBuilderState = {
   tree: ImmutableTree;
@@ -748,7 +748,7 @@ const Routes = ({
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
         attributes: attributes,
-        fieldsAsAdditionalSelectOptions: hookForm.getValues().fields
+        dynamicOperandFields: hookForm.getValues().fields,
       })
     : null;
 

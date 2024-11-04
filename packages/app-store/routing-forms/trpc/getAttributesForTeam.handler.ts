@@ -3,7 +3,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { getAttributesForTeam } from "../lib/getAttributes";
+import { getAttributesForTeam } from "@calcom/lib/raqb/getAttributes";
 import type { TGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 
 type GetAttributesForTeamHandlerOptions = {

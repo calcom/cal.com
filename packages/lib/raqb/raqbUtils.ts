@@ -3,25 +3,23 @@ import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-quer
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 
+import type { AttributesQueryBuilderConfigWithRaqbFields } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import logger from "@calcom/lib/logger";
+import { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import type { Attribute, AttributesQueryValue, FormFieldsQueryValue } from "../types/types";
-import type { LocalRoute } from "../types/types";
-import type { FormResponse, SerializableForm } from "../types/types";
-import type { SerializableField } from "../types/types";
-import type { AttributesQueryBuilderConfigWithRaqbFields } from "./getQueryBuilderConfig";
-import { getQueryBuilderConfigForAttributes } from "./getQueryBuilderConfig";
-import { AdditionalSelectOptions, AdditionalSelectOptionsResponse } from "@calcom/lib/raqb/types";
+import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 
-function getFieldResponse({
+function getFieldResponseValueAsLabel({
   field,
   fieldResponseValue,
 }: {
-  fieldResponseValue: AdditionalSelectOptionsResponse[keyof AdditionalSelectOptionsResponse]["value"];
+  fieldResponseValue: dynamicFieldValueOperandsResponse[keyof dynamicFieldValueOperandsResponse]["value"];
   field: {
     type: string;
     options?: {
@@ -30,12 +28,8 @@ function getFieldResponse({
     }[];
   };
 }) {
-
   if (!field.options) {
-    return {
-      value: fieldResponseValue,
-      response: fieldResponseValue,
-    };
+    return fieldResponseValue;
   }
 
   const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
@@ -56,28 +50,14 @@ function getFieldResponse({
       };
     }
   });
-  return {
-    // value is a legacy prop that is just sending the labels which can change
-    value: chosenOptions.map((option) => option.label),
-    // response is new prop that is sending the label along with id(which doesn't change)
-    response: chosenOptions,
-  };
+
+  return chosenOptions.map((option) => option.label);
 }
-
-
-type GetFieldResponse = ({
-  field,
-  fieldResponseValue,
-}: {
-  fieldResponseValue: FormResponse[keyof FormResponse]["value"];
-  field: Pick<SerializableField, "type" | "options">;
-}) => { value: string | number | string[] };
 
 function ensureArray(value: string | string[]) {
   return typeof value === "string" ? [value] : value;
 }
 
-// We connect Form Field value and Attribute value using the labels lowercased
 function caseInsensitive<T extends string | string[]>(
   stringOrStringArray: T
 ): T extends string[] ? string[] : string {
@@ -165,7 +145,7 @@ export const buildStateFromQueryValue = ({
 /**
  * Replace attribute option Ids with the attribute option label(compatible to be matched with form field value)
  */
-export const replaceAttributeOptionIdsWithOptionLabel = ({
+const replaceAttributeOptionIdsWithOptionLabel = ({
   queryValueString,
   attributes,
 }: {
@@ -176,7 +156,6 @@ export const replaceAttributeOptionIdsWithOptionLabel = ({
   // Because all attribute option Ids are unique, we can reliably identify them along any number of attribute options of different attributes
   allAttributesOptions.forEach((attributeOption) => {
     const attributeOptionId = attributeOption.id;
-    console.log('Replacing ', attributeOptionId, 'with', caseInsensitive(attributeOption.value))
     queryValueString = queryValueString.replace(
       new RegExp(`${attributeOptionId}`, "g"),
       caseInsensitive(attributeOption.value)
@@ -190,15 +169,15 @@ export const replaceAttributeOptionIdsWithOptionLabel = ({
  */
 const replaceFieldTemplateVariableWithOptionLabel = ({
   queryValueString,
-  additionalSelectOptions,
+  dynamicFieldValueOperands,
 }: {
   queryValueString: string;
-  additionalSelectOptions?: AdditionalSelectOptions;
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
 }) => {
-  if (!additionalSelectOptions) {
+  if (!dynamicFieldValueOperands) {
     return queryValueString;
   }
-  const { fields, response } = additionalSelectOptions;
+  const { fields, response } = dynamicFieldValueOperands;
   return queryValueString.replace(/{field:([\w-]+)}/g, (match, fieldId: string) => {
     const field = fields?.find((f) => f.id === fieldId);
     if (!field) {
@@ -209,12 +188,12 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
     if (!fieldResponseValue) {
       return match;
     }
-    const { value: fieldValue } = getFieldResponse({ field, fieldResponseValue });
-    moduleLogger.debug("matchingOptionLabel", safeStringify({ fieldValue, response, fieldId }));
-    if (fieldValue instanceof Array && fieldValue.length > 1) {
+    const responseValueAsLabel = getFieldResponseValueAsLabel({ field, fieldResponseValue });
+    moduleLogger.debug("matchingOptionLabel", safeStringify({ responseValueAsLabel, response, fieldId }));
+    if (responseValueAsLabel instanceof Array && responseValueAsLabel.length > 1) {
       throw new Error("Array value not supported with 'Value of field'");
     }
-    return fieldValue ? caseInsensitive(fieldValue.toString()) : match;
+    return responseValueAsLabel ? caseInsensitive(responseValueAsLabel.toString()) : match;
   });
 };
 
@@ -314,11 +293,11 @@ function getAttributesData({
 function getAttributesQueryValue({
   attributesQueryValue,
   attributes,
-  additionalSelectOptions,
+  dynamicFieldValueOperands,
 }: {
   attributesQueryValue: LocalRoute["attributesQueryValue"] | null;
   attributes: Attribute[];
-  additionalSelectOptions?: AdditionalSelectOptions;
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
 }) {
   if (!attributesQueryValue) {
     return null;
@@ -330,28 +309,30 @@ function getAttributesQueryValue({
         queryValueString: JSON.stringify(attributesQueryValue),
         attributes,
       }),
-      additionalSelectOptions,
+      dynamicFieldValueOperands,
     })
   );
 
   return attributesQueryValueCompatibleForMatchingWithFormField;
 }
 
-export function getAttributesQueryBuilderConfig({
-  additionalSelectOptions,
+/**
+ * Returns attributesQueryBuilderConfig with the list of labels instead of list of ids.
+ */
+export function getAttributesQueryBuilderConfigHavingListofLabels({
+  dynamicFieldValueOperands,
   attributes,
 }: {
-  additionalSelectOptions?: AdditionalSelectOptions;
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
   attributes: Attribute[];
 }) {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
-    fieldsAsAdditionalSelectOptions: additionalSelectOptions?.fields,
+    dynamicOperandFields: dynamicFieldValueOperands?.fields,
   });
 
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
-      // Right now we can't trust getRaqbFieldTypeCompatibleWithQueryValue to give us the correct type
       const raqbFieldType = raqbField.type;
 
       return [
@@ -386,7 +367,7 @@ export function getAttributesQueryBuilderConfig({
  * Utilities to establish compatibility between formFieldQueryValue and attributeQueryValue
  */
 export const acrossQueryValueCompatiblity = {
-  getAttributesQueryBuilderConfig,
+  getAttributesQueryBuilderConfigHavingListofLabels,
   getAttributesQueryValue,
   getAttributesData,
 };

@@ -12,7 +12,7 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { getRoutedHostsWithContactOwnerAndFixedHosts } from "@calcom/lib/bookings/getRoutedUsers";
+import { getRoutedHostsWithContactOwnerAndFixedHosts,findMatchingHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -22,7 +22,6 @@ import {
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
@@ -32,7 +31,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, membersAssignmentSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/routing-forms/lib/findTeamMembersMatchingAttributeLogicOfRoute";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -406,81 +405,8 @@ export function getUsersWithCredentialsConsideringContactOwner({
   return contactOwnerAndFixedHosts;
 }
 
-async function findMatchingTeamMembersIdsForEventRRSegment(eventType: {
-  assignAllTeamMembers: boolean;
-  assignTeamMembersInSegment: boolean;
-  membersAssignmentSegmentQueryValue: AttributesQueryValue | null | undefined;
-  team: { id: number } | null;
-}) {
-  if (!eventType) {
-    return null;
-  }
 
-  const isSegmentationDisabled = !eventType.assignAllTeamMembers || !eventType.assignTeamMembersInSegment;
 
-  if (isSegmentationDisabled) {
-    return null;
-  }
-
-  if (!eventType.team) {
-    return null;
-  }
-
-  const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
-    attributesQueryValue: eventType.membersAssignmentSegmentQueryValue ?? null,
-    teamId: eventType.team.id,
-  });
-  if (!teamMembersMatchingAttributeLogic) {
-    return teamMembersMatchingAttributeLogic;
-  }
-  return teamMembersMatchingAttributeLogic.map((member) => member.userId);
-}
-
-async function findHosts({
-  eventType,
-}: {
-  eventType: NonNullable<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>>;
-}) {
-  const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({
-    ...eventType,
-    membersAssignmentSegmentQueryValue: eventType.membersAssignmentSegmentQueryValue ?? null,
-  });
-
-  const eventHosts: {
-    isFixed: boolean;
-    email: string;
-    user: (typeof eventType.hosts)[number]["user"];
-  }[] =
-    eventType.hosts?.length && eventType.schedulingType
-      ? eventType.hosts.map((host) => ({
-          isFixed: host.isFixed,
-          email: host.user.email,
-          user: host.user,
-        }))
-      : eventType.users.map((user) => {
-          return {
-            isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-            email: user.email,
-            user: user,
-          };
-        });
-
-  const fixedHosts = eventHosts.filter((host) => host.isFixed);
-  const unsegmentedRoundRobinHosts = eventHosts.filter((host) => !host.isFixed);
-
-  const segmentedRoundRobinHosts = unsegmentedRoundRobinHosts.filter((host) => {
-    if (!matchingRRTeamMembers) return true;
-    return matchingRRTeamMembers.includes(host.user.id);
-  });
-
-  // In case we don't have any matching team members, we return all the RR hosts, as we always want the team event to be bookable.
-  // TODO: We should notify about it to the organizer somehow.
-  const roundRobinHosts = segmentedRoundRobinHosts.length
-    ? segmentedRoundRobinHosts
-    : unsegmentedRoundRobinHosts;
-
-  return [...fixedHosts, ...roundRobinHosts];
-}
 
 export const getAvailableSlots = async (
   ...args: Parameters<typeof _getAvailableSlots>
@@ -543,7 +469,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
   let currentSeats: CurrentSeats | undefined;
 
-  const hosts = await findHosts({
+  const hosts = await findMatchingHosts({
     eventType,
   });
 

@@ -259,6 +259,10 @@ export const bookingCreateBodySchema = z.object({
    * Holds the corrected responses of the Form for a booking, provided during rerouting
    */
   reroutingFormResponses: routingFormResponseInDbSchema.optional(),
+  /**
+   * Used to identify if the booking is a dry run.
+   */
+  _isDryRun: z.boolean().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([

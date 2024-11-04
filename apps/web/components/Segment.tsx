@@ -1,20 +1,14 @@
-import { isEqual } from "lodash";
 import { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
-import { Controller } from "react-hook-form";
 
-import {
-  getQueryBuilderConfigForAttributes,
-  type AttributesQueryBuilderConfigWithRaqbFields,
-} from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import { buildStateFromQueryValue } from "@calcom/app-store/routing-forms/lib/raqbUtils";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { classNames as cn } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import { isEqual } from "@calcom/lib/isEqual";
+import { buildStateFromQueryValue } from "@calcom/lib/raqb/raqbUtils";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { SettingsToggle } from "@calcom/ui";
 
 export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 export function useAttributes(teamId: number) {
@@ -61,7 +55,7 @@ function SegmentWithAttributes({
     []
   );
 
-  function onChange(immutableTree: ImmutableTree, config: AttributesQueryBuilderConfigWithRaqbFields) {
+  function onChange(immutableTree: ImmutableTree) {
     const jsonTree = QbUtils.getTree(immutableTree) as AttributesQueryValue;
     if (!isEqual(jsonTree, queryValue)) {
       setQueryValue(jsonTree);
@@ -82,7 +76,7 @@ function SegmentWithAttributes({
           renderBuilder={renderBuilder}
         />
       </div>
-      <div className="text-sm">
+      <div className="mt-4 text-sm">
         {queryValue && <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />}
       </div>
     </div>
@@ -103,17 +97,18 @@ function MatchingTeamMembers({ teamId, queryValue }: { teamId: number; queryValu
   const { result: matchingTeamMembers } = matchingTeamMembersWithResult;
   if (!matchingTeamMembers) {
     return (
-      <span className="text-subtle text-sm">
-        {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
-      </span>
+      <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+        <div className="text-subtle flex items-center text-sm font-medium">
+          <span>{t("no_filter_set")}</span>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
       <div className="text-emphasis flex items-center text-sm font-medium">
-        <span>{matchingTeamMembers.length}</span>
-        <span className="ml-1">{t("matching_team_members")}</span>
+        <span>{t("x_matching_members", { x: matchingTeamMembers.length })}</span>
       </div>
       <ul className="divide-subtle divide-y">
         {matchingTeamMembers.map((member) => (
@@ -155,49 +150,6 @@ export function Segment({
       queryValue={queryValue}
       onQueryValueChange={onQueryValueChange}
       className={className}
-    />
-  );
-}
-
-type ToggleableSegmentProps = {
-  teamId: number;
-  enabled: boolean;
-  onToggle: (active: boolean) => void;
-  queryValue: AttributesQueryValue | null;
-  onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
-  className?: string;
-};
-
-export function ToggleableSegment({
-  teamId,
-  enabled,
-  onToggle,
-  queryValue,
-  onQueryValueChange,
-  className,
-}: ToggleableSegmentProps) {
-  const { t } = useLocale();
-
-  return (
-    <Controller<FormValues>
-      name="assignTeamMembersInSegment"
-      render={() => (
-        <SettingsToggle
-          noIndentation
-          title={t("filter_by_attributes")}
-          labelClassName="mt-0.5 font-normal"
-          checked={enabled}
-          onCheckedChange={(active) => {
-            onToggle(active);
-          }}>
-          <Segment
-            teamId={teamId}
-            queryValue={queryValue}
-            onQueryValueChange={onQueryValueChange}
-            className={className}
-          />
-        </SettingsToggle>
-      )}
     />
   );
 }

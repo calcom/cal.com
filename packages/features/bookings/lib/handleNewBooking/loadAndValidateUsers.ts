@@ -18,7 +18,18 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   metadata?: Prisma.JsonValue;
 })[];
 
-type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id" | "userId" | "schedulingType">;
+type EventType = Pick<
+  NewBookingEventType,
+  | "hosts"
+  | "users"
+  | "id"
+  | "userId"
+  | "schedulingType"
+  | "team"
+  | "assignAllTeamMembers"
+  | "assignTeamMembersInSegment"
+  | "membersAssignmentSegmentQueryValue"
+>;
 
 type InputProps = {
   req: IncomingMessage;

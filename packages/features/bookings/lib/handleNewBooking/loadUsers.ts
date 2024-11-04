@@ -2,7 +2,10 @@ import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getRoutedUsersWithContactOwnerAndFixedUsers } from "@calcom/lib/bookings/getRoutedUsers";
+import {
+  getRoutedUsersWithContactOwnerAndFixedUsers,
+  findMatchingHosts,
+} from "@calcom/lib/bookings/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -14,7 +17,17 @@ import type { NewBookingEventType } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
-type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
+type EventType = Pick<
+  NewBookingEventType,
+  | "hosts"
+  | "users"
+  | "id"
+  | "schedulingType"
+  | "team"
+  | "assignAllTeamMembers"
+  | "assignTeamMembersInSegment"
+  | "membersAssignmentSegmentQueryValue"
+>;
 
 export const loadUsers = async ({
   eventType,
@@ -34,6 +47,7 @@ export const loadUsers = async ({
     const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
+
     return getRoutedUsersWithContactOwnerAndFixedUsers({ users, routedTeamMemberIds, contactOwnerEmail });
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
@@ -45,15 +59,14 @@ export const loadUsers = async ({
 };
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
-  const hosts = eventType.hosts || [];
-  const users = hosts.map(({ user, isFixed, priority, weight, weightAdjustment }) => ({
-    ...user,
-    isFixed,
-    priority,
-    weight,
-    weightAdjustment,
+  const matchingHosts = await findMatchingHosts({ eventType });
+  return matchingHosts.map((host) => ({
+    ...host.user,
+    isFixed: host.isFixed,
+    priority: host.priority,
+    weight: host.weight,
+    weightAdjustment: host.weightAdjustment,
   }));
-  return users.length ? users : eventType.users;
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {

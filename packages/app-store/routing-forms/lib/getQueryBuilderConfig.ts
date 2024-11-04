@@ -111,10 +111,10 @@ function transformAttributesToCompatibleFormat(attributes: Attribute[]) {
 
 export function getQueryBuilderConfigForAttributes({
   attributes,
-  fieldsAsAdditionalSelectOptions = [],
+  dynamicOperandFields = [],
 }: {
   attributes: Attribute[];
-  fieldsAsAdditionalSelectOptions?: {
+  dynamicOperandFields?: {
     label: string;
     id: string;
   }[];
@@ -129,7 +129,7 @@ export function getQueryBuilderConfigForAttributes({
       const widgetType = widget.type;
       const attributeOptions = attribute.options.concat(
         (() => {
-          const formFieldsOptions = fieldsAsAdditionalSelectOptions.map((field) => ({
+          const formFieldsOptions = dynamicOperandFields.map((field) => ({
             title: `Value of field '${field.label}'`,
             value: `{field:${field.id}}`,
           }));

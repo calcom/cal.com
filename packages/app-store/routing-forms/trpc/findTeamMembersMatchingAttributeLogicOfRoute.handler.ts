@@ -2,14 +2,14 @@ import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { findTeamMembersMatchingAttributeLogic } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
-import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
+import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   ctx: {
@@ -59,7 +59,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     fallbackAttributeLogicBuildingWarnings: fallbackWarnings,
   } = await findTeamMembersMatchingAttributeLogic(
     {
-      additionalSelectOptions: {
+      dynamicFieldValueOperands: {
         response,
         fields: serializableForm.fields || [],
       },

@@ -2,19 +2,19 @@ import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import type { AttributeType } from "@calcom/prisma/enums";
-
-import { RoutingFormFieldType } from "../../lib/FieldTypes";
-import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
-// import { EmailField } from "@calcom/ui";
-import * as getAttributesModule from "../../lib/getAttributes";
-import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
+import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
-} from "../findTeamMembersMatchingAttributeLogicOfRoute";
+} from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import type { AttributeType } from "@calcom/prisma/enums";
+import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
 
-vi.mock("../../lib/getAttributes");
+// import { EmailField } from "@calcom/ui";
+import * as getAttributesModule from "./getAttributes";
+
+vi.mock("./getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
@@ -239,7 +239,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
     const { teamMembersMatchingAttributeLogic, troubleshooter } = await findTeamMembersMatchingAttributeLogic(
       {
-        additionalSelectOptions: {
+        dynamicFieldValueOperands: {
           fields: [],
           response: {},
         },
@@ -288,7 +288,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
     const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
       await findTeamMembersMatchingAttributeLogic({
-        additionalSelectOptions: {
+        dynamicFieldValueOperands: {
           fields: [],
           response: {},
         },
@@ -348,7 +348,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     }) as AttributesQueryValue;
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
-      additionalSelectOptions: {
+      dynamicFieldValueOperands: {
         fields: [
           {
             id: Field1Id,
@@ -424,7 +424,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     }) as AttributesQueryValue;
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
-      additionalSelectOptions: {
+      dynamicFieldValueOperands: {
         fields: [],
         response: {},
       },
@@ -489,7 +489,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     }) as AttributesQueryValue;
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
-      additionalSelectOptions: {
+      dynamicFieldValueOperands: {
         fields: [],
         response: {},
       },
@@ -557,7 +557,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     }) as AttributesQueryValue;
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
-      additionalSelectOptions: {
+      dynamicFieldValueOperands: {
         fields: [],
         response: {},
       },
@@ -581,11 +581,12 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         checkedFallback,
         troubleshooter,
       } = await findTeamMembersMatchingAttributeLogic({
-        additionalSelectOptions: {
+        dynamicFieldValueOperands: {
           fields: [],
           response: {},
         },
         attributesQueryValue: failingAttributesQueryValue,
+        fallbackAttributesQueryValue: null,
         teamId: 1,
       });
 
@@ -603,7 +604,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         checkedFallback,
         troubleshooter,
       } = await findTeamMembersMatchingAttributeLogic({
-        additionalSelectOptions: {
+        dynamicFieldValueOperands: {
           fields: [],
           response: {},
         },
@@ -631,7 +632,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         checkedFallback,
         troubleshooter,
       } = await findTeamMembersMatchingAttributeLogic({
-        additionalSelectOptions: {
+        dynamicFieldValueOperands: {
           fields: [],
           response: {},
         },
@@ -670,7 +671,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       await expect(
         findTeamMembersMatchingAttributeLogic({
-          additionalSelectOptions: {
+          dynamicFieldValueOperands: {
             fields: [],
             response: {},
           },
@@ -737,13 +738,14 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       async function runInMode({ mode }: { mode: "preview" | "live" }) {
         const result = await findTeamMembersMatchingAttributeLogic({
-          additionalSelectOptions: {
+          dynamicFieldValueOperands: {
             fields: [],
             response: {},
           },
           attributesQueryValue,
           teamId: 1,
           isPreview: mode === "preview" ? true : false,
+          fallbackAttributesQueryValue: null,
         });
         return result;
       }
@@ -811,7 +813,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       async function runInMode({ mode }: { mode: "preview" | "live" }) {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
-          additionalSelectOptions: {
+          dynamicFieldValueOperands: {
             fields: [],
             response: {},
           },
@@ -857,7 +859,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result, timeTaken } =
           await findTeamMembersMatchingAttributeLogic(
             {
-              additionalSelectOptions: {
+              dynamicFieldValueOperands: {
                 fields: [],
                 response: {},
               },
@@ -961,7 +963,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
         await findTeamMembersMatchingAttributeLogic(
           {
-            additionalSelectOptions: {
+            dynamicFieldValueOperands: {
               fields: [],
               response: {},
             },

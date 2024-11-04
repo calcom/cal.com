@@ -4,7 +4,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, customInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, customInputSchema, membersAssignmentSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUniqueOrThrow({
@@ -152,6 +152,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           email: true,
         },
       },
+      assignTeamMembersInSegment: true,
+      membersAssignmentSegmentQueryValue: true,
     },
   });
 
@@ -165,6 +167,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
     bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
+    membersAssignmentSegmentQueryValue: membersAssignmentSegmentQueryValueSchema.parse(eventType.membersAssignmentSegmentQueryValue) ?? null,
     isDynamic: false,
   };
 };

@@ -1,5 +1,6 @@
-import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { z } from "zod";
+
+import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 export const zodNonRouterField = z.object({
   id: z.string(),
@@ -57,11 +58,6 @@ export enum RouteActionType {
 }
 
 export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
-/**
- * Stricter schema for validating before saving to DB
- * It doesn't decide what will be saved, it is just to validate the data before saving
- */
-export const queryValueSaveValidationSchema = raqbQueryValueSchema.nullish();
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),

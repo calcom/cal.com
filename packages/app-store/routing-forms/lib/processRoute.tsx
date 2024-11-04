@@ -5,7 +5,7 @@ import type { z } from "zod";
 
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
-import { evaluateRaqbLogic, RaqbLogicResult } from "./evaluateRaqbLogic";
+import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";

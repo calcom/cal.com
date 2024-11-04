@@ -1,9 +1,11 @@
 import type { z } from "zod";
 
+import type { AttributeType } from "@calcom/prisma/client";
+
 import { zodAttributesQueryValue } from "./zod";
 
 export type AttributesQueryValue = z.infer<typeof zodAttributesQueryValue>;
-type AdditionalSelectOptionsResponse = Record<
+type dynamicFieldValueOperandsResponse = Record<
   // Field ID
   string,
   {
@@ -12,7 +14,11 @@ type AdditionalSelectOptionsResponse = Record<
   }
 >;
 
-export type AdditionalSelectOptions = {
+/**
+ * Holds the fields that build up the 'Value of field' select options.
+ * It also holds the response which is the value of the 'Value of field' select options.
+ */
+export type dynamicFieldValueOperands = {
   fields: {
     id: string;
     label: string;
@@ -22,5 +28,17 @@ export type AdditionalSelectOptions = {
       label: string;
     }[];
   }[];
-  response: AdditionalSelectOptionsResponse;
+  response: dynamicFieldValueOperandsResponse;
+};
+
+export type Attribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+  }[];
 };

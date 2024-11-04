@@ -1,14 +1,16 @@
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import type { Options } from "react-select";
 
 import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { Label } from "@calcom/ui";
+import { Label, SettingsToggle } from "@calcom/ui";
 
-import { Attributes, ToggleableSegment } from "../../../../apps/web/components/Segment";
+import type { Attributes } from "../../../../apps/web/components/Segment";
+import { Segment } from "../../../../apps/web/components/Segment";
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import CheckedTeamSelect from "./CheckedTeamSelect";
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
@@ -120,21 +122,32 @@ function MembersSegmentWithToggle({
   onToggle?: (active: boolean) => void;
   className?: string;
 }) {
+  const { t } = useLocale();
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
     setMembersAssignmentSegmentQueryValue(queryValue);
   };
 
   return (
-    <ToggleableSegment
-      teamId={teamId}
-      enabled={assignTeamMembersInSegment}
-      queryValue={membersAssignmentSegmentQueryValue}
-      onQueryValueChange={onQueryValueChange}
-      onToggle={(active) => {
-        setAssignTeamMembersInSegment(active);
-        onToggle?.(active);
-      }}
-      className={className}
+    <Controller<FormValues>
+      name="assignTeamMembersInSegment"
+      render={() => (
+        <SettingsToggle
+          noIndentation
+          title={t("filter_by_attributes")}
+          labelClassName="mt-0.5 font-normal"
+          checked={assignTeamMembersInSegment}
+          onCheckedChange={(active) => {
+            setAssignTeamMembersInSegment(active);
+            onToggle?.(active);
+          }}>
+          <Segment
+            teamId={teamId}
+            queryValue={membersAssignmentSegmentQueryValue}
+            onQueryValueChange={onQueryValueChange}
+            className={className}
+          />
+        </SettingsToggle>
+      )}
     />
   );
 }
@@ -229,11 +242,9 @@ function _AddMembersWithSwitch({
   });
 
   const utils = trpc.useUtils();
-  utils.viewer.appRoutingForms.getAttributesForTeam.prefetch(
-    {
-      teamId: teamId!,
-    },
-  );
+  utils.viewer.appRoutingForms.getAttributesForTeam.prefetch({
+    teamId: teamId!,
+  });
 
   const onAssignAllTeamMembersInactive = () => {
     setValue("hosts", [], { shouldDirty: true });

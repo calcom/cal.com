@@ -1,6 +1,4 @@
-import { z } from "zod";
-
-import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
+import type { z } from "zod";
 
 import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
