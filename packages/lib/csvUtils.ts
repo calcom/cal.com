@@ -35,19 +35,19 @@ export const sanitizeValue = (value: string) => {
   return value;
 };
 
-export const generateCsvRawForUsersTable = (
+export const generateHeaderFromReactTable = (
   table: Table<UserTableUser>,
-  ATTRIBUTE_IDS: string[],
-  HEADER_IDS_TO_EXCLUDE: string[]
-): string | null => {
+  HEADER_IDS_TO_EXCLUDE?: string[]
+): string[] | null => {
   const headerGroups = table.getHeaderGroups();
   if (!headerGroups.length) {
     return null;
   }
 
-  // Header formation
   const { headers } = headerGroups[0];
-  const filteredHeaders = headers.filter((header) => !HEADER_IDS_TO_EXCLUDE.includes(header.id));
+  const filteredHeaders = HEADER_IDS_TO_EXCLUDE
+    ? headers.filter((header) => !HEADER_IDS_TO_EXCLUDE.includes(header.id))
+    : headers;
   const headerNames = filteredHeaders.map((header) => {
     const h = header.column.columnDef.header;
     if (typeof h === "string") {
@@ -59,11 +59,20 @@ export const generateCsvRawForUsersTable = (
     return "Unknown";
   });
 
-  // Body formation
-  const { rows } = table.getRowModel();
+  return headerNames;
+};
 
+export const generateCsvRaw = (
+  headers: string[],
+  rows: UserTableUser[],
+  ATTRIBUTE_IDS: string[]
+): string | null => {
+  if (!headers.length) {
+    return null;
+  }
+  // Body formation
   const csvRows = rows.map((row) => {
-    const { email, role, teams, attributes } = row.original;
+    const { email, role, teams, attributes } = row;
 
     // Create a map of attributeId to array of values
     const attributeMap = attributes.reduce((acc, attr) => {
@@ -84,5 +93,5 @@ export const generateCsvRawForUsersTable = (
     ];
   });
 
-  return [headerNames.join(","), ...csvRows.map((row) => row.join(","))].join("\n");
+  return [headers.join(","), ...csvRows.map((row) => row.join(","))].join("\n");
 };

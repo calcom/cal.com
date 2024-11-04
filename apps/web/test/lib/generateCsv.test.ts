@@ -2,7 +2,7 @@ import type { Table } from "@tanstack/react-table";
 import { describe, it, expect, vi } from "vitest";
 
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
-import { generateCsvRawForUsersTable } from "@calcom/lib/csvUtils";
+import { generateCsvRaw, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
@@ -72,15 +72,17 @@ describe("generate Csv for Org Users Table", () => {
   it("should return null if no headers", () => {
     const mockTableNoHeaders = {
       getHeaderGroups: vi.fn().mockReturnValue([]),
-      getRowModel: vi.fn().mockReturnValue({ rows: [] }),
     } as unknown as Table<UserTableUser>;
-
-    expect(generateCsvRawForUsersTable(mockTableNoHeaders, mockAttributeIds, [])).toBeNull();
+    expect(generateCsvRaw([], [], mockAttributeIds)).toBeNull();
   });
 
   it("should generate correct CSV headers", () => {
     const mockTable = createMockTable([]);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      [],
+      mockAttributeIds
+    );
     const headers = csv?.split("\n")[0];
     expect(headers).toBe("Members,Role,Teams,Attribute 1,Attribute 2");
   });
@@ -95,7 +97,11 @@ describe("generate Csv for Org Users Table", () => {
     ];
 
     const mockTable = createMockTable(mockData);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      mockData,
+      mockAttributeIds
+    );
 
     expect(csv).toMatchInlineSnapshot(`
       "Members,Role,Teams,Attribute 1,Attribute 2
@@ -116,7 +122,11 @@ describe("generate Csv for Org Users Table", () => {
     ];
 
     const mockTable = createMockTable(mockData);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      mockData,
+      mockAttributeIds
+    );
 
     expect(csv).toMatchInlineSnapshot(`
       "Members,Role,Teams,Attribute 1,Attribute 2
@@ -137,7 +147,11 @@ describe("generate Csv for Org Users Table", () => {
     ];
 
     const mockTable = createMockTable(mockData);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      mockData,
+      mockAttributeIds
+    );
 
     expect(csv).toMatchInlineSnapshot(`
       "Members,Role,Teams,Attribute 1,Attribute 2
@@ -155,7 +169,11 @@ describe("generate Csv for Org Users Table", () => {
     ];
 
     const mockTable = createMockTable(mockData);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      mockData,
+      mockAttributeIds
+    );
 
     expect(csv).toMatchInlineSnapshot(`
       "Members,Role,Teams,Attribute 1,Attribute 2
@@ -172,7 +190,11 @@ describe("generate Csv for Org Users Table", () => {
     }));
 
     const mockTable = createMockTable(mockData);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      mockData,
+      mockAttributeIds
+    );
 
     expect(csv).toMatchInlineSnapshot(`
       "Members,Role,Teams,Attribute 1,Attribute 2
@@ -192,7 +214,11 @@ describe("generate Csv for Org Users Table", () => {
     ];
 
     const mockTable = createMockTable(mockData);
-    const csv = generateCsvRawForUsersTable(mockTable, mockAttributeIds, HEADER_IDS_TO_EXCLUDE);
+    const csv = generateCsvRaw(
+      generateHeaderFromReactTable(mockTable, HEADER_IDS_TO_EXCLUDE) ?? [],
+      mockData,
+      mockAttributeIds
+    );
 
     expect(csv).toMatchInlineSnapshot(`
       "Members,Role,Teams,Attribute 1,Attribute 2
