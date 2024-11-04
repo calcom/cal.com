@@ -16,6 +16,7 @@ import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -50,6 +51,8 @@ type CustomColumnMeta<TData, TValue> = ColumnMeta<TData, TValue> & {
   sticky?: boolean;
   stickLeft?: number;
 };
+
+const HEADER_IDS_FOR_APP_ACTIONS = ["select", "actions"];
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -400,6 +403,60 @@ export function UserListTable() {
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
+  const handleDownload = () => {
+    const headerGroups = table.getHeaderGroups();
+    if (!headerGroups.length) {
+      return;
+    }
+    if (!attributes) {
+      return;
+    }
+
+    // Header formation
+    const { headers } = headerGroups[0];
+    const filteredHeaders = headers.filter((header) => !HEADER_IDS_FOR_APP_ACTIONS.includes(header.id));
+    const headerNames = filteredHeaders.map((header) => {
+      const h = header.column.columnDef.header;
+      if (typeof h === "string") {
+        return sanitizeValue(h);
+      }
+      if (typeof h === "function") {
+        return sanitizeValue(h(header.getContext()));
+      }
+      return "Unknown";
+    });
+
+    // Body formation
+    const { rows } = table.getRowModel();
+    const ATTRIBUTE_IDS = attributes.map((attr) => attr.id);
+
+    const csvRows = rows.map((row) => {
+      const { email, role, teams, attributes } = row.original;
+
+      // Create a map of attributeId to array of values
+      const attributeMap = attributes.reduce((acc, attr) => {
+        if (!acc[attr.attributeId]) {
+          acc[attr.attributeId] = [];
+        }
+        acc[attr.attributeId].push(attr.value);
+        return acc;
+      }, {} as Record<string, string[]>);
+
+      return [
+        email,
+        role,
+        sanitizeValue(teams.map((team) => team.name).join(",")),
+        ...ATTRIBUTE_IDS.map((attrId) =>
+          attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(", ")) : ""
+        ),
+      ];
+    });
+
+    const csvRaw = [headerNames.join(","), ...csvRows.map((row) => row.join(","))].join("\n");
+    const filename = `${org?.name ?? "Org"}_${new Date().toISOString().split("T")[0]}.csv`; // e.g., ${OrgName}_2024-11-04.csv
+    downloadAsCsv(csvRaw, filename);
+  };
+
   return (
     <>
       <DataTable
@@ -412,6 +469,14 @@ export function UserListTable() {
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.CTA
+              type="button"
+              color="secondary"
+              StartIcon="file-down"
+              onClick={() => handleDownload()}
+              data-testid="export-members-button">
+              {t("download")}
+            </DataTableToolbar.CTA>
             {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
             <DataTableFilters.FilterButton table={table} omit={["member"]} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
