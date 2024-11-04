@@ -404,7 +404,6 @@ export function UserListTable() {
   const handleDownload = () => {
     const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
     const HEADER_IDS_TO_EXCLUDE = ["select", "actions"];
-
     const csvRaw = generateCsvRawForUsersTable(table, ATTRIBUTE_IDS, HEADER_IDS_TO_EXCLUDE);
     if (!csvRaw) {
       return;

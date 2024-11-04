@@ -1,4 +1,5 @@
 import type { Table } from "@tanstack/react-table";
+
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
 
 export const downloadAsCsv = (csvRaw: string, filename: string) => {
@@ -77,9 +78,9 @@ export const generateCsvRawForUsersTable = (
       email,
       role,
       sanitizeValue(teams.map((team) => team.name).join(",")),
-      ...ATTRIBUTE_IDS.map((attrId) =>
-        attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(", ")) : ""
-      ),
+      ...ATTRIBUTE_IDS.map((attrId) => {
+        return attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(",")) : "";
+      }),
     ];
   });
 
