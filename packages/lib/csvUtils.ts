@@ -16,3 +16,17 @@ export const downloadAsCsv = (csvRaw: string, filename: string) => {
   // Release the Object URL to free up memory
   window.URL.revokeObjectURL(url);
 };
+
+export const sanitizeValue = (value: string) => {
+  // handling three cases:
+  // 1. quotes - we need to double quotes for CSV
+  // 2. commas
+  // 3. newlines
+  if (value.includes('"')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  if (value.includes(",") || value.includes("\n")) {
+    return `"${value}"`;
+  }
+  return value;
+};
