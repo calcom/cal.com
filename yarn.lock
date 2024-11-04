@@ -4125,7 +4125,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.53"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.56"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4279,7 +4279,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/atoms@*, @calcom/atoms@workspace:packages/platform/atoms":
+"@calcom/atoms@*, @calcom/atoms@workspace:^, @calcom/atoms@workspace:packages/platform/atoms":
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
@@ -5141,14 +5141,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.53":
-  version: 0.0.53
-  resolution: "@calcom/platform-libraries@npm:0.0.53"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.56":
+  version: 0.0.56
+  resolution: "@calcom/platform-libraries@npm:0.0.56"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 5a9dadad9f1ffdb831353594acd40bbc96e12130eff1685c9be49dfdc7ce2e44b2086696273b3bb74a28db20d863e0814d95f50043a4ba5b451987bd6f401294
+  checksum: b83122aa6b2720807e98a9c6215c1dbbb1f7479811f006b958dfc4067049ab60d1a97d460d528174f4739283fdd0f9c7b6d68808bf6c4ed6e272d00a7da6d6fc
   languageName: node
   linkType: hard
 
@@ -5817,6 +5817,7 @@ __metadata:
   dependencies:
     "@algora/sdk": ^0.1.2
     "@calcom/app-store": "*"
+    "@calcom/atoms": "workspace:^"
     "@calcom/config": "*"
     "@calcom/dayjs": "*"
     "@calcom/embed-react": "workspace:^"
@@ -5862,6 +5863,7 @@ __metadata:
     "@vercel/og": ^0.5.0
     autoprefixer: ^10.4.12
     bcryptjs: ^2.4.3
+    class-variance-authority: ^0.7.0
     clsx: ^1.2.1
     cobe: ^0.4.1
     concurrently: ^7.6.0
@@ -5874,6 +5876,7 @@ __metadata:
     env-cmd: ^10.1.0
     eslint: ^8.34.0
     fathom-client: ^3.5.0
+    framer-motion: ^11.0.25
     globby: ^13.1.3
     graphql: ^16.8.0
     graphql-codegen: ^0.4.0
@@ -5883,7 +5886,7 @@ __metadata:
     i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
-    lucide-react: ^0.171.0
+    lucide-react: ^0.364.0
     micro: ^10.0.1
     next: ^14.1.3
     next-auth: ^4.22.1
@@ -5895,7 +5898,7 @@ __metadata:
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
     react-confetti: ^6.0.1
-    react-datocms: ^3.1.0
+    react-datocms: ^5.0.3
     react-device-detect: ^2.2.2
     react-dom: ^18.2.0
     react-fast-marquee: ^1.6.4
@@ -5907,6 +5910,7 @@ __metadata:
     react-merge-refs: 1.1.0
     react-resize-detector: ^9.1.0
     react-twemoji: ^0.3.0
+    react-twitter-embed: ^4.0.4
     react-use-measure: ^2.1.1
     react-wrap-balancer: ^1.0.0
     remark: ^14.0.2
@@ -9513,6 +9517,60 @@ __metadata:
     outvariant: ^1.2.1
     strict-event-emitter: ^0.2.4
   checksum: ab9c1fd0142b18875b1fe5134260fcf10b3b7249324cc62f2656d888bafc0db472cd7b4dea4649dfd0f061375b55342e2de557dd075e9f9c8afb3eaf266d987e
+  languageName: node
+  linkType: hard
+
+"@mux/mux-player-react@npm:*":
+  version: 3.1.0
+  resolution: "@mux/mux-player-react@npm:3.1.0"
+  dependencies:
+    "@mux/mux-player": 3.1.0
+    "@mux/playback-core": 0.27.0
+    prop-types: ^15.7.2
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^17.0.0-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
+    react: ^17.0.2 || ^17.0.0-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
+    react-dom: ^17.0.2 || ^17.0.2-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 4e742c1d0fed4409af9257a227355d9adab62a7097c476e90b2d253607ed3751638de564bd4c93b1af5bd797118486a8effdae7bd4a2d360ea5e65bf82ce9563
+  languageName: node
+  linkType: hard
+
+"@mux/mux-player@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@mux/mux-player@npm:3.1.0"
+  dependencies:
+    "@mux/mux-video": 0.22.0
+    "@mux/playback-core": 0.27.0
+    media-chrome: ~4.2.1
+    player.style: ^0.0.8
+  checksum: 915c8ca73a0f07db3bc371fcf9a2ab282cbef73cf8d697ff241daf1bda997b835d0dfa59510c3ca5554d115221ca51051fbd93773a105fb9254e73676e966560
+  languageName: node
+  linkType: hard
+
+"@mux/mux-video@npm:0.22.0":
+  version: 0.22.0
+  resolution: "@mux/mux-video@npm:0.22.0"
+  dependencies:
+    "@mux/playback-core": 0.27.0
+    castable-video: ~1.1.0
+    custom-media-element: ~1.3.1
+    media-tracks: ~0.3.2
+  checksum: 319793a42d7c4a19760fa2d1ec5d22f3db895382c8970a94945d37ed324555796e7461c05dcbc4e5fbed642c0302f049de4e41459b0e1a38070c5519ba3c89bc
+  languageName: node
+  linkType: hard
+
+"@mux/playback-core@npm:0.27.0":
+  version: 0.27.0
+  resolution: "@mux/playback-core@npm:0.27.0"
+  dependencies:
+    hls.js: ~1.5.11
+    mux-embed: ^5.3.1
+  checksum: 4452b4f693b0cedb20510ef9eab3977c5bbcde2f17d32ce577d706c0bc731a7de32c09a2ff3064104ec70a4183d1d556a24d262eec0824667474365a6fdb0db3
   languageName: node
   linkType: hard
 
@@ -22190,6 +22248,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"castable-video@npm:~1.1.0":
+  version: 1.1.0
+  resolution: "castable-video@npm:1.1.0"
+  dependencies:
+    custom-media-element: ~1.3.2
+  checksum: 0b7280140e2e855f66ad824c8352d8422695f3a0195757341e8c0b5828df9c0279af70154d7ef514e9d7849814b74625c4df7a652853bd624ecb205a232c295e
+  languageName: node
+  linkType: hard
+
 "ccount@npm:^2.0.0":
   version: 2.0.1
   resolution: "ccount@npm:2.0.1"
@@ -22650,6 +22717,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"class-variance-authority@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "class-variance-authority@npm:0.7.0"
+  dependencies:
+    clsx: 2.0.0
+  checksum: e7fd1fab433ef06f52a1b7b241b70b4a185864deef199d3b0a2c3412f1cc179517288264c383f3b971a00d76811625fc8f7ffe709e6170219e88cd7368f08a20
+  languageName: node
+  linkType: hard
+
 "classnames@npm:^2.2.5, classnames@npm:^2.2.6":
   version: 2.3.2
   resolution: "classnames@npm:2.3.2"
@@ -22919,6 +22995,13 @@ __metadata:
   version: 0.1.19
   resolution: "clone@npm:0.1.19"
   checksum: 5e710e16da67abe30c0664c8fd69c280635be59a4fae0a5fe58ed324e701e99348b48ce67288716fa223edd42ba574e58a3783cb2fcfa381b8b49ce7e56ac3f4
+  languageName: node
+  linkType: hard
+
+"clsx@npm:2.0.0":
+  version: 2.0.0
+  resolution: "clsx@npm:2.0.0"
+  checksum: a2cfb2351b254611acf92faa0daf15220f4cd648bdf96ce369d729813b85336993871a4bf6978ddea2b81b5a130478339c20d9d0b5c6fc287e5147f0c059276e
   languageName: node
   linkType: hard
 
@@ -24236,6 +24319,13 @@ __metadata:
     csv-stringify: ^5.6.5
     stream-transform: ^2.1.3
   checksum: 0decc2d0d7a0abf127f4556d6f3cef5a54015b78d348608b5e8f42256c2bd0a021f34f1efc9723b2cd162680917de4c0b3967bfb65a07305eca0827654ca727e
+  languageName: node
+  linkType: hard
+
+"custom-media-element@npm:~1.3.1, custom-media-element@npm:~1.3.2":
+  version: 1.3.2
+  resolution: "custom-media-element@npm:1.3.2"
+  checksum: 9ec2ff88c3c5ba7d20b9484c0359b4cfe08ad6804f3116934ffbae2f2e0e04d2a832beb6f0bec56027a969ab366727d217406f750890613c988de6de5330cb4f
   languageName: node
   linkType: hard
 
@@ -28450,6 +28540,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"framer-motion@npm:^11.0.25":
+  version: 11.11.11
+  resolution: "framer-motion@npm:11.11.11"
+  dependencies:
+    tslib: ^2.4.0
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 12a358dafdd5239ea6eaad87fa7783dad7c009b639b6e087574f3515dfa4c4bd02ed4fcde61522f6db3a311e353333455d0b0e9d413a2662265330055672eeb6
+  languageName: node
+  linkType: hard
+
 "fresh@npm:0.5.2, fresh@npm:^0.5.2":
   version: 0.5.2
   resolution: "fresh@npm:0.5.2"
@@ -30147,6 +30257,13 @@ __metadata:
   version: 11.6.0
   resolution: "highlight.js@npm:11.6.0"
   checksum: 3908eb34a4b442ca1e20c1ae6415ea935fbbcdb2b532a89948d82b0fa4ad41fc5de3802a0de4e88a0bcb7d97d4445579048cd2aab1d105ac47f59dd58a9a98ae
+  languageName: node
+  linkType: hard
+
+"hls.js@npm:~1.5.11":
+  version: 1.5.17
+  resolution: "hls.js@npm:1.5.17"
+  checksum: 8b50865f3f96664c55a3dcc4a843abdcdfa7e2fddb57afbed843f5aa0c4ff02a0b275ce2b1926d7c8cd351d8da3df5cc908b02c09449a471d0e80a850b1cde83
   languageName: node
   linkType: hard
 
@@ -34716,12 +34833,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.171.0":
-  version: 0.171.0
-  resolution: "lucide-react@npm:0.171.0"
+"lucide-react@npm:^0.364.0":
+  version: 0.364.0
+  resolution: "lucide-react@npm:0.364.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: 768ffe368c52a518ee339203d86ff4479989ab4d79c0716f721900c4bb7392ef6ff7a14807f6a685abd74d27f4c1778170bff77a0ab4c3e06c17944b557d8300
+  checksum: 954f6274df46ffa172130d9e60eb630a377435c7dbf0ddb5ceebf284602dde3b99755dcd5c0757e697ee734a32c808a3cd2c25ad88fec1d8f627a2317f00e3e6
   languageName: node
   linkType: hard
 
@@ -35269,6 +35386,20 @@ __metadata:
   version: 1.0.1
   resolution: "mdurl@npm:1.0.1"
   checksum: 71731ecba943926bfbf9f9b51e28b5945f9411c4eda80894221b47cc105afa43ba2da820732b436f0798fd3edbbffcd1fc1415843c41a87fea08a41cc1e3d02b
+  languageName: node
+  linkType: hard
+
+"media-chrome@npm:^4.1.0, media-chrome@npm:~4.2.1":
+  version: 4.2.2
+  resolution: "media-chrome@npm:4.2.2"
+  checksum: 73bf4f747e2faeae4094af2f127708b870f468f07cc7f85f5a8c748660ca24bf343e72b22892453bca6fecfeba5f77a088dfbb375598e3d16374b42d2c9c2744
+  languageName: node
+  linkType: hard
+
+"media-tracks@npm:~0.3.2":
+  version: 0.3.3
+  resolution: "media-tracks@npm:0.3.3"
+  checksum: 4795af3f171d7ad3a68d1ac1c1e8166a735244fe57d3fc0ec53b1c7410799e524756fc0bfb389632aebb148436b03baade36ca34a3f5377776c3968f6d2cc580
   languageName: node
   linkType: hard
 
@@ -36641,6 +36772,13 @@ __metadata:
   version: 1.0.0
   resolution: "mute-stream@npm:1.0.0"
   checksum: 36fc968b0e9c9c63029d4f9dc63911950a3bdf55c9a87f58d3a266289b67180201cade911e7699f8b2fa596b34c9db43dad37649e3f7fdd13c3bb9edb0017ee7
+  languageName: node
+  linkType: hard
+
+"mux-embed@npm:^5.3.1":
+  version: 5.4.1
+  resolution: "mux-embed@npm:5.4.1"
+  checksum: b414fa30d810ba71db9fdd780816a4cc940ddb7d348678931b8db074093d9314c61f3206b56d08b1759efe9c6ac3fdf1ed2532e8241100f422a674a4dcc0f748
   languageName: node
   linkType: hard
 
@@ -39562,6 +39700,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"player.style@npm:^0.0.8":
+  version: 0.0.8
+  resolution: "player.style@npm:0.0.8"
+  dependencies:
+    media-chrome: ^4.1.0
+  checksum: 009f59bc8e7f84e82adcacec4df3ea11094d7097413a5755bb6a586150c9aa6114f7d7840f215b8b98c20f3eabbf40b7eb1d20731384253fea3122bd62b9512e
+  languageName: node
+  linkType: hard
+
 "playwright-core@npm:1.45.3":
   version: 1.45.3
   resolution: "playwright-core@npm:1.45.3"
@@ -41048,20 +41195,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-datocms@npm:^3.1.0":
-  version: 3.1.4
-  resolution: "react-datocms@npm:3.1.4"
+"react-datocms@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "react-datocms@npm:5.0.3"
   dependencies:
+    "@mux/mux-player-react": "*"
     datocms-listen: ^0.1.9
     datocms-structured-text-generic-html-renderer: ^2.0.1
     datocms-structured-text-utils: ^2.0.1
-    react-intersection-observer: ^8.33.1
+    react-intersection-observer: ^9.4.3
     react-string-replace: ^1.1.0
     universal-base64: ^2.1.0
     use-deep-compare-effect: ^1.6.1
   peerDependencies:
     react: ">= 16.12.0"
-  checksum: 54aba12aef4937175c2011548a8a576c96c8d8a596e84d191826910624c1d596e76a49782689dc236388a10803b02e700ac820cb7500cca7fd147a81f6c544c3
+  checksum: 22c20152afb54424acfe967a2c8c525cd9f132a33374f2aba0231f16ea64dade389b096e2dac8de9ffded612bc32e9891d725609ee947639fe1cef907cb143f5
   languageName: node
   linkType: hard
 
@@ -41322,12 +41470,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-intersection-observer@npm:^8.33.1":
-  version: 8.34.0
-  resolution: "react-intersection-observer@npm:8.34.0"
+"react-intersection-observer@npm:^9.4.3":
+  version: 9.13.1
+  resolution: "react-intersection-observer@npm:9.13.1"
   peerDependencies:
-    react: ^15.0.0 || ^16.0.0 || ^17.0.0|| ^18.0.0
-  checksum: 7713fecfd1512c7f5a60f9f0bf15403b8f8bbd4110bcafaeaea6de36a0e0eb60368c3638f99e9c97b75ad8fc787ea48c241dcb5c694f821d7f2976f709082cc5
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 92b3e7d9293365635bf5ede89b912a670030c6244879dce36fa9437e6749c637151087fbcaa72cc160b2fa7045bd5ac861a8535e0a2b7b8f230f11f2e0391005
   languageName: node
   linkType: hard
 
@@ -41850,6 +42002,18 @@ __metadata:
     react: ^16.4.2
     react-dom: ^16.4.2
   checksum: d4e56477c28c0ad65b98a062a2e9a1777b808a16c05dfa35d77d84fea26f7d1e884d2e30f95a8f14c94c31330d3d4f53a4fd0bfce917bc4be9fb21d34a05db8a
+  languageName: node
+  linkType: hard
+
+"react-twitter-embed@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "react-twitter-embed@npm:4.0.4"
+  dependencies:
+    scriptjs: ^2.5.9
+  peerDependencies:
+    react: ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: cdb3c5bd04c4da0efa767476be47c0a3865fb6335f2a1b9e242170167b51615c38164223278cef60c77143c4bac27ba582cbea054d0af3f138104fa5ec537c4c
   languageName: node
   linkType: hard
 
@@ -43730,6 +43894,13 @@ __metadata:
   version: 5.2.0
   resolution: "screenfull@npm:5.2.0"
   checksum: 21eae33b780eb4679ea0ea2d14734b11168cf35049c45a2bf24ddeb39c67a788e7a8fb46d8b61ca6d8367fd67ce9dd4fc8bfe476489249c7189c2a79cf83f51a
+  languageName: node
+  linkType: hard
+
+"scriptjs@npm:^2.5.9":
+  version: 2.5.9
+  resolution: "scriptjs@npm:2.5.9"
+  checksum: fc84cb6b60b6fb9aa6f1b3bc59fc94b233bd5241ed3a04233579014382b5eb60640269c87d8657902acc09f9b785ee33230c218627cea00e653564bda8f5acb6
   languageName: node
   linkType: hard
 

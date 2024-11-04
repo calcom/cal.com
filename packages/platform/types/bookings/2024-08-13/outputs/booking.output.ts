@@ -9,6 +9,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsEmail,
   IsTimeZone,
   IsUrl,
   ValidateNested,

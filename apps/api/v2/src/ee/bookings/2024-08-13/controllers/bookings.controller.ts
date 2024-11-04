@@ -49,6 +49,7 @@ import {
   GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
+  ReassignAutoBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
@@ -240,8 +241,11 @@ export class BookingsController_2024_08_13 {
     required: true,
   })
   @ApiOperation({ summary: "Reassign a booking to a new host" })
-  async reassignBooking(@Param("bookingUid") bookingUid: string): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignAutoBooking(bookingUid);
+  async reassignBooking(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: ReassignAutoBookingInput_2024_08_13
+  ): Promise<ReassignBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.reassignAutoBooking(bookingUid, body);
 
     return {
       status: SUCCESS_STATUS,
@@ -262,9 +266,16 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({ summary: "Reassign a booking to a specific user" })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
-    @Param("userId") userId: number
+    @Param("userId") userId: number,
+    @GetUser("id") reassignedById: number,
+    @Body() body: ReassignAutoBookingInput_2024_08_13
   ): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignManualBooking(bookingUid, userId);
+    const booking = await this.bookingsService.reassignManualBooking(
+      bookingUid,
+      userId,
+      reassignedById,
+      body
+    );
 
     return {
       status: SUCCESS_STATUS,

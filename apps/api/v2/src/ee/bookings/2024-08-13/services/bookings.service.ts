@@ -26,6 +26,7 @@ import {
   CreateInstantBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  ReassignAutoBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
@@ -345,16 +346,23 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignAutoBooking(bookingUid: string) {
+  async reassignAutoBooking(bookingUid: string, body: ReassignAutoBookingInput_2024_08_13) {
     return roundRobinReassignment({
       bookingId: bookingUid,
     });
   }
 
-  async reassignManualBooking(bookingUid: string, userId: number) {
+  async reassignManualBooking(
+    bookingUid: string,
+    userId: number,
+    reassignedById: number,
+    body: ReassignAutoBookingInput_2024_08_13
+  ) {
     return roundRobinManualReassignment({
       bookingId: bookingUid,
-      userId,
+      newUserId: userId,
+      reassignReason: body.reason,
+      reassignedById,
     });
   }
 }
