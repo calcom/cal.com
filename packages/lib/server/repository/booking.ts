@@ -117,7 +117,7 @@ export class BookingRepository {
       eventTypeId,
       ...(startDate && endDate
         ? {
-            startTime: {
+            createAt: {
               gte: startDate,
               lte: endDate,
             },

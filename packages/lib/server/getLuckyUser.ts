@@ -111,7 +111,7 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
   return leastRecentlyBookedUser;
 }
 
-async function getCalibration(
+async function getHostsWithCalibration(
   eventTypeId: number,
   hosts: { userId: number; email: string; createdAt: Date }[]
 ) {
@@ -144,7 +144,7 @@ async function getCalibration(
       const newHostsWithCalibration = newHosts.map((newHost) => {
         const existingBookingsBeforeAdded = existingBookings.filter(
           (booking) =>
-            booking.userId !== newHost.userId && dayjs(booking.startTime).isBefore(dayjs(newHost.createdAt))
+            booking.userId !== newHost.userId && dayjs(booking.createdAt).isBefore(dayjs(newHost.createdAt))
         );
 
         if (existingBookingsBeforeAdded.length) {
@@ -228,7 +228,7 @@ async function getUsersBasedOnWeights<
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
 
-  const allHostsWithCalibration = await getCalibration(
+  const allHostsWithCalibration = await getHostsWithCalibration(
     eventType.id,
     allRRHosts.map((host) => {
       return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
