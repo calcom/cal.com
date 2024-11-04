@@ -66,7 +66,7 @@ export function sendWebhookPayload(
       startTime: booking.startTime,
       attendees: booking.attendees,
       endTime: booking.endTime,
-      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ? { email: hostEmail } : {}),
+      ...(!!hostEmail ? { email: hostEmail } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
