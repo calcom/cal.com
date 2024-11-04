@@ -147,11 +147,11 @@ async function getHostsWithCalibration(
             booking.userId !== newHost.userId && dayjs(booking.createdAt).isBefore(dayjs(newHost.createdAt))
         );
 
-        if (existingBookingsBeforeAdded.length) {
-          const hostsAddedBefore = hosts.filter(
-            (host) => host.userId !== newHost.userId && dayjs(host.createdAt).isBefore(newHost.createdAt)
-          );
+        const hostsAddedBefore = hosts.filter(
+          (host) => host.userId !== newHost.userId && dayjs(host.createdAt).isBefore(newHost.createdAt)
+        );
 
+        if (existingBookingsBeforeAdded.length && hostsAddedBefore.length) {
           const averageBookingsPerHost = existingBookingsBeforeAdded.length / hostsAddedBefore.length;
           return {
             ...newHost,
@@ -258,6 +258,7 @@ async function getUsersBasedOnWeights<
     const targetNumberOfBookings = (allBookings.length + totalCalibration) * targetPercentage;
     // I need to get the user's current calibration here
     const userCalibration = allHostsWithCalibration.find((host) => host.userId === user.id)?.calibration ?? 0;
+
     const bookingShortfall = targetNumberOfBookings - (userBookings.length + userCalibration);
 
     return {

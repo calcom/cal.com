@@ -82,6 +82,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       title: true,
       isRRWeightsEnabled: true,
+      hosts: {
+        select: {
+          userId: true,
+          priority: true,
+          weight: true,
+          isFixed: true,
+        },
+      },
       aiPhoneCallConfig: {
         select: {
           generalPrompt: true,
@@ -275,16 +283,41 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
+    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+
+    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+
     data.hosts = {
-      deleteMany: {},
-      create: hosts.map((host) => {
+      deleteMany: {
+        OR: removedHosts.map((host) => ({
+          userId: host.userId,
+          eventTypeId: id,
+        })),
+      },
+      create: newHosts.map((host) => {
         return {
           ...host,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2, // default to medium priority
+          priority: host.priority ?? 2,
           weight: host.weight ?? 100,
         };
       }),
+      update: existingHosts.map((host) => ({
+        where: {
+          userId_eventTypeId: {
+            userId: host.userId,
+            eventTypeId: id,
+          },
+        },
+        data: {
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2,
+          weight: host.weight ?? 100,
+        },
+      })),
     };
   }
 
