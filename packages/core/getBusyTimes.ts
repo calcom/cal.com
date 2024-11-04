@@ -253,8 +253,6 @@ export async function getBusyTimes(params: {
       })
     );
 
-    const openSeatsDateRangesSpan = Sentry.startInactiveSpan({ name: "openSeatsDateRanges" });
-
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
       return {
@@ -262,8 +260,6 @@ export async function getBusyTimes(params: {
         end: dayjs(end),
       };
     });
-
-    openSeatsDateRangesSpan.end();
 
     if (rescheduleUid) {
       const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
@@ -276,7 +272,6 @@ export async function getBusyTimes(params: {
       }
     }
 
-    const finalizeBusyTimesSpan = Sentry.startInactiveSpan({ name: "finalizeBusyTimes" });
     const result = subtract(
       calendarBusyTimes.map((value) => ({
         ...value,
@@ -293,8 +288,6 @@ export async function getBusyTimes(params: {
         end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
       }))
     );
-
-    finalizeBusyTimesSpan.end();
 
     /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
