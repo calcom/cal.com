@@ -126,9 +126,8 @@ export const prepareNoShowTrigger = async (
     return;
   }
 
-  const dailyVideoReference = booking.references
-    .filter((reference) => reference.type === "daily_video")
-    .pop();
+  const dailyVideoReference =
+    booking.references?.filter((reference) => reference.type === "daily_video")?.pop() ?? null;
 
   if (!dailyVideoReference) {
     log.error(
