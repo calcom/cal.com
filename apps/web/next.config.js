@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
-const englishTranslation = require("./public/static/locales/en/common.json");
+const englishTranslation = require("./public/static/locales/pt-BR/common.json");
 const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
