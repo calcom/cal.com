@@ -417,8 +417,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })
   );
 
-  const getWorkingHoursSpan = Sentry.startInactiveSpan({ name: "getWorkingHours" });
-
   if (
     !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
   ) {
@@ -433,7 +431,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
-  getWorkingHoursSpan.end();
 
   const dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
@@ -532,7 +529,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
-  const buildDateRangesSpan = Sentry.startInactiveSpan({ name: "buildDateRanges" });
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,
     dateTo,
@@ -549,8 +545,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       : [],
     outOfOffice: datesOutOfOffice,
   });
-
-  buildDateRangesSpan.end();
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),

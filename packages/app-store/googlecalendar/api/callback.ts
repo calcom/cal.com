@@ -1,4 +1,4 @@
-import type { Auth } from "googleapis";
+import type { Auth, calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -15,6 +15,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
+import { getAllCalendars } from "../lib/utils";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -72,17 +73,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       auth: oAuth2Client,
     });
 
-    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    const tokenInfo = key.access_token ? await oAuth2Client.getTokenInfo(key.access_token) : null;
-    const userEmail = tokenInfo?.email ?? null;
+    const cals = await getAllCalendars(calendar);
 
-    let primaryCal = cals.data.items?.find(
-      (cal) => cal.primary || cal.accessRole === "owner" || cal.id === userEmail
-    );
-    if (!primaryCal?.id) {
-      // If the primary calendar is not set, set it to the first calendar
-      primaryCal = cals.data.items?.[0];
-    }
+    const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
     if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
@@ -195,9 +188,15 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
     const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
     const userDetails = await oauth2.userinfo.get();
     if (userDetails.data?.picture) {
-      // Using updateMany here since if the user already has a profile it would throw an error because no records were found to update the profile picture
+      // Using updateMany here since if the user already has a profile it would throw an error
+      // because no records were found to update the profile picture
       await prisma.user.updateMany({
-        where: { id: userId, avatarUrl: null },
+        where: {
+          id: userId,
+          avatarUrl: {
+            equals: null,
+          },
+        },
         data: {
           avatarUrl: userDetails.data.picture,
         },

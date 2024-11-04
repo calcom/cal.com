@@ -2658,6 +2658,7 @@ checksums:
     you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
     matching_members: 8b5c6581fb35a737d20c3ac06b2955b0
     no_matching_members: 4d8e678a655a70e9ee5c11104d554bfa
+    no_matching_members_will_fallback_to_all_assigned_members: ae070f7b0924069ce3571693a7f4fb22
     hide_calendar_event_details: 18686c17d852ffc8acf5549587897df5
     description_hide_calendar_event_details: b7c5880a3d927f4f9255d2afa6e330d1
     last_number_of_days: 4a42f1909236573b9b8c347b4bdbf0b4
@@ -2705,8 +2706,21 @@ checksums:
     add_new_field: e7b24e3e4404b561e5e81a4f6b1b624c
     you_dont_have_access_to_reroute_this_booking: cfb2e5786303f9acf1f32f6a68047ef7
     form_response_not_found: d5f6964ba3ec5928e77212e8fe2e822c
+    using_fallback_members: c2e328866abb997e992c917900d21081
+    chosen_route: e64030b4c8aba409633af4cf95bff98e
+    attribute_logic_matched: 3a183f5a6db0f695945f6a03c8979d90
+    attribute_logic_fallback_matched: 679c97991b3af01231b0e6e69cfad2fb
+    all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules: ee99590333a8d670ab6ccb1518836e7e
+    all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback: 432990534d1f313e419f4bb9c6e8587f
+    all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match: 40a57fbde4deb40a48d829dce175e3b7
+    warning: 6618da2c7e5e93bb4ea0e16d29ab8c4c
+    fallback_attribute_logic_description: 259303fd827a4fa7f53d80fb551eadfb
+    fallback_attribute_logic_warning: 0ddb699c67a1235f413e56c4ba22add8
+    fallback_not_needed: f1bd8bb976c39985cd566c73fe72324c
     confirm_reassign_unavailable: 4ab093b30c4d7764286dc4310fefc471
+    confirm_reassign_available: dfff29c40761ad777bd88aed9dd2405c
     reassign_unavailable_team_member_description: 7e07f8972584f6f354e17098517c2ab5
+    reassign_available_team_member_description: 608178100b18b4372e698b61e6c76f7c
     yes_reassign: 229add6ba9a9bae3a6ee06e3f629b1f5
     reassign_reason: 31d21d7675210253b1405b6b09d3049e
     reassigned_by: bd6798fd9474a1387504c80a3bbf2b0c
