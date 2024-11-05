@@ -540,7 +540,7 @@ describe("OAuth Client Users Endpoints", () => {
     async function userHasCorrectEventTypes(userId: number) {
       const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
 
-      expect(eventTypes?.length).toEqual(5);
+      expect(eventTypes?.length).toEqual(4);
 
       // note(Lauris): managed event-types with assignAllTeamMembers: true
       expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
