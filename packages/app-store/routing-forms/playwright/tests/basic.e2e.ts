@@ -327,6 +327,7 @@ test.describe("Routing Forms", () => {
         // @see https://github.com/calcom/cal.com/pull/17229
         "Routed To",
         "Booked At",
+        "Submitted At",
       ]);
       /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
