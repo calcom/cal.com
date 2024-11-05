@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import dayjs from "@calcom/dayjs";
+
 import type { Slots } from "./types";
 
 /**
@@ -27,5 +29,12 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slot
         date,
       }));
   }, [dates, slots]);
-  return slotsForDates;
+
+  const onlyTodayMoreSevenDays = slotsForDates.filter((slot) => {
+    return (
+      slot.date && dayjs(slot.date).diff(dayjs(), "day") >= 0 && dayjs(slot.date).diff(dayjs(), "day") <= 7
+    );
+  });
+
+  return onlyTodayMoreSevenDays;
 };
