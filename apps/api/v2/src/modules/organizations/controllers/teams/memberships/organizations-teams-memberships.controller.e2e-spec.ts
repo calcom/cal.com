@@ -317,12 +317,15 @@ describe("Organizations Teams Memberships Endpoints", () => {
     });
 
     async function userHasCorrectEventTypes(userId: number) {
-      const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
-
-      expect(eventTypes?.length).toEqual(2);
-
-      expect(eventTypes?.find((eventType) => eventType.slug === teamEventType.slug)).toBeTruthy();
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+      const managedEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+      const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(orgTeam.id);
+      expect(managedEventTypes?.length).toEqual(1);
+      expect(teamEventTypes?.length).toEqual(1);
+      const userTeamEventType = teamEventTypes?.find((eventType) => eventType.slug === teamEventType.slug);
+      expect(userTeamEventType).toBeTruthy();
+      const userHost = userTeamEventType?.hosts.find((host) => host.userId === userId);
+      expect(userHost).toBeTruthy();
+      expect(managedEventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
     }
 
     it("should fail to create the membership of the org's team for a non org user", async () => {
