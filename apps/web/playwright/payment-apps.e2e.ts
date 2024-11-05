@@ -242,7 +242,7 @@ test.describe("Payment app", () => {
     expect(await page.locator("text=Getting started with Paypal APP").first()).toBeTruthy();
   });
 
-  test.only("Should display App is not setup already for adyen", async ({ page, users }) => {
+  test("Should display App is not setup already for adyen", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
