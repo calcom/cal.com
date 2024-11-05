@@ -18,11 +18,9 @@ interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
 }
 
 export const findTeamMembersMatchingAttributeLogicHandler = async ({
-  ctx,
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
-  const { prisma, user } = ctx;
-  const { teamId, attributesQueryValue, isPreview, _enablePerf, _concurrency } = input;
+  const { teamId, attributesQueryValue, _enablePerf, _concurrency } = input;
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     mainAttributeLogicBuildingWarnings: mainWarnings,

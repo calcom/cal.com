@@ -1,6 +1,5 @@
 ## PR Merge requirement
 - [ ] Unit Tests for AddMembersWithSwitch
-- [ ] Unit Tests for Segment
 - [ ] Test Duplication of Event Types
 - [ ] Test managed event-type
 

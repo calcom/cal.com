@@ -46,7 +46,7 @@ function SegmentWithAttributes({
 
   const renderBuilder = useCallback(
     (props: BuilderProps) => (
-      <div className="query-builder-container">
+      <div className="query-builder-container" data-testid="query-builder-container">
         <div className="query-builder qb-lite">
           <Builder {...props} />
         </div>
@@ -79,13 +79,19 @@ function SegmentWithAttributes({
         />
       </div>
       <div className="mt-4 text-sm">
-        {queryValue && <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />}
+        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />
       </div>
     </div>
   );
 }
 
-function MatchingTeamMembers({ teamId, queryValue }: { teamId: number; queryValue: AttributesQueryValue }) {
+function MatchingTeamMembers({
+  teamId,
+  queryValue,
+}: {
+  teamId: number;
+  queryValue: AttributesQueryValue | null;
+}) {
   const { t } = useLocale();
   const { data: matchingTeamMembersWithResult, isPending } =
     trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery({
@@ -97,7 +103,7 @@ function MatchingTeamMembers({ teamId, queryValue }: { teamId: number; queryValu
   if (isPending) return <span>{t("loading")}</span>;
   if (!matchingTeamMembersWithResult) return <span>{t("something_went_wrong")}</span>;
   const { result: matchingTeamMembers } = matchingTeamMembersWithResult;
-  if (!matchingTeamMembers) {
+  if (!matchingTeamMembers || !queryValue) {
     return (
       <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
         <div className="text-subtle flex items-center text-sm font-medium">
