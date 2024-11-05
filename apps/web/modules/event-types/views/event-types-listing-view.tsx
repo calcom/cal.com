@@ -80,7 +80,7 @@ interface InfiniteEventTypeListProps {
   group: InfiniteEventTypeGroup;
   readOnly: boolean;
   bookerUrl: string | null;
-  pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
+  pages: { nextCursor: number | null | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
   lockedByOrg?: boolean;
   isPending?: boolean;
   debouncedSearchTerm?: string;
