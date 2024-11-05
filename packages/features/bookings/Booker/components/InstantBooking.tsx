@@ -23,7 +23,7 @@ export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) =>
             organization={{
               slug: event.entity.orgSlug,
               name: event.entity.name || "",
-              logoUrl: event.entity.logoUrl,
+              logoUrl: event.entity.logoUrl ?? null,
             }}
             users={event.users.slice(0, 2)}
             disableHref
