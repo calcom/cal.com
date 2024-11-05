@@ -352,7 +352,10 @@ export const InfiniteEventTypeList = ({
           return {
             ...data,
             pageParams: data?.pageParams ?? [],
-            pages: newOrder,
+            pages: newOrder.map((page) => ({
+              eventTypes: page.eventTypes,
+              nextCursor: page.nextCursor ?? undefined,
+            })),
           };
         }
       );
