@@ -126,7 +126,10 @@ export const BookerPlatformWrapper = (
     return "";
   }, [props.username]);
 
-  setSelectedDuration(props.duration ?? null);
+  useEffect(() => {
+    setSelectedDuration(props.duration ?? null);
+  }, [props.duration]);
+
   setOrg(props.entity?.orgSlug ?? null);
 
   const isDynamic = useMemo(() => {

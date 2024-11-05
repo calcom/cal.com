@@ -20,17 +20,17 @@ import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import type { User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import type { UserProfile } from "@calcom/types/UserProfile";
 import {
   Alert,
   Badge,
@@ -49,17 +49,18 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
+  Icon,
   Label,
   showToast,
   Skeleton,
   Switch,
+  TextField,
   Tooltip,
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
@@ -73,13 +74,6 @@ type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eve
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
 
-type DeNormalizedEventType = Omit<EventType, "userIds"> & {
-  users: (Pick<User, "id" | "name" | "username" | "avatarUrl"> & {
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  })[];
-};
-
 const LIMIT = 10;
 
 interface InfiniteEventTypeListProps {
@@ -89,6 +83,7 @@ interface InfiniteEventTypeListProps {
   pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
   lockedByOrg?: boolean;
   isPending?: boolean;
+  debouncedSearchTerm?: string;
 }
 
 interface InfiniteTeamsTabProps {
@@ -103,9 +98,13 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const { activeEventTypeGroup } = props;
   const { t } = useLocale();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
       limit: LIMIT,
+      searchQuery: debouncedSearchTerm,
       group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
     },
     {
@@ -124,6 +123,19 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
 
   return (
     <div>
+      <TextField
+        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnClassname="!border-muted"
+        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+        type="search"
+        value={searchTerm}
+        autoComplete="false"
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
+        placeholder={t("search")}
+      />
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
@@ -131,6 +143,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           bookerUrl={activeEventTypeGroup.bookerUrl}
           readOnly={activeEventTypeGroup.metadata.readOnly}
           isPending={query.isPending}
+          debouncedSearchTerm={debouncedSearchTerm}
         />
       )}
       <div className="text-default p-4 text-center" ref={buttonInView.ref}>
@@ -238,6 +251,7 @@ export const InfiniteEventTypeList = ({
   bookerUrl,
   lockedByOrg,
   isPending,
+  debouncedSearchTerm,
 }: InfiniteEventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -265,6 +279,7 @@ export const InfiniteEventTypeList = ({
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
         limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
       });
 
@@ -283,7 +298,11 @@ export const InfiniteEventTypeList = ({
     onError: async (err, _, context) => {
       if (context?.previousValue) {
         utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
           context.previousValue
         );
       }
@@ -316,12 +335,17 @@ export const InfiniteEventTypeList = ({
     await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
     const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
       limit: LIMIT,
+      searchQuery: debouncedSearchTerm,
       group: { teamId: group?.teamId, parentId: group?.parentId },
     });
 
     if (previousValue) {
       utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-        { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+        {
+          limit: LIMIT,
+          searchQuery: debouncedSearchTerm,
+          group: { teamId: group?.teamId, parentId: group?.parentId },
+        },
         (data) => {
           return {
             pageParams: data?.pageParams ?? [],
@@ -367,12 +391,17 @@ export const InfiniteEventTypeList = ({
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
         limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
       });
 
       if (previousValue) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
           (data) => {
             if (!data) {
               return {
@@ -396,7 +425,11 @@ export const InfiniteEventTypeList = ({
     onError: (err, _, context) => {
       if (context?.previousValue) {
         utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
           context.previousValue
         );
       }

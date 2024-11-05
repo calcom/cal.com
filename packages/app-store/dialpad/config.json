@@ -6,9 +6,7 @@
   "logo": "icon.svg",
   "url": "https://meetings.dialpad.com/",
   "variant": "conferencing",
-  "categories": [
-    "conferencing"
-  ],
+  "categories": ["conferencing"],
   "publisher": "Cal.com",
   "email": "help@cal.com",
   "appData": {

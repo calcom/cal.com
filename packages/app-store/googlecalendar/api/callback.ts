@@ -1,4 +1,4 @@
-import type { Auth } from "googleapis";
+import type { Auth, calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -19,6 +19,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
+import { getAllCalendars } from "../lib/utils";
 
 async function getWatchedCalendar(credential: Parameters<typeof getCalendar>[0], externalId: string) {
   const flags = await getFeatureFlagMap(prisma);
@@ -59,11 +60,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
-  let key;
-
   if (code) {
     const token = await oAuth2Client.getToken(code);
-    key = token.tokens;
+    const key = token.tokens;
     const grantedScopes = token.tokens.scope?.split(" ") ?? [];
     // Check if we have granted all required permissions
     const hasMissingRequiredScopes = REQUIRED_SCOPES.some((scope) => !grantedScopes.includes(scope));
@@ -91,12 +90,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       auth: oAuth2Client,
     });
 
-    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-    let primaryCal = cals.data.items?.find((cal) => cal.primary);
-    if (!primaryCal?.id) {
-      // If the primary calendar is not set, set it to the first calendar
-      primaryCal = cals.data.items?.[0];
-    }
+    const cals = await getAllCalendars(calendar);
+
+    const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
     if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
@@ -217,9 +213,15 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
     const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
     const userDetails = await oauth2.userinfo.get();
     if (userDetails.data?.picture) {
-      // Using updateMany here since if the user already has a profile it would throw an error because no records were found to update the profile picture
+      // Using updateMany here since if the user already has a profile it would throw an error
+      // because no records were found to update the profile picture
       await prisma.user.updateMany({
-        where: { id: userId, avatarUrl: null },
+        where: {
+          id: userId,
+          avatarUrl: {
+            equals: null,
+          },
+        },
         data: {
           avatarUrl: userDetails.data.picture,
         },
