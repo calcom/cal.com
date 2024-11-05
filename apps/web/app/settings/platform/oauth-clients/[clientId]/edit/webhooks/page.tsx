@@ -5,7 +5,7 @@ import EditWebhooksView from "~/settings/platform/oauth-clients/[clientId]/edit/
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("oAuth_client_updation_form"),
+    (t) => t("webhook_update_form"),
     () => ""
   );
 
