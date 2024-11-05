@@ -171,7 +171,7 @@ export function buildDateRanges({
         // porcess multi-day time blocks
         const daysDiff = dayjs(item.endTime).diff(item.startTime, "day");
         for (let i = 0; i <= daysDiff; i++) {
-          const currentDate = dayjs(item.startTime).utc(true).startOf("day").add(i, "day");
+          const currentDate = dayjs.utc(item.startTime).startOf("day").add(i, "day");
           const timeBlockItem = {
             ...item,
             date: currentDate.toDate(),
