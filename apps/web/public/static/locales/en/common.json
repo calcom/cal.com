@@ -2039,7 +2039,9 @@
   "looking_for_more_analytics": "Looking for more analytics?",
   "looking_for_more_insights": "Looking for more Insights?",
   "filters": "Filters",
-  "add_filter": "Add filter",
+  "add_filter": "Add filter", 
+  "add_rule": "Add rule",
+  "add_rule_group": "Add rule group",
   "remove_filters": "Clear all filters",
   "email_verified": "Email Verified",
   "select_user": "Select User",
@@ -2751,5 +2753,6 @@
   "only_if_field_is_empty": "Only if field is empty",
   "booking_start_date": "Booking start date",
   "booking_created_date": "Booking created date",
+  "booking_reassigned_to_host": "Booking reassigned to {{host}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
