@@ -171,6 +171,15 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
     });
+  tabs.includes("payments") &&
+    tabsNavigation.push({
+      name: "event_payments_tab_title",
+      onClick: () => onClick("payments"),
+      isActive: currentTab === "payments",
+      href: `${url}?tabName=payments`,
+      icon: "credit-card",
+      info: `event_payments_tab_description`,
+    });
 
   return tabsNavigation;
 }

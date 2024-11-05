@@ -55,8 +55,16 @@ const queryValueSchema = z.object({
   properties: z.any(),
 });
 
+export enum RouteActionType {
+  CustomPageMessage = "customPageMessage",
+  ExternalRedirectUrl = "externalRedirectUrl",
+  EventTypeRedirectUrl = "eventTypeRedirectUrl",
+}
+
+export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
 /**
  * Stricter schema for validating before saving to DB
+ * It doesn't decide what will be saved, it is just to validate the data before saving
  */
 export const queryValueSaveValidationSchema = queryValueSchema
   .omit({ children1: true })
@@ -71,6 +79,7 @@ export const queryValueSaveValidationSchema = queryValueSchema
                 field: z.any().optional(),
                 operator: z.any().optional(),
                 value: z.any().optional(),
+                valueSrc: z.any().optional(),
               })
               .optional(),
           })
@@ -87,7 +96,13 @@ export const queryValueSaveValidationSchema = queryValueSchema
             if (!isObject(rule.properties)) return;
 
             const value = rule.properties.value || [];
-            if (!(value instanceof Array)) {
+            const valueSrc = rule.properties.valueSrc;
+            if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+              return;
+            }
+
+            if (!valueSrc.length) {
+              // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
               return;
             }
 
@@ -124,20 +139,26 @@ export const zodNonRouterRoute = z.object({
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
    * RAQB query value for form fields
+   * BRANDED to ensure we don't give it Attributes
    */
   queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
   /**
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   * BRANDED to ensure we don't give it Form Fields
    */
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * RAQB query value for fallback of `attributesQueryValue`
+   * BRANDED to ensure we don't give it Form Fields, It needs Attributes
+   */
+  fallbackAttributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * Whether the route is a fallback if no other routes match
+   */
   isFallback: z.boolean().optional(),
   action: z.object({
-    // TODO: Make it a union type of "customPageMessage" and ..
-    type: z.union([
-      z.literal("customPageMessage"),
-      z.literal("externalRedirectUrl"),
-      z.literal("eventTypeRedirectUrl"),
-    ]),
+    type: routeActionTypeSchema,
+    eventTypeId: z.number().optional(),
     value: z.string(),
   }),
 });
@@ -170,3 +191,11 @@ export const zodRoutesView = z.union([z.array(zodRouteView), z.null()]).optional
 export const appDataSchema = z.any();
 
 export const appKeysSchema = z.object({});
+
+// This is different from FormResponse in types.d.ts in that it has label optional. We don't seem to be using label at this point, so we might want to use this only while saving the response when Routing Form is submitted
+export const routingFormResponseInDbSchema = z.record(
+  z.object({
+    label: z.string().optional(),
+    value: z.union([z.string(), z.number(), z.array(z.string())]),
+  })
+);

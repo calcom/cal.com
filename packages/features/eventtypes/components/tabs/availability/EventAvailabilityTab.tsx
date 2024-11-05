@@ -1,10 +1,12 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import type { GetAllSchedulesByUserIdQueryType } from "@calcom/atoms/event-types/wrappers/EventAvailabilityTabWebWrapper";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -35,10 +37,27 @@ type EventTypeScheduleDetailsProps = {
   editAvailabilityRedirectUrl?: string;
 };
 
+type HostSchedulesQueryType =
+  | GetAllSchedulesByUserIdQueryType
+  | (({ userId }: { userId: number }) => UseQueryResult<
+      {
+        schedules: {
+          id: number;
+          name: string;
+          isDefault: boolean;
+          userId: number;
+          readOnly: boolean;
+        }[];
+      },
+      Error
+    >);
+
 type EventTypeTeamScheduleProps = {
-  hostSchedulesQuery: GetAllSchedulesByUserIdQueryType;
+  hostSchedulesQuery: HostSchedulesQueryType;
   hosts?: Host[];
 };
+
+type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
 
 type EventTypeScheduleProps = {
   schedulesQueryData?: Array<
@@ -46,7 +65,7 @@ type EventTypeScheduleProps = {
   >;
   isSchedulesPending?: boolean;
   eventType: EventTypeSetup;
-  teamMembers: TeamMembers;
+  teamMembers: TeamMember[];
 } & EventTypeScheduleDetailsProps &
   EventTypeTeamScheduleProps;
 
@@ -302,10 +321,11 @@ const TeamMemberSchedule = ({
 }: {
   host: Host;
   index: number;
-  teamMembers: TeamMembers;
-  hostScheduleQuery: GetAllSchedulesByUserIdQueryType;
+  teamMembers: TeamMember[];
+  hostScheduleQuery: HostSchedulesQueryType;
 }) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
 
   const formMethods = useFormContext<FormValues>();
   const { getValues } = formMethods;
@@ -337,7 +357,8 @@ const TeamMemberSchedule = ({
   return (
     <>
       <div className="flex w-full items-center">
-        <Avatar size="sm" imageSrc={avatar} alt={label || ""} />
+        {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
+        {isPlatform && <Icon name="user" className="h-4 w-4" />}
         <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
       </div>
       <div className="flex w-full flex-col pt-2 ">
@@ -374,7 +395,7 @@ const TeamAvailability = ({
   hosts,
   teamMembers,
   hostSchedulesQuery,
-}: EventTypeTeamScheduleProps & { teamMembers: TeamMembers }) => {
+}: EventTypeTeamScheduleProps & { teamMembers: TeamMember[] }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
@@ -420,10 +441,10 @@ const TeamAvailability = ({
 
 const UseCommonScheduleSettingsToggle = ({ eventType, ...rest }: EventTypeScheduleProps) => {
   const { t } = useLocale();
-  const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
+  const { setValue, resetField, getValues, watch } = useFormContext<FormValues>();
 
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
-    !Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
+    !Boolean(eventType.schedule)
   );
 
   const watchHosts = watch("hosts");
