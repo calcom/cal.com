@@ -483,7 +483,7 @@ export function UserListTable() {
                 className="sm:max-w-64 max-w-full"
               />
             </div>
-            <div className="flex flex-nowrap items-center gap-2 md:flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               <DataTableToolbar.CTA
                 type="button"
                 color="secondary"
