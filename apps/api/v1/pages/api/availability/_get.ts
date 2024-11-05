@@ -236,6 +236,7 @@ async function handler(req: NextApiRequest) {
         dateTo,
         eventTypeId,
         returnDateOverrides: true,
+        bypassBusyCalendarTimes: false,
       }),
     };
   });
