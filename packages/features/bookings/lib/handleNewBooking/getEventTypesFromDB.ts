@@ -70,6 +70,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
       parentId: true,
       parent: {
         select: {
