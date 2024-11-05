@@ -23,7 +23,13 @@ type GetByViewerOptions = {
 type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 type MappedEventType = Awaited<ReturnType<typeof mapEventType>>;
 
-export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions) => {
+export const getEventTypesFromGroup = async ({
+  ctx,
+  input,
+}: GetByViewerOptions): Promise<{
+  eventTypes: MappedEventType[];
+  nextCursor: number | null | undefined;
+}> => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getEventTypesFromGroup:${ctx.user.id}`,
     rateLimitingType: "common",
@@ -41,7 +47,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 
   const eventTypes: MappedEventType[] = [];
   const currentCursor = cursor;
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: number | null | undefined = undefined;
   let isFetchingForFirstTime = true;
 
   const fetchAndFilterEventTypes = async () => {
@@ -134,7 +140,7 @@ const fetchEventTypesBatch = async (
     eventTypes.push(...teamEventTypes);
   }
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: number | null | undefined = undefined;
   if (eventTypes.length > limit) {
     const nextItem = eventTypes.pop();
     nextCursor = nextItem?.id;

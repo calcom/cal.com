@@ -351,9 +351,8 @@ export const InfiniteEventTypeList = ({
 
           return {
             ...data,
-            pageParams: data?.pageParams ?? [],
             pages: newOrder.map((page) => ({
-              eventTypes: page.eventTypes,
+              ...page,
               nextCursor: page.nextCursor ?? undefined,
             })),
           };
