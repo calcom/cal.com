@@ -39,6 +39,7 @@ import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
+import { getAllCalendars } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 interface GoogleCalError extends Error {
@@ -701,9 +702,9 @@ export default class GoogleCalendarService implements Calendar {
     }
     async function getCalIds() {
       if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
-      const cals = await calendar.calendarList.list({ fields: "items(id)" });
-      if (!cals.data.items) return [];
-      return cals.data.items.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
+      const cals = await getAllCalendars(calendar, ["id"]);
+      if (!cals.length) return [];
+      return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
     }
 
     try {
@@ -761,9 +762,13 @@ export default class GoogleCalendarService implements Calendar {
     try {
       const { json: cals } = await this.oAuthManagerInstance.request(
         async () =>
-          new AxiosLikeResponseToFetchResponse(
-            await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" })
-          )
+          new AxiosLikeResponseToFetchResponse({
+            status: 200,
+            statusText: "OK",
+            data: {
+              items: await getAllCalendars(calendar),
+            },
+          })
       );
 
       if (!cals.items) return [];

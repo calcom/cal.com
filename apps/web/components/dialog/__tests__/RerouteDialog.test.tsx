@@ -1,5 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { useRouter } from "next/navigation";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
@@ -176,6 +175,11 @@ vi.mock("@calcom/trpc/react", () => ({
                       name: "Matching User 1",
                       email: "matching-user-1@example.com",
                     },
+                    {
+                      id: 2,
+                      name: "Matching User 2",
+                      email: "matching-user-2@example.com",
+                    },
                   ],
                 });
               }),
@@ -204,7 +208,7 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-let mockMutateFn = vi.fn(({ __testOnSuccess }) => {
+const mockMutateFn = vi.fn(({ __testOnSuccess }) => {
   __testOnSuccess({
     uid: "RESCHEDULED_BOOKING_UID_SAME_TIMESLOT",
   });
@@ -244,11 +248,7 @@ async function mockMessageFromOpenedTab({ type, data }: { type: string; data: an
   return messageReceivedPromise;
 }
 
-function correctResponses() {
-  fireEvent.click(screen.getByTestId("mock-form-update-response-button"));
-}
-
-function expectEventTypeInfoInCurrentRouting({
+async function expectEventTypeInfoInCurrentRouting({
   eventTypeText,
   eventTypeHref,
 }: {
@@ -257,10 +257,10 @@ function expectEventTypeInfoInCurrentRouting({
 }) {
   const eventTypeEl = screen.getByTestId("current-routing-status-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
+  await expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
 }
 
-function expectEventTypeInfoInReroutePreview({
+async function expectEventTypeInfoInReroutePreview({
   eventTypeText,
   eventTypeHref,
 }: {
@@ -269,7 +269,7 @@ function expectEventTypeInfoInReroutePreview({
 }) {
   const eventTypeEl = screen.getByTestId("reroute-preview-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
+  await expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
 }
 
 function expectOrganizerInfoInCurrentRouting({ organizerText }: { organizerText: string }) {
@@ -281,7 +281,7 @@ function expectAttendeesInfoInCurrentRouting({ attendeesText }: { attendeesText:
   const attendeesEl = screen.getByTestId("current-routing-status-attendees");
   expect(attendeesEl).toHaveTextContent(attendeesText);
 }
-
+const userWhoBooked = { id: 1, name: "Test User", email: "user@example.com" };
 const mockBooking = {
   id: 1,
   uid: "original-booking-uid",
@@ -298,7 +298,7 @@ const mockBooking = {
     schedulingType: SchedulingType.ROUND_ROBIN,
     title: "Test Event",
   },
-  user: { id: 1, name: "Test User", email: "user@example.com" },
+  user: userWhoBooked,
   routedFromRoutingFormReponse: { id: 1 },
   status: BookingStatus.ACCEPTED, // Add this line
 };
@@ -348,11 +348,9 @@ describe("RerouteDialog", () => {
     // screen.logTestingPlaygroundURL()
   });
 
-  test("verify_new_route button is disabled when form fields are not filled", async () => {
+  test("verify_new_route button is enabled even when form fields are not filled", async () => {
     render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
-    expect(screen.getByText("verify_new_route")).toBeDisabled();
-    correctResponses();
-    expect(screen.getByText("verify_new_route")).toBeEnabled();
+    await expect(screen.getByText("verify_new_route")).toBeEnabled();
   });
 
   test("disabledFields are passed to FormInputFields with value ['email'] - email field is disabled", async () => {
@@ -383,15 +381,13 @@ describe("RerouteDialog", () => {
       render(
         <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       );
-      // Enables verify_new_route button
-      correctResponses();
       fireEvent.click(screen.getByText("verify_new_route"));
 
       expectEventTypeInfoInReroutePreview({
         eventTypeText: "team/test-team/new-test-event",
         eventTypeHref: "https://cal.com/team/test-team/new-test-event",
       });
-      expect(screen.getByText("verify_new_route")).toBeEnabled();
+      await expect(screen.getByText("verify_new_route")).toBeEnabled();
       expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("reroute_preview_possible_host");
       expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("matching-user-1@example.com");
 
@@ -404,8 +400,6 @@ describe("RerouteDialog", () => {
         render(
           <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
         );
-        // Enables verify_new_route button
-        correctResponses();
         clickVerifyNewRouteButton();
         clickRescheduleToTheNewEventWithDifferentTimeslotButton();
         await mockMessageFromOpenedTab({
@@ -421,6 +415,8 @@ describe("RerouteDialog", () => {
           expect.objectContaining({
             rescheduleUid: mockBooking.uid,
             "cal.rerouting": "true",
+            // Shouldn't include the user who booked the booking
+            "cal.routedTeamMemberIds": "2",
             "cal.reroutingFormResponses": JSON.stringify({
               "company-size": {
                 value: "small",
@@ -443,13 +439,13 @@ describe("RerouteDialog", () => {
         render(
           <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
         );
-        // Enables verify_new_route button
-        correctResponses();
         clickVerifyNewRouteButton();
         clickRescheduleWithSameTimeslotOfChosenEventButton();
         expect(mockMutateFn).toHaveBeenCalledWith(
           expect.objectContaining({
             rescheduleUid: mockBooking.uid,
+            // Shouldn't include the user who booked the booking
+            routedTeamMemberIds: [2],
             reroutingFormResponses: {
               "company-size": {
                 value: "small",

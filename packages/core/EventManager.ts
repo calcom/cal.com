@@ -100,6 +100,11 @@ export type EventManagerUser = {
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
+export type EventManagerInitParams = {
+  user: EventManagerUser;
+  eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>;
+};
+
 export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
@@ -986,7 +991,7 @@ export default class EventManager {
       let success = true;
       const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
         success = false;
-        log.warn(`Error creating crm event for ${credential.type}`, error);
+        log.warn(`Error creating crm event for ${credential.type}`, JSON.stringify(error));
       });
 
       if (createdEvent) {
