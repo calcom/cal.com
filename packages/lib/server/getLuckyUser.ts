@@ -1,6 +1,5 @@
 import type { User } from "@prisma/client";
 
-import dayjs from "@calcom/dayjs";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
@@ -21,8 +20,8 @@ interface GetLuckyUserParams<T extends PartialUser> {
     weight?: number | null;
   }[];
 }
-
-const startOfMonth = dayjs().utc().startOf("month").toDate();
+// === dayjs.utc().startOf("month").toDate();
+const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 // TS helper function.
 const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
 
@@ -145,12 +144,11 @@ async function getHostsWithCalibration(
     if (newHosts.length && existingBookings.length) {
       const newHostsWithCalibration = newHosts.map((newHost) => {
         const existingBookingsBeforeAdded = existingBookings.filter(
-          (booking) =>
-            booking.userId !== newHost.userId && dayjs(booking.createdAt).isBefore(dayjs(newHost.createdAt))
+          (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
         );
 
         const hostsAddedBefore = hosts.filter(
-          (host) => host.userId !== newHost.userId && dayjs(host.createdAt).isBefore(newHost.createdAt)
+          (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
         );
 
         if (existingBookingsBeforeAdded.length && hostsAddedBefore.length) {
