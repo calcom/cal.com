@@ -1,11 +1,3 @@
-## PR Merge requirement
-- [ ] Unit Tests for AddMembersWithSwitch
-- [ ] Test Duplication of Event Types
-- [ ] Test managed event-type
-
-## Bugs
-- [ ] A team member without any attribute isn't considered at all and thus fails Not any in or similar negation operators.
-
 ## TODO - Routing
 - [ ] Switching from Select to MultiSelect in attribute 
     - [ ] It immediately makes the Routing logic to not work. Fix it.

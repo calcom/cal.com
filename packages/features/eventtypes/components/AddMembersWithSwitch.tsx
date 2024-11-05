@@ -107,34 +107,36 @@ const CheckedHostField = ({
 function MembersSegmentWithToggle({
   teamId,
   assignRRMembersUsingSegment,
-  setassignRRMembersUsingSegment,
+  setAssignRRMembersUsingSegment,
   rrSegmentQueryValue,
-  setrrSegmentQueryValue,
+  setRrSegmentQueryValue,
   className,
 }: {
   teamId: number;
   assignRRMembersUsingSegment: boolean;
-  setassignRRMembersUsingSegment: (value: boolean) => void;
+  setAssignRRMembersUsingSegment: (value: boolean) => void;
   rrSegmentQueryValue: AttributesQueryValue | null;
-  setrrSegmentQueryValue: (value: AttributesQueryValue) => void;
+  setRrSegmentQueryValue: (value: AttributesQueryValue) => void;
   className?: string;
 }) {
   const { t } = useLocale();
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
-    setrrSegmentQueryValue(queryValue);
+    setRrSegmentQueryValue(queryValue);
   };
 
+  console.log({ assignRRMembersUsingSegment });
   return (
     <Controller<FormValues>
       name="assignRRMembersUsingSegment"
       render={() => (
         <SettingsToggle
           noIndentation
+          data-testid="segment-toggle"
           title={t("filter_by_attributes")}
           labelClassName="mt-0.5 font-normal"
           checked={assignRRMembersUsingSegment}
           onCheckedChange={(active) => {
-            setassignRRMembersUsingSegment(active);
+            setAssignRRMembersUsingSegment(active);
           }}>
           <Segment
             teamId={teamId}
@@ -194,21 +196,21 @@ function getAssignmentState({
 }
 
 function useSegmentState() {
-  const { getValues, setValue } = useFormContext<FormValues>();
-  const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
+  const { getValues, setValue, watch } = useFormContext<FormValues>();
+  const assignRRMembersUsingSegment = watch("assignRRMembersUsingSegment");
 
-  const setassignRRMembersUsingSegment = (value: boolean) =>
+  const setAssignRRMembersUsingSegment = (value: boolean) =>
     setValue("assignRRMembersUsingSegment", value, { shouldDirty: true });
 
   const rrSegmentQueryValue = getValues("rrSegmentQueryValue");
-  const setrrSegmentQueryValue = (value: AttributesQueryValue) =>
+  const setRrSegmentQueryValue = (value: AttributesQueryValue) =>
     setValue("rrSegmentQueryValue", value, { shouldDirty: true });
 
   return {
     assignRRMembersUsingSegment,
-    setassignRRMembersUsingSegment,
+    setAssignRRMembersUsingSegment,
     rrSegmentQueryValue,
-    setrrSegmentQueryValue,
+    setRrSegmentQueryValue,
   };
 }
 
@@ -230,9 +232,9 @@ function AddMembersWithSwitch({
   const { setValue } = useFormContext<FormValues>();
   const {
     assignRRMembersUsingSegment,
-    setassignRRMembersUsingSegment,
+    setAssignRRMembersUsingSegment,
     rrSegmentQueryValue,
-    setrrSegmentQueryValue,
+    setRrSegmentQueryValue,
   } = useSegmentState();
 
   const assignmentState = getAssignmentState({
@@ -241,7 +243,6 @@ function AddMembersWithSwitch({
     isAssigningAllTeamMembersApplicable: automaticAddAllEnabled,
     isSegmentApplicable,
   });
-
   const utils = trpc.useUtils();
 
   utils.viewer.appRoutingForms.getAttributesForTeam.prefetch({
@@ -250,7 +251,7 @@ function AddMembersWithSwitch({
 
   const onAssignAllTeamMembersInactive = () => {
     setValue("hosts", [], { shouldDirty: true });
-    setassignRRMembersUsingSegment(false);
+    setAssignRRMembersUsingSegment(false);
   };
 
   switch (assignmentState) {
@@ -272,9 +273,9 @@ function AddMembersWithSwitch({
               <MembersSegmentWithToggle
                 teamId={teamId}
                 assignRRMembersUsingSegment={assignRRMembersUsingSegment}
-                setassignRRMembersUsingSegment={setassignRRMembersUsingSegment}
+                setAssignRRMembersUsingSegment={setAssignRRMembersUsingSegment}
                 rrSegmentQueryValue={rrSegmentQueryValue}
-                setrrSegmentQueryValue={setrrSegmentQueryValue}
+                setRrSegmentQueryValue={setRrSegmentQueryValue}
               />
             </div>
           )}
@@ -286,12 +287,14 @@ function AddMembersWithSwitch({
       return (
         <>
           <div className="mb-2">
-            <AssignAllTeamMembers
-              assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              onActive={onActive}
-              onInactive={onAssignAllTeamMembersInactive}
-            />
+            {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && (
+              <AssignAllTeamMembers
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                onActive={onActive}
+                onInactive={onAssignAllTeamMembersInactive}
+              />
+            )}
           </div>
           <div className="mb-2">
             <CheckedHostField
