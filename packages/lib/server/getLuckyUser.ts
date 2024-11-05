@@ -115,18 +115,19 @@ async function getHostsWithCalibration(
   hosts: { userId: number; email: string; createdAt: Date }[]
 ) {
   // get calibration for newly added hosts
-  const newHosts = await prisma.host.findMany({
-    where: {
-      userId: {
-        in: hosts.map((host) => host.userId),
+  const newHosts =
+    (await prisma.host.findMany({
+      where: {
+        userId: {
+          in: hosts.map((host) => host.userId),
+        },
+        eventTypeId,
+        isFixed: false,
+        createdAt: {
+          gte: startOfMonth,
+        },
       },
-      eventTypeId,
-      isFixed: false,
-      createdAt: {
-        gte: startOfMonth,
-      },
-    },
-  });
+    })) ?? [];
 
   if (newHosts.length) {
     const existingBookings = await BookingRepository.getAllBookingsForRoundRobin({
