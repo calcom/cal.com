@@ -733,90 +733,135 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string
   ) {
     const conn = await this.conn;
-    const appOptions = this.getAppOptions();
-    const { createEventOn, onBookingWriteToRecordFields } = appOptions;
+    const { createEventOn, onBookingWriteToRecordFields } = this.getAppOptions();
 
-    // Figure out what we're writing to
-    let personRecordType = appOptions.createEventOn;
-
-    if (
-      createEventOn === SalesforceRecordEnum.LEAD &&
-      appOptions.createEventOnLeadCheckForContact &&
-      this.getFallbackToContact()
-    ) {
-      personRecordType = SalesforceRecordEnum.CONTACT;
-    }
+    // Determine record type (Contact or Lead)
+    const personRecordType = this.determinePersonRecordType(createEventOn);
 
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
-
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
 
-    const existingFieldNames = existingFields.map((field) => field.name);
+    const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
+    if (!personRecord) return;
 
-    const personRecordQuery = await conn.query(
-      `SELECT ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
-    );
+    const writeOnRecordBody = await this.buildRecordUpdatePayload({
+      existingFields,
+      personRecord,
+      onBookingWriteToRecordFields,
+      startTime,
+      bookingUid,
+      organizerEmail,
+    });
 
-    if (!personRecordQuery.records.length) {
-      this.log.warn(`Could not write to person record id ${contactId}`);
-      return;
-    }
+    // Update the person record
+    await conn.sobject(personRecordType).update({
+      Id: contactId,
+      ...writeOnRecordBody,
+    });
+  }
 
-    const personRecord = personRecordQuery.records[0] as { [key: string]: any };
+  private async buildRecordUpdatePayload({
+    existingFields,
+    personRecord,
+    onBookingWriteToRecordFields,
+    startTime,
+    bookingUid,
+    organizerEmail,
+  }: {
+    existingFields: jsforce.Field[];
+    personRecord: Record<string, any>;
+    onBookingWriteToRecordFields: Record<string, any>;
+    startTime: string;
+    bookingUid?: string;
+    organizerEmail: string;
+  }): Promise<Record<string, any>> {
+    const writeOnRecordBody: Record<string, any> = {};
 
-    const writeOnRecordBody: { [key: string]: any } = {};
+    for (const field of existingFields) {
+      const fieldConfig = onBookingWriteToRecordFields[field.name];
 
-    for (const salesforceField of existingFields) {
-      const fieldToWriteOn = onBookingWriteToRecordFields[salesforceField.name];
-
-      // Determine if we write to the field
-      if (
-        fieldToWriteOn.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY &&
-        !!personRecord[salesforceField.name]
-      )
+      // Skip if field should only be written when empty and already has a value
+      if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
         continue;
+      }
 
-      // Determine if the field to write on matches the field type
-      if (fieldToWriteOn.fieldType === salesforceField.type) {
-        if (salesforceField.type === SalesforceFieldType.TEXT) {
-          const stringToWrite = fieldToWriteOn.value.substring(0, salesforceField.length);
-          writeOnRecordBody[salesforceField.name] = stringToWrite;
-        }
-
-        if (salesforceField.type === SalesforceFieldType.DATE) {
-          if (fieldToWriteOn.value === DateFieldTypeData.BOOKING_START_DATE) {
-            writeOnRecordBody[salesforceField.name] = new Date(startTime).toISOString();
-          } else if (fieldToWriteOn.value === DateFieldTypeData.BOOKING_CREATED_DATE) {
-            // Determine the createdAt from the event
-            if (!bookingUid) {
-              this.log.warn(`No uid for booking with organizer ${organizerEmail}`);
-            }
-
-            const booking = await prisma.booking.findFirst({
-              where: {
-                uid: bookingUid,
-              },
-              select: {
-                createdAt: true,
-              },
-            });
-
-            if (!booking) {
-              this.log.warn(`No booking found for ${bookingUid}`);
-              return;
-            }
-
-            writeOnRecordBody[salesforceField.name] = new Date(booking.createdAt).toISOString();
+      // Handle different field types
+      if (fieldConfig.fieldType === field.type) {
+        if (field.type === SalesforceFieldType.TEXT) {
+          writeOnRecordBody[field.name] = fieldConfig.value.substring(0, field.length);
+        } else if (field.type === SalesforceFieldType.DATE) {
+          const dateValue = await this.getDateFieldValue(
+            fieldConfig.value,
+            startTime,
+            bookingUid,
+            organizerEmail
+          );
+          if (dateValue) {
+            writeOnRecordBody[field.name] = dateValue;
           }
         }
       }
     }
 
-    // Update the person record
-    const response = await conn.sobject(personRecordType).update({
-      Id: contactId,
-      ...writeOnRecordBody,
-    });
+    return writeOnRecordBody;
+  }
+
+  private async getDateFieldValue(
+    fieldValue: string,
+    startTime: string,
+    bookingUid?: string,
+    organizerEmail?: string
+  ): Promise<string | null> {
+    if (fieldValue === DateFieldTypeData.BOOKING_START_DATE) {
+      return new Date(startTime).toISOString();
+    }
+    if (fieldValue === DateFieldTypeData.BOOKING_CREATED_DATE && bookingUid) {
+      const booking = await prisma.booking.findFirst({
+        where: { uid: bookingUid },
+        select: { createdAt: true },
+      });
+
+      if (!booking) {
+        this.log.warn(`No booking found for ${bookingUid}`);
+        return null;
+      }
+
+      return new Date(booking.createdAt).toISOString();
+    }
+
+    if (!bookingUid) {
+      this.log.warn(`No uid for booking with organizer ${organizerEmail}`);
+    }
+
+    return null;
+  }
+
+  private determinePersonRecordType(createEventOn: string): SalesforceRecordEnum {
+    return createEventOn === SalesforceRecordEnum.LEAD &&
+      this.appOptions.createEventOnLeadCheckForContact &&
+      this.getFallbackToContact()
+      ? SalesforceRecordEnum.CONTACT
+      : this.appOptions.createEventOn;
+  }
+
+  private async fetchPersonRecord(
+    contactId: string,
+    existingFields: jsforce.Field[],
+    personRecordType: SalesforceRecordEnum
+  ): Promise<Record<string, any> | null> {
+    const conn = await this.conn;
+    const existingFieldNames = existingFields.map((field) => field.name);
+
+    const query = await conn.query(
+      `SELECT ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
+    );
+
+    if (!query.records.length) {
+      this.log.warn(`Could not find person record with id ${contactId}`);
+      return null;
+    }
+
+    return query.records[0] as Record<string, any>;
   }
 }
