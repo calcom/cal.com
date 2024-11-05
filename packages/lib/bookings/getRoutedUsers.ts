@@ -1,6 +1,6 @@
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import logger from "@calcom/lib/logger";
-import { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -61,8 +61,8 @@ export const getRoutedUsersWithContactOwnerAndFixedUsers = <
 
 async function findMatchingTeamMembersIdsForEventRRSegment(eventType: {
   assignAllTeamMembers: boolean;
-  assignTeamMembersInSegment: boolean;
-  membersAssignmentSegmentQueryValue: AttributesQueryValue | null | undefined;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null | undefined;
   schedulingType: SchedulingType | null;
   team: { id: number } | null;
 }) {
@@ -70,7 +70,7 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: {
     return null;
   }
 
-  const isSegmentationDisabled = !eventType.assignAllTeamMembers || !eventType.assignTeamMembersInSegment;
+  const isSegmentationDisabled = !eventType.assignAllTeamMembers || !eventType.assignRRMembersUsingSegment;
 
   if (isSegmentationDisabled) {
     return null;
@@ -81,7 +81,7 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: {
   }
 
   const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
-    attributesQueryValue: eventType.membersAssignmentSegmentQueryValue ?? null,
+    attributesQueryValue: eventType.rrSegmentQueryValue ?? null,
     teamId: eventType.team.id,
   });
   if (!teamMembersMatchingAttributeLogic) {
@@ -105,8 +105,8 @@ type BaseHost<User extends BaseUser> = {
 
 type EventType<Host extends BaseHost<User>, User extends BaseUser> = {
   assignAllTeamMembers: boolean;
-  assignTeamMembersInSegment: boolean;
-  membersAssignmentSegmentQueryValue: AttributesQueryValue | null | undefined;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null | undefined;
   schedulingType: SchedulingType | null;
   team: { id: number } | null;
   users: User[];
@@ -120,7 +120,7 @@ export async function findMatchingHosts<User extends BaseUser, Host extends Base
 }) {
   const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({
     ...eventType,
-    membersAssignmentSegmentQueryValue: eventType.membersAssignmentSegmentQueryValue ?? null,
+    rrSegmentQueryValue: eventType.rrSegmentQueryValue ?? null,
   });
 
   const eventHosts: {
@@ -155,8 +155,6 @@ export async function findMatchingHosts<User extends BaseUser, Host extends Base
     if (!matchingRRTeamMembers) return true;
     return matchingRRTeamMembers.includes(host.user.id);
   });
-
-  console.log({ eventHosts, fixedHosts, segmentedRoundRobinHosts });
 
   // In case we don't have any matching team members, we return all the RR hosts, as we always want the team event to be bookable.
   // TODO: We should notify about it to the organizer somehow.

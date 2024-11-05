@@ -635,6 +635,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
+                          teamId={form.teamId}
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
                             label: member.name || member.email,

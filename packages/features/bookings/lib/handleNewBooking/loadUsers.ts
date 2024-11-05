@@ -25,8 +25,8 @@ type EventType = Pick<
   | "schedulingType"
   | "team"
   | "assignAllTeamMembers"
-  | "assignTeamMembersInSegment"
-  | "membersAssignmentSegmentQueryValue"
+  | "assignRRMembersUsingSegment"
+  | "rrSegmentQueryValue"
 >;
 
 export const loadUsers = async ({

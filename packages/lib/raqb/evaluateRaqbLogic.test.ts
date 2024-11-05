@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
-import { FormFieldsBaseConfig } from "../components/react-awesome-query-builder/config/config";
+import { FormFieldsBaseConfig } from "@calcom/routing-forms/components/react-awesome-query-builder/config/config";
+
 import { evaluateRaqbLogic, RaqbLogicResult } from "./evaluateRaqbLogic";
 
 vi.mock("../components/react-awesome-query-builder/widgets", () => ({

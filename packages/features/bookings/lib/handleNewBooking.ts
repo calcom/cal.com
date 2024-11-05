@@ -267,7 +267,7 @@ const buildDryRunBooking = ({
   /**
    * Troubleshooting data
    */
-  let troubleshooterData = {
+  const troubleshooterData = {
     organizerUserId: organizerUser.id,
     eventTypeId,
     askedContactOwnerEmail: contactOwnerFromReq,
@@ -288,6 +288,48 @@ const buildDryRunEventManager = () => {
     reschedule: async () => ({ results: [], referencesToCreate: [] }),
   };
 };
+
+function buildTroubleshooterData({
+  eventType,
+}: {
+  eventType: {
+    id: number;
+    slug: string;
+  };
+}) {
+  const troubleshooterData: {
+    organizerUser: {
+      id: number;
+    } | null;
+    eventType: {
+      id: number;
+      slug: string;
+    };
+    allHostUsers: number[];
+    luckyUsers: number[];
+    luckyUserPool: number[];
+    fixedUsers: number[];
+    luckyUsersFromFirstBooking: number[];
+    usedContactOwnerEmail: string | null;
+    askedContactOwnerEmail: string | null;
+    isManagedEventType: boolean;
+  } = {
+    organizerUser: null,
+    eventType: {
+      id: eventType.id,
+      slug: eventType.slug,
+    },
+    luckyUsers: [],
+    luckyUserPool: [],
+    fixedUsers: [],
+    luckyUsersFromFirstBooking: [],
+    usedContactOwnerEmail: null,
+    allHostUsers: [],
+    askedContactOwnerEmail: null,
+    isManagedEventType: false,
+  };
+  return troubleshooterData;
+}
 
 async function handler(
   req: NextApiRequest & {
@@ -348,37 +390,9 @@ async function handler(
     ...reqBody
   } = bookingData;
 
-  let troubleshooterData: {
-    organizerUser: {
-      id: number;
-    } | null;
-    eventType: {
-      id: number;
-      slug: string;
-    };
-    allHostUsers: number[];
-    luckyUsers: number[];
-    luckyUserPool: number[];
-    fixedUsers: number[];
-    luckyUsersFromFirstBooking: number[];
-    usedContactOwnerEmail: string | null;
-    askedContactOwnerEmail: string | null;
-    isManagedEventType: boolean;
-  } = {
-    organizerUser: null,
-    eventType: {
-      id: eventTypeId,
-      slug: eventType.slug,
-    },
-    luckyUsers: [],
-    luckyUserPool: [],
-    fixedUsers: [],
-    luckyUsersFromFirstBooking: [],
-    usedContactOwnerEmail: null,
-    allHostUsers: [],
-    askedContactOwnerEmail: null,
-    isManagedEventType: false,
-  };
+  let troubleshooterData = buildTroubleshooterData({
+    eventType,
+  });
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -1523,7 +1537,7 @@ async function handler(
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           videoCallUrl;
 
-        if (!isDryRun && booking && evt.iCalUID !== booking.iCalUID) {
+        if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
           // The eventManager could change the iCalUID. At this point we can update the DB record
           await prisma.booking.update({
             where: {

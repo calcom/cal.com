@@ -137,8 +137,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
     eventTypeColor: null,
-    membersAssignmentSegmentQueryValue: null,
-    assignTeamMembersInSegment: false,
+    assignRRMembersUsingSegment: false,
+    rrSegmentQueryValue: null,
     ...eventType,
   };
 };

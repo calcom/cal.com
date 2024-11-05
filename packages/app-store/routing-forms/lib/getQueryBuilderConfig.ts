@@ -111,9 +111,14 @@ function transformAttributesToCompatibleFormat(attributes: Attribute[]) {
 
 export function getQueryBuilderConfigForAttributes({
   attributes,
+  /**
+   * It is the fields that makes up additional options to be matched with for the single select/multiselect attributes.
+   * They are shown as 'Value of field <field-label>' in the dropdown.
+   */
   dynamicOperandFields = [],
 }: {
   attributes: Attribute[];
+
   dynamicOperandFields?: {
     label: string;
     id: string;
@@ -127,15 +132,15 @@ export function getQueryBuilderConfigForAttributes({
       // We can assert the type because otherwise we throw 'Unsupported field type' error
       const widget = FormFieldsInitialConfig.widgets[attributeType];
       const widgetType = widget.type;
-      const attributeOptions = attribute.options.concat(
-        (() => {
-          const formFieldsOptions = dynamicOperandFields.map((field) => ({
-            title: `Value of field '${field.label}'`,
-            value: `{field:${field.id}}`,
-          }));
-          return formFieldsOptions;
-        })()
-      );
+      const valueOfFieldOptions = (() => {
+        const formFieldsOptions = dynamicOperandFields.map((field) => ({
+          title: `Value of field '${field.label}'`,
+          value: `{field:${field.id}}`,
+        }));
+        return formFieldsOptions;
+      })();
+
+      const attributeOptions = [...valueOfFieldOptions, ...attribute.options];
 
       // These are RAQB fields
       fields[attribute.id] = {

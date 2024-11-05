@@ -232,7 +232,7 @@ const RoundRobinHosts = ({
   const { t } = useLocale();
 
   const { setValue, getValues, control } = useFormContext<FormValues>();
-  const assignTeamMembersInSegment = getValues("assignTeamMembersInSegment");
+  const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
     name: "isRRWeightsEnabled",
@@ -245,7 +245,7 @@ const RoundRobinHosts = ({
         <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && !assignTeamMembersInSegment && (
+        {!assignAllTeamMembers && !assignRRMembersUsingSegment && (
           <Controller<FormValues>
             name="isRRWeightsEnabled"
             render={({ field: { value, onChange } }) => (
@@ -485,7 +485,7 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
   );
 
   const resetRROptions = () => {
-    setValue("assignTeamMembersInSegment", false, { shouldDirty: true });
+    setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
     setValue("assignAllTeamMembers", false, { shouldDirty: true });
     setAssignAllTeamMembers(false);
   };

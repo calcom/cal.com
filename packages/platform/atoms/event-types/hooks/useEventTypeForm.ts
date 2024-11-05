@@ -111,8 +111,8 @@ export const useEventTypeForm = ({
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
-      assignTeamMembersInSegment: eventType.assignTeamMembersInSegment,
-      membersAssignmentSegmentQueryValue: eventType.membersAssignmentSegmentQueryValue,
+      assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
+      rrSegmentQueryValue: eventType.rrSegmentQueryValue,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
         enabled: eventType.aiPhoneCallConfig?.enabled,

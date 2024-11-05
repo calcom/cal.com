@@ -148,10 +148,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest,
     bookingFields,
     isRRWeightsEnabled,
-    membersAssignmentSegmentQueryValue:
-      rest.membersAssignmentSegmentQueryValue === null
+    rrSegmentQueryValue:
+      rest.rrSegmentQueryValue === null
         ? Prisma.DbNull
-        : (rest.membersAssignmentSegmentQueryValue as Prisma.InputJsonValue),
+        : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
   };

@@ -170,9 +170,6 @@ export default async function handleChildrenEventTypes({
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
             eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-            membersAssignmentSegmentQueryValue:
-              (managedEventTypeValues.membersAssignmentSegmentQueryValue as Prisma.InputJsonValue) ??
-              undefined,
             onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
             userId,
             users: {
@@ -183,6 +180,12 @@ export default async function handleChildrenEventTypes({
             workflows: currentWorkflowIds && {
               create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
             },
+            /**
+             * RR Segment isn't applicable for managed event types.
+             */
+            rrSegmentQueryValue: undefined,
+            assignRRMembersUsingSegment: false,
+
             // Reserved for future releases
             /*
             webhooks: eventType.webhooks && {
@@ -228,7 +231,7 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    console.log({ unlockedFieldProps });
+    console.log({ eventType, unlockedFieldProps, updatePayloadFiltered });
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {

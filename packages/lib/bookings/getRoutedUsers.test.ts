@@ -1,9 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import {
   getRoutedHostsWithContactOwnerAndFixedHosts,
   getRoutedUsersWithContactOwnerAndFixedUsers,
 } from "./getRoutedUsers";
+
+vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+  default: {},
+}));
 
 describe("getRoutedHostsWithContactOwnerAndFixedHosts", () => {
   const hosts = [

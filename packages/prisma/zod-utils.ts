@@ -758,4 +758,4 @@ export const bookingSeatDataSchema = z.object({
   responses: bookingResponses,
 });
 
-export const membersAssignmentSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
+export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();

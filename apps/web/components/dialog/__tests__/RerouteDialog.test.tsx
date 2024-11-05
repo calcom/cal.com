@@ -164,7 +164,7 @@ vi.mock("@calcom/trpc/react", () => ({
             isPending: false,
           })),
         },
-        findTeamMembersMatchingAttributeLogic: {
+        findTeamMembersMatchingAttributeLogicOfRoute: {
           useMutation: vi.fn(({ onSuccess }) => {
             return {
               mutate: vi.fn(() => {

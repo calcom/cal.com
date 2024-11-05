@@ -129,8 +129,8 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
-  assignTeamMembersInSegment: boolean;
-  membersAssignmentSegmentQueryValue: AttributesQueryValue | null;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;

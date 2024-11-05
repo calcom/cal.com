@@ -147,7 +147,7 @@ async function getLogicResultForAllMembers(
     enableTroubleshooter?: boolean;
   } = {}
 ) {
-  const { concurrency = 2, enableTroubleshooter = false } = config;
+  const { concurrency = 2 } = config;
   const teamMembersMatchingAttributeLogicMap = new Map<number, RaqbLogicResult>();
   const attributesDataPerUser = new Map<number, ReturnType<typeof getAttributes>>();
 
@@ -183,7 +183,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     attributesData: { attributesForTeam, teamMembersWithAttributeOptionValuePerAttribute },
     dynamicFieldValueOperands,
   } = data;
-  const { concurrency, enablePerf, isPreview, enableTroubleshooter } = options;
+  const { concurrency, enablePerf, enableTroubleshooter } = options;
   const attributesQueryValue = getAttributesQueryValue({
     attributesQueryValue: _attributesQueryValue ?? null,
     attributes: attributesForTeam,

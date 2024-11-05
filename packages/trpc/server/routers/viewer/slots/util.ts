@@ -12,7 +12,10 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { getRoutedHostsWithContactOwnerAndFixedHosts,findMatchingHosts } from "@calcom/lib/bookings/getRoutedUsers";
+import {
+  getRoutedHostsWithContactOwnerAndFixedHosts,
+  findMatchingHosts,
+} from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -30,8 +33,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, membersAssignmentSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -180,8 +182,8 @@ export async function getEventType(
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
-      assignTeamMembersInSegment: true,
-      membersAssignmentSegmentQueryValue: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
       team: {
         select: {
           id: true,
@@ -263,9 +265,7 @@ export async function getEventType(
   return {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-    membersAssignmentSegmentQueryValue: membersAssignmentSegmentQueryValueSchema.parse(
-      eventType.membersAssignmentSegmentQueryValue
-    ),
+    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
   };
 }
 
@@ -404,9 +404,6 @@ export function getUsersWithCredentialsConsideringContactOwner({
 
   return contactOwnerAndFixedHosts;
 }
-
-
-
 
 export const getAvailableSlots = async (
   ...args: Parameters<typeof _getAvailableSlots>

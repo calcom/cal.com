@@ -27,8 +27,8 @@ type EventType = Pick<
   | "schedulingType"
   | "team"
   | "assignAllTeamMembers"
-  | "assignTeamMembersInSegment"
-  | "membersAssignmentSegmentQueryValue"
+  | "assignRRMembersUsingSegment"
+  | "rrSegmentQueryValue"
 >;
 
 type InputProps = {
