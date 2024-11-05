@@ -64,6 +64,7 @@ export const buildBooking = (
     fromReschedule: null,
     recurringEventId: null,
     smsReminderNumber: null,
+    reassignById: null,
     scheduledJobs: [],
     metadata: null,
     responses: null,

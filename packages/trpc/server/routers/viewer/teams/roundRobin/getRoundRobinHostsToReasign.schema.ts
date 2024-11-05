@@ -1,10 +1,12 @@
 import { z } from "zod";
 
-export const ZGetRoundRobinHostsToReassignInputSchema = z.object({
+// New schema for fetching hosts
+export const ZGetRoundRobinHostsInputSchema = z.object({
   bookingId: z.number(),
-  exclude: z.enum(["fixedHosts"]).optional(),
+  exclude: z.literal("fixedHosts"),
+  cursor: z.number().optional(), // For pagination
+  limit: z.number().min(1).max(100).optional(),
+  searchTerm: z.string().optional(),
 });
 
-export type TGetRoundRobinHostsToReassignInputSchema = z.infer<
-  typeof ZGetRoundRobinHostsToReassignInputSchema
->;
+export type TGetRoundRobinHostsToReassignInputSchema = z.infer<typeof ZGetRoundRobinHostsInputSchema>;

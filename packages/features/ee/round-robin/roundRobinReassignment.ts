@@ -2,7 +2,6 @@
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
@@ -23,7 +22,6 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -31,6 +29,7 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
@@ -174,6 +173,7 @@ export const roundRobinReassignment = async ({
   }
 
   const attendeeList = await Promise.all(attendeePromises);
+  let bookingLocation = booking.location;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -187,9 +187,7 @@ export const roundRobinReassignment = async ({
 
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
-    let bookingLocation = booking.location;
-
-    if (eventType.locations.includes({ type: OrganizerDefaultConferencingAppType })) {
+    if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
       const organizerMetadataSafeParse = userMetadataSchema.safeParse(reassignedRRHost.metadata);
 
       const defaultLocationUrl = organizerMetadataSafeParse.success
@@ -291,6 +289,7 @@ export const roundRobinReassignment = async ({
       bookingFields: eventType?.bookingFields ?? null,
       booking,
     }),
+    location: bookingLocation,
   };
 
   const credentials = await prisma.credential.findMany({
@@ -305,27 +304,27 @@ export const roundRobinReassignment = async ({
       },
     },
   });
-  const eventManager = new EventManager({ ...organizer, credentials: [...credentials] });
 
-  const results = await eventManager.reschedule(
+  const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
-    booking.uid,
-    undefined,
-    hasOrganizerChanged,
-    previousHostDestinationCalendar ? [previousHostDestinationCalendar] : []
-  );
-
-  let newReferencesToCreate = [];
-  newReferencesToCreate = structuredClone(results.referencesToCreate);
-
-  await BookingReferenceRepository.replaceBookingReferences({
+    rescheduleUid: booking.uid,
+    newBookingId: undefined,
+    changedOrganizer: hasOrganizerChanged,
+    previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+    initParams: {
+      user: { ...organizer, credentials: [...credentials] },
+    },
     bookingId,
-    newReferencesToCreate,
+    bookingLocation,
+    bookingICalUID: booking.iCalUID,
+    bookingMetadata: booking.metadata,
   });
+
+  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   await sendRoundRobinScheduledEmailsAndSMS({
-    calEvent: evt,
+    calEvent: evtWithoutCancellationReason,
     members: [
       {
         ...reassignedRRHost,
@@ -340,7 +339,7 @@ export const roundRobinReassignment = async ({
   if (previousRRHost) {
     // Send to cancelled RR host
     // First we need to replace the new RR host with the old RR host in the evt object
-    const cancelledRRHostEvt = cloneDeep(evt);
+    const cancelledRRHostEvt = cloneDeep(evtWithAdditionalInfo);
     cancelledRRHostEvt.title = currentBookingTitle;
     if (hasOrganizerChanged) {
       cancelledRRHostEvt.organizer = {
@@ -427,7 +426,7 @@ export const roundRobinReassignment = async ({
       },
     });
 
-    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evtWithAdditionalInfo) };
 
     const bookerUrl = await getBookerBaseUrl(orgId);
 
@@ -438,7 +437,7 @@ export const roundRobinReassignment = async ({
       if (workflowStep && workflow) {
         await scheduleEmailReminder({
           evt: {
-            ...evt,
+            ...evtWithAdditionalInfo,
             metadata: workflowEventMetadata,
             eventType,
             bookerUrl,
@@ -512,7 +511,7 @@ export const roundRobinReassignment = async ({
       workflows: newEventWorkflows,
       smsReminderNumber: null,
       calendarEvent: {
-        ...evt,
+        ...evtWithAdditionalInfo,
         metadata: workflowEventMetadata,
         eventType: { slug: eventType.slug },
         bookerUrl,
