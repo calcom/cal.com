@@ -12,10 +12,8 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 
 type PartialUser = Pick<User, "id" | "email">;
 
-const startOfMonth = dayjs().utc().startOf("month").toDate();
-
 interface GetLuckyUserParams<T extends PartialUser> {
-  availableUsers: T[];
+  availableUsers: [T, ...T[]]; // ensure contains at least 1
   eventType: { id: number; isRRWeightsEnabled: boolean };
   allRRHosts: {
     user: { id: number; email: string };
@@ -23,6 +21,10 @@ interface GetLuckyUserParams<T extends PartialUser> {
     weight?: number | null;
   }[];
 }
+
+const startOfMonth = dayjs().utc().startOf("month").toDate();
+// TS helper function.
+const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
 
 async function leastRecentlyBookedUser<T extends PartialUser>({
   availableUsers,
@@ -187,7 +189,7 @@ function getUsersWithHighestPriority<T extends PartialUser & { priority?: number
   );
 }
 
-async function getUsersBasedOnWeights<
+async function filterUsersBasedOnWeights<
   T extends PartialUser & {
     weight?: number | null;
   }
@@ -196,7 +198,7 @@ async function getUsersBasedOnWeights<
   bookingsOfAvailableUsers,
   allRRHosts,
   eventType,
-}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
+}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }): Promise<[T, ...T[]]> {
   //get all bookings of all other RR hosts that are not available
   const availableUserIds = new Set(availableUsers.map((user) => user.id));
 
@@ -279,8 +281,13 @@ async function getUsersBasedOnWeights<
   const userIdsWithMaxShortfallAndWeight = new Set(
     usersWithMaxShortfall.filter((user) => user.weight === maxWeight).map((user) => user.id)
   );
-
-  return availableUsers.filter((user) => userIdsWithMaxShortfallAndWeight.has(user.id));
+  const remainingUsersAfterWeightFilter = availableUsers.filter((user) =>
+    userIdsWithMaxShortfallAndWeight.has(user.id)
+  );
+  if (!isNonEmptyArray(remainingUsersAfterWeightFilter)) {
+    throw new Error("Internal Error: Weight filter should never return length=0.");
+  }
+  return remainingUsersAfterWeightFilter;
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
@@ -292,14 +299,13 @@ export async function getLuckyUser<
   }
 >(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
-  getLuckyUserParams: GetLuckyUserParams<T>
+  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
 ) {
-  const { availableUsers, eventType, allRRHosts } = getLuckyUserParams;
-
+  const { eventType } = getLuckyUserParams;
+  // there is only one user
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
-
   const currentMonthBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
@@ -310,30 +316,26 @@ export async function getLuckyUser<
   });
 
   switch (distributionAlgorithm) {
-    case "MAXIMIZE_AVAILABILITY":
-      let possibleLuckyUsers = availableUsers;
+    case "MAXIMIZE_AVAILABILITY": {
+      const possibleLuckyUsers = availableUsers;
       if (eventType.isRRWeightsEnabled) {
-        possibleLuckyUsers = await getUsersBasedOnWeights({
+        availableUsers = await filterUsersBasedOnWeights({
           ...getLuckyUserParams,
+          availableUsers,
           bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
         });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
-
-      if (highestPriorityUsers.length > 1) {
-        const allBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
-          eventTypeId: eventType.id,
-          users: availableUsers.map((user) => {
-            return { id: user.id, email: user.email };
-          }),
-        });
-
-        return leastRecentlyBookedUser<T>({
-          ...getLuckyUserParams,
-          availableUsers: highestPriorityUsers,
-          bookingsOfAvailableUsers: allBookingsOfAvailableUsers,
-        });
-      }
-      return highestPriorityUsers[0];
+      // return 'undefined' early if the highestPriorityUsers list is empty.
+      if (!isNonEmptyArray(highestPriorityUsers)) return;
+      // No need to round-robin through the only user, return early also.
+      if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
+      // TS is happy.
+      return leastRecentlyBookedUser({
+        ...getLuckyUserParams,
+        availableUsers: highestPriorityUsers,
+        bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+      });
+    }
   }
 }
