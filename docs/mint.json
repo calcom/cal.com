@@ -194,7 +194,8 @@
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
-            "platform/atoms/calendar-settings"
+            "platform/atoms/calendar-settings",
+            "platform/atoms/payment-form"
           ]
         },
         "platform/quickstart",
