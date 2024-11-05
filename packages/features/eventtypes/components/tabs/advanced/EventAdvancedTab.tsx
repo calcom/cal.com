@@ -48,7 +48,6 @@ import type { RequiredConfirmationCustomClassnames } from "./RequiresConfirmatio
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
 type SettingsToggleClassnames = {
-  // children?: string;
   switchContainer?: string;
   label?: string;
   description?: string;
@@ -92,7 +91,16 @@ export type EventAdvancedTabCustomClassnames = {
     forwardParamsCheckboxClassnames?: CheckboxClassnames;
     error?: string;
   };
-  seatsClassnames: SettingsToggleClassnames & { children?: string };
+  seatsClassnames?: SettingsToggleClassnames & {
+    children?: string;
+    showAttendeesCheckboxClassnames?: CheckboxClassnames;
+    showAvalableSeatCountCheckboxClassnames?: CheckboxClassnames;
+    textInputClassnames: InputClassnames;
+  };
+  lockTimeZoneToggleOnBookingPageClassnames?: SettingsToggleClassnames;
+  eventTypeColorsClassnames?: SettingsToggleClassnames & {
+    children?: string;
+  };
 };
 
 type BookingField = z.infer<typeof fieldSchema>;
@@ -616,6 +624,7 @@ export const EventAdvancedTab = ({
                 customClassnames?.seatsClassnames?.switchContainer
               )}
               childrenClassName={classNames("lg:ml-0", customClassnames?.seatsClassnames?.children)}
+              descriptionClassName={customClassnames?.seatsClassnames?.description}
               data-testid="offer-seats-toggle"
               title={t("offer_seats")}
               {...seatsLocked}
@@ -659,20 +668,37 @@ export const EventAdvancedTab = ({
                         disabled={seatsLocked.disabled}
                         defaultValue={value}
                         min={1}
-                        containerClassName="max-w-80"
+                        containerClassName={classNames(
+                          "max-w-80",
+                          customClassnames?.seatsClassnames?.textInputClassnames.container
+                        )}
+                        addOnClassname={customClassnames?.seatsClassnames?.textInputClassnames.addOn}
+                        className={customClassnames?.seatsClassnames?.textInputClassnames?.input}
+                        labelClassName={customClassnames?.seatsClassnames?.textInputClassnames?.label}
                         addOnSuffix={<>{t("seats")}</>}
                         onChange={(e) => {
                           onChange(Math.abs(Number(e.target.value)));
                         }}
                         data-testid="seats-per-time-slot"
                       />
-                      <div className="mt-4">
+                      <div
+                        className={classNames(
+                          "mt-4",
+                          customClassnames?.seatsClassnames?.showAttendeesCheckboxClassnames?.container
+                        )}>
                         <Controller
                           name="seatsShowAttendees"
                           render={({ field: { value, onChange } }) => (
                             <CheckboxField
                               data-testid="show-attendees"
                               description={t("show_attendees")}
+                              className={
+                                customClassnames?.seatsClassnames?.showAttendeesCheckboxClassnames?.checkbox
+                              }
+                              descriptionClassName={
+                                customClassnames?.seatsClassnames?.showAttendeesCheckboxClassnames
+                                  ?.description
+                              }
                               disabled={seatsLocked.disabled}
                               onChange={(e) => onChange(e)}
                               checked={value}
@@ -680,7 +706,12 @@ export const EventAdvancedTab = ({
                           )}
                         />
                       </div>
-                      <div className="mt-2">
+                      <div
+                        className={classNames(
+                          "mt-2",
+                          customClassnames?.seatsClassnames?.showAvalableSeatCountCheckboxClassnames
+                            ?.container
+                        )}>
                         <Controller
                           name="seatsShowAvailabilityCount"
                           render={({ field: { value, onChange } }) => (
@@ -689,6 +720,14 @@ export const EventAdvancedTab = ({
                               disabled={seatsLocked.disabled}
                               onChange={(e) => onChange(e)}
                               checked={value}
+                              className={
+                                customClassnames?.seatsClassnames?.showAvalableSeatCountCheckboxClassnames
+                                  ?.checkbox
+                              }
+                              descriptionClassName={
+                                customClassnames?.seatsClassnames?.showAvalableSeatCountCheckboxClassnames
+                                  ?.description
+                              }
                             />
                           )}
                         />
@@ -706,9 +745,16 @@ export const EventAdvancedTab = ({
         name="lockTimeZoneToggleOnBookingPage"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName={classNames(
+              "text-sm",
+              customClassnames?.lockTimeZoneToggleOnBookingPageClassnames?.label
+            )}
+            descriptionClassName={customClassnames?.lockTimeZoneToggleOnBookingPageClassnames?.description}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassnames?.lockTimeZoneToggleOnBookingPageClassnames?.switchContainer
+            )}
             title={t("lock_timezone_toggle_on_booking_page")}
             {...lockTimeZoneToggleOnBookingPageLocked}
             description={t("description_lock_timezone_toggle_on_booking_page")}
@@ -722,7 +768,7 @@ export const EventAdvancedTab = ({
         name="eventTypeColor"
         render={() => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName={classNames("text-sm", customClassnames?.eventTypeColorsClassnames?.label)}
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
@@ -731,6 +777,7 @@ export const EventAdvancedTab = ({
             title={t("event_type_color")}
             {...eventTypeColorLocked}
             description={t("event_type_color_description")}
+            descriptionClassName={customClassnames?.eventTypeColorsClassnames?.description}
             checked={isEventTypeColorChecked}
             onCheckedChange={(e) => {
               const value = e ? eventTypeColorState : null;
@@ -739,7 +786,7 @@ export const EventAdvancedTab = ({
               });
               setIsEventTypeColorChecked(e);
             }}
-            childrenClassName="lg:ml-0">
+            childrenClassName={classNames("lg:ml-0", customClassnames?.eventTypeColorsClassnames?.children)}>
             <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
               <div>
                 <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
@@ -799,11 +846,15 @@ export const EventAdvancedTab = ({
           name="rescheduleWithSameRoundRobinHost"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName={classNames(
+                "text-sm",
+                customClassnames?.lockTimeZoneToggleOnBookingPageClassnames?.label
+              )}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
               title={t("reschedule_with_same_round_robin_host_title")}
               description={t("reschedule_with_same_round_robin_host_description")}
+              descriptionClassName={customClassnames?.lockTimeZoneToggleOnBookingPageClassnames?.description}
               checked={value}
               onCheckedChange={(e) => onChange(e)}
             />
