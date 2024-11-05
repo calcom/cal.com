@@ -89,10 +89,6 @@ export const AvailableTimeSlots = ({
 
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
 
-  console.log("slotsPerDay", slotsPerDay);
-  console.log("scheduleSlots", schedule?.slots);
-  console.log("dates", dates);
-
   return (
     <>
       <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>

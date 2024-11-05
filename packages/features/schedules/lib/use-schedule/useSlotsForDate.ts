@@ -20,21 +20,19 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
 };
 
 export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slots) => {
+  const nextWeekDay = dayjs().add(7, "day");
+
   const slotsForDates = useMemo(() => {
     if (slots === undefined) return [];
+
     return dates
       .filter((date) => date !== null)
+      .filter((date) => dayjs(date).isBefore(nextWeekDay))
       .map((date) => ({
         slots: slots[`${date}`] || [],
         date,
       }));
   }, [dates, slots]);
 
-  const onlyTodayMoreSevenDays = slotsForDates.filter((slot) => {
-    return (
-      slot.date && dayjs(slot.date).diff(dayjs(), "day") >= 0 && dayjs(slot.date).diff(dayjs(), "day") <= 7
-    );
-  });
-
-  return onlyTodayMoreSevenDays;
+  return slotsForDates;
 };
