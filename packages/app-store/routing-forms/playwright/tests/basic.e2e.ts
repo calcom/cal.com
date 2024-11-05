@@ -590,7 +590,9 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="test-preview"]');
         await page.fill('[data-testid="form-field-short-text"]', "medium");
         await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector("text=No matching members.");
+        await page.waitForSelector("text=Attribute logic matched: No");
+        await page.waitForSelector("text=Attribute logic fallback matched: Yes");
+        await page.waitForSelector("text=All assigned members of the team event type. Consider adding some attribute rules to fallback.");
         await page.click('[data-testid="dialog-rejection"]');
       })();
     });

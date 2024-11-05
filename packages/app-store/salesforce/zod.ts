@@ -18,6 +18,8 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   createEventOnLeadCheckForContact: z.boolean().optional(),
   onBookingChangeRecordOwner: z.boolean().optional(),
   onBookingChangeRecordOwnerName: z.string().optional(),
+  sendNoShowAttendeeData: z.boolean().optional(),
+  sendNoShowAttendeeDataField: z.string().optional(),
 });
 
 export const appKeysSchema = z.object({
