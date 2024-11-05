@@ -1,7 +1,6 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import posthog from "posthog-js";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
@@ -144,11 +143,7 @@ export const BookEventForm = ({
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
-            <Button
-              onClick={() => posthog.capture("instant_book_button_clicked")}
-              type="submit"
-              color="primary"
-              loading={loadingStates.creatingInstantBooking}>
+            <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
