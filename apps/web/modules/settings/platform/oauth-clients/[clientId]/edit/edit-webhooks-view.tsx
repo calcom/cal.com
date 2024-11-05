@@ -42,14 +42,16 @@ export default function EditOAuthClientWebhooks() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title={t("oAuth_client_updation_form")} isPlatformUser={true}>
+        <Shell title={t("webhook_update_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
                 <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                  Webhook update form
+                  {t("webhook_update_form")}
                 </h1>
-                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">Add a webhook to your OAuthClient.</p>
+                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
+                  {t("webhook_update_form_description")}
+                </p>
               </div>
             </div>
 
