@@ -414,7 +414,10 @@ export const getAvailableSlots = async (
 };
 
 async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
+  const {
+    _enableTroubleshooter: enableTroubleshooter = false,
+    _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
+  } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -504,6 +507,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       startTime,
       endTime,
       currentSeats,
+      bypassBusyCalendarTimes,
     });
 
   // If contact skipping, determine if there's availability within two weeks
@@ -528,6 +532,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             startTime,
             endTime,
             currentSeats,
+            bypassBusyCalendarTimes,
           }));
       }
     }
@@ -1012,6 +1017,7 @@ const calculateHostsAndAvailabilities = async ({
   startTime,
   endTime,
   currentSeats,
+  bypassBusyCalendarTimes,
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
@@ -1024,6 +1030,7 @@ const calculateHostsAndAvailabilities = async ({
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   currentSeats?: CurrentSeats | undefined;
+  bypassBusyCalendarTimes: boolean;
 }) => {
   if (
     input.rescheduleUid &&
@@ -1134,6 +1141,7 @@ const calculateHostsAndAvailabilities = async ({
       beforeEventBuffer: eventType.beforeEventBuffer,
       duration: input.duration || 0,
       returnDateOverrides: false,
+      bypassBusyCalendarTimes,
     },
     initialData: {
       eventType,
