@@ -34,10 +34,11 @@ interface SearchBarProps<TData> {
   table: Table<TData>;
   searchKey?: string;
   onSearch?: (value: string) => void;
+  className?: string;
 }
 
 function SearchBarComponent<TData>(
-  { table, searchKey, onSearch }: SearchBarProps<TData>,
+  { table, searchKey, onSearch, className }: SearchBarProps<TData>,
   ref: React.Ref<HTMLInputElement>
 ) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,7 +52,7 @@ function SearchBarComponent<TData>(
     return (
       <Input
         ref={ref}
-        className="max-w-64 mb-0 mr-auto rounded-md"
+        className={`max-w-64 mb-0 mr-auto rounded-md ${className ?? ""}`}
         placeholder="Search"
         value={searchTerm}
         onChange={(event) => setSearchTerm(event.target.value.trim())}
