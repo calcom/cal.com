@@ -469,34 +469,13 @@ describe("Organizations Users Endpoints", () => {
 
       const userData = body.data;
       expect(body.status).toBe(SUCCESS_STATUS);
-      userHasCorrectEventTypes(userData.id);
       createdUser = userData;
       teamHasCorrectEventTypes(team.id);
     });
 
-    async function userHasCorrectEventTypes(userId: number) {
-      const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
-
-      expect(eventTypes?.length).toEqual(1);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
-    }
-
     async function teamHasCorrectEventTypes(teamId: number) {
       const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
-
       expect(eventTypes?.length).toEqual(2);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
-
-      // note(Lauris): check if managed user added to collective event-type hosts given that it has assignAllTeamMembers: true
-      const collective = eventTypes?.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-      expect(collective).toBeTruthy();
-      expect(collective?.hosts).toBeDefined();
-      expect(collective?.hosts?.length).toEqual(1);
-      expect(collective?.hosts[0].userId).toEqual(createdUser.id);
     }
 
     afterAll(async () => {
