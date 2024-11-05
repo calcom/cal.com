@@ -57,7 +57,7 @@ testBothFutureAndLegacyRoutes.describe("App Store - Authed", (routeVariant) => {
     await page.waitForSelector('[data-testid="connect-automation-apps"]');
   });
 
-  test.only("Can add Adyen payment app from the app store", async ({ page, users }) => {
+  test("Can add Adyen payment app from the app store", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
 
