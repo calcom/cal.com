@@ -10,7 +10,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -141,6 +141,9 @@ tabs.find((tab) => {
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
+  }
 });
 
 // The following keys are assigned to admin only
@@ -225,9 +228,9 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
+        className="h-4 w-4 stroke-[2px] md:mt-0 ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180"
       />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
+      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -310,7 +313,7 @@ const TeamListCollapsible = () => {
                     {!team.parentId && (
                       <img
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                         alt={team.name || "Team logo"}
                       />
                     )}
@@ -339,7 +342,7 @@ const TeamListCollapsible = () => {
                   />
                   <VerticalTabItem
                     name={t("event_types_page_title")}
-                    href={`/event-types?teamIds=${team.id}`}
+                    href={`/event-types?teamId=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
@@ -393,8 +396,8 @@ const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
   bannersHeight,
-  currentOrg,
-  otherTeams,
+  currentOrg: currentOrgProp,
+  otherTeams: otherTeamsProp,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
@@ -405,7 +408,16 @@ const SettingsSidebarContainer = ({
       teamMenuOpen: boolean;
     }[]
   >();
+  const session = useSession();
+  const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.org && !currentOrgProp,
+  });
 
+  const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org && !otherTeamsProp,
+  });
+  const currentOrg = currentOrgProp ?? _currentOrg;
+  const otherTeams = otherTeamsProp ?? _otherTeams;
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
@@ -451,7 +463,7 @@ const SettingsSidebarContainer = ({
                       {tab && tab.icon && (
                         <Icon
                           name={tab.icon}
-                          className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                          className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                         />
                       )}
                       {!tab.icon && tab?.avatar && (
@@ -496,7 +508,7 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                           />
                         )}
                         <Skeleton
@@ -530,7 +542,7 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                           />
                         )}
                         <Skeleton
@@ -585,7 +597,7 @@ const SettingsSidebarContainer = ({
                                   {!otherTeam.parentId && (
                                     <img
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}

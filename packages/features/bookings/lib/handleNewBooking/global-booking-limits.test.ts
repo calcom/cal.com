@@ -85,6 +85,7 @@ describe(
                 team: {
                   id: 1,
                   bookingLimits: { PER_WEEK: 2 },
+                  includeManagedEventsInLimits: false,
                 },
                 schedulingType: SchedulingType.COLLECTIVE,
               },
@@ -100,6 +101,27 @@ describe(
                 ],
                 teamId: 1,
                 schedulingType: SchedulingType.COLLECTIVE,
+              },
+              {
+                id: 3,
+                slotInterval: eventLength,
+                length: eventLength,
+                hosts: [
+                  {
+                    userId: 101,
+                  },
+                ],
+                teamId: 1,
+                schedulingType: SchedulingType.MANAGED,
+              },
+              {
+                id: 4,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                parent: {
+                  id: 3,
+                },
               },
             ],
             bookings: [
@@ -124,13 +146,21 @@ describe(
                 startTime: `2024-08-06T04:30:00.000Z`,
                 endTime: `2024-08-06T05:00:00.000Z`,
               },
+              {
+                // managed event type doesn't count, includeManagedEventsInLimits is false
+                eventTypeId: 4,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-07T04:30:00.000Z`,
+                endTime: `2024-08-07T05:00:00.000Z`,
+              },
             ],
             organizer,
             usersApartFromOrganizer: otherTeamMembers,
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-08T04:00:00.000Z`,
             end: `2024-08-08T04:30:00.000Z`,
@@ -145,7 +175,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -157,7 +187,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-08T04:00:00.000Z`,
             end: `2024-08-08T04:30:00.000Z`,
@@ -172,7 +202,7 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData2,
+          body: mockBookingAboveLimit,
         });
 
         // this is the third team booking of this week for user 101, limit reached
@@ -221,7 +251,7 @@ describe(
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-07T04:30:00.000Z`,
             end: `2024-08-07T05:00:00.000Z`,
@@ -236,7 +266,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -248,7 +278,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-07T04:00:00.000Z`,
             end: `2024-08-07T04:30:00.000Z`,
@@ -263,10 +293,10 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingAboveLimit,
         });
 
-        // this is the second team booking of this days for user 101, limit reached
+        // this is the second team booking of this day for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
@@ -288,7 +318,8 @@ describe(
                 ],
                 team: {
                   id: 1,
-                  bookingLimits: { PER_MONTH: 3 },
+                  bookingLimits: { PER_MONTH: 4 },
+                  includeManagedEventsInLimits: true,
                 },
                 schedulingType: SchedulingType.COLLECTIVE,
               },
@@ -304,6 +335,27 @@ describe(
                 ],
                 teamId: 1,
                 schedulingType: SchedulingType.COLLECTIVE,
+              },
+              {
+                id: 3,
+                slotInterval: eventLength,
+                length: eventLength,
+                hosts: [
+                  {
+                    userId: 101,
+                  },
+                ],
+                teamId: 1,
+                schedulingType: SchedulingType.MANAGED,
+              },
+              {
+                id: 4,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                parent: {
+                  id: 3,
+                },
               },
             ],
             bookings: [
@@ -321,13 +373,21 @@ describe(
                 startTime: `2024-08-22T03:30:00.000Z`,
                 endTime: `2024-08-22T04:00:00.000Z`,
               },
+              {
+                //managed event type also counts towards limits
+                eventTypeId: 4,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-15T03:30:00.000Z`,
+                endTime: `2024-08-15T04:00:00.000Z`,
+              },
             ],
             organizer,
             usersApartFromOrganizer: otherTeamMembers,
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-29T04:30:00.000Z`,
             end: `2024-08-29T05:00:00.000Z`,
@@ -342,7 +402,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -354,7 +414,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-25T04:00:00.000Z`,
             end: `2024-08-25T04:30:00.000Z`,
@@ -369,10 +429,10 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingAboveLimit,
         });
 
-        // this is the second team booking of this days for user 101, limit reached
+        // this is the firth team booking (incl. managed) of this month for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
@@ -394,7 +454,8 @@ describe(
                 ],
                 team: {
                   id: 1,
-                  bookingLimits: { PER_YEAR: 2 },
+                  bookingLimits: { PER_YEAR: 3 },
+                  includeManagedEventsInLimits: true,
                 },
                 schedulingType: SchedulingType.COLLECTIVE,
               },
@@ -411,6 +472,27 @@ describe(
                 teamId: 1,
                 schedulingType: SchedulingType.COLLECTIVE,
               },
+              {
+                id: 3,
+                slotInterval: eventLength,
+                length: eventLength,
+                hosts: [
+                  {
+                    userId: 101,
+                  },
+                ],
+                teamId: 1,
+                schedulingType: SchedulingType.MANAGED,
+              },
+              {
+                id: 4,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                parent: {
+                  id: 3,
+                },
+              },
             ],
             bookings: [
               {
@@ -418,6 +500,13 @@ describe(
                 userId: 101,
                 status: BookingStatus.ACCEPTED,
                 startTime: `2024-02-03T03:30:00.000Z`,
+                endTime: `2024-02-03T04:00:00.000Z`,
+              },
+              {
+                eventTypeId: 4,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-03T03:30:00.000Z`,
                 endTime: `2024-08-03T04:00:00.000Z`,
               },
             ],
@@ -426,7 +515,7 @@ describe(
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-29T04:30:00.000Z`,
             end: `2024-08-29T05:00:00.000Z`,
@@ -441,7 +530,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -453,7 +542,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-11-25T04:00:00.000Z`,
             end: `2024-11-25T04:30:00.000Z`,
@@ -468,10 +557,9 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingAboveLimit,
         });
 
-        // this is the second team booking of this days for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );

@@ -1,5 +1,6 @@
+import { ApiProperty } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { ValidatorConstraint, registerDecorator } from "class-validator";
+import { IsEnum, ValidatorConstraint, registerDecorator } from "class-validator";
 
 import {
   BookerLayoutsInputEnum_2024_06_14,
@@ -44,9 +45,16 @@ function IsValidLayout(validationOptions?: ValidationOptions) {
 }
 
 export class BookerLayouts_2024_06_14 {
-  @IsValidLayout({ message: "defaultLayout must be one of the valid layouts." })
+  @IsValidLayout({ message: "defaultLayout must be one of the valid layouts - month, week or column" })
+  @ApiProperty({ type: String, enum: BookerLayoutsInputEnum_2024_06_14 })
+  @IsEnum(BookerLayoutsInputEnum_2024_06_14)
   defaultLayout!: BookerLayoutsInputEnum_2024_06_14;
 
   @IsValidLayout({ message: "enabledLayouts must be one of the valid layouts." })
+  @ApiProperty({ type: [String], enum: BookerLayoutsInputEnum_2024_06_14 })
+  @IsEnum(BookerLayoutsInputEnum_2024_06_14, {
+    each: true,
+    message: "enabledLayouts must contain only valid layouts - month, week or column",
+  })
   enabledLayouts!: BookerLayoutsInputEnum_2024_06_14[];
 }

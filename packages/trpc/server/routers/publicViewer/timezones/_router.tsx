@@ -11,7 +11,7 @@ export const timezonesRouter = router({
   cityTimezones: publicProcedure.input(cityTimezonesSchema).query(async () => {
     const handler = await importHandler(
       namespaced("cityTimezones"),
-      () => import("@calcom/lib/cityTimezonesHandler")
+      () => import("@calcom/features/cityTimezones/cityTimezonesHandler")
     );
     return handler();
   }),
