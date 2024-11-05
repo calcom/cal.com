@@ -317,7 +317,6 @@ export async function getLuckyUser<
 
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY": {
-      const possibleLuckyUsers = availableUsers;
       if (eventType.isRRWeightsEnabled) {
         availableUsers = await filterUsersBasedOnWeights({
           ...getLuckyUserParams,
@@ -325,7 +324,7 @@ export async function getLuckyUser<
           bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
         });
       }
-      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
+      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
       // return 'undefined' early if the highestPriorityUsers list is empty.
       if (!isNonEmptyArray(highestPriorityUsers)) return;
       // No need to round-robin through the only user, return early also.
