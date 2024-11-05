@@ -52,22 +52,22 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   );
 
   const fieldTypeOptions = [
-    { label: "Text", value: SalesforceFieldType.TEXT },
-    { label: "Date", value: SalesforceFieldType.DATE },
+    { label: t("text"), value: SalesforceFieldType.TEXT },
+    { label: t("date"), value: SalesforceFieldType.DATE },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
 
   const whenToWriteToRecordOptions = [
-    { label: "On every booking", value: WhenToWriteToRecord.EVERY_BOOKING },
-    { label: "Only if field is empty", value: WhenToWriteToRecord.FIELD_EMPTY },
+    { label: t("on_every_booking"), value: WhenToWriteToRecord.EVERY_BOOKING },
+    { label: t("only_if_field_is_empty"), value: WhenToWriteToRecord.FIELD_EMPTY },
   ];
 
   const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(whenToWriteToRecordOptions[0]);
 
   const dateFieldValueOptions = [
-    { label: "Booking start date", value: DateFieldTypeData.BOOKING_START_DATE },
-    { label: "Booking created date", value: DateFieldTypeData.BOOKING_CREATED_DATE },
+    { label: t("booking_start_date"), value: DateFieldTypeData.BOOKING_START_DATE },
+    { label: t("booking_created_date"), value: DateFieldTypeData.BOOKING_CREATED_DATE },
   ];
 
   const [dateFieldValue, setDateValue] = useState(dateFieldValueOptions[0]);

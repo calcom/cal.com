@@ -2747,5 +2747,9 @@
   "field_type": "Field type",
   "when_to_write": "When to write",
   "salesforce_on_booking_write_to_record": "On booking, write to a custom field on the attendee {{record}} record",
+  "on_every_booking": "On every booking",
+  "only_if_field_is_empty": "Only if field is empty",
+  "booking_start_date": "Booking start date",
+  "booking_created_date": "Booking created date",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
