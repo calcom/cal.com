@@ -366,6 +366,8 @@ export default function Success(props: PageProps) {
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
+  const isRescheduled = bookingInfo?.rescheduled;
+
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
@@ -377,6 +379,10 @@ export default function Success(props: PageProps) {
 
     if (isNotAttendingSeatedEvent) {
       return t("no_longer_attending");
+    }
+
+    if (isRescheduled) {
+      return t("your_event_has_been_rescheduled");
     }
 
     if (isEventCancelled) {

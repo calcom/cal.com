@@ -3,6 +3,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
 // import { SchedulingType } from "@calcom/prisma/enums";
@@ -29,7 +30,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   });
 
   const userProfile = ctx.user.profile;
-  const { group, limit, cursor, filters } = input;
+  const { group, limit, cursor, filters, searchQuery } = input;
   const { teamId, parentId } = group;
 
   const isFilterSet = (filters && hasFilter(filters)) || !!teamId;
@@ -51,6 +52,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
           where: {
             teamId: null,
             schedulingType: null,
+            ...(searchQuery ? { title: { contains: searchQuery, mode: "insensitive" } } : {}),
           },
           orderBy: [
             {
@@ -82,6 +84,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
                 schedulingType: { in: filters.schedulingTypes },
               }
             : null),
+          ...(searchQuery ? { title: { contains: searchQuery, mode: "insensitive" } } : {}),
         },
         orderBy: [
           {
@@ -132,6 +135,28 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
       filteredEventTypes,
     })
   );
+
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: teamId ?? 0,
+      accepted: true,
+      role: "MEMBER",
+    },
+    include: {
+      team: {
+        select: {
+          isPrivate: true,
+        },
+      },
+    },
+  });
+
+  if (membership && membership.team.isPrivate)
+    filteredEventTypes.forEach((evType) => {
+      evType.users = [];
+      evType.hosts = [];
+    });
 
   return {
     eventTypes: filteredEventTypes || [],
