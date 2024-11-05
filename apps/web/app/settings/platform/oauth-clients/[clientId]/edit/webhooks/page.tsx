@@ -1,15 +1,15 @@
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import EditView from "~/settings/platform/oauth-clients/[clientId]/edit/edit-view";
+import EditWebhooksView from "~/settings/platform/oauth-clients/[clientId]/edit/edit-webhooks-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("oAuth_client_updation_form"),
+    (t) => t("webhook_update_form"),
     () => ""
   );
 
 export default WithLayout({
   getLayout: null,
-  Page: EditView,
+  Page: EditWebhooksView,
 });

@@ -1,5 +1,6 @@
 import type { Booking, EventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -110,6 +111,7 @@ export async function getBusyTimes(params: {
   let bookings = params.currentBookings;
 
   if (!bookings) {
+    const getBookingsForBusyTimesSpan = Sentry.startInactiveSpan({ name: "getBookingsForBusyTimes" });
     const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
       id: true,
       uid: true,
@@ -180,6 +182,8 @@ export async function getBusyTimes(params: {
     ]);
 
     bookings = [...resultOne, ...resultTwo, ...(resultThree ?? [])];
+
+    getBookingsForBusyTimesSpan.end();
   }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
