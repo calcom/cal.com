@@ -11,7 +11,7 @@ export enum WhenToWriteToRecord {
 
 export enum SalesforceFieldType {
   DATE = "date",
-  TEXT = "text",
+  TEXT = "string",
 }
 
 export enum DateFieldTypeData {
