@@ -320,10 +320,10 @@ describe("Organizations Teams Memberships Endpoints", () => {
       const managedEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
       const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(orgTeam.id);
       expect(managedEventTypes?.length).toEqual(1);
-      expect(teamEventTypes?.length).toEqual(1);
-      const userTeamEventType = teamEventTypes?.find((eventType) => eventType.slug === teamEventType.slug);
-      expect(userTeamEventType).toBeTruthy();
-      const userHost = userTeamEventType?.hosts.find((host) => host.userId === userId);
+      expect(teamEventTypes?.length).toEqual(2);
+      const collectiveEvenType = teamEventTypes?.find((eventType) => eventType.slug === teamEventType.slug);
+      expect(collectiveEvenType).toBeTruthy();
+      const userHost = collectiveEvenType?.hosts.find((host) => host.userId === userId);
       expect(userHost).toBeTruthy();
       expect(managedEventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
     }
