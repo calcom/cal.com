@@ -8,8 +8,8 @@ export const appKeysSchema = z.object({
     .describe(
       "Pattern according to which your created calls are named. You can use the following placeholders: {uuid}, {Title}, {Event Type Title}, {Scheduler}, {Organizer}, {Location} and {Team}"
     ),
-  nextcloudTalkClientId: z.string().describe("Your Nextcloud OAuth Client's ID"),
-  nextcloudTalkClientSecret: z.string().describe("Your Nextcloud OAuth Client's secret"),
+  nextcloudTalkClientId: z.string(),
+  nextcloudTalkClientSecret: z.string(),
 });
 
 export const appDataSchema = z.object({});
