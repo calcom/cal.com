@@ -730,7 +730,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     startTime: string,
     organizerEmail: string,
-    bookingUid?: string
+    bookingUid?: string | null
   ) {
     const conn = await this.conn;
     const { createEventOn, onBookingWriteToRecordFields } = this.getAppOptions();
@@ -773,7 +773,7 @@ export default class SalesforceCRMService implements CRM {
     personRecord: Record<string, any>;
     onBookingWriteToRecordFields: Record<string, any>;
     startTime: string;
-    bookingUid?: string;
+    bookingUid?: string | null;
     organizerEmail: string;
   }): Promise<Record<string, any>> {
     const writeOnRecordBody: Record<string, any> = {};
@@ -810,7 +810,7 @@ export default class SalesforceCRMService implements CRM {
   private async getDateFieldValue(
     fieldValue: string,
     startTime: string,
-    bookingUid?: string,
+    bookingUid?: string | null,
     organizerEmail?: string
   ): Promise<string | null> {
     if (fieldValue === DateFieldTypeData.BOOKING_START_DATE) {
