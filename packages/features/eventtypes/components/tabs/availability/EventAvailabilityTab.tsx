@@ -16,7 +16,7 @@ import type {
   FormValues,
   EventTypeSetup,
   Host,
-  SelectClassNames,
+  SelectClassnames,
 } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,14 +41,14 @@ type AvailabilityTableCustomClassnames = {
   dayAvailabilitySeperator?: string;
 };
 
-type TeamMemmberScheduelCustomClassnames = SelectClassNames & {
+type TeamMemmberScheduelCustomClassnames = SelectClassnames & {
   labelAvatar?: string;
   labelContainer?: string;
 };
 
 type UserAvailabilityCustomClassnames = {
   availabilitySectionContainer?: string;
-  availabilitySelectClassnames?: SelectClassNames;
+  availabilitySelectClassnames?: SelectClassnames;
   availabilityTableClassnames?: AvailabilityTableCustomClassnames;
 };
 
