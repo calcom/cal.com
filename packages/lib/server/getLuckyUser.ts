@@ -115,9 +115,8 @@ async function getHostsWithCalibration(
   eventTypeId: number,
   hosts: { userId: number; email: string; createdAt: Date }[]
 ) {
-  // get calibration for newly added hosts
-  const newHosts =
-    (await prisma.host.findMany({
+  const [newHostsArray, existingBookings] = await Promise.all([
+    prisma.host.findMany({
       where: {
         userId: {
           in: hosts.map((host) => host.userId),
@@ -128,51 +127,45 @@ async function getHostsWithCalibration(
           gte: startOfMonth,
         },
       },
-    })) ?? [];
-
-  if (newHosts.length) {
-    const existingBookings = await BookingRepository.getAllBookingsForRoundRobin({
+    }),
+    BookingRepository.getAllBookingsForRoundRobin({
       eventTypeId,
-      users: hosts.map((host) => {
-        return { id: host.userId, email: host.email };
-      }),
+      users: hosts.map((host) => ({
+        id: host.userId,
+        email: host.email,
+      })),
       startDate: startOfMonth,
       endDate: new Date(),
-    });
-
-    // calculate calibration for new hosts
-    if (newHosts.length && existingBookings.length) {
-      const newHostsWithCalibration = newHosts.map((newHost) => {
-        const existingBookingsBeforeAdded = existingBookings.filter(
-          (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
-        );
-
-        const hostsAddedBefore = hosts.filter(
-          (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
-        );
-
-        if (existingBookingsBeforeAdded.length && hostsAddedBefore.length) {
-          const averageBookingsPerHost = existingBookingsBeforeAdded.length / hostsAddedBefore.length;
-          return {
-            ...newHost,
-            calibration: averageBookingsPerHost,
-          };
-        }
-
-        return {
-          ...newHost,
-          calibration: 0,
-        };
-      });
-
-      return hosts.map((host) => ({
-        ...host,
-        calibration:
-          newHostsWithCalibration.find((newHost) => host.userId === newHost.userId)?.calibration ?? 0,
-      }));
-    }
+    }),
+  ]);
+  // Return early if there are no new hosts or no existing bookings
+  if (newHostsArray.length === 0 || existingBookings.length === 0) {
+    return hosts.map((host) => ({ ...host, calibration: 0 }));
   }
-  return hosts.map((host) => ({ ...host, calibration: 0 }));
+  // Helper function to calculate calibration for a new host
+  function calculateCalibration(newHost: { userId: number; createdAt: Date }) {
+    const existingBookingsBeforeAdded = existingBookings.filter(
+      (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
+    );
+    const hostsAddedBefore = hosts.filter(
+      (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
+    );
+    return existingBookingsBeforeAdded.length && hostsAddedBefore.length
+      ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
+      : 0;
+  }
+  // Calculate calibration for each new host and store in a Map
+  const newHostsWithCalibration = new Map(
+    newHostsArray.map((newHost) => [
+      newHost.userId,
+      { ...newHost, calibration: calculateCalibration(newHost) },
+    ])
+  );
+  // Map hosts with their respective calibration values
+  return hosts.map((host) => ({
+    ...host,
+    calibration: newHostsWithCalibration.get(host.userId)?.calibration ?? 0,
+  }));
 }
 
 function getUsersWithHighestPriority<T extends PartialUser & { priority?: number | null }>({
