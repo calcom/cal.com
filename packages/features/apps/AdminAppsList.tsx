@@ -249,7 +249,10 @@ const EditKeysModal: FC<{
                       name={key}
                       value={value}
                       containerClassName="pb-5"
-                      hint={appKeySchema.shape[key].description}
+                      hint={
+                        (appKeySchema.shape as Record<string, { description?: string } | undefined>)[key]
+                          ?.description
+                      }
                       onChange={(e) => {
                         formMethods.setValue(key, e?.target.value);
                       }}
