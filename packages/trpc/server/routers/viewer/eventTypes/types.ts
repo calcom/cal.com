@@ -13,8 +13,8 @@ const aiPhoneCallConfig = z
     yourPhoneNumber: z.string(),
     numberToCall: z.string(),
     guestName: z.string().nullable().optional(),
-    guestEmail: z.string().nullable(),
-    guestCompany: z.string().nullable(),
+    guestEmail: z.string().nullable().optional(),
+    guestCompany: z.string().nullable().optional(),
     templateType: templateTypeEnum,
   })
   .optional();
