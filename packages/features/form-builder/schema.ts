@@ -242,7 +242,7 @@ export const fieldSchema = baseFieldSchema.merge(
   })
 );
 
-export const fieldsSchema = z.array(fieldSchema).nullable();
+export const fieldsSchema = z.array(fieldSchema);
 
 export const fieldTypesSchemaMap: Partial<
   Record<
