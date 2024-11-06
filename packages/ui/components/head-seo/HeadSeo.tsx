@@ -131,7 +131,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
       ...seoObject.openGraph,
       images: [...(nextSeoProps.openGraph?.images || []), ...seoObject.openGraph.images],
     },
-    additionalMetaTags: [...(nextSeoProps.additionalMetaTags || [])],
+    additionalMetaTags: [...(nextSeoProps.additionalMetaTags || []), ...seoObject.additionalMetaTags],
   };
 
   return <NextSeo {...seoProps} />;
