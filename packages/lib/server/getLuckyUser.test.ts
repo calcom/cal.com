@@ -2,6 +2,7 @@ import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { expect, it, describe } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 
 import { DistributionMethod, getLuckyUser } from "./getLuckyUser";
@@ -214,51 +215,6 @@ it("can find lucky user with maximize availability and priority ranking", async 
       allRRHosts: [],
     })
   ).resolves.toStrictEqual(usersWithSamePriorities[1]);
-});
-
-it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
-  const users: GetLuckyUserAvailableUsersType = [
-    buildUser({
-      id: 1,
-      username: "test1",
-      name: "Test User 1",
-      email: "test1@example.com",
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-        },
-      ],
-    }),
-    buildUser({
-      id: 2,
-      username: "test2",
-      name: "Test User 2",
-      email: "test2@example.com",
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T04:30:00.000Z"),
-        },
-      ],
-    }),
-  ];
-  // TODO: we may be able to use native prisma generics somehow?
-  prismaMock.user.findMany.mockResolvedValue(users);
-  prismaMock.host.findMany.mockResolvedValue([]);
-  prismaMock.booking.findMany.mockResolvedValue([]);
-
-  await expect(
-    getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
-      availableUsers: users,
-      eventType: {
-        id: 1,
-        isRRWeightsEnabled: false,
-      },
-      allRRHosts: [],
-    })
-  ).resolves.toStrictEqual(users[1]);
 });
 
 describe("maximize availability and weights", () => {
@@ -523,6 +479,109 @@ describe("maximize availability and weights", () => {
       },
     ];
 
+    await expect(
+      getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+        },
+        allRRHosts,
+      })
+    ).resolves.toStrictEqual(users[0]);
+  });
+
+  it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    const middleOfMonth = new Date(
+      Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 14, 12, 0, 0)
+    );
+
+    const allRRHosts = [
+      {
+        user: { id: users[0].id, email: users[0].email },
+        weight: users[0].weight,
+        createdAt: middleOfMonth,
+      },
+      {
+        user: { id: users[1].id, email: users[1].email },
+        weight: users[1].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    // TODO: we may be able to use native prisma generics somehow?
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([
+      {
+        userId: allRRHosts[0].user.id,
+        weight: allRRHosts[0].weight,
+        createdAt: allRRHosts[0].createdAt,
+      },
+    ]);
+    // findMany bookings are BEFORE the new host (user 1) was added, calibration=2.
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 4,
+        userId: 2,
+        createdAt: dayjs(middleOfMonth).subtract(2, "days").toDate(),
+      }),
+      buildBooking({
+        id: 5,
+        userId: 2,
+        createdAt: dayjs(middleOfMonth).subtract(5, "days").toDate(),
+      }),
+    ]);
+    await expect(
+      getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+        },
+        allRRHosts,
+      })
+    ).resolves.toStrictEqual(users[1]);
+    // findMany bookings are AFTER the new host (user 1) was added, calibration=0.
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 4,
+        userId: 2,
+        createdAt: dayjs(middleOfMonth).add(2, "days").toDate(),
+      }),
+      buildBooking({
+        id: 5,
+        userId: 2,
+        createdAt: dayjs(middleOfMonth).add(5, "days").toDate(),
+      }),
+    ]);
     await expect(
       getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         availableUsers: users,
