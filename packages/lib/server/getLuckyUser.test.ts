@@ -1,9 +1,10 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { expect, it, describe } from "vitest";
 
-import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
+
+import { getLuckyUser } from "./getLuckyUser";
 
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
