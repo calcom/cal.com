@@ -99,8 +99,6 @@ export function Header({
     );
   };
 
-  const selectedDateIsYesterday = selectedDate.isBefore(today, "day");
-
   return (
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
       <div className="flex items-center gap-5 rtl:flex-grow">

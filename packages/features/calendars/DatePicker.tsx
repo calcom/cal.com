@@ -38,6 +38,7 @@ export type DatePickerProps = {
   isPending?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
+  eventId?: number;
   /** To identify days that are not available and should display OOO and redirect if toUser exists */
   slots?: Record<
     string,
@@ -138,6 +139,7 @@ const Days = ({
   selected,
   month,
   nextMonthButton,
+  eventId,
   eventSlug,
   slots,
   customClassName,
@@ -206,9 +208,11 @@ const Days = ({
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
 
+    const therapyIds = [1375, 1379, 1383, 1389];
+    const isTherapy = therapyIds.includes(eventId ?? 0);
     const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
     const away = isOOOAllDay;
-    const disabled = away ? !oooInfo?.toUser : !included || excluded || day.isAfter(nextWeek);
+    const disabled = away ? !oooInfo?.toUser : !included || excluded || (day.isAfter(nextWeek) && isTherapy);
 
     return {
       day: day,

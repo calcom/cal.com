@@ -27,7 +27,7 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
 
     return dates
       .filter((date) => date !== null)
-      .filter((date) => dayjs(date).isBefore(nextWeekDay) && isTherapy)
+      .filter((date) => dayjs(date).isBefore(nextWeekDay) || !isTherapy)
       .map((date) => ({
         slots: slots[`${date}`] || [],
         date,

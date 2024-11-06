@@ -337,8 +337,10 @@ export default function Success(props: PageProps) {
     if (pathname && pathname.includes("/booking/")) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
-      const getEventTypeSlugUrl = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?select=*";
-      const getBookedTimeUrl = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/Booking?select=*";
+      const getEventTypeSlugUrl =
+        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1146,1154,1246,1375,1379,1383,1389)";
+      const getBookedTimeUrl = `https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/Booking?uid=eq.${bookingUID}`;
+
       fetch(getEventTypeSlugUrl, {
         headers: {
           apikey:
@@ -346,13 +348,10 @@ export default function Success(props: PageProps) {
         },
       }).then((data) => {
         data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
-          const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
           const eventSlugs = data.reduce((acc, { id, slug }) => {
-            if (eventTypeIds.includes(id)) {
-              return { ...acc, [id]: slug };
-            }
-            return acc;
+            return { ...acc, [id]: slug };
           }, eventTypes);
+
           setEventTypes(eventSlugs);
         });
       });
@@ -364,7 +363,8 @@ export default function Success(props: PageProps) {
         },
       }).then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
-          const findedBooking = data.find(({ uid }) => uid === bookingUID);
+          const findedBooking = data[0];
+
           setPurchaseDate(dayjs(findedBooking?.createdAt));
           setAppointmentType((_prev) => {
             switch (true) {
@@ -496,6 +496,10 @@ export default function Success(props: PageProps) {
     const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
     const lessThan7DaysFromPurchase = purchaseDate?.isAfter(currentTime.subtract(7, "days"));
     const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
+
+    console.log({ purchaseDate });
+    console.log({ eventTypes });
+    console.log({ appointmentType });
 
     if (!purchaseDate || !eventTypes || !appointmentType) return { description: "", rescheduleRoute: "" };
 
