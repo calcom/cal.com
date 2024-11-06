@@ -614,48 +614,379 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
-    it("should return already cancelled seated booking (idempotency)", async () => {
-      const body: CancelSeatedBookingInput_2024_08_13 = {
-        seatUid: createdSeatedBooking.seatUid,
+    function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
+      return data.hasOwnProperty("seatUid");
+    }
+
+    function responseDataIsCreateRecurringSeatedBooking(
+      data: any
+    ): data is CreateRecurringSeatedBookingOutput_2024_08_13[] {
+      return Array.isArray(data);
+    }
+
+    function responseDataIsGetSeatedBooking(data: any): data is GetSeatedBookingOutput_2024_08_13 {
+      return data?.attendees?.every((attendee: any) => attendee?.hasOwnProperty("seatUid"));
+    }
+
+    function responseDataIsGetRecurringSeatedBooking(
+      data: any
+    ): data is GetRecurringSeatedBookingOutput_2024_08_13[] {
+      return Array.isArray(data);
+    }
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      await app.close();
+    });
+  });
+
+  describe("Recurring seated bookings creation", () => {
+    let app: INestApplication;
+    let organization: Team;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let schedulesService: SchedulesService_2024_04_15;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let oAuthClient: PlatformOAuthClient;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+
+    const userEmail = "seated-bookings-controller-e2e@api.com";
+    let user: User;
+
+    const seatedTventTypeSlug = "peer-coding-seated";
+    const recurringSeatedTventTypeSlug = "peer-coding-recurring-seated";
+    let seatedEventTypeId: number;
+    let recurringSeatedEventTypeId: number;
+    const maxRecurrenceCount = 3;
+
+    let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
+    let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
+
+    const emailAttendeeOne = "mr_proper_first@gmail.com";
+    const nameAttendeeOne = "Mr Proper First";
+    const emailAttendeeTwo = "mr_proper_second@gmail.com";
+    const nameAttendeeTwo = "Mr Proper Second";
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+
+      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
+
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+      });
+
+      const userSchedule: CreateScheduleInput_2024_04_15 = {
+        name: "working time",
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      };
+      await schedulesService.createUserSchedule(user.id, userSchedule);
+      const seatedEvent = await eventTypesRepositoryFixture.create(
+        {
+          title: "peer coding",
+          slug: seatedTventTypeSlug,
+          length: 60,
+          seatsPerTimeSlot: 5,
+          seatsShowAttendees: true,
+          seatsShowAvailabilityCount: true,
+          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+        },
+        user.id
+      );
+      seatedEventTypeId = seatedEvent.id;
+
+      const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
+        // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
+        {
+          title: "peer coding recurring",
+          slug: recurringSeatedTventTypeSlug,
+          length: 60,
+          recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
+          seatsPerTimeSlot: 5,
+          seatsShowAttendees: true,
+          seatsShowAvailabilityCount: true,
+          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+        },
+        user.id
+      );
+      recurringSeatedEventTypeId = recurringSeatedEvent.id;
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["http://localhost:5555"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should book a recurring event type with seats for the first time", async () => {
+      const recurrenceCount = 2;
+      const body: CreateRecurringBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)).toISOString(),
+        eventTypeId: recurringSeatedEventTypeId,
+        attendee: {
+          name: nameAttendeeOne,
+          email: emailAttendeeOne,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        bookingFieldsResponses: {
+          codingLanguage: "TypeScript",
+        },
+        recurrenceCount,
       };
 
       return request(app.getHttpServer())
-        .post(`/v2/bookings/${createdSeatedBooking.uid}/cancel`)
+        .post("/v2/bookings")
         .send(body)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(200)
+        .expect(201)
         .then(async (response) => {
-          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
-          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+          expect(responseDataIsCreateRecurringSeatedBooking(responseBody.data)).toBe(true);
 
-          if (responseDataIsGetSeatedBooking(responseBody.data)) {
-            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
-            expect(data.id).toBeDefined();
-            expect(data.uid).toBeDefined();
-            expect(data.hosts[0].id).toEqual(user.id);
-            expect(data.status).toEqual("cancelled");
-            expect(data.start).toEqual(createdSeatedBooking.start);
-            expect(data.end).toEqual(createdSeatedBooking.end);
-            expect(data.duration).toEqual(60);
-            expect(data.eventTypeId).toEqual(seatedEventTypeId);
-            expect(data.eventType).toEqual({
-              id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+          if (responseDataIsCreateRecurringSeatedBooking(responseBody.data)) {
+            const data: CreateRecurringSeatedBookingOutput_2024_08_13[] = responseBody.data;
+            expect(data.length).toEqual(recurrenceCount);
+
+            const firstBooking = data[0];
+            expect(firstBooking.seatUid).toBeDefined();
+            const seatUid = firstBooking.seatUid;
+            expect(firstBooking.id).toBeDefined();
+            expect(firstBooking.uid).toBeDefined();
+            expect(firstBooking.hosts[0].id).toEqual(user.id);
+            expect(firstBooking.status).toEqual("accepted");
+            expect(firstBooking.start).toEqual(body.start);
+            expect(firstBooking.end).toEqual(
+              DateTime.fromISO(body.start, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(firstBooking.duration).toEqual(60);
+            expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
+            expect(firstBooking.eventType).toEqual({
+              id: recurringSeatedEventTypeId,
+              slug: recurringSeatedTventTypeSlug,
             });
-            expect(data.attendees.length).toEqual(0);
-            expect(data.location).toBeDefined();
-            expect(data.absentHost).toEqual(false);
+            expect(firstBooking.attendees.length).toEqual(1);
+            expect(firstBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid,
+              bookingFieldsResponses: {
+                name: body.attendee.name,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(firstBooking.location).toEqual(body.location);
+            expect(firstBooking.absentHost).toEqual(false);
+
+            const secondBooking = data[1];
+            expect(secondBooking.seatUid).toBeDefined();
+            const secondSeatUid = secondBooking.seatUid;
+            expect(secondBooking.id).toBeDefined();
+            expect(secondBooking.uid).toBeDefined();
+            expect(secondBooking.hosts[0].id).toEqual(user.id);
+            expect(secondBooking.status).toEqual("accepted");
+            const expectedStart = DateTime.fromISO(body.start, { zone: "utc" }).plus({ weeks: 1 }).toISO();
+            expect(secondBooking.start).toEqual(expectedStart);
+            expect(secondBooking.end).toEqual(
+              DateTime.fromISO(expectedStart!, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(secondBooking.duration).toEqual(60);
+            expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
+            expect(secondBooking.eventType).toEqual({
+              id: recurringSeatedEventTypeId,
+              slug: recurringSeatedTventTypeSlug,
+            });
+            expect(secondBooking.attendees.length).toEqual(1);
+            expect(secondBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid: secondSeatUid,
+              bookingFieldsResponses: {
+                name: body.attendee.name,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(secondBooking.location).toEqual(body.location);
+            expect(secondBooking.absentHost).toEqual(false);
+            createdRecurringSeatedBooking = data;
           } else {
-            throw new Error("Invalid response data - expected booking but received array response");
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
           }
         });
     });
 
-    function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
-      return data.hasOwnProperty("seatUid");
-    }
+    it("should book a recurring event type with seats for the second time", async () => {
+      const recurrenceCount = 2;
+      const body: CreateRecurringBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)).toISOString(),
+        eventTypeId: recurringSeatedEventTypeId,
+        attendee: {
+          name: nameAttendeeTwo,
+          email: emailAttendeeTwo,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        bookingFieldsResponses: {
+          codingLanguage: "TypeScript",
+        },
+        recurrenceCount,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsCreateRecurringSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsCreateRecurringSeatedBooking(responseBody.data)) {
+            const data: CreateRecurringSeatedBookingOutput_2024_08_13[] = responseBody.data;
+            expect(data.length).toEqual(recurrenceCount);
+
+            const firstBooking = data[0];
+            expect(firstBooking.seatUid).toBeDefined();
+            const seatUid = firstBooking.seatUid;
+            expect(firstBooking.id).toBeDefined();
+            expect(firstBooking.uid).toBeDefined();
+            expect(firstBooking.hosts[0].id).toEqual(user.id);
+            expect(firstBooking.status).toEqual("accepted");
+            expect(firstBooking.start).toEqual(body.start);
+            expect(firstBooking.end).toEqual(
+              DateTime.fromISO(body.start, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(firstBooking.duration).toEqual(60);
+            expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
+            expect(firstBooking.eventType).toEqual({
+              id: recurringSeatedEventTypeId,
+              slug: recurringSeatedTventTypeSlug,
+            });
+            expect(firstBooking.attendees.length).toEqual(2);
+            expect(firstBooking.attendees[0]).toEqual({
+              name: nameAttendeeOne,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid: createdRecurringSeatedBooking[0].seatUid,
+              bookingFieldsResponses: {
+                name: nameAttendeeOne,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(firstBooking.attendees[1]).toEqual({
+              name: nameAttendeeTwo,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid,
+              bookingFieldsResponses: {
+                name: nameAttendeeTwo,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(firstBooking.location).toEqual(body.location);
+            expect(firstBooking.absentHost).toEqual(false);
+
+            const secondBooking = data[1];
+            expect(secondBooking.seatUid).toBeDefined();
+            const secondSeatUid = secondBooking.seatUid;
+            expect(secondBooking.id).toBeDefined();
+            expect(secondBooking.uid).toBeDefined();
+            expect(secondBooking.hosts[0].id).toEqual(user.id);
+            expect(secondBooking.status).toEqual("accepted");
+            const expectedStart = DateTime.fromISO(body.start, { zone: "utc" }).plus({ weeks: 1 }).toISO();
+            expect(secondBooking.start).toEqual(expectedStart);
+            expect(secondBooking.end).toEqual(
+              DateTime.fromISO(expectedStart!, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(secondBooking.duration).toEqual(60);
+            expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
+            expect(secondBooking.eventType).toEqual({
+              id: recurringSeatedEventTypeId,
+              slug: recurringSeatedTventTypeSlug,
+            });
+            expect(secondBooking.attendees.length).toEqual(2);
+            expect(secondBooking.attendees[0]).toEqual({
+              name: nameAttendeeOne,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid: createdRecurringSeatedBooking[1].seatUid,
+              bookingFieldsResponses: {
+                name: nameAttendeeOne,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(secondBooking.attendees[1]).toEqual({
+              name: nameAttendeeTwo,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid: secondSeatUid,
+              bookingFieldsResponses: {
+                name: nameAttendeeTwo,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(secondBooking.location).toEqual(body.location);
+            expect(secondBooking.absentHost).toEqual(false);
+            createdRecurringSeatedBooking = data;
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
 
     function responseDataIsCreateRecurringSeatedBooking(
       data: any

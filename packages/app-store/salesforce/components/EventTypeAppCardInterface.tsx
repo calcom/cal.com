@@ -30,6 +30,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const createEventOnLeadCheckForContact = getAppData("createEventOnLeadCheckForContact") ?? false;
   const onBookingChangeRecordOwner = getAppData("onBookingChangeRecordOwner") ?? false;
   const onBookingChangeRecordOwnerName = getAppData("onBookingChangeRecordOwnerName") ?? [];
+  const sendNoShowAttendeeData = getAppData("sendNoShowAttendeeData") ?? false;
+  const sendNoShowAttendeeDataField = getAppData("sendNoShowAttendeeDataField") ?? "";
+
   const { t } = useLocale();
 
   const recordOptions = [
@@ -278,6 +281,25 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
         ) : null}
+
+        <div className="ml-2 mt-4">
+          <Switch
+            label="Send no show attendee data to event object"
+            checked={sendNoShowAttendeeData}
+            onCheckedChange={(checked) => {
+              setAppData("sendNoShowAttendeeData", checked);
+            }}
+          />
+          {sendNoShowAttendeeData ? (
+            <div className="mt-2">
+              <p className="mb-2">Field name to check (must be checkbox data type)</p>
+              <InputField
+                value={sendNoShowAttendeeDataField}
+                onChange={(e) => setAppData("sendNoShowAttendeeDataField", e.target.value)}
+              />
+            </div>
+          ) : null}
+        </div>
       </>
     </AppCard>
   );

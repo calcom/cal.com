@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, Fragment } from "react";
+import React, { cloneElement, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
@@ -16,6 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 
+import usePostHog from "../ee/event-tracking/lib/posthog/userPostHog";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -26,12 +27,18 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-
+  const postHog = usePostHog();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useBootIntercom();
   useFormbricks();
+
+  useEffect(() => {
+    if (!props.isPublic) {
+      postHog.identify();
+    }
+  }, [props.isPublic, postHog]);
 
   return (
     <>
@@ -47,7 +54,7 @@ const Layout = (props: LayoutProps) => {
 
       <TimezoneChangeDialog />
 
-      <div className="flex min-h-screen flex-col">
+      <div className="flex flex-col min-h-screen">
         {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
           <BannerContainer banners={banners} />
         )}
@@ -58,7 +65,7 @@ const Layout = (props: LayoutProps) => {
           ) : (
             <SideBarContainer isPlatformUser={props.isPlatformUser} bannersHeight={bannersHeight} />
           )}
-          <div className="flex w-0 flex-1 flex-col">
+          <div className="flex flex-col flex-1 w-0">
             <MainContainer {...props} />
           </div>
         </div>
@@ -172,7 +179,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl",
                       props.hideHeadingOnMobile && "hidden"
                     )}>
@@ -180,7 +187,7 @@ export function ShellMain(props: LayoutProps) {
                   </h3>
                 )}
                 {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
+                  <p className="hidden text-sm text-default md:block" data-testid="subtitle">
                     {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                   </p>
                 )}
@@ -236,7 +243,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="bg-default relative z-0 flex-1 focus:outline-none">
+    <main className="relative z-0 flex-1 bg-default focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full px-2 py-4 lg:px-6">

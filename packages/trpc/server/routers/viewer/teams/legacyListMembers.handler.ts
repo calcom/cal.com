@@ -18,52 +18,104 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   const hasPermsToView = !ctx.user.organization.isPrivate || isOrgAdmin;
 
   if (!hasPermsToView) {
-    return [];
+    return {
+      members: [],
+      nextCursor: undefined,
+    };
   }
 
-  const teams = await prisma.team.findMany({
+  const limit = input.limit ?? 10;
+  const cursor = input.cursor ?? 0;
+
+  let teamsToQuery = input.teamIds;
+
+  // If no teamIds are provided, we query all teams the user is a member of
+  if (!input?.teamIds?.length) {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId: ctx.user.id,
+        accepted: true,
+      },
+      select: { teamId: true },
+    });
+    teamsToQuery = memberships.map((m) => m.teamId);
+  } else {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        teamId: { in: input.teamIds },
+        userId: ctx.user.id,
+        accepted: true,
+      },
+    });
+    teamsToQuery = memberships.map((m) => m.teamId);
+  }
+
+  if (!teamsToQuery.length) {
+    return {
+      members: [],
+      nextCursor: undefined,
+    };
+  }
+
+  // Fetch unique users through memberships
+  const memberships = await prisma.membership.findMany({
     where: {
-      id: {
-        in: input.teamIds,
-      },
-      members: {
-        some: {
-          user: {
-            id: ctx.user.id,
-          },
-          accepted: true,
-        },
-      },
+      accepted: true,
+      teamId: { in: teamsToQuery },
+      user: input.searchText?.trim()?.length
+        ? {
+            OR: [
+              { name: { contains: input.searchText, mode: "insensitive" } },
+              { username: { contains: input.searchText, mode: "insensitive" } },
+            ],
+          }
+        : undefined,
     },
     select: {
-      members: {
+      id: true,
+      accepted: true,
+      user: {
         select: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              avatarUrl: true,
-            },
-          },
-          accepted: true,
+          id: true,
+          name: true,
+          username: true,
+          avatarUrl: true,
         },
       },
     },
+    distinct: ["userId"],
+    cursor: cursor ? { id: cursor } : undefined,
+    take: limit + 1,
+    orderBy: [
+      { userId: "asc" }, // First order by userId to ensure consistent ordering
+      { id: "asc" }, // Then by id as secondary sort
+    ],
   });
 
-  type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"] & { accepted: boolean }>;
-  // flatten users to be unique by id
-  const users = teams
-    .flatMap((t) => t.members)
-    .reduce(
-      (acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: { ...m.user, accepted: m.accepted } }),
-      {} as UserMap
-    );
-
-  return await Promise.all(
-    Object.values(users).map(async (u) => UserRepository.enrichUserWithItsProfile({ user: u }))
+  const enrichedMembers = await Promise.all(
+    memberships.map(async (membership) =>
+      UserRepository.enrichUserWithItsProfile({
+        user: {
+          ...membership.user,
+          accepted: membership.accepted,
+          membershipId: membership.id,
+        },
+      })
+    )
   );
+
+  const usersFetched = enrichedMembers.length;
+
+  let nextCursor: typeof cursor | undefined = undefined;
+  if (usersFetched > limit) {
+    const nextItem = enrichedMembers.pop();
+    nextCursor = nextItem?.membershipId;
+  }
+
+  return {
+    members: enrichedMembers,
+    nextCursor,
+  };
 };
 
 export default legacyListMembers;
