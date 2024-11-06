@@ -259,7 +259,7 @@ async function filterUsersBasedOnWeights<
     );
 
     const targetNumberOfBookings = (allBookings.length + totalCalibration) * targetPercentage;
-    // I need to get the user's current calibration here
+
     const userCalibration = allHostsWithCalibration.find((host) => host.userId === user.id)?.calibration ?? 0;
 
     const bookingShortfall = targetNumberOfBookings - (userBookings.length + userCalibration);
