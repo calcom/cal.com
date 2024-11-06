@@ -412,7 +412,10 @@ export const getAvailableSlots = async (
 };
 
 async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const { _enableTroubleshooter: enableTroubleshooter = false } = input;
+  const {
+    _enableTroubleshooter: enableTroubleshooter = false,
+    _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
+  } = input;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -589,6 +592,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       beforeEventBuffer: eventType.beforeEventBuffer,
       duration: input.duration || 0,
       returnDateOverrides: false,
+      bypassBusyCalendarTimes,
     },
     initialData: {
       eventType,
@@ -837,9 +841,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         eventDetails: {
           username: input.usernameList?.[0],
           startTime: startTime,
+          endTime: endTime,
           eventSlug: eventType.slug,
         },
         orgDetails,
+        teamId: eventType.team?.id,
       });
     } catch (e) {
       loggerWithEventDetails.error(
