@@ -7,34 +7,36 @@ import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { DistributionMethod, getLuckyUser } from "./getLuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
+type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
 
 it("can find lucky user with maximize availability", async () => {
-  const user1 = buildUser({
-    id: 1,
-    username: "test1",
-    name: "Test User 1",
-    email: "test1@example.com",
-    bookings: [
-      {
-        createdAt: new Date("2022-01-25T05:30:00.000Z"),
-      },
-      {
-        createdAt: new Date("2022-01-25T06:30:00.000Z"),
-      },
-    ],
-  });
-  const user2 = buildUser({
-    id: 2,
-    username: "test2",
-    name: "Test User 2",
-    email: "test2@example.com",
-    bookings: [
-      {
-        createdAt: new Date("2022-01-25T04:30:00.000Z"),
-      },
-    ],
-  });
-  const users: NonEmptyArray<ReturnType<typeof buildUser>> = [user1, user2];
+  const users: GetLuckyUserAvailableUsersType = [
+    buildUser({
+      id: 1,
+      username: "test1",
+      name: "Test User 1",
+      email: "test1@example.com",
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+        },
+        {
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+        },
+      ],
+    }),
+    buildUser({
+      id: 2,
+      username: "test2",
+      name: "Test User 2",
+      email: "test2@example.com",
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25T04:30:00.000Z"),
+        },
+      ],
+    }),
+  ];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -53,34 +55,34 @@ it("can find lucky user with maximize availability", async () => {
 });
 
 it("can find lucky user with maximize availability and priority ranking", async () => {
-  const user1 = buildUser({
-    id: 1,
-    username: "test1",
-    name: "Test User 1",
-    email: "test1@example.com",
-    priority: 2,
-    bookings: [
-      {
-        createdAt: new Date("2022-01-25T05:30:00.000Z"),
-      },
-      {
-        createdAt: new Date("2022-01-25T06:30:00.000Z"),
-      },
-    ],
-  });
-  const user2 = buildUser({
-    id: 2,
-    username: "test2",
-    name: "Test User 2",
-    email: "test2@example.com",
-    bookings: [
-      {
-        createdAt: new Date("2022-01-25T04:30:00.000Z"),
-      },
-    ],
-  });
-
-  const users: NonEmptyArray<ReturnType<typeof buildUser>> = [user1, user2];
+  const users: GetLuckyUserAvailableUsersType = [
+    buildUser({
+      id: 1,
+      username: "test1",
+      name: "Test User 1",
+      email: "test1@example.com",
+      priority: 2,
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+        },
+        {
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+        },
+      ],
+    }),
+    buildUser({
+      id: 2,
+      username: "test2",
+      name: "Test User 2",
+      email: "test2@example.com",
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25T04:30:00.000Z"),
+        },
+      ],
+    }),
+  ];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -136,11 +138,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     ],
   });
 
-  const usersWithPriorities: NonEmptyArray<ReturnType<typeof buildUser>> = [
-    userLowest,
-    userMedium,
-    userHighest,
-  ];
+  const usersWithPriorities: GetLuckyUserAvailableUsersType = [userLowest, userMedium, userHighest];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithPriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
@@ -195,7 +193,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     ],
   });
 
-  const usersWithSamePriorities: NonEmptyArray<ReturnType<typeof buildUser>> = [
+  const usersWithSamePriorities: GetLuckyUserAvailableUsersType = [
     userLow,
     userHighLeastRecentBooking,
     userHighRecentBooking,
@@ -218,42 +216,88 @@ it("can find lucky user with maximize availability and priority ranking", async 
   ).resolves.toStrictEqual(usersWithSamePriorities[1]);
 });
 
-describe("maximize availability and weights", () => {
-  it("can find lucky user if hosts have same weights", async () => {
-    const user1 = buildUser({
+it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
+  const users: GetLuckyUserAvailableUsersType = [
+    buildUser({
       id: 1,
       username: "test1",
       name: "Test User 1",
       email: "test1@example.com",
-      priority: 3,
-      weight: 100,
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T03:30:00.000Z"),
-        },
-      ],
-    });
-    const user2 = buildUser({
-      id: 2,
-      username: "test2",
-      name: "Test User 2",
-      email: "test2@example.com",
-      priority: 3,
-      weight: 100,
       bookings: [
         {
           createdAt: new Date("2022-01-25T05:30:00.000Z"),
         },
         {
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+        },
+      ],
+    }),
+    buildUser({
+      id: 2,
+      username: "test2",
+      name: "Test User 2",
+      email: "test2@example.com",
+      bookings: [
+        {
           createdAt: new Date("2022-01-25T04:30:00.000Z"),
         },
       ],
-    });
+    }),
+  ];
+  // TODO: we may be able to use native prisma generics somehow?
+  prismaMock.user.findMany.mockResolvedValue(users);
+  prismaMock.host.findMany.mockResolvedValue([]);
+  prismaMock.booking.findMany.mockResolvedValue([]);
 
-    prismaMock.user.findMany.mockResolvedValue([user1, user2]);
+  await expect(
+    getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+      availableUsers: users,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+      },
+      allRRHosts: [],
+    })
+  ).resolves.toStrictEqual(users[1]);
+});
+
+describe("maximize availability and weights", () => {
+  it("can find lucky user if hosts have same weights", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        priority: 3,
+        weight: 100,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T03:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        priority: 3,
+        weight: 100,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+    prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
@@ -280,67 +324,69 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: user1.id, email: user1.email },
-        weight: user1.weight,
+        user: { id: users[0].id, email: users[0].email },
+        weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: user2.id, email: user2.email },
-        weight: user2.weight,
+        user: { id: users[1].id, email: users[1].email },
+        weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
       getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
-        availableUsers: [user1, user2],
+        availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
         },
         allRRHosts,
       })
-    ).resolves.toStrictEqual(user2);
+    ).resolves.toStrictEqual(users[1]);
   });
 
   it("can find lucky user if hosts have different weights", async () => {
-    const user1 = buildUser({
-      id: 1,
-      username: "test1",
-      name: "Test User 1",
-      email: "test1@example.com",
-      priority: 3,
-      weight: 200,
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T08:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T07:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        },
-      ],
-    });
-    const user2 = buildUser({
-      id: 2,
-      username: "test2",
-      name: "Test User 2",
-      email: "test2@example.com",
-      priority: 3,
-      weight: 100,
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T03:30:00.000Z"),
-        },
-      ],
-    });
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        priority: 3,
+        weight: 200,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T08:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T07:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        priority: 3,
+        weight: 100,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T03:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
 
-    prismaMock.user.findMany.mockResolvedValue([user1, user2]);
+    prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
@@ -372,67 +418,69 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: user1.id, email: user1.email },
-        weight: user1.weight,
+        user: { id: users[0].id, email: users[0].email },
+        weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: user2.id, email: user2.email },
-        weight: user2.weight,
+        user: { id: users[1].id, email: users[1].email },
+        weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
       getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
-        availableUsers: [user1, user2],
+        availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
         },
         allRRHosts,
       })
-    ).resolves.toStrictEqual(user1);
+    ).resolves.toStrictEqual(users[0]);
   });
 
   it("can find lucky user with weights and adjusted weights", async () => {
-    const user1 = buildUser({
-      id: 1,
-      username: "test1",
-      name: "Test User 1",
-      email: "test1@example.com",
-      priority: 3,
-      weight: 150,
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T07:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T03:30:00.000Z"),
-        },
-      ],
-    });
-    const user2 = buildUser({
-      id: 2,
-      username: "test2",
-      name: "Test User 2",
-      email: "test2@example.com",
-      priority: 3,
-      weight: 100,
-      bookings: [
-        {
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-        },
-        {
-          createdAt: new Date("2022-01-25T03:30:00.000Z"),
-        },
-      ],
-    });
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        priority: 3,
+        weight: 150,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T07:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T03:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        priority: 3,
+        weight: 100,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T03:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
 
-    prismaMock.user.findMany.mockResolvedValue([user1, user2]);
+    prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
@@ -464,52 +512,26 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: user1.id, email: user1.email },
-        weight: user1.weight,
+        user: { id: users[0].id, email: users[0].email },
+        weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: user2.id, email: user2.email },
-        weight: user2.weight,
+        user: { id: users[1].id, email: users[1].email },
+        weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
       getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
-        availableUsers: [user1, user2],
+        availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
         },
         allRRHosts,
       })
-    ).resolves.toStrictEqual(user1);
+    ).resolves.toStrictEqual(users[0]);
   });
 });
-
-function convertHostsToUsers(
-  hosts: {
-    userId: number;
-    isFixed: boolean;
-    priority: number;
-    weight: number;
-    newHost?: boolean;
-  }[]
-) {
-  return hosts.map((host) => {
-    return {
-      id: host.userId,
-      email: `test${host.userId}@example.com`,
-      hosts: host.newHost
-        ? []
-        : [
-            {
-              isFixed: host.isFixed,
-              priority: host.priority,
-              weight: host.weight,
-            },
-          ],
-    };
-  });
-}
