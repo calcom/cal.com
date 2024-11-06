@@ -463,7 +463,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
   let currentSeats: CurrentSeats | undefined;
 
-  const eventHosts: {
+  let eventHosts: {
     isFixed: boolean;
     email: string;
     user: (typeof eventType.hosts)[number]["user"];
@@ -486,16 +486,16 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const skipContactOwner = input.skipContactOwner;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
 
-  let routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
-    hosts: eventHosts,
-    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
-    contactOwnerEmail,
-  });
+  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
+  const isRerouting = !!routedTeamMemberIds;
 
   if (
     input.rescheduleUid &&
     eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    // If it is rerouting, we should not force reschedule with same host.
+    // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
+    !isRerouting
   ) {
     const originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
@@ -508,10 +508,14 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         userId: true,
       },
     });
-    routedHostsWithContactOwnerAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
-      (host) => host.user.id === originalRescheduledBooking?.userId || 0
-    );
+    eventHosts = eventHosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
+
+  const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
+    hosts: eventHosts,
+    routedTeamMemberIds,
+    contactOwnerEmail,
+  });
 
   const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
     contactOwnerEmail,
