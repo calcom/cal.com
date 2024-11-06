@@ -96,7 +96,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
       });
 
     // If there is a team put this navigation item within the tabs
-    if (team && tabs.includes("assignment")) {
+    if (team && tabs.includes("team")) {
       navigation.splice(2, 0, {
         name: "assignment",
         onClick: () => setCurrentTab("team"),
