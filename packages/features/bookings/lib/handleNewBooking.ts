@@ -1164,7 +1164,7 @@ async function handler(
     }
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
-    console.log("reschedulingToSameSlot", noEmail);
+
     if (noEmail !== true && isConfirmedByDefault) {
       const copyEvent = cloneDeep(evt);
       const copyEventAdditionalInfo = {
