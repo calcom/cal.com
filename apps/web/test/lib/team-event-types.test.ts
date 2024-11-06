@@ -34,6 +34,7 @@ it("can find lucky user with maximize availability", async () => {
   const users = [user1, user2];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
+  prismaMock.host.findMany.mockResolvedValue([]);
   prismaMock.booking.findMany.mockResolvedValue([]);
 
   await expect(
@@ -79,6 +80,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
   const users = [user1, user2];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
+  prismaMock.host.findMany.mockResolvedValue([]);
   prismaMock.booking.findMany.mockResolvedValue([]);
 
   // both users have medium priority (one user has no priority set, default to medium) so pick least recently booked
@@ -135,7 +137,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithPriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
-
+  prismaMock.host.findMany.mockResolvedValue([]);
   // pick the user with the highest priority
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {
@@ -190,6 +192,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithSamePriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
+  prismaMock.host.findMany.mockResolvedValue([]);
 
   // pick the least recently booked user of the two with the highest priority
   await expect(
@@ -240,7 +243,7 @@ describe("maximize availability and weights", () => {
     });
 
     prismaMock.user.findMany.mockResolvedValue([user1, user2]);
-
+    prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
         id: 1,
@@ -327,7 +330,7 @@ describe("maximize availability and weights", () => {
     });
 
     prismaMock.user.findMany.mockResolvedValue([user1, user2]);
-
+    prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
         id: 1,
@@ -419,7 +422,7 @@ describe("maximize availability and weights", () => {
     });
 
     prismaMock.user.findMany.mockResolvedValue([user1, user2]);
-
+    prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
         id: 1,
