@@ -164,6 +164,7 @@ export type SettingsToggleClassnames = {
   switchContainer?: string;
   label?: string;
   description?: string;
+  children?: string;
 };
 
 export type SwitchClassnames = {
@@ -182,7 +183,7 @@ export type CheckboxClassnames = {
   description?: string;
   container?: string;
 };
-export type SelectClassNames = {
+export type SelectClassnames = {
   innerClassNames?: {
     input?: string;
     option?: string;
