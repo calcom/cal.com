@@ -292,6 +292,20 @@ export async function seedAttributes(teamId: number) {
       type: "TEXT",
     },
   ];
+  // Check if attributes already exist
+  const existingAttributes = await prisma.attribute.findMany({
+    where: {
+      teamId: teamId,
+      name: {
+        in: mockAttributes.map((attr) => attr.name),
+      },
+    },
+  });
+
+  if (existingAttributes.length > 0) {
+    console.log(`Skipping attributes seed, attributes already exist`);
+    return;
+  }
 
   // Get team members
   const memberships = await prisma.membership.findMany({
