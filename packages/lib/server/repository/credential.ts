@@ -1,29 +1,16 @@
-import type { Credentials } from "google-auth-library";
-
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
-export class CredentialRepository {
-  static async createGoogleCalendar({ userId, key }: { userId: number; key: Credentials }) {
-    return await prisma.credential.create({
-      data: {
-        type: "google_calendar",
-        key,
-        userId,
-        appId: "google-calendar",
-      },
-    });
-  }
+type CredentialCreateInput = {
+  type: string;
+  key: any;
+  userId: number;
+  appId: string;
+};
 
-  static async createGoogleMeets({ userId }: { userId: number }) {
-    return await prisma.credential.create({
-      data: {
-        type: "google_video",
-        key: {},
-        userId,
-        appId: "google-meet",
-      },
-    });
+export class CredentialRepository {
+  static async create(data: CredentialCreateInput) {
+    return await prisma.credential.create({ data: { ...data } });
   }
 
   /**
@@ -52,13 +39,8 @@ export class CredentialRepository {
     });
   }
 
-  static async findGoogleMeetCredential({ userId }: { userId: number }) {
-    return await prisma.credential.findFirst({
-      where: {
-        userId,
-        type: "google_video",
-      },
-    });
+  static async findFirstByUserIdAndType({ userId, type }: { userId: number; type: string }) {
+    return await prisma.credential.findFirst({ where: { userId, type } });
   }
 
   static async deleteById({ id }: { id: number }) {

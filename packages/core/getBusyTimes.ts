@@ -1,5 +1,6 @@
 import type { Booking, EventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -42,6 +43,7 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
+  bypassBusyCalendarTimes: boolean;
 }) {
   const {
     credentials,
@@ -57,6 +59,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    bypassBusyCalendarTimes = false,
   } = params;
 
   logger.silly(
@@ -110,6 +113,7 @@ export async function getBusyTimes(params: {
   let bookings = params.currentBookings;
 
   if (!bookings) {
+    const getBookingsForBusyTimesSpan = Sentry.startInactiveSpan({ name: "getBookingsForBusyTimes" });
     const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
       id: true,
       uid: true,
@@ -180,6 +184,8 @@ export async function getBusyTimes(params: {
     ]);
 
     bookings = [...resultOne, ...resultTwo, ...(resultThree ?? [])];
+
+    getBookingsForBusyTimesSpan.end();
   }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
@@ -230,7 +236,7 @@ export async function getBusyTimes(params: {
   );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
-  if (credentials?.length > 0) {
+  if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimes = await getBusyCalendarTimes(
       username,
