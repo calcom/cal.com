@@ -39,7 +39,8 @@ const getRows = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
     ? jsonLogicToPrisma(input.jsonLogicQuery)
     : {};
   const skip = input.cursor ?? 0;
-  const take = 50;
+  const take = input.limit ? input.limit + 1 : 50;
+
   logger.debug(
     `Built Prisma where ${JSON.stringify(prismaWhere)} from jsonLogicQuery ${JSON.stringify(
       input.jsonLogicQuery

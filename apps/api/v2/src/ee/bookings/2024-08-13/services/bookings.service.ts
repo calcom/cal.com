@@ -3,6 +3,7 @@ import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servic
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
+import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
@@ -50,6 +51,7 @@ export class BookingsService_2024_08_13 {
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly outputService: OutputBookingsService_2024_08_13,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
+    private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
     private readonly billingService: BillingService,
@@ -113,7 +115,7 @@ export class BookingsService_2024_08_13 {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
     return this.outputService.getOutputCreateRecurringSeatedBookings(
-      bookings.map((booking) => ({ id: booking.id || 0, seatUid: booking.seatReferenceUid || "" }))
+      bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
     );
   }
 
@@ -288,6 +290,20 @@ export class BookingsService_2024_08_13 {
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
+    if (this.inputService.isCancelSeatedBody(body)) {
+      const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
+
+      if (!seat) {
+        throw new BadRequestException(
+          "Invalid seatUid: this seat does not exist or has already been cancelled."
+        );
+      }
+
+      if (seat && bookingUid !== seat.booking.uid) {
+        throw new BadRequestException("Invalid seatUid: this seat does not belong to this booking.");
+      }
+    }
+
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
     return this.getBooking(bookingUid);
