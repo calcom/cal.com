@@ -610,8 +610,8 @@ export async function seedRoutingFormResponses(
     const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
     const selectedSkills = shuffledOptions.slice(0, numSkills);
 
-    // Create wasnt assigning the response to the booking, so we need to do it in two queries (@haroiom may know more)
-    const response = await prisma.app_RoutingForms_FormResponse.create({
+    // Create the form response with the routedToBookingUid field set
+    await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: seededForm.id,
         formFillerId: randomUUID(),
@@ -621,22 +621,7 @@ export async function seedRoutingFormResponses(
             value: selectedSkills.map((opt) => opt.id),
           },
         },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: {
-        routedFromRoutingFormReponse: {
-          connect: {
-            id: response.id,
-          },
-        },
+        routedToBookingUid: booking.uid, // Set the booking UID here
       },
     });
   }
