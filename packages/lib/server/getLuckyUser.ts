@@ -18,6 +18,7 @@ const endOfMonth = dayjs().utc().endOf("month").toDate();
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: T[];
   eventType: { id: number; isRRWeightsEnabled: boolean };
+  // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
     user: { id: number; email: string };
     createdAt: Date;
@@ -219,6 +220,7 @@ async function getUsersBasedOnWeights<
     []
   );
 
+  //only get bookings that match attributes
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
@@ -228,6 +230,7 @@ async function getUsersBasedOnWeights<
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
 
+  //todo: check this function
   const allHostsWithCalibration = await getHostsWithCalibration(
     eventType.id,
     allRRHosts.map((host) => {
@@ -236,6 +239,8 @@ async function getUsersBasedOnWeights<
   );
 
   // Calculate the total calibration and weight of all round-robin hosts
+
+  //todo: if we have incoming weights then we need the weight form the attribute instead
   const totalWeight = allRRHosts.reduce((totalWeight, host) => {
     totalWeight += host.weight ?? 100;
     return totalWeight;
@@ -248,6 +253,7 @@ async function getUsersBasedOnWeights<
 
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
+    //todo: it's not user.weight, we need to calculate it from the user's attirbutes weights
     const targetPercentage = (user.weight ?? 100) / totalWeight;
 
     const userBookings = bookingsOfAvailableUsers.filter(
@@ -294,12 +300,13 @@ export async function getLuckyUser<
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   getLuckyUserParams: GetLuckyUserParams<T>
 ) {
-  const { availableUsers, eventType, allRRHosts } = getLuckyUserParams;
+  const { availableUsers, eventType } = getLuckyUserParams;
 
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
 
+  // todo: only get bookings match attributes
   const currentMonthBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
@@ -321,6 +328,7 @@ export async function getLuckyUser<
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
 
       if (highestPriorityUsers.length > 1) {
+        //todo: only get bookings that match attributes
         const allBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
           eventTypeId: eventType.id,
           users: availableUsers.map((user) => {

@@ -132,6 +132,15 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
+    await prisma.app_RoutingForms_FormResponse.update({
+      where: {
+        id: dbFormResponse.id,
+      },
+      data: {
+        chosenRouteId,
+      },
+    });
+
     const teamMembersMatchingAttributeLogicWithResult =
       form.teamId && chosenRouteId
         ? await findTeamMembersMatchingAttributeLogicOfRoute({
