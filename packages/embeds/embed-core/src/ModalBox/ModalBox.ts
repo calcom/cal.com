@@ -36,6 +36,10 @@ export class ModalBox extends HTMLElement {
   }
 
   close() {
+    const state = this.getAttribute("state");
+    if (!state || state === "loading") {
+      return;
+    }
     this.show(false);
     const event = new Event("close");
     this.dispatchEvent(event);
