@@ -338,6 +338,11 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
+  const reschedulingToSameSlot = originalRescheduledBooking
+    ? new Date(reqBody.start).getTime() === new Date(originalRescheduledBooking.startTime).getTime() &&
+      eventTypeId === originalRescheduledBooking.eventTypeId
+    : false;
+
   let luckyUserResponse;
   let isFirstSeat = true;
 
@@ -1159,7 +1164,7 @@ async function handler(
     }
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
-
+    console.log("reschedulingToSameSlot", noEmail);
     if (noEmail !== true && isConfirmedByDefault) {
       const copyEvent = cloneDeep(evt);
       const copyEventAdditionalInfo = {
@@ -1225,19 +1230,20 @@ async function handler(
             matchOriginalMemberWithNewMember(orignalMember, member)
           )
         );
-
-        sendRoundRobinRescheduledEmailsAndSMS(
-          copyEventAdditionalInfo,
-          rescheduledMembers,
-          eventType.metadata
-        );
+        if (!reschedulingToSameSlot) {
+          sendRoundRobinRescheduledEmailsAndSMS(
+            copyEventAdditionalInfo,
+            rescheduledMembers,
+            eventType.metadata
+          );
+        }
         sendRoundRobinScheduledEmailsAndSMS({
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
           eventTypeMetadata: eventType.metadata,
         });
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
-      } else {
+      } else if (!reschedulingToSameSlot) {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
         await sendRescheduledEmailsAndSMS(
           {
