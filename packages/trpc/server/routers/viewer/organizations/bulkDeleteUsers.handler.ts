@@ -62,13 +62,33 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       userId: {
         in: input.userIds,
       },
-      team: {
-        OR: [
-          {
-            parentId: currentUser.organizationId,
-          },
-          { id: currentUserOrgId },
-        ],
+      parent: {
+        team: {
+          OR: [
+            {
+              parentId: currentUser.organizationId,
+            },
+            { id: currentUserOrgId },
+          ],
+        },
+      },
+    },
+  });
+
+  const removeHostAssignment = prisma.host.deleteMany({
+    where: {
+      userId: {
+        in: input.userIds,
+      },
+      eventType: {
+        team: {
+          OR: [
+            {
+              parentId: currentUser.organizationId,
+            },
+            { id: currentUserOrgId },
+          ],
+        },
       },
     },
   });
@@ -79,7 +99,13 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
 
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
-  await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation, removeManagedEventTypes]);
+  await prisma.$transaction([
+    removeProfiles,
+    deleteMany,
+    removeOrgrelation,
+    removeManagedEventTypes,
+    removeHostAssignment,
+  ]);
 
   const teamBilling = await TeamBilling.findAndInit(currentUserOrgId);
   await teamBilling.updateQuantity();
