@@ -10,7 +10,7 @@ import Locations from "@calcom/features/eventtypes/components/Locations";
 import type {
   EventTypeSetupProps,
   InputClassnames,
-  SelectClassNames,
+  SelectClassnames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
@@ -27,8 +27,8 @@ export type EventSetupTabCustomClassNames = {
   eventUrlClassnames?: InputClassnames;
   eventDurationClassnames?: InputClassnames & {
     multipleDurationClassnames?: {
-      availableDurationsClassnames?: SelectClassNames;
-      defaultDurationClassnames?: SelectClassNames;
+      availableDurationsClassnames?: SelectClassnames;
+      defaultDurationClassnames?: SelectClassnames;
       toggleClassnames: {
         label?: string;
         description?: string;
