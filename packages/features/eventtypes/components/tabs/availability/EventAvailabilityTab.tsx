@@ -16,6 +16,7 @@ import type {
   FormValues,
   EventTypeSetup,
   Host,
+  SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,50 +29,34 @@ import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
-type SelectBaseClassNames = {
-  selectInnerClassNames?: {
-    input?: string;
-    option?: string;
-    control?: string;
-    singleValue?: string;
-    valueContainer?: string;
-    multiValue?: string;
-    menu?: string;
-    menuList?: string;
-  };
-  select?: string;
-  label?: string;
-  container?: string;
-};
-
 type AvailabilityTableCustomClassnames = {
-  tableWrapper?: string;
+  tableContainer?: string;
   table?: string;
   tableRow?: string;
   day?: string;
   dayUnavailable?: string;
-  dayAvailabilityWrapper?: string;
+  dayAvailabilityContainer?: string;
   dayAvailabilityFrom?: string;
   dayAvailabilityTo?: string;
   dayAvailabilitySeperator?: string;
 };
 
-type TeamMemmberScheduelCustomClassnames = SelectBaseClassNames & {
+type TeamMemmberScheduelCustomClassnames = SelectClassNames & {
   labelAvatar?: string;
-  labelWrapper?: string;
+  labelContainer?: string;
 };
 
 type UserAvailabilityCustomClassnames = {
-  availabilitySectionWrapper?: string;
-  availabilitySelectClassnames?: SelectBaseClassNames;
+  availabilitySectionContainer?: string;
+  availabilitySelectClassnames?: SelectClassNames;
   availabilityTableClassnames?: AvailabilityTableCustomClassnames;
 };
 
 type TeamAvailabilityCustomClassnames = {
-  chooseHostSchedulesLabelWrapper?: string;
+  chooseHostSchedulesLabelContainer?: string;
   chooseHostSchedulesLabel?: string;
   chooseHostSchedulesLabelDescription?: string;
-  teamAvailibilityWrapper?: string;
+  teamAvailibilityContainer?: string;
   teamMemmberScheduelClassnames: TeamMemmberScheduelCustomClassnames;
 };
 
@@ -202,7 +187,7 @@ const EventTypeScheduleDetails = memo(
 
     return (
       <div>
-        <div className={classNames("border-subtle space-y-4 border-x p-6", customClassnames?.tableWrapper)}>
+        <div className={classNames("border-subtle space-y-4 border-x p-6", customClassnames?.tableContainer)}>
           <ol className={classNames("table border-collapse text-sm", customClassnames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -230,7 +215,7 @@ const EventTypeScheduleDetails = memo(
                           key={i}
                           className={classNames(
                             "text-default flex items-center leading-4",
-                            customClassnames?.dayAvailabilityWrapper
+                            customClassnames?.dayAvailabilityContainer
                           )}>
                           <span
                             className={classNames(
@@ -362,7 +347,7 @@ const EventTypeSchedule = ({
       <div
         className={classNames(
           "border-subtle rounded-t-md border p-6",
-          customClassnames?.availabilitySectionWrapper
+          customClassnames?.availabilitySectionContainer
         )}>
         <label
           htmlFor="availability"
@@ -395,7 +380,7 @@ const EventTypeSchedule = ({
                 value={optionValue}
                 components={{ Option, SingleValue }}
                 isMulti={false}
-                innerClassNames={customClassnames?.availabilitySelectClassnames?.selectInnerClassNames}
+                innerClassNames={customClassnames?.availabilitySelectClassnames?.innerClassNames}
               />
             );
           }}
@@ -459,7 +444,7 @@ const TeamMemberSchedule = ({
 
   return (
     <>
-      <div className={classNames("flex w-full items-center", customClassnames?.labelWrapper)}>
+      <div className={classNames("flex w-full items-center", customClassnames?.labelContainer)}>
         {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
         {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassnames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassnames?.label)}>{label}</p>
@@ -483,7 +468,7 @@ const TeamMemberSchedule = ({
                     "block w-full min-w-0 flex-1 rounded-sm text-sm",
                     customClassnames?.select
                   )}
-                  innerClassNames={customClassnames?.selectInnerClassNames}
+                  innerClassNames={customClassnames?.innerClassNames}
                   value={value as AvailabilityOption}
                   components={{ Option, SingleValue }}
                   isMulti={false}
@@ -515,12 +500,12 @@ const TeamAvailability = ({
       <div
         className={classNames(
           "border-subtle flex flex-col rounded-md",
-          customClassnames?.teamAvailibilityWrapper
+          customClassnames?.teamAvailibilityContainer
         )}>
         <div
           className={classNames(
             "border-subtle mt-5 rounded-t-md border p-6 pb-5",
-            customClassnames?.chooseHostSchedulesLabelWrapper
+            customClassnames?.chooseHostSchedulesLabelContainer
           )}>
           <Label
             className={classNames("mb-1 text-sm font-semibold", customClassnames?.chooseHostSchedulesLabel)}>
