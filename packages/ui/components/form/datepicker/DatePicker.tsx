@@ -4,7 +4,7 @@ import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Icon } from "../../..";
+import { Icon } from "../../icon";
 
 type Props = {
   date: Date;

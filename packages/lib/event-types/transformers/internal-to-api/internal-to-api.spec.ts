@@ -7,10 +7,6 @@ import {
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums/monorepo";
 import type {
-  AddressLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
@@ -18,6 +14,14 @@ import type {
   TransformRecurringEventSchema_2024_06_14,
   SeatOptionsTransformedSchema,
   SeatOptionsDisabledSchema,
+  OutputAddressLocation_2024_06_14,
+  OutputAttendeeAddressLocation_2024_06_14,
+  OutputAttendeeDefinedLocation_2024_06_14,
+  OutputAttendeePhoneLocation_2024_06_14,
+  OutputIntegrationLocation_2024_06_14,
+  OutputLinkLocation_2024_06_14,
+  OutputPhoneLocation_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -48,7 +52,7 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const expectedOutput: AddressLocation_2024_06_14[] = [
+    const expectedOutput: OutputAddressLocation_2024_06_14[] = [
       {
         type: "address",
         address: "1234 Main St",
@@ -70,7 +74,7 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const expectedOutput: LinkLocation_2024_06_14[] = [
+    const expectedOutput: OutputLinkLocation_2024_06_14[] = [
       {
         type: "link",
         link: "https://example.com",
@@ -92,7 +96,7 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const expectedOutput: PhoneLocation_2024_06_14[] = [
+    const expectedOutput: OutputPhoneLocation_2024_06_14[] = [
       {
         type: "phone",
         phone: "123456789",
@@ -112,7 +116,7 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const expectedOutput: IntegrationLocation_2024_06_14[] = [
+    const expectedOutput: OutputIntegrationLocation_2024_06_14[] = [
       {
         type: "integration",
         integration: "cal-video",
@@ -121,6 +125,142 @@ describe("transformLocationsInternalToApi", () => {
 
     const result = transformLocationsInternalToApi(transformedLocation);
 
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform integration location", () => {
+    const transformedLocation = [
+      {
+        type: "integrations:discord_video" as const,
+      },
+    ];
+
+    const expectedOutput: OutputIntegrationLocation_2024_06_14[] = [
+      {
+        type: "integration",
+        integration: "discord-video",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform integration location with link and credentialId", () => {
+    const transformedLocation = [
+      {
+        type: "integrations:discord_video" as const,
+        link: "https://discord.com/users/100",
+        credentialId: 100,
+      },
+    ];
+
+    const expectedOutput: OutputIntegrationLocation_2024_06_14[] = [
+      {
+        type: "integration",
+        integration: "discord-video",
+        link: "https://discord.com/users/100",
+        credentialId: 100,
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform unknown location", () => {
+    const transformedLocation = [
+      {
+        type: "unknown" as const,
+        location: "unknown location",
+      },
+    ];
+
+    const expectedOutput: OutputUnknownLocation_2024_06_14[] = [
+      {
+        type: "unknown",
+        location: JSON.stringify(transformedLocation[0]),
+      },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform unknown integration location", () => {
+    const transformedLocation = [
+      {
+        type: "integrations:unknown_video" as const,
+      },
+    ];
+
+    const expectedOutput: OutputUnknownLocation_2024_06_14[] = [
+      {
+        type: "unknown",
+        location: JSON.stringify(transformedLocation[0]),
+      },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const result = transformLocationsInternalToApi(transformedLocation);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform attendee address location", () => {
+    const transformedLocation = [
+      {
+        type: "attendeeInPerson" as const,
+      },
+    ];
+
+    const expectedOutput: OutputAttendeeAddressLocation_2024_06_14[] = [
+      {
+        type: "attendeeAddress",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform attendee phone location", () => {
+    const transformedLocation = [
+      {
+        type: "phone" as const,
+      },
+    ];
+
+    const expectedOutput: OutputAttendeePhoneLocation_2024_06_14[] = [
+      {
+        type: "attendeePhone",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform attendee defined location", () => {
+    const transformedLocation = [
+      {
+        type: "somewhereElse" as const,
+      },
+    ];
+
+    const expectedOutput: OutputAttendeeDefinedLocation_2024_06_14[] = [
+      {
+        type: "attendeeDefined",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
     expect(result).toEqual(expectedOutput);
   });
 });
@@ -154,11 +294,11 @@ describe("transformBookingFieldsInternalToApi", () => {
           fullName: {
             fields: [
               {
-                name: "fullName",
+                name: "fullName" as const,
                 label: "custom label",
                 placeholder: "custom placeholder",
-                type: "text",
-                required: true,
+                type: "text" as const,
+                required: true as const,
               },
             ],
           },
@@ -632,6 +772,73 @@ describe("transformBookingFieldsInternalToApi", () => {
       },
     ];
 
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform system phone field", () => {
+    const transformedField: SystemField[] = [
+      {
+        name: "attendeePhoneNumber",
+        type: "phone",
+        hidden: true,
+        sources: [
+          {
+            id: "default",
+            type: "default",
+            label: "Default",
+          },
+        ],
+        editable: "system-but-optional",
+        required: false,
+        defaultLabel: "phone_number",
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        isDefault: true,
+        type: "phone",
+        slug: "attendeePhoneNumber",
+        required: false,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform unknown field", () => {
+    const transformedField = [
+      {
+        name: "blabla",
+        type: "blabla",
+        hidden: true,
+        sources: [
+          {
+            id: "default",
+            type: "default",
+            label: "Default",
+          },
+        ],
+        editable: "system-but-optional",
+        required: false,
+        defaultLabel: "phone_number",
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        type: "unknown",
+        slug: "unknown",
+        bookingField: JSON.stringify(transformedField[0]),
+      },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);

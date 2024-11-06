@@ -15,6 +15,7 @@ import {
   AppsStatus,
   UserFieldsResponses,
 } from "../components";
+import { PersonInfo } from "../components/WhoInfo";
 
 export const BaseScheduledEmail = (
   props: {
@@ -26,6 +27,7 @@ export const BaseScheduledEmail = (
     locale: string;
     timeFormat: TimeFormat | undefined;
     isOrganizer?: boolean;
+    reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   const { t, timeZone, locale, timeFormat: timeFormat_ } = props;
@@ -79,7 +81,25 @@ export const BaseScheduledEmail = (
           withSpacer
         />
       )}
-      <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+      {props.reassigned && !props.reassigned.byUser && (
+        <>
+          <Info
+            label={t("reassigned_to")}
+            description={
+              <PersonInfo name={props.reassigned.name || undefined} email={props.reassigned.email} />
+            }
+            withSpacer
+          />
+        </>
+      )}
+      {props.reassigned && props.reassigned.byUser && (
+        <>
+          <Info label={t("reassigned_by")} description={props.reassigned.byUser} withSpacer />
+          {props.reassigned?.reason && (
+            <Info label={t("reason")} description={props.reassigned.reason} withSpacer />
+          )}
+        </>
+      )}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />

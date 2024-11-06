@@ -126,21 +126,23 @@ describe("Trigger Host No Show:", () => {
 
       vi.mocked(getMeetingSessionsFromRoomName).mockResolvedValue(EMPTY_MEETING_SESSIONS);
 
+      const TEST_WEBHOOK = {
+        id: "22",
+        eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
+        subscriberUrl,
+        active: true,
+        eventTypeId: 1,
+        appId: null,
+        time: 5,
+        timeUnit: TimeUnit.MINUTE,
+        payloadTemplate: null,
+        secret: null,
+      };
+
       const payload = JSON.stringify({
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         bookingId: 222,
-        webhook: {
-          id: "22",
-          eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
-          subscriberUrl,
-          active: true,
-          eventTypeId: 1,
-          appId: null,
-          time: 5,
-          timeUnit: TimeUnit.MINUTE,
-          payloadTemplate: null,
-          secret: null,
-        },
+        webhook: TEST_WEBHOOK,
       } satisfies TSendNoShowWebhookPayloadSchema);
 
       await triggerHostNoShow(payload);
@@ -150,17 +152,23 @@ describe("Trigger Host No Show:", () => {
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         payload: {
+          title: "Test Booking Title",
+          attendees: [],
           bookingId: 222,
           bookingUid: uidOfBooking,
-          email: "organizer@example.com",
+          hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
           eventType: {
             id: 1,
             teamId: null,
             parentId: null,
-            hosts: [],
-            users: [{ id: organizer.id, email: organizer.email }],
+          },
+          webhook: {
+            ...TEST_WEBHOOK,
+            secret: undefined,
+            active: undefined,
+            eventTypeId: undefined,
           },
           message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
@@ -278,21 +286,23 @@ describe("Trigger Host No Show:", () => {
 
       vi.mocked(getMeetingSessionsFromRoomName).mockResolvedValue(MOCKED_MEETING_SESSIONS);
 
+      const TEST_WEBHOOK = {
+        id: "22",
+        eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
+        subscriberUrl,
+        active: true,
+        eventTypeId: 1,
+        appId: null,
+        time: 5,
+        timeUnit: TimeUnit.MINUTE,
+        payloadTemplate: null,
+        secret: null,
+      };
+
       const payload = JSON.stringify({
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         bookingId: 222,
-        webhook: {
-          id: "22",
-          eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
-          subscriberUrl,
-          active: true,
-          eventTypeId: 1,
-          appId: null,
-          time: 5,
-          timeUnit: TimeUnit.MINUTE,
-          payloadTemplate: null,
-          secret: null,
-        },
+        webhook: TEST_WEBHOOK,
       } satisfies TSendNoShowWebhookPayloadSchema);
 
       await triggerHostNoShow(payload);
@@ -303,17 +313,23 @@ describe("Trigger Host No Show:", () => {
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         payload: {
+          title: "Test Booking Title",
+          attendees: [],
           bookingId: 222,
           bookingUid: uidOfBooking,
-          email: "organizer@example.com",
+          hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
           eventType: {
             id: 1,
             teamId: null,
             parentId: null,
-            hosts: [],
-            users: [{ id: organizer.id, email: organizer.email }],
+          },
+          webhook: {
+            ...TEST_WEBHOOK,
+            secret: undefined,
+            active: undefined,
+            eventTypeId: undefined,
           },
           message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
