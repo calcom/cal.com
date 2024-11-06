@@ -6,6 +6,8 @@ import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 
 import { getLuckyUser } from "./getLuckyUser";
 
+type NonEmptyArray<T> = [T, ...T[]];
+
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
     id: 1,
@@ -32,7 +34,7 @@ it("can find lucky user with maximize availability", async () => {
       },
     ],
   });
-  const users = [user1, user2];
+  const users: NonEmptyArray<ReturnType<typeof buildUser>> = [user1, user2];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -78,7 +80,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     ],
   });
 
-  const users = [user1, user2];
+  const users: NonEmptyArray<ReturnType<typeof buildUser>> = [user1, user2];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -134,7 +136,11 @@ it("can find lucky user with maximize availability and priority ranking", async 
     ],
   });
 
-  const usersWithPriorities = [userLowest, userMedium, userHighest];
+  const usersWithPriorities: NonEmptyArray<ReturnType<typeof buildUser>> = [
+    userLowest,
+    userMedium,
+    userHighest,
+  ];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithPriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
@@ -189,7 +195,11 @@ it("can find lucky user with maximize availability and priority ranking", async 
     ],
   });
 
-  const usersWithSamePriorities = [userLow, userHighLeastRecentBooking, userHighRecentBooking];
+  const usersWithSamePriorities: NonEmptyArray<ReturnType<typeof buildUser>> = [
+    userLow,
+    userHighLeastRecentBooking,
+    userHighRecentBooking,
+  ];
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithSamePriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
