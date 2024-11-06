@@ -1,13 +1,9 @@
 {
-  "$schema": null,
+  "api": "https://cal.taurify.app",
   "productName": "Cal",
   "version": "0.1.0",
   "identifier": "com.cal.app",
-  "backend": null,
-  "description": null,
-  "longDescription": null,
-  "copyright": null,
-  "cloudOrgSlug": "crabnebula",
+  "cloudOrgSlug": "cal",
   "cloudAppSlug": "cal-com",
   "app": {
     "icon": "public/cal-com-icon.svg",
