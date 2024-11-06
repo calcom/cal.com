@@ -441,10 +441,10 @@ const TeamAvailability = ({
 
 const UseCommonScheduleSettingsToggle = ({ eventType, ...rest }: EventTypeScheduleProps) => {
   const { t } = useLocale();
-  const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
+  const { setValue, resetField, getValues, watch } = useFormContext<FormValues>();
 
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
-    !Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
+    !Boolean(eventType.schedule)
   );
 
   const watchHosts = watch("hosts");
