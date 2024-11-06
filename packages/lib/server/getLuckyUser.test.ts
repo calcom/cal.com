@@ -4,7 +4,7 @@ import { expect, it, describe } from "vitest";
 
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 
-import { getLuckyUser } from "./getLuckyUser";
+import { DistributionMethod, getLuckyUser } from "./getLuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
 
@@ -41,7 +41,7 @@ it("can find lucky user with maximize availability", async () => {
   prismaMock.booking.findMany.mockResolvedValue([]);
 
   await expect(
-    getLuckyUser("MAXIMIZE_AVAILABILITY", {
+    getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
       availableUsers: users,
       eventType: {
         id: 1,
@@ -88,7 +88,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
   // both users have medium priority (one user has no priority set, default to medium) so pick least recently booked
   await expect(
-    getLuckyUser("MAXIMIZE_AVAILABILITY", {
+    getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
       availableUsers: users,
       eventType: {
         id: 1,
@@ -147,7 +147,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
   prismaMock.host.findMany.mockResolvedValue([]);
   // pick the user with the highest priority
   await expect(
-    getLuckyUser("MAXIMIZE_AVAILABILITY", {
+    getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
       availableUsers: usersWithPriorities,
       eventType: {
         id: 1,
@@ -207,7 +207,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
   // pick the least recently booked user of the two with the highest priority
   await expect(
-    getLuckyUser("MAXIMIZE_AVAILABILITY", {
+    getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
       availableUsers: usersWithSamePriorities,
       eventType: {
         id: 1,
@@ -292,7 +292,7 @@ describe("maximize availability and weights", () => {
     ];
 
     await expect(
-      getLuckyUser("MAXIMIZE_AVAILABILITY", {
+      getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         availableUsers: [user1, user2],
         eventType: {
           id: 1,
@@ -384,7 +384,7 @@ describe("maximize availability and weights", () => {
     ];
 
     await expect(
-      getLuckyUser("MAXIMIZE_AVAILABILITY", {
+      getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         availableUsers: [user1, user2],
         eventType: {
           id: 1,
@@ -476,7 +476,7 @@ describe("maximize availability and weights", () => {
     ];
 
     await expect(
-      getLuckyUser("MAXIMIZE_AVAILABILITY", {
+      getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         availableUsers: [user1, user2],
         eventType: {
           id: 1,

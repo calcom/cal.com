@@ -5,6 +5,13 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+export enum DistributionMethod {
+  PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
+  // BALANCED_ASSIGNMENT = "BALANCED_ASSIGNMENT",
+  // ROUND_ROBIN (for fairness, rotating through assignees)
+  // LOAD_BALANCED (ensuring an even workload)
+}
+
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -289,7 +296,7 @@ export async function getLuckyUser<
     weight?: number | null;
   }
 >(
-  distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
+  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
   { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
 ) {
   const { eventType } = getLuckyUserParams;
@@ -306,8 +313,8 @@ export async function getLuckyUser<
     endDate: new Date(),
   });
 
-  switch (distributionAlgorithm) {
-    case "MAXIMIZE_AVAILABILITY": {
+  switch (distributionMethod) {
+    case DistributionMethod.PRIORITIZE_AVAILABILITY: {
       if (eventType.isRRWeightsEnabled) {
         availableUsers = await filterUsersBasedOnWeights({
           ...getLuckyUserParams,
