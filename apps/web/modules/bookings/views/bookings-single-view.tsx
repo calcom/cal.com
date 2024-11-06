@@ -337,11 +337,13 @@ export default function Success(props: PageProps) {
     if (pathname && pathname.includes("/booking/")) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
-      const getEventTypeSlugUrl = `${process.env.SUPABASE_BASE_URL!}EventType?select=*`;
-      const getBookedTimeUrl = `${process.env.SUPABASE_BASE_URL!}Booking?select=*`;
-
+      const getEventTypeSlugUrl = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?select=*";
+      const getBookedTimeUrl = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/Booking?select=*";
       fetch(getEventTypeSlugUrl, {
-        headers: { apikey: process.env.SUPABASE_ANON_KEY! },
+        headers: {
+          apikey:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
+        },
       }).then((data) => {
         data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
           const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
@@ -356,7 +358,10 @@ export default function Success(props: PageProps) {
       });
 
       fetch(getBookedTimeUrl, {
-        headers: { apikey: process.env.SUPABASE_ANON_KEY! },
+        headers: {
+          apikey:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
+        },
       }).then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
           const findedBooking = data.find(({ uid }) => uid === bookingUID);

@@ -19,7 +19,7 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   return slotsForDate;
 };
 
-export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slots) => {
+export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = false, slots?: Slots) => {
   const nextWeekDay = dayjs().add(7, "day");
 
   const slotsForDates = useMemo(() => {
@@ -27,7 +27,7 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slot
 
     return dates
       .filter((date) => date !== null)
-      .filter((date) => dayjs(date).isBefore(nextWeekDay))
+      .filter((date) => dayjs(date).isBefore(nextWeekDay) && isTherapy)
       .map((date) => ({
         slots: slots[`${date}`] || [],
         date,
