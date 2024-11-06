@@ -20,13 +20,7 @@ export { InputField, Input, TextField } from "./inputs/TextField";
 export { InputError } from "./inputs/InputError";
 export { Form } from "./inputs/Form";
 export { Label } from "./inputs/Label";
-export {
-  Select,
-  SelectField,
-  SelectWithValidation,
-  getReactSelectProps,
-  type SelectClassNames,
-} from "./select";
+export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";
 export { TimezoneSelect, TimezoneSelectComponent } from "./timezone-select";
 export type {
   ITimezone,

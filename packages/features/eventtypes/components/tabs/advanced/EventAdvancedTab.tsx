@@ -13,7 +13,15 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
-import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type {
+  FormValues,
+  EventTypeSetupProps,
+  SelectClassnames,
+  CheckboxClassnames,
+  InputClassnames,
+  SwitchClassnames,
+  SettingsToggleClassnames,
+} from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
@@ -27,7 +35,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { SelectClassNames } from "@calcom/ui";
 import {
   Alert,
   Button,
@@ -47,31 +54,8 @@ import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiredConfirmationCustomClassnames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
-type SettingsToggleClassnames = {
-  switchContainer?: string;
-  label?: string;
-  description?: string;
-};
-
-type SwitchClassnames = {
-  container?: string;
-  thumb?: string;
-};
-
-type InputClassnames = {
-  container?: string;
-  label?: string;
-  input?: string;
-  addOn?: string;
-};
-type CheckboxClassnames = {
-  checkbox?: string;
-  description?: string;
-  container?: string;
-};
-
 export type EventAdvancedTabCustomClassnames = {
-  destinationCalendarClassnames?: SelectClassNames;
+  destinationCalendarClassnames?: SelectClassnames;
   eventNameInCalendarClassnames?: InputClassnames;
   useAddToCalendarEmailAsOrganizerClassnames?: {
     swichClassnames?: SwitchClassnames;

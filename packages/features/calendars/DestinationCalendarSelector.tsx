@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
+import type { SelectClassnames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { SelectClassNames } from "@calcom/ui";
 import { Badge, Icon, Select } from "@calcom/ui";
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
   maxWidth?: number;
   hideAdvancedText?: boolean;
   calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
-  customClassnames?: SelectClassNames;
+  customClassnames?: SelectClassnames;
 }
 
 interface Option {

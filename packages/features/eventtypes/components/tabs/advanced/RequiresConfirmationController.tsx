@@ -7,19 +7,12 @@ import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetup } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetup, SettingsToggleClassnames } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
-
-type SettingsToggleClassnames = {
-  children?: string;
-  switchContainer?: string;
-  label?: string;
-  description?: string;
-};
 
 export type RequiredConfirmationCustomClassnames = {
   toggle?: SettingsToggleClassnames;
