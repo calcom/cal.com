@@ -98,7 +98,7 @@ const Actions = ({
           tooltip={t("copy_link_to_form")}
         />
 
-        <Tooltip content="Download Responses">
+        <Tooltip content={t("download_responses")}>
           <FormAction
             data-testid="download-responses"
             routingForm={form}
