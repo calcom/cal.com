@@ -24,6 +24,7 @@ type TimezoneBuddyState = TimezoneBuddyProps & {
   addToDate: (amount: number) => void;
   subtractFromDate: (amount: number) => void;
   setBrowseDate: (date: Date) => void;
+  setContainerRef: (ref: React.RefObject<HTMLElement>) => void;
   emitCellPosition: (x: number) => void;
   updateDimensions: () => void;
 };
@@ -59,6 +60,9 @@ export const createTimezoneBuddyStore = (initProps?: Partial<TimezoneBuddyProps>
     },
     setBrowseDate: (date: Date) => {
       set({ browsingDate: date });
+    },
+    setContainerRef: (ref: React.RefObject<HTMLElement>) => {
+      set({ containerRef: ref });
     },
     emitCellPosition: (x: number) => {
       const container = get().containerRef?.current;
