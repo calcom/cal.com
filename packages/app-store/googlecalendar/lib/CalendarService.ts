@@ -16,6 +16,7 @@ import {
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
+import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -36,7 +37,6 @@ import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
-import { getAllCalendars } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 interface GoogleCalError extends Error {
