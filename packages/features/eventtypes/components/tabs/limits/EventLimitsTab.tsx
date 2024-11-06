@@ -9,6 +9,7 @@ import type { SingleValue } from "react-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { SelectClassnames, SettingsToggleClassnames } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { classNames } from "@calcom/lib";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
@@ -23,35 +24,12 @@ import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, Tex
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
-type SettingsToggleClassnames = {
-  children?: string;
-  switchContainer?: string;
-  label?: string;
-  description?: string;
-};
-
-type SelectBaseClassnames = {
-  selectInnerClassNames: {
-    input?: string;
-    option?: string;
-    control?: string;
-    singleValue?: string;
-    valueContainer?: string;
-    multiValue?: string;
-    menu?: string;
-    menuList?: string;
-  };
-  select?: string;
-  label?: string;
-  container?: string;
-};
-
 export type EventLimitsTabCustomClassnames = {
   beforeAfterSectionWrapper?: string;
-  beforeEventSelectClassnames: SelectBaseClassnames;
-  afterEventSelectClassnames: SelectBaseClassnames;
-  minimumBookingNoticeClassnames: SelectBaseClassnames & { input?: string };
-  slotIntervalClassnames: SelectBaseClassnames;
+  beforeEventSelectClassnames: SelectClassnames;
+  afterEventSelectClassnames: SelectClassnames;
+  minimumBookingNoticeClassnames: SelectClassnames & { input?: string };
+  slotIntervalClassnames: SelectClassnames;
   bookingFrequencyLimitClassnames: SettingsToggleClassnames & {
     intervalLimitItemClassnames?: IntervalLimitItemCustomClassnames;
   };
@@ -184,7 +162,7 @@ function RangeLimitRadioItem({
 type RollingLimitCustomClassnames = {
   container?: string;
   textField?: string;
-  selectClassnames?: Pick<SelectBaseClassnames, "select" | "selectInnerClassNames">;
+  selectClassnames?: Pick<SelectClassnames, "select" | "innerClassNames">;
 };
 
 function RollingLimitRadioItem({
@@ -251,7 +229,7 @@ function RollingLimitRadioItem({
             value={getSelectedOption()}
             defaultValue={getSelectedOption()}
             className={customClassnames?.selectClassnames?.select}
-            innerClassNames={customClassnames?.selectClassnames?.selectInnerClassNames}
+            innerClassNames={customClassnames?.selectClassnames?.innerClassNames}
           />
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
@@ -287,7 +265,7 @@ function RollingLimitRadioItem({
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
   Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
-    customClassnames?: SelectBaseClassnames & { input?: string };
+    customClassnames?: SelectClassnames & { input?: string };
   }
 >(function MinimumBookingNoticeInput({ customClassnames, ...passThroughProps }, ref) {
   const { t } = useLocale();
@@ -362,7 +340,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           "mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
           customClassnames?.select
         )}
-        innerClassNames={customClassnames?.selectInnerClassNames}
+        innerClassNames={customClassnames?.innerClassNames}
         defaultValue={durationTypeOptions.find(
           (option) => option.value === minimumBookingNoticeDisplayValues.type
         )}
@@ -442,7 +420,7 @@ export const EventLimitsTab = ({ eventType, customClassnames }: EventLimitsTabPr
                     }
                     options={beforeBufferOptions}
                     className={classNames(customClassnames?.beforeEventSelectClassnames?.select)}
-                    innerClassNames={customClassnames?.beforeEventSelectClassnames?.selectInnerClassNames}
+                    innerClassNames={customClassnames?.beforeEventSelectClassnames?.innerClassNames}
                   />
                 );
               }}
@@ -478,7 +456,7 @@ export const EventLimitsTab = ({ eventType, customClassnames }: EventLimitsTabPr
                     }
                     options={afterBufferOptions}
                     className={classNames(customClassnames?.afterEventSelectClassnames?.select)}
-                    innerClassNames={customClassnames?.afterEventSelectClassnames?.selectInnerClassNames}
+                    innerClassNames={customClassnames?.afterEventSelectClassnames?.innerClassNames}
                   />
                 );
               }}
@@ -533,7 +511,7 @@ export const EventLimitsTab = ({ eventType, customClassnames }: EventLimitsTabPr
                     }
                     options={slotIntervalOptions}
                     className={customClassnames?.slotIntervalClassnames.select}
-                    innerClassNames={customClassnames?.slotIntervalClassnames?.selectInnerClassNames}
+                    innerClassNames={customClassnames?.slotIntervalClassnames?.innerClassNames}
                   />
                 );
               }}
@@ -795,7 +773,7 @@ const INTERVAL_LIMIT_OPTIONS = ascendingLimitKeys.map((key) => ({
 type IntervalLimitItemCustomClassnames = {
   addLimitButton?: string;
   limitText?: string;
-  limitSelect?: Omit<SelectBaseClassnames, "label" | "container">;
+  limitSelect?: Omit<SelectClassnames, "label" | "container">;
   container?: string;
 };
 
@@ -855,7 +833,7 @@ const IntervalLimitItem = ({
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
         onChange={onIntervalSelect}
         className={classNames("w-36", customClassnames?.limitSelect?.select)}
-        innerClassNames={customClassnames?.limitSelect?.selectInnerClassNames}
+        innerClassNames={customClassnames?.limitSelect?.innerClassNames}
       />
       {hasDeleteButton && !disabled && (
         <Button
