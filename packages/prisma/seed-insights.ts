@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { seedAttributes, seedRoutingForms } from "./seed-utils";
+import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
 
 function getRandomRatingFeedback() {
   const feedbacks = [
@@ -159,7 +159,8 @@ async function main() {
           description: "Team Meeting",
           length: 60,
           teamId: insightsTeam.id,
-          schedulingType: "COLLECTIVE",
+          schedulingType: "ROUND_ROBIN",
+          assignAllTeamMembers: true,
         },
         {
           title: "Team Lunch",
@@ -167,7 +168,8 @@ async function main() {
           description: "Team Lunch",
           length: 30,
           teamId: insightsTeam.id,
-          schedulingType: "COLLECTIVE",
+          schedulingType: "ROUND_ROBIN",
+          assignAllTeamMembers: true,
         },
         {
           title: "Team javascript",
@@ -175,7 +177,8 @@ async function main() {
           description: "Team Coffee",
           length: 15,
           teamId: insightsTeam.id,
-          schedulingType: "COLLECTIVE",
+          schedulingType: "ROUND_ROBIN",
+          assignAllTeamMembers: true,
         },
       ],
     });
@@ -236,7 +239,15 @@ async function main() {
 
   // Then seed routing forms
   const attributes = await seedAttributes(organization.id);
-  await seedRoutingForms(insightsTeam.id, owner?.user.id ?? orgMembers[0].user.id, attributes);
+  const seededForm = await seedRoutingForms(
+    insightsTeam.id,
+    owner?.user.id ?? orgMembers[0].user.id,
+    attributes
+  );
+
+  if (seededForm) {
+    await seedRoutingFormResponses(seededForm, attributes, insightsTeam.id);
+  }
 }
 main()
   .then(async () => {

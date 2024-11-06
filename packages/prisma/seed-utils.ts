@@ -1,4 +1,5 @@
 import type { Prisma, UserPermissionRole } from "@prisma/client";
+import { randomUUID } from "crypto";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
@@ -415,6 +416,19 @@ export async function seedRoutingForms(
   const seededForm = {
     id: "948ae412-d995-4865-885a-48302588de03",
     name: `Seeded Form - Insights for ${teamId}`,
+    routes: [
+      {
+        id: "8a898988-89ab-4cde-b012-31823f708642",
+        value: "team/insights-team/team-javascript",
+      },
+      {
+        id: "8b2224b2-89ab-4cde-b012-31823f708642",
+        value: "team/insights-team/team-sales",
+      },
+    ],
+    formFieldFilled: {
+      id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+    },
   };
 
   const form = await prisma.app_RoutingForms_Form.findUnique({
@@ -436,10 +450,10 @@ export async function seedRoutingForms(
       id: seededForm.id,
       routes: [
         {
-          id: "8a898988-89ab-4cde-b012-31823f708642",
+          id: seededForm.routes[0].id,
           action: {
             type: "eventTypeRedirectUrl",
-            value: "team/insights-team/team-javascript",
+            value: seededForm.routes[0].value,
             eventTypeId: 1133,
           },
           queryValue: {
@@ -467,21 +481,21 @@ export async function seedRoutingForms(
           },
         },
         {
-          id: "8b298988-89ab-4cde-b012-31823f708642",
+          id: seededForm.routes[1].id,
           action: {
             type: "eventTypeRedirectUrl",
-            value: "team/insights-team/team-sales",
+            value: seededForm.routes[1].value,
             eventTypeId: 1133,
           },
           queryValue: {
-            id: "aaba9988-cdef-4012-b456-719300f53ef8",
+            id: "aaba9948-cdef-4012-b456-719300f53ef8",
             type: "group",
           },
           attributesQueryValue: {
-            id: "ab99bbb9-89ab-4cde-b012-319300f53ef8",
+            id: "ab988888-89ab-4cde-b012-319300f53ef8",
             type: "group",
             children1: {
-              "b98b98a8-0123-4456-b89a-b19300f55277": {
+              "b98b98a12-0123-4456-b89a-b19300f55277": {
                 type: "rule",
                 properties: {
                   field: attributeRaw[2].id,
@@ -497,20 +511,20 @@ export async function seedRoutingForms(
             },
           },
           fallbackAttributesQueryValue: {
-            id: "a9a8a8aa-4567-489a-bcde-f19300f53ef8",
+            id: "a9888488-4567-489a-bcde-f19300f53ef8",
             type: "group",
           },
         },
         {
-          id: "898899aa-4567-489a-bcde-f1823f708646",
+          id: "148899aa-4567-489a-bcde-f1823f708646",
           action: { type: "customPageMessage", value: "Fallback Message" },
           isFallback: true,
-          queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+          queryValue: { id: "814899aa-4567-489a-bcde-f1823f708646", type: "group" },
         },
       ],
       fields: [
         {
-          id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+          id: seededForm.formFieldFilled.id,
           type: "multiselect",
           label: "skills",
           options: attributeRaw[2].options.map((opt) => ({
@@ -533,4 +547,69 @@ export async function seedRoutingForms(
       name: seededForm.name,
     },
   });
+  return seededForm;
+}
+
+type SeededForm = {
+  id: string;
+  name: string;
+  routes: {
+    id: string;
+    value: string;
+  }[];
+  formFieldFilled: {
+    id: string;
+  };
+};
+
+// id	formFillerId	formId	response	createdAt	routedToBookingUid
+// 1	cm35rrf1x0001rqjskhydev9i	948ae412-d995-4865-885a-48302588de03	"{""83316968-45bf-4c9d-b5d4-5368a8d2d2a8"": {""label"": ""skills"", ""value"": [""8d841a71-3b96-4930-9e2d-57a3584ec21b""]}}"	2024-11-06 11:01:56.853
+
+export async function seedRoutingFormResponses(
+  seededForm: SeededForm,
+  attributeRaw: { id: string; options: { id: string; value: string }[] }[],
+  teamId: number
+) {
+  // Get all bookings for this team
+  const bookings = await prisma.booking.findMany({
+    where: {
+      eventType: {
+        teamId: teamId,
+      },
+    },
+    take: 250, // Limit to 1000 responses
+  });
+
+  if (bookings.length === 0) {
+    console.log("No bookings found for team - skipping routing form responses");
+    return;
+  }
+
+  // Create routing form responses linked to random bookings
+  const responses = bookings.map((booking) => {
+    // Randomly select 1-3 skills from the form field options
+    const numSkills = Math.floor(Math.random() * 3) + 1;
+    const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
+    const selectedSkills = shuffledOptions.slice(0, numSkills);
+
+    const formFillerId = randomUUID();
+
+    return {
+      formId: seededForm.id,
+      formFillerId: formFillerId,
+      response: {
+        [seededForm.formFieldFilled.id]: {
+          label: "skills",
+          value: selectedSkills.map((opt) => opt.id),
+        },
+      },
+      routedToBookingUid: booking.uid,
+    };
+  });
+
+  await prisma.app_RoutingForms_FormResponse.createMany({
+    data: responses,
+  });
+
+  console.log(`Created ${responses.length} routing form responses`);
 }
