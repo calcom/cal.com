@@ -239,6 +239,9 @@ async function main() {
 
   // Then seed routing forms
   const attributes = await seedAttributes(organization.id);
+  if (!attributes) {
+    throw new Error("Attributes not found");
+  }
   const seededForm = await seedRoutingForms(
     insightsTeam.id,
     owner?.user.id ?? orgMembers[0].user.id,
