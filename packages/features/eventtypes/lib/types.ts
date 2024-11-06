@@ -160,6 +160,7 @@ export type SettingsToggleClassnames = {
   switchContainer?: string;
   label?: string;
   description?: string;
+  children?: string;
 };
 
 export type SwitchClassnames = {
