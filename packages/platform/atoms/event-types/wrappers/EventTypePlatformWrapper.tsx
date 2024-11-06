@@ -7,7 +7,6 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/components/C
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type { EventAdvancedTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
-import type { EventLimitsTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -34,7 +33,6 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
-  eventLimitsTabClassnames?: EventLimitsTabCustomClassnames;
   eventAdvancedTabClassnames?: EventAdvancedTabCustomClassnames;
 };
 
