@@ -6,6 +6,8 @@ import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { seedAttributes, seedRoutingForms } from "./seed-utils";
+
 function getRandomRatingFeedback() {
   const feedbacks = [
     "Great chat!",
@@ -108,7 +110,7 @@ async function main() {
   }
 
   // Get all members of the organization
-  const orgMembers = organization.members.map((member) => member.user);
+  const orgMembers = organization.members;
 
   let insightsTeam = await prisma.team.findFirst({
     where: {
@@ -134,8 +136,8 @@ async function main() {
     await prisma.membership.createMany({
       data: orgMembers.map((member) => ({
         teamId: insightsTeam!.id,
-        userId: member.id,
-        role: member.id === orgMembers[0].id ? "OWNER" : "MEMBER", // First user as owner
+        userId: member.user.id,
+        role: member.role,
         accepted: true,
       })),
     });
@@ -153,23 +155,23 @@ async function main() {
       data: [
         {
           title: "Team Meeting",
-          slug: "team-meeting",
+          slug: "team-sales",
           description: "Team Meeting",
           length: 60,
           teamId: insightsTeam.id,
-          schedulingType: "ROUND_ROBIN",
+          schedulingType: "COLLECTIVE",
         },
         {
           title: "Team Lunch",
-          slug: "team-lunch",
+          slug: "team-python",
           description: "Team Lunch",
           length: 30,
           teamId: insightsTeam.id,
           schedulingType: "COLLECTIVE",
         },
         {
-          title: "Team Coffee",
-          slug: "team-coffee",
+          title: "Team javascript",
+          slug: "team-javascript",
           description: "Team Coffee",
           length: 15,
           teamId: insightsTeam.id,
@@ -228,6 +230,13 @@ async function main() {
       ),
     ],
   });
+
+  // Find owner of the organization
+  const owner = orgMembers.find((m) => m.role === "OWNER" || m.role === "ADMIN");
+
+  // Then seed routing forms
+  const attributes = await seedAttributes(organization.id);
+  await seedRoutingForms(insightsTeam.id, owner?.user.id ?? orgMembers[0].user.id, attributes);
 }
 main()
   .then(async () => {

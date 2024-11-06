@@ -264,3 +264,273 @@ export async function createTeamAndAddUsers(
 
   return team;
 }
+
+export async function seedAttributes(teamId: number) {
+  const mockAttributes = [
+    {
+      name: "Department",
+      type: "SINGLE_SELECT",
+      options: ["Engineering", "Sales", "Marketing", "Product", "Design"],
+    },
+    {
+      name: "Location",
+      type: "SINGLE_SELECT",
+      options: ["New York", "London", "Tokyo", "Berlin", "Remote"],
+    },
+    {
+      name: "Skills",
+      type: "MULTI_SELECT",
+      options: ["JavaScript", "React", "Node.js", "Python", "Design", "Sales"],
+    },
+    {
+      name: "Years of Experience",
+      type: "NUMBER",
+    },
+    {
+      name: "Bio",
+      type: "TEXT",
+    },
+  ];
+
+  // Get team members
+  const memberships = await prisma.membership.findMany({
+    where: {
+      teamId: teamId,
+    },
+    select: {
+      id: true,
+      userId: true,
+    },
+  });
+
+  console.log(`🎯 Creating attributes for team ${teamId}`);
+
+  const attributeRaw: { id: string; options: { id: string; value: string }[] }[] = [];
+
+  for (const attr of mockAttributes) {
+    const attribute = await prisma.attribute.create({
+      data: {
+        name: attr.name,
+        slug: attr.name.toLowerCase().replace(/ /g, "-"),
+        type: attr.type as "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT",
+        teamId: teamId,
+        enabled: true,
+        options: attr.options
+          ? {
+              create: attr.options.map((opt) => ({
+                value: opt,
+                slug: opt.toLowerCase().replace(/ /g, "-"),
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        options: true,
+      },
+    });
+
+    attributeRaw.push({
+      id: attribute.id,
+      options: attribute.options.map((opt) => ({
+        id: opt.id,
+        value: opt.value,
+      })),
+    });
+
+    console.log(`\t📝 Created attribute: ${attr.name}`);
+
+    // Assign random values/options to members
+    for (const member of memberships) {
+      if (attr.type === "TEXT") {
+        const mockText = `Sample ${attr.name.toLowerCase()} text for user ${member.userId}`;
+        await prisma.attributeOption.create({
+          data: {
+            value: mockText,
+            slug: mockText.toLowerCase().replace(/ /g, "-"),
+            attribute: {
+              connect: {
+                id: attribute.id,
+              },
+            },
+            assignedUsers: {
+              create: {
+                memberId: member.id,
+              },
+            },
+          },
+        });
+      } else if (attr.type === "NUMBER") {
+        const mockNumber = Math.floor(Math.random() * 10 + 1).toString();
+        await prisma.attributeOption.create({
+          data: {
+            value: mockNumber,
+            slug: mockNumber,
+            attribute: {
+              connect: {
+                id: attribute.id,
+              },
+            },
+            assignedUsers: {
+              create: {
+                memberId: member.id,
+              },
+            },
+          },
+        });
+      } else if (attr.type === "SINGLE_SELECT" && attribute.options.length > 0) {
+        const randomOption = attribute.options[Math.floor(Math.random() * attribute.options.length)];
+        await prisma.attributeToUser.create({
+          data: {
+            memberId: member.id,
+            attributeOptionId: randomOption.id,
+          },
+        });
+      } else if (attr.type === "MULTI_SELECT" && attribute.options.length > 0) {
+        // Assign 1-3 random options
+        const numOptions = Math.floor(Math.random() * 3) + 1;
+        const shuffledOptions = [...attribute.options].sort(() => Math.random() - 0.5);
+        const selectedOptions = shuffledOptions.slice(0, numOptions);
+
+        for (const option of selectedOptions) {
+          await prisma.attributeToUser.create({
+            data: {
+              memberId: member.id,
+              attributeOptionId: option.id,
+            },
+          });
+        }
+      }
+    }
+
+    console.log(`\t✅ Assigned ${attr.name} values to ${memberships.length} members`);
+  }
+  return attributeRaw;
+}
+
+export async function seedRoutingForms(
+  teamId: number,
+  userId: number,
+  attributeRaw: { id: string; options: { id: string; value: string }[] }[]
+) {
+  const seededForm = {
+    id: "948ae412-d995-4865-885a-48302588de03",
+    name: `Seeded Form - Insights for ${teamId}`,
+  };
+
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: seededForm.id,
+    },
+  });
+  if (form) {
+    console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
+    return;
+  }
+
+  if (attributeRaw.length === 0) {
+    throw new Error("No attributes found - Please call seedAttributes first");
+  }
+
+  await prisma.app_RoutingForms_Form.create({
+    data: {
+      id: seededForm.id,
+      routes: [
+        {
+          id: "8a898988-89ab-4cde-b012-31823f708642",
+          action: {
+            type: "eventTypeRedirectUrl",
+            value: "team/insights-team/team-javascript",
+            eventTypeId: 1133,
+          },
+          queryValue: {
+            id: "aaba9988-cdef-4012-b456-719300f53ef8",
+            type: "group",
+          },
+          attributesQueryValue: {
+            id: "ab99bbb9-89ab-4cde-b012-319300f53ef8",
+            type: "group",
+            children1: {
+              "b98b98a8-0123-4456-b89a-b19300f55277": {
+                type: "rule",
+                properties: {
+                  field: attributeRaw[2].id,
+                  value: [
+                    attributeRaw[2].options.filter((opt) => opt.value === "JavaScript").map((opt) => opt.id),
+                  ],
+                  operator: "multiselect_some_in",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                  valueError: [null],
+                },
+              },
+            },
+          },
+        },
+        {
+          id: "8b298988-89ab-4cde-b012-31823f708642",
+          action: {
+            type: "eventTypeRedirectUrl",
+            value: "team/insights-team/team-sales",
+            eventTypeId: 1133,
+          },
+          queryValue: {
+            id: "aaba9988-cdef-4012-b456-719300f53ef8",
+            type: "group",
+          },
+          attributesQueryValue: {
+            id: "ab99bbb9-89ab-4cde-b012-319300f53ef8",
+            type: "group",
+            children1: {
+              "b98b98a8-0123-4456-b89a-b19300f55277": {
+                type: "rule",
+                properties: {
+                  field: attributeRaw[2].id,
+                  value: [
+                    attributeRaw[2].options.filter((opt) => opt.value === "Sales").map((opt) => opt.id),
+                  ],
+                  operator: "multiselect_some_in",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                  valueError: [null],
+                },
+              },
+            },
+          },
+          fallbackAttributesQueryValue: {
+            id: "a9a8a8aa-4567-489a-bcde-f19300f53ef8",
+            type: "group",
+          },
+        },
+        {
+          id: "898899aa-4567-489a-bcde-f1823f708646",
+          action: { type: "customPageMessage", value: "Fallback Message" },
+          isFallback: true,
+          queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+        },
+      ],
+      fields: [
+        {
+          id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+          type: "multiselect",
+          label: "skills",
+          options: attributeRaw[2].options.map((opt) => ({
+            id: opt.id,
+            label: opt.value,
+          })),
+          required: true,
+        },
+      ],
+      team: {
+        connect: {
+          id: teamId,
+        },
+      },
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      name: seededForm.name,
+    },
+  });
+}
