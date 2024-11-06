@@ -181,10 +181,13 @@ function getUsersWithHighestPriority<T extends PartialUser & { priority?: number
   availableUsers: T[];
 }) {
   const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
-
-  return availableUsers.filter(
+  const usersWithHighestPriority = availableUsers.filter(
     (user) => user.priority === highestPriority || (user.priority == null && highestPriority === 2)
   );
+  if (!isNonEmptyArray(usersWithHighestPriority)) {
+    throw new Error("Internal Error: Highest Priority filter should never return length=0.");
+  }
+  return usersWithHighestPriority;
 }
 
 async function filterUsersBasedOnWeights<
@@ -323,8 +326,6 @@ export async function getLuckyUser<
         });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-      // return 'undefined' early if the highestPriorityUsers list is empty.
-      if (!isNonEmptyArray(highestPriorityUsers)) return;
       // No need to round-robin through the only user, return early also.
       if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
       // TS is happy.
