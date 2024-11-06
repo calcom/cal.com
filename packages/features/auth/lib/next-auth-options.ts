@@ -34,6 +34,7 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { GoogleService } from "@calcom/lib/server/service/google";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -624,57 +625,46 @@ export const getOptions = ({
           return await autoMergeIdentities();
         }
 
-        if (account.provider === "google") {
-          // Installing Google Calendar by default
-
-          const isAlreadyInstalled = await CredentialRepository.findFirstByAppIdAndUserId({
-            appId: "google-calendar",
+        if (
+          account.provider === "google" &&
+          !(await GoogleService.findGoogleCalendarCredential({
             userId: user.id as number,
+          }))
+        ) {
+          // Installing Google Calendar by default
+          const credentialkey = {
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            id_token: account.id_token,
+            token_type: account.token_type,
+            expires_at: account.expires_at,
+          };
+
+          const [gcalCredential] = await Promise.all([
+            GoogleService.createGoogleCalendarCredential({
+              userId: user.id as number,
+              key: credentialkey,
+            }),
+            GoogleService.createGoogleMeetsCredential({
+              userId: user.id as number,
+            }),
+          ]);
+
+          const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+          oAuth2Client.setCredentials(credentialkey);
+          const calendar = google.calendar({
+            version: "v3",
+            auth: oAuth2Client,
           });
-          if (!isAlreadyInstalled) {
-            const credentialkey = {
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              id_token: account.id_token,
-              token_type: account.token_type,
-              expires_at: account.expires_at,
-            };
+          const cals = await getAllCalendars(calendar);
+          const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
-            const [credential] = await Promise.all([
-              CredentialRepository.create({
-                type: "google_calendar",
-                userId: user.id as number,
-                appId: "google-calendar",
-                key: credentialkey,
-              }),
-              CredentialRepository.create({
-                type: "google_video",
-                key: {},
-                userId: user.id as number,
-                appId: "google-meet",
-              }),
-            ]);
-
-            const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
-            oAuth2Client.setCredentials(credentialkey);
-
-            const calendar = google.calendar({
-              version: "v3",
-              auth: oAuth2Client,
+          if (primaryCal?.id) {
+            await GoogleService.createSelectedCalendar({
+              credentialId: gcalCredential.id,
+              userId: user.id as number,
+              externalId: primaryCal.id,
             });
-
-            const cals = await getAllCalendars(calendar);
-
-            const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
-
-            if (primaryCal?.id) {
-              await SelectedCalendarRepository.create({
-                credentialId: credential.id,
-                userId: user.id as number,
-                externalId: primaryCal.id,
-                integration: "google_calendar",
-              });
-            }
           }
         }
 

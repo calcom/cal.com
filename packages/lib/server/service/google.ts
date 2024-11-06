@@ -35,4 +35,11 @@ export class GoogleService {
       type: "google_video",
     });
   }
+
+  static async findGoogleCalendarCredential({ userId }: { userId: number }) {
+    return await CredentialRepository.findFirstByAppIdAndUserId({
+      appId: "google-calendar",
+      userId,
+    });
+  }
 }
