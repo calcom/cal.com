@@ -4,6 +4,8 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
@@ -51,7 +53,8 @@ export class BookingsService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly usersService: UsersService
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -346,10 +349,25 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignAutoBooking(bookingUid: string, body: ReassignAutoBookingInput_2024_08_13) {
-    return roundRobinReassignment({
-      bookingId: bookingUid,
+  async reassignBookingAutomatically(bookingUid: string, user: UserWithProfile) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const profile = this.usersService.getUserMainProfile(user);
+
+    await roundRobinReassignment({
+      bookingId: booking.id,
+      orgId: profile?.organizationId || null,
     });
+
+    const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
+    if (!reassigned) {
+      throw new NotFoundException(`Reassigned booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    return this.outputService.getOutputReassignedBooking(reassigned);
   }
 
   async reassignManualBooking(

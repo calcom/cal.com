@@ -310,7 +310,7 @@ class ReassignedToDto {
   email!: string;
 }
 
-export class ReassignAutoBookingOutput_2024_08_13 {
+export class ReassignBookingOutput_2024_08_13 {
   @ApiProperty({ type: String, example: "booking_uid_123" })
   @IsString()
   @Expose()

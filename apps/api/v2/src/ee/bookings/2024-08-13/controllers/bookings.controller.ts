@@ -10,6 +10,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -240,12 +241,12 @@ export class BookingsController_2024_08_13 {
       "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
     required: true,
   })
-  @ApiOperation({ summary: "Reassign a booking to a new host" })
+  @ApiOperation({ summary: "Automatically reassign booking to a new host" })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: ReassignAutoBookingInput_2024_08_13
+    @GetUser() user: UserWithProfile
   ): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignAutoBooking(bookingUid, body);
+    const booking = await this.bookingsService.reassignBookingAutomatically(bookingUid, user);
 
     return {
       status: SUCCESS_STATUS,
