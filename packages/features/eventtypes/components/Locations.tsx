@@ -384,7 +384,7 @@ const Locations: React.FC<LocationsProps> = ({
               isSearchable={false}
               className={classNames(
                 "block w-full min-w-0 flex-1 rounded-sm text-sm",
-                customClassnames?.locationSelectClassnames.locationSelectWrapper
+                customClassnames?.locationSelectClassnames?.locationSelectWrapper
               )}
               customClassnames={customClassnames?.locationSelectClassnames}
               menuPlacement="auto"

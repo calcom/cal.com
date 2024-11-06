@@ -7,7 +7,11 @@ import { useIsPlatform } from "@calcom/atoms/monorepo";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
 import Locations from "@calcom/features/eventtypes/components/Locations";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type {
+  EventTypeSetupProps,
+  InputClassnames,
+  SelectClassNames,
+} from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,37 +20,15 @@ import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
 
-type InputBaseClassNames = {
-  container?: string;
-  label?: string;
-  input?: string;
-};
-
-type SelectBaseClassNames = {
-  selectInnerClassNames: {
-    input?: string;
-    option?: string;
-    control?: string;
-    singleValue?: string;
-    valueContainer?: string;
-    multiValue?: string;
-    menu?: string;
-    menuList?: string;
-  };
-  select?: string;
-  label?: string;
-  container?: string;
-};
-
 export type EventSetupTabCustomClassNames = {
   eventSetupWrapper?: string;
   eventSetupTitleSectionWrapper?: string;
-  eventTitleClassnames?: InputBaseClassNames;
-  eventUrlClassnames?: InputBaseClassNames;
-  eventDurationClassnames?: InputBaseClassNames & {
+  eventTitleClassnames?: InputClassnames;
+  eventUrlClassnames?: InputClassnames;
+  eventDurationClassnames?: InputClassnames & {
     multipleDurationClassnames?: {
-      availableDurationsClassnames?: SelectBaseClassNames;
-      defaultDurationClassnames?: SelectBaseClassNames;
+      availableDurationsClassnames?: SelectClassNames;
+      defaultDurationClassnames?: SelectClassNames;
       toggleClassnames: {
         label?: string;
         description?: string;
@@ -206,7 +188,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   )}
                   innerClassNames={
                     customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.availableDurationsClassnames?.selectInnerClassNames
+                      ?.availableDurationsClassnames?.innerClassNames
                   }
                   options={multipleDurationOptions}
                   value={selectedMultipleDuration}
@@ -260,7 +242,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   )}
                   innerClassNames={
                     customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.defaultDurationClassnames?.selectInnerClassNames
+                      ?.defaultDurationClassnames?.innerClassNames
                   }
                   isDisabled={lengthLockedProps.disabled}
                   noOptionsMessage={() => t("default_duration_no_options")}
