@@ -27,6 +27,7 @@ import {
   Form,
   Icon,
   List,
+  PasswordField,
   showToast,
   SkeletonButton,
   SkeletonContainer,
@@ -63,6 +64,7 @@ const IntegrationContainer = ({
         isOpen: "editKeys",
         fromEnabled,
         appName: app.name,
+        docsUrl: app.docsUrl,
       });
     }
   };
@@ -188,10 +190,11 @@ const EditKeysModal: FC<{
   handleModelClose: () => void;
   fromEnabled?: boolean;
   appName?: string;
+  docsUrl?: string;
 }> = (props) => {
   const utils = trpc.useUtils();
   const { t } = useLocale();
-  const { dirName, slug, type, isOpen, keys, handleModelClose, fromEnabled, appName } = props;
+  const { dirName, slug, type, isOpen, keys, handleModelClose, fromEnabled, appName, docsUrl } = props;
   const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
 
   const formMethods = useForm({
@@ -232,22 +235,40 @@ const EditKeysModal: FC<{
                 key={key}
                 control={formMethods.control}
                 defaultValue={keys && keys[key] ? keys?.[key] : ""}
-                render={({ field: { value } }) => (
-                  <TextField
-                    label={key}
-                    key={key}
-                    name={key}
-                    value={value}
-                    onChange={(e) => {
-                      formMethods.setValue(key, e?.target.value);
-                    }}
-                  />
-                )}
+                render={({ field: { value } }) => {
+                  const isPasswordField =
+                    key.toLowerCase().includes("secret") ||
+                    key.toLowerCase().includes("password") ||
+                    key.toLowerCase().includes("key");
+                  const FieldComponent = isPasswordField ? PasswordField : TextField;
+
+                  return (
+                    <FieldComponent
+                      label={key}
+                      key={key}
+                      name={key}
+                      value={value}
+                      containerClassName="pb-5"
+                      hint={appKeySchema.shape[key].description}
+                      onChange={(e) => {
+                        formMethods.setValue(key, e?.target.value);
+                      }}
+                    />
+                  );
+                }}
               />
             ))}
           </Form>
         )}
-        <DialogFooter showDivider className="mt-8">
+        {!!docsUrl && (
+          <div className="text-subtle mb-3 w-full text-sm">
+            <a target="_blank" rel="noreferrer" className="hover:underline" href={docsUrl}>
+              <Icon name="book-open" className="-mt-1 mr-1 inline h-3 w-3" />
+              {t("documentation")}
+            </a>
+          </div>
+        )}
+        <DialogFooter noSticky showDivider className="mt-4">
           <DialogClose onClick={handleModelClose} />
           <Button form="edit-keys" type="submit">
             {t("save")}
@@ -265,6 +286,7 @@ interface EditModalState extends Pick<App, "keys"> {
   slug: string;
   fromEnabled?: boolean;
   appName?: string;
+  docsUrl?: string;
 }
 
 const AdminAppsListContainer = () => {
@@ -285,11 +307,12 @@ const AdminAppsListContainer = () => {
       dirName: "",
       type: "",
       slug: "",
+      docsUrl: "",
     }
   );
 
   const handleModelClose = () =>
-    setModalState({ keys: null, isOpen: "none", dirName: "", slug: "", type: "" });
+    setModalState({ keys: null, isOpen: "none", dirName: "", slug: "", type: "", docsUrl: "" });
 
   const handleModelOpen = (data: EditModalState) => setModalState({ ...data });
 
@@ -327,6 +350,7 @@ const AdminAppsListContainer = () => {
           type={modalState.type}
           fromEnabled={modalState.fromEnabled}
           appName={modalState.appName}
+          docsUrl={modalState.docsUrl}
         />
       )}
     </>

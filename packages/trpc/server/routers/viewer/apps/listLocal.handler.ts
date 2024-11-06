@@ -53,6 +53,7 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
         title: app.title,
         type: app.type,
         description: app.description,
+        docsUrl: app.docsUrl,
         // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
         keys: dbData.keys as Prisma.JsonObject | null,
         dirName: app.dirName || app.slug,
@@ -82,6 +83,7 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
       type: app.type,
       title: app.title,
       description: app.description,
+      docsUrl: app.docsUrl,
       enabled: dbData?.enabled ?? false,
       dirName: app.dirName ?? app.slug,
       keys: Object.keys(keys).length === 0 ? null : keys,
