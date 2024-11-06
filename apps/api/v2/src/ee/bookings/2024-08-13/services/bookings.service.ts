@@ -5,7 +5,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
@@ -26,9 +26,8 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
-  CancelBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
-  ReassignAutoBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
@@ -54,7 +53,8 @@ export class BookingsService_2024_08_13 {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
     private readonly billingService: BillingService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -349,13 +349,13 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignBookingAutomatically(bookingUid: string, user: UserWithProfile) {
+  async reassignBooking(bookingUid: string, requestUser: UserWithProfile) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const profile = this.usersService.getUserMainProfile(user);
+    const profile = this.usersService.getUserMainProfile(requestUser);
 
     await roundRobinReassignment({
       bookingId: booking.id,
@@ -370,17 +370,32 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputReassignedBooking(reassigned);
   }
 
-  async reassignManualBooking(
+  async reassignBookingToUser(
     bookingUid: string,
-    userId: number,
+    newUserId: number,
     reassignedById: number,
-    body: ReassignAutoBookingInput_2024_08_13
+    body: ReassignToUserBookingInput_2024_08_13
   ) {
-    return roundRobinManualReassignment({
-      bookingId: bookingUid,
-      newUserId: userId,
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const user = await this.usersRepository.findByIdWithProfile(newUserId);
+    if (!user) {
+      throw new NotFoundException(`User with id=${newUserId} was not found in the database`);
+    }
+
+    const profile = this.usersService.getUserMainProfile(user);
+
+    const reassigned = await roundRobinManualReassignment({
+      bookingId: booking.id,
+      newUserId,
+      orgId: profile?.organizationId || null,
       reassignReason: body.reason,
       reassignedById,
     });
+
+    return this.outputService.getOutputReassignedBooking(reassigned);
   }
 }

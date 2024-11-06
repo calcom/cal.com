@@ -48,9 +48,7 @@ import {
   CreateBookingInputPipe,
   CreateBookingInput,
   GetBookingsInput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
-  CancelBookingInput_2024_08_13,
-  ReassignAutoBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
@@ -246,7 +244,7 @@ export class BookingsController_2024_08_13 {
     @Param("bookingUid") bookingUid: string,
     @GetUser() user: UserWithProfile
   ): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignBookingAutomatically(bookingUid, user);
+    const booking = await this.bookingsService.reassignBooking(bookingUid, user);
 
     return {
       status: SUCCESS_STATUS,
@@ -269,9 +267,9 @@ export class BookingsController_2024_08_13 {
     @Param("bookingUid") bookingUid: string,
     @Param("userId") userId: number,
     @GetUser("id") reassignedById: number,
-    @Body() body: ReassignAutoBookingInput_2024_08_13
+    @Body() body: ReassignToUserBookingInput_2024_08_13
   ): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignManualBooking(
+    const booking = await this.bookingsService.reassignBookingToUser(
       bookingUid,
       userId,
       reassignedById,

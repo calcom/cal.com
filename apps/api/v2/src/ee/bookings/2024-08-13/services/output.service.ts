@@ -312,7 +312,9 @@ export class OutputBookingsService_2024_08_13 {
     return parsed;
   }
 
-  getOutputReassignedBooking(databaseBooking: BookingWithUser): ReassignBookingOutput_2024_08_13 {
+  getOutputReassignedBooking(
+    databaseBooking: Pick<BookingWithUser, "uid" | "user">
+  ): ReassignBookingOutput_2024_08_13 {
     return {
       bookingUid: databaseBooking.uid,
       reassignedTo: {
