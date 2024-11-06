@@ -37,5 +37,5 @@ export async function isFormCreateEditAllowed({
     });
   }
 
-  return canEditEntity(form, userId);
+  return await canEditEntity(form, userId);
 }

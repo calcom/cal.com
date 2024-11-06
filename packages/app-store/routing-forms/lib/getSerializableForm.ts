@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
+import type { SerializableForm } from "../types/types";
 import type { zodRoutesView, zodFieldsView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
@@ -65,27 +65,6 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 
   const finalFields = fields.map((field) => getFieldWithOptions(field));
 
-  let teamMembers: SerializableFormTeamMembers[] = [];
-  if (form.teamId) {
-    teamMembers = await prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            teamId: form.teamId,
-            accepted: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatarUrl: true,
-        defaultScheduleId: true,
-      },
-    });
-  }
-
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
@@ -94,7 +73,6 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     routes,
     routers,
     connectedForms,
-    teamMembers,
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
   };

@@ -36,8 +36,17 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     ],
     include: {
       team: {
-        include: {
-          members: true,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          isPrivate: true,
+          hideBookATeamMember: true,
+          metadata: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
         },
       },
       _count: {
@@ -57,7 +66,7 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
   const serializableForms = [];
   for (let i = 0; i < forms.length; i++) {
     const form = forms[i];
-    const hasWriteAccess = canEditEntity(form, user.id);
+    const hasWriteAccess = await canEditEntity(form, user.id);
     serializableForms.push({
       form: await getSerializableForm({ form: forms[i] }),
       readOnly: !hasWriteAccess,

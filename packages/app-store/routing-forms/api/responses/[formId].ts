@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "Form not found or unauthorized" });
   }
 
-  if (!canEditEntity(form, user.id)) {
+  if (!(await canEditEntity(form, user.id))) {
     return res.status(404).json({ message: "Form not found or unauthorized" });
   }
 

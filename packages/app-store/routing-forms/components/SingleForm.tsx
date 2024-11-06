@@ -635,14 +635,15 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
-                          teamMembers={form.teamMembers.map((member) => ({
-                            value: member.id.toString(),
-                            label: member.name || member.email,
-                            avatar: member.avatarUrl || "",
-                            email: member.email,
-                            isFixed: true,
-                            defaultScheduleId: member.defaultScheduleId,
-                          }))}
+                          // teamMembers={form.teamMembers.map((member) => ({
+                          //   value: member.id.toString(),
+                          //   label: member.name || member.email,
+                          //   avatar: member.avatarUrl || "",
+                          //   email: member.email,
+                          //   isFixed: true,
+                          //   defaultScheduleId: member.defaultScheduleId,
+                          // }))}
+                          teamMembers={[]}
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
