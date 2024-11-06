@@ -49,8 +49,8 @@ const createUsersAndConnectToOrg = async (
     },
     select: dSyncUserSelect,
   });
-  // assign created users to organization.
-  users.forEach(async (user) => {
+  // Assign created users to organization
+  for (const user of users) {
     await createOrUpdateMemberships({
       user,
       team: {
@@ -59,8 +59,7 @@ const createUsersAndConnectToOrg = async (
         parentId: null, // orgs don't have a parentId
       },
     });
-  });
-
+  }
   return users;
 };
 
