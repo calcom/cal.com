@@ -30,6 +30,7 @@ const shuffle = (
       title: true;
       length: true;
       description: true;
+      teamId: true;
     };
   }>[],
   usersIdsToPick?: number[]
@@ -144,13 +145,22 @@ async function main() {
   }
 
   // Create event types for the team
-  const teamEvents = await prisma.eventType.findMany({
+  let teamEvents = await prisma.eventType.findMany({
     where: {
       teamId: insightsTeam.id,
     },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      teamId: true,
+      userId: true,
+    },
   });
 
-  if (teamEvents.length === 0) {
+  if (teamEvents?.length === 0) {
     await prisma.eventType.createMany({
       data: [
         {
@@ -181,6 +191,20 @@ async function main() {
           assignAllTeamMembers: true,
         },
       ],
+    });
+    teamEvents = await prisma.eventType.findMany({
+      where: {
+        teamId: insightsTeam.id,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+        teamId: true,
+        userId: true,
+      },
     });
   }
 

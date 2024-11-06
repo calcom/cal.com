@@ -591,7 +591,11 @@ export async function seedRoutingFormResponses(
         teamId: teamId,
       },
     },
-    take: 250, // Limit to 1000 responses
+    take: 250, // Limit to 250 responses
+    select: {
+      id: true,
+      uid: true,
+    },
   });
 
   if (bookings.length === 0) {
@@ -600,30 +604,42 @@ export async function seedRoutingFormResponses(
   }
 
   // Create routing form responses linked to random bookings
-  const responses = bookings.map((booking) => {
+  for (const booking of bookings) {
     // Randomly select 1-3 skills from the form field options
     const numSkills = Math.floor(Math.random() * 3) + 1;
     const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
     const selectedSkills = shuffledOptions.slice(0, numSkills);
 
-    const formFillerId = randomUUID();
-
-    return {
-      formId: seededForm.id,
-      formFillerId: formFillerId,
-      response: {
-        [seededForm.formFieldFilled.id]: {
-          label: "skills",
-          value: selectedSkills.map((opt) => opt.id),
+    // Create wasnt assigning the response to the booking, so we need to do it in two queries (@haroiom may know more)
+    const response = await prisma.app_RoutingForms_FormResponse.create({
+      data: {
+        formId: seededForm.id,
+        formFillerId: randomUUID(),
+        response: {
+          [seededForm.formFieldFilled.id]: {
+            label: "skills",
+            value: selectedSkills.map((opt) => opt.id),
+          },
         },
       },
-      routedToBookingUid: booking.uid,
-    };
-  });
+      select: {
+        id: true,
+      },
+    });
 
-  await prisma.app_RoutingForms_FormResponse.createMany({
-    data: responses,
-  });
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        routedFromRoutingFormReponse: {
+          connect: {
+            id: response.id,
+          },
+        },
+      },
+    });
+  }
 
-  console.log(`Created ${responses.length} routing form responses`);
+  console.log(`Created ${bookings.length} routing form responses`);
 }
