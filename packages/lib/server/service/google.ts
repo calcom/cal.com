@@ -1,9 +1,9 @@
 import type { Credentials } from "google-auth-library";
 
-import { CredentialRepository } from "./credential";
-import { SelectedCalendarRepository } from "./selectedCalendar";
+import { CredentialRepository } from "../repository/credential";
+import { SelectedCalendarRepository } from "../repository/selectedCalendar";
 
-export class GoogleRepository {
+export class GoogleService {
   static async createGoogleCalendarCredential({ userId, key }: { userId: number; key: Credentials }) {
     return await CredentialRepository.create({
       type: "google_calendar",
