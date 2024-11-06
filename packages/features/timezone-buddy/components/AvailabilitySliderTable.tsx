@@ -1,7 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, useReactTable, getFilteredRowModel } from "@tanstack/react-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
@@ -15,6 +15,7 @@ import { Button, ButtonGroup, DataTable, DataTableToolbar, UserAvatar } from "@c
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { createTimezoneBuddyStore, TBContext } from "../store";
 import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
+import { GroupHighlightSlider } from "./GroupHighlightSlider";
 import { TimeDial } from "./TimeDial";
 
 export interface SliderUser {
@@ -60,9 +61,15 @@ function UpgradeTeamTip() {
 
 export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const componentContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
+
+  const tbStore = createTimezoneBuddyStore({
+    browsingDate: browsingDate.toDate(),
+    containerRef: componentContainerRef,
+  });
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
@@ -189,6 +196,25 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
 
+  useLayoutEffect(() => {
+    const handleUpdate = () => {
+      tbStore.getState().updateDimensions();
+    };
+
+    const resizeObserver = new ResizeObserver(() => handleUpdate());
+
+    const currentContainerRef = componentContainerRef.current;
+    if (currentContainerRef) {
+      resizeObserver.observe(currentContainerRef);
+    }
+
+    return () => {
+      if (currentContainerRef) {
+        resizeObserver.unobserve(currentContainerRef);
+      }
+    };
+  }, [componentContainerRef, tbStore]);
+
   const table = useReactTable({
     data: flatData,
     columns: memorisedColumns,
@@ -200,12 +226,11 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   if (!flatData.length) return <UpgradeTeamTip />;
 
   return (
-    <TBContext.Provider
-      value={createTimezoneBuddyStore({
-        browsingDate: browsingDate.toDate(),
-      })}>
+    <TBContext.Provider value={tbStore}>
       <>
-        <div className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6">
+        <div
+          className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6"
+          ref={componentContainerRef}>
           <DataTable
             table={table}
             tableContainerRef={tableContainerRef}
@@ -217,6 +242,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
             }}
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+            <GroupHighlightSlider />
             <DataTableToolbar.Root>
               <DataTableToolbar.SearchBar table={table} searchKey="member" />
             </DataTableToolbar.Root>
