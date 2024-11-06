@@ -5,6 +5,7 @@
   "type": "nextcloudtalk_video",
   "logo": "icon.svg",
   "url": "https://nextcloud.com/talk",
+  "docsUrl": "https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/oauth2.html",
   "variant": "conferencing",
   "categories": ["conferencing"],
   "publisher": "Cal.com",
@@ -18,5 +19,6 @@
   },
   "description": "Nextcloud Talk is a fully self hosted, on-premises audio/video and chat communication service. It features web and mobile apps and is designed to offer the highest degree of security while being easy to use.",
   "isTemplate": false,
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "isOAuth": true
 }
