@@ -142,8 +142,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
         alt="Profile picture"
         width="160"
       />
-    ))
-    .filter(Boolean);
+    ));
 
   // In case there is NO other attendee than the single meeting profile without an image, we add
   // that name back in here, since the event probably is a round robin event.
