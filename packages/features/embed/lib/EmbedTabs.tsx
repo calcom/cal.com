@@ -176,24 +176,26 @@ const getEmbedTypeSpecificString = ({
     apiName: string;
     theme: PreviewState["theme"];
     brandColor: string;
+    darkBrandColor: string;
     hideEventTypeDetails: boolean;
     layout?: BookerLayout;
   };
+  const baseUiInstructionStringArg = {
+    theme: previewState.theme,
+    brandColor: previewState.palette.brandColor,
+    darkBrandColor: previewState.palette.darkBrandColor,
+    hideEventTypeDetails: previewState.hideEventTypeDetails,
+    layout: previewState.layout,
+  };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
+      ...baseUiInstructionStringArg,
       apiName: getApiNameForReactSnippet({ mainApiName: "cal" }),
-      theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
-      layout: previewState.layout,
     };
   } else {
     uiInstructionStringArg = {
+      ...baseUiInstructionStringArg,
       apiName: getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" }),
-      theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
-      layout: previewState.layout,
     };
   }
   if (!frameworkCodes[embedType]) {
@@ -230,12 +232,14 @@ const getEmbedUIInstructionString = ({
   apiName,
   theme,
   brandColor,
+  darkBrandColor,
   hideEventTypeDetails,
   layout,
 }: {
   apiName: string;
   theme?: string;
   brandColor: string;
+  darkBrandColor: string;
   hideEventTypeDetails: boolean;
   layout?: string;
 }) => {
@@ -245,9 +249,12 @@ const getEmbedUIInstructionString = ({
     instructionName: "ui",
     instructionArg: {
       theme,
-      styles: {
-        branding: {
-          brandColor,
+      cssVarsPerTheme: {
+        light: {
+          "cal-brand": brandColor,
+        },
+        dark: {
+          "cal-brand": darkBrandColor,
         },
       },
       hideEventTypeDetails: hideEventTypeDetails,
