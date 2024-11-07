@@ -7,7 +7,7 @@ import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import {
@@ -567,9 +567,12 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
-    const flags = await getFeatureFlagMap(prisma);
+    const featureRepo = new FeaturesRepository();
+    const isCalendarCacheEnabledGlobally = await featureRepo.checkIfFeatureIsEnabledGlobally(
+      "calendar-cache"
+    );
     const parsedArgs = parseArgsForCache(args);
-    if (!flags["calendar-cache"]) {
+    if (!isCalendarCacheEnabledGlobally) {
       this.log.warn("Calendar Cache is disabled - Skipping");
       return await this.fetchAvailability(parsedArgs);
     }
