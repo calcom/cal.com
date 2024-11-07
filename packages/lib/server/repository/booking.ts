@@ -77,9 +77,13 @@ export class BookingRepository {
   static async getAllBookingsForRoundRobin({
     users,
     eventTypeId,
+    startDate,
+    endDate,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
+    startDate?: Date;
+    endDate?: Date;
   }) {
     const whereClause: Prisma.BookingWhereInput = {
       OR: [
@@ -111,6 +115,14 @@ export class BookingRepository {
       attendees: { some: { noShow: false } },
       status: BookingStatus.ACCEPTED,
       eventTypeId,
+      ...(startDate && endDate
+        ? {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }
+        : {}),
     };
 
     const allBookings = await prisma.booking.findMany({
@@ -121,6 +133,7 @@ export class BookingRepository {
         userId: true,
         createdAt: true,
         status: true,
+        startTime: true,
       },
       orderBy: {
         createdAt: "desc",

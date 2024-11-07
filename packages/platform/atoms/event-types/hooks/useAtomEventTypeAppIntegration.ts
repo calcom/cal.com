@@ -1,22 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
 
+import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { App, CredentialDataWithTeamName, LocationOption } from "@calcom/platform-libraries-1.2.3";
 import type { ApiResponse } from "@calcom/platform-types";
+import type { App } from "@calcom/types/App";
 
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import http from "../../lib/http";
+
+type UserTeams =
+  | []
+  | {
+      teamId: number;
+      name: string;
+      logoUrl: string | null;
+      credentialId: number;
+      isAdmin: boolean;
+    }[];
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
   credentials: CredentialDataWithTeamName[];
   userCredentialIds: number[];
   locationOption: LocationOption | null;
+  teams: UserTeams;
 };
 
 export const QUERY_KEY = "use-event-app-integration";
-export const useAtomsEventTypeById = (appSlug: string | null) => {
-  const pathname = `/atoms/event-types-app/${appSlug}`;
+export const useAtomsEventTypeById = (appSlug: string | null, teamId: number | null) => {
+  const pathname = `/atoms/event-types-app/${appSlug}${teamId ? `?teamId=${teamId}` : ""}`;
   const { isInit, accessToken } = useAtomsContext();
 
   return useQuery({

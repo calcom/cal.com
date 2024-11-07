@@ -484,7 +484,6 @@ const TeamMemberSchedule = ({
 };
 
 const TeamAvailability = ({
-  hosts,
   teamMembers,
   hostSchedulesQuery,
   customClassnames,
@@ -493,8 +492,9 @@ const TeamAvailability = ({
   customClassnames?: TeamAvailabilityCustomClassnames;
 }) => {
   const { t } = useLocale();
+  const { watch } = useFormContext<FormValues>();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
-
+  const hosts = watch("hosts");
   return (
     <>
       <div
@@ -552,47 +552,49 @@ const TeamAvailability = ({
   );
 };
 
+const useCommonScheduleState = (initialScheduleId: number | null) => {
+  const { setValue } = useFormContext<FormValues>();
+  const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(!initialScheduleId);
+  // Reset the main schedule
+  const clearMainSchedule = () => {
+    setValue("schedule", null, { shouldDirty: Boolean(initialScheduleId) });
+  };
+  // Toggle function
+  const toggleScheduleState = (checked: boolean) => {
+    const useHostSchedulesForTeamEvent = !checked;
+    setUseHostSchedulesForTeamEvent(useHostSchedulesForTeamEvent);
+    if (useHostSchedulesForTeamEvent) clearMainSchedule();
+  };
+  return {
+    useHostSchedulesForTeamEvent,
+    toggleScheduleState,
+  };
+};
+
 const UseCommonScheduleSettingsToggle = ({
   eventType,
   customClassnames,
   ...rest
 }: UseCommonScheduleSettingsToggle) => {
   const { t } = useLocale();
-  const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
-
-  const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
-    !Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
-  );
-
-  const watchHosts = watch("hosts");
-
+  const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   return (
     <>
       <SettingsToggle
         checked={!useHostSchedulesForTeamEvent}
-        onCheckedChange={(checked) => {
-          setUseHostSchedulesForTeamEvent(!checked);
-          if (checked) {
-            if (Boolean(eventType.schedule)) resetField("schedule");
-            getValues("hosts").map((_, index) => {
-              setValue(`hosts.${index}.scheduleId`, null, { shouldDirty: true });
-            });
-          } else {
-            setValue("schedule", null, { shouldDirty: Boolean(eventType.schedule) });
-          }
-        }}
+        onCheckedChange={toggleScheduleState}
         title={t("choose_common_schedule_team_event")}
         description={t("choose_common_schedule_team_event_description")}>
+        {/* handles the state for which 'schedule' ID is set, as it's unknown until the Select dropdown is loaded */}
         <EventTypeSchedule
+          customClassnames={customClassnames?.userAvailabilityClassnames}
           eventType={eventType}
           {...rest}
-          customClassnames={customClassnames?.userAvailabilityClassnames}
         />
       </SettingsToggle>
       {useHostSchedulesForTeamEvent && (
         <div className="lg:ml-14">
           <TeamAvailability
-            hosts={watchHosts}
             teamMembers={rest.teamMembers}
             hostSchedulesQuery={rest.hostSchedulesQuery}
             customClassnames={customClassnames?.teamAvailabilityClassnames}
