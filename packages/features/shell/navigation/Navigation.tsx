@@ -5,7 +5,6 @@ import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookin
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -13,7 +12,7 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const ORG_ADMIN_ONLY = ["/members"];
+const ORGANIZATION_ONLY = ["/members"];
 
 const navigation: NavigationItemType[] = [
   {
@@ -167,10 +166,8 @@ export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
 
 const useFilteredNavigationItems = (items: NavigationItemType[]) => {
   const orgBranding = useOrgBranding();
-  const isOrgAdminOrOwner =
-    orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
   return items.filter((item) => {
-    if (!isOrgAdminOrOwner && ORG_ADMIN_ONLY.includes(item.href)) {
+    if (!orgBranding && ORGANIZATION_ONLY.includes(item.href)) {
       return false;
     }
 
