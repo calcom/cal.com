@@ -16,12 +16,7 @@ import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import {
-  downloadAsCsv,
-  generateCsvRaw,
-  generateHeaderFromReactTable,
-  sanitizeValue,
-} from "@calcom/lib/csvUtils";
+import { downloadAsCsv, generateCsvRaw, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -475,38 +470,46 @@ export function UserListTable() {
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
-          <div className="flex w-full gap-2">
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <DataTableToolbar.CTA
-              type="button"
-              color="secondary"
-              StartIcon="file-down"
-              loading={isDownloading}
-              onClick={() => handleDownload()}
-              data-testid="export-members-button">
-              {t("download")}
-            </DataTableToolbar.CTA>
-            {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-            <DataTableFilters.FilterButton table={table} omit={["member"]} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-            {adminOrOwner && (
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
+            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
+              <DataTableToolbar.SearchBar
+                table={table}
+                onSearch={(value) => setDebouncedSearchTerm(value)}
+                className="sm:max-w-64 max-w-full"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <DataTableToolbar.CTA
                 type="button"
-                color="primary"
-                StartIcon="plus"
-                className="rounded-md"
-                onClick={() =>
-                  dispatch({
-                    type: "INVITE_MEMBER",
-                    payload: {
-                      showModal: true,
-                    },
-                  })
-                }
-                data-testid="new-organization-member-button">
-                {t("add")}
+                color="secondary"
+                StartIcon="file-down"
+                loading={isDownloading}
+                onClick={() => handleDownload()}
+                data-testid="export-members-button">
+                {t("download")}
               </DataTableToolbar.CTA>
-            )}
+              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
+              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.ColumnVisibilityButton table={table} />
+              {adminOrOwner && (
+                <DataTableToolbar.CTA
+                  type="button"
+                  color="primary"
+                  StartIcon="plus"
+                  className="rounded-md"
+                  onClick={() =>
+                    dispatch({
+                      type: "INVITE_MEMBER",
+                      payload: {
+                        showModal: true,
+                      },
+                    })
+                  }
+                  data-testid="new-organization-member-button">
+                  {t("add")}
+                </DataTableToolbar.CTA>
+              )}
+            </div>
           </div>
           <div className="flex gap-2 justify-self-start">
             <DataTableFilters.ActiveFilters table={table} />
