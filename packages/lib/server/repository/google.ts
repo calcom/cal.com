@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { Credentials } from "google-auth-library";
 
 import { CredentialRepository } from "./credential";
@@ -29,7 +30,9 @@ export class GoogleRepository {
     });
   }
 
-  static async upsertSelectedCalendar(data: { credentialId: number; userId: number; externalId: string }) {
+  static async upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration">
+  ) {
     return await SelectedCalendarRepository.upsert({
       ...data,
       integration: "google_calendar",

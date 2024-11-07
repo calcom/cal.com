@@ -20,7 +20,7 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -734,15 +734,11 @@ export default class GoogleCalendarService implements Calendar {
         },
       },
     });
-    const credentialId = this.credential.id;
-    const userId = this.credential.userId!;
-    const externalId = calendarId;
     const response = res.data;
-    await SelectedCalendarRepository.upsert({
-      userId,
+    await GoogleRepository.upsertSelectedCalendar({
+      userId: this.credential.userId!,
       externalId: calendarId,
-      credentialId,
-      integration: "google_calendar",
+      credentialId: this.credential.id,
       googleChannelId: response?.id,
       googleChannelKind: response?.kind,
       googleChannelResourceId: response?.resourceId,
