@@ -10,6 +10,7 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -19,18 +20,10 @@ import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getSer
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
-import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
-import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const steps = [
-  "user-settings",
-  "connected-calendar",
-  "connected-video",
-  "setup-availability",
-  "user-profile",
-] as const;
+const steps = ["user-settings", "connected-calendar", "connected-video"] as const;
 
 const stepTransform = (step: (typeof steps)[number]) => {
   const stepIndex = steps.indexOf(step);
@@ -61,33 +54,25 @@ const OnboardingPage = (props: PageProps) => {
   });
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
-  const from = result.success ? result.data.from : "";
   const headers = [
     {
-      title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
-      subtitle: [`${t("we_just_need_basic_info")}`, `${t("edit_form_later_subtitle")}`],
+      title: `${t("individual_or_team_title")}`,
+      subtitle: [`${t("individual_or_team_subtitle")}`],
     },
-    {
-      title: `${t("connect_your_calendar")}`,
-      subtitle: [`${t("connect_your_calendar_instructions")}`],
-      skipText: `${t("connect_calendar_later")}`,
-    },
-    {
-      title: `${t("connect_your_video_app")}`,
-      subtitle: [`${t("connect_your_video_app_instructions")}`],
-      skipText: `${t("set_up_later")}`,
-    },
-    {
-      title: `${t("set_availability")}`,
-      subtitle: [
-        `${t("set_availability_getting_started_subtitle_1")}`,
-        `${t("set_availability_getting_started_subtitle_2")}`,
-      ],
-    },
-    {
-      title: `${t("nearly_there")}`,
-      subtitle: [`${t("nearly_there_instructions")}`],
-    },
+    ...(user.identityProvider !== IdentityProvider.GOOGLE
+      ? [
+          {
+            title: `${t("connect_your_calendar")}`,
+            subtitle: [`${t("connect_your_calendar_instructions")}`],
+            skipText: `${t("connect_calendar_later")}`,
+          },
+          {
+            title: `${t("connect_your_video_app")}`,
+            subtitle: [`${t("connect_your_video_app_instructions")}`],
+            skipText: `${t("set_up_later")}`,
+          },
+        ]
+      : []),
   ];
 
   // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
@@ -142,20 +127,10 @@ const OnboardingPage = (props: PageProps) => {
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
-                {currentStep === "user-settings" && (
-                  <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
-                )}
+                {currentStep === "user-settings" && <UserSettings nextStep={() => goToIndex(1)} />}
                 {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
                 {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
-
-                {currentStep === "setup-availability" && (
-                  <SetupAvailability
-                    nextStep={() => goToIndex(4)}
-                    defaultScheduleId={user.defaultScheduleId}
-                  />
-                )}
-                {currentStep === "user-profile" && <UserProfile />}
               </Suspense>
             </StepCard>
 

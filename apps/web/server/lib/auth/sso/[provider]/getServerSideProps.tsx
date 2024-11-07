@@ -20,13 +20,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const providerParam = asStringOrNull(context.query.provider);
   const emailParam = asStringOrNull(context.query.email);
   const usernameParam = asStringOrNull(context.query.username);
-  const searchParams = new URLSearchParams();
-  if (usernameParam) searchParams.append("username", usernameParam);
-  if (providerParam) searchParams.append("provider", providerParam);
-
-  const successDestination = `/getting-started${
-    searchParams.toString() ? `?${searchParams.toString()}` : ""
-  }`;
+  const successDestination = `/getting-started${usernameParam ? `?username=${usernameParam}` : ""}`;
   if (!providerParam) {
     throw new Error(`File is not named sso/[provider]`);
   }
