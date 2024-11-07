@@ -44,6 +44,7 @@ const availabilitySchema = z
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
+    bypassBusyCalendarTimes: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -243,6 +244,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer?: number;
     duration?: number;
     returnDateOverrides: boolean;
+    bypassBusyCalendarTimes: boolean;
   },
   initialData?: {
     user?: GetUser;
@@ -276,6 +278,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer,
     duration,
     returnDateOverrides,
+    bypassBusyCalendarTimes = false,
   } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -389,6 +392,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
+    bypassBusyCalendarTimes,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -415,8 +419,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })
   );
 
-  const getWorkingHoursSpan = Sentry.startInactiveSpan({ name: "getWorkingHours" });
-
   if (
     !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
   ) {
@@ -431,7 +433,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
-  getWorkingHoursSpan.end();
 
   const dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
@@ -530,7 +531,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
-  const buildDateRangesSpan = Sentry.startInactiveSpan({ name: "buildDateRanges" });
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,
     dateTo,
@@ -547,8 +547,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       : [],
     outOfOffice: datesOutOfOffice,
   });
-
-  buildDateRangesSpan.end();
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),

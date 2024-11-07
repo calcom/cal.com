@@ -36,7 +36,6 @@ import {
   formatToLocalizedDate,
   formatToLocalizedTime,
   formatToLocalizedTimezone,
-  formatLocalizedDateTime,
 } from "@calcom/lib/date-fns";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -106,8 +105,7 @@ const useBrandColors = ({
 
 export default function Success(props: PageProps) {
   const {
-    t,
-    i18n: { language },
+    t
   } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -608,21 +606,6 @@ export default function Success(props: PageProps) {
                                   />
                                 </>
                               )}
-                            </div>
-                          </>
-                        )}
-                        {!isCancelled && bookingInfo.createdAt && (
-                          <>
-                            <div className="mt-3 font-medium">{t("booked_at")}</div>
-                            <div className="col-span-2 mt-3">
-                              {formatLocalizedDateTime(dayjs(bookingInfo.createdAt))},{" "}
-                              {formatToLocalizedTime(
-                                dayjs(bookingInfo.createdAt),
-                                language,
-                                "short",
-                                !is24h,
-                                tz
-                              ).toUpperCase()}
                             </div>
                           </>
                         )}

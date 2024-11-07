@@ -99,7 +99,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-  bookingInfo["createdAt"] = (bookingInfo?.createdAt as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
