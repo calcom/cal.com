@@ -10,7 +10,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 }));
 
 // Mock the Dropdown component
-vi.mock("../../form/dropdown", () => ({
+vi.mock("../../dropdown", () => ({
   Dropdown: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

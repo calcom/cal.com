@@ -440,16 +440,20 @@ export class Cal {
     return Object.fromEntries(Object.entries(params).filter(([key, value]) => !excludeParam(key, value)));
   }
 
+  private getQueryParamsFromPage() {
+    const queryParamsFromPage = getQueryParamsFromPage();
+    // Ensure valid params are used from the page.
+    return this.filterParams(queryParamsFromPage);
+  }
+
   private buildFilteredQueryParams(queryParamsFromConfig: PrefillAndIframeAttrsConfig): URLSearchParams {
-    const queryParamsFromPageUrl = globalCal.config?.forwardQueryParams ? getQueryParamsFromPage() : {};
+    const queryParamsFromPageUrl = globalCal.config?.forwardQueryParams ? this.getQueryParamsFromPage() : {};
 
     // Query Params via config have higher precedence
     const mergedQueryParams = { ...queryParamsFromPageUrl, ...queryParamsFromConfig };
 
-    const filteredQueryParams = this.filterParams(mergedQueryParams);
-
     const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(filteredQueryParams)) {
+    for (const [key, value] of Object.entries(mergedQueryParams)) {
       if (value === undefined) {
         continue;
       }
@@ -685,6 +689,11 @@ class CalApi {
 
     if (__prerender) {
       this.preloadedModalUid = uid;
+    } else {
+      // Intentionally not setting it to have the behaviour of reusing the same modal. Because it causes outdated content that might not be valid based on
+      // 1. The time difference b/w reopening(availability getting changed in b/w)
+      // 2. User using different query params but they not being used because of the same modal being reused. Happens in case of headless router being opened in embed
+      // this.modalUid = uid;
     }
 
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {

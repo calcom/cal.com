@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
+import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -141,10 +142,10 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = searchParams ? getEmbedNamespace(searchParams) : null;
   const isEmbedMode = typeof embedNamespace === "string";
 
-  const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
 
   return (
-    <ThemeProvider {...themeProviderProps}>
+    <ThemeProvider key={key} {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -299,7 +300,9 @@ const AppProviders = (props: PageWrapperProps) => {
 
   return (
     <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+      <DynamicIntercomProvider>
+        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+      </DynamicIntercomProvider>
     </DynamicHelpscoutProvider>
   );
 };

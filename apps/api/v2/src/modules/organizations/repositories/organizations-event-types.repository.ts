@@ -70,4 +70,26 @@ export class OrganizationsEventTypesRepository {
       include: { children: true },
     });
   }
+
+  async deleteUserManagedTeamEventTypes(userId: number, teamId: number) {
+    return this.dbWrite.prisma.eventType.deleteMany({
+      where: {
+        parent: {
+          teamId,
+        },
+        userId,
+      },
+    });
+  }
+
+  async removeUserFromTeamEventTypesHosts(userId: number, teamId: number) {
+    return this.dbWrite.prisma.host.deleteMany({
+      where: {
+        userId,
+        eventType: {
+          teamId,
+        },
+      },
+    });
+  }
 }

@@ -7,14 +7,15 @@ import { TRPCError } from "@calcom/trpc/server";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
-import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import { processRoute } from "../../lib/processRoute";
+import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { FormResponse } from "../../types/types";
 import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
+import { getUrlSearchParamsToForward } from "../routing-link/getUrlSearchParamsToForward";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 
@@ -26,11 +27,24 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
+function getNamedParams(params: { appPages: string[] } | undefined) {
+  const [embed] = params?.appPages || [];
+  return {
+    // There might not be item at index 0, so explicit assertion is needed
+    embed: embed as typeof embed | undefined,
+  };
+}
+
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
 ) {
   const queryParsed = querySchema.safeParse(context.query);
+  const { embed } = getNamedParams(context.params);
+  const pageProps = {
+    isEmbed: !!embed,
+  };
+
   if (!queryParsed.success) {
     log.warn("Error parsing query", queryParsed.error);
     return {
@@ -109,11 +123,13 @@ export const getServerSideProps = async function getServerSideProps(
     };
   });
 
-  const decidedAction = processRoute({ form: serializableForm, response });
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
 
-  if (!decidedAction) {
+  if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
+
+  const decidedAction = matchingRoute.action;
 
   const { createContext } = await import("@calcom/trpc/server/createContext");
   const ctx = await createContext(context);
@@ -121,16 +137,24 @@ export const getServerSideProps = async function getServerSideProps(
   const { default: trpcRouter } = await import("@calcom/app-store/routing-forms/trpc/_router");
   const caller = trpcRouter.createCaller(ctx);
   const { v4: uuidv4 } = await import("uuid");
+  let teamMembersMatchingAttributeLogic = null;
+  let formResponseId = null;
+  let attributeRoutingConfig = null;
   try {
-    await caller.public.response({
+    const result = await caller.public.response({
       formId: form.id,
       formFillerId: uuidv4(),
       response: response,
+      chosenRouteId: matchingRoute.id,
     });
+    teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
+    formResponseId = result.formResponse.id;
+    attributeRoutingConfig = result.attributeRoutingConfig;
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
         props: {
+          ...pageProps,
           form: serializableForm,
           message: e.message,
         },
@@ -142,6 +166,7 @@ export const getServerSideProps = async function getServerSideProps(
   if (decidedAction.type === "customPageMessage") {
     return {
       props: {
+        ...pageProps,
         form: serializableForm,
         message: decidedAction.value,
       },
@@ -152,12 +177,22 @@ export const getServerSideProps = async function getServerSideProps(
       response,
       serializableForm.fields
     );
+
     return {
       redirect: {
-        destination: getAbsoluteEventTypeRedirectUrl({
+        destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
           eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
           form: serializableForm,
-          allURLSearchParams: new URLSearchParams(stringify(context.query)),
+          allURLSearchParams: getUrlSearchParamsToForward({
+            formResponse: response,
+            fields: serializableForm.fields,
+            searchParams: new URLSearchParams(stringify(fieldsResponses)),
+            teamMembersMatchingAttributeLogic,
+            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
+            formResponseId: formResponseId!,
+            attributeRoutingConfig: attributeRoutingConfig ?? null,
+          }),
+          isEmbed: pageProps.isEmbed,
         }),
         permanent: false,
       },
@@ -171,9 +206,12 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
+  // TODO: Consider throwing error here as there is no value of decidedAction.type that would cause the flow to be here
   return {
     props: {
+      ...pageProps,
       form: serializableForm,
+      message: "Unhandled type of action",
     },
   };
 };

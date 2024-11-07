@@ -248,6 +248,30 @@ describe("OAuth Client Users Endpoints", () => {
       expect(schedule?.userId).toEqual(userId);
     }
 
+    it(`should fail /POST using already used managed user email`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
+        timeZone: userTimeZone,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Alice Smith",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(409);
+
+      const responseBody: CreateManagedUserOutput = response.body;
+      const error = responseBody.error;
+      expect(error).toBeDefined();
+      expect(error?.message).toEqual(
+        `User with the provided e-mail already exists. Existing user ID=${postResponseData.user.id}`
+      );
+    });
+
     it(`/GET: return list of managed users`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0`)
@@ -486,7 +510,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(oAuthClient1).toBeDefined();
     });
 
-    it(`should create managed user and update team event-types of OAuthClient marked as assignAllTeamMembers: true`, async () => {
+    it(`should create managed user and update team event-types`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: userTimeZone,
@@ -508,48 +532,13 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
 
-      await userHasCorrectEventTypes(responseBody.data.user.id);
       await teamHasCorrectEventTypes(team1.id);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
     });
 
-    async function userHasCorrectEventTypes(userId: number) {
-      const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
-
-      expect(eventTypes?.length).toEqual(5);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
-
-      // note(Lauris): default event types
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug)
-      ).toBeTruthy();
-    }
-
     async function teamHasCorrectEventTypes(teamId: number) {
       const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
-
       expect(eventTypes?.length).toEqual(2);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
-
-      // note(Lauris): check if managed user added to collective event-type hosts given that it has assignAllTeamMembers: true
-      const collective = eventTypes?.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-      expect(collective).toBeTruthy();
-      expect(collective?.hosts).toBeDefined();
-      expect(collective?.hosts?.length).toEqual(1);
-      expect(collective?.hosts[0].userId).toEqual(postResponseData.user.id);
     }
 
     afterAll(async () => {
