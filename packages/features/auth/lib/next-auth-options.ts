@@ -10,6 +10,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
+import postHogClient from "@calcom/features/ee/event-tracking/lib/posthog/postHogClient";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -227,8 +228,6 @@ const providers: Provider[] = [
         // By this point it is an ADMIN without valid security conditions
         return "INACTIVE_ADMIN";
       };
-
-      await UserRepository.updateUserLastLogin(user.id);
 
       return {
         id: user.id,
@@ -764,7 +763,6 @@ export const getOptions = ({
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
               return loginWithTotp(existingUser.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUser.id);
               return true;
             }
           }
@@ -781,7 +779,6 @@ export const getOptions = ({
             if (existingUser.twoFactorEnabled) {
               return loginWithTotp(existingUser.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUser.id);
               return true;
             }
           } else {
@@ -815,7 +812,6 @@ export const getOptions = ({
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUserWithEmail.id);
               return true;
             }
           }
@@ -846,7 +842,6 @@ export const getOptions = ({
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUserWithEmail.id);
               return true;
             }
           }
@@ -869,7 +864,6 @@ export const getOptions = ({
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
-              await UserRepository.updateUserLastLogin(existingUserWithEmail.id);
               return true;
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
@@ -922,7 +916,6 @@ export const getOptions = ({
         if (account.twoFactorEnabled) {
           return loginWithTotp(newUser.email);
         } else {
-          await UserRepository.updateUserLastLogin(newUser.id);
           return true;
         }
       }
@@ -955,24 +948,32 @@ export const getOptions = ({
       // this is a workaround – in the future once we move to use the Account model in the DB
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
-      if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
-        const clickId = getDubId();
-        // check if there's a clickId (dub_id) cookie set by @dub/analytics
-        if (clickId) {
-          // here we use waitUntil – meaning this code will run async to not block the main thread
-          waitUntil(
-            // if so, send a lead event to Dub
-            // @see https://d.to/conversions/next-auth
-            dub.track.lead({
-              clickId,
-              eventName: "Sign Up",
-              customerId: user.id.toString(),
-              customerName: user.name,
-              customerEmail: user.email,
-              customerAvatar: user.image,
-            })
-          );
+      if ((isENVDev || IS_CALCOM) && isNewUser) {
+        if (process.env.DUB_API_KEY) {
+          const clickId = getDubId();
+          // check if there's a clickId (dub_id) cookie set by @dub/analytics
+          if (clickId) {
+            // here we use waitUntil – meaning this code will run async to not block the main thread
+            waitUntil(
+              // if so, send a lead event to Dub
+              // @see https://d.to/conversions/next-auth
+              dub.track.lead({
+                clickId,
+                eventName: "Sign Up",
+                customerId: user.id.toString(),
+                customerName: user.name,
+                customerEmail: user.email,
+                customerAvatar: user.image,
+              })
+            );
+          }
         }
+
+        postHogClient().capture(user.id.toString(), "Sign Up", {
+          email: user.email,
+          name: user.name,
+          username: user.username,
+        });
       }
     },
   },

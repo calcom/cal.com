@@ -6,6 +6,7 @@ import type {
   User,
   EventType as PrismaEventType,
 } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -18,7 +19,6 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -49,6 +49,7 @@ const availabilitySchema = z
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
     userBookingLimits: intervalLimitsType.optional(),
+    bypassBusyCalendarTimes: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -249,6 +250,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     duration?: number;
     returnDateOverrides: boolean;
     userBookingLimits?: IntervalLimit | null;
+    bypassBusyCalendarTimes: boolean;
   },
   initialData?: {
     user?: GetUser;
@@ -283,6 +285,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     duration,
     returnDateOverrides,
     userBookingLimits,
+    bypassBusyCalendarTimes = false,
   } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -397,7 +400,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  const busyTimes = await getBusyTimes({
+  const busyTimes = await monitorCallbackAsync(getBusyTimes, {
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -412,6 +415,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
+    bypassBusyCalendarTimes,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -439,8 +443,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })
   );
 
-  const startGetWorkingHours = performance.now();
-
   if (
     !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
   ) {
@@ -456,13 +458,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 
-  const endGetWorkingHours = performance.now();
-
   const dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
   if (returnDateOverrides) {
+    const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
     const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
     for (let i = 0; i < availabilityWithDates.length; i++) {
@@ -481,6 +482,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         });
       }
     }
+
+    calculateDateOverridesSpan.end();
   }
 
   const outOfOfficeDays =
@@ -575,19 +578,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
-
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
-
-  log.debug(
-    `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
-    JSON.stringify({
-      workingHoursInUtc: workingHours,
-      dateOverrides,
-      dateRangesAsPerAvailability: dateRanges,
-      dateRangesInWhichUserIsAvailable,
-      detailedBusyTimes,
-    })
-  );
 
   return {
     busy: detailedBusyTimes,

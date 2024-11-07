@@ -732,14 +732,19 @@ export class UserRepository {
     return user;
   }
 
-  static async updateUserLastLogin(userId: number) {
-    try {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { lastLogin: new Date() },
-      });
-    } catch (error) {
-      console.error(`Failed to update lastLogin for user ${userId}:`, error);
-    }
+  static async updateAvatar({ id, avatarUrl }: { id: number; avatarUrl: string }) {
+    // Using updateMany here since if the user already has a profile it would throw an error
+    // because no records were found to update the profile picture
+    await prisma.user.updateMany({
+      where: {
+        id,
+        avatarUrl: {
+          equals: null,
+        },
+      },
+      data: {
+        avatarUrl,
+      },
+    });
   }
 }
