@@ -18,7 +18,7 @@ type Option = {
   StartIcon: IconName;
 };
 
-export const FilterType = () => {
+export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?: boolean }) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedUserId } = filter;
@@ -34,6 +34,15 @@ export const FilterType = () => {
       value: "user",
       StartIcon: "user",
     },
+    ...(showRoutingFilters
+      ? [
+          {
+            label: t("routing_forms"),
+            value: "routing_forms",
+            StartIcon: "calendar-check",
+          },
+        ]
+      : []),
   ];
 
   if (selectedUserId) {

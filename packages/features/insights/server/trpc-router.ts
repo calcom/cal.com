@@ -12,6 +12,7 @@ import { router } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
+import { RoutingEventsInsights } from "./routing-events";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -1527,5 +1528,30 @@ export const insightsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
     return { data: "", filename: "" };
+  }),
+  getRoutingFormsForFilters: userBelongsToTeamProcedure
+    .input(rawDataInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { teamId } = input;
+      return await ctx.insightsDb.app_RoutingForms_Form.findMany({
+        where: {
+          teamId,
+        },
+      });
+    }),
+  routingFormsByStatus: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
+    const { startDate, endDate, teamId, isAll, eventTypeId } = input;
+
+    const stats = await RoutingEventsInsights.getRoutingFormStats({
+      teamId,
+      startDate,
+      endDate,
+      isAll,
+      organizationId: ctx.user.organizationId,
+    });
+
+    console.log({ stats });
+
+    return stats;
   }),
 });

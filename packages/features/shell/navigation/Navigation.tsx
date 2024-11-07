@@ -91,9 +91,7 @@ const navigation: NavigationItemType[] = [
       {
         name: "bookings",
         href: "/insights",
-        isCurrent: ({ pathname: path, item }) => {
-          return true;
-        },
+        isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
       },
       {
         name: "routing",
