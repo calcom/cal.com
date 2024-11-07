@@ -201,7 +201,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
     (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
-  const canViewTeamAvailability = isOrg && (isOrgAdminOrOwner || !isOrgAndPrivate);
+  const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
 
   const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
 
@@ -213,11 +213,11 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
     <div>
       <Shell
         heading={t("availability")}
-        title="Availability"
-        description="Configure times when you are available for bookings."
+        subtitle={t("configure_availability")}
+        title={t("availability")}
+        description={t("configure_availability")}
         hideHeadingOnMobile
         withoutMain={false}
-        subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
             <ToggleGroup
@@ -233,7 +233,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
           </div>
         }>
         {searchParams?.get("type") === "team" && canViewTeamAvailability ? (
-          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} isOrg={isOrg} />
         ) : (
           <AvailabilityListWithQuery />
         )}

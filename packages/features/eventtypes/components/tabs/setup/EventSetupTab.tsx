@@ -3,31 +3,31 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Locations from "@calcom/features/eventtypes/components/Locations";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Label, Select, SettingsToggle, Skeleton, TextField, Editor } from "@calcom/ui";
+import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
 
 export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 >;
-export const EventSetupTab = (props: EventSetupTabProps) => {
+export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean }) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding } = props;
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBranding();
+
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const multipleDurationOptions = [
@@ -54,9 +54,6 @@ export const EventSetupTab = (props: EventSetupTabProps) => {
   const descriptionLockedProps = shouldLockDisableProps("description");
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
-  const urlPrefix = orgBranding
-    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -71,38 +68,51 @@ export const EventSetupTab = (props: EventSetupTabProps) => {
             {...formMethods.register("title")}
           />
           <div>
-            <Label htmlFor="editor">
-              {t("description")}
-              {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
-            </Label>
-            <Editor
-              getText={() => md.render(formMethods.getValues("description") || "")}
-              setText={(value: string) =>
-                formMethods.setValue("description", turndown(value), { shouldDirty: true })
-              }
-              excludedToolbarItems={["blockType"]}
-              placeholder={t("quick_video_meeting")}
-              editable={!descriptionLockedProps.disabled}
-              firstRender={firstRender}
-              setFirstRender={setFirstRender}
-            />
+            {isPlatform ? (
+              <TextAreaField
+                {...formMethods.register("description", {
+                  disabled: descriptionLockedProps.disabled,
+                })}
+                placeholder={t("quick_video_meeting")}
+              />
+            ) : (
+              <>
+                <Label htmlFor="editor">
+                  {t("description")}
+                  {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
+                </Label>
+                <Editor
+                  getText={() => md.render(formMethods.getValues("description") || "")}
+                  setText={(value: string) =>
+                    formMethods.setValue("description", turndown(value), { shouldDirty: true })
+                  }
+                  excludedToolbarItems={["blockType"]}
+                  placeholder={t("quick_video_meeting")}
+                  editable={!descriptionLockedProps.disabled}
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
+                />
+              </>
+            )}
           </div>
           <TextField
             required
-            label={t("URL")}
+            label={isPlatform ? "Slug" : t("URL")}
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
             addOnLeading={
-              <>
-                {urlPrefix}/
-                {!isManagedEventType
-                  ? team
-                    ? (orgBranding ? "" : "team/") + team.slug
-                    : formMethods.getValues("users")[0].username
-                  : t("username_placeholder")}
-                /
-              </>
+              isPlatform ? undefined : (
+                <>
+                  {urlPrefix}/
+                  {!isManagedEventType
+                    ? team
+                      ? (hasOrgBranding ? "" : "team/") + team.slug
+                      : formMethods.getValues("users")[0].username
+                    : t("username_placeholder")}
+                  /
+                </>
+              )
             }
             {...formMethods.register("slug", {
               setValueAs: (v) => slugify(v),

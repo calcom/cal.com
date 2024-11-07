@@ -24,6 +24,7 @@ export const ZGetEventTypesFromGroupSchema = z.object({
   cursor: z.number().nullish(),
   limit: z.number().default(10),
   group: z.object({ teamId: z.number().nullish(), parentId: z.number().nullish() }),
+  searchQuery: z.string().optional(),
 });
 
 export type TGetEventTypesFromGroupSchema = z.infer<typeof ZGetEventTypesFromGroupSchema>;

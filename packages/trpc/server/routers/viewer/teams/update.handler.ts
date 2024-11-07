@@ -65,6 +65,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
     bookingLimits: input.bookingLimits ?? undefined,
+    includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
@@ -147,6 +148,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     brandColor: updatedTeam.brandColor,
     darkBrandColor: updatedTeam.darkBrandColor,
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
+    includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
   };
 };
 

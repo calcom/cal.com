@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -11,9 +12,11 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -24,17 +27,11 @@ const paramsSchema = z.object({
 // 1. Check if team exists, to show 404
 // 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getServerSession(context);
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
-  const {
-    rescheduleUid,
-    duration: queryDuration,
-    isInstantMeeting: queryIsInstantMeeting,
-    email,
-  } = context.query;
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const { req, params, query } = context;
+  const session = await getServerSession({ req });
+  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
+  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {
@@ -58,6 +55,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
+      name: true,
+      slug: true,
+      eventTypes: {
+        where: {
+          slug: meetingSlug,
+        },
+        select: {
+          id: true,
+          isInstantEvent: true,
+          schedulingType: true,
+          metadata: true,
+          length: true,
+        },
+      },
       isOrganization: true,
       organizationSettings: {
         select: {
@@ -76,43 +87,40 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!team) {
+  if (!team || !team.eventTypes?.[0]) {
     return {
       notFound: true,
     } as const;
   }
+
+  const eventData = team.eventTypes[0];
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
   }
 
+  const ssr = await ssrInit(context);
+  const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
+  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+
   const org = isValidOrgDomain ? currentOrgDomain : null;
-  // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: teamSlug,
-    eventSlug: meetingSlug,
-    isTeamEvent: true,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
-
-  if (!eventData) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
   const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
   return {
     props: {
       eventData: {
-        entity: eventData.entity,
+        eventTypeId: eventData.id,
+        entity: {
+          fromRedirectOfNonOrgLink,
+          considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
+          orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+          teamSlug: team.slug ?? null,
+          name: team.parent?.name ?? team.name ?? null,
+        },
         length: eventData.length,
-        metadata: eventData.metadata,
+        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
       },
       booking,
       user: teamSlug,
@@ -120,21 +128,28 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
-      isInstantMeeting: eventData.isInstantEvent && queryIsInstantMeeting ? true : false,
+      isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
-      orgBannerUrl: eventData?.team?.parent?.bannerUrl ?? "",
+      orgBannerUrl: team.parent?.bannerUrl ?? "",
       teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
       isSEOIndexable: allowSEOIndexing,
     },
   };
 };
 
-type EventData = RouterOutputs["viewer"]["public"]["event"];
-
-async function getTeamMemberEmail(eventData: EventData, email?: string): Promise<string | null> {
+async function getTeamMemberEmail(
+  eventData: {
+    id: number;
+    isInstantEvent: boolean;
+    schedulingType: SchedulingType | null;
+    metadata: Prisma.JsonValue | null;
+    length: number;
+  },
+  email?: string
+): Promise<string | null> {
   // Pre-requisites
   if (!eventData || !email || eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
-  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.id);
+  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
   if (!crmContactOwnerEmail) return null;
   // Determine if the contactOwner is a part of the event type
   const contactOwnerQuery = await prisma.user.findFirst({

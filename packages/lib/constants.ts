@@ -63,7 +63,7 @@ export const TRIAL_LIMIT_DAYS = 14;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
-export const IS_EUROPE = dayjs.tz.guess().indexOf("Europe") !== -1;
+export const IS_EUROPE = dayjs.tz.guess()?.indexOf("Europe") !== -1;
 
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
@@ -114,10 +114,6 @@ export const ORGANIZATION_SELF_SERVE_MIN_SEATS =
 export const ORGANIZATION_SELF_SERVE_PRICE = process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE || 3700;
 
 export const ORGANIZATION_MIN_SEATS = 30;
-
-export const ENABLE_INFINITE_EVENT_TYPES_FOR_ORG = JSON.parse(
-  `[${process.env.ENABLE_INFINITE_EVENT_TYPES_FOR_ORG || ""}]`
-) as string[];
 
 // Needed for emails in E2E
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";

@@ -52,8 +52,6 @@ Second, make sure that the logged in user has organizationId set to pass the Org
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("OAuth - development only")
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 

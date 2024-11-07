@@ -1,44 +1,46 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 
+import { classNames } from "@calcom/lib";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import type { ButtonProps } from "../button";
 import { Button } from "../button";
 import { Input } from "../form";
-import type { IconName } from "../icon/icon-names";
-import { DataTableFilter } from "./DataTableFilter";
 
-export type FilterableItems = {
-  title: string;
-  tableAccessor: string;
-  options: {
-    label: string;
-    value: string;
-    icon?: IconName;
-  }[];
-}[];
-
-interface DataTableToolbarProps<TData> {
-  table: Table<TData>;
-  filterableItems?: FilterableItems;
-  searchKey?: string;
-  tableCTA?: React.ReactNode;
-  onSearch?: (value: string) => void;
+interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
+  children: React.ReactNode;
 }
 
-export function DataTableToolbar<TData>({
-  table,
-  filterableItems,
-  tableCTA,
-  searchKey,
-  onSearch,
-}: DataTableToolbarProps<TData>) {
-  // TODO: Is there a better way to check if the table is filtered?
-  // If you select ALL filters for a column, the table is not filtered and we dont get a reset button
-  const isFiltered = table.getState().columnFilters.length > 0;
+const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar(
+  { children, className },
+  ref
+) {
+  return (
+    <div
+      ref={ref}
+      className={classNames("grid w-full items-center gap-2 py-4", className)}
+      style={{ gridArea: "header" }}>
+      {children}
+    </div>
+  );
+});
+
+interface SearchBarProps<TData> {
+  table: Table<TData>;
+  searchKey?: string;
+  onSearch?: (value: string) => void;
+  className?: string;
+}
+
+function SearchBarComponent<TData>(
+  { table, searchKey, onSearch, className }: SearchBarProps<TData>,
+  ref: React.Ref<HTMLInputElement>
+) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -46,54 +48,80 @@ export function DataTableToolbar<TData>({
     onSearch?.(debouncedSearchTerm);
   }, [debouncedSearchTerm, onSearch]);
 
-  const { t } = useLocale();
+  if (onSearch) {
+    return (
+      <Input
+        ref={ref}
+        className={`max-w-64 mb-0 mr-auto rounded-md ${className ?? ""}`}
+        placeholder="Search"
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value.trim())}
+      />
+    );
+  }
+
+  if (!searchKey) {
+    console.error("searchKey is required if onSearch is not provided");
+    return null;
+  }
 
   return (
-    <div className="flex items-center justify-end gap-2 py-4">
-      {searchKey && (
-        <Input
-          className="max-w-64 mb-0 mr-auto rounded-md"
-          placeholder="Search"
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value.trim())}
-        />
-      )}
-      {onSearch && (
-        <Input
-          className="max-w-64 mb-0 mr-auto rounded-md"
-          placeholder="Search"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-          }}
-        />
-      )}
-      {isFiltered && (
-        <Button
-          color="minimal"
-          EndIcon="x"
-          onClick={() => table.resetColumnFilters()}
-          className="h-8 px-2 lg:px-3">
-          {t("clear")}
-        </Button>
-      )}
-
-      {filterableItems &&
-        filterableItems?.map((item) => {
-          const foundColumn = table.getColumn(item.tableAccessor);
-          if (foundColumn?.getCanFilter()) {
-            return (
-              <DataTableFilter
-                column={foundColumn}
-                title={item.title}
-                options={item.options}
-                key={item.title}
-              />
-            );
-          }
-        })}
-
-      {tableCTA ? tableCTA : null}
-    </div>
+    <Input
+      ref={ref}
+      className="max-w-64 mb-0 mr-auto rounded-md"
+      placeholder="Search"
+      value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+      onChange={(event) => {
+        return table.getColumn(searchKey)?.setFilterValue(event.target.value.trim());
+      }}
+    />
   );
 }
+
+const SearchBar = forwardRef(SearchBarComponent) as <TData>(
+  props: SearchBarProps<TData> & { ref?: React.Ref<HTMLInputElement> }
+) => ReturnType<typeof SearchBarComponent>;
+
+interface ClearFiltersButtonProps<TData> {
+  table: Table<TData>;
+}
+
+function ClearFiltersButtonComponent<TData>(
+  { table }: ClearFiltersButtonProps<TData>,
+  ref: React.Ref<HTMLButtonElement>
+) {
+  const { t } = useLocale();
+  const isFiltered = table.getState().columnFilters.length > 0;
+  if (!isFiltered) return null;
+  return (
+    <Button
+      ref={ref}
+      color="minimal"
+      EndIcon="x"
+      onClick={() => table.resetColumnFilters()}
+      className="h-8 px-2 lg:px-3">
+      {t("clear")}
+    </Button>
+  );
+}
+
+const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
+  props: ClearFiltersButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
+) => ReturnType<typeof ClearFiltersButtonComponent>;
+
+function CTAComponent(
+  { children, onClick, color = "primary", ...rest }: ButtonProps,
+  ref: React.Ref<HTMLButtonElement>
+) {
+  return (
+    <Button ref={ref} color={color} onClick={onClick} {...rest}>
+      {children}
+    </Button>
+  );
+}
+
+const CTA = forwardRef(CTAComponent) as (
+  props: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }
+) => ReturnType<typeof CTAComponent>;
+
+export const DataTableToolbar = { Root, SearchBar, ClearFiltersButton, CTA };

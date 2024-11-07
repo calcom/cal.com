@@ -33,7 +33,7 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!(**.md|.github/CODEOWNERS)"
+              - "!(**.md|.github/CODEOWNERS|docs/**|apps/web/public/static/locales/**/common.json)"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
@@ -139,6 +139,13 @@ jobs:
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
+  build-docs:
+    name: Production builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/docs-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
     needs: [changes, check-label, deps]
@@ -225,6 +232,7 @@ jobs:
         build-api-v1,
         build-api-v2,
         build-atoms,
+        build-docs,
         e2e,
         e2e-api-v2,
         e2e-embed,

@@ -13,7 +13,7 @@ import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import isRouter from "../lib/isRouter";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
-import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
+import { zodFields, zodRouterRoute, zodRoutes, queryValueSaveValidationSchema } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
 
 interface FormMutationHandlerOptions {
@@ -23,6 +23,59 @@ interface FormMutationHandlerOptions {
   };
   input: TFormMutationInputSchema;
 }
+
+function throwIfInvalidQueryValueToBeSaved({
+  routes,
+}: {
+  routes: FormMutationHandlerOptions["input"]["routes"];
+}) {
+  if (!routes) {
+    return;
+  }
+  routes.forEach((route, routeIndex) => {
+    if (isRouter(route)) {
+      return;
+    }
+    // We use separate schema for queryValye here which is much more strict
+    // It allows that we are still lenient with schema while reading the queryValue but while saving it we are strict
+    const parsedFormFieldsQueryValue = queryValueSaveValidationSchema.safeParse(route.queryValue);
+    if (!parsedFormFieldsQueryValue.success) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Route ${routeIndex + 1} form fields: ${getErrorMessageFromZodError(
+          parsedFormFieldsQueryValue.error
+        )}`,
+      });
+    }
+
+    const parsedAttributesQueryValue = queryValueSaveValidationSchema.safeParse(route.attributesQueryValue);
+    if (!parsedAttributesQueryValue.success) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Route ${routeIndex + 1} attributes: ${getErrorMessageFromZodError(
+          parsedAttributesQueryValue.error
+        )}`,
+      });
+    }
+
+    const parsedFallbackAttributesQueryValue = queryValueSaveValidationSchema.safeParse(
+      route.fallbackAttributesQueryValue
+    );
+    if (!parsedFallbackAttributesQueryValue.success) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Route ${routeIndex + 1} fallback attributes: ${getErrorMessageFromZodError(
+          parsedFallbackAttributesQueryValue.error
+        )}`,
+      });
+    }
+  });
+
+  function getErrorMessageFromZodError(zodError: Zod.ZodError) {
+    return zodError.errors.map((err) => err.message).join(", ");
+  }
+}
+
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
   const { user, prisma } = ctx;
   const { name, id, description, disabled, addFallback, duplicateFrom, shouldConnect } = input;
@@ -34,6 +87,14 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     });
   }
   let { routes: inputRoutes } = input;
+
+  // Ensures that wrong queryValue is not saved
+  // This is super useful when we make some wrong change in RAQB config accidentally and end up
+  // - Removing an operator support from a rule
+  // - Populating things wrong for any reason in RAQB
+  // It would just ensure that the wrong queryValue is not saved. Because it is impossible to fix it once saved. User would have to manually fix it then.
+  throwIfInvalidQueryValueToBeSaved({ routes: inputRoutes });
+
   let { fields: inputFields } = input;
   inputFields = inputFields || [];
   inputRoutes = inputRoutes || [];

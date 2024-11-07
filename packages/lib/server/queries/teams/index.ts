@@ -275,7 +275,7 @@ export async function getTeamWithMembers(args: {
   };
 }
 
-export async function getMinimalTeam(args: {
+export async function getTeamWithoutMembers(args: {
   id?: number;
   slug?: string;
   userId?: number;
@@ -313,6 +313,7 @@ export async function getMinimalTeam(args: {
       isPrivate: true,
       metadata: true,
       bookingLimits: true,
+      includeManagedEventsInLimits: true,
       parent: {
         select: {
           id: true,

@@ -7,6 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
+import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
@@ -23,22 +24,42 @@ export default function PlatformBillingUpgrade() {
   const onContactSupportClick = async () => {
     await open();
   };
-  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData } = useGetUserAttributes();
+  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
+    useGetUserAttributes();
 
   if (isUserLoading || (isUserBillingDataLoading && !userBillingData)) {
     return <div className="m-5">Loading...</div>;
   }
 
-  if (!isPlatformUser) return <NoPlatformPlan />;
+  if (isPlatformUser && !isPaidUser)
+    return (
+      <PlatformPricing
+        teamId={userOrgId}
+        heading={
+          <div className="mb-5 text-center text-2xl font-semibold">
+            <h1>Subscribe to Platform</h1>
+          </div>
+        }
+      />
+    );
+
+  if (!isPlatformUser)
+    return (
+      <div>
+        <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+          <NoPlatformPlan />
+        </Shell>
+      </div>
+    );
 
   return (
     <div>
       <Shell
-        heading="Platform billing"
-        title="Platform billing"
+        heading={t("platform_billing")}
+        title={t("platform_billing")}
         hideHeadingOnMobile
         withoutMain={false}
-        subtitle="Manage all things billing"
+        subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>
           <div className="border-subtle space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
