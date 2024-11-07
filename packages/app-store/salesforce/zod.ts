@@ -3,6 +3,13 @@ import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { SalesforceRecordEnum } from "./lib/recordEnum";
 
+export const routingFormOptions = z
+  .object({
+    rrSkipToAccountLookupField: z.boolean().optional(),
+    rrSKipToAccountLookupFieldName: z.string().optional(),
+  })
+  .optional();
+
 export const appDataSchema = eventTypeAppCardZod.extend({
   roundRobinLeadSkip: z.boolean().optional(),
   roundRobinSkipCheckRecordOn: z
