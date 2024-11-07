@@ -655,6 +655,7 @@ export const getOptions = ({
           });
           const cals = await GoogleService.getAllCalendars(calendar);
           const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
+          await GoogleService.updateProfilePhoto(oAuth2Client, user.id as number);
 
           if (primaryCal?.id) {
             await GoogleService.createSelectedCalendar({
