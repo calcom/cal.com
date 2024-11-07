@@ -5,6 +5,8 @@
   "identifier": "com.cal.app",
   "cloudOrgSlug": "cal",
   "cloudAppSlug": "cal-com",
+  "beforeBuildCommand": "echo noop",
+  "productionSrc": "https://app.cal.com",
   "app": {
     "icon": "public/cal-com-icon.svg",
     "windows": [
