@@ -1,13 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { handleWatchCalendar } from "@calcom/features/calendar-cache/lib/handleWatchCalendar";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -129,45 +126,16 @@ async function getHandler(req: CustomNextApiRequest) {
   return selectableCalendars;
 }
 
-async function getCalendarForRequest(req: NextApiRequest, query: any) {
-  const flags = await getFeatureFlagMap(prisma);
-  if (!flags["calendar-cache"]) {
-    logger.info(
-      '[handleWatchCalendar] Skipping watching calendar due to "calendar-cache" flag being disabled'
-    );
-    return;
-  }
-  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(query);
-  if (integration !== "google_calendar") {
-    logger.info('[handleWatchCalendar] Skipping watching calendar due to integration not being "google"');
-    return;
-  }
-  const credential = await prisma.credential.findFirst({
-    where: { id: credentialId },
-    select: credentialForCalendarServiceSelect,
-  });
-  const calendar = await getCalendar(credential);
-  return { calendar, externalId };
-}
-
 export async function handleWatchCalendarFromReq(req: NextApiRequest) {
-  const result = await getCalendarForRequest(req, req.body);
-  if (!result) return;
-  const { calendar, externalId } = result;
-  return handleWatchCalendar(calendar, externalId);
+  const { externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  return calendarCacheRepository.watchCalendar({ calendarId: externalId });
 }
 
 async function handleUnwatchCalendar(req: NextApiRequest) {
-  const result = await getCalendarForRequest(req, req.query);
-  if (!result) return;
-  const { calendar, externalId } = result;
-  if (typeof calendar?.unwatchCalendar !== "function") {
-    logger.info(
-      '[handleUnwatchCalendar] Skipping watching calendar due to calendar not having "unwatchCalendar" method'
-    );
-    return;
-  }
-  await calendar.unwatchCalendar({ calendarId: externalId });
+  const { externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  return calendarCacheRepository.unwatchCalendar({ calendarId: externalId });
 }
 
 export default defaultResponder(async (req: NextApiRequest, res: NextApiResponse) => {

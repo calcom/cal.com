@@ -2,9 +2,20 @@ import { captureException } from "@sentry/nextjs";
 
 import db from "@calcom/prisma";
 
+import type { AppFlags } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
+import { getFeatureFlagMap } from "./server/utils";
 
 export class FeaturesRepository implements IFeaturesRepository {
+  async checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags) {
+    try {
+      const flags = await getFeatureFlagMap(db);
+      return flags[slug];
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
   async checkIfTeamHasFeature(teamId: number, slug: string) {
     try {
       const teamFeature = await db.teamFeatures.findUnique({

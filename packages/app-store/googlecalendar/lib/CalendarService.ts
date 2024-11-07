@@ -724,7 +724,8 @@ export default class GoogleCalendarService implements Calendar {
         // A UUID or similar unique string that identifies this channel.
         id: uuid(),
         type: "web_hook",
-        address: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/googlecalendar/webhook`,
+        // address: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/googlecalendar/webhook`,
+        address: `https://asepoz-ip-189-203-41-65.tunnelmole.net/api/integrations/googlecalendar/webhook`,
         token: process.env.CRON_API_KEY,
         params: {
           // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
