@@ -15,4 +15,13 @@ export class SelectedCalendarRepository {
       },
     });
   }
+  static async upsert(data: SelectedCalendarCreateInput) {
+    return await prisma.selectedCalendar.upsert({
+      where: {
+        userId_integration_externalId: { ...data },
+      },
+      create: { ...data },
+      update: { ...data },
+    });
+  }
 }

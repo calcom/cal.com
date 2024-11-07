@@ -29,6 +29,13 @@ export class GoogleRepository {
     });
   }
 
+  static async upsertSelectedCalendar(data: { credentialId: number; userId: number; externalId: string }) {
+    return await SelectedCalendarRepository.upsert({
+      ...data,
+      integration: "google_calendar",
+    });
+  }
+
   static async findGoogleMeetCredential({ userId }: { userId: number }) {
     return await CredentialRepository.findFirstByUserIdAndType({
       userId,
