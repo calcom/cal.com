@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -41,7 +41,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const { client_id, client_secret } = await getGoogleAppKeys();
 
-  const redirect_uri = `http://localhost:3000/api/integrations/googlecalendar/callback`;
+  const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
