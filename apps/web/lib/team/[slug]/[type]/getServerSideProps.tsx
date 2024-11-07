@@ -55,6 +55,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
       name: true,
       slug: true,
       eventTypes: {
@@ -73,15 +85,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       organizationSettings: {
         select: {
           allowSEOIndexing: true,
-        },
-      },
-      parent: {
-        select: {
-          organizationSettings: {
-            select: {
-              allowSEOIndexing: true,
-            },
-          },
         },
       },
     },
@@ -104,7 +107,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
-  const org = isValidOrgDomain ? currentOrgDomain : null;
   const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
