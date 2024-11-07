@@ -45,6 +45,8 @@ export const AvailabilitySettingsWebWrapper = ({
   });
   const travelSchedules = travelSchedulesProp ?? travelSchedulesData;
 
+  const { data: connectedCalendarsData } = trpc.viewer.connectedCalendars.useQuery();
+
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
@@ -142,6 +144,7 @@ export const AvailabilitySettingsWebWrapper = ({
         save: bulkUpdateDefaultAvailabilityMutation.mutate,
         isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
       }}
+      connectedCalendars={connectedCalendarsData?.connectedCalendars}
     />
   );
 };

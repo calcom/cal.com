@@ -112,6 +112,7 @@ type AvailabilitySettingsProps = {
     save: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
     isSaving: boolean;
   };
+  connectedCalendars?: RouterOutputs["viewer"]["connectedCalendars"]["connectedCalendars"];
 };
 
 const DeleteDialogButton = ({
@@ -289,6 +290,7 @@ export function AvailabilitySettings({
   bulkUpdateModalProps,
   allowSetToDefault = true,
   allowDelete = true,
+  connectedCalendars,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -584,7 +586,7 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
-            <TimeBlocks control={form.control} />
+            {connectedCalendars && connectedCalendars.length > 0 && <TimeBlocks control={form.control} />}
             {enableOverrides && (
               <DateOverride
                 workingHours={schedule.workingHours}
