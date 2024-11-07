@@ -12,7 +12,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
-import type { EventTypeUpdateInput } from "./types";
+import type { TUpdateInputSchema } from "./types";
 
 type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 
@@ -142,7 +142,7 @@ export function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeI
   };
 }
 
-export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
+export function ensureUniqueBookingFields(fields: TUpdateInputSchema["bookingFields"]) {
   if (!fields) {
     return;
   }
@@ -161,9 +161,7 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
   }, {} as Record<string, true>);
 }
 
-export function ensureEmailOrPhoneNumberIsPresent(
-  fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]
-) {
+export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bookingFields"]) {
   if (!fields || fields.length === 0) {
     return;
   }
