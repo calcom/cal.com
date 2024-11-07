@@ -26,13 +26,10 @@ import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@c
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
-import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { GoogleService } from "@calcom/lib/server/service/google";
 import slugify from "@calcom/lib/slugify";
@@ -656,7 +653,7 @@ export const getOptions = ({
             version: "v3",
             auth: oAuth2Client,
           });
-          const cals = await getAllCalendars(calendar);
+          const cals = await GoogleService.getAllCalendars(calendar);
           const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
           if (primaryCal?.id) {

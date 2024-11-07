@@ -9,7 +9,6 @@ import {
   WEBAPP_URL_FOR_OAUTH,
 } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { getAllCalendars, updateProfilePhoto } from "@calcom/lib/google";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
@@ -76,13 +75,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       auth: oAuth2Client,
     });
 
-    const cals = await getAllCalendars(calendar);
+    const cals = await GoogleService.getAllCalendars(calendar);
 
     const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
     if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
-      await updateProfilePhoto(oAuth2Client, req.session.user.id);
+      await GoogleService.updateProfilePhoto(oAuth2Client, req.session.user.id);
     }
 
     const gcalCredential = await GoogleService.createGoogleCalendarCredential({
