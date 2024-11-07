@@ -43,6 +43,7 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
+  bypassBusyCalendarTimes: boolean;
   timeBlocksList?: string[];
 }) {
   const {
@@ -59,6 +60,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    bypassBusyCalendarTimes = false,
     timeBlocksList,
   } = params;
 
@@ -243,7 +245,7 @@ export async function getBusyTimes(params: {
   );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
-  if (credentials?.length > 0) {
+  if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimesWithTimeBlocks = await getBusyCalendarTimes(
       username,

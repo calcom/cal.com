@@ -113,7 +113,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           isFixed: true,
           priority: true,
           weight: true,
-          weightAdjustment: true,
+          createdAt: true,
           user: {
             select: {
               credentials: {
