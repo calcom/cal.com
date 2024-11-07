@@ -3,11 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { components } from "react-select";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -20,7 +21,8 @@ import {
   DialogFooter,
   ConfirmationDialogContent,
   showToast,
-  Select,
+  Input,
+  Icon,
   RadioGroup as RadioArea,
   TextAreaField,
 } from "@calcom/ui";
@@ -49,6 +51,12 @@ const formSchema = z.object({
     }),
 });
 
+interface TeamMemberOption {
+  label: string;
+  value: number;
+  status: string;
+}
+
 export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingId }: ReassignDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -56,28 +64,39 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     duration: 150,
     easing: "ease-in-out",
   });
-  // Were using legacy list members here because we don't currently have an easy way to paginate a select via infinite scroll
-  const teamMembers = trpc.viewer.teams.getRoundRobinHostsToReassign.useQuery({
-    bookingId,
-    exclude: "fixedHosts",
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
+    trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
+      {
+        bookingId,
+        exclude: "fixedHosts",
+        limit: 10,
+        searchTerm: debouncedSearch,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    );
+
+  const allRows = useMemo(() => {
+    return data?.pages.flatMap((page) => page.items) ?? [];
+  }, [data]);
 
   const teamMemberOptions = useMemo(() => {
-    if (teamMembers.isLoading)
-      return [
-        {
-          label: "Loading...",
-          value: 0,
-          status: "unavailable",
-        },
-      ];
-
-    return teamMembers.data?.map((member) => ({
-      label: member.name,
+    return allRows.map((member) => ({
+      label: member.name || member.email,
       value: member.id,
       status: member.status,
-    }));
-  }, [teamMembers]);
+    })) as TeamMemberOption[];
+  }, [allRows]);
+
+  const { ref: observerRef } = useInViewObserver(() => {
+    if (hasNextPage && !isFetching) {
+      fetchNextPage();
+    }
+  }, document.querySelector('[role="dialog"]'));
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -87,10 +106,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   });
 
   const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
+      showToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
     },
     onError: async (error) => {
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
@@ -116,7 +135,13 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     },
   });
 
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationModal, setConfirmationModal] = useState<{
+    show: boolean;
+    membersStatus: "unavailable" | "available" | null;
+  }>({
+    show: false,
+    membersStatus: null,
+  });
 
   const handleSubmit = (values: FormValues) => {
     if (values.reassignType === "round_robin") {
@@ -124,13 +149,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     } else {
       if (values.teamMemberId) {
         const selectedMember = teamMemberOptions?.find((member) => member.value === values.teamMemberId);
-        if (selectedMember && selectedMember.status === "unavailable") {
-          setShowConfirmation(true);
-        } else {
-          roundRobinManualReassignMutation.mutate({
-            bookingId,
-            teamMemberId: values.teamMemberId,
-            reassignReason: values.reassignReason,
+        if (selectedMember) {
+          setConfirmationModal({
+            show: true,
+            membersStatus: selectedMember.status as "available" | "unavailable",
           });
         }
       }
@@ -138,6 +160,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   };
 
   const watchedReassignType = form.watch("reassignType");
+  const watchedTeamMemberId = form.watch("teamMemberId");
 
   return (
     <>
@@ -150,24 +173,20 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
           title={t("reassign_round_robin_host")}
           description={t("reassign_to_another_rr_host")}
           enableOverflow>
-          {/* TODO add team member reassignment*/}
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
                 form.setValue("reassignType", val as "team_member" | "round_robin");
               }}
-              className={classNames("mt-1 flex flex-col gap-4")}>
+              className="mt-1 flex flex-col gap-4">
               <RadioArea.Item
                 value="round_robin"
-                className={classNames("w-full text-sm")}
-                classNames={{ container: classNames("w-full") }}>
+                className="w-full text-sm"
+                classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">{t("round_robin")}</strong>
                 <p>{t("round_robin_reassign_description")}</p>
               </RadioArea.Item>
-              <RadioArea.Item
-                value="team_member"
-                className={classNames("text-sm")}
-                classNames={{ container: classNames("w-full") }}>
+              <RadioArea.Item value="team_member" className="text-sm" classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">{t("team_member_round_robin_reassign")}</strong>
                 <p>{t("team_member_round_robin_reassign_description")}</p>
               </RadioArea.Item>
@@ -176,31 +195,62 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
             {watchedReassignType === "team_member" && (
               <div className="mb-2">
                 <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
-                <Select
-                  value={teamMemberOptions?.find((option) => option.value === form.getValues("teamMemberId"))}
-                  options={teamMemberOptions}
-                  onChange={(event) => {
-                    form.setValue("teamMemberId", event?.value);
-                  }}
-                  components={{
-                    Option: ({ children, ...props }) => {
-                      const status = props.data?.status;
-                      return (
-                        <components.Option {...props}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={classNames(
-                                "h-2 w-2 rounded-full",
-                                status === "available" ? "bg-green-500" : "bg-red-500"
-                              )}
-                            />
-                            {children}
-                          </div>
-                        </components.Option>
-                      );
-                    },
-                  }}
-                />
+                <div className="mt-2">
+                  <Input
+                    type="text"
+                    placeholder={t("search")}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                    {teamMemberOptions.map((member) => (
+                      <label
+                        key={member.value}
+                        tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
+                        role="radio"
+                        aria-checked={watchedTeamMemberId === member.value}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            form.setValue("teamMemberId", member.value);
+                          }
+                        }}
+                        className={classNames(
+                          "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
+                          watchedTeamMemberId === member.value && "bg-subtle"
+                        )}>
+                        <div className="flex flex-1 items-center space-x-3">
+                          <input
+                            type="radio"
+                            className="hidden"
+                            checked={watchedTeamMemberId === member.value}
+                            onChange={() => form.setValue("teamMemberId", member.value)}
+                          />
+                          <div
+                            className={classNames(
+                              "h-3 w-3 flex-shrink-0 rounded-full",
+                              member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
+                            )}
+                          />
+                          <span className="text-emphasis w-full text-sm">{member.label}</span>
+                          {watchedTeamMemberId === member.value && (
+                            <div className="place-self-end pr-2">
+                              <Icon name="check" className="text-emphasis h-4 w-4" />
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                    <div className="text-default text-center" ref={observerRef}>
+                      <Button
+                        color="minimal"
+                        loading={isFetchingNextPage}
+                        disabled={!hasNextPage}
+                        onClick={() => fetchNextPage()}>
+                        {hasNextPage ? t("load_more_results") : t("no_more_results")}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             <DialogFooter>
@@ -216,10 +266,16 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+      <Dialog
+        open={confirmationModal?.show}
+        onOpenChange={(open) => setConfirmationModal({ ...confirmationModal, show: open })}>
         <ConfirmationDialogContent
-          variety="warning"
-          title={t("confirm_reassign_unavailable")}
+          variety={confirmationModal?.membersStatus === "unavailable" ? "warning" : "success"}
+          title={
+            confirmationModal?.membersStatus === "unavailable"
+              ? t("confirm_reassign_unavailable")
+              : t("confirm_reassign_available")
+          }
           confirmBtnText={t("yes_reassign")}
           cancelBtnText={t("cancel")}
           onConfirm={() => {
@@ -232,14 +288,21 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
               teamMemberId,
               reassignReason: form.getValues("reassignReason"),
             });
-            setShowConfirmation(false);
+            setConfirmationModal({
+              show: false,
+              membersStatus: null,
+            });
           }}>
-          <p className="mb-4">{t("reassign_unavailable_team_member_description")}</p>
+          <p className="mb-4">
+            {confirmationModal?.membersStatus === "unavailable"
+              ? t("reassign_unavailable_team_member_description")
+              : t("reassign_available_team_member_description")}
+          </p>
           <TextAreaField
             name="reassignReason"
             label={t("reassign_reason")}
             onChange={(e) => form.setValue("reassignReason", e.target.value)}
-            required
+            required={confirmationModal?.membersStatus === "unavailable"}
           />
         </ConfirmationDialogContent>
       </Dialog>

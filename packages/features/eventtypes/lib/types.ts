@@ -37,6 +37,33 @@ export type TeamMember = {
   defaultScheduleId: number | null;
 };
 
+type EventLocation = {
+  type: EventLocationType["type"];
+  address?: string;
+  attendeeAddress?: string;
+  somewhereElse?: string;
+  link?: string;
+  hostPhoneNumber?: string;
+  displayLocationPublicly?: boolean;
+  phone?: string;
+  hostDefault?: string;
+  credentialId?: number;
+  teamName?: string;
+};
+
+type PhoneCallConfig = {
+  generalPrompt: string;
+  enabled: boolean;
+  beginMessage: string;
+  yourPhoneNumber: string;
+  numberToCall: string;
+  guestName?: string;
+  guestEmail?: string;
+  guestCompany?: string;
+  templateType: string;
+  schedulerName?: string;
+};
+
 export type FormValues = {
   id: number;
   title: string;
@@ -59,31 +86,8 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
-  locations: {
-    type: EventLocationType["type"];
-    address?: string;
-    attendeeAddress?: string;
-    somewhereElse?: string;
-    link?: string;
-    hostPhoneNumber?: string;
-    displayLocationPublicly?: boolean;
-    phone?: string;
-    hostDefault?: string;
-    credentialId?: number;
-    teamName?: string;
-  }[];
-  aiPhoneCallConfig: {
-    generalPrompt: string;
-    enabled: boolean;
-    beginMessage: string;
-    yourPhoneNumber: string;
-    numberToCall: string;
-    guestName?: string;
-    guestEmail?: string;
-    guestCompany?: string;
-    templateType: string;
-    schedulerName?: string;
-  };
+  locations: EventLocation[];
+  aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
 
