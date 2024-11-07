@@ -161,6 +161,10 @@
 <symbol class="lucide lucide-chevron-up" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chevron-up">
   <path d="m18 15-6-6-6 6" ></path>
 </symbol>
+<symbol class="lucide lucide-chevrons-down-up" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chevrons-down-up">
+  <path d="m7 20 5-5 5 5" ></path>
+  <path d="m7 4 5 5 5-5" ></path>
+</symbol>
 <symbol class="lucide lucide-chevrons-left" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chevrons-left">
   <path d="m11 17-5-5 5-5" ></path>
   <path d="m18 17-5-5 5-5" ></path>

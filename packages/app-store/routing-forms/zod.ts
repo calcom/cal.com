@@ -130,6 +130,7 @@ export const queryValueSaveValidationSchema = queryValueSchema
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
+  name: z.string().optional(),
   attributeRoutingConfig: z
     .object({
       skipContactOwner: z.boolean().optional(),
@@ -168,6 +169,7 @@ export const zodNonRouterRouteView = zodNonRouterRoute;
 export const zodRouterRoute = z.object({
   // This is the id of the Form being used as router
   id: z.string(),
+  name: z.string().optional(),
   isRouter: z.literal(true),
 });
 

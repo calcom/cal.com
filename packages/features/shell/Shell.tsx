@@ -30,7 +30,7 @@ const Layout = (props: LayoutProps) => {
   const postHog = usePostHog();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-
+  const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
   useBootIntercom();
   useFormbricks();
 
@@ -42,7 +42,7 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      {!props.withoutSeo && (
+      {!withoutSeo && (
         <HeadSeo
           title={pageTitle ?? APP_NAME}
           description={props.description ?? props.subtitle?.toString() ?? ""}
@@ -54,7 +54,7 @@ const Layout = (props: LayoutProps) => {
 
       <TimezoneChangeDialog />
 
-      <div className="flex flex-col min-h-screen">
+      <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
           <BannerContainer banners={banners} />
         )}
@@ -65,7 +65,7 @@ const Layout = (props: LayoutProps) => {
           ) : (
             <SideBarContainer isPlatformUser={props.isPlatformUser} bannersHeight={bannersHeight} />
           )}
-          <div className="flex flex-col flex-1 w-0">
+          <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
         </div>
@@ -187,7 +187,7 @@ export function ShellMain(props: LayoutProps) {
                   </h3>
                 )}
                 {props.subtitle && (
-                  <p className="hidden text-sm text-default md:block" data-testid="subtitle">
+                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
                     {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                   </p>
                 )}
@@ -243,7 +243,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="relative z-0 flex-1 bg-default focus:outline-none">
+    <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full px-2 py-4 lg:px-6">
