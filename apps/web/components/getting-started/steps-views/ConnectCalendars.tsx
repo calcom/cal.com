@@ -27,20 +27,19 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   );
   const disabledNextButton = firstCalendar === undefined;
   const destinationCalendar = queryConnectedCalendars.data?.destinationCalendar;
-
   return (
     <>
       {/* Already connected calendars  */}
       {!queryConnectedCalendars.isPending &&
         firstCalendar &&
         firstCalendar.integration &&
-        firstCalendar.integration.name &&
+        firstCalendar.integration.title &&
         firstCalendar.integration.logo && (
           <>
             <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black ">
               <ConnectedCalendarItem
-                key={firstCalendar.integration.name}
-                name={firstCalendar.integration.name}
+                key={firstCalendar.integration.title}
+                name={firstCalendar.integration.title}
                 logo={firstCalendar.integration.logo}
                 externalId={
                   firstCalendar && firstCalendar.calendars && firstCalendar.calendars.length > 0
@@ -62,11 +61,11 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         <List className="bg-default divide-subtle border-subtle mx-1 divide-y rounded-md border p-0 dark:bg-black sm:mx-0">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
-              <li key={item.name}>
-                {item.name && item.logo && (
+              <li key={item.title}>
+                {item.title && item.logo && (
                   <AppConnectionItem
                     type={item.type}
-                    title={item.name}
+                    title={item.title}
                     description={item.description}
                     logo={item.logo}
                   />
