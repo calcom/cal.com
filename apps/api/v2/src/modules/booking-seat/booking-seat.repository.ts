@@ -12,6 +12,9 @@ export class BookingSeatRepository {
       where: {
         referenceUid,
       },
+      include: {
+        booking: { select: { uid: true } },
+      },
     });
   }
 }

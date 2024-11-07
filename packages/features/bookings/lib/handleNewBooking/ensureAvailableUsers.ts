@@ -53,7 +53,8 @@ export async function ensureAvailableUsers(
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
   loggerWithEventDetails: Logger<unknown>
-) {
+  // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
+): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> {
   const availableUsers: IsFixedAwareUser[] = [];
 
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
@@ -89,6 +90,7 @@ export async function ensureAvailableUsers(
       dateTo: endDateTimeUtc.format(),
       beforeEventBuffer: eventType.beforeEventBuffer,
       afterEventBuffer: eventType.afterEventBuffer,
+      bypassBusyCalendarTimes: false,
     },
     initialData: {
       eventType,
@@ -141,7 +143,7 @@ export async function ensureAvailableUsers(
     }
   });
 
-  if (!availableUsers.length) {
+  if (availableUsers.length === 0) {
     loggerWithEventDetails.error(
       `No available users found.`,
       safeStringify({
@@ -152,6 +154,6 @@ export async function ensureAvailableUsers(
     );
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
-
-  return availableUsers;
+  // make sure TypeScript understands availableUsers is at least one.
+  return availableUsers.length === 1 ? [availableUsers[0]] : [availableUsers[0], ...availableUsers.slice(1)];
 }
