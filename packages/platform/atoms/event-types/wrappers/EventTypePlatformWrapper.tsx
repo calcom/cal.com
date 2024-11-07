@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventTeamAssignmentTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -29,6 +30,10 @@ import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
+export type EventTypeCustomClassNames = {
+  atomsWrapper?: string;
+  eventAssignmentTabClassnames?: EventTeamAssignmentTabCustomClassnames;
+};
 
 export type EventTypePlatformWrapperProps = {
   id: number;
@@ -38,9 +43,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: {
-    atomsWrapper?: string;
-  };
+  customClassnames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -52,7 +55,7 @@ const EventType = ({
   onDeleteError,
   id,
   allowDelete = true,
-  customClassNames,
+  customClassnames,
   disableToasts = false,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
@@ -159,7 +162,12 @@ const EventType = ({
       <></>
     ),
     team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper team={team} eventType={eventType} teamMembers={teamMembers} />
+      <EventTeamAssignmentTabPlatformWrapper
+        team={team}
+        eventType={eventType}
+        teamMembers={teamMembers}
+        customClassnames={customClassnames?.eventAssignmentTabClassnames}
+      />
     ) : (
       <></>
     ),
@@ -229,7 +237,7 @@ const EventType = ({
     tabs,
   });
   return (
-    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
+    <AtomsWrapper customClassName={customClassnames?.atomsWrapper}>
       <EventTypeComponent
         {...props}
         tabMap={tabMap}
@@ -272,7 +280,7 @@ export const EventTypePlatformWrapper = ({
   onDeleteSuccess,
   onDeleteError,
   allowDelete = true,
-  customClassNames,
+  customClassnames,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -303,7 +311,7 @@ export const EventTypePlatformWrapper = ({
       onDeleteSuccess={onDeleteSuccess}
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
-      customClassNames={customClassNames}
+      customClassnames={customClassnames}
     />
   );
 };
