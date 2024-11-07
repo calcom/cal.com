@@ -11,7 +11,6 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -91,7 +90,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         userId: req.session.user.id,
         appId: "google-calendar",
       },
-      select: credentialForCalendarServiceSelect,
     });
 
     // If we still don't have a primary calendar skip creating the selected calendar.
@@ -114,17 +112,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // also this improves performance for most of the happy-paths.
     try {
       const calendarCacheRepository = await CalendarCache.initFromCredentialId(credential.id);
-      const watchedCalendar = await calendarCacheRepository.watchCalendar({ calendarId: primaryCal.id });
-      await prisma.selectedCalendar.create({
-        data: {
+      await calendarCacheRepository.watchCalendar({ calendarId: primaryCal.id });
+      await prisma.selectedCalendar.upsert({
+        where: {
+          userId_integration_externalId: selectedCalendarWhereUnique,
+        },
+        create: {
           credentialId: credential.id,
-          googleChannelId: watchedCalendar?.id,
-          googleChannelKind: watchedCalendar?.kind,
-          googleChannelResourceId: watchedCalendar?.resourceId,
-          googleChannelResourceUri: watchedCalendar?.resourceUri,
-          googleChannelExpiration: watchedCalendar?.expiration,
           ...selectedCalendarWhereUnique,
         },
+        update: {},
       });
     } catch (error) {
       let errorMessage = "something_went_wrong";
