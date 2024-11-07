@@ -288,7 +288,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         .post(`/v2/bookings/${roundRobinBooking.uid}/reassign/${teamUser1.id}`)
         .send(body)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(201)
+        .expect(200)
         .then(async (response) => {
           const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
