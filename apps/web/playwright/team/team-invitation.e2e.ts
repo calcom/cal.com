@@ -124,7 +124,10 @@ test.describe("Team", () => {
     });
   });
 
-  test("Invited member is assigned to existing managed event", async ({ page, users }) => {
+  test("Invited member is assigned to existing managed event, after invitation is accepted", async ({
+    page,
+    users,
+  }) => {
     const t = await localize("en");
     const teamEventSlugAndTitle = "managed-event-test";
     const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
