@@ -20,7 +20,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -376,24 +375,6 @@ export default function MemberList(props: Props) {
 
           // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
-        },
-      },
-      {
-        id: "lastLogin",
-        accessorFn: (data) => data.lastLogin,
-        header: "Last Login",
-        cell: ({ row }) => {
-          const { lastLogin } = row.original;
-          return (
-            <div>
-              {lastLogin
-                ? formatLocalizedDateTime(lastLogin, {
-                    dateStyle: "full",
-                    timeStyle: "long",
-                  })
-                : "N/A"}
-            </div>
-          );
         },
       },
       {

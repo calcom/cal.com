@@ -25,7 +25,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
   bio: true,
   disableImpersonation: true,
-  lastLogin: true,
 });
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
