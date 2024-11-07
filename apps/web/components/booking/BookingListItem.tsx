@@ -487,20 +487,23 @@ function BookingListItem(booking: BookingItemProps) {
               }
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
+              className="max-h-96"
             />
           </div>
 
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={mutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={() => {
-                bookingConfirm(false);
-              }}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
+          <div>
+            <DialogFooter>
+              <DialogClose />
+              <Button
+                disabled={mutation.isPending}
+                data-testid="rejection-confirm"
+                onClick={() => {
+                  bookingConfirm(false);
+                }}>
+                {t("rejection_confirmation")}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
