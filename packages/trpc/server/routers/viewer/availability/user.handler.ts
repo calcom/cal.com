@@ -15,5 +15,9 @@ export const userHandler = async ({ input, ctx }: UserOptions) => {
   if ("username" in ctx.user && input.username === ctx.user.username) {
     isOverlayUser = true;
   }
-  return getUserAvailability({ returnDateOverrides: true, ...input }, undefined, isOverlayUser);
+  return getUserAvailability(
+    { returnDateOverrides: true, bypassBusyCalendarTimes: false, ...input },
+    undefined,
+    isOverlayUser
+  );
 };
