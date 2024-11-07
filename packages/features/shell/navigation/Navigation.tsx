@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
@@ -139,49 +140,44 @@ const platformNavigation: NavigationItemType[] = [
   },
 ];
 
-export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
-  const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
-  const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
-
-  const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-    !isPlatformNavigation ? navigation : platformNavigation
-  ).reduce<Record<string, NavigationItemType[]>>(
-    (items, item, index) => {
-      // We filter out the "more" separator in` desktop navigation
-      if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-      // Items for mobile bottom navigation
-      if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-        items.mobileNavigationBottomItems.push(item);
-      } // Items for the "more" menu in mobile navigation
-      else {
-        items.mobileNavigationMoreItems.push(item);
-      }
-      return items;
-    },
-    { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
-  );
-
-  return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
-};
-
-const useFilteredNavigationItems = (items: NavigationItemType[]) => {
+const useDesktopNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
-  return items.filter((item) => {
-    if (!orgBranding && ORGANIZATION_ONLY.includes(item.href)) {
-      return false;
-    }
+  return useMemo(() => {
+    const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
+    const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
 
-    return true;
-  });
+    const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
+      !isPlatformNavigation ? navigation : platformNavigation
+    ).reduce<Record<string, NavigationItemType[]>>(
+      (items, item, index) => {
+        // skip organization-only item if not in an org
+        if (!orgBranding && ORGANIZATION_ONLY.includes(item.href)) {
+          return items;
+        }
+        // We filter out the "more" separator in` desktop navigation
+        if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+        // Items for mobile bottom navigation
+        if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
+          items.mobileNavigationBottomItems.push(item);
+        } // Items for the "more" menu in mobile navigation
+        else {
+          items.mobileNavigationMoreItems.push(item);
+        }
+        return items;
+      },
+      { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+    );
+
+    return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+  }, [isPlatformNavigation, orgBranding]);
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
-  const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
-  const items = useFilteredNavigationItems(desktopNavigationItems);
+  const { desktopNavigationItems } = useDesktopNavigationItems(isPlatformNavigation);
 
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
-      {items.map((item) => (
+      {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
       <div className="text-subtle mt-0.5 lg:hidden">
@@ -203,8 +199,7 @@ export function MobileNavigationContainer({
 
 const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
-  const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
-  const items = useFilteredNavigationItems(mobileNavigationBottomItems);
+  const { mobileNavigationBottomItems } = useDesktopNavigationItems(isPlatformNavigation);
 
   return (
     <>
@@ -213,7 +208,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
           "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
-        {items.map((item) => (
+        {mobileNavigationBottomItems.map((item) => (
           <MobileNavigationItem key={item.name} item={item} />
         ))}
       </nav>
@@ -224,12 +219,11 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 };
 
 export const MobileNavigationMoreItems = () => {
-  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
-  const items = useFilteredNavigationItems(mobileNavigationMoreItems);
+  const { mobileNavigationMoreItems } = useDesktopNavigationItems();
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
-      {items.map((item) => (
+      {mobileNavigationMoreItems.map((item) => (
         <MobileNavigationMoreItem key={item.name} item={item} />
       ))}
     </ul>
