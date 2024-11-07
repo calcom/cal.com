@@ -733,6 +733,40 @@ export default class GoogleCalendarService implements Calendar {
         },
       },
     });
+    const credentialId = this.credential.id;
+    const userId = this.credential.userId!;
+    const externalId = calendarId;
+    const response = res.data;
+
+    await prisma.selectedCalendar.upsert({
+      where: {
+        userId_integration_externalId: {
+          userId,
+          integration: "google_calendar",
+          externalId: calendarId,
+        },
+      },
+      create: {
+        userId,
+        integration: "google_calendar",
+        externalId,
+        credentialId,
+        googleChannelId: response?.id,
+        googleChannelKind: response?.kind,
+        googleChannelResourceId: response?.resourceId,
+        googleChannelResourceUri: response?.resourceUri,
+        googleChannelExpiration: response?.expiration,
+      },
+      // already exists
+      update: {
+        googleChannelId: response?.id,
+        googleChannelKind: response?.kind,
+        googleChannelResourceId: response?.resourceId,
+        googleChannelResourceUri: response?.resourceUri,
+        googleChannelExpiration: response?.expiration,
+      },
+    });
+
     return res.data;
   }
   async unwatchCalendar({ calendarId }: { calendarId: string }) {

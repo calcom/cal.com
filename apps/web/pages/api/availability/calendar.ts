@@ -53,7 +53,7 @@ async function postHandler(req: CustomNextApiRequest) {
   const { credentials: _, ...user } = req.userWithCredentials;
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  const response = await calendarCacheRepository.watchCalendar({ calendarId: externalId });
+  await calendarCacheRepository.watchCalendar({ calendarId: externalId });
 
   await prisma.selectedCalendar.upsert({
     where: {
@@ -68,20 +68,9 @@ async function postHandler(req: CustomNextApiRequest) {
       integration,
       externalId,
       credentialId,
-      googleChannelId: response?.id,
-      googleChannelKind: response?.kind,
-      googleChannelResourceId: response?.resourceId,
-      googleChannelResourceUri: response?.resourceUri,
-      googleChannelExpiration: response?.expiration,
     },
     // already exists
-    update: {
-      googleChannelId: response?.id,
-      googleChannelKind: response?.kind,
-      googleChannelResourceId: response?.resourceId,
-      googleChannelResourceUri: response?.resourceUri,
-      googleChannelExpiration: response?.expiration,
-    },
+    update: {},
   });
 
   return { message: "Calendar Selection Saved" };

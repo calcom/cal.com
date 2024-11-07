@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -13,19 +13,11 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { getCalendar } from "../../_utils/getCalendar";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 import { getAllCalendars } from "../lib/utils";
-
-async function getWatchedCalendar(credential: Parameters<typeof getCalendar>[0], externalId: string) {
-  const calendar = await getCalendar(credential);
-  if (!calendar) return;
-  const calendarCache = await CalendarCache.init(calendar);
-  return calendarCache.watchCalendar({ calendarId: externalId });
-}
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -49,7 +41,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const { client_id, client_secret } = await getGoogleAppKeys();
 
-  const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
+  const redirect_uri = `http://localhost:3000/api/integrations/googlecalendar/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
@@ -121,7 +113,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      const watchedCalendar = await getWatchedCalendar(credential, primaryCal.id);
+      const calendarCacheRepository = await CalendarCache.initFromCredentialId(credential.id);
+      const watchedCalendar = await calendarCacheRepository.watchCalendar({ calendarId: primaryCal.id });
       await prisma.selectedCalendar.create({
         data: {
           credentialId: credential.id,
