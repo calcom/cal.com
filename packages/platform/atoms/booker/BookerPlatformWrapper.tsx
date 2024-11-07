@@ -336,7 +336,7 @@ export const BookerPlatformWrapper = (
     }))
   );
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || timezone || "Europe/London",
+    loggedInUsersTz: timezone,
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: latestCalendarsToLoad,
