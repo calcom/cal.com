@@ -44,7 +44,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: EventTypeCustomClassNames;
+  customClassnames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -56,7 +56,7 @@ const EventType = ({
   onDeleteError,
   id,
   allowDelete = true,
-  customClassNames,
+  customClassnames,
   disableToasts = false,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
@@ -182,7 +182,7 @@ const EventType = ({
     limits: tabs.includes("limits") ? (
       <EventLimitsTabPlatformWrapper
         eventType={eventType}
-        customClassnames={customClassNames?.eventLimitsTabClassnames}
+        customClassnames={customClassnames?.eventLimitsTabClassnames}
       />
     ) : (
       <></>
@@ -240,7 +240,7 @@ const EventType = ({
     tabs,
   });
   return (
-    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
+    <AtomsWrapper customClassName={customClassnames?.atomsWrapper}>
       <EventTypeComponent
         {...props}
         tabMap={tabMap}
@@ -283,7 +283,7 @@ export const EventTypePlatformWrapper = ({
   onDeleteSuccess,
   onDeleteError,
   allowDelete = true,
-  customClassNames,
+  customClassnames,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -314,7 +314,7 @@ export const EventTypePlatformWrapper = ({
       onDeleteSuccess={onDeleteSuccess}
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
-      customClassNames={customClassNames}
+      customClassnames={customClassnames}
     />
   );
 };
