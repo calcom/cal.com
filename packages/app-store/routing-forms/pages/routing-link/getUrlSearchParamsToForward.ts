@@ -80,6 +80,12 @@ export function getUrlSearchParamsToForward({
     }
   }
 
+  const attributeRoutingConfigParams: Record<string, any> = {};
+
+  if (attributeRoutingConfig?.skipContactOwner) {
+    attributeRoutingConfigParams["cal.skipContactOwner"] = "true";
+  }
+
   const allQueryParams: Params = {
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
@@ -88,7 +94,8 @@ export function getUrlSearchParamsToForward({
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
     ["cal.routingFormResponseId"]: String(formResponseId),
-    ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
+    // ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
+    ...attributeRoutingConfigParams,
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
       : null),

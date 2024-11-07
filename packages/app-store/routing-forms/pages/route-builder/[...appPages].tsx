@@ -222,6 +222,7 @@ const buildEventsData = ({
         label: uniqueSlug,
         value: uniqueSlug,
         eventTypeId: eventType.id,
+        eventTypeAppMetadata,
       });
     });
   });

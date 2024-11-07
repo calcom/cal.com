@@ -20,6 +20,22 @@ const RoutingFormOptions = ({
   route: LocalRouteWithRaqbStates;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
 }) => {
+  const salesforceRoutingOptions = [
+    {
+      label: "Contact owner will be the Round Robin host if available",
+      value: SalesforceRoutingConfig.ROUTE_OWNER,
+    },
+    {
+      label:
+        "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)",
+      value: SalesforceRoutingConfig.SKIP_OWNER,
+    },
+    {
+      label: "Route to a user that matches a lookup field on an account",
+      value: SalesforceRoutingConfig.ACCOUNT_FIELD_LOOKUP,
+    },
+  ];
+
   const getInitialOption = () => {
     if (route.attributeRoutingConfig?.salesforce?.rrSkipToAccountLookupField) {
       return salesforceRoutingOptions.find(
@@ -45,22 +61,6 @@ const RoutingFormOptions = ({
   if (!parsedAppData.success) return null;
 
   appData = parsedAppData.data;
-
-  const salesforceRoutingOptions = [
-    {
-      label: "Contact owner will be the Round Robin host if available",
-      value: SalesforceRoutingConfig.ROUTE_OWNER,
-    },
-    {
-      label:
-        "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)",
-      value: SalesforceRoutingConfig.SKIP_OWNER,
-    },
-    {
-      label: "Route to a user that matches a lookup field on an account",
-      value: SalesforceRoutingConfig.ACCOUNT_FIELD_LOOKUP,
-    },
-  ];
 
   const onRRSkipToAccountLookupFieldNameChange = (value: string) => {
     setAttributeRoutingConfig(route.id, {
