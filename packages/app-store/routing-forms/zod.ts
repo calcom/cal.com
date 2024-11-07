@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { routingFormAppDataSchemas } from "./appDataSchemas";
+
 export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
@@ -133,6 +135,7 @@ export const zodNonRouterRoute = z.object({
   attributeRoutingConfig: z
     .object({
       skipContactOwner: z.boolean().optional(),
+      salesforce: routingFormAppDataSchemas["salesforce"],
     })
     .nullish(),
 

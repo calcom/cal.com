@@ -12,6 +12,7 @@ import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
+import { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -26,6 +27,8 @@ import {
   Switch,
 } from "@calcom/ui";
 
+import { routingFormAppComponents } from "../../appComponents";
+import DynamicAppComponent from "../../components/DynamicAppComponent";
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
@@ -33,6 +36,7 @@ import SingleForm, {
 import "../../components/react-awesome-query-builder/styles.css";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
+import { enabledAppSlugs } from "../../lib/enabledApps";
 import {
   getQueryBuilderConfigForFormFields,
   getQueryBuilderConfigForAttributes,
@@ -159,9 +163,14 @@ const buildEventsData = ({
 }: {
   eventTypesByGroup: EventTypesByGroup | undefined;
   form: Form;
-  route: Route;
+  route: EditFormRoute;
 }) => {
-  const eventOptions: { label: string; value: string; eventTypeId: number }[] = [];
+  const eventOptions: {
+    label: string;
+    value: string;
+    eventTypeId: number;
+    eventTypeAppMetadata: Record<string, any>;
+  }[] = [];
   const eventTypesMap = new Map<
     number,
     {
@@ -186,10 +195,27 @@ const buildEventsData = ({
       const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
 
       // If Event is already in use, we let it be so as to not break the existing setup
+
+      // Pass app data that works with routing forms
+      const eventTypeAppMetadataParse = EventTypeAppMetadataSchema.safeParse(eventType.metadata?.apps);
+      const eventTypeAppMetadata: Record<string, any> = {};
+      if (eventTypeAppMetadataParse.success) {
+        const appMetadata = eventTypeAppMetadataParse.data;
+
+        if (appMetadata) {
+          for (const appSlug of Object.keys(appMetadata)) {
+            if (enabledAppSlugs.includes(appSlug)) {
+              eventTypeAppMetadata[appSlug] = appMetadata[appSlug as keyof typeof appMetadata];
+            }
+          }
+        }
+      }
+
       if (!isRouteAlreadyInUse && !eventTypeValidInContext) {
         return;
       }
       eventTypesMap.set(eventType.id, {
+        eventTypeAppMetadata,
         schedulingType: eventType.schedulingType,
       });
       eventOptions.push({
@@ -394,12 +420,25 @@ const Route = ({
           and use only the Team Members that match the following criteria (matches all by default)
         </span>
 
-        {isRoundRobinEventSelectedForRedirect ? (
+        {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
+        "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+          <div className="mt-4 px-2.5">
+            <DynamicAppComponent
+              componentMap={routingFormAppComponents}
+              slug="salesforce"
+              appData={eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata["salesforce"]}
+              route={route}
+              setAttributeRoutingConfig={setAttributeRoutingConfig}
+            />
+          </div>
+        ) : null}
+
+        {/* {isRoundRobinEventSelectedForRedirect ? (
           <RoundRobinContactOwnerOverrideSwitch
             route={route}
             setAttributeRoutingConfig={setAttributeRoutingConfig}
           />
-        ) : null}
+        ) : null} */}
 
         <div className="mt-2">
           {route.attributesQueryBuilderState && attributesQueryBuilderConfig && (
