@@ -8,28 +8,17 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 function getNewSearchParams(args: {
-  query: Record<
-    string,
-    string | null | undefined | boolean | { name?: string } | Array<{ name: string; email?: string }>
-  >;
+  query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
 }) {
   const { query, searchParams } = args;
   const newSearchParams = new URLSearchParams(searchParams);
-
   Object.entries(query).forEach(([key, value]) => {
-    if (value === null || value === undefined) return;
-
-    if (Array.isArray(value) && key === "attendees" && value.length > 0) {
-      const { name } = value[0];
-      if (name) newSearchParams.append("attendeeName", name);
-    } else if (typeof value === "object" && value !== null && "name" in value && key === "user") {
-      newSearchParams.append("hostName", value.name || "");
-    } else {
-      newSearchParams.append(key, String(value));
+    if (value === null || value === undefined) {
+      return;
     }
+    newSearchParams.append(key, String(value));
   });
-
   return newSearchParams;
 }
 
@@ -49,9 +38,52 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "attendees",
     "user",
   ];
-  return (Object.keys(booking) as BookingResponseKey[])
+
+  type ResultType = {
+    [key in BookingResponseKey]?: SuccessRedirectBookingType[key];
+  } & {
+    hostName?: string[];
+    attendeeName?: string | null;
+  };
+
+  const result = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
+    .reduce<ResultType>((obj, key) => {
+      if (key === "user" && booking.user?.name) {
+        return { ...obj, hostName: [...(obj.hostName || []), booking.user.name] };
+      }
+
+      if (key === "attendees" && Array.isArray(booking.attendees)) {
+        const attendeeName = booking.attendees[0]?.name || null;
+        const hostNames = booking.attendees.slice(1).map((attendee) => attendee.name);
+
+        return {
+          ...obj,
+          attendeeName,
+          hostName: [...(obj.hostName || []), ...hostNames],
+        };
+      }
+      return { ...obj, [key]: booking[key] };
+    }, {});
+
+  const queryCompatibleParams: Record<string, string | boolean | null | undefined> = {
+    ...Object.fromEntries(
+      Object.entries(result).map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return [key, value.join(", ")];
+        }
+        if (typeof value === "object" && value !== null) {
+          // Skip complex objects (user, attendees) as we are extracting only needed fields
+          return [key, undefined];
+        }
+        return [key, value];
+      })
+    ),
+    hostName: result.hostName?.join(", "),
+    attendeeName: result.attendeeName || undefined,
+  };
+
+  return queryCompatibleParams;
 };
 
 export const useBookingSuccessRedirect = () => {
