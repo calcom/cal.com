@@ -1,21 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 
 class RoutingEventsInsights {
-  static async getRoutingFormStats({
-    teamId,
-    startDate,
-    endDate,
-    isAll = false,
-    organizationId,
-  }: {
-    teamId?: number | null;
-    startDate?: string;
-    endDate?: string;
-    isAll?: boolean;
-    organizationId?: number | null;
-  }) {
+  private static async getWhereForTeamOrAllTeams(teamId: number, isAll: boolean, organizationId?: number) {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
     if (isAll && organizationId) {
@@ -40,6 +27,25 @@ class RoutingEventsInsights {
         },
       }),
     };
+
+    return formsWhereCondition;
+  }
+
+  static async getRoutingFormStats({
+    teamId,
+    startDate,
+    endDate,
+    isAll = false,
+    organizationId,
+  }: {
+    teamId?: number | null;
+    startDate?: string;
+    endDate?: string;
+    isAll?: boolean;
+    organizationId?: number | null;
+  }) {
+    // Get team IDs based on organization if applicable
+    const formsWhereCondition = this.getWhereForTeamOrAllTeams(teamId, isAll, organizationId);
 
     // Base where condition for responses
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
@@ -77,6 +83,30 @@ class RoutingEventsInsights {
       total_responses_without_booking: responsesWithoutBooking,
       total_responses_with_booking: totalResponses - responsesWithoutBooking,
     };
+  }
+
+  static async getRoutingFormsForFilters({
+    teamId,
+    isAll,
+    organizationId,
+  }: {
+    teamId?: number;
+    isAll: boolean;
+    organizationId?: number | null;
+  }) {
+    const formsWhereCondition = this.getWhereForTeamOrAllTeams(teamId, isAll, organizationId);
+    return await prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            responses: true,
+          },
+        },
+      },
+    });
   }
 
   static async getRoutingFormTimeline({

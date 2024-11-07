@@ -1529,14 +1529,15 @@ export const insightsRouter = router({
     }
     return { data: "", filename: "" };
   }),
+
   getRoutingFormsForFilters: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
+    .input(z.object({ teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
-      const { teamId } = input;
-      return await ctx.insightsDb.app_RoutingForms_Form.findMany({
-        where: {
-          teamId,
-        },
+      const { teamId, isAll } = input;
+      return await RoutingEventsInsights.getRoutingFormsForFilters({
+        teamId,
+        isAll,
+        organizationId: ctx.user.organizationId,
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {

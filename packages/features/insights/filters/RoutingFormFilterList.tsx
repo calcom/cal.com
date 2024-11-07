@@ -19,7 +19,11 @@ export const RoutingFormFilterList = memo(() => {
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedTeamId, selectedEventTypeId, selectedUserId, isAll } = filter;
   const { selectedFilter } = filter;
-  const { data: allForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery();
+
+  const { data: allForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
+    teamId: selectedTeamId,
+    isAll,
+  });
 
   console.log("allForms", allForms);
 
