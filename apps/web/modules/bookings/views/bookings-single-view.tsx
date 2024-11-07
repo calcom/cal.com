@@ -104,9 +104,7 @@ const useBrandColors = ({
 };
 
 export default function Success(props: PageProps) {
-  const {
-    t
-  } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
