@@ -4,7 +4,13 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import type { FormValues, Host } from "@calcom/features/eventtypes/lib/types";
+import type {
+  FormValues,
+  Host,
+  InputClassnames,
+  SelectClassnames,
+} from "@calcom/features/eventtypes/lib/types";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dialog,
@@ -26,9 +32,17 @@ interface IDialog {
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }
 
-export const PriorityDialog = (props: IDialog) => {
+export type PriorityDialogCustomClassnames = SelectClassnames & {
+  confirmButton?: string;
+};
+
+export const PriorityDialog = (
+  props: IDialog & {
+    customClassnames?: PriorityDialogCustomClassnames;
+  }
+) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
+  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassnames } = props;
   const { getValues } = useFormContext<FormValues>();
 
   const priorityOptions = [
@@ -66,10 +80,14 @@ export const PriorityDialog = (props: IDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent title={t("set_priority")}>
-        <div className="mb-4">
-          <Label>{t("priority_for_user", { userName: option.label })}</Label>
+        <div className={classNames("mb-4", customClassnames?.container)}>
+          <Label className={customClassnames?.label}>
+            {t("priority_for_user", { userName: option.label })}
+          </Label>
           <Select
             defaultValue={priorityOptions[option.priority ?? 2]}
+            className={customClassnames?.select}
+            innerClassNames={customClassnames?.innerClassNames}
             value={newPriority}
             onChange={(value) => setNewPriority(value ?? priorityOptions[2])}
             options={priorityOptions}
@@ -78,7 +96,9 @@ export const PriorityDialog = (props: IDialog) => {
 
         <DialogFooter>
           <DialogClose />
-          <Button onClick={setPriority}>{t("confirm")}</Button>
+          <Button className={customClassnames?.confirmButton} onClick={setPriority}>
+            {t("confirm")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -118,9 +138,15 @@ export function sortHosts(
   }
 }
 
-export const WeightDialog = (props: IDialog) => {
+export type WeightDialogCustomClassnames = {
+  container?: string;
+  label?: string;
+  confirmButton?: string;
+  weightTextFieldClassnames?: InputClassnames;
+};
+export const WeightDialog = (props: IDialog & { customClassnames?: WeightDialogCustomClassnames }) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
+  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassnames } = props;
   const { getValues } = useFormContext<FormValues>();
   const [newWeight, setNewWeight] = useState<number>(100);
 
@@ -148,12 +174,17 @@ export const WeightDialog = (props: IDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent title={t("set_weight")} description={weightDescription}>
-        <div className="mb-4 mt-2">
-          <Label>{t("weight_for_user", { userName: option.label })}</Label>
-          <div className="w-36">
+        <div className={classNames("mb-4 mt-2", customClassnames?.container)}>
+          <Label className={customClassnames?.label}>
+            {t("weight_for_user", { userName: option.label })}
+          </Label>
+          <div className={classNames("w-36", customClassnames?.weightTextFieldClassnames?.container)}>
             <TextField
               required
               min={0}
+              className={customClassnames?.weightTextFieldClassnames?.input}
+              labelClassName={customClassnames?.weightTextFieldClassnames?.label}
+              addOnClassname={customClassnames?.weightTextFieldClassnames?.addOn}
               label={t("Weight")}
               value={newWeight}
               type="number"
@@ -164,7 +195,9 @@ export const WeightDialog = (props: IDialog) => {
         </div>
         <DialogFooter>
           <DialogClose />
-          <Button onClick={setWeight}>{t("confirm")}</Button>
+          <Button onClick={setWeight} className={customClassnames?.confirmButton}>
+            {t("confirm")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

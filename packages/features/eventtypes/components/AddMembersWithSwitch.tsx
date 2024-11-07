@@ -2,13 +2,18 @@ import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 
-import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import type {
+  FormValues,
+  Host,
+  SettingsToggleClassnames,
+  TeamMember,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import CheckedTeamSelect from "./CheckedTeamSelect";
-import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import type { CheckedSelectOption, CheckedTeamSelectCustomClassnames } from "./CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -49,6 +54,7 @@ const CheckedHostField = ({
   onChange,
   helperText,
   isRRWeightsEnabled,
+  customClassnames,
   ...rest
 }: {
   labelText?: string;
@@ -93,6 +99,7 @@ const CheckedHostField = ({
           options={options}
           placeholder={placeholder}
           isRRWeightsEnabled={isRRWeightsEnabled}
+          customClassnames={customClassnames}
           {...rest}
         />
       </div>
@@ -100,6 +107,10 @@ const CheckedHostField = ({
   );
 };
 
+export type AddMembersWithSwitchCustomClassnames = {
+  assingAllTeamMembersClassnames: SettingsToggleClassnames;
+  teamMembersSelectClassnames: CheckedTeamSelectCustomClassnames;
+};
 const AddMembersWithSwitch = ({
   teamMembers,
   value,
@@ -112,6 +123,7 @@ const AddMembersWithSwitch = ({
   placeholder = "",
   containerClassName = "",
   isRRWeightsEnabled,
+  customClassnames,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -124,6 +136,7 @@ const AddMembersWithSwitch = ({
   placeholder?: string;
   containerClassName?: string;
   isRRWeightsEnabled?: boolean;
+  customClassnames?: AddMembersWithSwitchCustomClassnames;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -138,6 +151,7 @@ const AddMembersWithSwitch = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               onActive={onActive}
               onInactive={() => setValue("hosts", [], { shouldDirty: true })}
+              customClassnames={customClassnames?.assingAllTeamMembersClassnames}
             />
           </div>
         ) : (
@@ -151,6 +165,7 @@ const AddMembersWithSwitch = ({
             options={teamMembers.sort(sortByLabel)}
             placeholder={placeholder ?? t("add_attendees")}
             isRRWeightsEnabled={isRRWeightsEnabled}
+            customClassnames={customClassnames?.teamMembersSelectClassnames}
           />
         ) : (
           <></>

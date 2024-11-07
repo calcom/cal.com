@@ -5,10 +5,12 @@ import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
+import type { AddMembersWithSwitchCustomClassnames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type { ChildrenEventTypeSelectCustomClassnames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts, weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
@@ -16,12 +18,31 @@ import type {
   TeamMember,
   EventTypeSetupProps,
   Host,
+  SelectClassnames,
+  SettingsToggleClassnames,
 } from "@calcom/features/eventtypes/lib/types";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
 
-export type EventTeamAssignmentTabBaseProps = Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">;
+export type EventTeamAssignmentTabCustomClassnames = {
+  assignmentTypeClassnames?: {
+    container?: string;
+    label?: string;
+    description?: string;
+    schedulingTypeSelect?: SelectClassnames;
+  };
+  hostsClassNames?: HostsCustomClassnames;
+  childrenEventTypesClassnames?: ChildrenEventTypesCustomClassnames;
+};
+
+export type EventTeamAssignmentTabBaseProps = Pick<
+  EventTypeSetupProps,
+  "teamMembers" | "team" | "eventType"
+> & {
+  customClassnames?: EventTeamAssignmentTabCustomClassnames;
+};
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
@@ -51,17 +72,19 @@ const ChildrenEventTypesList = ({
   options = [],
   value,
   onChange,
+  customClassnames,
   ...rest
 }: {
   value: ReturnType<typeof mapMemberToChildrenOption>[];
   onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
+  customClassnames?: ChildrenEventTypeSelectCustomClassnames;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
     <div className="flex flex-col space-y-5">
       <div>
-        <Label>{t("assign_to")}</Label>
+        <Label className={customClassnames?.assignToSelectClassnames?.label}>{t("assign_to")}</Label>
         <ChildrenEventTypeSelect
           aria-label="assignment-dropdown"
           data-testid="assignment-dropdown"
@@ -76,6 +99,7 @@ const ChildrenEventTypesList = ({
           value={value}
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
+          customClassnames={customClassnames}
           {...rest}
         />
       </div>
@@ -95,6 +119,10 @@ const FixedHostHelper = (
   </Trans>
 );
 
+type FixedHostsCustomClassnames = SettingsToggleClassnames & {
+  container?: string;
+  addHostsClassnames?: AddMembersWithSwitchCustomClassnames;
+};
 const FixedHosts = ({
   teamMembers,
   value,
@@ -102,6 +130,7 @@ const FixedHosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   isRoundRobinEvent = false,
+  customClassnames,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -109,6 +138,7 @@ const FixedHosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   isRoundRobinEvent?: boolean;
+  customClassnames?: FixedHostsCustomClassnames;
 }) => {
   const { t } = useLocale();
   const { getValues, setValue } = useFormContext<FormValues>();
@@ -118,12 +148,24 @@ const FixedHosts = ({
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
   return (
-    <div className="mt-5 rounded-lg">
+    <div className={classNames("mt-5 rounded-lg", customClassnames?.container)}>
       {!isRoundRobinEvent ? (
         <>
-          <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
-            <Label className="mb-1 text-sm font-semibold">{t("fixed_hosts")}</Label>
-            <p className="text-subtle max-w-full break-words text-sm leading-tight">{FixedHostHelper}</p>
+          <div
+            className={classNames(
+              "border-subtle mt-5 rounded-t-md border p-6 pb-5",
+              customClassnames?.switchContainer
+            )}>
+            <Label className={classNames("mb-1 text-sm font-semibold", customClassnames?.label)}>
+              {t("fixed_hosts")}
+            </Label>
+            <p
+              className={classNames(
+                "text-subtle max-w-full break-words text-sm leading-tight",
+                customClassnames?.description
+              )}>
+              {FixedHostHelper}
+            </p>
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
             <AddMembersWithSwitch
@@ -134,6 +176,7 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
+              customClassnames={customClassnames?.addHostsClassnames}
               onActive={() => {
                 const currentHosts = getValues("hosts");
                 setValue(
@@ -162,8 +205,9 @@ const FixedHosts = ({
           title={t("fixed_hosts")}
           description={FixedHostHelper}
           checked={isDisabled}
-          labelClassName="text-sm"
-          descriptionClassName=" text-sm text-subtle"
+          labelClassName={classNames("text-sm", customClassnames?.label)}
+          descriptionClassName={classNames("text-sm text-subtle", customClassnames?.description)}
+          switchContainerClassName={customClassnames?.switchContainer}
           onCheckedChange={(checked) => {
             if (!checked) {
               const rrHosts = getValues("hosts")
@@ -173,7 +217,7 @@ const FixedHosts = ({
             }
             setIsDisabled(checked);
           }}
-          childrenClassName="lg:ml-0">
+          childrenClassName={classNames("lg:ml-0", customClassnames?.children)}>
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
               teamMembers={teamMembers}
@@ -210,18 +254,26 @@ const FixedHosts = ({
   );
 };
 
+type RoundRobinHostsCustomClassnames = SettingsToggleClassnames & {
+  container?: string;
+  enableWeightsClassnames?: SettingsToggleClassnames;
+  addHostsClassnames?: AddMembersWithSwitchCustomClassnames;
+};
+
 const RoundRobinHosts = ({
   teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  customClassnames,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  customClassnames?: RoundRobinHostsCustomClassnames;
 }) => {
   const { t } = useLocale();
 
@@ -233,10 +285,22 @@ const RoundRobinHosts = ({
   });
 
   return (
-    <div className="rounded-lg ">
-      <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
-        <Label className="mb-1 text-sm font-semibold">{t("round_robin_hosts")}</Label>
-        <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
+    <div className={classNames("rounded-lg", customClassnames?.container)}>
+      <div
+        className={classNames(
+          "border-subtle mt-5 rounded-t-md border p-6 pb-5",
+          customClassnames?.switchContainer
+        )}>
+        <Label className={classNames("mb-1 text-sm font-semibold", customClassnames?.label)}>
+          {t("round_robin_hosts")}
+        </Label>
+        <p
+          className={classNames(
+            "text-subtle max-w-full break-words text-sm leading-tight",
+            customClassnames?.description
+          )}>
+          {t("round_robin_helper")}
+        </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
         {!assignAllTeamMembers && (
@@ -247,9 +311,11 @@ const RoundRobinHosts = ({
                 title={t("enable_weights")}
                 description={weightDescription}
                 checked={value}
+                switchContainerClassName={customClassnames?.enableWeightsClassnames?.switchContainer}
+                labelClassName={customClassnames?.enableWeightsClassnames?.label}
+                descriptionClassName={customClassnames?.enableWeightsClassnames?.description}
                 onCheckedChange={(active) => {
                   onChange(active);
-
                   const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
                   const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
                   setValue("hosts", sortedRRHosts);
@@ -288,35 +354,50 @@ const RoundRobinHosts = ({
             );
             setValue("isRRWeightsEnabled", false);
           }}
+          customClassnames={customClassnames?.addHostsClassnames}
         />
       </div>
     </div>
   );
 };
 
+type ChildrenEventTypesCustomClassnames = {
+  contaienr?: string;
+  assignAllTeamMembersClassnames?: SettingsToggleClassnames;
+  childrenEventTypesListClassnames?: ChildrenEventTypeSelectCustomClassnames;
+};
+
 const ChildrenEventTypes = ({
   childrenEventTypeOptions,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  customClassnames,
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  customClassnames?: ChildrenEventTypesCustomClassnames;
 }) => {
   const { setValue } = useFormContext<FormValues>();
   return (
     <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
-      <div className="flex flex-col gap-4">
+      <div className={classNames("flex flex-col gap-4", customClassnames?.contaienr)}>
         <AssignAllTeamMembers
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
+          customClassnames={customClassnames?.assignAllTeamMembersClassnames}
           onActive={() => setValue("children", childrenEventTypeOptions, { shouldDirty: true })}
         />
         {!assignAllTeamMembers ? (
           <Controller<FormValues>
             name="children"
             render={({ field: { onChange, value } }) => (
-              <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
+              <ChildrenEventTypesList
+                value={value}
+                options={childrenEventTypeOptions}
+                onChange={onChange}
+                customClassnames={customClassnames?.childrenEventTypesListClassnames}
+              />
             )}
           />
         ) : (
@@ -327,14 +408,20 @@ const ChildrenEventTypes = ({
   );
 };
 
+type HostsCustomClassnames = {
+  fixedHosts?: FixedHostsCustomClassnames;
+  roundRobinHosts?: RoundRobinHostsCustomClassnames;
+};
 const Hosts = ({
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  customClassnames,
 }: {
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  customClassnames?: HostsCustomClassnames;
 }) => {
   const { t } = useLocale();
   const {
@@ -395,6 +482,7 @@ const Hosts = ({
               }}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
+              customClassnames={customClassnames?.fixedHosts}
             />
           ),
           ROUND_ROBIN: (
@@ -408,6 +496,7 @@ const Hosts = ({
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 isRoundRobinEvent={true}
+                customClassnames={customClassnames?.fixedHosts}
               />
               <RoundRobinHosts
                 teamMembers={teamMembers}
@@ -418,6 +507,7 @@ const Hosts = ({
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
+                customClassnames={customClassnames?.roundRobinHosts}
               />
             </>
           ),
@@ -429,7 +519,12 @@ const Hosts = ({
   );
 };
 
-export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTeamAssignmentTabBaseProps) => {
+export const EventTeamAssignmentTab = ({
+  team,
+  teamMembers,
+  eventType,
+  customClassnames,
+}: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -475,22 +570,48 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
     <div>
       {team && !isManagedEventType && (
         <>
-          <div className="border-subtle flex flex-col rounded-md">
+          <div
+            className={classNames(
+              "border-subtle flex flex-col rounded-md",
+              customClassnames?.assignmentTypeClassnames?.container
+            )}>
             <div className="border-subtle rounded-t-md border p-6 pb-5">
-              <Label className="mb-1 text-sm font-semibold">{t("assignment")}</Label>
-              <p className="text-subtle max-w-full break-words text-sm leading-tight">
+              <Label
+                className={classNames(
+                  "mb-1 text-sm font-semibold",
+                  customClassnames?.assignmentTypeClassnames?.label
+                )}>
+                {t("assignment")}
+              </Label>
+              <p
+                className={classNames(
+                  "text-subtle max-w-full break-words text-sm leading-tight",
+                  customClassnames?.assignmentTypeClassnames?.description
+                )}>
                 {t("assignment_description")}
               </p>
             </div>
-            <div className="border-subtle rounded-b-md border border-t-0 p-6">
-              <Label>{t("scheduling_type")}</Label>
+            <div
+              className={classNames(
+                "border-subtle rounded-b-md border border-t-0 p-6",
+                customClassnames?.assignmentTypeClassnames?.schedulingTypeSelect?.container
+              )}>
+              <Label className={customClassnames?.assignmentTypeClassnames?.schedulingTypeSelect?.label}>
+                {t("scheduling_type")}
+              </Label>
               <Controller<FormValues>
                 name="schedulingType"
                 render={({ field: { value, onChange } }) => (
                   <Select
                     options={schedulingTypeOptions}
                     value={schedulingTypeOptions.find((opt) => opt.value === value)}
-                    className="w-full"
+                    className={classNames(
+                      "w-full",
+                      customClassnames?.assignmentTypeClassnames?.schedulingTypeSelect?.select
+                    )}
+                    innerClassNames={
+                      customClassnames?.assignmentTypeClassnames?.schedulingTypeSelect?.innerClassNames
+                    }
                     onChange={(val) => {
                       onChange(val?.value);
                       setValue("assignAllTeamMembers", false, { shouldDirty: true });
@@ -505,6 +626,7 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
+            customClassnames={customClassnames?.hostsClassNames}
           />
         </>
       )}
@@ -513,6 +635,7 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           childrenEventTypeOptions={childrenEventTypeOptions}
+          customClassnames={customClassnames?.childrenEventTypesClassnames}
         />
       )}
     </div>
