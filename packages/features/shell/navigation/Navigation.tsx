@@ -2,14 +2,18 @@ import { useSession } from "next-auth/react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
 export const MORE_SEPARATOR_NAME = "more";
+
+const ORG_ADMIN_ONLY = ["/members"];
 
 const navigation: NavigationItemType[] = [
   {
@@ -28,6 +32,11 @@ const navigation: NavigationItemType[] = [
     name: "availability",
     href: "/availability",
     icon: "clock",
+  },
+  {
+    name: "members",
+    href: "/members",
+    icon: "users",
   },
   {
     name: "teams",
@@ -156,12 +165,26 @@ export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
   return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
 };
 
+const useFilteredNavigationItems = (items: NavigationItemType[]) => {
+  const orgBranding = useOrgBranding();
+  const isOrgAdminOrOwner =
+    orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
+  return items.filter((item) => {
+    if (!isOrgAdminOrOwner && ORG_ADMIN_ONLY.includes(item.href)) {
+      return false;
+    }
+
+    return true;
+  });
+};
+
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
+  const items = useFilteredNavigationItems(desktopNavigationItems);
 
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
-      {desktopNavigationItems.map((item) => (
+      {items.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
       <div className="text-subtle mt-0.5 lg:hidden">
@@ -184,6 +207,7 @@ export function MobileNavigationContainer({
 const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
   const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
+  const items = useFilteredNavigationItems(mobileNavigationBottomItems);
 
   return (
     <>
@@ -192,7 +216,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
           "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
-        {mobileNavigationBottomItems.map((item) => (
+        {items.map((item) => (
           <MobileNavigationItem key={item.name} item={item} />
         ))}
       </nav>
@@ -204,10 +228,11 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 
 export const MobileNavigationMoreItems = () => {
   const { mobileNavigationMoreItems } = getDesktopNavigationItems();
+  const items = useFilteredNavigationItems(mobileNavigationMoreItems);
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
-      {mobileNavigationMoreItems.map((item) => (
+      {items.map((item) => (
         <MobileNavigationMoreItem key={item.name} item={item} />
       ))}
     </ul>

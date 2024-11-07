@@ -1,0 +1,31 @@
+"use client";
+
+import MembersView from "@calcom/features/ee/organizations/pages/members";
+import Shell from "@calcom/features/shell/Shell";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HeadSeo } from "@calcom/ui";
+
+import type { AppProps } from "@lib/app-providers";
+
+const MembersPage: React.FC & {
+  PageWrapper?: AppProps["Component"]["PageWrapper"];
+  getLayout?: AppProps["Component"]["getLayout"];
+} = () => {
+  const { t } = useLocale();
+  return (
+    <Shell
+      withoutMain={false}
+      title={t("organization_members")}
+      description={t("organization_description")}
+      withoutSeo
+      heading={t("organization_members")}
+      hideHeadingOnMobile
+      subtitle={t("organization_description")}>
+      <HeadSeo title={t("organization_members")} description={t("organization_description")} />
+
+      <MembersView isAppDir={true} />
+    </Shell>
+  );
+};
+
+export default MembersPage;
