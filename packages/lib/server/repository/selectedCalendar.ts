@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@calcom/prisma";
 
 type SelectedCalendarCreateInput = {
@@ -15,10 +17,14 @@ export class SelectedCalendarRepository {
       },
     });
   }
-  static async upsert(data: SelectedCalendarCreateInput) {
+  static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     return await prisma.selectedCalendar.upsert({
       where: {
-        userId_integration_externalId: { ...data },
+        userId_integration_externalId: {
+          userId: data.userId,
+          integration: data.integration,
+          externalId: data.externalId,
+        },
       },
       create: { ...data },
       update: { ...data },

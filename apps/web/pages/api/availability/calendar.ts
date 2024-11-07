@@ -7,6 +7,7 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -54,23 +55,11 @@ async function postHandler(req: CustomNextApiRequest) {
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
   await calendarCacheRepository.watchCalendar({ calendarId: externalId });
-
-  await prisma.selectedCalendar.upsert({
-    where: {
-      userId_integration_externalId: {
-        userId: user.id,
-        integration,
-        externalId,
-      },
-    },
-    create: {
-      userId: user.id,
-      integration,
-      externalId,
-      credentialId,
-    },
-    // already exists
-    update: {},
+  await SelectedCalendarRepository.upsert({
+    userId: user.id,
+    integration,
+    externalId,
+    credentialId,
   });
 
   return { message: "Calendar Selection Saved" };

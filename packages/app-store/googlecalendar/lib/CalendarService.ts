@@ -20,6 +20,7 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -737,34 +738,16 @@ export default class GoogleCalendarService implements Calendar {
     const userId = this.credential.userId!;
     const externalId = calendarId;
     const response = res.data;
-
-    await prisma.selectedCalendar.upsert({
-      where: {
-        userId_integration_externalId: {
-          userId,
-          integration: "google_calendar",
-          externalId: calendarId,
-        },
-      },
-      create: {
-        userId,
-        integration: "google_calendar",
-        externalId,
-        credentialId,
-        googleChannelId: response?.id,
-        googleChannelKind: response?.kind,
-        googleChannelResourceId: response?.resourceId,
-        googleChannelResourceUri: response?.resourceUri,
-        googleChannelExpiration: response?.expiration,
-      },
-      // already exists
-      update: {
-        googleChannelId: response?.id,
-        googleChannelKind: response?.kind,
-        googleChannelResourceId: response?.resourceId,
-        googleChannelResourceUri: response?.resourceUri,
-        googleChannelExpiration: response?.expiration,
-      },
+    await SelectedCalendarRepository.upsert({
+      userId,
+      externalId: calendarId,
+      credentialId,
+      integration: "google_calendar",
+      googleChannelId: response?.id,
+      googleChannelKind: response?.kind,
+      googleChannelResourceId: response?.resourceId,
+      googleChannelResourceUri: response?.resourceUri,
+      googleChannelExpiration: response?.expiration,
     });
 
     return res.data;
