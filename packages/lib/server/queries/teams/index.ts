@@ -456,7 +456,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               users: {
                 connect: [{ id: userId }],
               },
-              parentId: eventType.parentId,
+              parentId: eventType.id,
               hidden: false,
               workflows: currentWorkflowIds && {
                 create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
