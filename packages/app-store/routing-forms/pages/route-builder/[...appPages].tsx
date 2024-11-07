@@ -41,31 +41,22 @@ import {
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
-import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
+import type {
+  GlobalRoute,
+  LocalRoute,
+  SerializableRoute,
+  Attribute,
+  EditFormRoute,
+  LocalRouteWithRaqbStates,
+  AttributeRoutingConfig,
+} from "../../types/types";
 import { RouteActionType } from "../../zod";
-
-type FormFieldsQueryBuilderState = {
-  tree: ImmutableTree;
-  config: FormFieldsQueryBuilderConfigWithRaqbFields;
-};
-
-type AttributesQueryBuilderState = {
-  tree: ImmutableTree;
-  config: AttributesQueryBuilderConfigWithRaqbFields;
-};
-
-type LocalRouteWithRaqbStates = LocalRoute & {
-  formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
-  attributesQueryBuilderState: AttributesQueryBuilderState | null;
-  fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
-};
 
 type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
-type Route = LocalRouteWithRaqbStates | GlobalRoute;
-type SetRoute = (id: string, route: Partial<Route>) => void;
+type SetRoute = (id: string, route: Partial<EditFormRoute>) => void;
 
 const RoundRobinContactOwnerOverrideSwitch = ({
   route,
@@ -96,7 +87,6 @@ const RoundRobinContactOwnerOverrideSwitch = ({
 
 type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
-type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 
 /**
  * We need eventTypeId in every redirect url action now for Rerouting to work smoothly.
@@ -107,7 +97,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions,
   setRoute,
 }: {
-  route: Route;
+  route: EditFormRoute;
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
@@ -134,7 +124,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
 }
 
-const hasRules = (route: Route) => {
+const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
@@ -230,13 +220,13 @@ const Route = ({
   eventTypesByGroup,
 }: {
   form: Form;
-  route: Route;
-  routes: Route[];
+  route: EditFormRoute;
+  routes: EditFormRoute[];
   setRoute: SetRoute;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
-  setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  setRoutes: React.Dispatch<React.SetStateAction<EditFormRoute[]>>;
   fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
   moveDown?: { fn: () => void; check: () => boolean } | null;
@@ -271,7 +261,7 @@ const Route = ({
   });
 
   const onChangeFormFieldsQuery = (
-    route: Route,
+    route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: FormFieldsQueryBuilderConfigWithRaqbFields
   ) => {
@@ -283,7 +273,7 @@ const Route = ({
   };
 
   const onChangeTeamMembersQuery = (
-    route: Route,
+    route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
@@ -295,7 +285,7 @@ const Route = ({
   };
 
   const onChangeFallbackTeamMembersQuery = (
-    route: Route,
+    route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
@@ -625,7 +615,7 @@ const deserializeRoute = ({
   route: Exclude<SerializableRoute, GlobalRoute>;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
-}): Route => {
+}): EditFormRoute => {
   const attributesQueryBuilderState =
     route.attributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
@@ -707,7 +697,7 @@ function useRoutes({
       return newRoutes;
     });
 
-    function getRoutesToSave(routes: Route[]) {
+    function getRoutesToSave(routes: EditFormRoute[]) {
       return routes.map((route) => {
         if (isRouter(route)) {
           return route;
@@ -868,7 +858,7 @@ const Routes = ({
     });
   }
 
-  const setRoute = (id: string, route: Partial<Route>) => {
+  const setRoute = (id: string, route: Partial<EditFormRoute>) => {
     const index = routes.findIndex((route) => route.id === id);
     const existingRoute = routes[index];
     const newRoutes = [...routes];
@@ -990,7 +980,7 @@ const Routes = ({
                   id: routerId,
                   name: option.name,
                   description: option.description,
-                } as Route,
+                } as EditFormRoute,
               ]);
             }
           }}
