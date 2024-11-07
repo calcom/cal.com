@@ -611,7 +611,7 @@ export async function seedRoutingFormResponses(
     const selectedSkills = shuffledOptions.slice(0, numSkills);
 
     // Create the form response with the routedToBookingUid field set
-    await prisma.app_RoutingForms_FormResponse.create({
+    const response = await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: seededForm.id,
         formFillerId: randomUUID(),
@@ -621,7 +621,16 @@ export async function seedRoutingFormResponses(
             value: selectedSkills.map((opt) => opt.id),
           },
         },
-        routedToBookingUid: booking.uid, // Set the booking UID here
+      },
+    });
+
+    // Update the response with the booking UID
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        routedFromRoutingFormReponse: { connect: { id: response.id } },
       },
     });
   }
