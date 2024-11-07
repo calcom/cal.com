@@ -43,6 +43,7 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
+  bypassBusyCalendarTimes: boolean;
 }) {
   const {
     credentials,
@@ -58,6 +59,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    bypassBusyCalendarTimes = false,
   } = params;
 
   logger.silly(
@@ -234,7 +236,7 @@ export async function getBusyTimes(params: {
   );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
-  if (credentials?.length > 0) {
+  if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimes = await getBusyCalendarTimes(
       username,
@@ -253,8 +255,6 @@ export async function getBusyTimes(params: {
       })
     );
 
-    const openSeatsDateRangesSpan = Sentry.startInactiveSpan({ name: "openSeatsDateRanges" });
-
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
       return {
@@ -262,8 +262,6 @@ export async function getBusyTimes(params: {
         end: dayjs(end),
       };
     });
-
-    openSeatsDateRangesSpan.end();
 
     if (rescheduleUid) {
       const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
@@ -276,7 +274,6 @@ export async function getBusyTimes(params: {
       }
     }
 
-    const finalizeBusyTimesSpan = Sentry.startInactiveSpan({ name: "finalizeBusyTimes" });
     const result = subtract(
       calendarBusyTimes.map((value) => ({
         ...value,
@@ -293,8 +290,6 @@ export async function getBusyTimes(params: {
         end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
       }))
     );
-
-    finalizeBusyTimesSpan.end();
 
     /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
