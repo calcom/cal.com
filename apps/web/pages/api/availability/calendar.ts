@@ -78,7 +78,7 @@ async function postHandler(req: CustomNextApiRequest) {
 
 async function deleteHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
-  const { credentials: _, ...user } = req.userWithCredentials;
+  const user = req.userWithCredentials;
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
   await calendarCacheRepository.unwatchCalendar({ calendarId: externalId });
@@ -97,7 +97,7 @@ async function deleteHandler(req: CustomNextApiRequest) {
 
 async function getHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
-  const { credentials, ...user } = req.userWithCredentials;
+  const user = req.userWithCredentials;
   const selectedCalendarIds = await prisma.selectedCalendar.findMany({
     where: {
       userId: user.id,
@@ -107,7 +107,7 @@ async function getHandler(req: CustomNextApiRequest) {
     },
   });
   // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(credentials);
+  const calendarCredentials = getCalendarCredentials(user.credentials);
   // get all the connected integrations' calendars (from third party)
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
   const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
