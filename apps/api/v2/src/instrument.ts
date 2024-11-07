@@ -1,5 +1,5 @@
 import { getEnv } from "@/env";
-import * as Sentry from "@sentry/node";
+import * as Sentry from "@sentry/nestjs";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 if (process.env.SENTRY_DSN) {
@@ -8,8 +8,8 @@ if (process.env.SENTRY_DSN) {
     dsn: getEnv("SENTRY_DSN"),
     integrations: [nodeProfilingIntegration()],
     // Performance Monitoring
-    tracesSampleRate: 1.0, //  Capture 100% of the transactions
+    tracesSampleRate: getEnv("SENTRY_TRACES_SAMPLE_RATE") ?? 1.0, //  Capture 100% of the transactions
     // Set sampling rate for profiling - this is relative to tracesSampleRate
-    profilesSampleRate: 1.0,
+    profilesSampleRate: getEnv("SENTRY_PROFILES_SAMPLE_RATE") ?? 1.0,
   });
 }
