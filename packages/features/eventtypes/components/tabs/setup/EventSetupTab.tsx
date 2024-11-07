@@ -11,6 +11,7 @@ import type {
   EventTypeSetupProps,
   InputClassnames,
   SelectClassnames,
+  SettingsToggleClassnames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
@@ -21,10 +22,22 @@ import turndown from "@calcom/lib/turndownService";
 import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
 
 export type EventSetupTabCustomClassNames = {
-  eventSetupWrapper?: string;
-  eventSetupTitleSectionWrapper?: string;
-  eventTitleClassnames?: InputClassnames;
-  eventUrlClassnames?: InputClassnames;
+  wrapper?: string;
+  titleSection?: {
+    container?: string;
+    titleInput?: InputClassnames;
+    urlInput?: InputClassnames;
+  };
+  durationSection?: {
+    container?: string;
+    singleDurationInput?: InputClassnames;
+    multipleDuration?: {
+      container?: string;
+      availableDurationsSelect?: SelectClassnames;
+      defaultDurationSelect?: SelectClassnames;
+    };
+    selectDurationToggle?: SettingsToggleClassnames;
+  };
   eventDurationClassnames?: InputClassnames & {
     multipleDurationClassnames?: {
       availableDurationsClassnames?: SelectClassnames;
@@ -85,17 +98,17 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
 
   return (
     <div>
-      <div className={classNames("space-y-4", customClassNames?.eventSetupWrapper)}>
+      <div className={classNames("space-y-4", customClassNames?.wrapper)}>
         <div
           className={classNames(
             "border-subtle space-y-6 rounded-lg border p-6",
-            customClassNames?.eventSetupTitleSectionWrapper
+            customClassNames?.titleSection?.container
           )}>
           <TextField
             required
-            containerClassName={classNames(customClassNames?.eventTitleClassnames?.container)}
-            labelClassName={classNames(customClassNames?.eventTitleClassnames?.label)}
-            className={classNames(customClassNames?.eventTitleClassnames?.input)}
+            containerClassName={classNames(customClassNames?.titleSection?.titleInput?.container)}
+            labelClassName={classNames(customClassNames?.titleSection?.titleInput?.label)}
+            className={classNames(customClassNames?.titleSection?.titleInput?.input)}
             label={t("title")}
             {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
             defaultValue={eventType.title}
@@ -136,9 +149,9 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
-            containerClassName={classNames(customClassNames?.eventUrlClassnames?.container)}
-            labelClassName={classNames(customClassNames?.eventUrlClassnames?.label)}
-            className={classNames(customClassNames?.eventUrlClassnames?.input)}
+            containerClassName={classNames(customClassNames?.titleSection?.urlInput?.container)}
+            labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
+            className={classNames(customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
                 <>
@@ -157,22 +170,24 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
             })}
           />
         </div>
-        <div className="border-subtle rounded-lg border p-6">
+        <div
+          className={classNames(
+            "border-subtle rounded-lg border p-6",
+            customClassNames?.durationSection?.container
+          )}>
           {multipleDuration ? (
             <div
               className={classNames(
                 "space-y-6",
-                customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                  ?.availableDurationsClassnames?.container
+                customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.container
               )}>
               <div>
                 <Skeleton
                   as={Label}
                   loadingClassName="w-16"
-                  className={classNames(
-                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.availableDurationsClassnames?.label
-                  )}>
+                  className={
+                    customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.label
+                  }>
                   {t("available_durations")}
                 </Skeleton>
                 <Select
@@ -183,12 +198,11 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   isDisabled={lengthLockedProps.disabled}
                   className={classNames(
                     "h-auto !min-h-[36px] text-sm",
-                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.availableDurationsClassnames?.select
+                    customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
                   )}
                   innerClassNames={
-                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.availableDurationsClassnames?.innerClassNames
+                    customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect
+                      ?.innerClassNames
                   }
                   options={multipleDurationOptions}
                   value={selectedMultipleDuration}
@@ -217,17 +231,15 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 />
               </div>
               <div
-                className={classNames(
-                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                    ?.defaultDurationClassnames?.container
-                )}>
+                className={
+                  customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.container
+                }>
                 <Skeleton
                   as={Label}
                   loadingClassName="w-16"
-                  className={classNames(
-                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.defaultDurationClassnames?.label
-                  )}>
+                  className={
+                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.label
+                  }>
                   {t("default_duration")}
                   {shouldLockIndicator("length")}
                 </Skeleton>
@@ -237,12 +249,11 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   name="length"
                   className={classNames(
                     "text-sm",
-                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.defaultDurationClassnames?.select
+                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.select
                   )}
                   innerClassNames={
-                    customClassNames?.eventDurationClassnames?.multipleDurationClassnames
-                      ?.defaultDurationClassnames?.innerClassNames
+                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect
+                      ?.innerClassNames
                   }
                   isDisabled={lengthLockedProps.disabled}
                   noOptionsMessage={() => t("default_duration_no_options")}
@@ -260,9 +271,11 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
             <TextField
               required
               type="number"
-              containerClassName={classNames(customClassNames?.eventTitleClassnames?.container)}
-              labelClassName={classNames(customClassNames?.eventTitleClassnames?.label)}
-              className={classNames(customClassNames?.eventTitleClassnames?.input)}
+              containerClassName={classNames(
+                customClassNames?.durationSection?.singleDurationInput?.container
+              )}
+              labelClassName={classNames(customClassNames?.durationSection?.singleDurationInput?.label)}
+              className={classNames(customClassNames?.durationSection?.singleDurationInput?.input)}
               data-testid="duration"
               {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
               label={t("duration")}
@@ -279,22 +292,12 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 checked={multipleDuration !== undefined}
                 disabled={seatsEnabled}
                 tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
-                labelClassName={
-                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
-                    ?.label
-                }
-                descriptionClassName={
-                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
-                    ?.description
-                }
+                labelClassName={customClassNames?.durationSection?.selectDurationToggle?.label}
+                descriptionClassName={customClassNames?.durationSection?.selectDurationToggle?.description}
                 switchContainerClassName={
-                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
-                    ?.switchContainer
+                  customClassNames?.durationSection?.selectDurationToggle?.switchContainer
                 }
-                childrenClassName={
-                  customClassNames?.eventDurationClassnames?.multipleDurationClassnames?.toggleClassnames
-                    ?.children
-                }
+                childrenClassName={customClassNames?.durationSection?.selectDurationToggle?.children}
                 onCheckedChange={() => {
                   if (multipleDuration !== undefined) {
                     setMultipleDuration(undefined);
