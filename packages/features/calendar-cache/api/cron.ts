@@ -12,7 +12,7 @@ const validateRequest = (req: NextRequest) => {
 };
 
 // This cron is used to activate and renew calendar subcriptions
-export const GET = defaultResponder((request: NextRequest) => {
+export const GET = defaultResponder(async (request: NextRequest) => {
   validateRequest(request);
   // const calendarCache = await CalendarCache.init();
   // calendarCache.re();

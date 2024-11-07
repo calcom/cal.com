@@ -13,7 +13,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
-  credentialId: z.number().optional(),
+  credentialId: z.coerce.number(),
 });
 
 /** Shared authentication middleware for GET, DELETE and POST requests */
@@ -52,7 +52,8 @@ async function postHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const { credentials: _, ...user } = req.userWithCredentials;
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
-  const response = await handleWatchCalendarFromReq(req);
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  const response = await calendarCacheRepository.watchCalendar({ calendarId: externalId });
 
   await prisma.selectedCalendar.upsert({
     where: {
@@ -89,8 +90,9 @@ async function postHandler(req: CustomNextApiRequest) {
 async function deleteHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const { credentials: _, ...user } = req.userWithCredentials;
-  const { integration, externalId } = selectedCalendarSelectSchema.parse(req.query);
-  await handleUnwatchCalendar(req);
+  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  await calendarCacheRepository.unwatchCalendar({ calendarId: externalId });
   await prisma.selectedCalendar.delete({
     where: {
       userId_integration_externalId: {
@@ -124,18 +126,6 @@ async function getHandler(req: CustomNextApiRequest) {
     return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };
   });
   return selectableCalendars;
-}
-
-export async function handleWatchCalendarFromReq(req: NextApiRequest) {
-  const { externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
-  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  return calendarCacheRepository.watchCalendar({ calendarId: externalId });
-}
-
-async function handleUnwatchCalendar(req: NextApiRequest) {
-  const { externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
-  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  return calendarCacheRepository.unwatchCalendar({ calendarId: externalId });
 }
 
 export default defaultResponder(async (req: NextApiRequest, res: NextApiResponse) => {

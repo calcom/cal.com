@@ -32,10 +32,27 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       );
       return;
     }
+
     return parsedResponse.data;
   }
 
   async unwatchCalendar(args: { calendarId: string }) {
-    return {};
+    const { calendarId } = args;
+    if (typeof this.calendar?.unwatchCalendar !== "function") {
+      logger.info(
+        '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
+      );
+      return;
+    }
+    const response = await this.calendar?.unwatchCalendar({ calendarId });
+    const parsedResponse = watchCalendarSchema.safeParse(response);
+    if (!parsedResponse.success) {
+      logger.info(
+        "[handleWatchCalendar] Received invalid response from calendar.watchCalendar, skipping watching calendar"
+      );
+      return;
+    }
+
+    return parsedResponse.data;
   }
 }
