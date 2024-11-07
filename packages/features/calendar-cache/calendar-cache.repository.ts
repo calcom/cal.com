@@ -1,4 +1,3 @@
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import logger from "@calcom/lib/logger";
 import type { Calendar } from "@calcom/types/Calendar";
 
@@ -10,12 +9,6 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async getWatchedCalendar(credential: Parameters<typeof getCalendar>[0], calendarId: string) {
-    const calendar = await getCalendar(credential);
-    if (!calendar) return;
-    return this.watchCalendar({ calendarId });
-  }
-
   async watchCalendar(args: { calendarId: string }) {
     const { calendarId } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
