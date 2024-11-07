@@ -8,23 +8,34 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 function getNewSearchParams(args: {
-  query: Record<string, string | null | undefined | boolean>;
+  query: Record<
+    string,
+    string | null | undefined | boolean | { name?: string } | Array<{ name: string; email?: string }>
+  >;
   searchParams?: URLSearchParams;
 }) {
   const { query, searchParams } = args;
   const newSearchParams = new URLSearchParams(searchParams);
+
   Object.entries(query).forEach(([key, value]) => {
-    if (value === null || value === undefined) {
-      return;
+    if (value === null || value === undefined) return;
+
+    if (Array.isArray(value) && key === "attendees" && value.length > 0) {
+      const { name } = value[0];
+      if (name) newSearchParams.append("attendeeName", name);
+    } else if (typeof value === "object" && value !== null && "name" in value && key === "user") {
+      newSearchParams.append("hostName", value.name || "");
+    } else {
+      newSearchParams.append(key, String(value));
     }
-    newSearchParams.append(key, String(value));
   });
+
   return newSearchParams;
 }
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "attendees" | "user"
 >;
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
@@ -35,8 +46,9 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "startTime",
     "endTime",
     "location",
+    "attendees",
+    "user",
   ];
-
   return (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
     .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
@@ -78,7 +90,6 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-
       newSearchParams.forEach((value, key) => {
         url.searchParams.append(key, value);
       });
