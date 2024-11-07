@@ -40,7 +40,10 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
     return {
-      notFound: true,
+      redirect: {
+        permanent: false,
+        destination: "/403",
+      },
     };
   }
 
