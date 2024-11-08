@@ -338,11 +338,6 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
-  const reschedulingToSameSlot = originalRescheduledBooking
-    ? new Date(reqBody.start).getTime() === new Date(originalRescheduledBooking.startTime).getTime() &&
-      eventTypeId === originalRescheduledBooking.eventTypeId
-    : false;
-
   let luckyUserResponse;
   let isFirstSeat = true;
 
@@ -1230,7 +1225,7 @@ async function handler(
             matchOriginalMemberWithNewMember(orignalMember, member)
           )
         );
-        if (!reschedulingToSameSlot) {
+        if (!reqBody.isRerouteToSameTimeslot) {
           sendRoundRobinRescheduledEmailsAndSMS(
             copyEventAdditionalInfo,
             rescheduledMembers,
@@ -1243,7 +1238,7 @@ async function handler(
           eventTypeMetadata: eventType.metadata,
         });
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
-      } else if (!reschedulingToSameSlot) {
+      } else if (!reqBody.isRerouteToSameTimeslot) {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
         await sendRescheduledEmailsAndSMS(
           {
