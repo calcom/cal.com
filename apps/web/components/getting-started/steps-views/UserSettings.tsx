@@ -1,57 +1,73 @@
+import { useRouter } from "next/navigation";
+import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Tooltip, RadioGroup } from "@calcom/ui";
 
+type AccountOption = "personal" | "team" | "org";
+
 interface IUserSettingsProps {
   nextStep: () => void;
 }
 
-const options = [
-  {
-    value: "personal",
-    icon: "user",
-    titleKey: "for_personal_use",
-    descriptionKey: "for_personal_use_description",
-    disabled: false,
-  },
-  {
-    value: "team",
-    icon: "users",
-    titleKey: "with_my_team",
-    descriptionKey: "with_my_team_description",
-    disabled: false,
-  },
-  {
-    value: "org",
-    icon: "building",
-    titleKey: "for_my_organization",
-    descriptionKey: "for_my_organization_description",
-    disabled: true,
-    tooltip: "contact_sales",
-  },
-] as const;
-
 const UserSettings = (props: IUserSettingsProps) => {
-  const [selectedOption, setSelectedOption] = useState("personal");
+  const [selectedOption, setSelectedOption] = useState<AccountOption>("personal");
   const { nextStep } = props;
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  console.log(user);
+  const router = useRouter();
   const telemetry = useTelemetry();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      type: "personal",
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const createEventType = trpc.viewer.eventTypes.create.useMutation();
+
+  const options = [
+    {
+      value: "personal",
+      icon: "user",
+      title: t("for_personal_use"),
+      description: t("for_personal_use_description"),
+      disabled: false,
+      tooltip: null,
     },
-    reValidateMode: "onChange",
-  });
+    {
+      value: "team",
+      icon: "users",
+      title: t("with_my_team"),
+      description: t("with_my_team_description"),
+      disabled: false,
+      tooltip: null,
+    },
+    {
+      value: "org",
+      icon: "building",
+      title: t("for_my_organization"),
+      description: t("for_my_organization_description"),
+      disabled: true,
+      tooltip: t("contact_sales"),
+    },
+  ] as const;
+
+  const DEFAULT_EVENT_TYPES = [
+    {
+      title: t("15min_meeting"),
+      slug: "15min",
+      length: 15,
+    },
+    {
+      title: t("30min_meeting"),
+      slug: "30min",
+      length: 30,
+    },
+    {
+      title: t("secret_meeting"),
+      slug: "secret",
+      length: 15,
+      hidden: true,
+    },
+  ] as const;
 
   useEffect(() => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
@@ -60,17 +76,39 @@ const UserSettings = (props: IUserSettingsProps) => {
   const utils = trpc.useUtils();
   const onSuccess = async () => {
     await utils.viewer.me.invalidate();
-    nextStep();
+    console.log(selectedOption);
+    if (selectedOption === "personal") {
+      try {
+        if (eventTypes?.length === 0) {
+          await Promise.all(
+            DEFAULT_EVENT_TYPES.map(async (event) => {
+              return createEventType.mutate(event);
+            })
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      await utils.viewer.me.refetch();
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      localStorage.removeItem("onBoardingRedirect");
+      redirectUrl ? router.push(redirectUrl) : router.push("/");
+    }
   };
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
 
-  const onSubmit = handleSubmit((data) => {
-    mutation.mutate({
-      type: data.type,
-    });
-  });
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (selectedOption === "personal") {
+      telemetry.event(telemetryEventTypes.onboardingFinished);
+      mutation.mutate({
+        completedOnboarding: true,
+      });
+    }
+  };
 
   return (
     <form onSubmit={onSubmit}>
@@ -78,26 +116,26 @@ const UserSettings = (props: IUserSettingsProps) => {
         <RadioGroup.Group
           defaultValue="personal"
           value={selectedOption}
-          onValueChange={setSelectedOption}
+          onValueChange={(value: string) => setSelectedOption(value as AccountOption)}
           className="space-y-4">
-          {options.map(({ value, icon, titleKey, descriptionKey, disabled, tooltip }) => {
+          {options.map(({ value, icon, title, description, disabled, tooltip }) => {
             const Content = (
               <div className="flex-1 space-y-1">
                 <div className="flex items-center space-x-2">
                   <Icon name={icon} className={`h-4 w-4 ${disabled ? "text-muted" : ""}`} />
                   <p className={`text-sm font-bold leading-4 ${disabled ? "text-muted" : "text-emphasis"}`}>
-                    {t(titleKey)}
+                    {title}
                   </p>
                 </div>
                 <p className={`text-sm leading-5 ${disabled ? "text-muted" : "text-subtle"}`}>
-                  {t(descriptionKey)}
+                  {description}
                 </p>
               </div>
             );
 
             return (
               <RadioGroup.Item key={value} value={value} id={value} disabled={disabled}>
-                {tooltip ? <Tooltip content={t(tooltip)}>{Content}</Tooltip> : Content}
+                {tooltip ? <Tooltip content={tooltip}>{Content}</Tooltip> : Content}
               </RadioGroup.Item>
             );
           })}

@@ -123,7 +123,13 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
+              {currentStep !== INITIAL_STEP && (
+                <Steps
+                  maxSteps={steps.length}
+                  currentStep={currentStepIndex + 1}
+                  navigateToStep={goToIndex}
+                />
+              )}
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
