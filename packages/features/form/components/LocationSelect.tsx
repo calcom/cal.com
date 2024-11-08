@@ -8,11 +8,11 @@ import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select, Icon } from "@calcom/ui";
 
 export type locationSelectCustomClassnames = {
-  locationOptionIcon?: string;
-  locationOptionLabel?: string;
-  locationOptionWrapper?: string;
-  locationGroupLabel?: string;
-  locationSelectWrapper?: string;
+  optionIcon?: string;
+  optionLabel?: string;
+  optionWrapper?: string;
+  groupLabel?: string;
+  selectWrapper?: string;
 };
 
 export type LocationOption = {
@@ -46,43 +46,27 @@ const OptionWithIcon = ({
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return (
-          <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
       case "userPhone":
-        return (
-          <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
       case "inPerson":
-        return (
-          <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
       case "attendeeInPerson":
-        return (
-          <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
       case "link":
-        return (
-          <Icon name="link" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="link" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
       case "somewhereElse":
-        return (
-          <Icon name="map" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="map" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
       default:
-        return (
-          <Icon name="video" className={classNames("h-3.5 w-3.5", customClassnames?.locationOptionIcon)} />
-        );
+        return <Icon name="video" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
     }
   };
 
   if (isPlatform) {
     return (
-      <div className={classNames("flex items-center gap-3", customClassnames?.locationOptionWrapper)}>
+      <div className={classNames("flex items-center gap-3", customClassnames?.optionWrapper)}>
         {getIconFromValue(value)}
-        <span className={classNames("text-sm font-medium", customClassnames?.locationOptionLabel)}>
-          {label}
-        </span>
+        <span className={classNames("text-sm font-medium", customClassnames?.optionLabel)}>{label}</span>
       </div>
     );
   }
@@ -148,7 +132,7 @@ export default function LocationSelect({
         </div>
       )}
       formatGroupLabel={(e) => (
-        <p className={classNames("text-default text-xs font-medium", customClassnames?.locationGroupLabel)}>
+        <p className={classNames("text-default text-xs font-medium", customClassnames?.groupLabel)}>
           {e.label}
         </p>
       )}

@@ -9,7 +9,11 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/monorepo";
-import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type {
+  LocationFormValues,
+  EventTypeSetupProps,
+  CheckboxClassnames,
+} from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
   locationSelectCustomClassnames,
@@ -27,18 +31,20 @@ export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
 
 type LocationInputCustomClassnames = {
-  organizerAddressInput?: string;
-  organizerPhoneInput?: string;
+  addressInput?: string;
+  phoneInput?: string;
 };
 
 export type LocationCustomClassNames = {
-  locationSelectClassnames?: locationSelectCustomClassnames;
+  dropdownWrapper?: string;
+  locationSelect?: locationSelectCustomClassnames;
   removeLocationButton?: string;
   removeLocationIcon?: string;
   addLocationButton?: string;
-  organizerInputClassnames?: {
-    organizerInputError?: string;
+  organizerContactInput?: {
+    errorMessage?: string;
     locationInputClassnames?: LocationInputCustomClassnames;
+    publicDisplayCheckbox?: CheckboxClassnames;
   };
 };
 
@@ -177,7 +183,7 @@ const Locations: React.FC<LocationsProps> = ({
                 onChange={onChange}
                 value={value}
                 {...(disableLocationProp ? { disabled: true } : {})}
-                className={classNames("my-0", customClassnames?.organizerAddressInput)}
+                className={classNames("my-0", customClassnames?.addressInput)}
                 {...rest}
               />
             );
@@ -198,7 +204,7 @@ const Locations: React.FC<LocationsProps> = ({
                 disabled={disableLocationProp}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                 name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                className={customClassnames?.organizerPhoneInput}
+                className={customClassnames?.phoneInput}
                 value={value}
                 onChange={onChange}
                 {...rest}
@@ -238,7 +244,7 @@ const Locations: React.FC<LocationsProps> = ({
 
   return (
     <div className="w-full">
-      <ul ref={animationRef} className="space-y-2">
+      <ul ref={animationRef} className={classNames("space-y-2", customClassnames?.dropdownWrapper)}>
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
@@ -256,9 +262,9 @@ const Locations: React.FC<LocationsProps> = ({
                   isSearchable={false}
                   className={classNames(
                     "block min-w-0 flex-1 rounded-sm text-sm",
-                    customClassnames?.locationSelectClassnames?.locationSelectWrapper
+                    customClassnames?.locationSelect?.selectWrapper
                   )}
-                  customClassnames={customClassnames?.locationSelectClassnames}
+                  customClassnames={customClassnames?.locationSelect}
                   menuPlacement="auto"
                   onChange={(e: SingleValueLocationOption) => {
                     setShowEmptyLocationSelect(false);
@@ -336,7 +342,7 @@ const Locations: React.FC<LocationsProps> = ({
                         }
                         eventLocationType={eventLocationType}
                         index={index}
-                        customClassnames={customClassnames?.organizerInputClassnames?.locationInputClassnames}
+                        customClassnames={customClassnames?.organizerContactInput?.locationInputClassnames}
                       />
                     </div>
                     <ErrorMessage
@@ -344,19 +350,24 @@ const Locations: React.FC<LocationsProps> = ({
                       name={eventLocationType.defaultValueVariable}
                       className={classNames(
                         "text-error my-1 ml-6 text-sm",
-                        customClassnames?.organizerInputClassnames?.organizerInputError
+                        customClassnames?.organizerContactInput?.errorMessage
                       )}
                       as="div"
                       id="location-error"
                     />
                   </div>
-                  <div className="ml-6">
+                  <div
+                    className={classNames(
+                      "ml-6",
+                      customClassnames?.organizerContactInput?.publicDisplayCheckbox?.container
+                    )}>
                     <CheckboxField
                       name={`locations[${index}].displayLocationPublicly`}
                       data-testid="display-location"
                       disabled={disableLocationProp}
                       defaultChecked={defaultLocation?.displayLocationPublicly}
                       description={t("display_location_label")}
+                      className={customClassnames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
                       onChange={(e) => {
                         const fieldValues = getValues("locations")[index];
                         updateLocationField(index, {
@@ -384,9 +395,9 @@ const Locations: React.FC<LocationsProps> = ({
               isSearchable={false}
               className={classNames(
                 "block w-full min-w-0 flex-1 rounded-sm text-sm",
-                customClassnames?.locationSelectClassnames?.locationSelectWrapper
+                customClassnames?.locationSelect?.selectWrapper
               )}
-              customClassnames={customClassnames?.locationSelectClassnames}
+              customClassnames={customClassnames?.locationSelect}
               menuPlacement="auto"
               onChange={(e: SingleValueLocationOption) => {
                 setShowEmptyLocationSelect(false);
