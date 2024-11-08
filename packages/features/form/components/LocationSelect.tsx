@@ -7,7 +7,7 @@ import { classNames } from "@calcom/lib";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select, Icon } from "@calcom/ui";
 
-export type locationSelectCustomClassnames = {
+export type locationSelectCustomClassNames = {
   optionIcon?: string;
   optionLabel?: string;
   optionWrapper?: string;
@@ -23,7 +23,7 @@ export type LocationOption = {
   address?: string;
   credentialId?: number;
   teamName?: string;
-  customClassnames?: locationSelectCustomClassnames;
+  customClassNames?: locationSelectCustomClassNames;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
@@ -34,39 +34,39 @@ const OptionWithIcon = ({
   icon,
   label,
   value,
-  customClassnames,
+  customClassNames,
 }: {
   icon?: string;
   label: string;
   value: string;
-  customClassnames?: locationSelectCustomClassnames;
+  customClassNames?: locationSelectCustomClassNames;
 }) => {
   const isPlatform = useIsPlatform();
 
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "userPhone":
-        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "inPerson":
-        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "attendeeInPerson":
-        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "link":
-        return <Icon name="link" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="link" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "somewhereElse":
-        return <Icon name="map" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="map" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       default:
-        return <Icon name="video" className={classNames("h-3.5 w-3.5", customClassnames?.optionIcon)} />;
+        return <Icon name="video" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
     }
   };
 
   if (isPlatform) {
     return (
-      <div className={classNames("flex items-center gap-3", customClassnames?.optionWrapper)}>
+      <div className={classNames("flex items-center gap-3", customClassNames?.optionWrapper)}>
         {getIconFromValue(value)}
-        <span className={classNames("text-sm font-medium", customClassnames?.optionLabel)}>{label}</span>
+        <span className={classNames("text-sm font-medium", customClassNames?.optionLabel)}>{label}</span>
       </div>
     );
   }
@@ -80,9 +80,9 @@ const OptionWithIcon = ({
 };
 
 export default function LocationSelect({
-  customClassnames,
+  customClassNames,
   ...props
-}: Props<LocationOption, false, GroupOptionType> & { customClassnames?: locationSelectCustomClassnames }) {
+}: Props<LocationOption, false, GroupOptionType> & { customClassNames?: locationSelectCustomClassNames }) {
   const isPlatform = useIsPlatform();
   return (
     <Select<LocationOption>
@@ -98,7 +98,7 @@ export default function LocationSelect({
                   icon={props.data.icon}
                   label={props.data.label}
                   value={props.data.value}
-                  customClassnames={customClassnames}
+                  customClassNames={customClassNames}
                 />
               </div>
             </components.Option>
@@ -112,7 +112,7 @@ export default function LocationSelect({
                   icon={props.data.icon}
                   label={props.data.label}
                   value={props.data.value}
-                  customClassnames={customClassnames}
+                  customClassNames={customClassNames}
                 />
               </div>
             </components.SingleValue>
@@ -132,7 +132,7 @@ export default function LocationSelect({
         </div>
       )}
       formatGroupLabel={(e) => (
-        <p className={classNames("text-default text-xs font-medium", customClassnames?.groupLabel)}>
+        <p className={classNames("text-default text-xs font-medium", customClassNames?.groupLabel)}>
           {e.label}
         </p>
       )}

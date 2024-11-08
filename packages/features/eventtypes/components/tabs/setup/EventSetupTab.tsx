@@ -9,9 +9,9 @@ import type { LocationCustomClassNames } from "@calcom/features/eventtypes/compo
 import Locations from "@calcom/features/eventtypes/components/Locations";
 import type {
   EventTypeSetupProps,
-  InputClassnames,
-  SelectClassnames,
-  SettingsToggleClassnames,
+  InputClassNames,
+  SelectClassNames,
+  SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
@@ -25,32 +25,20 @@ export type EventSetupTabCustomClassNames = {
   wrapper?: string;
   titleSection?: {
     container?: string;
-    titleInput?: InputClassnames;
-    urlInput?: InputClassnames;
+    titleInput?: InputClassNames;
+    urlInput?: InputClassNames;
   };
   durationSection?: {
     container?: string;
-    singleDurationInput?: InputClassnames;
+    singleDurationInput?: InputClassNames;
     multipleDuration?: {
       container?: string;
-      availableDurationsSelect?: SelectClassnames;
-      defaultDurationSelect?: SelectClassnames;
+      availableDurationsSelect?: SelectClassNames;
+      defaultDurationSelect?: SelectClassNames;
     };
-    selectDurationToggle?: SettingsToggleClassnames;
+    selectDurationToggle?: SettingsToggleClassNames;
   };
-  eventDurationClassnames?: InputClassnames & {
-    multipleDurationClassnames?: {
-      availableDurationsClassnames?: SelectClassnames;
-      defaultDurationClassnames?: SelectClassnames;
-      toggleClassnames: {
-        label?: string;
-        description?: string;
-        switchContainer?: string;
-        children?: string;
-      };
-    };
-  };
-  locationClassnames?: LocationCustomClassNames;
+  locationSection?: LocationCustomClassNames;
 };
 
 export type EventSetupTabProps = Pick<
@@ -337,8 +325,8 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
                   control={formMethods.control as unknown as Control<LocationFormValues>}
                   formState={formMethods.formState as unknown as FormState<LocationFormValues>}
-                  customClassNames={customClassNames?.locationClassnames}
                   {...props}
+                  customClassNames={customClassNames?.locationSection}
                 />
               )}
             />
