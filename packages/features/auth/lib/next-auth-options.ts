@@ -622,11 +622,13 @@ export const getOptions = ({
           return await autoMergeIdentities();
         }
 
+        const grantedScopes = account.scope?.split(" ") ?? [];
         if (
           account.provider === "google" &&
           !(await GoogleService.findGoogleCalendarCredential({
             userId: user.id as number,
-          }))
+          })) &&
+          GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))
         ) {
           // Installing Google Calendar by default
           const credentialkey = {
