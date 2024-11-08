@@ -35,6 +35,12 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
       },
     ],
     include: {
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       _count: {
         select: {
           responses: true,
