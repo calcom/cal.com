@@ -119,17 +119,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
       // teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
-      teamMemberEmail: await handleGettingTeamMemberEmail(query, eventTypeId),
+      teamMemberEmail: await handleGettingTeamMemberEmail(query, eventTypeId, eventData),
     },
   };
 };
 
-// interface EventData {
+interface EventData {
+  id: number;
+  isInstantEvent: boolean;
+  schedulingType: SchedulingType | null;
+  metadata: Prisma.JsonValue | null;
+  length: number;
+}
 
-// }
-
-async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: number, eventData) {
-  if (!query.email) return null;
+async function handleGettingTeamMemberEmail(
+  query: ParsedUrlQuery,
+  eventTypeId: number,
+  eventData: EventData
+) {
+  if (!query.email || typeof query.email !== "string") return null;
 
   // Check if a routing form was completed and an routing form option is enabled
   if (
@@ -141,10 +149,8 @@ async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: 
     if (skipContactOwner) return null;
     if (email) return email;
   } else {
-    return await getTeamMemberEmail(eventData);
+    return await getTeamMemberEmail(eventData, query.email);
   }
-
-  return null;
 }
 
 async function handleRoutingFormOption(query: ParsedUrlQuery, eventTypeId: number) {
@@ -209,21 +215,28 @@ async function handleRoutingFormOption(query: ParsedUrlQuery, eventTypeId: numbe
 
   if (!appHandler) return nullReturnValue;
 
-  const response = await appHandler(query.email, attributeRoutingConfig, eventTypeId);
+  const { email: userEmail } = await appHandler(query.email, attributeRoutingConfig, eventTypeId);
 
-  return { ...nullReturnValue, email: response.email };
+  if (!userEmail) return nullReturnValue;
+
+  // Determine if the user is a part of the event type
+  const userQuery = await await prisma.user.findFirst({
+    where: {
+      email: userEmail,
+      hosts: {
+        some: {
+          eventTypeId: eventTypeId,
+        },
+      },
+    },
+  });
+
+  if (!userQuery) return nullReturnValue;
+
+  return { ...nullReturnValue, email: userEmail };
 }
 
-async function getTeamMemberEmail(
-  eventData: {
-    id: number;
-    isInstantEvent: boolean;
-    schedulingType: SchedulingType | null;
-    metadata: Prisma.JsonValue | null;
-    length: number;
-  },
-  email?: string
-): Promise<string | null> {
+async function getTeamMemberEmail(eventData: EventData, email: string): Promise<string | null> {
   // Pre-requisites
   if (!eventData || !email || eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
   const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
