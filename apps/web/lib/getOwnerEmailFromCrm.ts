@@ -1,4 +1,4 @@
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 export async function getOwnerEmailFromCrm(

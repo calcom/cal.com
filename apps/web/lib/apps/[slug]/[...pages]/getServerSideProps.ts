@@ -7,7 +7,6 @@ import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
-import { getOwnerEmailFromCrm } from "@calcom/web/lib/getOwnerEmailFromCrm";
 
 import type { AppProps } from "@lib/app-providers";
 
@@ -108,7 +107,7 @@ export async function getServerSideProps(
       }>,
       prisma,
       user,
-      ssrInit,
+      ssrInit
     );
 
     if (result.notFound) {

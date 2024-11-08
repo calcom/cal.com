@@ -5,13 +5,13 @@ import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
-import { ZFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
 import { ZResponseInputSchema } from "./response.schema";
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
 
@@ -93,16 +93,6 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "getAttributesForTeam",
         () => import("./getAttributesForTeam.handler")
-      );
-      return handler({ ctx, input });
-    }),
-
-  findTeamMembersMatchingAttributeLogic: authedProcedure
-    .input(ZFindTeamMembersMatchingAttributeLogicInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const handler = await getHandler(
-        "findTeamMembersMatchingAttributeLogic",
-        () => import("./findTeamMembersMatchingAttributeLogic.handler")
       );
       return handler({ ctx, input });
     }),

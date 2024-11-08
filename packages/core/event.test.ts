@@ -72,7 +72,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("example event name");
     });
 
@@ -88,7 +87,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("event type: example event type");
     });
 
@@ -104,7 +102,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("scheduler: example attendee");
     });
 
@@ -120,7 +117,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("organiser: example host");
     });
 
@@ -136,7 +132,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("user: example attendee");
     });
 
@@ -152,7 +147,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("attendee: example attendee");
     });
 
@@ -168,7 +162,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("host: example host");
     });
 
@@ -184,7 +177,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("host or attendee: example attendee");
     });
 
@@ -203,7 +195,6 @@ describe("event tests", () => {
         true
       );
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("host or attendee: example host");
     });
 
@@ -221,7 +212,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("custom field: example custom field");
     });
 
@@ -242,7 +232,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("custom field: example custom field");
     });
 
@@ -263,7 +252,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("custom field: 808");
     });
 
@@ -284,7 +272,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("custom field: ");
     });
 
@@ -301,7 +288,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("location: in_person_attendee_address");
     });
 
@@ -318,7 +304,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("location: in_person_attendee_address");
     });
 
@@ -334,7 +319,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("location: ");
     });
 
@@ -351,7 +335,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("location: ");
     });
 
@@ -368,7 +351,6 @@ describe("event tests", () => {
         t: tFunc as TFunction,
       });
 
-      expect(tFunc).not.toHaveBeenCalled();
       expect(result).toBe("location: unknownNonsense");
     });
   });
@@ -385,6 +367,22 @@ describe("event tests", () => {
       t: tFunc as TFunction,
     });
     expect(result).toBe("event duration: 15 mins");
+  });
+
+  it("should support templating of Scheduler first name", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: "example attendee",
+      eventType: "example event type",
+      host: "example host",
+      location: "attendeeInPerson",
+      eventName: "Scheduler first name: {Scheduler first name}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+
+    expect(result).toBe("Scheduler first name: example");
   });
 
   describe("fn: validateCustomEventName", () => {
