@@ -10,8 +10,6 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { IdentityProvider } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
@@ -45,7 +43,6 @@ const OnboardingPage = (props: PageProps) => {
   const params = useParamsWithFallback();
 
   const router = useRouter();
-  const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse({
@@ -59,20 +56,16 @@ const OnboardingPage = (props: PageProps) => {
       title: `${t("individual_or_team_title")}`,
       subtitle: [`${t("individual_or_team_subtitle")}`],
     },
-    ...(user.identityProvider !== IdentityProvider.GOOGLE
-      ? [
-          {
-            title: `${t("connect_your_calendar")}`,
-            subtitle: [`${t("connect_your_calendar_instructions")}`],
-            skipText: `${t("connect_calendar_later")}`,
-          },
-          {
-            title: `${t("connect_your_video_app")}`,
-            subtitle: [`${t("connect_your_video_app_instructions")}`],
-            skipText: `${t("set_up_later")}`,
-          },
-        ]
-      : []),
+    {
+      title: `${t("connect_your_calendar")}`,
+      subtitle: [`${t("connect_your_calendar_instructions")}`],
+      skipText: `${t("connect_calendar_later")}`,
+    },
+    {
+      title: `${t("connect_your_video_app")}`,
+      subtitle: [`${t("connect_your_video_app_instructions")}`],
+      skipText: `${t("set_up_later")}`,
+    },
   ];
 
   // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
@@ -135,8 +128,7 @@ const OnboardingPage = (props: PageProps) => {
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && <UserSettings nextStep={() => goToIndex(1)} />}
                 {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
-
-                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
+                {currentStep === "connected-video" && <ConnectedVideoStep />}
               </Suspense>
             </StepCard>
 

@@ -1,3 +1,5 @@
+import { useRouter } from "next/navigation";
+
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -8,12 +10,7 @@ import { Icon, List } from "@calcom/ui";
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
-interface ConnectedAppStepProps {
-  nextStep: () => void;
-}
-
-const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep } = props;
+const ConnectedVideoStep = () => {
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
@@ -21,6 +18,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   });
   const { data } = useMeQuery();
   const { t } = useLocale();
+  const router = useRouter();
 
   const metadata = userMetadata.parse(data?.metadata);
 
@@ -29,6 +27,13 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   );
 
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
+
+  const handleSubmit = () => {
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    localStorage.removeItem("onBoardingRedirect");
+    redirectUrl ? router.push(redirectUrl) : router.push("/");
+  };
+
   return (
     <>
       {!isPending && (
@@ -68,7 +73,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}
-        onClick={() => nextStep()}>
+        onClick={handleSubmit}>
         {t("next_step_text")}
         <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>

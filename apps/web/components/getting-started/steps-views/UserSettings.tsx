@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Tooltip, RadioGroup } from "@calcom/ui";
 
@@ -21,10 +22,10 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const createSchedule = trpc.viewer.availability.schedule.create.useMutation();
-
+  const updateProfile = trpc.viewer.updateProfile.useMutation();
+  const isPending = createEventType.isPending || createSchedule.isPending || updateProfile.isPending;
   const options = [
     {
       value: "personal",
@@ -77,9 +78,7 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   const utils = trpc.useUtils();
 
-  const onSuccess = async () => {
-    await utils.viewer.me.invalidate();
-
+  const createDefaultAvailabilityAndEventTypes = async () => {
     if (selectedOption === "personal") {
       await Promise.all([
         // create default event types
@@ -92,22 +91,27 @@ const UserSettings = (props: IUserSettingsProps) => {
       ]);
 
       await utils.viewer.me.refetch();
+    }
+  };
+
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (selectedOption === "personal" && user.identityProvider === IdentityProvider.GOOGLE) {
+      telemetry.event(telemetryEventTypes.onboardingFinished);
+      updateProfile.mutate({
+        completedOnboarding: true,
+      });
+      await createDefaultAvailabilityAndEventTypes();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
       redirectUrl ? router.push(redirectUrl) : router.push("/");
+      return;
     }
-  };
-  const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: onSuccess,
-  });
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (selectedOption === "personal") {
-      telemetry.event(telemetryEventTypes.onboardingFinished);
-      mutation.mutate({
-        completedOnboarding: true,
-      });
+    if (selectedOption === "personal" && user.identityProvider !== IdentityProvider.GOOGLE) {
+      await createDefaultAvailabilityAndEventTypes();
+      nextStep();
+      return;
     }
   };
 
@@ -145,8 +149,8 @@ const UserSettings = (props: IUserSettingsProps) => {
       <Button
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
-        loading={mutation.isPending}
-        disabled={mutation.isPending}>
+        loading={isPending}
+        disabled={isPending}>
         {t("continue")}
         <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
