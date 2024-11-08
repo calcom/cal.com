@@ -19,6 +19,7 @@ import { downloadAsCsv, generateCsvRaw, generateHeaderFromReactTable } from "@ca
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { CustomColumnMeta } from "@calcom/ui";
 import {
   Avatar,
   Badge,
@@ -32,7 +33,6 @@ import {
   showToast,
   useFetchMoreOnBottomReached,
 } from "@calcom/ui";
-import type { CustomColumnMeta } from "@calcom/ui/components/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
