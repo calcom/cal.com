@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 
+import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
@@ -22,6 +23,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const telemetry = useTelemetry();
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const createSchedule = trpc.viewer.availability.schedule.create.useMutation();
 
   const options = [
     {
@@ -74,21 +76,20 @@ const UserSettings = (props: IUserSettingsProps) => {
   }, [telemetry]);
 
   const utils = trpc.useUtils();
+
   const onSuccess = async () => {
     await utils.viewer.me.invalidate();
-    console.log(selectedOption);
+
     if (selectedOption === "personal") {
-      try {
-        if (eventTypes?.length === 0) {
-          await Promise.all(
-            DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate(event);
-            })
-          );
-        }
-      } catch (error) {
-        console.error(error);
-      }
+      await Promise.all([
+        // create default event types
+        ...DEFAULT_EVENT_TYPES.map((event) => createEventType.mutate(event)),
+        // create default availability
+        createSchedule.mutate({
+          name: t("default_schedule_name"),
+          ...DEFAULT_SCHEDULE,
+        }),
+      ]);
 
       await utils.viewer.me.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
