@@ -1,8 +1,13 @@
 import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
+import type { ParsedUrlQuery } from "querystring";
 import { z } from "zod";
 
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
+import appBookingFormHandler from "@calcom/app-store/routing-forms/appBookingFormHandler";
+import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
+import { enabledAppSlugs } from "@calcom/app-store/routing-forms/lib/enabledApps";
+import { zodRoutes as routesSchema } from "@calcom/app-store/routing-forms/zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
@@ -79,6 +84,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -92,7 +98,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       eventData: {
-        eventTypeId: eventData.id,
+        eventTypeId,
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
@@ -112,10 +118,95 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
+      // teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
+      teamMemberEmail: await handleGettingTeamMemberEmail(query, eventTypeId),
     },
   };
 };
+
+async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: number) {
+  const teamMemberEmail: string | null = null;
+
+  if (!query.email) return null;
+
+  // Check if a routing form was completed and an routing form option is enabled
+  if (
+    ROUTING_FORM_RESPONSE_ID_QUERY_STRING in query &&
+    Object.values(query).some((value) => value === "true")
+  ) {
+    const { email, skipContactOwner } = await handleRoutingFormOption(query, eventTypeId);
+
+    if (skipContactOwner) return null;
+    if (email) return email;
+  }
+
+  return null;
+}
+
+async function handleRoutingFormOption(query: ParsedUrlQuery, eventTypeId: number) {
+  const nullReturnValue = { email: null, skipContactOwner: false };
+
+  const routingFormQuery = await prisma.app_RoutingForms_Form.findFirst({
+    where: {
+      responses: {
+        some: {
+          id: Number(query[ROUTING_FORM_RESPONSE_ID_QUERY_STRING]),
+        },
+      },
+    },
+    select: {
+      routes: true,
+    },
+  });
+
+  if (!routingFormQuery || !routingFormQuery?.routes) return nullReturnValue;
+
+  const parsedRoutes = routesSchema.safeParse(routingFormQuery.routes);
+
+  if (!parsedRoutes.success || !parsedRoutes.data) return nullReturnValue;
+
+  // Find the route with the attributeRoutingConfig
+  const route = parsedRoutes.data.find((route) => {
+    if ("action" in route) {
+      return route.action.eventTypeId === eventTypeId;
+    }
+  });
+
+  if (!route || !("attributeRoutingConfig" in route)) return nullReturnValue;
+
+  // Get attributeRoutingConfig for the form
+  const attributeRoutingConfig = route.attributeRoutingConfig;
+
+  if (!attributeRoutingConfig) return nullReturnValue;
+
+  // If the skipContactOwner is enabled then don't return an team member email
+  if (attributeRoutingConfig?.skipContactOwner) return { ...nullReturnValue, skipContactOwner: true };
+
+  // Determine if a routing form enabled app is in the query. Then pass it to the proper handler
+  // Routing form apps will have the format cal.appSlug
+  let enabledRoutingFormApp;
+
+  for (const key of Object.keys(query)) {
+    const keySplit = key.split(".");
+
+    const appSlug = keySplit[1];
+
+    if (enabledAppSlugs.includes(appSlug)) {
+      enabledRoutingFormApp = appSlug;
+      break;
+    }
+  }
+
+  if (!enabledRoutingFormApp) return nullReturnValue;
+
+  const appHandler = appBookingFormHandler[enabledRoutingFormApp];
+
+  if (!appHandler) return nullReturnValue;
+
+  const response = await appHandler(query.email, attributeRoutingConfig, eventTypeId);
+
+  return { ...nullReturnValue, email: response.email };
+}
 
 async function getTeamMemberEmail(
   eventData: {

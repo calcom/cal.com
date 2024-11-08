@@ -130,14 +130,16 @@ export const queryValueSaveValidationSchema = queryValueSchema
   )
   .nullish();
 
+export const attributeRoutingConfigSchema = z
+  .object({
+    skipContactOwner: z.boolean().optional(),
+    salesforce: routingFormAppDataSchemas["salesforce"],
+  })
+  .nullish();
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  attributeRoutingConfig: z
-    .object({
-      skipContactOwner: z.boolean().optional(),
-      salesforce: routingFormAppDataSchemas["salesforce"],
-    })
-    .nullish(),
+  attributeRoutingConfig: attributeRoutingConfigSchema,
 
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
