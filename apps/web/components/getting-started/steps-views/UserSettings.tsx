@@ -116,6 +116,15 @@ const UserSettings = (props: IUserSettingsProps) => {
         nextStep();
         return;
       }
+
+      if (selectedOption === "team") {
+        telemetry.event(telemetryEventTypes.onboardingFinished);
+        updateProfile.mutate({
+          completedOnboarding: true,
+        });
+        await createDefaultAvailabilityAndEventTypes();
+        router.push("/settings/teams/new");
+      }
     } catch (error) {
       showToast(`Error: ${error}`, "error");
     } finally {

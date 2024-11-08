@@ -18,7 +18,9 @@ export const CreateTeamEventType = () => {
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
 
   const onSuccessMutation = () => {
-    router.push(`/settings/teams/${teamId}/profile`);
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    localStorage.removeItem("onBoardingRedirect");
+    redirectUrl ? router.push(redirectUrl) : router.push(`/settings/teams/${teamId}/profile`);
   };
 
   const onErrorMutation = (err: string) => {
@@ -75,7 +77,9 @@ export const GetLayout = (page: React.ReactElement) => {
       currentStep={3}
       maxSteps={3}
       isOptionalCallback={() => {
-        router.push(`/settings/teams/${teamId}/profile`);
+        const redirectUrl = localStorage.getItem("onBoardingRedirect");
+        localStorage.removeItem("onBoardingRedirect");
+        redirectUrl ? router.push(redirectUrl) : router.push(`/settings/teams/${teamId}/profile`);
       }}>
       {page}
     </WizardLayout>

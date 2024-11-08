@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -18,13 +19,19 @@ const ConnectedVideoStep = () => {
   });
   const { data } = useMeQuery();
   const { t } = useLocale();
+  const telemetry = useTelemetry();
   const router = useRouter();
+  const updateProfile = trpc.viewer.updateProfile.useMutation();
 
   const metadata = userMetadata.parse(data?.metadata);
 
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
 
   const handleSubmit = () => {
+    telemetry.event(telemetryEventTypes.onboardingFinished);
+    updateProfile.mutate({
+      completedOnboarding: true,
+    });
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
     localStorage.removeItem("onBoardingRedirect");
     redirectUrl ? router.push(redirectUrl) : router.push("/");
