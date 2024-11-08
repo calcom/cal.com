@@ -12,7 +12,6 @@ import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
-import { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -24,7 +23,6 @@ import {
   TextField,
   Badge,
   Divider,
-  Switch,
 } from "@calcom/ui";
 
 import { routingFormAppComponents } from "../../appComponents";
@@ -36,7 +34,7 @@ import SingleForm, {
 import "../../components/react-awesome-query-builder/styles.css";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
-import { enabledAppSlugs } from "../../lib/enabledApps";
+import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
 import {
   getQueryBuilderConfigForFormFields,
   getQueryBuilderConfigForAttributes,
@@ -51,7 +49,6 @@ import type {
   SerializableRoute,
   Attribute,
   EditFormRoute,
-  LocalRouteWithRaqbStates,
   AttributeRoutingConfig,
 } from "../../types/types";
 import { RouteActionType } from "../../zod";
@@ -61,33 +58,6 @@ type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
 type SetRoute = (id: string, route: Partial<EditFormRoute>) => void;
-
-const RoundRobinContactOwnerOverrideSwitch = ({
-  route,
-  setAttributeRoutingConfig,
-}: {
-  route: LocalRouteWithRaqbStates;
-  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
-}) => {
-  return (
-    <div className="mt-4 flex flex-col">
-      <Switch
-        label={
-          route.attributeRoutingConfig?.skipContactOwner
-            ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
-            : "Contact owner will be the Round Robin host if available"
-        }
-        tooltip="Contact owner can only be used if the routed event has it enabled through Salesforce app"
-        checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
-        onCheckedChange={(skipContactOwner) => {
-          setAttributeRoutingConfig(route.id, {
-            skipContactOwner,
-          });
-        }}
-      />
-    </div>
-  );
-};
 
 type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
@@ -195,25 +165,13 @@ const buildEventsData = ({
       const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
 
       // If Event is already in use, we let it be so as to not break the existing setup
-
-      // Pass app data that works with routing forms
-      const eventTypeAppMetadataParse = EventTypeAppMetadataSchema.safeParse(eventType.metadata?.apps);
-      const eventTypeAppMetadata: Record<string, any> = {};
-      if (eventTypeAppMetadataParse.success) {
-        const appMetadata = eventTypeAppMetadataParse.data;
-
-        if (appMetadata) {
-          for (const appSlug of Object.keys(appMetadata)) {
-            if (enabledAppSlugs.includes(appSlug)) {
-              eventTypeAppMetadata[appSlug] = appMetadata[appSlug as keyof typeof appMetadata];
-            }
-          }
-        }
-      }
-
       if (!isRouteAlreadyInUse && !eventTypeValidInContext) {
         return;
       }
+
+      // Pass app data that works with routing forms
+      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata);
+
       eventTypesMap.set(eventType.id, {
         eventTypeAppMetadata,
         schedulingType: eventType.schedulingType,
@@ -433,13 +391,6 @@ const Route = ({
             />
           </div>
         ) : null}
-
-        {/* {isRoundRobinEventSelectedForRedirect ? (
-          <RoundRobinContactOwnerOverrideSwitch
-            route={route}
-            setAttributeRoutingConfig={setAttributeRoutingConfig}
-          />
-        ) : null} */}
 
         <div className="mt-2">
           {route.attributesQueryBuilderState && attributesQueryBuilderConfig && (
