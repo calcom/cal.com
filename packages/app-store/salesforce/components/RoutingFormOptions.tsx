@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Select, Input, Label } from "@calcom/ui";
 
@@ -52,6 +52,10 @@ const RoutingFormOptions = ({
 
   const [selectedRoutingOption, setSelectedRoutingOption] = useState(getInitialOption());
 
+  useEffect(() => {
+    setSelectedRoutingOption(getInitialOption());
+  }, [route]);
+
   const [rrSkipToAccountLookupFieldName, setRRSkipToAccountLookupFieldName] = useState(
     route.attributeRoutingConfig?.salesforce?.rrSKipToAccountLookupFieldName ?? ""
   );
@@ -61,6 +65,13 @@ const RoutingFormOptions = ({
   if (!parsedAppData.success) return null;
 
   appData = parsedAppData.data;
+
+  const isAppDisabled = !appData?.enabled;
+
+  const appDisabledOption = {
+    label: "Salesforce is not enabled on event type",
+    value: "disabled",
+  };
 
   const onRRSkipToAccountLookupFieldNameChange = (value: string) => {
     setAttributeRoutingConfig(route.id, {
@@ -105,17 +116,21 @@ const RoutingFormOptions = ({
         <span className="text-emphasis flex items-center text-sm">
           <img src="/app-store/salesforce/icon.png" className="mr-2 h-6 w-6" /> Salesforce option
         </span>
-        <Select
-          options={salesforceRoutingOptions}
-          value={selectedRoutingOption}
-          onChange={(e) => {
-            if (e) {
-              onOptionChange(e.value);
-              setSelectedRoutingOption(e);
-            }
-          }}
-          className="ml-2 w-full"
-        />
+        {isAppDisabled ? (
+          <Select value={appDisabledOption} isDisabled className="ml-2 w-full" />
+        ) : (
+          <Select
+            options={salesforceRoutingOptions}
+            value={selectedRoutingOption}
+            onChange={(e) => {
+              if (e) {
+                onOptionChange(e.value);
+                setSelectedRoutingOption(e);
+              }
+            }}
+            className="ml-2 w-full"
+          />
+        )}
       </div>
       {selectedRoutingOption?.value === SalesforceRoutingConfig.ACCOUNT_FIELD_LOOKUP ? (
         <div>

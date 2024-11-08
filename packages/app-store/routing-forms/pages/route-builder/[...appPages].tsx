@@ -573,11 +573,13 @@ const Route = ({
                         if (option.value !== "custom") {
                           setRoute(route.id, {
                             action: { ...route.action, value: option.value, eventTypeId: option.eventTypeId },
+                            attributeRoutingConfig: {},
                           });
                           setCustomEventTypeSlug("");
                         } else {
                           setRoute(route.id, {
                             action: { ...route.action, value: "custom", eventTypeId: 0 },
+                            attributeRoutingConfig: {},
                           });
                           setCustomEventTypeSlug("");
                         }
