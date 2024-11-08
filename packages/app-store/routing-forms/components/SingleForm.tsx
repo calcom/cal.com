@@ -612,7 +612,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
+                <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
                   <TextField
                     type="text"
                     containerClassName="mb-6"
@@ -648,7 +648,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             userId: userId,
                             priority: 2,
                             weight: 100,
-                            weightAdjustment: 0,
                             scheduleId: 1,
                           }))}
                           onChange={(value) => {

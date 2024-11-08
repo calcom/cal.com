@@ -1,6 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, useReactTable, getFilteredRowModel } from "@tanstack/react-table";
 import type { ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -15,6 +15,7 @@ import { Button, ButtonGroup, DataTable, DataTableToolbar, UserAvatar } from "@c
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { createTimezoneBuddyStore, TBContext } from "../store";
 import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
+import { CellHighlightContainer } from "./CellHighlightContainer";
 import { TimeDial } from "./TimeDial";
 
 export interface SliderUser {
@@ -63,6 +64,10 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
+
+  const tbStore = createTimezoneBuddyStore({
+    browsingDate: browsingDate.toDate(),
+  });
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
@@ -205,7 +210,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         browsingDate: browsingDate.toDate(),
       })}>
       <>
-        <div className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6">
+        <CellHighlightContainer>
           <DataTable
             table={table}
             tableContainerRef={tableContainerRef}
@@ -221,7 +226,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
               <DataTableToolbar.SearchBar table={table} searchKey="member" />
             </DataTableToolbar.Root>
           </DataTable>
-        </div>
+        </CellHighlightContainer>
         {selectedUser && editSheetOpen ? (
           <AvailabilityEditSheet
             open={editSheetOpen}
