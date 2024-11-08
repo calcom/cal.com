@@ -922,6 +922,7 @@
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
   "minimum_booking_notice": "Minimum Notice",
+  "minimum_rescheduling_notice": "Minimum Rescheduling Notice",
   "offset_toggle": "Offset start times",
   "offset_toggle_description": "Offset timeslots shown to bookers by a specified number of minutes",
   "offset_start": "Offset by",

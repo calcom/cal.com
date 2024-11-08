@@ -54,6 +54,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
       minimumBookingNotice: true,
+      minimumReschedulingNotice: true,
       userId: true,
       price: true,
       currency: true,

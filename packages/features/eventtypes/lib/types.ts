@@ -110,6 +110,7 @@ export type FormValues = {
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   scheduleName: string;
+  minimumReschedulingNotice: number;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
   beforeEventBuffer: number;

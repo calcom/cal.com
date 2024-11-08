@@ -295,12 +295,18 @@ async function handler(
   const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
+  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
+  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
+
+  const isRescheduling = !!rescheduleUid;
+
   await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
     reqBody.start,
     reqBody.timeZone,
     eventType,
     eventTimeZone,
-    loggerWithEventDetails
+    loggerWithEventDetails,
+    isRescheduling
   );
 
   validateEventLength({
@@ -336,9 +342,6 @@ async function handler(
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
   });
-
-  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
-  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
 
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)

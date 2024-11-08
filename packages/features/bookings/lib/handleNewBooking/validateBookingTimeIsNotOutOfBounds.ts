@@ -13,6 +13,7 @@ type ValidateBookingTimeEventType = Pick<
   | "periodStartDate"
   | "periodCountCalendarDays"
   | "minimumBookingNotice"
+  | "minimumReschedulingNotice"
   | "eventName"
   | "id"
 >;
@@ -22,10 +23,14 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
   reqBodyTimeZone: string,
   eventType: T,
   eventTimeZone: string | null | undefined,
-  logger: Logger<unknown>
+  logger: Logger<unknown>,
+  isRescheduling: boolean
 ) => {
   let timeOutOfBounds = false;
   try {
+    const minimumNotice = isRescheduling
+      ? eventType.minimumReschedulingNotice
+      : eventType.minimumBookingNotice;
     timeOutOfBounds = isOutOfBounds(
       reqBodyStartTime,
       {
@@ -37,7 +42,7 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
         bookerUtcOffset: getUTCOffsetByTimezone(reqBodyTimeZone) ?? 0,
         eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
-      eventType.minimumBookingNotice
+      minimumNotice
     );
   } catch (error) {
     logger.warn({

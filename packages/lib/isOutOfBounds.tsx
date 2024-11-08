@@ -207,17 +207,17 @@ export function getRollingWindowEndDate({
  */
 export function isTimeOutOfBounds({
   time,
-  minimumBookingNotice,
+  minimumNotice,
 }: {
   time: dayjs.ConfigType;
-  minimumBookingNotice?: number;
+  minimumNotice?: number;
 }) {
   const date = dayjs(time);
 
   guardAgainstBookingInThePast(date.toDate());
 
-  if (minimumBookingNotice) {
-    const minimumBookingStartDate = dayjs().add(minimumBookingNotice, "minutes");
+  if (minimumNotice) {
+    const minimumBookingStartDate = dayjs().add(minimumNotice, "minutes");
     if (date.isBefore(minimumBookingStartDate)) {
       return true;
     }
@@ -285,10 +285,10 @@ export default function isOutOfBounds(
     eventUtcOffset: number;
     bookerUtcOffset: number;
   },
-  minimumBookingNotice?: number
+  minimumNotice?: number
 ) {
   return (
-    isTimeOutOfBounds({ time, minimumBookingNotice }) ||
+    isTimeOutOfBounds({ time, minimumNotice }) ||
     isTimeViolatingFutureLimit({
       time,
       periodLimits: calculatePeriodLimits({
