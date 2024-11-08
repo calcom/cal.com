@@ -97,7 +97,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <EventTypeSettings
               customClassNames={{
                 atomsWrapper: "!w-[60vw] !m-auto",
-                eventSetupTabClassnames: {
+                eventSetupTab: {
                   wrapper: "rounded-lg shadow-sm",
 
                   titleSection: {
