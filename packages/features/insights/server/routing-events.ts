@@ -1,8 +1,20 @@
+import { Prisma } from "@prisma/client";
+
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 class RoutingEventsInsights {
-  private static async getWhereForTeamOrAllTeams(teamId: number, isAll: boolean, organizationId?: number) {
+  private static async getWhereForTeamOrAllTeams({
+    teamId,
+    isAll,
+    organizationId,
+    routingFormId,
+  }: {
+    teamId: number;
+    isAll: boolean;
+    organizationId?: number;
+    routingFormId?: string;
+  }) {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
     if (isAll && organizationId) {
@@ -26,7 +38,12 @@ class RoutingEventsInsights {
           in: teamIds,
         },
       }),
+      ...(routingFormId && {
+        id: routingFormId,
+      }),
     };
+
+    console.log(JSON.stringify({ formsWhereCondition }, null, 2));
 
     return formsWhereCondition;
   }
@@ -37,15 +54,22 @@ class RoutingEventsInsights {
     endDate,
     isAll = false,
     organizationId,
+    routingFormId,
   }: {
     teamId?: number | null;
     startDate?: string;
     endDate?: string;
     isAll?: boolean;
     organizationId?: number | null;
+    routingFormId?: string | null;
   }) {
     // Get team IDs based on organization if applicable
-    const formsWhereCondition = this.getWhereForTeamOrAllTeams(teamId, isAll, organizationId);
+    const formsWhereCondition = this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
 
     // Base where condition for responses
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
@@ -89,12 +113,13 @@ class RoutingEventsInsights {
     teamId,
     isAll,
     organizationId,
+    routingFormId,
   }: {
     teamId?: number;
     isAll: boolean;
     organizationId?: number | null;
   }) {
-    const formsWhereCondition = this.getWhereForTeamOrAllTeams(teamId, isAll, organizationId);
+    const formsWhereCondition = this.getWhereForTeamOrAllTeams({ teamId, isAll, organizationId });
     return await prisma.app_RoutingForms_Form.findMany({
       where: formsWhereCondition,
       select: {

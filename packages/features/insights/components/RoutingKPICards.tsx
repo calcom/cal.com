@@ -13,12 +13,20 @@ export const RoutingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
 
-  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll, initialConfig } =
-    filter;
+  const {
+    dateRange,
+    selectedEventTypeId,
+    selectedUserId,
+    selectedMemberUserId,
+    isAll,
+    initialConfig,
+    selectedRoutingFormId,
+  } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
   const { selectedTeamId: teamId } = filter;
+  console.log({ selectedRoutingFormId });
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
     {
@@ -27,6 +35,7 @@ export const RoutingKPICards = () => {
       teamId,
       eventTypeId: selectedEventTypeId ?? undefined,
       isAll,
+      routingFormId: selectedRoutingFormId ?? undefined,
     },
     {
       staleTime: 30000,
