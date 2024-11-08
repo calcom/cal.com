@@ -139,12 +139,13 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, any>;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
+      eventTypeAppMetadata?: Record<string, any>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
