@@ -145,14 +145,15 @@ const EventTypeScheduleDetails = memo(
     return (
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
-          {scheduleQueryData && scheduleQueryData.timeBlocks?.length ? (
+          <EventTypeScheduleDayRange
+            schedule={scheduleQueryData?.schedule}
+            isPending={isSchedulePending}
+            loggedInUser={user}
+          />
+        </div>
+        <div className="border-subtle space-y-4 border p-6">
+          {scheduleQueryData && scheduleQueryData.timeBlocks?.length && (
             <EventTypeTimeBlocks timeBlocks={scheduleQueryData.timeBlocks} />
-          ) : (
-            <EventTypeScheduleDayRange
-              schedule={scheduleQueryData?.schedule}
-              isPending={isSchedulePending}
-              loggedInUser={user}
-            />
           )}
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
@@ -222,24 +223,29 @@ const EventTypeScheduleDayRange = ({
   };
 
   return (
-    <ol className="table border-collapse text-sm">
-      {weekdays.map((day, index) => {
-        const isAvailable = filterDays(index).length > 0;
+    <div>
+      <label className="text-default mb-2 block text-sm font-medium leading-none">
+        {t("default_schedule_name")}
+      </label>
+      <ol className="table border-collapse text-sm">
+        {weekdays.map((day, index) => {
+          const isAvailable = filterDays(index).length > 0;
 
-        return (
-          <li key={day} className="my-6 flex border-transparent last:mb-2">
-            <span
-              className={classNames(
-                "w-20 font-medium sm:w-32",
-                !isAvailable ? "text-subtle line-through" : "text-default"
-              )}>
-              {day}
-            </span>
-            {displayDayAvailability(index)}
-          </li>
-        );
-      })}
-    </ol>
+          return (
+            <li key={day} className="my-6 flex border-transparent last:mb-2">
+              <span
+                className={classNames(
+                  "w-20 font-medium sm:w-32",
+                  !isAvailable ? "text-subtle line-through" : "text-default"
+                )}>
+                {day}
+              </span>
+              {displayDayAvailability(index)}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 };
 
@@ -360,6 +366,7 @@ const EventTypeTimeBlocks = ({ timeBlocks }: { timeBlocks: string[] }) => {
 
   return (
     <div>
+      <label className="text-default mb-2 block text-sm font-medium leading-none">{t("time_blocks")}</label>
       <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
       <div className="space-y-2">
         {timeBlocks.map((timeBlock, index) => (
