@@ -35,20 +35,6 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
       },
     ],
     include: {
-      team: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          logoUrl: true,
-          isPrivate: true,
-          hideBookATeamMember: true,
-          metadata: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-        },
-      },
       _count: {
         select: {
           responses: true,

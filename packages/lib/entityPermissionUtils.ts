@@ -36,15 +36,15 @@ export async function canAccessEntity(
 export async function getEntityPermissionLevel(
   entity: {
     userId: number | null;
-    team: { id: number } | null;
+    teamId: number | null;
   },
   userId: number
 ) {
-  if (entity.team) {
+  if (entity.teamId) {
     const { prisma } = await import("@calcom/prisma");
     const membership = await prisma.membership.findFirst({
       where: {
-        teamId: entity.team.id,
+        teamId: entity.teamId,
         userId,
         accepted: true,
       },

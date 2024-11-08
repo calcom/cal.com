@@ -87,13 +87,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: formId,
       ...entityPrismaWhereClause({ userId: user.id }),
     },
-    include: {
-      team: {
-        select: {
-          id: true,
-        },
-      },
-    },
   });
 
   if (!form) {
