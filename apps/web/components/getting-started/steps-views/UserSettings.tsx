@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Tooltip, RadioGroup } from "@calcom/ui";
+import { Button, showToast, Icon, Tooltip, RadioGroup } from "@calcom/ui";
 
 type AccountOption = "personal" | "team" | "org";
 
@@ -17,6 +17,7 @@ interface IUserSettingsProps {
 
 const UserSettings = (props: IUserSettingsProps) => {
   const [selectedOption, setSelectedOption] = useState<AccountOption>("personal");
+  const [isPending, setIsPending] = useState(false);
   const { nextStep } = props;
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
@@ -25,7 +26,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const createSchedule = trpc.viewer.availability.schedule.create.useMutation();
   const updateProfile = trpc.viewer.updateProfile.useMutation();
-  const isPending = createEventType.isPending || createSchedule.isPending || updateProfile.isPending;
+
   const options = [
     {
       value: "personal",
@@ -96,22 +97,29 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (selectedOption === "personal" && user.identityProvider === IdentityProvider.GOOGLE) {
-      telemetry.event(telemetryEventTypes.onboardingFinished);
-      updateProfile.mutate({
-        completedOnboarding: true,
-      });
-      await createDefaultAvailabilityAndEventTypes();
-      const redirectUrl = localStorage.getItem("onBoardingRedirect");
-      localStorage.removeItem("onBoardingRedirect");
-      redirectUrl ? router.push(redirectUrl) : router.push("/");
-      return;
-    }
+    try {
+      setIsPending(true);
+      if (selectedOption === "personal" && user.identityProvider === IdentityProvider.GOOGLE) {
+        telemetry.event(telemetryEventTypes.onboardingFinished);
+        updateProfile.mutate({
+          completedOnboarding: true,
+        });
+        await createDefaultAvailabilityAndEventTypes();
+        const redirectUrl = localStorage.getItem("onBoardingRedirect");
+        localStorage.removeItem("onBoardingRedirect");
+        redirectUrl ? router.push(redirectUrl) : router.push("/");
+        return;
+      }
 
-    if (selectedOption === "personal" && user.identityProvider !== IdentityProvider.GOOGLE) {
-      await createDefaultAvailabilityAndEventTypes();
-      nextStep();
-      return;
+      if (selectedOption === "personal" && user.identityProvider !== IdentityProvider.GOOGLE) {
+        await createDefaultAvailabilityAndEventTypes();
+        nextStep();
+        return;
+      }
+    } catch (error) {
+      showToast(`Error: ${error}`, "error");
+    } finally {
+      setIsPending(false);
     }
   };
 
