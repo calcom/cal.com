@@ -637,15 +637,20 @@ export const getOptions = ({
             expires_at: account.expires_at,
           };
 
-          const [gcalCredential] = await Promise.all([
-            GoogleService.createGoogleCalendarCredential({
+          const gcalCredential = await GoogleService.createGoogleCalendarCredential({
+            userId: user.id as number,
+            key: credentialkey,
+          });
+
+          if (
+            !(await GoogleService.findGoogleMeetCredential({
               userId: user.id as number,
-              key: credentialkey,
-            }),
-            GoogleService.createGoogleMeetsCredential({
+            }))
+          ) {
+            await GoogleService.createGoogleMeetsCredential({
               userId: user.id as number,
-            }),
-          ]);
+            });
+          }
 
           const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
           oAuth2Client.setCredentials(credentialkey);
