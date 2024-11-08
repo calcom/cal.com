@@ -44,6 +44,7 @@ const availabilitySchema = z
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
+    bypassBusyCalendarTimes: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -243,6 +244,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer?: number;
     duration?: number;
     returnDateOverrides: boolean;
+    bypassBusyCalendarTimes: boolean;
   },
   initialData?: {
     user?: GetUser;
@@ -276,6 +278,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer,
     duration,
     returnDateOverrides,
+    bypassBusyCalendarTimes = false,
   } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -389,6 +392,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
+    bypassBusyCalendarTimes,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
