@@ -565,6 +565,7 @@ export const getOptions = ({
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
           return token;
+          // return { ...token, upId: user.profile?.upId ?? token.upId ?? null, };
         }
         // any other credentials, add user info
         return {
