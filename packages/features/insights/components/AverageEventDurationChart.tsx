@@ -1,5 +1,6 @@
 import { Title } from "@tremor/react";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -14,13 +15,14 @@ export const AverageEventDurationChart = () => {
   const { filter } = useFilterContext();
   const { dateRange, selectedMemberUserId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
-  const { selectedTeamId: teamId, selectedUserId } = filter;
+  const { selectedTeamId: teamId, selectedUserId, selectedEventTypeId } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      teamId: teamId ?? undefined,
+      startDate: dayjs.utc(startDate).toISOString(),
+      endDate: dayjs.utc(endDate).toISOString(),
+      teamId,
+      eventTypeId: selectedEventTypeId ?? undefined,
       memberUserId: selectedMemberUserId ?? undefined,
       userId: selectedUserId ?? undefined,
       isAll,

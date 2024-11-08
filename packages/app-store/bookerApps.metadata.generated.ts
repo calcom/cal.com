@@ -7,6 +7,7 @@ import campfire_config_json from "./campfire/config.json";
 import campsite_config_json from "./campsite/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import demodesk_config_json from "./demodesk/config.json";
+import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -22,6 +23,7 @@ import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
+import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import office365video_config_json from "./office365video/config.json";
 import ping_config_json from "./ping/config.json";
 import plausible_config_json from "./plausible/config.json";
@@ -51,6 +53,7 @@ export const appStoreMetadata = {
   campsite: campsite_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   demodesk: demodesk_config_json,
+  dialpad: dialpad_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -66,6 +69,7 @@ export const appStoreMetadata = {
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
+  nextcloudtalk: nextcloudtalk_config_json,
   office365video: office365video_config_json,
   ping: ping_config_json,
   plausible: plausible_config_json,

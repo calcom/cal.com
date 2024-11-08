@@ -6,7 +6,8 @@ import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Icon, type IconName } from "../..";
+import { Icon } from "../icon";
+import type { IconName } from "../icon";
 import { Tooltip } from "../tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
@@ -25,6 +26,7 @@ export type ButtonBaseProps = {
   tooltip?: string | React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
+  tooltipClassName?: string;
   disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
@@ -127,6 +129,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     type = "button",
     tooltipSide = "top",
     tooltipOffset = 4,
+    tooltipClassName,
     StartIcon,
     CustomStartIcon,
     EndIcon,
@@ -228,7 +231,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
-      tooltipOffset={tooltipOffset}>
+      tooltipOffset={tooltipOffset}
+      tooltipClassName={tooltipClassName}>
       {element}
     </Wrapper>
   );
@@ -239,18 +243,25 @@ const Wrapper = ({
   tooltip,
   tooltipSide,
   tooltipOffset,
+  tooltipClassName,
 }: {
   tooltip?: string | React.ReactNode;
   children: React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
+  tooltipClassName?: string;
 }) => {
   if (!tooltip) {
     return <>{children}</>;
   }
 
   return (
-    <Tooltip data-testid="tooltip" content={tooltip} side={tooltipSide} sideOffset={tooltipOffset}>
+    <Tooltip
+      data-testid="tooltip"
+      className={tooltipClassName}
+      content={tooltip}
+      side={tooltipSide}
+      sideOffset={tooltipOffset}>
       {children}
     </Tooltip>
   );

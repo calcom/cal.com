@@ -15,6 +15,7 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -26,6 +27,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
@@ -35,6 +38,8 @@ export async function handleConfirmation(args: {
   prisma: PrismaClient;
   bookingId: number;
   booking: {
+    startTime: Date;
+    id: number;
     eventType: {
       currency: string;
       description: string | null;
@@ -283,6 +288,21 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: eventType?.teamId ?? null },
+      parentId: eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && eventType?.parentId);
+
+  const userId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  const bookerUrl = await getBookerBaseUrl(orgId ?? null);
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -295,6 +315,7 @@ export async function handleConfirmation(args: {
           schedulingType: updatedBookings[index].eventType?.schedulingType,
           hosts: updatedBookings[index].eventType?.hosts,
         },
+        bookerUrl,
       };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
@@ -325,19 +346,6 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const teamId = await getTeamIdFromEventType({
-      eventType: {
-        team: { id: eventType?.teamId ?? null },
-        parentId: eventType?.parentId ?? null,
-      },
-    });
-
-    const triggerForUser = !teamId || (teamId && eventType?.parentId);
-
-    const userId = triggerForUser ? booking.userId : null;
-
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
     const subscribersBookingCreated = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -388,6 +396,18 @@ export async function handleConfirmation(args: {
     });
 
     await Promise.all(scheduleTriggerPromises);
+
+    await scheduleNoShowTriggers({
+      booking: {
+        startTime: booking.startTime,
+        id: booking.id,
+      },
+      triggerForUser,
+      organizerUser: { id: booking.userId },
+      eventTypeId: booking.eventTypeId,
+      teamId,
+      orgId,
+    });
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: eventType?.title,

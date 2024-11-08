@@ -46,9 +46,9 @@ import {
   TextField,
   Form,
   Alert,
-  showToast,
   CheckboxField,
   Icon,
+  showToast,
 } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
@@ -179,9 +179,12 @@ export default function Signup({
   redirectUrl,
   emailVerificationEnabled,
 }: SignupProps) {
+  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+  const [isSamlSignup, setIsSamlSignup] = useState(false);
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -203,13 +206,14 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
-  const [COOKIE_CONSENT, setCOOKIE_CONSENT] = useState(false);
+  const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
 
   function handleConsentChange(consent: boolean) {
-    setCOOKIE_CONSENT(!consent);
+    setUserConsentToCookie(!consent);
   }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
+  const displayBackButton = token ? false : displayEmailForm;
 
   const handleErrorsAndStripe = async (resp: Response) => {
     if (!resp.ok) {
@@ -229,7 +233,6 @@ export default function Signup({
     }
   };
 
-  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
@@ -294,7 +297,7 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && (!IS_EUROPE || COOKIE_CONSENT) ? (
+      {IS_CALCOM && (!IS_EUROPE || userConsentToCookie) ? (
         <>
           {process.env.NEXT_PUBLIC_GTM_ID && (
             <>
@@ -332,7 +335,22 @@ export default function Signup({
         <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
-          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
+          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
+            {displayBackButton && (
+              <div className="flex w-fit lg:-mt-12">
+                <Button
+                  color="minimal"
+                  className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
+                  StartIcon="arrow-left"
+                  data-testid="signup-back-button"
+                  onClick={() => {
+                    setDisplayEmailForm(false);
+                    setIsSamlSignup(false);
+                  }}>
+                  {t("back")}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <h1 className="font-cal text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
@@ -347,197 +365,232 @@ export default function Signup({
                 </p>
               )}
             </div>
+
             {/* Form Container */}
-            <div className="mt-12">
-              <Form
-                className="flex flex-col gap-4"
-                form={formMethods}
-                handleSubmit={async (values) => {
-                  let updatedValues = values;
-                  if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
-                    updatedValues = {
-                      ...values,
-                      username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
-                    };
-                  }
-                  await signUp(updatedValues);
-                }}>
-                {/* Username */}
-                {!isOrgInviteByLink ? (
-                  <UsernameField
-                    orgSlug={orgSlug}
-                    label={t("username")}
-                    username={watch("username") || ""}
-                    premium={premiumUsername}
-                    usernameTaken={usernameTaken}
-                    disabled={!!orgSlug}
-                    setUsernameTaken={(value) => setUsernameTaken(value)}
-                    data-testid="signup-usernamefield"
-                    setPremium={(value) => setPremiumUsername(value)}
-                    addOnLeading={
-                      orgSlug
-                        ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(URL_PROTOCOL_REGEX, "")}/`
-                        : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+            {displayEmailForm && (
+              <div className="mt-12">
+                <Form
+                  className="flex flex-col gap-4"
+                  form={formMethods}
+                  handleSubmit={async (values) => {
+                    let updatedValues = values;
+                    if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
+                      updatedValues = {
+                        ...values,
+                        username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
+                      };
                     }
+                    await signUp(updatedValues);
+                  }}>
+                  {/* Username */}
+                  {!isOrgInviteByLink ? (
+                    <UsernameField
+                      orgSlug={orgSlug}
+                      label={t("username")}
+                      username={watch("username") || ""}
+                      premium={premiumUsername}
+                      usernameTaken={usernameTaken}
+                      disabled={!!orgSlug}
+                      setUsernameTaken={(value) => setUsernameTaken(value)}
+                      data-testid="signup-usernamefield"
+                      setPremium={(value) => setPremiumUsername(value)}
+                      addOnLeading={
+                        orgSlug
+                          ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                              URL_PROTOCOL_REGEX,
+                              ""
+                            )}/`
+                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                      }
+                    />
+                  ) : null}
+                  {/* Email */}
+                  <TextField
+                    {...register("email")}
+                    label={t("email")}
+                    type="email"
+                    disabled={prepopulateFormValues?.email}
+                    data-testid="signup-emailfield"
                   />
-                ) : null}
-                {/* Email */}
-                <TextField
-                  {...register("email")}
-                  label={t("email")}
-                  type="email"
-                  disabled={prepopulateFormValues?.email}
-                  data-testid="signup-emailfield"
-                />
 
-                {/* Password */}
-                <PasswordField
-                  data-testid="signup-passwordfield"
-                  label={t("password")}
-                  {...register("password")}
-                  hintErrors={["caplow", "min", "num"]}
-                />
-                {/* Cloudflare Turnstile Captcha */}
-                {CLOUDFLARE_SITE_ID ? (
-                  <TurnstileCaptcha
-                    appearance="interaction-only"
-                    onVerify={(token) => {
-                      formMethods.setValue("cfToken", token);
-                    }}
-                  />
-                ) : null}
+                  {/* Password */}
+                  {!isSamlSignup && (
+                    <PasswordField
+                      data-testid="signup-passwordfield"
+                      label={t("password")}
+                      {...register("password")}
+                      hintErrors={["caplow", "min", "num"]}
+                    />
+                  )}
+                  {/* Cloudflare Turnstile Captcha */}
+                  {CLOUDFLARE_SITE_ID ? (
+                    <TurnstileCaptcha
+                      appearance="interaction-only"
+                      onVerify={(token) => {
+                        formMethods.setValue("cfToken", token);
+                      }}
+                    />
+                  ) : null}
 
-                <CheckboxField
-                  onChange={() => handleConsentChange(COOKIE_CONSENT)}
-                  description={t("cookie_consent_checkbox")}
-                />
-                {errors.apiError && (
-                  <Alert
-                    className="mb-3"
-                    severity="error"
-                    message={errors.apiError?.message}
-                    data-testid="signup-error-message"
+                  <CheckboxField
+                    data-testid="signup-cookie-content-checkbox"
+                    onChange={() => handleConsentChange(userConsentToCookie)}
+                    description={t("cookie_consent_checkbox")}
                   />
-                )}
-                <Button
-                  type="submit"
-                  className="my-2 w-full justify-center"
-                  loading={loadingSubmitState}
-                  disabled={
-                    !!formMethods.formState.errors.username ||
-                    !!formMethods.formState.errors.email ||
-                    !formMethods.getValues("email") ||
-                    !formMethods.getValues("password") ||
-                    (CLOUDFLARE_SITE_ID &&
-                      !process.env.NEXT_PUBLIC_IS_E2E &&
-                      !formMethods.getValues("cfToken")) ||
-                    isSubmitting ||
-                    usernameTaken
-                  }>
-                  {premiumUsername && !usernameTaken
-                    ? `Create Account for ${getPremiumPlanPriceValue()}`
-                    : t("create_account")}
-                </Button>
-              </Form>
-              {!isGoogleLoginEnabled && !isSAMLLoginEnabled ? null : (
-                <div className="mt-6">
-                  <div className="relative flex items-center">
-                    <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                      {t("or_continue_with")}
-                    </span>
-                    <div className="border-subtle flex-grow border-t" />
-                  </div>
-                </div>
-              )}
-              <div className="mt-6 flex flex-col gap-2 md:flex-row">
-                {isGoogleLoginEnabled ? (
-                  <Button
-                    color="secondary"
-                    disabled={!!formMethods.formState.errors.username || premiumUsername}
-                    loading={isGoogleLoading}
-                    CustomStartIcon={
-                      <img
-                        className={classNames(
-                          "text-subtle  mr-2 h-4 w-4 dark:invert",
-                          premiumUsername && "opacity-50"
-                        )}
-                        src="/google-icon.svg"
-                        alt=""
-                      />
-                    }
-                    className={classNames(
-                      "w-full justify-center rounded-md text-center",
-                      formMethods.formState.errors.username ? "opacity-50" : ""
-                    )}
-                    onClick={async () => {
-                      setIsGoogleLoading(true);
-                      const username = formMethods.getValues("username");
-                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                      const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
-                      const searchQueryParams = new URLSearchParams();
-                      if (username) {
-                        // If username is present we save it in query params to check for premium
-                        searchQueryParams.set("username", username);
+                  {errors.apiError && (
+                    <Alert
+                      className="mb-3"
+                      severity="error"
+                      message={errors.apiError?.message}
+                      data-testid="signup-error-message"
+                    />
+                  )}
+                  {isSamlSignup ? (
+                    <Button
+                      data-testid="saml-submit-button"
+                      color="primary"
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        !formMethods.getValues("email") ||
+                        !formMethods.getValues("username") ||
+                        premiumUsername ||
+                        isSubmitting
+                      }
+                      onClick={() => {
+                        const username = formMethods.getValues("username");
+                        if (!username) {
+                          // should not be reached but needed to bypass type errors
+                          showToast("error", t("username_required"));
+                          return;
+                        }
                         localStorage.setItem("username", username);
+                        const sp = new URLSearchParams();
+                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                        sp.set("username", username);
+                        sp.set("email", formMethods.getValues("email"));
+                        router.push(
+                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                        );
+                      }}
+                      className={classNames(
+                        "my-2 w-full justify-center rounded-md text-center",
+                        formMethods.formState.errors.username && formMethods.formState.errors.email
+                          ? "opacity-50"
+                          : ""
+                      )}>
+                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                      {t("create_account_with_saml")}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      data-testid="signup-submit-button"
+                      className="my-2 w-full justify-center"
+                      loading={loadingSubmitState}
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        !formMethods.getValues("email") ||
+                        !formMethods.getValues("password") ||
+                        (CLOUDFLARE_SITE_ID &&
+                          !process.env.NEXT_PUBLIC_IS_E2E &&
+                          !formMethods.getValues("cfToken")) ||
+                        isSubmitting ||
+                        usernameTaken
+                      }>
+                      {premiumUsername && !usernameTaken
+                        ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
+                        : t("create_account")}
+                    </Button>
+                  )}
+                </Form>
+              </div>
+            )}
+            {!displayEmailForm && (
+              <div className="mt-12">
+                {/* Upper Row */}
+                <div className="mt-6 flex flex-col gap-2 md:flex-row">
+                  {isGoogleLoginEnabled ? (
+                    <Button
+                      color="primary"
+                      loading={isGoogleLoading}
+                      CustomStartIcon={
+                        <img
+                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
+                          src="/google-icon-colored.svg"
+                          alt="Continue with Google Icon"
+                        />
                       }
-                      if (token) {
-                        searchQueryParams.set("email", prepopulateFormValues?.email);
-                      }
-                      const url = searchQueryParams.toString()
-                        ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
-                        : GOOGLE_AUTH_URL;
+                      className={classNames("w-full justify-center rounded-md text-center")}
+                      data-testid="continue-with-google-button"
+                      onClick={async () => {
+                        setIsSamlSignup(false);
+                        setIsGoogleLoading(true);
+                        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                        const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                        const searchQueryParams = new URLSearchParams();
+                        if (prepopulateFormValues?.username) {
+                          // If username is present we save it in query params to check for premium
+                          searchQueryParams.set("username", prepopulateFormValues.username);
+                          localStorage.setItem("username", prepopulateFormValues.username);
+                        }
+                        if (token) {
+                          searchQueryParams.set("email", prepopulateFormValues?.email);
+                        }
+                        const url = searchQueryParams.toString()
+                          ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
+                          : GOOGLE_AUTH_URL;
 
-                      router.push(url);
-                    }}>
-                    Google
-                  </Button>
-                ) : null}
-                {isSAMLLoginEnabled ? (
+                        router.push(url);
+                      }}>
+                      {t("continue_with_google")}
+                    </Button>
+                  ) : null}
+                </div>
+
+                {isGoogleLoginEnabled && (
+                  <div className="mt-6">
+                    <div className="relative flex items-center">
+                      <div className="border-subtle flex-grow border-t" />
+                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                        {t("or").toLocaleLowerCase()}
+                      </span>
+                      <div className="border-subtle flex-grow border-t" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Lower Row */}
+                <div className="mt-6 flex flex-col gap-2">
                   <Button
                     color="secondary"
-                    disabled={
-                      !!formMethods.formState.errors.username ||
-                      !!formMethods.formState.errors.email ||
-                      premiumUsername ||
-                      isSubmitting ||
-                      isGoogleLoading
-                    }
-                    className={classNames(
-                      "w-full justify-center rounded-md text-center",
-                      formMethods.formState.errors.username && formMethods.formState.errors.email
-                        ? "opacity-50"
-                        : ""
-                    )}
+                    disabled={isGoogleLoading}
+                    className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
-                      if (!formMethods.getValues("username")) {
-                        formMethods.trigger("username");
-                      }
-                      if (!formMethods.getValues("email")) {
-                        formMethods.trigger("email");
-
-                        return;
-                      }
-                      const username = formMethods.getValues("username");
-                      if (!username) {
-                        showToast("error", t("username_required"));
-                        return;
-                      }
-                      localStorage.setItem("username", username);
-                      const sp = new URLSearchParams();
-                      // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                      sp.set("username", username);
-                      sp.set("email", formMethods.getValues("email"));
-                      router.push(
-                        `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
-                      );
-                    }}>
-                    <Icon name="shield-check" className="mr-2 h-5 w-5" />
-                    {t("saml_sso")}
+                      setDisplayEmailForm(true);
+                      setIsSamlSignup(false);
+                    }}
+                    data-testid="continue-with-email-button">
+                    {t("continue_with_email")}
                   </Button>
-                ) : null}
+                  {isSAMLLoginEnabled && (
+                    <Button
+                      data-testid="continue-with-saml-button"
+                      color="minimal"
+                      disabled={isGoogleLoading}
+                      className={classNames("w-full justify-center rounded-md text-center")}
+                      onClick={() => {
+                        setDisplayEmailForm(true);
+                        setIsSamlSignup(true);
+                      }}>
+                      {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
             {/* Already have an account & T&C */}
             <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
               <div className="flex flex-col text-sm">
@@ -547,7 +600,7 @@ export default function Signup({
                     {t("sign_in")}
                   </Link>
                 </div>
-                <div className="text-subtle ">
+                <div className="text-subtle">
                   <Trans
                     i18nKey="signing_up_terms"
                     components={[
@@ -571,7 +624,7 @@ export default function Signup({
               </div>
             </div>
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
+          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12 dark:bg-none">
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
@@ -622,7 +675,7 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] lg:block lg:py-[6px] lg:pl-[6px] dark:bg-white/5">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               <img
                 className="hidden dark:block"
@@ -633,7 +686,7 @@ export default function Signup({
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature) => (
                 <>
-                  <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
                       <Icon name={feature.icon} className="mb-1 h-4 w-4" />
                       <span className="text-sm font-medium">{t(feature.title)}</span>

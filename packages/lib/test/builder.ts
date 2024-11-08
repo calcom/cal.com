@@ -56,6 +56,7 @@ export const buildBooking = (
     cancelledBy: null,
     rescheduledBy: null,
     cancellationReason: null,
+    reassignReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
@@ -63,6 +64,7 @@ export const buildBooking = (
     fromReschedule: null,
     recurringEventId: null,
     smsReminderNumber: null,
+    reassignById: null,
     scheduledJobs: [],
     metadata: null,
     responses: null,
@@ -109,6 +111,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
+    hideCalendarEventDetails: false,
     minimumBookingNotice: 120,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
@@ -153,6 +156,8 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     platformOAuthClientId: null,
+    time: null,
+    timeUnit: null,
     ...webhook,
     platform: false,
   };
@@ -258,8 +263,8 @@ type UserPayload = Prisma.UserGetPayload<{
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
-  user?: T & { priority?: number; weight?: number; weightAdjustment?: number }
-): UserPayload & { priority: number; weight: number; weightAdjustment: number } => {
+  user?: T & { priority?: number; weight?: number }
+): UserPayload & { priority: number; weight: number } => {
   return {
     locked: false,
     smsLockState: "UNLOCKED",
@@ -308,7 +313,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     movedToProfileId: null,
     priority: user?.priority ?? 2,
     weight: user?.weight ?? 100,
-    weightAdjustment: user?.weightAdjustment ?? 0,
     isPlatformManaged: false,
     ...user,
   };

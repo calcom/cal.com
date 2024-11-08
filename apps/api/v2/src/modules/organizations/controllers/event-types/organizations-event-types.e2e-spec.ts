@@ -300,6 +300,7 @@ describe("Organizations Event Types Endpoints", () => {
         },
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -330,6 +331,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
 
@@ -385,15 +387,18 @@ describe("Organizations Event Types Endpoints", () => {
             1
           );
 
-          const responseTeamEvent = responseBody.data[0];
-          expect(responseTeamEvent?.teamId).toEqual(team.id);
+          const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
+          expect(responseTeamEvent).toBeDefined();
+          if (!responseTeamEvent) {
+            throw new Error("Team event not found");
+          }
 
-          const responseTeammate1Event = responseBody.data[1];
-          expect(responseTeammate1Event?.ownerId).toEqual(teammate1.id);
+          const responseTeammate1Event = responseBody.data.find((event) => event.ownerId === teammate1.id);
+          expect(responseTeammate1Event).toBeDefined();
           expect(responseTeammate1Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
-          const responseTeammate2Event = responseBody.data[2];
-          expect(responseTeammate2Event?.ownerId).toEqual(teammate2.id);
+          const responseTeammate2Event = responseBody.data.find((event) => event.ownerId === teammate2.id);
+          expect(responseTeammate2Event).toBeDefined();
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
