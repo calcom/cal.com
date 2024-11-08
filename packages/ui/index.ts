@@ -15,6 +15,7 @@ export { Button, LinkIconButton, buttonClasses } from "./components/button";
 export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export { EditableHeading } from "./components/editable-heading";
+export { FilterSelect } from "./components/filter-select";
 export {
   Checkbox,
   CheckboxField,

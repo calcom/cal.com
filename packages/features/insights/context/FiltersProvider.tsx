@@ -16,7 +16,8 @@ const querySchema = z.object({
   userId: z.coerce.number().nullable(),
   memberUserId: z.coerce.number().nullable(),
   eventTypeId: z.coerce.number().nullable(),
-  filter: z.enum(["event-type", "user"]).nullable(),
+  filter: z.enum(["event-type", "user", "routing_form"]).nullable(),
+  routingFormId: z.string().nullable(),
 });
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     userIdParsed,
     eventTypeIdParsed,
     filterParsed,
+    routingFormIdParsed,
     memberUserIdParsed;
 
   const safe = querySchema.safeParse({
@@ -42,6 +44,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     eventTypeId: searchParams?.get("eventTypeId") ?? null,
     filter: searchParams?.get("filter") ?? null,
     memberUserId: searchParams?.get("memberUserId") ?? null,
+    routingFormId: searchParams?.get("routingFormId") ?? null,
   });
 
   if (!safe.success) {
@@ -53,6 +56,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     userIdParsed = safe.data.userId;
     eventTypeIdParsed = safe.data.eventTypeId;
     filterParsed = safe.data.filter;
+    routingFormIdParsed = safe.data.routingFormId;
     memberUserIdParsed = safe.data.memberUserId;
   }
 
@@ -69,6 +73,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     selectedTeamName: null,
     selectedEventTypeId: eventTypeIdParsed || null,
     selectedFilter: filterParsed ? [filterParsed] : null,
+    selectedRoutingFormId: routingFormIdParsed || null,
     isAll: false,
     initialConfig: {
       userId: null,
@@ -86,6 +91,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     selectedEventTypeId,
     selectedFilter,
     selectedTeamName,
+    selectedRoutingFormId,
     isAll,
     initialConfig,
   } = configFilters;
@@ -103,6 +109,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           selectedFilter,
           isAll,
           initialConfig,
+          selectedRoutingFormId,
         },
         setConfigFilters: (newConfigFilters) => {
           setConfigFilters({
@@ -119,6 +126,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             isAll,
             dateRange,
             initialConfig,
+            selectedRoutingFormId,
           } = newConfigFilters;
           const [startTime, endTime] = dateRange || [null, null];
           const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
@@ -134,6 +142,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setParamsIfDefined("startTime", startTime?.format("YYYY-MM-DD"));
           setParamsIfDefined("endTime", endTime?.format("YYYY-MM-DD"));
           setParamsIfDefined("filter", selectedFilter?.[0]);
+          setParamsIfDefined("routingFormId", selectedRoutingFormId);
           router.push(`${pathname}?${newSearchParams.toString()}`);
         },
         clearFilters: () => {
@@ -152,6 +161,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             isAll: !!initialConfig?.isAll,
             dateRange: [dayjs().subtract(1, "week"), dayjs(), "w"],
             initialConfig,
+            selectedRoutingFormId: null,
           });
 
           const newSearchParams = new URLSearchParams();

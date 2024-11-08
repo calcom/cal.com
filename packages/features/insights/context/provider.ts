@@ -11,6 +11,7 @@ interface IFilter {
   selectedUserId?: number | null;
   selectedMemberUserId?: number | null;
   selectedEventTypeId?: number | null;
+  selectedRoutingFormId?: string | null;
   isAll?: boolean;
   initialConfig?: {
     teamId?: number | null;
