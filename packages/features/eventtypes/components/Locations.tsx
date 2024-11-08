@@ -43,7 +43,7 @@ export type LocationCustomClassNames = {
   addLocationButton?: string;
   organizerContactInput?: {
     errorMessage?: string;
-    locationInputClassNames?: LocationInputCustomClassNames;
+    locationInput?: LocationInputCustomClassNames;
     publicDisplayCheckbox?: CheckboxClassNames;
   };
 };
@@ -342,7 +342,7 @@ const Locations: React.FC<LocationsProps> = ({
                         }
                         eventLocationType={eventLocationType}
                         index={index}
-                        customClassNames={customClassNames?.organizerContactInput?.locationInputClassNames}
+                        customClassNames={customClassNames?.organizerContactInput?.locationInput}
                       />
                     </div>
                     <ErrorMessage
