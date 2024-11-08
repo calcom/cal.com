@@ -711,4 +711,19 @@ export default class SalesforceCRMService implements CRM {
 
     return this.getDominantAccountId(response.records as { AccountId: string }[]);
   }
+
+  async findUserEmailFromLookupField(
+    attendeeEmail: string,
+    fieldName: string,
+    salesforceObject: SalesforceRecordEnum
+  ) {
+    console.log(
+      "🚀 ~ SalesforceCRMService ~ findUserEmailFromLookupField ~ salesforceObject:",
+      salesforceObject
+    );
+    console.log("🚀 ~ SalesforceCRMService ~ findUserEmailFromLookupField ~ fieldName:", fieldName);
+    console.log("🚀 ~ SalesforceCRMService ~ findUserEmailFromLookupField ~ attendeeEmail:", attendeeEmail);
+
+    return;
+  }
 }
