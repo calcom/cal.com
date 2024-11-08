@@ -131,41 +131,62 @@ export class BillingService implements OnModuleDestroy {
     );
   }
 
-  async createOrUpdateStripeSubscription(event: Stripe.Event) {
-    if (event.type === "checkout.session.completed") {
-      const subscription = event.data.object as Stripe.Checkout.Session;
-
-      if (!subscription.metadata?.teamId) {
-        return {
-          status: "success",
-        };
-      }
-
-      const teamId = Number.parseInt(subscription.metadata.teamId);
-      const plan = subscription.metadata.plan;
-      if (!plan || !teamId) {
-        this.logger.log("Webhook received but not pertaining to Platform, discarding.");
-        return {
-          status: "success",
-        };
-      }
-
-      if (subscription.mode === "subscription") {
-        await this.setSubscriptionForTeam(
+  async handleStripeSubscriptionDeleted(event: Stripe.Event) {
+    const subscription = event.data.object as Stripe.Checkout.Session;
+    const teamId = subscription?.metadata?.teamId;
+    const plan = PlatformPlan[subscription?.metadata?.plan?.toUpperCase() as keyof typeof PlatformPlan];
+    if (teamId && plan) {
+      const currentBilling = await this.billingRepository.getBillingForTeam(Number.parseInt(teamId));
+      if (currentBilling?.subscriptionId === subscription.id) {
+        await this.billingRepository.deleteBilling(currentBilling.id);
+        this.logger.log(`Stripe Subscription deleted`, {
+          customerId: currentBilling.customerId,
+          subscriptionId: currentBilling.subscriptionId,
           teamId,
-          subscription.subscription as string,
-          PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
-        );
-      }
+        });
 
-      if (subscription.mode === "setup") {
-        await this.updateStripeSubscriptionForTeam(teamId, plan as PlatformPlan);
+        return;
       }
+      this.logger.log("No platform billing found.");
+      return;
+    }
+    this.logger.log("Webhook received but not pertaining to Platform, discarding.");
+    return;
+  }
 
+  async handleStripeCheckoutEvents(event: Stripe.Event) {
+    const subscription = event.data.object as Stripe.Checkout.Session;
+
+    if (!subscription.metadata?.teamId) {
       return {
         status: "success",
       };
     }
+
+    const teamId = Number.parseInt(subscription.metadata.teamId);
+    const plan = subscription.metadata.plan;
+    if (!plan || !teamId) {
+      this.logger.log("Webhook received but not pertaining to Platform, discarding.");
+      return {
+        status: "success",
+      };
+    }
+
+    if (subscription.mode === "subscription") {
+      await this.setSubscriptionForTeam(
+        teamId,
+        subscription.subscription as string,
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
+      );
+    }
+
+    if (subscription.mode === "setup") {
+      await this.updateStripeSubscriptionForTeam(teamId, plan as PlatformPlan);
+    }
+
+    return {
+      status: "success",
+    };
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {

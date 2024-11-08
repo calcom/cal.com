@@ -33,4 +33,12 @@ export class BillingRepository {
       },
     });
   }
+
+  async deleteBilling(id: number) {
+    return this.dbWrite.prisma.platformBilling.delete({
+      where: {
+        id,
+      },
+    });
+  }
 }

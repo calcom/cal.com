@@ -108,7 +108,16 @@ export class BillingController {
       this.stripeWhSecret
     );
 
-    await this.billingService.createOrUpdateStripeSubscription(event);
+    switch (event.type) {
+      case "checkout.session.completed":
+        await this.billingService.handleStripeCheckoutEvents(event);
+        break;
+      case "customer.subscription.deleted":
+        await this.billingService.handleStripeSubscriptionDeleted(event);
+        break;
+      default:
+        break;
+    }
 
     return {
       status: "success",
