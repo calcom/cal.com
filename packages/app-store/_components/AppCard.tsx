@@ -81,7 +81,7 @@ export default function AppCard({
             </p>
           </div>
           <div className="ml-auto flex items-center space-x-2">
-            {app.credentialOwner && (
+            {app.credentialOwner && !isPlatform && (
               <div className="ml-auto">
                 <Badge variant="gray">
                   <div className="flex items-center">

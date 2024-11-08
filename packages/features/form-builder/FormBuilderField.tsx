@@ -152,7 +152,7 @@ const WithLabel = ({
           field.type !== "multiemail" &&
           field.label && (
             <div className="mb-2 flex items-center">
-              <Label className="!mb-0 flex" htmlFor={htmlFor}>
+              <Label className="!mb-0 flex items-center" htmlFor={htmlFor}>
                 <span>{field.label}</span>
                 <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
                   {!readOnly && field.required ? "*" : ""}

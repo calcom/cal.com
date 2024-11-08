@@ -1,6 +1,7 @@
 import z from "zod";
 
 export const ZReportInputSchema = z.object({
+  limit: z.number().default(50),
   formId: z.string(),
   jsonLogicQuery: z.object({
     logic: z.union([z.record(z.any()), z.null()]),

@@ -534,7 +534,6 @@ export class EventTypeRepository {
           userId: true,
           priority: true,
           weight: true,
-          weightAdjustment: true,
           scheduleId: true,
         },
       },

@@ -1,8 +1,7 @@
-import type { App_RoutingForms_Form, User } from "@prisma/client";
+import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
-import { SerializableForm } from "../types/types";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
@@ -12,11 +11,13 @@ import { entries } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { findTeamMembersMatchingAttributeLogicOfRoute } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import isRouter from "../lib/isRouter";
-import { RouteActionType, routingFormResponseInDbSchema } from "../zod";
+import type { SerializableForm } from "../types/types";
+import type { routingFormResponseInDbSchema } from "../zod";
+import { RouteActionType } from "../zod";
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   ctx: {
@@ -34,7 +35,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   const { prisma, user } = ctx;
   const { getOwnerEmailFromCrm } = await import("@calcom/web/lib/getOwnerEmailFromCrm");
 
-  const { formId, response, routeId, isPreview, _enablePerf, _concurrency } = input;
+  const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
@@ -58,7 +59,6 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   }
 
   const serializableForm = await getSerializableForm({ form });
-  const route = serializableForm.routes?.find((route) => route.id === routeId);
 
   if (!route) {
     throw new TRPCError({
@@ -104,7 +104,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     form: serializableForm,
     response,
   });
-  
+
   const contactOwnerEmail = emailIdentifierValueInResponse
     ? await getOwnerEmailFromCrm(eventType, emailIdentifierValueInResponse)
     : null;
@@ -113,10 +113,13 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     timeTaken: teamMembersMatchingAttributeLogicTimeTaken,
     troubleshooter,
+    checkedFallback,
+    mainAttributeLogicBuildingWarnings: mainWarnings,
+    fallbackAttributeLogicBuildingWarnings: fallbackWarnings,
   } = await findTeamMembersMatchingAttributeLogicOfRoute(
     {
       response,
-      routeId,
+      route,
       form: serializableForm,
       teamId: form.teamId,
       isPreview: !!isPreview,
@@ -133,6 +136,9 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     return {
       contactOwnerEmail,
       troubleshooter,
+      checkedFallback,
+      mainWarnings,
+      fallbackWarnings,
       result: null,
     };
   }
@@ -150,6 +156,9 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   return {
     troubleshooter,
     contactOwnerEmail,
+    checkedFallback,
+    mainWarnings,
+    fallbackWarnings,
     result: matchingTeamMembers.map((user) => ({
       id: user.id,
       name: user.name,
@@ -158,16 +167,10 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   };
 };
 
-function getServerTimingHeader(timeTaken: {
-  gAtr: number | null;
-  gQryCnfg: number | null;
-  gMbrWtAtr: number | null;
-  lgcFrMbrs: number | null;
-  gQryVal: number | null;
-}) {
+function getServerTimingHeader(timeTaken: Record<string, number | null | undefined>) {
   const headerParts = Object.entries(timeTaken)
     .map(([key, value]) => {
-      if (value !== null) {
+      if (value !== null && value !== undefined) {
         return `${key};dur=${value}`;
       }
       return null;
@@ -210,7 +213,6 @@ function getResponseByIdentifier({
 
   return responseForField[1] ?? null;
 }
-
 
 function getEmailIdentifierValueFromResponse({
   form,

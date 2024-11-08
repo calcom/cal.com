@@ -11,14 +11,7 @@ export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 export type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
-export type FormResponse = Record<
-  // Field ID
-  string,
-  {
-    value: number | string | string[];
-    label: string;
-  }
->;
+export type FormResponse = z.infer<typeof routingFormResponseInDbSchema>;
 
 export type Fields = z.infer<typeof zodFieldsView>;
 export type Field = NonNullable<Fields>[number];

@@ -126,7 +126,10 @@ export const BookerPlatformWrapper = (
     return "";
   }, [props.username]);
 
-  setSelectedDuration(props.duration ?? null);
+  useEffect(() => {
+    setSelectedDuration(props.duration ?? null);
+  }, [props.duration]);
+
   setOrg(props.entity?.orgSlug ?? null);
 
   const isDynamic = useMemo(() => {
@@ -246,7 +249,7 @@ export const BookerPlatformWrapper = (
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.timeZone,
+    timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     ...(props.isTeamEvent
@@ -333,7 +336,7 @@ export const BookerPlatformWrapper = (
     }))
   );
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
+    loggedInUsersTz: timezone,
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: latestCalendarsToLoad,
