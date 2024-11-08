@@ -38,7 +38,10 @@ export type EventSetupTabCustomClassNames = {
     };
     selectDurationToggle?: SettingsToggleClassNames;
   };
-  locationSection?: LocationCustomClassNames;
+  locationSection?: LocationCustomClassNames & {
+    container?: string;
+    label?: string;
+  };
 };
 
 export type EventSetupTabProps = Pick<
@@ -303,9 +306,17 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
             </div>
           )}
         </div>
-        <div className="border-subtle rounded-lg border p-6">
+        <div
+          className={classNames(
+            "border-subtle rounded-lg border p-6",
+            customClassNames?.locationSection?.container
+          )}>
           <div>
-            <Skeleton as={Label} loadingClassName="w-16" htmlFor="locations">
+            <Skeleton
+              as={Label}
+              loadingClassName="w-16"
+              htmlFor="locations"
+              className={customClassNames?.locationSection?.label}>
               {t("location")}
               {/*improve shouldLockIndicator function to also accept eventType and then conditionally render
               based on Managed Event type or not.*/}

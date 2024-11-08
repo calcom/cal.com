@@ -243,8 +243,8 @@ const Locations: React.FC<LocationsProps> = ({
   const isPlatorm = useIsPlatform();
 
   return (
-    <div className="w-full">
-      <ul ref={animationRef} className={classNames("space-y-2", customClassNames?.dropdownWrapper)}>
+    <div className={classNames("w-full", customClassNames?.dropdownWrapper)}>
+      <ul ref={animationRef} className={classNames("space-y-2")}>
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
