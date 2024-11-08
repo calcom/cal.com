@@ -161,6 +161,7 @@ export async function getEventType(
       id: true,
       slug: true,
       minimumBookingNotice: true,
+      minimumReschedulingNotice: true,
       length: true,
       offsetStart: true,
       seatsPerTimeSlot: true,
@@ -553,7 +554,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
-    minimumBookingNotice: eventType.minimumBookingNotice,
+    minimumBookingNotice: input.rescheduleUid
+      ? eventType.minimumReschedulingNotice
+      : eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
@@ -732,7 +735,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         return (
           !isFutureLimitViolationForTheSlot &&
           // TODO: Perf Optmization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-          !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+          !isTimeOutOfBounds({ time: slot.time, minimumNotice: eventType.minimumBookingNotice })
         );
       });
 

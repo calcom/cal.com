@@ -102,6 +102,7 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
   userId: true,
   slug: true,
   minimumBookingNotice: true,
+  minimumReschedulingNotice: true,
   beforeEventBuffer: true,
   afterEventBuffer: true,
   timeZone: true,
