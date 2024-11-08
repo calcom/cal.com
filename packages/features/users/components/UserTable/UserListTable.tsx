@@ -19,7 +19,6 @@ import { downloadAsCsv, generateCsvRaw, generateHeaderFromReactTable } from "@ca
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import type { CustomColumnMeta } from "@calcom/ui";
 import {
   Avatar,
   Badge,
@@ -207,9 +206,10 @@ export function UserListTable() {
         enableHiding: false,
         enableSorting: false,
         meta: {
-          sticky: true,
-          stickyLeft: 0,
-        } satisfies CustomColumnMeta<UserTableUser, unknown>,
+          sticky: {
+            position: "left",
+          },
+        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -235,9 +235,8 @@ export function UserListTable() {
           return `Members`;
         },
         meta: {
-          sticky: true,
-          stickyLeft: 24,
-        } satisfies CustomColumnMeta<UserTableUser, unknown>,
+          sticky: { position: "left", gap: 24 },
+        },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -340,9 +339,8 @@ export function UserListTable() {
         id: "actions",
         enableHiding: false,
         meta: {
-          sticky: true,
-          stickyRight: 0,
-        } satisfies CustomColumnMeta<UserTableUser, unknown>,
+          sticky: { position: "right" },
+        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
