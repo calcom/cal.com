@@ -1,46 +1,56 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TimezoneSelect, Icon, Input } from "@calcom/ui";
-
-import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+import { Button, Icon, Tooltip, RadioGroup } from "@calcom/ui";
 
 interface IUserSettingsProps {
   nextStep: () => void;
 }
 
+const options = [
+  {
+    value: "personal",
+    icon: "user",
+    titleKey: "for_personal_use",
+    descriptionKey: "for_personal_use_description",
+    disabled: false,
+  },
+  {
+    value: "team",
+    icon: "users",
+    titleKey: "with_my_team",
+    descriptionKey: "with_my_team_description",
+    disabled: false,
+  },
+  {
+    value: "org",
+    icon: "building",
+    titleKey: "for_my_organization",
+    descriptionKey: "for_my_organization_description",
+    disabled: true,
+    tooltip: "contact_sales",
+  },
+] as const;
+
 const UserSettings = (props: IUserSettingsProps) => {
+  const [selectedOption, setSelectedOption] = useState("personal");
   const { nextStep } = props;
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
+  console.log(user);
   const telemetry = useTelemetry();
-  const userSettingsSchema = z.object({
-    name: z
-      .string()
-      .min(1)
-      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
-        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
-      }),
-  });
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<z.infer<typeof userSettingsSchema>>({
+  } = useForm({
     defaultValues: {
-      name: user?.name || "",
+      type: "personal",
     },
     reValidateMode: "onChange",
-    resolver: zodResolver(userSettingsSchema),
   });
 
   useEffect(() => {
@@ -58,59 +68,47 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   const onSubmit = handleSubmit((data) => {
     mutation.mutate({
-      name: data.name,
-      timeZone: selectedTimeZone,
+      type: data.type,
     });
   });
 
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
-        {/* Full name textfield */}
-        <div className="w-full">
-          <label htmlFor="name" className="text-default mb-2 block text-sm font-medium">
-            {t("full_name")}
-          </label>
-          <Input
-            {...register("name", {
-              required: true,
-            })}
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="off"
-            autoCorrect="off"
-          />
-          {errors.name && (
-            <p data-testid="required" className="py-2 text-xs text-red-500">
-              {errors.name.message}
-            </p>
-          )}
-        </div>
-        {/* Timezone select field */}
-        <div className="w-full">
-          <label htmlFor="timeZone" className="text-default block text-sm font-medium">
-            {t("timezone")}
-          </label>
+        <RadioGroup.Group
+          defaultValue="personal"
+          value={selectedOption}
+          onValueChange={setSelectedOption}
+          className="space-y-4">
+          {options.map(({ value, icon, titleKey, descriptionKey, disabled, tooltip }) => {
+            const Content = (
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Icon name={icon} className={`h-4 w-4 ${disabled ? "text-muted" : ""}`} />
+                  <p className={`text-sm font-bold leading-4 ${disabled ? "text-muted" : "text-emphasis"}`}>
+                    {t(titleKey)}
+                  </p>
+                </div>
+                <p className={`text-sm leading-5 ${disabled ? "text-muted" : "text-subtle"}`}>
+                  {t(descriptionKey)}
+                </p>
+              </div>
+            );
 
-          <TimezoneSelect
-            id="timeZone"
-            value={selectedTimeZone}
-            onChange={({ value }) => setSelectedTimeZone(value)}
-            className="mt-2 w-full rounded-md text-sm"
-          />
-
-          <p className="text-subtle mt-3 flex flex-row font-sans text-xs leading-tight">
-            {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
-          </p>
-        </div>
+            return (
+              <RadioGroup.Item key={value} value={value} id={value} disabled={disabled}>
+                {tooltip ? <Tooltip content={t(tooltip)}>{Content}</Tooltip> : Content}
+              </RadioGroup.Item>
+            );
+          })}
+        </RadioGroup.Group>
       </div>
       <Button
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
-        {t("next_step_text")}
+        {t("continue")}
         <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
