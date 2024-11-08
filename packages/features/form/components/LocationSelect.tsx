@@ -7,7 +7,7 @@ import { classNames } from "@calcom/lib";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select, Icon } from "@calcom/ui";
 
-export type locationSelectCustomClassNames = {
+export type LocationSelectCustomClassNames = {
   optionIcon?: string;
   optionLabel?: string;
   optionWrapper?: string;
@@ -23,7 +23,7 @@ export type LocationOption = {
   address?: string;
   credentialId?: number;
   teamName?: string;
-  customClassNames?: locationSelectCustomClassNames;
+  customClassNames?: LocationSelectCustomClassNames;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
@@ -39,7 +39,7 @@ const OptionWithIcon = ({
   icon?: string;
   label: string;
   value: string;
-  customClassNames?: locationSelectCustomClassNames;
+  customClassNames?: LocationSelectCustomClassNames;
 }) => {
   const isPlatform = useIsPlatform();
 
@@ -82,7 +82,7 @@ const OptionWithIcon = ({
 export default function LocationSelect({
   customClassNames,
   ...props
-}: Props<LocationOption, false, GroupOptionType> & { customClassNames?: locationSelectCustomClassNames }) {
+}: Props<LocationOption, false, GroupOptionType> & { customClassNames?: LocationSelectCustomClassNames }) {
   const isPlatform = useIsPlatform();
   return (
     <Select<LocationOption>

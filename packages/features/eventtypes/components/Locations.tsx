@@ -16,7 +16,7 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
-  locationSelectCustomClassNames,
+  LocationSelectCustomClassNames,
   SingleValueLocationOption,
 } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -37,7 +37,7 @@ type LocationInputCustomClassNames = {
 
 export type LocationCustomClassNames = {
   dropdownWrapper?: string;
-  locationSelect?: locationSelectCustomClassNames;
+  locationSelect?: LocationSelectCustomClassNames;
   removeLocationButton?: string;
   removeLocationIcon?: string;
   addLocationButton?: string;

@@ -5033,6 +5033,7 @@
         ]
       }
     },
+        },
     "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
