@@ -129,7 +129,8 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
 
 async function getHostsWithCalibration(
   eventTypeId: number,
-  hosts: { userId: number; email: string; createdAt: Date }[]
+  hosts: { userId: number; email: string; createdAt: Date }[],
+  virtualQueuesData?: VirtualQueuesDataType
 ) {
   const [newHostsArray, existingBookings] = await Promise.all([
     prisma.host.findMany({
@@ -152,6 +153,7 @@ async function getHostsWithCalibration(
       })),
       startDate: startOfMonth,
       endDate: new Date(),
+      virtualQueuesData,
     }),
   ]);
   // Return early if there are no new hosts or no existing bookings
@@ -208,7 +210,16 @@ async function filterUsersBasedOnWeights<
   bookingsOfAvailableUsers,
   allRRHosts,
   eventType,
-}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }): Promise<[T, ...T[]]> {
+  virtualQueuesData,
+  attributeWeights,
+}: GetLuckyUserParams<T> & {
+  bookingsOfAvailableUsers: PartialBooking[];
+  virtualQueuesData?: VirtualQueuesDataType;
+  attributeWeights?: {
+    userId: number;
+    weight: number;
+  }[];
+}): Promise<[T, ...T[]]> {
   //get all bookings of all other RR hosts that are not available
   const availableUserIds = new Set(availableUsers.map((user) => user.id));
 
@@ -231,14 +242,13 @@ async function filterUsersBasedOnWeights<
     []
   );
 
-  // todo: get only bookings that match virtual queue data
-
-  //only get bookings that match attributes
+  //only get bookings where response matches the virtual queue
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
     startDate: startOfMonth,
     endDate: new Date(),
+    virtualQueuesData,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
@@ -248,16 +258,24 @@ async function filterUsersBasedOnWeights<
     eventType.id,
     allRRHosts.map((host) => {
       return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
-    })
+    }),
+    virtualQueuesData
   );
 
   // Calculate the total calibration and weight of all round-robin hosts
+  let totalWeight: number;
 
-  //todo: if we have incoming weights then we need the weight form the attribute instead
-  const totalWeight = allRRHosts.reduce((totalWeight, host) => {
-    totalWeight += host.weight ?? 100;
-    return totalWeight;
-  }, 0);
+  if (attributeWeights) {
+    totalWeight = attributeWeights.reduce((totalWeight, userWeight) => {
+      totalWeight += userWeight.weight ?? 100;
+      return totalWeight;
+    }, 0);
+  } else {
+    const totalWeight = allRRHosts.reduce((totalWeight, host) => {
+      totalWeight += host.weight ?? 100;
+      return totalWeight;
+    }, 0);
+  }
 
   const totalCalibration = allHostsWithCalibration.reduce((totalCalibration, host) => {
     totalCalibration += host.calibration;
@@ -267,7 +285,14 @@ async function filterUsersBasedOnWeights<
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     //todo: it's not user.weight, we need to calculate it from the user's attirbutes weights
-    const targetPercentage = (user.weight ?? 100) / totalWeight;
+
+    let userWeight = user.weight ?? 100;
+
+    if (attributeWeights) {
+      userWeight = attributeWeights.find((userWeight) => userWeight.userId === user.id)?.weight ?? 100;
+    }
+
+    const targetPercentage = (userWeight ?? 100) / totalWeight;
 
     const userBookings = bookingsOfAvailableUsers.filter(
       (booking) =>
@@ -353,12 +378,6 @@ async function getQueueAndAttributeWeightData<T extends PartialUser & { priority
 
   if (!chosenRouteId) return;
 
-  // variable to return
-  const virtualQueuesData: {
-    chosenRouteId: string;
-    fieldOptionData?: { fieldId: string; selectedOptionIds: string | number | string[] };
-  } = { chosenRouteId, fieldOptionData: undefined };
-
   let fieldOptionData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
 
   const routingForm = routingFormResponse?.form;
@@ -399,8 +418,12 @@ async function getQueueAndAttributeWeightData<T extends PartialUser & { priority
       }
     }
   }
-  virtualQueuesData.fieldOptionData = fieldOptionData;
-  return { averageWeightsHosts, virtualQueuesData };
+
+  if (fieldOptionData) {
+    return { averageWeightsHosts, virtualQueuesData: { chosenRouteId, fieldOptionData } };
+  }
+
+  return;
 }
 
 // this will only use the weight for the first rule that uses that the attribute that has weights enabled
@@ -471,6 +494,14 @@ function getAverageAttributeWeights(
   return averageWeightsHosts;
 }
 
+type VirtualQueuesDataType = {
+  chosenRouteId: string;
+  fieldOptionData: {
+    fieldId: string;
+    selectedOptionIds: string | number | string[];
+  };
+};
+
 function getAttributesForVirtualQueues(
   response: Record<string, Pick<FormResponse[keyof FormResponse], "value">>,
   attributesQueryValueChild: Record<
@@ -489,7 +520,7 @@ function getAttributesForVirtualQueues(
   >,
   attributeWithWeights: { id: string }
 ) {
-  let virtualQueuesData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
+  let selectionOptions: Pick<VirtualQueuesDataType, "fieldOptionData">["fieldOptionData"] | undefined;
 
   const fieldValueArray = Object.values(attributesQueryValueChild).map((child) => ({
     field: child.properties?.field,
@@ -508,14 +539,14 @@ function getAttributesForVirtualQueues(
 
           if (routingFormFieldId) {
             const fieldResponse = response[routingFormFieldId];
-            virtualQueuesData = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
+            selectionOptions = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
             return true; // break out of all loops
           }
         });
       });
     }
   });
-  return virtualQueuesData;
+  return selectionOptions;
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
@@ -531,6 +562,9 @@ export async function getLuckyUser<
 ) {
   //maybe pass response directly not id
   const { eventType, routingFormResponseId } = getLuckyUserParams;
+
+  let attributeWeights;
+  let virtualQueuesData;
 
   if (routingFormResponseId && getLuckyUserParams.eventType.team?.parentId) {
     const attributeWithEnabledWeights = await prisma.attribute.findFirst({
@@ -570,6 +604,11 @@ export async function getLuckyUser<
         routingFormResponseId,
         attributeWithEnabledWeights
       );
+
+      if (queueAndAtributeWeightData?.averageWeightsHosts && queueAndAtributeWeightData?.virtualQueuesData) {
+        attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
+        virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
+      }
     }
   }
 
@@ -584,6 +623,7 @@ export async function getLuckyUser<
     }),
     startDate: startOfMonth,
     endDate: new Date(),
+    virtualQueuesData,
   });
 
   switch (distributionMethod) {
@@ -593,6 +633,8 @@ export async function getLuckyUser<
           ...getLuckyUserParams,
           availableUsers,
           bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+          virtualQueuesData,
+          attributeWeights,
         });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
