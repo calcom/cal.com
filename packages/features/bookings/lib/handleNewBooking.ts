@@ -13,7 +13,6 @@ import {
   getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { zodRoutes, children1Schema } from "@calcom/app-store/routing-forms/zod";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -473,47 +472,6 @@ async function handler(
 
         const userIdsSet = new Set(users.map((user) => user.id));
 
-        //get all involved attributes
-
-        const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
-          where: {
-            id: routingFormResponseId,
-          },
-          select: {
-            form: {
-              select: {
-                routes: true,
-              },
-            },
-            chosenRouteId: true,
-          },
-        });
-
-        if (routingFormResponse?.form?.routes) {
-          const routes = zodRoutes.parse(routingFormResponse?.form?.routes);
-          const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-          if (chosenRoute && "attributesQueryValue" in chosenRoute) {
-            const parsedAttributesQueryValue = children1Schema.parse(chosenRoute.attributesQueryValue);
-            if (parsedAttributesQueryValue.children1) {
-              const fieldValueArray = Object.values(parsedAttributesQueryValue.children1).map((child) => ({
-                field: child.properties?.field,
-                value: child.properties?.value,
-              }));
-
-              console.log(`fieldValueArray ${JSON.stringify(fieldValueArray)}`);
-            }
-          }
-        }
-
-        // I also need the routing form, do I?
-        //yes, i need to check why these users are here, because of what attribtues, then get the weight of these attributes
-
-        if (routedTeamMemberIds) {
-          //attribute based weights automatically enabled
-        }
-
-        console.log(`response ${JSON.stringify(routingFormResponse)}`);
-
         const newLuckyUser = isSameRoundRobinHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
@@ -521,6 +479,7 @@ async function handler(
               availableUsers: freeUsers,
               allRRHosts: eventType.hosts.filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // users part of virtual queue
               eventType,
+              routingFormResponseId: routedTeamMemberIds ? routingFormResponseId : undefined,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop

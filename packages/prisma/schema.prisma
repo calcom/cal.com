@@ -1570,9 +1570,10 @@ model Attribute {
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  options   AttributeOption[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  options          AttributeOption[]
+  isWeightsEnabled Boolean           @default(false)
 }
 
 model AttributeToUser {

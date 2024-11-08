@@ -1,9 +1,16 @@
 import type { User } from "@prisma/client";
 
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/routing-forms/lib/raqbUtils";
+import { getFieldResponse } from "@calcom/app-store/routing-forms/trpc/utils";
+import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import { zodRoutes, children1Schema } from "@calcom/app-store/routing-forms/zod";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
+import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 
 export enum DistributionMethod {
   PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
@@ -20,13 +27,14 @@ type PartialUser = Pick<User, "id" | "email">;
 
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: [T, ...T[]]; // ensure contains at least 1
-  eventType: { id: number; isRRWeightsEnabled: boolean };
+  eventType: { id: number; isRRWeightsEnabled: boolean; team: { parentId?: number | null } | null };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
     user: { id: number; email: string };
     createdAt: Date;
     weight?: number | null;
   }[];
+  routingFormResponseId?: number;
 }
 // === dayjs.utc().startOf("month").toDate();
 const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
@@ -223,6 +231,8 @@ async function filterUsersBasedOnWeights<
     []
   );
 
+  // todo: get only bookings that match virtual queue data
+
   //only get bookings that match attributes
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
@@ -297,6 +307,217 @@ async function filterUsersBasedOnWeights<
   return remainingUsersAfterWeightFilter;
 }
 
+type AttributeWithWeights = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+    assignedUsers: {
+      weight: number | null;
+      member: {
+        userId: number;
+      };
+    }[];
+  }[];
+};
+
+async function getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
+  allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
+  routingFormResponseId: number,
+  attributeWithWeights: AttributeWithWeights
+) {
+  // variable to return
+  let averageWeightsHosts: { userId: number; weight: number }[] = [];
+
+  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+    where: {
+      id: routingFormResponseId,
+    },
+    select: {
+      response: true,
+      form: {
+        select: {
+          routes: true,
+          fields: true,
+        },
+      },
+      chosenRouteId: true,
+    },
+  });
+
+  const chosenRouteId = routingFormResponse?.chosenRouteId ?? undefined;
+
+  if (!chosenRouteId) return;
+
+  // variable to return
+  const virtualQueuesData: {
+    chosenRouteId: string;
+    fieldOptionData?: { fieldId: string; selectedOptionIds: string | number | string[] };
+  } = { chosenRouteId, fieldOptionData: undefined };
+
+  let fieldOptionData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
+
+  const routingForm = routingFormResponse?.form;
+
+  if (routingForm && routingFormResponse) {
+    const response = routingFormResponse.response as FormResponse;
+
+    const routes = zodRoutes.parse(routingForm.routes);
+    const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
+
+    if (chosenRoute && "attributesQueryValue" in chosenRoute) {
+      const parsedAttributesQueryValue = children1Schema.parse(chosenRoute.attributesQueryValue);
+
+      const attributesQueryValueWithLabel = getAttributesQueryValue({
+        attributesQueryValue: chosenRoute.attributesQueryValue,
+        attributes: [attributeWithWeights],
+        response,
+        fields: routingFormResponse.form.fields as Fields,
+        getFieldResponse: getFieldResponse,
+      });
+
+      const parsedAttributesQueryValueWithLabel = children1Schema.parse(attributesQueryValueWithLabel);
+
+      if (parsedAttributesQueryValueWithLabel && parsedAttributesQueryValueWithLabel.children1) {
+        averageWeightsHosts = getAverageAttributeWeights(
+          allRRHosts,
+          parsedAttributesQueryValueWithLabel.children1,
+          attributeWithWeights
+        );
+      }
+
+      if (parsedAttributesQueryValue && parsedAttributesQueryValue.children1) {
+        fieldOptionData = getAttributesForVirtualQueues(
+          response,
+          parsedAttributesQueryValue.children1,
+          attributeWithWeights
+        );
+      }
+    }
+  }
+  virtualQueuesData.fieldOptionData = fieldOptionData;
+  return { averageWeightsHosts, virtualQueuesData };
+}
+
+// this will only use the weight for the first rule that uses that the attribute that has weights enabled
+function getAverageAttributeWeights(
+  allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
+  attributesQueryValueChild: Record<
+    string,
+    {
+      type?: string | undefined;
+      properties?:
+        | {
+            field?: any;
+            operator?: any;
+            value?: any;
+            valueSrc?: any;
+          }
+        | undefined;
+    }
+  >,
+  attributeWithWeights: AttributeWithWeights
+) {
+  let averageWeightsHosts: { userId: number; weight: number }[] = [];
+
+  const fieldValueArray = Object.values(attributesQueryValueChild).map((child) => ({
+    field: child.properties?.field,
+    value: child.properties?.value,
+  }));
+
+  fieldValueArray.map((obj) => {
+    const attributeId = obj.field;
+    const allRRHostsWeights = new Map<number, number[]>();
+
+    if (attributeId === attributeWithWeights.id) {
+      obj.value.forEach((arrayobj) => {
+        arrayobj.forEach((attributeOption) => {
+          // attributeOption is either optionId or label, we only care about labels here
+          const attributeOptionWithUsers = attributeWithWeights.options.find(
+            (option) => option.value.toLowerCase() === attributeOption.toLowerCase()
+          );
+
+          allRRHosts.forEach((rrHost) => {
+            const weight = attributeOptionWithUsers?.assignedUsers.find(
+              (assignedUser) => rrHost.user.id === assignedUser.member.userId
+            )?.weight;
+
+            if (weight) {
+              if (allRRHostsWeights.has(rrHost.user.id)) {
+                allRRHostsWeights.get(rrHost.user.id)?.push(weight);
+              } else {
+                allRRHostsWeights.set(rrHost.user.id, [weight]);
+              }
+            }
+          });
+        });
+      });
+      averageWeightsHosts = Array.from(allRRHostsWeights.entries()).map(([userId, weights]) => {
+        const totalWeight = weights.reduce((acc, weight) => acc + weight, 0);
+        const averageWeight = totalWeight / weights.length;
+
+        return {
+          userId,
+          weight: averageWeight,
+        };
+      });
+    }
+  });
+
+  return averageWeightsHosts;
+}
+
+function getAttributesForVirtualQueues(
+  response: Record<string, Pick<FormResponse[keyof FormResponse], "value">>,
+  attributesQueryValueChild: Record<
+    string,
+    {
+      type?: string | undefined;
+      properties?:
+        | {
+            field?: any;
+            operator?: any;
+            value?: any;
+            valueSrc?: any;
+          }
+        | undefined;
+    }
+  >,
+  attributeWithWeights: { id: string }
+) {
+  let virtualQueuesData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
+
+  const fieldValueArray = Object.values(attributesQueryValueChild).map((child) => ({
+    field: child.properties?.field,
+    value: child.properties?.value,
+  }));
+
+  fieldValueArray.some((obj) => {
+    const attributeId = obj.field;
+
+    if (attributeId === attributeWithWeights.id) {
+      obj.value.some((arrayobj) => {
+        arrayobj.some((attributeOptionId) => {
+          const content = attributeOptionId.slice(1, -1);
+
+          const routingFormFieldId = content.includes("field:") ? content.split("field:")[1] : null;
+
+          if (routingFormFieldId) {
+            const fieldResponse = response[routingFormFieldId];
+            virtualQueuesData = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
+            return true; // break out of all loops
+          }
+        });
+      });
+    }
+  });
+  return virtualQueuesData;
+}
+
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 export async function getLuckyUser<
@@ -308,7 +529,50 @@ export async function getLuckyUser<
   distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
   { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
 ) {
-  const { eventType } = getLuckyUserParams;
+  //maybe pass response directly not id
+  const { eventType, routingFormResponseId } = getLuckyUserParams;
+
+  if (routingFormResponseId && getLuckyUserParams.eventType.team?.parentId) {
+    const attributeWithEnabledWeights = await prisma.attribute.findFirst({
+      where: {
+        teamId: getLuckyUserParams.eventType.team?.parentId,
+        isWeightsEnabled: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        type: true,
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
+            assignedUsers: {
+              select: {
+                member: {
+                  select: {
+                    userId: true,
+                  },
+                },
+                weight: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (attributeWithEnabledWeights) {
+      // Virtual queues are defined by the attribute that has weights and is use with 'Value of field ...'
+      const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
+        getLuckyUserParams.allRRHosts,
+        routingFormResponseId,
+        attributeWithEnabledWeights
+      );
+    }
+  }
+
   // there is only one user
   if (availableUsers.length === 1) {
     return availableUsers[0];
