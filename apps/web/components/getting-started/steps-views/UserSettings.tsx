@@ -17,16 +17,18 @@ interface IUserSettingsProps {
 
 const UserSettings = (props: IUserSettingsProps) => {
   const [selectedOption, setSelectedOption] = useState<AccountOption>("personal");
-  const [isPending, setIsPending] = useState(false);
   const { nextStep } = props;
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const { data: availabilities } = trpc.viewer.availability.list.useQuery();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const createSchedule = trpc.viewer.availability.schedule.create.useMutation();
   const updateProfile = trpc.viewer.updateProfile.useMutation();
-
+  const utils = trpc.useUtils();
+  const isPending = createEventType.isPending || createSchedule.isPending || updateProfile.isPending;
   const options = [
     {
       value: "personal",
@@ -77,18 +79,22 @@ const UserSettings = (props: IUserSettingsProps) => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
-  const utils = trpc.useUtils();
-
   const createDefaultAvailabilityAndEventTypes = async () => {
     if (selectedOption === "personal") {
       await Promise.all([
         // create default event types
-        ...DEFAULT_EVENT_TYPES.map((event) => createEventType.mutate(event)),
+        ...(eventTypes?.length === 0
+          ? DEFAULT_EVENT_TYPES.map((event) => createEventType.mutate(event))
+          : []),
         // create default availability
-        createSchedule.mutate({
-          name: t("default_schedule_name"),
-          ...DEFAULT_SCHEDULE,
-        }),
+        ...(availabilities?.schedules.length === 0
+          ? [
+              createSchedule.mutate({
+                name: t("default_schedule_name"),
+                ...DEFAULT_SCHEDULE,
+              }),
+            ]
+          : []),
       ]);
 
       await utils.viewer.me.refetch();
@@ -98,7 +104,6 @@ const UserSettings = (props: IUserSettingsProps) => {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      setIsPending(true);
       if (selectedOption === "personal" && user.identityProvider === IdentityProvider.GOOGLE) {
         telemetry.event(telemetryEventTypes.onboardingFinished);
         updateProfile.mutate({
@@ -124,11 +129,10 @@ const UserSettings = (props: IUserSettingsProps) => {
         });
         await createDefaultAvailabilityAndEventTypes();
         router.push("/settings/teams/new");
+        return;
       }
     } catch (error) {
       showToast(`Error: ${error}`, "error");
-    } finally {
-      setIsPending(false);
     }
   };
 
