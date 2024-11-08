@@ -95,7 +95,158 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {eventTypeId && (
           <div>
             <EventTypeSettings
-              customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
+              customClassNames={{
+                atomsWrapper: "!w-[50vw] !m-auto",
+                eventLimitsTab: {
+                  bufferAndNoticeSection: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    beforeBufferSelect: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      innerClassNames: {
+                        input: "text-purple-900",
+                        option: "text-purple-700 hover:bg-purple-200",
+                        control: "border-purple-300",
+                        singleValue: "text-purple-900",
+                        valueContainer: "bg-purple-100",
+                        menu: "border border-purple-200 rounded-md",
+                        menuList: "bg-white",
+                      },
+                    },
+                    afterBufferSelect: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      innerClassNames: {
+                        input: "text-purple-900",
+                        option: "text-purple-700 hover:bg-purple-200",
+                        control: "border-purple-300",
+                        singleValue: "text-purple-900",
+                        valueContainer: "bg-purple-100",
+                        menu: "border border-purple-200 rounded-md",
+                        menuList: "bg-white",
+                      },
+                    },
+                    minimumNoticeInput: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                      innerClassNames: {
+                        input: "text-purple-900",
+                        option: "text-purple-700 hover:bg-purple-200",
+                        control: "border-purple-300",
+                        singleValue: "text-purple-900",
+                        valueContainer: "bg-purple-100",
+                      },
+                    },
+                    timeSlotIntervalSelect: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      innerClassNames: {
+                        input: "text-purple-900",
+                        option: "text-purple-700 hover:bg-purple-200",
+                        control: "border-purple-300",
+                        singleValue: "text-purple-900",
+                        valueContainer: "bg-purple-100",
+                      },
+                    },
+                  },
+
+                  bookingFrequencyLimitSection: {
+                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "space-y-4",
+                    intervalLimitContainer: "space-y-2",
+                    intervalLimitItem: {
+                      addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
+                      limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      limitSelect: {
+                        select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                        innerClassNames: {
+                          input: "text-purple-900",
+                          option: "text-purple-700 hover:bg-purple-200",
+                          control: "border-purple-300",
+                          singleValue: "text-purple-900",
+                          valueContainer: "bg-purple-100",
+                        },
+                      },
+                      container: "flex items-center space-x-2",
+                    },
+                  },
+
+                  firstAvailableSlotOnly: {
+                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "space-y-4",
+                  },
+
+                  totalDurationLimitSection: {
+                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "space-y-4",
+                    intervalLimitItem: {
+                      addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
+                      limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      limitSelect: {
+                        select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                        innerClassNames: {
+                          input: "text-purple-900",
+                          option: "text-purple-700 hover:bg-purple-200",
+                          control: "border-purple-300",
+                          singleValue: "text-purple-900",
+                          valueContainer: "bg-purple-100",
+                        },
+                      },
+                      container: "flex items-center space-x-2",
+                    },
+                  },
+
+                  futureBookingLimitSection: {
+                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "space-y-4",
+                    rollingLimit: {
+                      container: "flex items-center space-x-2",
+                      textField: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      periodTypeSelect: {
+                        select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                        innerClassNames: {
+                          input: "text-purple-900",
+                          option: "text-purple-700 hover:bg-purple-200",
+                          control: "border-purple-300",
+                          singleValue: "text-purple-900",
+                          valueContainer: "bg-purple-100",
+                        },
+                      },
+                    },
+                    rangeLimit: {
+                      wrapper: "flex items-center space-x-2",
+                      datePickerWraper: "border border-purple-300 rounded-md bg-white",
+                      datePicker: "text-purple-900 bg-white",
+                    },
+                  },
+
+                  offsetStartTimesSection: {
+                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "space-y-4",
+                    offsetInput: {
+                      container: "flex items-center space-x-2",
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      suffix: "text-purple-500",
+                    },
+                  },
+                },
+              }}
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
