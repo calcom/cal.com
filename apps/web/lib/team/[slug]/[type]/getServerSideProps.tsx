@@ -124,9 +124,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 };
 
-async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: number) {
-  const teamMemberEmail: string | null = null;
+// interface EventData {
 
+// }
+
+async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: number, eventData) {
   if (!query.email) return null;
 
   // Check if a routing form was completed and an routing form option is enabled
@@ -138,6 +140,8 @@ async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: 
 
     if (skipContactOwner) return null;
     if (email) return email;
+  } else {
+    return await getTeamMemberEmail(eventData);
   }
 
   return null;
@@ -145,6 +149,8 @@ async function handleGettingTeamMemberEmail(query: ParsedUrlQuery, eventTypeId: 
 
 async function handleRoutingFormOption(query: ParsedUrlQuery, eventTypeId: number) {
   const nullReturnValue = { email: null, skipContactOwner: false };
+
+  if (typeof query.email !== "string") return nullReturnValue;
 
   const routingFormQuery = await prisma.app_RoutingForms_Form.findFirst({
     where: {
