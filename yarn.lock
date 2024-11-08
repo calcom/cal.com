@@ -4125,7 +4125,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.53"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.57"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -5141,14 +5141,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.53":
-  version: 0.0.53
-  resolution: "@calcom/platform-libraries@npm:0.0.53"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.57":
+  version: 0.0.57
+  resolution: "@calcom/platform-libraries@npm:0.0.57"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 5a9dadad9f1ffdb831353594acd40bbc96e12130eff1685c9be49dfdc7ce2e44b2086696273b3bb74a28db20d863e0814d95f50043a4ba5b451987bd6f401294
+  checksum: 2d2bbf5dc964c390b354de01f124329ae7e75313bde9a8971541e05b55c26c36fa6f580dbff5b90f8bcd74f3864e6f6385ff3efd2d0cf749dfaec698b3262c98
   languageName: node
   linkType: hard
 
@@ -5763,6 +5763,8 @@ __metadata:
     nuqs: ^1.20.0
     otplib: ^12.0.1
     postcss: ^8.4.18
+    posthog-js: ^1.164.1
+    posthog-node: ^4.2.0
     qrcode: ^1.5.1
     raw-body: ^2.5.1
     react: ^18.2.0
@@ -20856,7 +20858,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.1, axios@npm:^1.6.8":
+"axios@npm:^1.6.1, axios@npm:^1.6.8, axios@npm:^1.7.4":
   version: 1.7.7
   resolution: "axios@npm:1.7.7"
   dependencies:
@@ -23687,6 +23689,13 @@ __metadata:
   version: 3.21.1
   resolution: "core-js@npm:3.21.1"
   checksum: d68eddd831340ad5b24ac29c72fda022a43b17f194c4278b6b875a843283d316502cb4abd07f28631d6ebc4387f66aa06e2b1b3c8fd7e08096a751b5c63f6889
+  languageName: node
+  linkType: hard
+
+"core-js@npm:^3.38.1":
+  version: 3.39.0
+  resolution: "core-js@npm:3.39.0"
+  checksum: 7a3670e9a2a89e0a049daa288d742d09f6e16d27a8945c5e2ef6fc45dc57e5c4bc5db589da05947486f54ae978d14cf27bd3fb1db0b9907000a611e8af37355b
   languageName: node
   linkType: hard
 
@@ -27820,6 +27829,13 @@ __metadata:
     biskviit: 1.0.1
     encoding: 0.1.12
   checksum: 0312637f72b3ba1f66cf7f3e9a8fe5d0b38f1bb54e2b109b16657ac62f312d5342caa867ffd0b4898a534aaad8a0baec59a24afa558ce1bc60c4aaa1637288b2
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.4.8":
+  version: 0.4.8
+  resolution: "fflate@npm:0.4.8"
+  checksum: 29d8cbe44d5e7f53e7f5a160ac7f9cc025480c7b3bfd85c5f898cbe20dfa2dad4732daa534982664bf30b35896a90af44ea33ede5d94c5ffd1b8b0c0a0a56ca2
   languageName: node
   linkType: hard
 
@@ -40001,6 +40017,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"posthog-js@npm:^1.164.1":
+  version: 1.181.0
+  resolution: "posthog-js@npm:1.181.0"
+  dependencies:
+    core-js: ^3.38.1
+    fflate: ^0.4.8
+    preact: ^10.19.3
+    web-vitals: ^4.2.0
+  checksum: e48b53844701c9db6c3c3da7af3f251e04e1572a1079c673e7302452c84e0f0e27c4b6b22ddb215afc1996a7f091b69218e927f83d7c0c18f7f7463fef06ee1a
+  languageName: node
+  linkType: hard
+
+"posthog-node@npm:^4.2.0":
+  version: 4.2.1
+  resolution: "posthog-node@npm:4.2.1"
+  dependencies:
+    axios: ^1.7.4
+    rusha: ^0.8.14
+  checksum: f6871399069f329cd4d4c156e82a59c7ab222229d6f49fb62159738f0161a170d723b6707c229af2ca91ba3674f3bb243759d1a615333c23bec188b8122d35ab
+  languageName: node
+  linkType: hard
+
 "preact-render-to-string@npm:^5.1.19":
   version: 5.2.6
   resolution: "preact-render-to-string@npm:5.2.6"
@@ -40009,6 +40047,13 @@ __metadata:
   peerDependencies:
     preact: ">=10"
   checksum: be8d5d8fb502d422c503e68af7bcccb6facd942f3ae9a4d093ebe3f1d4f0b15c540624bdac434d53a2a8e8fb7afa4606383414e937c40933ca43445470a026ff
+  languageName: node
+  linkType: hard
+
+"preact@npm:^10.19.3":
+  version: 10.24.3
+  resolution: "preact@npm:10.24.3"
+  checksum: 372f601576f52d6417a750a8732cd83c4fc133b0b136f82ea69f013092266ad0213c160b71ae421a0fc7ab04caacb651c29dbf515e3aec26d82b0a8675e8786e
   languageName: node
   linkType: hard
 
@@ -43464,6 +43509,13 @@ __metadata:
   dependencies:
     queue-microtask: ^1.2.2
   checksum: cb4f97ad25a75ebc11a8ef4e33bb962f8af8516bb2001082ceabd8902e15b98f4b84b4f8a9b222e5d57fc3bd1379c483886ed4619367a7680dad65316993021d
+  languageName: node
+  linkType: hard
+
+"rusha@npm:^0.8.14":
+  version: 0.8.14
+  resolution: "rusha@npm:0.8.14"
+  checksum: d76d7b4b5df1191712eca1e2465d07054dc9bd5e9ec357e1e0f3ddf95006a762330a3c0348e96ac39853656a3fbe02e65e780aa5f61b9355ad914fa296185623
   languageName: node
   linkType: hard
 
@@ -49055,6 +49107,13 @@ __metadata:
   version: 3.3.3
   resolution: "web-streams-polyfill@npm:3.3.3"
   checksum: 21ab5ea08a730a2ef8023736afe16713b4f2023ec1c7085c16c8e293ee17ed085dff63a0ad8722da30c99c4ccbd4ccd1b2e79c861829f7ef2963d7de7004c2cb
+  languageName: node
+  linkType: hard
+
+"web-vitals@npm:^4.2.0":
+  version: 4.2.4
+  resolution: "web-vitals@npm:4.2.4"
+  checksum: 5b3ffe1db33f23aebf8cc8560ac574401a95939baafde5841835c1bb1c01f9a2478442f319f77aa0d7914739fc2f6b020c5d5b128c16c5c77ca6be2f9dfbbde6
   languageName: node
   linkType: hard
 

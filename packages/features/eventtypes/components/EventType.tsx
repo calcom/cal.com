@@ -24,7 +24,6 @@ export type Host = {
   userId: number;
   priority: number;
   weight: number;
-  weightAdjustment: number;
   scheduleId?: number | null;
 };
 

@@ -21,6 +21,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
+import { DistributionMethod } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -83,8 +84,8 @@ export const roundRobinReassignment = async ({
         isFixed: false,
         priority: 2,
         weight: 100,
-        weightAdjustment: 0,
         schedule: null,
+        createdAt: new Date(0), // use earliest possible date as fallback
       }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
@@ -125,7 +126,7 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+  const reassignedRRHost = await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
     availableUsers,
     eventType: {
       id: eventType.id,
@@ -519,6 +520,15 @@ export const roundRobinReassignment = async ({
       hideBranding: !!eventType?.owner?.hideBranding,
     });
   }
+
+  return {
+    bookingId,
+    reassignedTo: {
+      id: reassignedRRHost.id,
+      name: reassignedRRHost.name,
+      email: reassignedRRHost.email,
+    },
+  };
 };
 
 export default roundRobinReassignment;
