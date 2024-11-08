@@ -604,7 +604,7 @@ async function bookUserEvent({
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }
 
-async function bookTeamEvent({
+export async function bookTeamEvent({
   page,
   team,
   event,
@@ -648,7 +648,7 @@ async function bookTeamEvent({
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }
 
-async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
+export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
