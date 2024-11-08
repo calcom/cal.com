@@ -105,7 +105,7 @@ export const AvailabilitySettingsWebWrapper = ({
   // We wait for the schedule to be loaded before rendering the form inside AvailabilitySettings
   // since `defaultValues` cannot be redeclared after first render and using `values` will
   // trigger a form reset when revalidating. Introducing flaky behavior.
-  if (!schedule) return null;
+  if (!schedule || !connectedCalendarsData) return null;
 
   return (
     <AvailabilitySettings
