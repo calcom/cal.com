@@ -1537,21 +1537,21 @@ export const insightsRouter = router({
       return await RoutingEventsInsights.getRoutingFormsForFilters({
         teamId,
         isAll,
-        organizationId: ctx.user.organizationId,
+        organizationId: ctx.user.organizationId ?? undefined,
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
     .input(rawDataInputSchema.extend({ routingFormId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate, teamId, isAll, eventTypeId } = input;
+      const { startDate, endDate } = input;
 
       const stats = await RoutingEventsInsights.getRoutingFormStats({
-        teamId,
+        teamId: input.teamId ?? null,
         startDate,
         endDate,
-        isAll,
-        organizationId: ctx.user.organizationId,
-        routingFormId: input.routingFormId,
+        isAll: input.isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId ?? null,
       });
 
       return stats;

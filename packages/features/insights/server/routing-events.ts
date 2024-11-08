@@ -10,10 +10,10 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
   }: {
-    teamId: number;
+    teamId?: number | null;
     isAll: boolean;
-    organizationId?: number;
-    routingFormId?: string;
+    organizationId: number | null;
+    routingFormId?: string | null;
   }) {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
@@ -56,15 +56,15 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
   }: {
-    teamId?: number | null;
+    teamId: number | null;
     startDate?: string;
     endDate?: string;
-    isAll?: boolean;
-    organizationId?: number | null;
-    routingFormId?: string | null;
+    isAll: boolean;
+    organizationId: number | null;
+    routingFormId: string | null;
   }) {
     // Get team IDs based on organization if applicable
-    const formsWhereCondition = this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
       isAll,
       organizationId,
@@ -113,13 +113,13 @@ class RoutingEventsInsights {
     teamId,
     isAll,
     organizationId,
-    routingFormId,
   }: {
     teamId?: number;
     isAll: boolean;
-    organizationId?: number | null;
+    organizationId?: number | undefined;
+    routingFormId?: string | undefined;
   }) {
-    const formsWhereCondition = this.getWhereForTeamOrAllTeams({ teamId, isAll, organizationId });
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({ teamId, isAll, organizationId });
     return await prisma.app_RoutingForms_Form.findMany({
       where: formsWhereCondition,
       select: {
