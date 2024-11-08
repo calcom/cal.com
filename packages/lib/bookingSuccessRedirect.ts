@@ -55,12 +55,22 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 
       if (key === "attendees" && Array.isArray(booking.attendees)) {
         const attendeeName = booking.attendees[0]?.name || null;
-        const hostNames = booking.attendees.slice(1).map((attendee) => attendee.name);
-
+        const { hostNames, guestEmails } = booking.attendees.slice(1).reduce(
+          (acc, attendee) => {
+            if (attendee.name) {
+              acc.hostNames.push(attendee.name);
+            } else if (attendee.email) {
+              acc.guestEmails.push(attendee.email);
+            }
+            return acc;
+          },
+          { hostNames: [], guestEmails: [] } as { hostNames: string[]; guestEmails: string[] }
+        );
         return {
           ...obj,
           attendeeName,
           hostName: [...(obj.hostName || []), ...hostNames],
+          guestEmail: guestEmails.length > 0 ? guestEmails : undefined,
         };
       }
       return { ...obj, [key]: booking[key] };
