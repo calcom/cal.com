@@ -18,7 +18,7 @@ const routingFormBookingFormHandler = async (
   )
     return { email: null };
 
-  const appData = await EventTypeService.getEventTypeAppData(eventTypeId, "salesforce");
+  const appData = await EventTypeService.getEventTypeAppDataFromId(eventTypeId, "salesforce");
 
   const credentialId = appData.credentialId;
 

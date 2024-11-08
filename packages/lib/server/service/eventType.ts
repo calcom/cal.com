@@ -1,9 +1,11 @@
+import type { Prisma } from "@prisma/client";
+
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { prisma } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export class EventTypeService {
-  static async getEventTypeAppData(eventTypeId: number, appSlug: keyof typeof appDataSchemas) {
+  static async getEventTypeAppDataFromId(eventTypeId: number, appSlug: keyof typeof appDataSchemas) {
     const eventType = await prisma.eventType.findFirst({
       where: {
         id: eventTypeId,
@@ -15,7 +17,11 @@ export class EventTypeService {
 
     if (!eventType) return null;
 
-    const parseEventTypeAppMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
+    return this.getEventTypeAppDataFromMetadata(eventType.metadata, appSlug);
+  }
+
+  static getEventTypeAppDataFromMetadata(metadata: Prisma.JsonValue, appSlug: keyof typeof appDataSchemas) {
+    const parseEventTypeAppMetadata = EventTypeMetaDataSchema.safeParse(metadata);
 
     if (!parseEventTypeAppMetadata.success || !parseEventTypeAppMetadata.data?.apps) return null;
 
