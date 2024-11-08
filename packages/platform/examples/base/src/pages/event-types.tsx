@@ -171,7 +171,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     addLocationButton: "text-purple-500 hover:bg-purple-200 rounded-md",
                     organizerContactInput: {
                       errorMessage: "text-purple-500",
-                      locationInputClassNames: {
+                      locationInput: {
                         addressInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
                         phoneInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
                       },
