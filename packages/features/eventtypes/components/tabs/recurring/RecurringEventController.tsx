@@ -4,9 +4,9 @@ import { useFormContext } from "react-hook-form";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type {
   EventTypeSetup,
-  InputClassnames,
-  SelectClassnames,
-  SettingsToggleClassnames,
+  InputClassNames,
+  SelectClassNames,
+  SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
@@ -18,15 +18,15 @@ import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
 export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
   paymentEnabled: boolean;
-  customClassnames?: EventRecurringTabCustomClassnames;
+  customClassNames?: EventRecurringTabCustomClassNames;
 };
 
-export type EventRecurringTabCustomClassnames = {
+export type EventRecurringTabCustomClassNames = {
   container?: string;
-  recurringToggleClassnames?: SettingsToggleClassnames;
-  frequencyInputClassnames?: InputClassnames;
-  frequencyUnitSelectClassnames?: SelectClassnames;
-  maxEventsInputClassnames?: {
+  recurringToggle?: SettingsToggleClassNames;
+  frequencyInput?: InputClassNames;
+  frequencyUnitSelect?: SelectClassNames;
+  maxEventsInput?: {
     countInput?: string;
     labelText?: string;
     suffixText?: string;
@@ -39,7 +39,7 @@ export type EventRecurringTabCustomClassnames = {
 export default function RecurringEventController({
   eventType,
   paymentEnabled,
-  customClassnames,
+  customClassNames,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -59,31 +59,31 @@ export default function RecurringEventController({
   const recurringLocked = shouldLockDisableProps("recurringEvent");
 
   return (
-    <div className={classNames("block items-start sm:flex", customClassnames?.container)}>
+    <div className={classNames("block items-start sm:flex", customClassNames?.container)}>
       <div className={!paymentEnabled ? "w-full" : ""}>
         {paymentEnabled ? (
           <Alert
             severity="warning"
-            className={customClassnames?.paymentAlert}
+            className={customClassNames?.paymentAlert}
             title={t("warning_payment_recurring_event")}
           />
         ) : (
           <>
             <Alert
-              className={classNames("mb-4", customClassnames?.experimentalAlert)}
+              className={classNames("mb-4", customClassNames?.experimentalAlert)}
               severity="warning"
               title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
             />
             <SettingsToggle
-              labelClassName={classNames("text-sm", customClassnames?.recurringToggleClassnames?.label)}
+              labelClassName={classNames("text-sm", customClassNames?.recurringToggle?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 recurringEventState !== null && "rounded-b-none",
-                customClassnames?.recurringToggleClassnames?.switchContainer
+                customClassNames?.recurringToggle?.switchContainer
               )}
-              childrenClassName={classNames("lg:ml-0", customClassnames?.recurringToggleClassnames?.children)}
-              descriptionClassName={customClassnames?.recurringToggleClassnames?.description}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.recurringToggle?.children)}
+              descriptionClassName={customClassNames?.recurringToggle?.description}
               title={t("recurring_event")}
               {...recurringLocked}
               description={t("recurring_event_description")}
@@ -110,7 +110,7 @@ export default function RecurringEventController({
                       <p
                         className={classNames(
                           "text-emphasis ltr:mr-2 rtl:ml-2",
-                          customClassnames?.frequencyInputClassnames?.label
+                          customClassNames?.frequencyInput?.label
                         )}>
                         {t("repeats_every")}
                       </p>
@@ -119,7 +119,7 @@ export default function RecurringEventController({
                         type="number"
                         min="1"
                         max="20"
-                        className={classNames("mb-0", customClassnames?.frequencyInputClassnames?.input)}
+                        className={classNames("mb-0", customClassNames?.frequencyInput?.input)}
                         defaultValue={recurringEventState.interval}
                         onChange={(event) => {
                           const newVal = {
@@ -136,9 +136,9 @@ export default function RecurringEventController({
                         isSearchable={false}
                         className={classNames(
                           "w-18 ml-2 block min-w-0 rounded-md text-sm",
-                          customClassnames?.frequencyUnitSelectClassnames?.select
+                          customClassNames?.frequencyUnitSelect?.select
                         )}
-                        innerClassNames={customClassnames?.frequencyUnitSelectClassnames?.innerClassNames}
+                        innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
                         isDisabled={recurringLocked.disabled}
                         onChange={(event) => {
                           const newVal = {
@@ -153,12 +153,12 @@ export default function RecurringEventController({
                     <div
                       className={classNames(
                         "mt-4 flex items-center",
-                        customClassnames?.maxEventsInputClassnames?.container
+                        customClassNames?.maxEventsInput?.container
                       )}>
                       <p
                         className={classNames(
                           "text-emphasis ltr:mr-2 rtl:ml-2",
-                          customClassnames?.maxEventsInputClassnames?.labelText
+                          customClassNames?.maxEventsInput?.labelText
                         )}>
                         {t("for_a_maximum_of")}
                       </p>
@@ -168,7 +168,7 @@ export default function RecurringEventController({
                         min="1"
                         max="24"
                         defaultValue={recurringEventState.count}
-                        className={classNames("mb-0", customClassnames?.maxEventsInputClassnames?.countInput)}
+                        className={classNames("mb-0", customClassNames?.maxEventsInput?.countInput)}
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
@@ -181,7 +181,7 @@ export default function RecurringEventController({
                       <p
                         className={classNames(
                           "text-emphasis ltr:ml-2 rtl:mr-2",
-                          customClassnames?.maxEventsInputClassnames?.suffixText
+                          customClassNames?.maxEventsInput?.suffixText
                         )}>
                         {t("events", {
                           count: recurringEventState.count,
