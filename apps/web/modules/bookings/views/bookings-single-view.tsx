@@ -202,8 +202,7 @@ export default function Success(props: PageProps) {
   };
 
   function setIsCancellationMode(value: boolean) {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
-
+    const _searchParams = new URLSearchParams(searchParams.toString());
     if (value) {
       _searchParams.set("cancel", "true");
     } else {

@@ -25,7 +25,7 @@ const DisableTeamImpersonation = ({
       await utils.viewer.teams.getMembershipbyUser.invalidate();
     },
   });
-  const [allowImpersonation, setAllowImpersonation] = useState(!query.data?.disableImpersonation ?? true);
+  const [allowImpersonation, setAllowImpersonation] = useState(!query.data?.disableImpersonation);
   if (query.isPending) return <></>;
 
   return (

@@ -21,7 +21,7 @@ function useSetStep() {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const setStep = (newStep = 1) => {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+    const _searchParams = new URLSearchParams(searchParams.toString());
     _searchParams.set("step", newStep.toString());
     router.replace(`${pathname}?${_searchParams.toString()}`);
   };
