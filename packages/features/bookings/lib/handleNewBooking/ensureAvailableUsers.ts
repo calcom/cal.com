@@ -90,6 +90,7 @@ export async function ensureAvailableUsers(
       dateTo: endDateTimeUtc.format(),
       beforeEventBuffer: eventType.beforeEventBuffer,
       afterEventBuffer: eventType.afterEventBuffer,
+      bypassBusyCalendarTimes: false,
     },
     initialData: {
       eventType,

@@ -159,7 +159,6 @@ export class BookingRepository {
     });
 
     let queueBookings = allBookings;
-    console.log(`allBookings ${JSON.stringify(allBookings.map((booking) => booking.id))}`);
 
     if (virtualQueuesData) {
       queueBookings = allBookings.filter((booking) => {
@@ -170,8 +169,6 @@ export class BookingRepository {
         const response = responses?.response as FormResponse;
 
         const responseValue = response[fieldId].value;
-        console.log(`response${JSON.stringify(responseValue)}`);
-        console.log(`selectedOptionIds${JSON.stringify(selectedOptionIds)}`);
 
         if (Array.isArray(responseValue) && Array.isArray(selectedOptionIds)) {
           //check if all values are the same (this only support 'all in' not 'any in')

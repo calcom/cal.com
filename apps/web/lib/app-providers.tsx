@@ -7,11 +7,13 @@ import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
+import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -55,6 +57,13 @@ export type AppProps = Omit<
   /** Will be defined only is there was an error */
   err?: Error;
 };
+
+const PostHogPageView = dynamic(
+  () => import("@calcom/features/ee/event-tracking/lib/posthog/web/PostHogPageView"),
+  {
+    ssr: false,
+  }
+);
 
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
@@ -319,7 +328,12 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   return (
     <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+      <DynamicIntercomProvider>
+        <DynamicPostHogProvider>
+          <PostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
+      </DynamicIntercomProvider>
     </DynamicHelpscoutProvider>
   );
 };

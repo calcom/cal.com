@@ -520,6 +520,15 @@ export const roundRobinReassignment = async ({
       hideBranding: !!eventType?.owner?.hideBranding,
     });
   }
+
+  return {
+    bookingId,
+    reassignedTo: {
+      id: reassignedRRHost.id,
+      name: reassignedRRHost.name,
+      email: reassignedRRHost.email,
+    },
+  };
 };
 
 export default roundRobinReassignment;

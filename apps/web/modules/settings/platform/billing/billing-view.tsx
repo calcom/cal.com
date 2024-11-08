@@ -55,11 +55,11 @@ export default function PlatformBillingUpgrade() {
   return (
     <div>
       <Shell
-        heading="Platform billing"
-        title="Platform billing"
+        heading={t("platform_billing")}
+        title={t("platform_billing")}
         hideHeadingOnMobile
         withoutMain={false}
-        subtitle="Manage all things billing"
+        subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>
           <div className="border-subtle space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
