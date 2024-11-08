@@ -137,7 +137,12 @@ async function handleGettingTeamMemberEmail(
   eventTypeId: number,
   eventData: EventData
 ) {
-  if (!query.email || typeof query.email !== "string") return null;
+  if (
+    !query.email ||
+    typeof query.email !== "string" ||
+    eventData.schedulingType !== SchedulingType.ROUND_ROBIN
+  )
+    return null;
 
   // Check if a routing form was completed and an routing form option is enabled
   if (
@@ -151,6 +156,8 @@ async function handleGettingTeamMemberEmail(
   } else {
     return await getTeamMemberEmail(eventData, query.email);
   }
+
+  return null;
 }
 
 async function handleRoutingFormOption(query: ParsedUrlQuery, eventTypeId: number) {
