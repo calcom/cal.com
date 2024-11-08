@@ -64,7 +64,6 @@ const OnboardingPage = (props: PageProps) => {
     {
       title: `${t("connect_your_video_app")}`,
       subtitle: [`${t("connect_your_video_app_instructions")}`],
-      skipText: `${t("set_up_later")}`,
     },
   ];
 
