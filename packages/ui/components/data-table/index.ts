@@ -4,4 +4,4 @@ export { DataTablePagination } from "./DataTablePagination";
 export { DataTableFilters } from "./filters";
 export { useFetchMoreOnBottomReached } from "./useFetchMoreOnBottomReached";
 export { DataTable } from "./DataTable";
-export type { DataTableProps } from "./DataTable";
+export type { DataTableProps, CustomColumnMeta } from "./DataTable";

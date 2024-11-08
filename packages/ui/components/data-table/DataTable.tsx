@@ -1,6 +1,6 @@
 "use client";
 
-import type { Row } from "@tanstack/react-table";
+import type { Row, ColumnMeta } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtual } from "react-virtual";
@@ -9,6 +9,18 @@ import classNames from "@calcom/lib/classNames";
 
 import { Icon } from "../icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
+
+export type CustomColumnMeta<TData, TValue> = Omit<ColumnMeta<TData, TValue>, "sticky" | "stickyLeft"> &
+  (
+    | {
+        sticky: true;
+        stickyLeft: number;
+      }
+    | {
+        sticky: true;
+        stickyRight: number;
+      }
+  );
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
@@ -65,16 +77,17 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
+                  const meta = header.column.columnDef.meta as CustomColumnMeta<TData, TValue>;
                   return (
                     <TableHead
                       key={header.id}
                       style={{
-                        left: meta?.stickyLeft ? `${meta.stickyLeft}px` : undefined,
+                        ...(meta?.sticky && "stickyLeft" in meta && { left: `${meta.stickyLeft}px` }),
+                        ...(meta?.sticky && "stickyRight" in meta && { right: `${meta.stickyRight}px` }),
                       }}
                       className={classNames(
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky left-0 top-0 z-20"
+                        meta?.sticky && "bg-subtle sticky top-0 z-20"
                       )}>
                       <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
@@ -119,16 +132,17 @@ export function DataTable<TData, TValue>({
                     )}>
                     {row.getVisibleCells().map((cell) => {
                       const column = table.getColumn(cell.column.id);
-                      const meta = column?.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
+                      const meta = column?.columnDef.meta as CustomColumnMeta<TData, TValue>;
                       return (
                         <TableCell
                           key={cell.id}
                           style={{
-                            left: meta?.stickyLeft ? `${meta.stickyLeft}px` : undefined,
+                            ...(meta?.sticky && "stickyLeft" in meta && { left: `${meta.stickyLeft}px` }),
+                            ...(meta?.sticky && "stickyRight" in meta && { right: `${meta.stickyRight}px` }),
                           }}
                           className={classNames(
                             variant === "compact" && "p-1.5",
-                            meta?.sticky && "group-hover:bg-muted bg-default sticky left-0"
+                            meta?.sticky && "group-hover:bg-muted bg-default sticky"
                           )}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>

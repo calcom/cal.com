@@ -9,19 +9,13 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import type { ColumnMeta } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import {
-  downloadAsCsv,
-  generateCsvRaw,
-  generateHeaderFromReactTable,
-  sanitizeValue,
-} from "@calcom/lib/csvUtils";
+import { downloadAsCsv, generateCsvRaw, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -36,8 +30,9 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
   showToast,
+  useFetchMoreOnBottomReached,
 } from "@calcom/ui";
-import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
+import type { CustomColumnMeta } from "@calcom/ui/components/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -52,11 +47,6 @@ import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-
-type CustomColumnMeta<TData, TValue> = ColumnMeta<TData, TValue> & {
-  sticky?: boolean;
-  stickLeft?: number;
-};
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -218,8 +208,8 @@ export function UserListTable() {
         enableSorting: false,
         meta: {
           sticky: true,
-          stickLeft: 0,
-        } as CustomColumnMeta<UserTableUser, unknown>,
+          stickyLeft: 0,
+        } satisfies CustomColumnMeta<UserTableUser, unknown>,
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -247,7 +237,7 @@ export function UserListTable() {
         meta: {
           sticky: true,
           stickyLeft: 24,
-        } as CustomColumnMeta<UserTableUser, unknown>,
+        } satisfies CustomColumnMeta<UserTableUser, unknown>,
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -349,6 +339,10 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        meta: {
+          sticky: true,
+          stickyRight: 0,
+        } satisfies CustomColumnMeta<UserTableUser, unknown>,
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
