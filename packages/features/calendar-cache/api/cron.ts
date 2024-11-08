@@ -4,6 +4,8 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder.appDir";
 import prisma from "@calcom/prisma";
 
+import { CalendarCache } from "../calendar-cache";
+
 const validateRequest = (req: NextRequest) => {
   const searchParams = req.nextUrl.searchParams;
   const apiKey = searchParams.get("apiKey") || req.headers.get("authorization");
@@ -12,15 +14,45 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
-// This cron is used to activate and renew calendar subcriptions
-export const GET = defaultResponder(async (request: NextRequest) => {
-  validateRequest(request);
-  // const calendarCache = await CalendarCache.init();
-  // calendarCache.re();
+const handleCalendarsToUnwatch = async (req: NextRequest) => {
+  const calendarsToUnwatch = await prisma.selectedCalendar.findMany({
+    take: 100,
+    where: {
+      user: {
+        teams: {
+          every: {
+            team: {
+              features: {
+                none: {
+                  featureId: "calendar-cache",
+                },
+              },
+            },
+          },
+        },
+      },
+      // RN we only support google calendar subscriptions for now
+      integration: "google_calendar",
+      googleChannelExpiration: { not: null },
+    },
+  });
+
+  const result = await Promise.allSettled(
+    calendarsToUnwatch.map(async (sc) => {
+      if (!sc.credentialId) return;
+      const cc = await CalendarCache.initFromCredentialId(sc.credentialId);
+      await cc.unwatchCalendar({ calendarId: sc.externalId });
+    })
+  );
+
+  return result;
+};
+const handleCalendarsToWatch = async (req: NextRequest) => {
   // Get all selected calendars from users that belong to a team that has calendar cache enabled
   const oneDayInMS = 24 * 60 * 60 * 1000;
-  const expiresInADay = String(new Date().getTime() + oneDayInMS);
-  const selectedCalendars = await prisma.selectedCalendar.findMany({
+  const tomorrowTimestamp = String(new Date().getTime() + oneDayInMS);
+  const calendarsToWatch = await prisma.selectedCalendar.findMany({
+    take: 100,
     where: {
       user: {
         teams: {
@@ -39,28 +71,46 @@ export const GET = defaultResponder(async (request: NextRequest) => {
       integration: "google_calendar",
       AND: [
         {
-          OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { gt: expiresInADay } }],
+          OR: [
+            // Either is a calendar pending to be watched
+            { googleChannelExpiration: null },
+            // Or is a calendar that is about to expire
+            { googleChannelExpiration: { lt: tomorrowTimestamp } },
+          ],
         },
       ],
     },
-    // select: {
-    //   credentialId: true,
-    //   externalId: true,
-    // },
   });
 
-  console.log({
-    expiresInADay,
-    selectedCalendars,
-    expired: selectedCalendars.map((sc) => {
-      if (!sc.googleChannelExpiration) return null;
-      console.log({
-        humanReadableExpireDate: new Date(parseInt(sc.googleChannelExpiration, 10)).toLocaleString(),
-        humanReadableCurrentDate: new Date(parseInt(expiresInADay, 10)).toLocaleString(),
-      });
-      return sc.googleChannelExpiration < expiresInADay;
-    }),
-  });
+  const result = await Promise.allSettled(
+    calendarsToWatch.map(async (sc) => {
+      if (!sc.credentialId) return;
+      const cc = await CalendarCache.initFromCredentialId(sc.credentialId);
+      await cc.watchCalendar({ calendarId: sc.externalId });
+    })
+  );
+
+  return result;
+};
+
+// This cron is used to activate and renew calendar subcriptions
+export const GET = defaultResponder(async (request: NextRequest) => {
+  validateRequest(request);
+  const [watchedResult, unwatchedResult] = await Promise.all([
+    handleCalendarsToWatch(request),
+    handleCalendarsToUnwatch(request),
+  ]);
+
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
-  return { success: true };
+  return {
+    succeededAt: new Date().toISOString(),
+    watched: {
+      successful: watchedResult.filter((x) => x.status === "fulfilled").length,
+      failed: watchedResult.filter((x) => x.status === "rejected").length,
+    },
+    unwatched: {
+      successful: unwatchedResult.filter((x) => x.status === "fulfilled").length,
+      failed: unwatchedResult.filter((x) => x.status === "rejected").length,
+    },
+  };
 });

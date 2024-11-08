@@ -720,7 +720,7 @@ export default class GoogleCalendarService implements Calendar {
 
   async watchCalendar({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
-    await this.unwatchCalendar({ calendarId });
+    // await this.unwatchCalendar({ calendarId });
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
       calendarId,
@@ -772,6 +772,16 @@ export default class GoogleCalendarService implements Calendar {
       .catch((err) => {
         console.warn(JSON.stringify(err));
       });
+    await GoogleRepository.upsertSelectedCalendar({
+      userId: this.credential.userId!,
+      externalId: calendarId,
+      credentialId: this.credential.id,
+      googleChannelId: null,
+      googleChannelKind: null,
+      googleChannelResourceId: null,
+      googleChannelResourceUri: null,
+      googleChannelExpiration: null,
+    });
   }
 }
 
