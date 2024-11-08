@@ -24,7 +24,7 @@ export async function isFormCreateEditAllowed({
       teamId: true,
       team: {
         select: {
-          members: true,
+          id: true,
         },
       },
     },
