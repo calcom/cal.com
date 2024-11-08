@@ -108,7 +108,6 @@ export function getUrlSearchParamsToForward({
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
     [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId),
-    // ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
     ...attributeRoutingConfigParams,
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }

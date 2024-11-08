@@ -118,7 +118,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      // teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
       teamMemberEmail: await handleGettingTeamMemberEmail(query, eventTypeId, eventData),
     },
   };
