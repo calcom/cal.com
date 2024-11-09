@@ -402,7 +402,7 @@ export default function Signup({
             </div>
             {/* Already have an account & T&C */}
             <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
-              <div className="flex flex-col text-sm">
+              <div className="flex h-full flex-col justify-around text-sm">
                 <div className="mt-6 flex flex-col gap-2 md:flex-row">
                   <Button
                     color="google"
