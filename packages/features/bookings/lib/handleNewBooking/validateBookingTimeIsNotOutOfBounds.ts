@@ -13,7 +13,6 @@ type ValidateBookingTimeEventType = Pick<
   | "periodStartDate"
   | "periodCountCalendarDays"
   | "minimumBookingNotice"
-  | "minimumReschedulingNotice"
   | "eventName"
   | "id"
 >;

@@ -198,97 +198,6 @@ function RollingLimitRadioItem({
   );
 }
 
-const MinimumReschedulingNoticeInput = React.forwardRef<
-  HTMLInputElement,
-  Omit<UseFormRegisterReturn<"minimumReschedulingNotice">, "ref">
->(function MinimumReschedulingNoticeInput({ ...passThroughProps }, ref) {
-  const { t } = useLocale();
-  const { setValue, getValues } = useFormContext<FormValues>();
-  const durationTypeOptions: {
-    value: DurationType;
-    label: string;
-  }[] = [
-    {
-      label: t("minutes"),
-      value: "minutes",
-    },
-    {
-      label: t("hours"),
-      value: "hours",
-    },
-    {
-      label: t("days"),
-      value: "days",
-    },
-  ];
-
-  const [minimumReschedulingNoticeDisplayValues, setMinimumReschedulingNoticeDisplayValues] = useState<{
-    type: DurationType;
-    value: number;
-  }>({
-    type: findDurationType(getValues(passThroughProps.name)),
-    value:
-      convertToNewDurationType(
-        "minutes",
-        findDurationType(getValues(passThroughProps.name)),
-        getValues(passThroughProps.name)
-      ) ?? 0,
-  });
-  // keep hidden field in sync with minimumReschedulingNoticeDisplayValues
-  useEffect(() => {
-    setValue(
-      passThroughProps.name,
-      convertToNewDurationType(
-        minimumReschedulingNoticeDisplayValues.type,
-        "minutes",
-        minimumReschedulingNoticeDisplayValues.value
-      ),
-      { shouldDirty: true }
-    );
-  }, [minimumReschedulingNoticeDisplayValues, setValue, passThroughProps.name]);
-
-  return (
-    <div className="flex items-end justify-end">
-      <div className="w-1/2 md:w-full">
-        <InputField
-          required
-          disabled={passThroughProps.disabled}
-          defaultValue={minimumReschedulingNoticeDisplayValues.value}
-          onChange={(e) =>
-            setMinimumReschedulingNoticeDisplayValues({
-              ...minimumReschedulingNoticeDisplayValues,
-              value: parseInt(e.target.value || "0", 10),
-            })
-          }
-          label={t("minimum_rescheduling_notice")}
-          type="number"
-          placeholder="0"
-          min={0}
-          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
-        />
-        <input type="hidden" ref={ref} {...passThroughProps} />
-      </div>
-      <Select
-        isSearchable={false}
-        isDisabled={passThroughProps.disabled}
-        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
-        defaultValue={durationTypeOptions.find(
-          (option) => option.value === minimumReschedulingNoticeDisplayValues.type
-        )}
-        onChange={(input) => {
-          if (input) {
-            setMinimumReschedulingNoticeDisplayValues({
-              ...minimumReschedulingNoticeDisplayValues,
-              type: input.value,
-            });
-          }
-        }}
-        options={durationTypeOptions}
-      />
-    </div>
-  );
-});
-
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
   Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref">
@@ -485,16 +394,6 @@ export const EventLimitsTab = ({ eventType }: EventLimitsTabProps) => {
             <MinimumBookingNoticeInput
               disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
               {...formMethods.register("minimumBookingNotice")}
-            />
-          </div>
-          <div className="w-full">
-            <Label htmlFor="minimumReschedulingNotice">
-              {t("minimum_rescheduling_notice")}
-              {shouldLockIndicator("minimumReschedulingNotice")}
-            </Label>
-            <MinimumReschedulingNoticeInput
-              disabled={shouldLockDisableProps("minimumReschedulingNotice").disabled}
-              {...formMethods.register("minimumReschedulingNotice")}
             />
           </div>
           <div className="w-full">

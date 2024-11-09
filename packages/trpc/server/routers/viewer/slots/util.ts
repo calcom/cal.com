@@ -554,9 +554,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
-    minimumBookingNotice: input.rescheduleUid
-      ? eventType.minimumReschedulingNotice
-      : eventType.minimumBookingNotice,
+    minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
