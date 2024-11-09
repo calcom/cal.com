@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Props } from "react-select";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Button, Icon, Select, Tooltip } from "@calcom/ui";
@@ -14,7 +15,6 @@ export type CheckedSelectOption = {
   value: string;
   priority?: number;
   weight?: number;
-  weightAdjustment?: number;
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
@@ -30,6 +30,7 @@ export const CheckedTeamSelect = ({
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
 }) => {
+  const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
 
@@ -59,7 +60,8 @@ export const CheckedTeamSelect = ({
             <li
               key={option.value}
               className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
-              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
+              {isPlatform && <Icon name="user" className="mt-0.5 h-4 w-4" />}
               <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (

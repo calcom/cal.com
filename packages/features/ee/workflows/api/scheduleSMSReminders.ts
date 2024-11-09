@@ -134,6 +134,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
           cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
+          attendeeTimezone: reminder.booking.attendees[0].timeZone,
+          eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
+            reminder.booking.attendees[0].timeZone
+          ),
+          eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
+            reminder.booking.attendees[0].timeZone
+          ),
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
