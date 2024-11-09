@@ -7,23 +7,20 @@ import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, Icon, TextField } from "@calcom/ui";
+import { Button, HeadSeo } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -103,81 +100,6 @@ const FEATURES = [
   },
 ];
 
-function UsernameField({
-  username,
-  setPremium,
-  premium,
-  setUsernameTaken,
-  orgSlug,
-  usernameTaken,
-  disabled,
-  ...props
-}: React.ComponentProps<typeof TextField> & {
-  username: string;
-  setPremium: (value: boolean) => void;
-  premium: boolean;
-  usernameTaken: boolean;
-  orgSlug?: string;
-  setUsernameTaken: (value: boolean) => void;
-}) {
-  const { t } = useLocale();
-  const { register, formState } = useFormContext<FormValues>();
-  const debouncedUsername = useDebounce(username, 600);
-
-  useEffect(() => {
-    if (formState.isSubmitting || formState.isSubmitSuccessful) return;
-
-    async function checkUsername() {
-      // If the username can't be changed, there is no point in doing the username availability check
-      if (disabled) return;
-      if (!debouncedUsername) {
-        setPremium(false);
-        setUsernameTaken(false);
-        return;
-      }
-      fetchUsername(debouncedUsername, orgSlug ?? null).then(({ data }) => {
-        setPremium(data.premium);
-        setUsernameTaken(!data.available);
-      });
-    }
-    checkUsername();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
-
-  return (
-    <div>
-      <TextField
-        disabled={disabled}
-        {...props}
-        {...register("username")}
-        data-testid="signup-usernamefield"
-        addOnFilled={false}
-      />
-      {(!formState.isSubmitting || !formState.isSubmitted) && (
-        <div className="text-gray text-default flex items-center text-sm">
-          <div className="text-sm ">
-            {usernameTaken ? (
-              <div className="text-error flex items-center">
-                <Icon name="info" className="mr-1 inline-block h-4 w-4" />
-                <p>{t("already_in_use_error")}</p>
-              </div>
-            ) : premium ? (
-              <div data-testid="premium-username-warning" className="flex items-center">
-                <Icon name="star" className="mr-1 inline-block h-4 w-4" />
-                <p>
-                  {t("premium_username", {
-                    price: getPremiumPlanPriceValue(),
-                  })}
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
   const param = `${key}=${encodeURIComponent(value)}`;
@@ -188,8 +110,6 @@ export default function Signup({
   prepopulateFormValues,
   token,
   orgSlug,
-  isGoogleLoginEnabled,
-  isSAMLLoginEnabled,
   redirectUrl,
   emailVerificationEnabled,
 }: SignupProps) {
@@ -204,9 +124,6 @@ export default function Signup({
     defaultValues: prepopulateFormValues satisfies FormValues,
     mode: "onChange",
   });
-  const {
-    formState: { isSubmitting },
-  } = formMethods;
 
   useEffect(() => {
     if (redirectUrl) {

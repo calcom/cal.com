@@ -11,8 +11,6 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TimezoneSelect, Icon, Input } from "@calcom/ui";
 
-import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
@@ -68,7 +66,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
         {/* Username textfield: when not coming from signup */}
-        {!props.hideUsername && <UsernameAvailabilityField />}
+        {/* {!props.hideUsername && <UsernameAvailabilityField />} */}
 
         {/* Full name textfield */}
         <div className="w-full">
@@ -84,6 +82,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             type="text"
             autoComplete="off"
             autoCorrect="off"
+            readonly
           />
           {errors.name && (
             <p data-testid="required" className="py-2 text-xs text-red-500">

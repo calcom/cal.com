@@ -1,5 +1,4 @@
 import { useTheme as useNextTheme } from "next-themes";
-import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
@@ -15,8 +14,6 @@ export default function useTheme(themeToSet: "system" | (string & {}) | undefine
   themeToSet = themeToSet ? themeToSet : "system";
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();
-  const pathname = usePathname();
-  const isBookingPage = pathname.includes("/booking/");
 
   useEffect(() => {
     // Undefined themeToSet allow the hook to be used where the theme is fetched after calling useTheme hook
@@ -31,7 +28,7 @@ export default function useTheme(themeToSet: "system" | (string & {}) | undefine
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
 
-    setTheme(isBookingPage ? "light" : finalThemeToSet);
+    setTheme("light");
     // We must not add `activeTheme` to the dependency list as it can cause an infinite loop b/w dark and theme switches
     // because there might be another booking page with conflicting theme.
     // eslint-disable-next-line react-hooks/exhaustive-deps
