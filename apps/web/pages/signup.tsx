@@ -320,10 +320,10 @@ export default function Signup({
       ) : null}
       <div
         className={classNames(
-          "light flex min-h-screen w-full flex-col items-center justify-center bg-[#F4F6F8]  py-8 [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+          "light flex min-h-screen w-full flex-col items-center justify-center bg-[#F4F6F8]  py-8 [--cal-brand:#111827]",
           "[--cal-brand-subtle:#9CA3AF]",
-          "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
-          "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
+          "[--cal-brand-text:#FFFFFF]",
+          "[--cal-brand-emphasis:#101010]"
         )}>
         <div className="grid	w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden rounded-3xl bg-white lg:grid-cols-2">
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
@@ -388,7 +388,7 @@ export default function Signup({
                   </clipPath>
                 </defs>
               </svg>
-              <p className="text-[42px] font-medium leading-none">
+              <p className="text-[42px] font-medium leading-none text-[#114559]">
                 Crie sua conta
                 <span className="text-[42px] font-medium leading-none text-[#06C6A9]"> Yinflow.Life</span>
               </p>
@@ -477,7 +477,7 @@ export default function Signup({
           <div className="border-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-3xl border-[#06C6A3]  bg-[#E0F6EF] pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
             <div className="hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl lg:block lg:py-[6px] lg:pl-[6px]">
               <img
-                className="block h-full	h-full dark:hidden"
+                className="block h-full	h-full"
                 src="/mock-event-type-list.svg"
                 alt="Cal.com Booking Page"
               />
@@ -488,7 +488,7 @@ export default function Signup({
                   <div className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
                       {feature.icon}
-                      <span className="text-sm font-medium">{t(feature.title)}</span>
+                      <span className="text-sm font-medium text-[#114559]">{t(feature.title)}</span>
                     </div>
                     <div className="text-subtle text-sm">
                       <p>
