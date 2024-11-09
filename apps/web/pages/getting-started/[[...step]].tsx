@@ -10,11 +10,12 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc";
-import { Button, StepCard, Steps } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Button, Icon, StepCard, Steps } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+import AddCertificate from "@components/getting-started/steps-views/AddCertificate";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
@@ -30,6 +31,7 @@ const steps = [
   "connected-video",
   "setup-availability",
   "user-profile",
+  "add-certificate",
 ] as const;
 
 const stepTransform = (step: (typeof steps)[number]) => {
@@ -47,6 +49,7 @@ const stepRouteSchema = z.object({
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = () => {
+  useTheme("light");
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
@@ -86,6 +89,12 @@ const OnboardingPage = () => {
     {
       title: `${t("nearly_there")}`,
       subtitle: [`${t("nearly_there_instructions")}`],
+    },
+    {
+      title: "Último passo!",
+      subtitle: [
+        "Por último, precisaremos do seu Certificado Digital e-CNPJ A1. Esse certificado será utilizado para emissão de notas fiscais de serviços prestadas por você.",
+      ],
     },
   ];
 
@@ -154,7 +163,8 @@ const OnboardingPage = () => {
                     defaultScheduleId={user.defaultScheduleId}
                   />
                 )}
-                {currentStep === "user-profile" && <UserProfile />}
+                {currentStep === "user-profile" && <UserProfile nextStep={() => goToIndex(5)} />}
+                {currentStep === "add-certificate" && <AddCertificate />}
               </Suspense>
             </StepCard>
 
