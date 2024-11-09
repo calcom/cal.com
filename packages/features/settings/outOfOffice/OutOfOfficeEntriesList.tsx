@@ -37,6 +37,7 @@ interface OutOfOfficeEntry {
   toUserId: number | null;
   toUser: {
     username: string;
+    name: string;
   } | null;
   reason: {
     id: number;
@@ -207,6 +208,15 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,
                           forUserId: item.user?.id || null,
+                          forUserName:
+                            item.user?.name ||
+                            (item.user?.email &&
+                              (() => {
+                                const emailName = item.user?.email.split("@")[0];
+                                return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                              })()),
+                          forUserAvatar: item.user?.avatarUrl,
+                          toUserName: item.toUser?.name || item.toUser?.username,
                         };
                         editOutOfOfficeEntry(outOfOfficeEntryData);
                       }}

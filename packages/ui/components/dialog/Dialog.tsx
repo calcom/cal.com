@@ -146,7 +146,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "md"
               ? "px-8 pt-8 sm:max-w-[48rem]"
               : "px-8 pt-8 sm:max-w-[35rem]",
-            "max-h-[95vh]",
+            "max-h-[100vh]",
             enableOverflow ? "overflow-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
