@@ -17,6 +17,7 @@ import { APP_NAME, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/consta
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -113,6 +114,7 @@ export default function Signup({
   redirectUrl,
   emailVerificationEnabled,
 }: SignupProps) {
+  useTheme("light");
   const [premiumUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const searchParams = useCompatSearchParams();
@@ -242,7 +244,7 @@ export default function Signup({
           "[--cal-brand-text:#FFFFFF]",
           "[--cal-brand-emphasis:#101010]"
         )}>
-        <div className="grid	w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden rounded-3xl bg-white lg:grid-cols-2">
+        <div className="grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden rounded-3xl bg-white lg:grid-cols-2">
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 lg:mt-12">
