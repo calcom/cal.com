@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +13,7 @@ type FormData = {
 const AddCertificate = () => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
+  const pickerRef = useRef<any>(null);
   const { handleSubmit } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
@@ -45,14 +46,30 @@ const AddCertificate = () => {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex items-center justify-start rtl:justify-end">
+      <div className="flex flex-col items-center justify-start rtl:justify-end">
         <div className="flex w-full flex-row items-center">
+          <input
+            type="file"
+            id="CNPJ_A1"
+            name="CNPJ_A1"
+            ref={pickerRef}
+            className="hidden"
+            onChange={(event) => {
+              setA1Src(event.target.value);
+            }}
+          />
           <div
             className={
-              `mr-2 flex h-16 w-16 items-center justify-center${a1Src}` ? "bg-[#06C6A3]" : "bg-[#E5E7EB]"
+              `mr-2 flex h-16 w-16 items-center justify-center ${a1Src}` ? "bg-[#06C6A3]" : "bg-[#E5E7EB]"
             }
           />
-          <Button color="secondary">Adicionar Certificado e-CNPJ A1</Button>
+          <Button
+            color="secondary"
+            onClick={() => {
+              pickerRef?.current.click();
+            }}>
+            Adicionar Certificado e-CNPJ A1
+          </Button>
         </div>
         {/* <div className="flex items-center px-4">
           <ImageUploader
@@ -77,7 +94,7 @@ const AddCertificate = () => {
           />
         </div>
       */}
-        <div className="w-full">
+        <div className="mt-4 w-full">
           <label htmlFor="CNPJ_A1_password" className="text-default mb-2 block text-sm font-medium">
             Senha do seu e-CNPJ A1
           </label>
@@ -92,7 +109,7 @@ const AddCertificate = () => {
             hidden
           />
         </div>
-        <div className="w-full">
+        <div className="mt-4 w-full">
           <label htmlFor="retype_CNPJ_A1_password" className="text-default mb-2 block text-sm font-medium">
             Confirme a senha do seu e-CNPJ A1
           </label>
@@ -113,7 +130,7 @@ const AddCertificate = () => {
           )}
         </div>
       </div>
-      <fieldset className="mt-8">
+      <fieldset className="mt-4">
         <p className="text-default mt-2 font-sans text-sm font-normal">
           Fique tranquilo! Nós não iremos armazenar a sua senha. Ela será utilizada somente para integrar à
           plataforma de emissão de notas fiscais e será excluída automaticamente em seguida.
