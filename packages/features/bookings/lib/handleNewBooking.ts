@@ -99,6 +99,7 @@ import type {
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
+import { validateRescheduleWindow } from "./handleNewBooking/validateRescheduleWindow";
 import handleSeats from "./handleSeats/handleSeats";
 
 const translator = short();
@@ -300,13 +301,19 @@ async function handler(
 
   const isRescheduling = !!rescheduleUid;
 
+  if (isRescheduling) {
+    await validateRescheduleWindow({
+      bookingStartTime: bookingData.start,
+      minimumReschedulingNotice: eventType.minimumReschedulingNotice,
+    });
+  }
+
   await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
     reqBody.start,
     reqBody.timeZone,
     eventType,
     eventTimeZone,
-    loggerWithEventDetails,
-    isRescheduling
+    loggerWithEventDetails
   );
 
   validateEventLength({
