@@ -82,7 +82,8 @@ const UserSettings = (props: IUserSettingsProps) => {
             type="text"
             autoComplete="off"
             autoCorrect="off"
-            readonly
+            readOnly
+            disabled
           />
           {errors.name && (
             <p data-testid="required" className="py-2 text-xs text-red-500">

@@ -371,7 +371,7 @@ export default function Signup({
                   <span>
                     Ao continuar, você concorda com nossos{" "}
                     <Link
-                      className="text-emphasis font-semibold text-[#00A587] underline hover:underline"
+                      className="font-semibold text-[#00A587] underline hover:underline"
                       key="terms"
                       href={`${WEBSITE_URL}/termos-de-uso`}
                       target="_blank">
@@ -379,7 +379,7 @@ export default function Signup({
                     </Link>
                     {" e "}
                     <Link
-                      className="text-emphasis font-semibold text-[#00A587] underline hover:underline"
+                      className="font-semibold text-[#00A587] underline hover:underline"
                       key="privacy"
                       href={`${WEBSITE_URL}/politicas-de-privacidade`}
                       target="_blank">

@@ -299,6 +299,14 @@ const nextConfig = {
         destination: "/apps/routing-forms/router",
       },
       {
+        source: "/auth/login",
+        destination: "/signup",
+      },
+      {
+        source: "/login",
+        destination: "/signup",
+      },
+      {
         source: "/success/:path*",
         has: [
           {
@@ -320,10 +328,6 @@ const nextConfig = {
          */
         source: "/embed.js",
         destination: "/embed/embed.js",
-      },
-      {
-        source: "/login",
-        destination: "/auth/login",
       },
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(isOrganizationsEnabled
@@ -513,7 +517,7 @@ const nextConfig = {
       },
       {
         source: "/auth",
-        destination: "/auth/login",
+        destination: "/signup",
         permanent: false,
       },
       {
