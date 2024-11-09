@@ -75,19 +75,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       auth: oAuth2Client,
     });
 
-    const cals = await GoogleService.getAllCalendars(calendar);
-
-    const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
-
-    // Only attempt to update the user's profile photo if the user has granted the required scope
-    if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
-      await GoogleService.updateProfilePhoto(oAuth2Client, req.session.user.id);
-    }
-
-    const gcalCredential = await GoogleService.createGoogleCalendarCredential({
-      key,
-      userId: req.session.user.id,
-    });
+    const primaryCal = await GoogleService.getPrimaryCalendar(calendar);
 
     // If we still don't have a primary calendar skip creating the selected calendar.
     // It can be toggled on later.
@@ -98,6 +86,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       );
       return;
     }
+
+    // Only attempt to update the user's profile photo if the user has granted the required scope
+    if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
+      await GoogleService.updateProfilePhoto(oAuth2Client, req.session.user.id);
+    }
+
+    const gcalCredential = await GoogleService.createGoogleCalendarCredential({
+      key,
+      userId: req.session.user.id,
+    });
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,

@@ -75,6 +75,43 @@ export class GoogleService {
     }
   }
 
+  static async getPrimaryCalendar(
+    calendar: calendar_v3.Calendar,
+    fields: string[] = ["id", "summary", "primary", "accessRole"]
+  ): Promise<calendar_v3.Schema$CalendarListEntry | null> {
+    let pageToken: string | undefined;
+    let firstCalendar: calendar_v3.Schema$CalendarListEntry | undefined;
+
+    try {
+      do {
+        const response: any = await calendar.calendarList.list({
+          fields: `items(${fields.join(",")}),nextPageToken`,
+          pageToken,
+          maxResults: 250, // 250 is max
+        });
+
+        const cals = response.data.items ?? [];
+        const primaryCal = cals.find((cal: calendar_v3.Schema$CalendarListEntry) => cal.primary);
+        if (primaryCal) {
+          return primaryCal;
+        }
+
+        // Store the first calendar in case no primary is found
+        if (cals.length > 0 && !firstCalendar) {
+          firstCalendar = cals[0];
+        }
+
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
+
+      // should not be reached because Google Cal always has a primary cal
+      return firstCalendar ?? null;
+    } catch (error) {
+      logger.error("Error in `getPrimaryCalendar`", { error });
+      throw error;
+    }
+  }
+
   static async updateProfilePhoto(oAuth2Client: OAuth2Client, userId: number) {
     try {
       const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
