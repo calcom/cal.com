@@ -53,6 +53,7 @@ const AddCertificate = () => {
             id="CNPJ_A1"
             name="CNPJ_A1"
             ref={pickerRef}
+            accept="application/x-pkcs12"
             className="hidden"
             onChange={(event) => {
               setA1Src(event.target.value);
