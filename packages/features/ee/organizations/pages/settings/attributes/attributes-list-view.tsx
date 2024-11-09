@@ -21,7 +21,7 @@ import {
   useMeta,
 } from "@calcom/ui";
 
-import { DeleteAttributeModal } from "../../components/DeleteAttributeModal";
+import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
