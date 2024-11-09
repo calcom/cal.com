@@ -139,12 +139,22 @@ export const zodNonRouterRoute = z.object({
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
    * RAQB query value for form fields
+   * BRANDED to ensure we don't give it Attributes
    */
   queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
   /**
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   * BRANDED to ensure we don't give it Form Fields
    */
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * RAQB query value for fallback of `attributesQueryValue`
+   * BRANDED to ensure we don't give it Form Fields, It needs Attributes
+   */
+  fallbackAttributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * Whether the route is a fallback if no other routes match
+   */
   isFallback: z.boolean().optional(),
   action: z.object({
     type: routeActionTypeSchema,

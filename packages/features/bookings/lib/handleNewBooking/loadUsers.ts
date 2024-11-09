@@ -46,12 +46,11 @@ export const loadUsers = async ({
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
   const hosts = eventType.hosts || [];
-  const users = hosts.map(({ user, isFixed, priority, weight, weightAdjustment }) => ({
+  const users = hosts.map(({ user, isFixed, priority, weight }) => ({
     ...user,
     isFixed,
     priority,
     weight,
-    weightAdjustment,
   }));
   return users.length ? users : eventType.users;
 };

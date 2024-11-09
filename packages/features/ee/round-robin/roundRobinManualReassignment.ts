@@ -2,7 +2,6 @@
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
@@ -20,7 +19,6 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -28,6 +26,7 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
@@ -43,11 +42,13 @@ export const roundRobinManualReassignment = async ({
   newUserId,
   orgId,
   reassignReason,
+  reassignedById,
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
   reassignReason?: string;
+  reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -82,8 +83,8 @@ export const roundRobinManualReassignment = async ({
         isFixed: false,
         priority: 2,
         weight: 100,
-        weightAdjustment: 0,
         schedule: null,
+        createdAt: new Date(0), // use earliest possible date as fallback
       }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
@@ -124,6 +125,7 @@ export const roundRobinManualReassignment = async ({
   })();
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
+  let bookingLocation = booking.location;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -134,8 +136,7 @@ export const roundRobinManualReassignment = async ({
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
-    let bookingLocation = booking.location;
-    if (eventType.locations.includes({ type: OrganizerDefaultConferencingAppType })) {
+    if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
       const newUserMetadataSafeParse = userMetadataSchema.safeParse(newUser.metadata);
       const defaultLocationUrl = newUserMetadataSafeParse.success
         ? newUserMetadataSafeParse?.data?.defaultConferencingApp?.appLink
@@ -165,6 +166,7 @@ export const roundRobinManualReassignment = async ({
         title: newBookingTitle,
         userPrimaryEmail: newUser.email,
         reassignReason,
+        reassignById: reassignedById,
       },
       select: bookingSelect,
     });
@@ -248,6 +250,7 @@ export const roundRobinManualReassignment = async ({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
+    location: bookingLocation,
   };
 
   const credentials = await prisma.credential.findMany({
@@ -255,29 +258,28 @@ export const roundRobinManualReassignment = async ({
     include: { user: { select: { email: true } } },
   });
 
-  const eventManager = new EventManager({ ...newUser, credentials });
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
         where: { userId: originalOrganizer.id },
       })
     : null;
 
-  const results = await eventManager.reschedule(
+  const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
-    booking.uid,
-    undefined,
-    hasOrganizerChanged,
-    previousHostDestinationCalendar ? [previousHostDestinationCalendar] : []
-  );
-
-  const newReferencesToCreate = structuredClone(results.referencesToCreate);
-
-  await BookingReferenceRepository.replaceBookingReferences({
+    rescheduleUid: booking.uid,
+    newBookingId: undefined,
+    changedOrganizer: hasOrganizerChanged,
+    previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+    initParams: {
+      user: { ...newUser, credentials },
+    },
     bookingId,
-    newReferencesToCreate,
+    bookingLocation,
+    bookingICalUID: booking.iCalUID,
+    bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evt;
+  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   await sendRoundRobinScheduledEmailsAndSMS({
@@ -300,7 +302,7 @@ export const roundRobinManualReassignment = async ({
   });
 
   // Send cancellation email to previous RR host
-  const cancelledEvt = cloneDeep(evt);
+  const cancelledEvt = cloneDeep(evtWithAdditionalInfo);
   cancelledEvt.organizer = {
     email: originalOrganizer.email,
     name: originalOrganizer.name || "",
@@ -330,7 +332,7 @@ export const roundRobinManualReassignment = async ({
     await handleWorkflowsUpdate({
       booking,
       newUser,
-      evt,
+      evt: evtWithAdditionalInfo,
       eventType,
       orgId,
     });
