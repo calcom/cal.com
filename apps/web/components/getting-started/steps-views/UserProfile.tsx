@@ -8,7 +8,7 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, Icon, ImageUploader, Label, UserAvatar, showToast } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Label, UserAvatar, showToast } from "@calcom/ui";
 
 interface UserProfileProps {
   nextStep: () => void;
@@ -146,7 +146,6 @@ const UserProfile = ({ nextStep }: UserProfileProps) => {
         type="submit"
         className="mt-8 w-full items-center justify-center">
         {t("next_step_text")}
-        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

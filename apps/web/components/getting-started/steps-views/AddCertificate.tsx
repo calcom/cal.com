@@ -3,9 +3,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Input, showToast } from "@calcom/ui";
+import { Button, Input, showToast } from "@calcom/ui";
 
 type FormData = {
   bio: string;
@@ -14,14 +13,15 @@ type FormData = {
 const AddCertificate = () => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const { setValue, handleSubmit, getValues } = useForm<FormData>({
+  const { handleSubmit } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
 
-  const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
+  const [a1Src, setA1Src] = useState<string>();
+  const [a1Password, setA1Password] = useState<string>("");
+  const [retypeA1Password, setretypeA1Password] = useState<string>("");
   const utils = trpc.useUtils();
   const router = useRouter();
-  const telemetry = useTelemetry();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data) => {
@@ -45,17 +45,15 @@ const AddCertificate = () => {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {/* {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} />}
-        <input
-          ref={avatarRef}
-          type="hidden"
-          name="avatar"
-          id="avatar"
-          placeholder="URL"
-          className="border-default focus:ring-empthasis mt-1 block w-full rounded-sm border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
-          defaultValue={imageSrc}
-        /> */}
+      <div className="flex items-center justify-start rtl:justify-end">
+        <div className="flex w-full flex-row items-center">
+          <div
+            className={
+              `mr-2 flex h-16 w-16 items-center justify-center${a1Src}` ? "bg-[#06C6A3]" : "bg-[#E5E7EB]"
+            }
+          />
+          <Button color="secondary">Adicionar Certificado e-CNPJ A1</Button>
+        </div>
         {/* <div className="flex items-center px-4">
           <ImageUploader
             target="avatar"
@@ -84,12 +82,11 @@ const AddCertificate = () => {
             Senha do seu e-CNPJ A1
           </label>
           <Input
-            // {...register("name", {
-            //   required: true,
-            // })}
+            value={a1Password}
+            onChange={(e) => setA1Password(e.target.value)}
             id="CNPJ_A1_password"
             name="CNPJ_A1_password"
-            type="text"
+            type="password"
             autoComplete="off"
             autoCorrect="off"
             hidden
@@ -100,32 +97,23 @@ const AddCertificate = () => {
             Confirme a senha do seu e-CNPJ A1
           </label>
           <Input
-            // {...register("name", {
-            //   required: true,
-            // })}
+            value={retypeA1Password}
+            onChange={(e) => setretypeA1Password(e.target.value)}
             id="retype_CNPJ_A1_password"
             name="retype_CNPJ_A1_password"
-            type="text"
+            type="password"
             autoComplete="off"
             autoCorrect="off"
             hidden
           />
-          {/* {errors.name && (
+          {a1Password !== retypeA1Password && retypeA1Password !== "" && (
             <p data-testid="required" className="py-2 text-xs text-red-500">
               As senhas precisam ser iguais.
             </p>
-          )} */}
+          )}
         </div>
       </div>
       <fieldset className="mt-8">
-        {/* <Label className="text-default mb-2 block text-sm font-medium">{t("about")}</Label>
-        <Editor
-          getText={() => md.render(getValues("bio") || user?.bio || "")}
-          setText={(value: string) => setValue("bio", turndown(value))}
-          excludedToolbarItems={["blockType"]}
-          firstRender={firstRender}
-          setFirstRender={setFirstRender}
-        /> */}
         <p className="text-default mt-2 font-sans text-sm font-normal">
           Fique tranquilo! Nós não iremos armazenar a sua senha. Ela será utilizada somente para integrar à
           plataforma de emissão de notas fiscais e será excluída automaticamente em seguida.
@@ -137,7 +125,6 @@ const AddCertificate = () => {
         type="submit"
         className="mt-8 w-full items-center justify-center">
         Finalizar
-        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );
