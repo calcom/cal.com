@@ -352,6 +352,7 @@ export default function Success(props: PageProps) {
             return { ...acc, [id]: slug };
           }, eventTypes);
 
+          console.log(eventSlugs, data);
           setEventTypes(eventSlugs);
         });
       });
@@ -365,6 +366,7 @@ export default function Success(props: PageProps) {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
           const findedBooking = data[0];
 
+          console.log(findedBooking, data);
           setPurchaseDate(dayjs(findedBooking?.createdAt));
           setAppointmentType((_prev) => {
             switch (true) {
@@ -496,10 +498,6 @@ export default function Success(props: PageProps) {
     const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
     const lessThan7DaysFromPurchase = purchaseDate?.isAfter(currentTime.subtract(7, "days"));
     const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
-
-    console.log({ purchaseDate });
-    console.log({ eventTypes });
-    console.log({ appointmentType });
 
     if (!purchaseDate || !eventTypes || !appointmentType) return { description: "", rescheduleRoute: "" };
 
