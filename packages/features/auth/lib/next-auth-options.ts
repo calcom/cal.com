@@ -625,7 +625,7 @@ export const getOptions = ({
         const grantedScopes = account.scope?.split(" ") ?? [];
         if (
           account.provider === "google" &&
-          !(await GoogleService.findGoogleCalendarCredential({
+          !(await GoogleService.findFirstGoogleCalendarCredential({
             userId: user.id as number,
           })) &&
           GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))

@@ -42,7 +42,7 @@ export class GoogleService {
     });
   }
 
-  static async findGoogleCalendarCredential({ userId }: { userId: number }) {
+  static async findFirstGoogleCalendarCredential({ userId }: { userId: number }) {
     return await CredentialRepository.findFirstByAppIdAndUserId({
       appId: "google-calendar",
       userId,
