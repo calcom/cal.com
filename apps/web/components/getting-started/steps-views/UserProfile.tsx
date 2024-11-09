@@ -8,14 +8,17 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
+import { Button, Editor, Icon, ImageUploader, Label, UserAvatar, showToast } from "@calcom/ui";
+
+interface UserProfileProps {
+  nextStep: () => void;
+}
 
 type FormData = {
   bio: string;
 };
 
-const UserProfile = () => {
+const UserProfile = ({ nextStep }: UserProfileProps) => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -33,10 +36,8 @@ const UserProfile = () => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
-      if (context.avatarUrl) {
-        showToast(t("your_user_profile_updated_successfully"), "success");
-        await utils.viewer.me.refetch();
-      } else
+      if (context.avatarUrl) showToast(t("your_user_profile_updated_successfully"), "success");
+      else
         try {
           if (eventTypes?.length === 0) {
             await Promise.all(
@@ -49,11 +50,7 @@ const UserProfile = () => {
           console.error(error);
         }
 
-      await utils.viewer.me.refetch();
-      const redirectUrl = localStorage.getItem("onBoardingRedirect");
-      localStorage.removeItem("onBoardingRedirect");
-
-      redirectUrl ? router.push(redirectUrl) : router.push("/");
+      nextStep();
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
@@ -66,7 +63,6 @@ const UserProfile = () => {
 
     mutation.mutate({
       bio,
-      completedOnboarding: true,
     });
   });
 
@@ -149,7 +145,8 @@ const UserProfile = () => {
         EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
-        {t("finish")}
+        {t("next_step_text")}
+        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );
