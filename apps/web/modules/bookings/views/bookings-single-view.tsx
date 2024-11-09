@@ -346,44 +346,52 @@ export default function Success(props: PageProps) {
           apikey:
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
         },
-      }).then((data) => {
-        data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
-          const eventSlugs = data.reduce((acc, { id, slug }) => {
-            return { ...acc, [id]: slug };
-          }, eventTypes);
+      })
+        .then((data) => {
+          data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
+            const eventSlugs = data.reduce((acc, { id, slug }) => {
+              return { ...acc, [id]: slug };
+            }, eventTypes);
 
-          console.log(eventSlugs, data);
-          setEventTypes(eventSlugs);
+            console.log(eventSlugs, data);
+            setEventTypes(eventSlugs);
+          });
+        })
+        .catch((err) => {
+          console.error(err);
         });
-      });
 
       fetch(getBookedTimeUrl, {
         headers: {
           apikey:
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
         },
-      }).then((data) => {
-        data.json().then(({ data }: { data: BookingInfo[] }) => {
-          const findedBooking = data[0];
+      })
+        .then((data) => {
+          data.json().then(({ data }: { data: BookingInfo[] }) => {
+            const findedBooking = data[0];
 
-          console.log(findedBooking, data);
-          setPurchaseDate(dayjs(findedBooking?.createdAt));
-          setAppointmentType((_prev) => {
-            switch (true) {
-              case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
-                return BookingTypes.URGENT_APPOINTMENT;
-              case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
-                return BookingTypes.MEDIC_APPOINTMENT;
-              case findedBooking?.title.includes(BookingTypes.OCCUPATIONAL_THERAPY):
-                return BookingTypes.OCCUPATIONAL_THERAPY;
-              case findedBooking?.title.includes(BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY):
-                return BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
-              default:
-                return null;
-            }
+            console.log(findedBooking, data);
+            setPurchaseDate(dayjs(findedBooking?.createdAt));
+            setAppointmentType((_prev) => {
+              switch (true) {
+                case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
+                  return BookingTypes.URGENT_APPOINTMENT;
+                case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
+                  return BookingTypes.MEDIC_APPOINTMENT;
+                case findedBooking?.title.includes(BookingTypes.OCCUPATIONAL_THERAPY):
+                  return BookingTypes.OCCUPATIONAL_THERAPY;
+                case findedBooking?.title.includes(BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY):
+                  return BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
+                default:
+                  return null;
+              }
+            });
           });
+        })
+        .catch((err) => {
+          console.error(err);
         });
-      });
     }
   }, [pathname]);
 
