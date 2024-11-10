@@ -18,6 +18,11 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
       title: true,
       startTime: true,
       endTime: true,
+      user: {
+        select: {
+          name: true,
+        },
+      },
       attendees: {
         select: {
           email: true,
