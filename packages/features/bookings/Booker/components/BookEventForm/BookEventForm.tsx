@@ -145,7 +145,7 @@ export const BookEventForm = ({
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button
-              onClick={() => posthog.capture("instant_book_button_clicked")}
+              onClick={() => posthog.capture("instant_booking_button_clicked")}
               type="submit"
               color="primary"
               loading={loadingStates.creatingInstantBooking}>
