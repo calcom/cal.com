@@ -83,8 +83,6 @@ export class OAuthClientUsersService {
       user.defaultScheduleId = defaultSchedule.id;
     }
 
-    await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);
-
     return {
       user,
       tokens: {

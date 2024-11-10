@@ -60,14 +60,22 @@ export function sendWebhookPayload(
     createdAt: new Date().toISOString(),
     webhook,
     data: {
+      title: booking.title,
       bookingId: booking.id,
       bookingUid: booking.uid,
       startTime: booking.startTime,
+      attendees: booking.attendees,
       endTime: booking.endTime,
-      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ? { email: hostEmail } : {}),
+      ...(!!hostEmail ? { hostEmail } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
+        hosts: undefined,
+        users: undefined,
+      },
+      webhook: {
+        ...webhook,
+        secret: undefined,
       },
       message:
         triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
@@ -122,7 +130,8 @@ export const prepareNoShowTrigger = async (
     return;
   }
 
-  const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
+  const dailyVideoReference =
+    booking.references?.filter((reference) => reference.type === "daily_video")?.pop() ?? null;
 
   if (!dailyVideoReference) {
     log.error(
