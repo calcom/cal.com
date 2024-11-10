@@ -1,83 +1,56 @@
 /* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
+import { fillStripeTestCheckout } from "playwright/lib/testUtils";
+
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "serial" });
 
 test.afterEach(({ users }) => users.deleteAll());
-
-test.describe("Onboarding", () => {
-  test.describe("Onboarding v2", () => {
-    test("Onboarding Flow", async ({ page, users }) => {
-      const user = await users.create({ completedOnboarding: false, name: null });
+test.describe("Onboarding v3", () => {
+  test.describe("Google Sign Up", () => {
+    test.beforeEach(async ({ page, users }) => {
+      const user = await users.create({
+        completedOnboarding: false,
+        name: null,
+        identityProvider: "GOOGLE",
+      });
       await user.apiLogin();
       await page.goto("/getting-started");
-      // tests whether the user makes it to /getting-started
-      // after login with completedOnboarding false
+      // Verify landing on first screen
       await page.waitForURL("/getting-started");
+    });
+    test.afterEach(({ users }) => users.deleteAll());
 
-      await test.step("step 1", async () => {
-        // Check required fields
-        await page.locator("button[type=submit]").click();
-        await expect(page.locator("data-testid=required")).toBeVisible();
+    test("Personal Account Flow (1-step)", async ({ page }) => {
+      // Click "For personal use" button
+      await page.getByText("For personal use").click();
 
-        // happy path
-        await page.locator("input[name=username]").fill("new user onboarding");
-        await page.locator("input[name=name]").fill("new user 2");
-        await page.locator("input[role=combobox]").click();
-        await page
-          .locator("*")
-          .filter({ hasText: /^Europe\/London/ })
-          .first()
-          .click();
+      // Click "Continue" button
+      await page.locator("button[type=submit]").click();
 
-        await page.locator("button[type=submit]").click();
+      // Should redirect directly to event-types
+      await page.waitForURL("/event-types");
+    });
 
-        // should be on step 2 now.
-        await expect(page).toHaveURL(/.*connected-calendar/);
+    test("Team Account Flow (4-step) @test", async ({ page }) => {
+      test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for Teams as Stripe is disabled");
 
-        const userComplete = await user.self();
-        expect(userComplete.name).toBe("new user 2");
-      });
+      await page.getByText("With my team").click();
+      await page.locator("button[type=submit]").click();
+      await page.waitForURL("/settings/teams/new");
 
-      await test.step("step 2", async () => {
-        const isDisabled = await page.locator("button[data-testid=save-calendar-button]").isDisabled();
-        await expect(isDisabled).toBe(true);
-        // tests skip button, we don't want to test entire flow.
-        await page.locator("button[data-testid=skip-step]").click();
+      await page.locator('input[name="name"]').fill("NewTeamName");
+      await page.click("[type=submit]");
 
-        await expect(page).toHaveURL(/.*connected-video/);
-      });
-
-      await test.step("step 3", async () => {
-        const isDisabled = await page.locator("button[data-testid=save-video-button]").isDisabled();
-        await expect(isDisabled).toBe(true);
-        // tests skip button, we don't want to test entire flow.
-        await page.locator("button[data-testid=skip-step]").click();
-
-        await expect(page).toHaveURL(/.*setup-availability/);
-      });
-
-      await test.step("step 4", async () => {
-        const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
-        await expect(isDisabled).toBe(false);
-        // same here, skip this step.
-        await page.locator("button[data-testid=save-availability]").click();
-
-        await expect(page).toHaveURL(/.*user-profile/);
-      });
-
-      await test.step("step 5", async () => {
-        await page.locator("button[type=submit]").click();
-
-        // should redirect to /event-types after onboarding
-        await page.waitForURL("/event-types");
-
-        const userComplete = await user.self();
-
-        expect(userComplete.bio?.replace("<p><br></p>", "").length).toBe(0);
-      });
+      await fillStripeTestCheckout(page);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
+      await page.locator("[data-testid=publish-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
   });
 });

@@ -64,8 +64,8 @@ test.describe("Can signup from a team invite", async () => {
     await newPage.fill('input[name="password"]', testUser.password);
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 201 });
     // Since it's a new user, it shoud be redirected to the onboarding
-    await newPage.locator('text="Welcome to Cal.com!"').waitFor();
-    await expect(newPage.locator('text="Welcome to Cal.com!"')).toBeVisible();
+    await newPage.locator('text="How are you planning to use Cal.com?"').waitFor();
+    await expect(newPage.locator('text="How are you planning to use Cal.com?"')).toBeVisible();
     // We don't need the new browser anymore
     await newPage.close();
 
