@@ -426,17 +426,26 @@ export const getPublicEvent = async (
       length: eventWithUserProfiles.length,
     });
   }
-  const membership = await prisma.membership.findFirst({
+  const isTeamAdminOrOwner = await prisma.membership.findFirst({
     where: {
       userId: currentUserId ?? -1,
       teamId: event.teamId ?? -1,
       accepted: true,
-      role: "MEMBER",
+      role: { in: ["ADMIN", "OWNER"] },
     },
   });
 
-  if (event.team?.isPrivate) {
-    users = !currentUserId || membership ? [] : users;
+  const isOrgAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.team?.parentId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
+
+  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+    users = [];
   }
 
   return {
