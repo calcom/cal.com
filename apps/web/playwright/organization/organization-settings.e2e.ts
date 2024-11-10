@@ -9,7 +9,7 @@ test.afterEach(({ users }) => {
   users.deleteAll();
 });
 
-test.describe("organization settings", () => {
+test.describe("Organization Settings", () => {
   test("Setting - 'Allow search engine indexing' inside Org profile settings", async ({ page, users }) => {
     const orgMember = await users.create(undefined, {
       hasTeam: true,
@@ -38,7 +38,7 @@ test.describe("organization settings", () => {
       await expect(mySeoIndexingSwitch).toBeEnabled();
     });
 
-    await test.step("Set to false, disaables and sets to false 'Allow search engine indexing' switch on my-account/general settings", async () => {
+    await test.step("Set to false, disables and sets to false 'Allow search engine indexing' switch on my-account/general settings", async () => {
       await page.goto(`/settings/organizations/profile`);
       const orgSeoIndexingSwitch = await page.getByTestId(`${org.id}-seo-indexing-switch`);
       await orgSeoIndexingSwitch.click();
