@@ -347,7 +347,9 @@ export default function Success(props: PageProps) {
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
         },
       }).then((data) => {
+        console.log("data", data);
         data.json().then((response: EventType[]) => {
+          console.log("response", response);
           const eventSlugs = response.reduce((acc, { id, slug }) => {
             return { ...acc, [id]: slug };
           }, eventTypes);
@@ -363,7 +365,7 @@ export default function Success(props: PageProps) {
         },
       }).then((data) => {
         data.json().then((response: BookingInfo[]) => {
-          const findedBooking = data[0];
+          const findedBooking = response[0];
 
           console.log(findedBooking, data);
           setPurchaseDate(dayjs(findedBooking?.createdAt));
