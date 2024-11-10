@@ -347,14 +347,12 @@ export default function Success(props: PageProps) {
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
         },
       }).then((data) => {
-        data.json().then((response) => {
-          console.log(response, data);
-          // const eventSlugs = data.reduce((acc, { id, slug }) => {
-          //   return { ...acc, [id]: slug };
-          // }, eventTypes);
+        data.json().then((response: EventType[]) => {
+          const eventSlugs = response.reduce((acc, { id, slug }) => {
+            return { ...acc, [id]: slug };
+          }, eventTypes);
 
-          // console.log(eventSlugs, data);
-          // setEventTypes(eventSlugs);
+          setEventTypes(eventSlugs);
         });
       });
 
@@ -364,7 +362,7 @@ export default function Success(props: PageProps) {
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
         },
       }).then((data) => {
-        data.json().then(({ data }: { data: BookingInfo[] }) => {
+        data.json().then((response: BookingInfo[]) => {
           const findedBooking = data[0];
 
           console.log(findedBooking, data);
