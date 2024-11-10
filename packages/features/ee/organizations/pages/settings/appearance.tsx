@@ -161,6 +161,7 @@ const OrgAppearanceView = ({
       />
 
       <SettingsToggle
+        data-testid={`${currentOrg?.id}-seo-indexing-switch`}
         toggleSwitchAtTheEnd={true}
         title={t("seo_indexing")}
         description={t("allow_seo_indexing")}
