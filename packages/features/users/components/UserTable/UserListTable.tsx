@@ -16,6 +16,12 @@ import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  downloadAsCsv,
+  generateCsvRaw,
+  generateHeaderFromReactTable,
+  sanitizeValue,
+} from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -29,6 +35,7 @@ import {
   DataTableFilters,
   DataTableSelectionBar,
   DataTablePagination,
+  showToast,
 } from "@calcom/ui";
 import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
@@ -119,6 +126,7 @@ export function UserListTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -138,6 +146,22 @@ export function UserListTable() {
         placeholderData: keepPreviousData,
       }
     );
+
+  const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
+    {
+      limit: 100, // Max limit
+      searchTerm: debouncedSearchTerm,
+      expand: ["attributes"],
+      filters: columnFilters.map((filter) => ({
+        id: filter.id,
+        value: filter.value as string[],
+      })),
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      enabled: false,
+    }
+  );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -400,6 +424,47 @@ export function UserListTable() {
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const HEADER_IDS_TO_EXCLUDE = ["select", "actions"];
+      const headers = generateHeaderFromReactTable(table, HEADER_IDS_TO_EXCLUDE);
+      if (!headers || !headers.length) {
+        throw new Error("Header is missing.");
+      }
+
+      const result = await exportQuery.refetch();
+      if (!result.data) {
+        throw new Error("There are no members found.");
+      }
+      const allMembers = result.data.pages.flatMap((page) => page.rows ?? []) ?? [];
+      let lastPage = result.data.pages[result.data.pages.length - 1];
+
+      while (lastPage.nextCursor) {
+        const nextPage = await exportQuery.fetchNextPage();
+        if (!nextPage.data) {
+          break;
+        }
+        const latestPageItems = nextPage.data.pages[nextPage.data.pages.length - 1].rows ?? [];
+        allMembers.push(...latestPageItems);
+        lastPage = nextPage.data.pages[nextPage.data.pages.length - 1];
+      }
+
+      const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
+      const csvRaw = generateCsvRaw(headers, allMembers as UserTableUser[], ATTRIBUTE_IDS);
+      if (!csvRaw) {
+        throw new Error("Generating CSV file failed.");
+      }
+
+      const filename = `${org?.name ?? "Org"}_${new Date().toISOString().split("T")[0]}.csv`;
+      downloadAsCsv(csvRaw, filename);
+    } catch (error) {
+      showToast(`Error: ${error}`, "error");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <>
       <DataTable
@@ -410,29 +475,46 @@ export function UserListTable() {
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
-          <div className="flex w-full gap-2">
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-            <DataTableFilters.FilterButton table={table} omit={["member"]} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-            {adminOrOwner && (
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
+            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
+              <DataTableToolbar.SearchBar
+                table={table}
+                onSearch={(value) => setDebouncedSearchTerm(value)}
+                className="sm:max-w-64 max-w-full"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <DataTableToolbar.CTA
                 type="button"
-                color="primary"
-                StartIcon="plus"
-                className="rounded-md"
-                onClick={() =>
-                  dispatch({
-                    type: "INVITE_MEMBER",
-                    payload: {
-                      showModal: true,
-                    },
-                  })
-                }
-                data-testid="new-organization-member-button">
-                {t("add")}
+                color="secondary"
+                StartIcon="file-down"
+                loading={isDownloading}
+                onClick={() => handleDownload()}
+                data-testid="export-members-button">
+                {t("download")}
               </DataTableToolbar.CTA>
-            )}
+              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
+              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.ColumnVisibilityButton table={table} />
+              {adminOrOwner && (
+                <DataTableToolbar.CTA
+                  type="button"
+                  color="primary"
+                  StartIcon="plus"
+                  className="rounded-md"
+                  onClick={() =>
+                    dispatch({
+                      type: "INVITE_MEMBER",
+                      payload: {
+                        showModal: true,
+                      },
+                    })
+                  }
+                  data-testid="new-organization-member-button">
+                  {t("add")}
+                </DataTableToolbar.CTA>
+              )}
+            </div>
           </div>
           <div className="flex gap-2 justify-self-start">
             <DataTableFilters.ActiveFilters table={table} />

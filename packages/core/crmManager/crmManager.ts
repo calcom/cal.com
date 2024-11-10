@@ -72,4 +72,11 @@ export default class CrmManager {
     const createdContacts = (await crmService?.createContacts(contactsToCreate, organizerEmail)) || [];
     return createdContacts;
   }
+
+  public async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+    const crmService = await this.getCrmService(this.credential);
+    if (crmService?.handleAttendeeNoShow) {
+      await crmService.handleAttendeeNoShow(bookingUid, attendees);
+    }
+  }
 }

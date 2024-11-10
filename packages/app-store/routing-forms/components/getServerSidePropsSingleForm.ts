@@ -91,7 +91,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   const { user: u, ...formWithoutUser } = form;
 
-  const formWithoutProfilInfo = {
+  const formWithoutProfileInfo = {
     ...formWithoutUser,
     team: form.team
       ? {
@@ -103,7 +103,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
 
-  const formWithUserInfoProfil = {
+  const formWithUserInfoProfile = {
     ...form,
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
@@ -111,9 +111,9 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: await ssr.dehydrate(),
-      form: await getSerializableForm({ form: formWithoutProfilInfo }),
+      form: await getSerializableForm({ form: formWithoutProfileInfo }),
       enrichedWithUserProfileForm: await getSerializableForm({
-        form: enrichFormWithMigrationData(formWithUserInfoProfil),
+        form: enrichFormWithMigrationData(formWithUserInfoProfile),
       }),
     },
   };
