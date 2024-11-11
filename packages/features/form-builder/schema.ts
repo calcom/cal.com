@@ -394,11 +394,9 @@ export const fieldTypesSchemaMap: Partial<
   },
   textarea: {
     preprocess: ({ response }) => {
-      console.log("inside textarea preprocessing");
       return response.trim();
     },
     superRefine: ({ field, response, ctx, m }) => {
-      console.log("inside textare superrefine");
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
       const value = response ?? "";
       const maxLength = field.maxLength ?? fieldTypeConfig.supportsLengthCheck?.maxLength;
