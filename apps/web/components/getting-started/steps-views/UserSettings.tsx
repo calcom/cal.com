@@ -80,25 +80,21 @@ const UserSettings = (props: IUserSettingsProps) => {
   }, [telemetry]);
 
   const createDefaultAvailabilityAndEventTypes = async () => {
-    if (selectedOption === "personal") {
-      await Promise.all([
-        // create default event types
-        ...(eventTypes?.length === 0
-          ? DEFAULT_EVENT_TYPES.map((event) => createEventType.mutate(event))
-          : []),
-        // create default availability
-        ...(availabilities?.schedules.length === 0
-          ? [
-              createSchedule.mutate({
-                name: t("default_schedule_name"),
-                ...DEFAULT_SCHEDULE,
-              }),
-            ]
-          : []),
-      ]);
+    await Promise.all([
+      // create default event types
+      ...(eventTypes?.length === 0 ? DEFAULT_EVENT_TYPES.map((event) => createEventType.mutate(event)) : []),
+      // create default availability
+      ...(availabilities?.schedules.length === 0
+        ? [
+            createSchedule.mutate({
+              name: t("default_schedule_name"),
+              ...DEFAULT_SCHEDULE,
+            }),
+          ]
+        : []),
+    ]);
 
-      await utils.viewer.me.refetch();
-    }
+    await utils.viewer.me.refetch();
   };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {

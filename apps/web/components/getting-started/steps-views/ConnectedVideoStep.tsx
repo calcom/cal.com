@@ -32,6 +32,7 @@ const ConnectedVideoStep = () => {
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
 
   const handleSubmit = () => {
+    // The only way to land here is Email Sign up + Personal Account type
     telemetry.event(telemetryEventTypes.onboardingFinished);
     updateProfile.mutate({
       completedOnboarding: true,
