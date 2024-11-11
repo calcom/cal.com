@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { createEmailExclusionRegex } from "@calcom/lib/createEmailExlusionRegex";
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -250,30 +251,6 @@ export const fieldSchema = baseFieldSchema.merge(
   })
 );
 
-function createExclusionRegex(exclusionString: string) {
-  const exclusions = exclusionString.split(",");
-  // Escape each exclusion and join them with "|"
-  const pattern = exclusions
-    .map((exclusion) => {
-      // Escape special characters in the exclusion term
-      const escapedExclusion = exclusion.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-      // Handle cases:
-      // 1. Full email match (e.g., spammer@cal.com)
-      // 2. Domain only match (e.g., gmail.com or @gmail.com)
-      // 3. Keyword match (e.g., "spammer" to match any domain with "spammer")
-
-      if (escapedExclusion.includes("@")) {
-        return `(^${escapedExclusion}$)|(@${escapedExclusion.replace("@", "")}$)`;
-      } else {
-        return `(@${escapedExclusion}$|@${escapedExclusion}\\b|^${escapedExclusion}$)`;
-      }
-    })
-    .join("|");
-
-  return new RegExp(pattern, "i");
-}
-
 export const fieldsSchema = z.array(fieldSchema);
 
 export const fieldTypesSchemaMap: Partial<
@@ -315,7 +292,7 @@ export const fieldTypesSchemaMap: Partial<
 
       if (!exlusionString) return;
 
-      const exlusionRegex = createExclusionRegex(exlusionString);
+      const exlusionRegex = createEmailExclusionRegex(exlusionString);
 
       if (exlusionRegex.test(value)) {
         ctx.addIssue({
