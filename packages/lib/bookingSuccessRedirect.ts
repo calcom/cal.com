@@ -24,7 +24,7 @@ function getNewSearchParams(args: {
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "attendees" | "user"
 >;
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
@@ -35,11 +35,65 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "startTime",
     "endTime",
     "location",
+    "attendees",
+    "user",
   ];
 
-  return (Object.keys(booking) as BookingResponseKey[])
+  type ResultType = {
+    [key in BookingResponseKey]?: SuccessRedirectBookingType[key];
+  } & {
+    hostName?: string[];
+    attendeeName?: string | null;
+  };
+
+  const result = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
+    .reduce<ResultType>((obj, key) => {
+      if (key === "user" && booking.user?.name) {
+        return { ...obj, hostName: [...(obj.hostName || []), booking.user.name] };
+      }
+
+      if (key === "attendees" && Array.isArray(booking.attendees)) {
+        const attendeeName = booking.attendees[0]?.name || null;
+        const { hostNames, guestEmails } = booking.attendees.slice(1).reduce(
+          (acc, attendee) => {
+            if (attendee.name) {
+              acc.hostNames.push(attendee.name);
+            } else if (attendee.email) {
+              acc.guestEmails.push(attendee.email);
+            }
+            return acc;
+          },
+          { hostNames: [], guestEmails: [] } as { hostNames: string[]; guestEmails: string[] }
+        );
+        return {
+          ...obj,
+          attendeeName,
+          hostName: [...(obj.hostName || []), ...hostNames],
+          guestEmail: guestEmails.length > 0 ? guestEmails : undefined,
+        };
+      }
+      return { ...obj, [key]: booking[key] };
+    }, {});
+
+  const queryCompatibleParams: Record<string, string | boolean | null | undefined> = {
+    ...Object.fromEntries(
+      Object.entries(result).map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return [key, value.join(", ")];
+        }
+        if (typeof value === "object" && value !== null) {
+          // Skip complex objects (user, attendees) as we are extracting only needed fields
+          return [key, undefined];
+        }
+        return [key, value];
+      })
+    ),
+    hostName: result.hostName?.join(", "),
+    attendeeName: result.attendeeName || undefined,
+  };
+
+  return queryCompatibleParams;
 };
 
 export const useBookingSuccessRedirect = () => {
@@ -78,7 +132,6 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-
       newSearchParams.forEach((value, key) => {
         url.searchParams.append(key, value);
       });
