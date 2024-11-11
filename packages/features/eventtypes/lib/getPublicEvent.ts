@@ -209,7 +209,7 @@ export const getPublicEvent = async (
   org: string | null,
   prisma: PrismaClient,
   fromRedirectOfNonOrgLink: boolean,
-  currentUserId: number | undefined
+  currentUserId?: number
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
