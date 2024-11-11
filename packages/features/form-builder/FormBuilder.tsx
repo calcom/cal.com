@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -573,6 +573,10 @@ function FieldEditDialog({
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
+                    {!!fieldType?.supportsExlusion ? (
+                      <FieldWithExlusionSupport containerClassName="mt-6" fieldForm={fieldForm} />
+                    ) : null}
+
                     <Controller
                       name="required"
                       control={fieldForm.control}
@@ -614,6 +618,42 @@ function FieldEditDialog({
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FieldWithExlusionSupport({
+  fieldForm,
+  containerClassName = "",
+  className,
+  ...rest
+}: {
+  fieldForm: UseFormReturn<RhfFormField>;
+  containerClassName?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  const { t } = useLocale();
+  const fieldType = getCurrentFieldType(fieldForm);
+  if (!fieldType.supportsExlusion && fieldType.value !== "email") {
+    return null;
+  }
+
+  return (
+    <div>
+      <InputField
+        {...fieldForm.register("filterString")}
+        containerClassName={containerClassName}
+        label={t("exclude_emails_that_contain")}
+        type="text"
+        onChange={(e) => {
+          const targetValues = e.target.value.split(/[\n,]/);
+          const emails =
+            targetValues.length === 1
+              ? targetValues[0].trim().toLocaleLowerCase()
+              : targetValues.map((email) => email.trim().toLocaleLowerCase()).join(",");
+          fieldForm.setValue("filterString", emails);
+          fieldForm.trigger("filterString");
+        }}
+      />
+    </div>
   );
 }
 

@@ -99,6 +99,13 @@ const baseFieldSchema = z.object({
    * @requires supportsLengthCheck = true
    */
   maxLength: z.number().optional(),
+
+  /**
+   * It is the emails that user want to exlude
+   * It is used for types with `supportsExlusion= true`.
+   * @requires supportsExlusion= true
+   * */
+  filterString: z.string().optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -137,6 +144,7 @@ export const fieldTypeConfigSchema = z
         maxLength: z.number(),
       })
       .optional(),
+    supportsExlusion: z.boolean().default(false).optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -242,6 +250,30 @@ export const fieldSchema = baseFieldSchema.merge(
   })
 );
 
+function createExclusionRegex(exclusionString: string) {
+  const exclusions = exclusionString.split(",");
+  // Escape each exclusion and join them with "|"
+  const pattern = exclusions
+    .map((exclusion) => {
+      // Escape special characters in the exclusion term
+      const escapedExclusion = exclusion.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      // Handle cases:
+      // 1. Full email match (e.g., spammer@cal.com)
+      // 2. Domain only match (e.g., gmail.com or @gmail.com)
+      // 3. Keyword match (e.g., "spammer" to match any domain with "spammer")
+
+      if (escapedExclusion.includes("@")) {
+        return `(^${escapedExclusion}$)|(@${escapedExclusion.replace("@", "")}$)`;
+      } else {
+        return `(@${escapedExclusion}$|@${escapedExclusion}\\b|^${escapedExclusion}$)`;
+      }
+    })
+    .join("|");
+
+  return new RegExp(pattern, "i");
+}
+
 export const fieldsSchema = z.array(fieldSchema);
 
 export const fieldTypesSchemaMap: Partial<
@@ -273,6 +305,26 @@ export const fieldTypesSchemaMap: Partial<
     }
   >
 > = {
+  email: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ field, response, ctx, m }) => {
+      const value = response ?? "";
+      const exlusionString = field.filterString;
+
+      if (!exlusionString) return;
+
+      const exlusionRegex = createExclusionRegex(exlusionString);
+
+      if (exlusionRegex.test(value)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`try_work_email`),
+        });
+      }
+    },
+  },
   name: {
     preprocess: ({ response, field }) => {
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
@@ -342,9 +394,11 @@ export const fieldTypesSchemaMap: Partial<
   },
   textarea: {
     preprocess: ({ response }) => {
+      console.log("inside textarea preprocessing");
       return response.trim();
     },
     superRefine: ({ field, response, ctx, m }) => {
+      console.log("inside textare superrefine");
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
       const value = response ?? "";
       const maxLength = field.maxLength ?? fieldTypeConfig.supportsLengthCheck?.maxLength;

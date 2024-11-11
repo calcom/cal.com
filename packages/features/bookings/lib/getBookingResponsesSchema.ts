@@ -169,7 +169,6 @@ function preprocess<T extends z.ZodType>({
               message: m("email_validation_error"),
             });
           }
-          continue;
         }
 
         const fieldTypeSchema = fieldTypesSchemaMap[bookingField.type as keyof typeof fieldTypesSchemaMap];
