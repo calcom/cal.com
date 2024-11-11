@@ -7,8 +7,8 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import router from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -81,22 +81,21 @@ function TeamPage({
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative cursor-pointer border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
-          )}>
-          <div className="px-6 py-4 ">
-            <Link
-              href={{
-                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                query: queryParamsToForward,
-              }}
-              onClick={async () => {
-                sdkActionManager?.fire("eventTypeSelected", {
-                  eventType: type,
-                });
-              }}
-              data-testid="event-type-link"
-              className="flex justify-between">
+          )}
+          onClick={() => {
+            router.push({
+              pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+              query: queryParamsToForward,
+            });
+            sdkActionManager?.fire("eventTypeSelected", { eventType: type });
+          }}
+          role="link"
+          title={`${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`}
+          data-testid="event-type-link">
+          <div className="px-6 py-4">
+            <div className="flex justify-between">
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
@@ -111,7 +110,7 @@ function TeamPage({
                   users={type.users}
                 />
               </div>
-            </Link>
+            </div>
           </div>
         </li>
       ))}
@@ -126,8 +125,14 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full rounded-md transition">
-              <Link href={`/${ch.slug}`} className="flex items-center justify-between">
+            <li
+              key={i}
+              className="hover:bg-muted w-full cursor-pointer rounded-md transition"
+              onClick={() => router.push(`/${ch.slug}`)}
+              role="link"
+              title={`/${ch.slug}`}
+              data-testid={`${ch.slug}-team-link`}>
+              <div className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
                     <span className="text-default text-sm font-bold">{ch.name}</span>
@@ -144,7 +149,7 @@ function TeamPage({
                   truncateAfter={4}
                   users={team.members.filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)}
                 />
-              </Link>
+              </div>
             </li>
           );
         })}
