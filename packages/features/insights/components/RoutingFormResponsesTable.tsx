@@ -27,7 +27,8 @@ export function RoutingFormResponsesTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const { dateRange, selectedTeamId, isAll, initialConfig, selectedRoutingFormId } = filter;
+  const { dateRange, selectedTeamId, isAll, initialConfig, selectedRoutingFormId, selectedMemberUserId } =
+    filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
@@ -37,6 +38,7 @@ export function RoutingFormResponsesTable() {
         teamId: selectedTeamId,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
+        userId: selectedMemberUserId ?? undefined,
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
         limit: 20,
@@ -97,11 +99,6 @@ export function RoutingFormResponsesTable() {
             </div>
           );
         },
-      }),
-      columnHelper.accessor("createdAt", {
-        id: "submittedOn",
-        header: t("submitted_on"),
-        cell: (info) => dayjs(info.getValue()).format("MMM D, YYYY HH:mm"),
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -13,6 +13,7 @@ type RoutingFormInsightsTeamFilter = {
 type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   startDate?: string;
   endDate?: string;
+  userId?: number | null;
 };
 
 class RoutingEventsInsights {
@@ -60,6 +61,7 @@ class RoutingEventsInsights {
     isAll = false,
     organizationId,
     routingFormId,
+    userId,
   }: RoutingFormInsightsFilter) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
@@ -78,6 +80,11 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
+      ...(userId && {
+        routedToBooking: {
+          userId,
+        },
+      }),
       form: formsWhereCondition,
     };
 
@@ -141,6 +148,7 @@ class RoutingEventsInsights {
     routingFormId,
     cursor,
     limit,
+    userId,
   }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
@@ -157,6 +165,11 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
+      ...(userId && {
+        routedToBooking: {
+          userId,
+        },
+      }),
       form: formsTeamWhereCondition,
     };
 

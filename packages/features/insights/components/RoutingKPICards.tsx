@@ -26,7 +26,6 @@ export const RoutingKPICards = () => {
   const [startDate, endDate] = dateRange;
 
   const { selectedTeamId: teamId } = filter;
-  console.log({ selectedRoutingFormId });
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
     {
@@ -36,6 +35,7 @@ export const RoutingKPICards = () => {
       eventTypeId: selectedEventTypeId ?? undefined,
       isAll,
       routingFormId: selectedRoutingFormId ?? undefined,
+      userId: selectedMemberUserId ?? undefined,
     },
     {
       staleTime: 30000,

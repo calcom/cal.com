@@ -1574,6 +1574,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
         cursor: input.cursor,
+        userId: input.userId ?? null,
         limit: input.limit,
       });
     }),
