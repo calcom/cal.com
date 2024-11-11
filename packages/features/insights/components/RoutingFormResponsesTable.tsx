@@ -31,8 +31,12 @@ type RoutingFormTableRow = {
   [key: string]: any;
 };
 
+// Upper case the first letter of each word and replace underscores with spaces
 function bookingStatusToText(status: BookingStatus) {
-  return status.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  return status
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function RoutingFormResponsesTable() {
@@ -195,9 +199,11 @@ export function RoutingFormResponsesTable() {
               </Badge>
             );
 
-          let badgeVariant: BadgeProps["variant"] = "default";
+          let badgeVariant: BadgeProps["variant"] = "success";
           switch (booking.status) {
             case BookingStatus.REJECTED:
+            case BookingStatus.AWAITING_HOST:
+            case BookingStatus.PENDING:
             case BookingStatus.CANCELLED:
               badgeVariant = "warning";
               break;
