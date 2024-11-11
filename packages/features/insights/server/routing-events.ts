@@ -225,11 +225,13 @@ class RoutingEventsInsights {
     });
 
     const fields = routingFormFieldsSchema.parse(formFields.map((f) => f.fields).flat());
-    const headers = fields?.map((f) => ({
-      id: f.id,
-      label: f.label,
-      options: f.options,
-    }));
+    const headers = fields?.map((f) => {
+      return {
+        id: f.id,
+        label: f.label,
+        options: f.options,
+      };
+    });
 
     // Parse response data
     const parsedResponses = responses.map((r) => {

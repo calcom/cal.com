@@ -14,15 +14,19 @@ import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { Badge, Avatar, Icon } from "@calcom/ui";
+import { Badge, Avatar, Icon, Tooltip } from "@calcom/ui";
 import { DataTable, useFetchMoreOnBottomReached } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
 type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
-type RoutingFormDataWithHeaders = RoutingFormResponse & {
-  [key: string]: { id: string; value: string };
+type RoutingFormTableRow = {
+  id: number;
+  formName: string;
+  createdAt: Date;
+  routedToBooking: RoutingFormResponse["routedToBooking"];
+  [key: string]: any;
 };
 
 export function RoutingFormResponsesTable() {
@@ -61,21 +65,82 @@ export function RoutingFormResponsesTable() {
   const totalDBRowCount = data?.pages?.[0]?.total ?? 0;
   const totalFetched = flatData.length;
 
-  const columnHelper = createColumnHelper<RoutingFormDataWithHeaders>();
+  const processedData = useMemo(() => {
+    return flatData.map((response) => {
+      const row: RoutingFormTableRow = {
+        id: response.id,
+        formName: response.form.name,
+        createdAt: response.createdAt,
+        routedToBooking: response.routedToBooking,
+      };
+
+      // Get the headers from the first page
+      const headers = data?.pages?.[0]?.headers;
+
+      Object.entries(response.response).forEach(([fieldId, field]) => {
+        const header = headers?.find((h) => h.id === fieldId);
+
+        if (header?.options) {
+          if (Array.isArray(field.value)) {
+            // Map the IDs to their corresponding labels for array values
+            const labels = field.value.map((id) => {
+              const option = header.options?.find((opt) => opt.id === id);
+              return option?.label ?? id;
+            });
+            row[fieldId] = labels;
+          } else {
+            // Handle single value case
+            const option = header.options?.find((opt) => opt.id === field.value);
+            row[fieldId] = option?.label ?? field.value;
+          }
+        } else {
+          row[fieldId] = field.value;
+        }
+      });
+
+      return row;
+    });
+  }, [flatData, data?.pages]);
+
+  const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor("form.name", {
+      columnHelper.accessor("formName", {
         id: "formName",
         header: t("form_name"),
       }),
       ...(data?.pages?.[0]?.headers?.map((header) =>
-        columnHelper.accessor(header.label, {
+        columnHelper.accessor(header.id, {
           id: header.id,
           header: header.label,
           cell: (info) => {
-            const value = info.getValue();
-            return value?.value;
+            let value = info.getValue();
+
+            value = Array.isArray(value) ? value : [value];
+
+            return (
+              <div className="flex flex-wrap gap-1">
+                {value.length > 2 ? (
+                  <>
+                    {value.slice(0, 2).map((v, i) => (
+                      <Badge key={i} variant="gray">
+                        {v}
+                      </Badge>
+                    ))}
+                    <Tooltip content={value.slice(2).join(", ")}>
+                      <Badge variant="gray">+{value.length - 2}</Badge>
+                    </Tooltip>
+                  </>
+                ) : (
+                  value.map((v, i) => (
+                    <Badge key={i} variant="gray">
+                      {v}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            );
           },
         })
       ) ?? []),
@@ -115,12 +180,11 @@ export function RoutingFormResponsesTable() {
         },
       }),
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, data]
+    [data?.pages, t]
   );
 
-  const table = useReactTable<RoutingFormDataWithHeaders>({
-    data: flatData,
+  const table = useReactTable<RoutingFormTableRow>({
+    data: processedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
