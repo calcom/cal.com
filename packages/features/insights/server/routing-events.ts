@@ -18,6 +18,7 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   startDate?: string;
   endDate?: string;
   userId?: number | null;
+  fieldFilters?: Record<string, string[]>;
 };
 
 class RoutingEventsInsights {
@@ -153,6 +154,7 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
+    fieldFilters,
   }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
@@ -174,6 +176,17 @@ class RoutingEventsInsights {
           userId,
         },
       }),
+      ...(fieldFilters &&
+        Object.keys(fieldFilters).length > 0 && {
+          AND: Object.entries(fieldFilters).map(([fieldId, values]) => ({
+            OR: values.map((value) => ({
+              response: {
+                path: [`$.${fieldId}.value`],
+                array_contains: value,
+              },
+            })),
+          })),
+        }),
       form: formsTeamWhereCondition,
     };
 
@@ -193,6 +206,8 @@ class RoutingEventsInsights {
         },
         routedToBooking: {
           select: {
+            uid: true,
+            status: true,
             createdAt: true,
             user: {
               select: { id: true, name: true, email: true, avatarUrl: true },
@@ -245,6 +260,32 @@ class RoutingEventsInsights {
       headers,
       nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
     };
+  }
+
+  static async getRoutingFormFieldOptions({
+    teamId,
+    isAll,
+    routingFormId,
+    organizationId,
+  }: RoutingFormInsightsTeamFilter) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      routingFormId,
+      organizationId,
+    });
+
+    const routingForms = await prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        fields: true,
+      },
+    });
+
+    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+
+    return fields;
   }
 }
 

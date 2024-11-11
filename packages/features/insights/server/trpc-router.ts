@@ -1579,4 +1579,11 @@ export const insightsRouter = router({
         limit: input.limit,
       });
     }),
+  getRoutingFormFieldOptions: userBelongsToTeamProcedure
+    .input(
+      z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
+    )
+    .query(async ({ input }) => {
+      return await RoutingEventsInsights.getRoutingFormFieldOptions(input);
+    }),
 });

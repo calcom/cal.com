@@ -603,6 +603,7 @@ model Booking {
   createdAt                    DateTime                       @default(now())
   updatedAt                    DateTime?
   status                       BookingStatus                  @default(ACCEPTED)
+  okin
   paid                         Boolean                        @default(false)
   payment                      Payment[]
   destinationCalendar          DestinationCalendar?           @relation(fields: [destinationCalendarId], references: [id])

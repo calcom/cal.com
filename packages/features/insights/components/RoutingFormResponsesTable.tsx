@@ -8,14 +8,16 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
+import Link from "next/link";
 import { useRef, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { Badge, Avatar, Icon } from "@calcom/ui";
-import { DataTable, useFetchMoreOnBottomReached } from "@calcom/ui";
+import { DataTable, useFetchMoreOnBottomReached, Badge, Avatar, Icon, Button } from "@calcom/ui";
+import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
 
@@ -28,6 +30,10 @@ type RoutingFormTableRow = {
   routedToBooking: RoutingFormResponse["routedToBooking"];
   [key: string]: any;
 };
+
+function bookingStatusToText(status: BookingStatus) {
+  return status.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export function RoutingFormResponsesTable() {
   const { t } = useLocale();
@@ -70,6 +76,7 @@ export function RoutingFormResponsesTable() {
       const row: RoutingFormTableRow = {
         id: response.id,
         formName: response.form.name,
+        formId: response.form.id,
         createdAt: response.createdAt,
         routedToBooking: response.routedToBooking,
       };
@@ -109,6 +116,28 @@ export function RoutingFormResponsesTable() {
       columnHelper.accessor("formName", {
         id: "formName",
         header: t("form_name"),
+        cell: (info) => {
+          const routingFormId = info.row.original.formId;
+          return (
+            <div className="relative">
+              <span className="group/form_name inline-flex items-center">
+                <span className="inline-block">{info.getValue().slice(0, 4)}</span>
+                <span className="inline-block group-hover/form_name:blur-[1px]">
+                  {info.getValue().slice(4)}
+                </span>
+                <Button
+                  href={`/apps/routing-forms/form-edit/${routingFormId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="secondary"
+                  size="sm"
+                  className="invisible absolute rounded-lg rounded-md group-hover/form_name:visible group-hover/form_name:translate-x-0 group-hover/form_name:opacity-100">
+                  Open
+                </Button>
+              </span>
+            </div>
+          );
+        },
       }),
       ...(data?.pages?.[0]?.headers?.map((header) =>
         columnHelper.accessor(header.id, {
@@ -131,7 +160,7 @@ export function RoutingFormResponsesTable() {
                     ))}
                     <div className="group/badge relative">
                       <Badge variant="gray">+{value.length - 2}</Badge>
-                      <div className="invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md bg-white p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
+                      <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
                         <div className="flex flex-col gap-1">
                           {value.slice(2).map((v: string, i: number) => (
                             <span key={i} className="text-sm text-gray-600">
@@ -166,27 +195,54 @@ export function RoutingFormResponsesTable() {
               </Badge>
             );
 
+          let badgeVariant: BadgeProps["variant"] = "default";
+          switch (booking.status) {
+            case BookingStatus.ACCEPTED:
+              badgeVariant = "success";
+              break;
+            case BookingStatus.PENDING:
+              badgeVariant = "warning";
+              break;
+            case BookingStatus.AWAITING_HOST:
+              badgeVariant = "warning";
+              break;
+            case BookingStatus.REJECTED:
+              badgeVariant = "error";
+              break;
+            case BookingStatus.CANCELLED:
+              badgeVariant = "error";
+              break;
+          }
+
           return (
             <div className="group/booking_status relative flex items-center gap-2">
               <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-              <Badge variant="success">{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
-              <div className="invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md bg-white p-2 opacity-0 shadow-md transition-all duration-200 group-hover/booking_status:visible group-hover/booking_status:translate-y-0 group-hover/booking_status:opacity-100">
-                <div className="flex items-center gap-3">
-                  <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-                  <div>
-                    <p className="text-sm font-medium">{booking.user.name}</p>
-                    <p className="group/booking_status_email flex items-center text-xs text-gray-600">
-                      <span className="truncate">{booking.user.email}</span>
-                      <button
-                        className="invisible ml-2 group-hover/booking_status_email:visible"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          copyToClipboard(booking.user?.email ?? "");
-                        }}>
-                        <Icon name="copy" />
-                      </button>
-                    </p>
+              <Link href={`/booking/${booking.uid}`}>
+                <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
+              </Link>
+              <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/booking_status:visible group-hover/booking_status:translate-y-0 group-hover/booking_status:opacity-100 ">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+                    <div>
+                      <p className="text-sm font-medium">{booking.user.name}</p>
+                      <p className="group/booking_status_email flex items-center text-xs text-gray-600">
+                        <span className="truncate">{booking.user.email}</span>
+                        <button
+                          className="invisible ml-2 group-hover/booking_status_email:visible"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            copyToClipboard(booking.user?.email ?? "");
+                          }}>
+                          <Icon name="copy" />
+                        </button>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
+                    <span>Status:</span>
+                    <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>
                   </div>
                 </div>
               </div>
