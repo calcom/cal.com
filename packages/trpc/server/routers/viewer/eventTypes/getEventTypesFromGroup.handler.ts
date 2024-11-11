@@ -178,7 +178,7 @@ const filterEventTypes = async (
   });
 
   log.info(
-    "mappedEventTypes before andafter filtering",
+    "mappedEventTypes before and after filtering",
     safeStringify({
       beforeFiltering: eventTypes,
       afterFiltering: filteredEventTypes,
