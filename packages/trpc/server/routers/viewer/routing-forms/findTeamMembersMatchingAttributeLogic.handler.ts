@@ -151,13 +151,25 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
   const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
   const matchingHosts = eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id));
+
+  if (matchingTeamMembers.length !== matchingHosts.length) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Looks like not all matching team members are assigned to the event",
+    });
+  }
+
   console.log("_enablePerf, _concurrency", _enablePerf, _concurrency);
   if (_enablePerf) {
     const serverTimingHeader = getServerTimingHeader(teamMembersMatchingAttributeLogicTimeTaken);
     ctx.res?.setHeader("Server-Timing", serverTimingHeader);
     console.log("Server-Timing", serverTimingHeader);
   }
-  const { users: orderedLuckyUsers, perUserData } = matchingTeamMembers.length
+  const {
+    users: orderedLuckyUsers,
+    perUserData,
+    usersAndTheirBookingShortfalls,
+  } = matchingTeamMembers.length
     ? await getOrderedListOfLuckyUsers(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         // Assuming all are available
         availableUsers: [matchingTeamMembers[0], ...matchingTeamMembers.slice(1)],
@@ -167,7 +179,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
         },
         allRRHosts: matchingHosts,
       })
-    : { users: [], perUserData: null };
+    : { users: [], perUserData: null, usersAndTheirBookingShortfalls: [] };
 
   return {
     troubleshooter,
@@ -175,6 +187,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     checkedFallback,
     mainWarnings,
     fallbackWarnings,
+    usersAndTheirBookingShortfalls,
     result: {
       users: orderedLuckyUsers.map((user) => ({
         id: user.id,
@@ -182,6 +195,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
         email: user.email,
       })),
       perUserData,
+      usersAndTheirBookingShortfalls,
     },
   };
 };

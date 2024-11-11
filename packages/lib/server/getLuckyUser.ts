@@ -169,7 +169,7 @@ function filterUsersBasedOnWeights<
   bookingsOfNotAvailableUsers: PartialBooking[];
   allRRHostsBookings: PartialBooking[];
   allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
-}): [T, ...T[]] {
+}) {
   //get all bookings of all other RR hosts that are not available
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
@@ -196,7 +196,6 @@ function filterUsersBasedOnWeights<
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     const targetPercentage = (user.weight ?? 100) / totalWeight;
-
     const userBookings = bookingsOfAvailableUsers.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
@@ -236,10 +235,27 @@ function filterUsersBasedOnWeights<
     userIdsWithMaxShortfallAndWeight.has(user.id)
   );
 
+  console.log({
+    allRRHosts,
+    totalWeight,
+    totalCalibration,
+    maxShortfall,
+    allHostsWithCalibration: JSON.stringify(allHostsWithCalibration),
+    usersWithMaxShortfall: usersWithMaxShortfall.map((user) => user.id),
+    usersWithBookingShortfalls: usersWithBookingShortfalls.map((user) => user.id),
+    remainingUsersAfterWeightFilter: remainingUsersAfterWeightFilter.map((user) => user.id),
+  });
+
   if (!isNonEmptyArray(remainingUsersAfterWeightFilter)) {
     throw new Error("Internal Error: Weight filter should never return length=0.");
   }
-  return remainingUsersAfterWeightFilter;
+  return {
+    remainingUsersAfterWeightFilter,
+    usersAndTheirBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
+      id: user.id,
+      bookingShortfall: user.bookingShortfall,
+    })),
+  };
 }
 
 async function getCurrentMonthsBookings({
@@ -315,13 +331,17 @@ export function getLuckyUser_requiresDataToBePreFetched<
 
   // there is only one user
   if (availableUsers.length === 1) {
-    return availableUsers[0];
+    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
   }
 
   switch (distributionMethod) {
     case DistributionMethod.PRIORITIZE_AVAILABILITY: {
+      let usersAndTheirBookingShortfalls: { id: number; bookingShortfall: number }[] = [];
       if (eventType.isRRWeightsEnabled) {
-        availableUsers = filterUsersBasedOnWeights({
+        const {
+          remainingUsersAfterWeightFilter,
+          usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
+        } = filterUsersBasedOnWeights({
           ...getLuckyUserParams,
           availableUsers,
           bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
@@ -329,17 +349,29 @@ export function getLuckyUser_requiresDataToBePreFetched<
           allRRHostsBookings,
           allRRHostsCreatedThisMonth,
         });
+        availableUsers = remainingUsersAfterWeightFilter;
+        usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
       }
-      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-      // No need to round-robin through the only user, return early also.
-      if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
-      // TS is happy.
-      return leastRecentlyBookedUser({
-        ...getLuckyUserParams,
-        availableUsers: highestPriorityUsers,
-        bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-        organizersWithLastCreated,
+      const highestPriorityUsers = getUsersWithHighestPriority({
+        availableUsers,
       });
+      // No need to round-robin through the only user, return early also.
+      if (highestPriorityUsers.length === 1) {
+        return {
+          luckyUser: highestPriorityUsers[0],
+          usersAndTheirBookingShortfalls,
+        };
+      }
+      // TS is happy.
+      return {
+        luckyUser: leastRecentlyBookedUser({
+          ...getLuckyUserParams,
+          availableUsers: highestPriorityUsers,
+          bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+          organizersWithLastCreated,
+        }),
+        usersAndTheirBookingShortfalls,
+      };
     }
   }
 }
@@ -477,12 +509,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
 ) {
   const { availableUsers } = getLuckyUserParams;
   // Return early if no users available
-  if (!availableUsers.length) {
-    return { users: [], perUserData: null };
-  }
-
-  // Return single user array if only one user
-  if (availableUsers.length === 1) {
+  if (!availableUsers.length || availableUsers.length === 1) {
     return { users: availableUsers, perUserData: null };
   }
 
@@ -514,17 +541,23 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   const perUserBookingsCount: Record<number, number> = {};
 
   const startTime = performance.now();
+  let usersAndTheirBookingShortfalls: { id: number; bookingShortfall: number }[] = [];
   // Keep getting lucky users until none remain
   while (remainingAvailableUsers.length > 0) {
-    const luckyUser = getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
-      ...getLuckyUserParams,
-      availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
-      currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
-      bookingsOfNotAvailableUsers,
-      allRRHostsBookings,
-      allRRHostsCreatedThisMonth,
-      organizersWithLastCreated,
-    });
+    const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
+      getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
+        ...getLuckyUserParams,
+        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
+        currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
+        bookingsOfNotAvailableUsers,
+        allRRHostsBookings,
+        allRRHostsCreatedThisMonth,
+        organizersWithLastCreated,
+      });
+
+    if (!usersAndTheirBookingShortfalls.length) {
+      usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+    }
 
     if (orderedUsersSet.has(luckyUser)) {
       // It is helpful in breaking the loop as same user is returned again and again.
@@ -549,8 +582,13 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
 
   return {
     users: Array.from(orderedUsersSet),
+    usersAndTheirBookingShortfalls,
     perUserData: {
       bookingsCount: perUserBookingsCount,
+      bookingShortfalls: usersAndTheirBookingShortfalls.reduce((acc, user) => {
+        acc[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
+        return acc;
+      }, {} as Record<number, number>),
     },
   };
 }

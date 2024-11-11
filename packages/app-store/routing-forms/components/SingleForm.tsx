@@ -241,6 +241,7 @@ type MembersMatchResultType = {
   teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
   perUserData: {
     bookingsCount: Record<number, number>;
+    bookingShortfalls: Record<number, number>;
   } | null;
   checkedFallback: boolean;
   mainWarnings: string[] | null;
@@ -306,7 +307,8 @@ const TeamMembersMatchResult = ({
                 <tr className="border-b text-left">
                   <th className="py-2 pr-4">#</th>
                   <th className="py-2 pr-4">Email</th>
-                  <th className="py-2">Bookings</th>
+                  <th className="py-2 pr-4">Bookings</th>
+                  <th className="py-2">Shortfall</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,6 +317,9 @@ const TeamMembersMatchResult = ({
                     <td className="py-2 pr-4">{index + 1}</td>
                     <td className="py-2 pr-4">{member.email}</td>
                     <td className="py-2">{membersMatchResult.perUserData?.bookingsCount[member.id] ?? 0}</td>
+                    <td className="py-2">
+                      {membersMatchResult.perUserData?.bookingShortfalls[member.id] ?? 0}
+                    </td>
                   </tr>
                 ))}
               </tbody>
