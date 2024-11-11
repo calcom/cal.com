@@ -14,3 +14,7 @@ export const withValidQueryIdTransformParseInt = withValidation({
   type: "Zod",
   mode: "query",
 });
+
+export const getTranscriptFromRecordingId = schemaQueryIdParseInt.extend({
+  recordingId: z.string(),
+});

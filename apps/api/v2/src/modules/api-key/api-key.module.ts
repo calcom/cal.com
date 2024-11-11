@@ -1,10 +1,10 @@
-import { ApiKeyService } from "@/modules/api-key/api-key.service";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule],
-  providers: [ApiKeyService],
-  exports: [ApiKeyService],
+  providers: [ApiKeyRepository],
+  exports: [ApiKeyRepository],
 })
 export class ApiKeyModule {}

@@ -20,7 +20,7 @@ type InstallationArgs = {
   appType: string;
   user: {
     id: number;
-    profile: UserProfile;
+    profile?: UserProfile;
   };
   slug: string;
   key?: Prisma.InputJsonValue;

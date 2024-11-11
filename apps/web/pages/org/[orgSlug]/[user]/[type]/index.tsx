@@ -1,12 +1,9 @@
-"use client";
-
 import PageWrapper from "@components/PageWrapper";
 
+import type { PageProps as TeamTypePageProps } from "~/team/type-view";
+import TeamTypePage from "~/team/type-view";
 import UserTypePage from "~/users/views/users-type-public-view";
-import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view.getServerSideProps";
-
-import type { PageProps as TeamTypePageProps } from "../../../../team/[slug]/[type]";
-import TeamTypePage from "../../../../team/[slug]/[type]";
+import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view";
 
 export { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 
@@ -18,4 +15,3 @@ export default function Page(props: PageProps) {
 }
 
 Page.PageWrapper = PageWrapper;
-Page.isBookingPage = true;

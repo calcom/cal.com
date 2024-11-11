@@ -128,10 +128,10 @@ export function getWorkingHours(
 }
 
 export function availabilityAsString(
-  availability: Availability,
+  availability: Pick<Availability, "days" | "startTime" | "endTime">,
   { locale, hour12 }: { locale?: string; hour12?: boolean }
 ) {
-  const weekSpan = (availability: Availability) => {
+  const weekSpan = (availability: Pick<Availability, "days" | "startTime" | "endTime">) => {
     const days = availability.days.slice(1).reduce(
       (days, day) => {
         if (days[days.length - 1].length === 1 && days[days.length - 1][0] === day - 1) {
@@ -153,7 +153,7 @@ export function availabilityAsString(
       .join(", ");
   };
 
-  const timeSpan = (availability: Availability) => {
+  const timeSpan = (availability: Pick<Availability, "days" | "startTime" | "endTime">) => {
     return `${new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
       new Date(availability.startTime.toISOString().slice(0, -1))
     )} - ${new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(

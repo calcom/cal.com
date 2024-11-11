@@ -1,6 +1,10 @@
-import LegacyPage, { WrappedAboutOrganizationPage } from "@pages/settings/organizations/[id]/about";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+
+import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+
+import LegacyPage, { LayoutWrapper } from "~/settings/organizations/[id]/about-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -8,4 +12,10 @@ export const generateMetadata = async () =>
     (t) => t("about_your_organization_description")
   );
 
-export default WithLayout({ Page: LegacyPage, getLayout: WrappedAboutOrganizationPage });
+const getData = withAppDirSsr(getServerSideProps);
+
+export default WithLayout({
+  Page: LegacyPage,
+  getLayout: LayoutWrapper,
+  getData,
+});

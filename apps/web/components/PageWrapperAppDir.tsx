@@ -5,21 +5,14 @@ import type { SSRConfig } from "next-i18next";
 // import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
-import type { ReactNode } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 
-import type { AppProps } from "@lib/app-providers-app-dir";
 import AppProviders from "@lib/app-providers-app-dir";
 
-export interface CalPageWrapper {
-  (props?: AppProps): JSX.Element;
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-}
-
 export type PageWrapperProps = Readonly<{
-  getLayout: ((page: React.ReactElement) => ReactNode) | null;
+  getLayout?: ((page: React.ReactElement) => React.ReactNode) | null;
   children: React.ReactNode;
   requiresLicense: boolean;
   nonce: string | undefined;
@@ -50,7 +43,7 @@ function PageWrapper(props: PageWrapperProps) {
     nonce,
   };
 
-  const getLayout: (page: React.ReactElement) => ReactNode = props.getLayout ?? ((page) => page);
+  const getLayout: (page: React.ReactElement) => React.ReactNode = props.getLayout ?? ((page) => page);
 
   return (
     <AppProviders {...providerProps}>

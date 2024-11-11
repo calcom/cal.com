@@ -88,10 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const state = decodeOAuthState(req);
 
-  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
-    return res.redirect(state.appOnboardingRedirectUrl);
-  }
-
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/automation?hl=intercom`) ??
       getInstalledAppPath({ variant: "automation", slug: "intercom" })

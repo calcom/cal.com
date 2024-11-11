@@ -12,9 +12,11 @@ export { SlugReplacementEmail } from "./SlugReplacementEmail";
 export { FeedbackEmail } from "./FeedbackEmail";
 export { ForgotPasswordEmail } from "./ForgotPasswordEmail";
 export { OrganizerCancelledEmail } from "./OrganizerCancelledEmail";
+export { OrganizerReassignedEmail } from "./OrganizerReassignedEmail";
 export { OrganizerLocationChangeEmail } from "./OrganizerLocationChangeEmail";
 export { OrganizerPaymentRefundFailedEmail } from "./OrganizerPaymentRefundFailedEmail";
 export { OrganizerRequestEmail } from "./OrganizerRequestEmail";
+export { OrganizerRequestEmailV2 } from "./OrganizerRequestEmailV2";
 export { OrganizerRequestReminderEmail } from "./OrganizerRequestReminderEmail";
 export { OrganizerRequestedToRescheduleEmail } from "./OrganizerRequestedToRescheduleEmail";
 export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
@@ -35,4 +37,6 @@ export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificat
 export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotification";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
+export { OrganizerAddGuestsEmail } from "./OrganizerAddGuestsEmail";
+export { AttendeeAddGuestsEmail } from "./AttendeeAddGuestsEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";

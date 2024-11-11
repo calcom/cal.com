@@ -47,6 +47,10 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'
+ *               rescheduleUid:
+ *                 type: string
+ *                 format: UID
+ *                 description: 'Uid of the booking to reschedule'
  *               responses:
  *                 type: object
  *                 required:

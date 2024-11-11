@@ -2,10 +2,12 @@ import type { EventType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
-function getNewSeachParams(args: {
+function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
 }) {
@@ -22,7 +24,7 @@ function getNewSeachParams(args: {
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "attendees" | "user"
 >;
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
@@ -33,16 +35,71 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "startTime",
     "endTime",
     "location",
+    "attendees",
+    "user",
   ];
 
-  return (Object.keys(booking) as BookingResponseKey[])
+  type ResultType = {
+    [key in BookingResponseKey]?: SuccessRedirectBookingType[key];
+  } & {
+    hostName?: string[];
+    attendeeName?: string | null;
+  };
+
+  const result = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
+    .reduce<ResultType>((obj, key) => {
+      if (key === "user" && booking.user?.name) {
+        return { ...obj, hostName: [...(obj.hostName || []), booking.user.name] };
+      }
+
+      if (key === "attendees" && Array.isArray(booking.attendees)) {
+        const attendeeName = booking.attendees[0]?.name || null;
+        const { hostNames, guestEmails } = booking.attendees.slice(1).reduce(
+          (acc, attendee) => {
+            if (attendee.name) {
+              acc.hostNames.push(attendee.name);
+            } else if (attendee.email) {
+              acc.guestEmails.push(attendee.email);
+            }
+            return acc;
+          },
+          { hostNames: [], guestEmails: [] } as { hostNames: string[]; guestEmails: string[] }
+        );
+        return {
+          ...obj,
+          attendeeName,
+          hostName: [...(obj.hostName || []), ...hostNames],
+          guestEmail: guestEmails.length > 0 ? guestEmails : undefined,
+        };
+      }
+      return { ...obj, [key]: booking[key] };
+    }, {});
+
+  const queryCompatibleParams: Record<string, string | boolean | null | undefined> = {
+    ...Object.fromEntries(
+      Object.entries(result).map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return [key, value.join(", ")];
+        }
+        if (typeof value === "object" && value !== null) {
+          // Skip complex objects (user, attendees) as we are extracting only needed fields
+          return [key, undefined];
+        }
+        return [key, value];
+      })
+    ),
+    hostName: result.hostName?.join(", "),
+    attendeeName: result.attendeeName || undefined,
+  };
+
+  return queryCompatibleParams;
 };
 
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
+  const isEmbed = useIsEmbed();
   const bookingSuccessRedirect = ({
     successRedirectUrl,
     query,
@@ -54,26 +111,49 @@ export const useBookingSuccessRedirect = () => {
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
+    // Ensures that the param is added both to external redirect url and booking success page URL
+    query = {
+      ...query,
+      "cal.rerouting": searchParams.get("cal.rerouting"),
+    };
+
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.
       if (!forwardParamsSuccessRedirect) {
-        window.parent.location.href = url.toString();
+        navigateInTopWindow(url.toString());
         return;
       }
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
-      const newSearchParams = getNewSeachParams({
+      const newSearchParams = getNewSearchParams({
         query: {
           ...query,
           ...bookingExtraParams,
         },
         searchParams: searchParams ?? undefined,
       });
-      window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
+      newSearchParams.forEach((value, key) => {
+        url.searchParams.append(key, value);
+      });
+
+      navigateInTopWindow(url.toString());
       return;
     }
-    const newSearchParams = getNewSeachParams({ query });
-    return router.push(`/booking/${booking.uid}?${newSearchParams.toString()}`);
+
+    // TODO: Abstract it out and reuse at other places where we navigate within the embed. Though this is needed only in case of hard navigation happening but we aren't sure where hard navigation happens and where a soft navigation
+    // This is specially true after App Router it seems
+    const headersRelatedSearchParams = searchParams
+      ? {
+          "flag.coep": searchParams.get("flag.coep") ?? "false",
+        }
+      : undefined;
+
+    // We don't want to forward all search params, as they could possibly break the booking page.
+    const newSearchParams = getNewSearchParams({
+      query,
+      searchParams: new URLSearchParams(headersRelatedSearchParams),
+    });
+    return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
   };
 
   return bookingSuccessRedirect;

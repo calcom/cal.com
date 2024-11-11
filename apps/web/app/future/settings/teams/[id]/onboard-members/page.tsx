@@ -1,6 +1,7 @@
-import LegacyPage, { GetLayout } from "@pages/settings/teams/[id]/onboard-members";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+
+import AddNewTeamMembers, { GetLayout } from "~/settings/teams/[id]/onboard-members-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -8,4 +9,4 @@ export const generateMetadata = async () =>
     (t) => t("add_team_members_description")
   );
 
-export default WithLayout({ Page: LegacyPage, getLayout: GetLayout })<"P">;
+export default WithLayout({ Page: AddNewTeamMembers, getLayout: GetLayout })<"P">;

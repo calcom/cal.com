@@ -1,85 +1,81 @@
-import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
-import { X } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
+import { z } from "zod";
 
-import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import type { LocationObject } from "@calcom/core/location";
+import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, Form } from "@calcom/ui";
+import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { Button, Form, Icon, Avatar } from "@calcom/ui";
 
-import useAppsData from "@lib/hooks/useAppsData";
+import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
+import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
 
-type TFormType = {
+import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+
+export type TFormType = {
+  id: number;
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  locations: LocationObject[];
+  bookingFields: z.infer<typeof eventTypeBookingFields>;
+  seatsPerTimeSlot: number | null;
 };
 
-type ConfigureStepCardProps = {
+export type ConfigureStepCardProps = {
   slug: string;
   userName: string;
   categories: AppCategories[];
   credentialId?: number;
   loading?: boolean;
+  isConferencing: boolean;
   formPortalRef: React.RefObject<HTMLDivElement>;
-  eventTypes: TEventType[] | undefined;
+  eventTypeGroups: TEventTypeGroup[];
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
   handleSetUpLater: () => void;
 };
 
 type EventTypeAppSettingsFormProps = Pick<
   ConfigureStepCardProps,
-  "slug" | "userName" | "categories" | "credentialId" | "loading"
+  "slug" | "userName" | "categories" | "credentialId" | "loading" | "isConferencing"
 > & {
   eventType: TEventType;
   handleDelete: () => void;
-  onSubmit: (values: z.infer<typeof EventTypeMetaDataSchema>) => void;
+  onSubmit: ({
+    locations,
+    bookingFields,
+    metadata,
+  }: {
+    metadata?: z.infer<typeof EventTypeMetaDataSchema>;
+    bookingFields?: z.infer<typeof eventTypeBookingFields>;
+    locations?: LocationObject[];
+  }) => void;
 };
-
-type EventTypeAppSettingsWrapperProps = Pick<
-  ConfigureStepCardProps,
-  "slug" | "userName" | "categories" | "credentialId"
-> & {
-  eventType: TEventType;
-};
-
-const EventTypeAppSettingsWrapper: FC<EventTypeAppSettingsWrapperProps> = ({
-  slug,
-  eventType,
-  categories,
-  credentialId,
-}) => {
-  const { getAppDataGetter, getAppDataSetter } = useAppsData();
-
-  useEffect(() => {
-    const appDataSetter = getAppDataSetter(slug as EventTypeAppsList, categories, credentialId);
-    appDataSetter("enabled", true);
-  }, []);
-
-  return (
-    <EventTypeAppSettings
-      slug={slug}
-      eventType={eventType}
-      getAppData={getAppDataGetter(slug as EventTypeAppsList)}
-      setAppData={getAppDataSetter(slug as EventTypeAppsList, categories, credentialId)}
-    />
-  );
-};
+type TUpdatedEventTypesStatus = { id: number; updated: boolean }[][];
 
 const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
   function EventTypeAppSettingsForm(props, ref) {
-    const { handleDelete, onSubmit, eventType, loading } = props;
+    const { handleDelete, onSubmit, eventType, loading, isConferencing } = props;
+    const { t } = useLocale();
 
     const formMethods = useForm<TFormType>({
       defaultValues: {
-        metadata: eventType?.metadata,
+        id: eventType.id,
+        metadata: eventType?.metadata ?? undefined,
+        locations: eventType?.locations ?? undefined,
+        bookingFields: eventType?.bookingFields ?? undefined,
+        seatsPerTimeSlot: eventType?.seatsPerTimeSlot ?? undefined,
       },
+      resolver: zodResolver(
+        z.object({
+          locations: locationsResolver(t),
+        })
+      ),
     });
 
     return (
@@ -87,8 +83,10 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
         form={formMethods}
         id={`eventtype-${eventType.id}`}
         handleSubmit={() => {
-          const data = formMethods.getValues("metadata");
-          onSubmit(data);
+          const metadata = formMethods.getValues("metadata");
+          const locations = formMethods.getValues("locations");
+          const bookingFields = formMethods.getValues("bookingFields");
+          onSubmit({ metadata, locations, bookingFields });
         }}>
         <div>
           <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
@@ -98,13 +96,18 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
                 /{eventType.team ? eventType.team.slug : props.userName}/{eventType.slug}
               </small>
             </div>
-            <EventTypeAppSettingsWrapper {...props} />
-            <X
+            {isConferencing ? (
+              <EventTypeConferencingAppSettings {...props} />
+            ) : (
+              <EventTypeAppSettingsWrapper {...props} />
+            )}
+            <Icon
+              name="x"
               data-testid={`remove-event-type-${eventType.id}`}
               className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
               onClick={() => !loading && handleDelete()}
             />
-            <button type="submit" className="hidden" ref={ref}>
+            <button type="submit" className="hidden" form={`eventtype-${eventType.id}`} ref={ref}>
               Save
             </button>
           </div>
@@ -114,81 +117,132 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
   }
 );
 
-export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
-  loading,
-  formPortalRef,
-  eventTypes,
-  setConfigureStep,
-  handleSetUpLater,
+const EventTypeGroup = ({
+  groupIndex,
+  eventTypeGroups,
+  setUpdatedEventTypesStatus,
+  submitRefs,
   ...props
+}: ConfigureStepCardProps & {
+  groupIndex: number;
+  setUpdatedEventTypesStatus: Dispatch<SetStateAction<TUpdatedEventTypesStatus>>;
+  submitRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
 }) => {
-  const { t } = useLocale();
-  const { control, getValues } = useFormContext<TEventTypesForm>();
+  const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
-    name: "eventTypes",
+    name: `eventTypeGroups.${groupIndex}.eventTypes`,
     keyName: "fieldId",
   });
+  return (
+    <div className="ml-2 flex flex-col space-y-6">
+      {fields.map(
+        (field, index) =>
+          field.selected && (
+            <EventTypeAppSettingsForm
+              key={field.fieldId}
+              eventType={field}
+              loading={props.loading}
+              handleDelete={() => {
+                const eventTypeDb = eventTypeGroups[groupIndex].eventTypes?.find(
+                  (eventType) => eventType.id == field.id
+                );
+                update(index, {
+                  ...field,
+                  selected: false,
+                  metadata: eventTypeDb?.metadata,
+                  bookingFields: eventTypeDb?.bookingFields,
+                  ...(eventTypeDb?.locations && { locations: eventTypeDb.locations }),
+                });
 
-  const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
-  submitRefs.current = fields.map(
-    (_ref, index) => (submitRefs.current[index] = React.createRef<HTMLButtonElement>())
+                setUpdatedEventTypesStatus((prev) => {
+                  const res = [...prev];
+                  res[groupIndex] = res[groupIndex].filter((item) => !(item.id === field.id));
+                  if (!res.some((item) => item.length > 0)) {
+                    props.setConfigureStep(false);
+                  }
+                  return res;
+                });
+              }}
+              onSubmit={(data) => {
+                update(index, { ...field, ...data });
+                setUpdatedEventTypesStatus((prev) => {
+                  const res = [...prev];
+                  res[groupIndex] = res[groupIndex].map((item) =>
+                    item.id === field.id ? { ...item, updated: true } : item
+                  );
+                  return res;
+                });
+              }}
+              ref={(el) => {
+                submitRefs.current[index] = el;
+              }}
+              {...props}
+            />
+          )
+      )}
+    </div>
   );
+};
+
+export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
+  const { loading, formPortalRef, handleSetUpLater } = props;
+  const { t } = useLocale();
+  const { control, watch } = useFormContext<TEventTypesForm>();
+  const { fields } = useFieldArray({
+    control,
+    name: "eventTypeGroups",
+    keyName: "fieldId",
+  });
+  const eventTypeGroups = watch("eventTypeGroups");
+  const submitRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const mainForSubmitRef = useRef<HTMLButtonElement>(null);
-  const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState(
-    fields.filter((field) => field.selected).map((field) => ({ id: field.id, updated: false }))
-  );
-  const [submit, setSubmit] = useState(false);
-  const allUpdated = updatedEventTypesStatus.every((item) => item.updated);
+  const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState<TUpdatedEventTypesStatus>(
+    eventTypeGroups.reduce((arr: Array<{ id: number; updated: boolean }[]>, field) => {
+      const selectedEventTypes = field.eventTypes
+        .filter((eventType) => eventType.selected)
+        .map((eventType) => ({ id: eventType.id as number, updated: false }));
 
-  useEffect(() => {
-    setUpdatedEventTypesStatus((prev) =>
-      prev.filter((state) => fields.some((field) => field.id === state.id && field.selected))
-    );
-    if (!fields.some((field) => field.selected)) {
-      setConfigureStep(false);
-    }
-  }, [fields]);
+      return [...arr, selectedEventTypes];
+    }, [])
+  );
+
+  const [submit, setSubmit] = useState(false);
+  const allUpdated = updatedEventTypesStatus.every((item) => item.every((iitem) => iitem.updated));
 
   useEffect(() => {
     if (submit && allUpdated && mainForSubmitRef.current) {
       mainForSubmitRef.current?.click();
       setSubmit(false);
     }
-  }, [submit, allUpdated, getValues, mainForSubmitRef]);
+  }, [submit, allUpdated, mainForSubmitRef]);
 
   return (
     formPortalRef?.current &&
     createPortal(
       <div className="mt-8">
-        <div className="flex flex-col space-y-6">
-          {fields.map((field, index) => {
-            return (
-              field.selected && (
-                <EventTypeAppSettingsForm
-                  key={field.fieldId}
-                  eventType={field}
-                  loading={loading}
-                  handleDelete={() => {
-                    const eventMetadataDb = eventTypes?.find(
-                      (eventType) => eventType.id == field.id
-                    )?.metadata;
-                    update(index, { ...field, selected: false, metadata: eventMetadataDb });
-                  }}
-                  onSubmit={(data) => {
-                    update(index, { ...field, metadata: data });
-                    setUpdatedEventTypesStatus((prev) =>
-                      prev.map((item) => (item.id === field.id ? { ...item, updated: true } : item))
-                    );
-                  }}
-                  ref={submitRefs.current[index]}
-                  {...props}
+        {fields.map((group, groupIndex) => (
+          <div key={group.fieldId}>
+            {eventTypeGroups[groupIndex].eventTypes.some((eventType) => eventType.selected === true) && (
+              <div className="mb-2 mt-4 flex items-center">
+                <Avatar
+                  alt=""
+                  imageSrc={group.image} // if no image, use default avatar
+                  size="md"
+                  className="inline-flex justify-center"
                 />
-              )
-            );
-          })}
-        </div>
-
+                <p className="text-subtle block">{group.slug}</p>
+              </div>
+            )}
+            <EventTypeGroup
+              groupIndex={groupIndex}
+              setUpdatedEventTypesStatus={setUpdatedEventTypesStatus}
+              submitRefs={submitRefs}
+              {...props}
+            />
+          </div>
+        ))}
         <button form="outer-event-type-form" type="submit" className="hidden" ref={mainForSubmitRef}>
           Save
         </button>
@@ -197,7 +251,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
           type="button"
           data-testid="configure-step-save"
           onClick={() => {
-            submitRefs.current.reverse().map((ref) => ref.current?.click());
+            submitRefs.current.forEach((ref) => ref?.click());
             setSubmit(true);
           }}
           loading={loading}>

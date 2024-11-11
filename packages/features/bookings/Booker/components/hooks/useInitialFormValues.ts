@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import type { z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import type { useEvent } from "@calcom/features/bookings/Booker/utils/event";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
 
 type UseInitialFormValuesProps = {
-  eventType: ReturnType<typeof useEvent>["data"];
+  eventType?: Pick<BookerEvent, "bookingFields"> | null;
   rescheduleUid: string | null;
   isRescheduling: boolean;
   email?: string | null;
@@ -93,7 +93,7 @@ export function useInitialFormValues({
         defaults.responses = {
           ...responses,
           name: defaultUserValues.name,
-          email: defaultUserValues.email,
+          email: defaultUserValues.email ?? "",
         };
 
         setDefaultValues(defaults);
@@ -119,7 +119,7 @@ export function useInitialFormValues({
       defaults.responses = {
         ...responses,
         name: defaultUserValues.name,
-        email: defaultUserValues.email,
+        email: defaultUserValues.email ?? "",
       };
       setDefaultValues(defaults);
     })();

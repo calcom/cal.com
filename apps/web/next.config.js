@@ -54,6 +54,20 @@ if (!process.env.NEXT_PUBLIC_API_V2_URL) {
   console.error("Please set NEXT_PUBLIC_API_V2_URL");
 }
 
+const getHttpsUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+if (process.argv.includes("--experimental-https")) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
@@ -158,13 +172,18 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
+    instrumentationHook: true,
+    serverActions: true,
   },
   i18n: {
     ...i18n,
+    defaultLocale: "en",
+    locales: ["en"],
     localeDetection: false,
   },
   productionBrowserSourceMaps: false,
@@ -188,8 +207,6 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
-    "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -200,10 +217,6 @@ const nextConfig = {
     lodash: {
       transform: "lodash/{{member}}",
     },
-    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-    // "@calcom/ui": {
-    //   transform: "@calcom/ui/components/{{member}}",
-    // },
   },
   images: {
     unoptimized: true,
@@ -218,6 +231,13 @@ const nextConfig = {
         })
       );
     }
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
+      })
+    );
 
     config.plugins.push(
       new CopyWebpackPlugin({
@@ -269,8 +289,8 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
+        source: "/router/:path*",
+        destination: "/apps/routing-forms/router/:path*",
       },
       {
         source: "/success/:path*",
@@ -343,6 +363,10 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      {
+        source: "/icons/sprite.svg",
+        destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[
@@ -364,6 +388,13 @@ const nextConfig = {
     };
   },
   async headers() {
+    // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
+    // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
+    const CORP_CROSS_ORIGIN_HEADER = {
+      key: "Cross-Origin-Resource-Policy",
+      value: "cross-origin",
+    };
+
     return [
       {
         source: "/auth/:path*",
@@ -396,6 +427,46 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/embed/embed.js",
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*/embed",
+        // COEP require-corp header is set conditionally when flag.coep is set to true
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
+        headers: [
+          // make sure to pass full referer URL for booking pages
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+        ],
+      },
+      // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
+      ...[
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+      ],
       ...(isOrganizationsEnabled
         ? [
             {
@@ -590,14 +661,14 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-    // disable source map generation for the server code
-    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-  };
-
-  plugins.push(withSentryConfig);
+  plugins.push((nextConfig) =>
+    withSentryConfig(nextConfig, {
+      autoInstrumentServerFunctions: false,
+      hideSourceMaps: true,
+      // disable source map generation for the server code
+      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+    })
+  );
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

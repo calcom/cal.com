@@ -4,6 +4,7 @@
 **/
 import { appDataSchema as alby_zod_ts } from "./alby/zod";
 import { appDataSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appDataSchema as campsite_zod_ts } from "./campsite/zod";
 import { appDataSchema as closecom_zod_ts } from "./closecom/zod";
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
@@ -11,6 +12,7 @@ import { appDataSchema as feishucalendar_zod_ts } from "./feishucalendar/zod";
 import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
 import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
+import { appDataSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
@@ -21,6 +23,7 @@ import { appDataSchema as make_zod_ts } from "./make/zod";
 import { appDataSchema as matomo_zod_ts } from "./matomo/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as mock_payment_app_zod_ts } from "./mock-payment-app/zod";
+import { appDataSchema as nextcloudtalk_zod_ts } from "./nextcloudtalk/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as paypal_zod_ts } from "./paypal/zod";
@@ -35,6 +38,8 @@ import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
+import { appDataSchema as twipla_zod_ts } from "./twipla/zod";
+import { appDataSchema as umami_zod_ts } from "./umami/zod";
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
 import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
@@ -47,6 +52,7 @@ import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appDataSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
+  campsite: campsite_zod_ts,
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
@@ -54,6 +60,7 @@ export const appDataSchemas = {
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
   googlecalendar: googlecalendar_zod_ts,
+  googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
   intercom: intercom_zod_ts,
@@ -64,6 +71,7 @@ export const appDataSchemas = {
   matomo: matomo_zod_ts,
   metapixel: metapixel_zod_ts,
   "mock-payment-app": mock_payment_app_zod_ts,
+  nextcloudtalk: nextcloudtalk_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
   paypal: paypal_zod_ts,
@@ -78,6 +86,8 @@ export const appDataSchemas = {
   tandemvideo: tandemvideo_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
+  twipla: twipla_zod_ts,
+  umami: umami_zod_ts,
   vital: vital_zod_ts,
   webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,

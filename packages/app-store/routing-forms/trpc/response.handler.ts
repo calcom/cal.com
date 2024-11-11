@@ -1,14 +1,20 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
+import { findTeamMembersMatchingAttributeLogicOfRoute } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
-import type { Response } from "../types/types";
+import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
 import { onFormSubmission } from "./utils";
+
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response.handler"] });
 
 interface ResponseHandlerOptions {
   ctx: {
@@ -19,7 +25,7 @@ interface ResponseHandlerOptions {
 export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
   const { prisma } = ctx;
   try {
-    const { response, formId } = input;
+    const { response, formId, chosenRouteId } = input;
     const form = await prisma.app_RoutingForms_Form.findFirst({
       where: {
         id: formId,
@@ -71,7 +77,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         }
         let schema;
         if (field.type === "email") {
-          schema = z.string().email();
+          schema = emailSchema;
         } else if (field.type === "phone") {
           schema = z.any();
         } else {
@@ -91,7 +97,10 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     }
 
     const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: input,
+      data: {
+        formId,
+        response: response,
+      },
     });
 
     const settings = RoutingFormSettings.parse(form.settings);
@@ -115,11 +124,48 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
+    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    if (!chosenRoute) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chosen route not found",
+      });
+    }
+
+    const teamMembersMatchingAttributeLogicWithResult =
+      form.teamId && chosenRouteId
+        ? await findTeamMembersMatchingAttributeLogicOfRoute({
+            response,
+            route: chosenRoute,
+            form: serializableForm,
+            teamId: form.teamId,
+          })
+        : null;
+
+    moduleLogger.debug(
+      "teamMembersMatchingAttributeLogic",
+      safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+    );
+
+    const teamMemberIdsMatchingAttributeLogic =
+      teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+        ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+            (member) => member.userId
+          )
+        : null;
+
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as Response
+      dbFormResponse.response as FormResponse,
+      dbFormResponse.id,
+      "action" in chosenRoute ? chosenRoute.action : undefined
     );
-    return dbFormResponse;
+    return {
+      formResponse: dbFormResponse,
+      teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+      attributeRoutingConfig:
+        "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+    };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

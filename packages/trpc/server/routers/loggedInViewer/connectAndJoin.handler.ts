@@ -1,11 +1,11 @@
-import { sendScheduledEmails } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -128,6 +128,12 @@ export const Handler = async ({ ctx, input }: Options) => {
           metadata: true,
           customInputs: true,
           parentId: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       },
       location: true,
@@ -202,15 +208,25 @@ export const Handler = async ({ ctx, input }: Options) => {
     requiresConfirmation: false,
     eventTypeId: eventType?.id,
     videoCallData,
+    team: !!updatedBooking.eventType?.team
+      ? {
+          name: updatedBooking.eventType.team.name,
+          id: updatedBooking.eventType.team.id,
+          members: [],
+        }
+      : undefined,
   };
 
-  await sendScheduledEmails(
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(updatedBooking?.eventType?.metadata);
+
+  await sendScheduledEmailsAndSMS(
     {
       ...evt,
     },
     undefined,
     false,
-    false
+    false,
+    eventTypeMetadata
   );
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };

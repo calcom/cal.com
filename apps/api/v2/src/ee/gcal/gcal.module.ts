@@ -1,3 +1,4 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GcalController } from "@/ee/gcal/gcal.controller";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -21,6 +22,7 @@ import { ConfigService } from "@nestjs/config";
     GCalService,
     CalendarsService,
     UsersRepository,
+    CalendarsRepository,
   ],
   controllers: [GcalController],
 })

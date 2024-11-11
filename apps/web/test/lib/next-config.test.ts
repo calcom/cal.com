@@ -80,7 +80,7 @@ describe("next.config.js - Org Rewrite", () => {
 
   describe("Rewrite", () => {
     it("booking pages", () => {
-      expect(orgUserTypeRouteMatch("/user/type")?.params).toContain({
+      expect(orgUserTypeRouteMatch("/user/type")?.params).toEqual({
         user: "user",
         type: "type",
       });
@@ -96,27 +96,27 @@ describe("next.config.js - Org Rewrite", () => {
 
       expect(orgUserTypeRouteMatch("/abc")).toEqual(false);
 
-      expect(orgUserRouteMatch("/abc")?.params).toContain({
+      expect(orgUserRouteMatch("/abc")?.params).toEqual({
         user: "abc",
       });
 
       // Tests that something that starts with 'd' which could accidentally match /d route is correctly identified as a booking page
-      expect(orgUserRouteMatch("/designer")?.params).toContain({
+      expect(orgUserRouteMatch("/designer")?.params).toEqual({
         user: "designer",
       });
 
       // Tests that something that starts with 'apps' which could accidentally match /apps route is correctly identified as a booking page
-      expect(orgUserRouteMatch("/apps-conflict-possibility")?.params).toContain({
+      expect(orgUserRouteMatch("/apps-conflict-possibility")?.params).toEqual({
         user: "apps-conflict-possibility",
       });
 
       // Tests that something that starts with '_next' which could accidentally match /_next route is correctly identified as a booking page
-      expect(orgUserRouteMatch("/_next-candidate")?.params).toContain({
+      expect(orgUserRouteMatch("/_next-candidate")?.params).toEqual({
         user: "_next-candidate",
       });
 
       // Tests that something that starts with 'public' which could accidentally match /public route is correctly identified as a booking page
-      expect(orgUserRouteMatch("/public-person")?.params).toContain({
+      expect(orgUserRouteMatch("/public-person")?.params).toEqual({
         user: "public-person",
       });
     });

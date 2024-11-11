@@ -1,11 +1,13 @@
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
+import { useEffect } from "react";
 import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -115,6 +117,18 @@ export const useIntercom = () => {
     hookData.show();
   };
   return { ...hookData, open, boot };
+};
+
+export const useBootIntercom = () => {
+  const { boot } = useIntercom();
+  const { data: user } = trpc.viewer.me.useQuery();
+  useEffect(() => {
+    // not using useMediaQuery as it toggles between true and false
+    const showIntercom = localStorage.getItem("showIntercom");
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
+    boot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 };
 
 export default useIntercom;

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { getEventLocationTypeFromApp, type EventLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -48,6 +48,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
       utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      setBulkUpdateModal(true);
     },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
@@ -91,14 +92,13 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                         color="secondary"
                         StartIcon="video"
                         onClick={() => {
-                          const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
+                          const locationType = getLocationFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
                             setLocationType({ ...locationType, slug: appSlug });
                           } else {
                             updateDefaultAppMutation.mutate({
                               appSlug,
                             });
-                            setBulkUpdateModal(true);
                           }
                         }}>
                         {t("set_as_default")}
@@ -165,8 +165,8 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
         {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
         {data.items
           .filter((item) => item.invalidCredentialIds)
-          .map((item) => {
-            if (!item.teams.length) return <ChildAppCard item={item} />;
+          .map((item, i) => {
+            if (!item.teams.length) return <ChildAppCard key={i} item={item} />;
           })}
       </List>
       {locationType && (
@@ -183,6 +183,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
           open={bulkUpdateModal}
           setOpen={setBulkUpdateModal}
           isPending={updateLocationsMutation.isPending}
+          description={t("default_conferencing_bulk_description")}
         />
       )}
     </>

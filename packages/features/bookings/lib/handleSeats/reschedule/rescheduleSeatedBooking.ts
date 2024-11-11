@@ -39,11 +39,14 @@ const rescheduleSeatedBooking = async (
     select: {
       id: true,
       uid: true,
+      iCalUID: true,
+      userId: true,
       attendees: {
         include: {
           bookingSeat: true,
         },
       },
+      references: true,
     },
   });
 
@@ -82,6 +85,7 @@ const rescheduleSeatedBooking = async (
     startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
     endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
     attendees: updatedBookingAttendees,
+    iCalUID: originalRescheduledBooking.iCalUID,
     // If the location is a video integration then include the videoCallData
     ...(videoReference && {
       videoCallData: {

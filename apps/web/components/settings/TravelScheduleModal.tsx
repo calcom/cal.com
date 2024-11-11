@@ -1,4 +1,3 @@
-import type { FormValues } from "@pages/settings/my-account/general";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 
@@ -17,6 +16,8 @@ import {
   SettingsToggle,
   DatePicker,
 } from "@calcom/ui";
+
+import type { FormValues } from "~/settings/my-account/general-view";
 
 interface TravelScheduleModalProps {
   open: boolean;

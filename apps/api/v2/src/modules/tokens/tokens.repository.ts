@@ -89,6 +89,7 @@ export class TokensRepository {
 
     return {
       accessToken: accessToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.secret,
     };
   }

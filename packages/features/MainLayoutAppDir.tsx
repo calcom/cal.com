@@ -5,10 +5,8 @@ import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 
-export default function MainLayout({
-  children,
-  ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+export type MainLayoutAppDirProps = { children: React.ReactNode } & ComponentProps<typeof Shell>;
+export default function MainLayoutAppDir({ children, ...rest }: MainLayoutAppDirProps) {
   return (
     <Shell withoutMain={true} {...rest}>
       {children}
@@ -16,4 +14,4 @@ export default function MainLayout({
   );
 }
 
-export const getLayout = (page: React.ReactElement) => <MainLayout>{page}</MainLayout>;
+export const getLayout = (page: React.ReactElement) => <MainLayoutAppDir>{page}</MainLayoutAppDir>;

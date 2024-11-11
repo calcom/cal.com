@@ -1,5 +1,5 @@
-import { init as SentryInit } from "@sentry/nextjs";
+import * as Sentry from "@sentry/nextjs";
 
-SentryInit({
+Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 });

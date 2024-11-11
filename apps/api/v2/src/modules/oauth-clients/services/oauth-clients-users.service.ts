@@ -1,21 +1,23 @@
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.2";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService,
-    private readonly schedulesService: SchedulesService
+    private readonly eventTypesService: EventTypesService_2024_04_15,
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly organizationsTeamsService: OrganizationsTeamsService
   ) {}
 
   async createOauthClientUser(
@@ -24,9 +26,11 @@ export class OAuthClientUsersService {
     isPlatformManaged: boolean,
     organizationId?: number
   ) {
-    const existsWithEmail = await this.managedUserExistsWithEmail(oAuthClientId, body.email);
-    if (existsWithEmail) {
-      throw new BadRequestException("User with the provided e-mail already exists.");
+    const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
+    if (existingUser) {
+      throw new ConflictException(
+        `User with the provided e-mail already exists. Existing user ID=${existingUser.id}`
+      );
     }
 
     let user: User;
@@ -36,17 +40,17 @@ export class OAuthClientUsersService {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
-          usernamesOrEmails: [email],
-          input: {
-            teamId: organizationId,
-            role: "MEMBER",
-            usernameOrEmail: [email],
-            isOrg: true,
-            language: "en",
-          },
+          invitations: [
+            {
+              usernameOrEmail: email,
+              role: "MEMBER",
+            },
+          ],
+          teamId: organizationId,
+          isOrg: true,
           parentId: null,
           autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
-          connectionInfoMap: {
+          orgConnectInfoByUsernameOrEmail: {
             [email]: {
               orgId: organizationId,
               autoAccept: true,
@@ -59,10 +63,15 @@ export class OAuthClientUsersService {
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
+      const updatedUser = await this.userRepository.update(user.id, {
+        name: body.name,
+        locale: body.locale,
+      });
+      user.locale = updatedUser.locale;
+      user.name = updatedUser.name;
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       user.id
     );
@@ -78,15 +87,15 @@ export class OAuthClientUsersService {
       user,
       tokens: {
         accessToken,
+        accessTokenExpiresAt,
         refreshToken,
       },
     };
   }
 
-  async managedUserExistsWithEmail(oAuthClientId: string, email: string) {
+  async getExistingUserByEmail(oAuthClientId: string, email: string) {
     const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
-    const user = await this.userRepository.findByEmail(oAuthEmail);
-    return !!user;
+    return await this.userRepository.findByEmail(oAuthEmail);
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {

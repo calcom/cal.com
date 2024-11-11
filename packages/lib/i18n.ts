@@ -8,3 +8,7 @@ export const localeOptions = locales.map((locale) => ({
   value: locale,
   label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
 }));
+
+export const defaultLocaleOption = localeOptions.find(
+  (locale) => locale.value === i18n.defaultLocale
+) as (typeof localeOptions)[number];

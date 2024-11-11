@@ -6,16 +6,16 @@ import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  confirmReschedule,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
-  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
@@ -29,15 +29,12 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const user = await users.create({
     name,
   });
-  const [response] = await Promise.all([
-    // This promise resolves to the main resource response
-    page.waitForResponse(
-      (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
-    ),
-
-    // Trigger the page navigation
-    page.goto(`/${user.username}/30-min`),
-  ]);
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+  );
+  await page.goto(`/${user.username}/30-min`);
+  await page.content();
+  const response = await responsePromise;
   const ssrResponse = await response.text();
   const document = new JSDOM(ssrResponse).window.document;
 
@@ -47,6 +44,7 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
   expect(titleText).toContain(name);
   expect(ogUrl).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
+  await page.waitForSelector('[data-testid="avatar-href"]');
   const avatarLocators = await page.locator('[data-testid="avatar-href"]').all();
   expect(avatarLocators.length).toBe(1);
 
@@ -132,7 +130,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     });
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
@@ -288,22 +286,16 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
   });
 
   test("Time slots should be reserved when selected", async ({ context, page }) => {
-    await page.click('[data-testid="event-type-link"]');
-
     const initialUrl = page.url();
+    await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
     const pageTwo = await context.newPage();
     await pageTwo.goto(initialUrl);
     await pageTwo.waitForURL(initialUrl);
+    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
 
-    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
-    const eventTypeLink = pageTwo.locator('[data-testid="event-type-link"]').first();
-    await eventTypeLink.click();
-
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -331,15 +323,14 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
 
     await pageTwo.waitForSelector('[data-testid="event-type-link"]');
     const eventTypeLinkTwo = pageTwo.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLinkTwo.waitFor();
     await eventTypeLinkTwo.click();
 
     await page.locator('[data-testid="back"]').waitFor();
     await page.click('[data-testid="back"]');
 
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -484,13 +475,17 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
         schedulingType: SchedulingType.ROUND_ROBIN,
         teamEventLength: 120,
         teammates: teamMatesObj,
+        seatsPerTimeSlot: 5,
       }
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
-  test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
+  test("Does not book seated round robin host outside availability with date override", async ({
+    page,
+    users,
+  }) => {
     const [testUser] = users.get();
     await testUser.apiLogin();
 
@@ -503,8 +498,6 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     // books 9AM slots for 120 minutes (test-user is not available at this time, availability starts at 10)
     await page.locator('[data-testid="time"]').nth(0).click();
-
-    await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
@@ -535,8 +528,6 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     // Again book a 9AM slot for 120 minutes where test-user is not available
     await page.locator('[data-testid="time"]').nth(0).click();
-
-    await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);

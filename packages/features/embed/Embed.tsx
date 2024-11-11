@@ -17,7 +17,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -114,7 +114,7 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {types.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -122,7 +122,7 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
                 embedType: embed.type,
               });
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
+            <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
             <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
@@ -172,7 +172,7 @@ const EmailEmbed = ({
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug });
+  const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
@@ -420,7 +420,7 @@ const EmailEmbedPreview = ({
                                       selectedDateAndTime[key].map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${WEBSITE_URL}/${
+                                        const bookingURL = `${eventType.bookerUrl}/${
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length
@@ -575,15 +575,23 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
+  const defaultConfig = {
+    layout: BookerLayouts.MONTH_VIEW,
+  };
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
-    },
+      config: defaultConfig,
+    } as PreviewState["inline"],
     theme: Theme.auto,
-    layout: BookerLayouts.MONTH_VIEW,
-    floatingPopup: {},
-    elementClick: {},
+    layout: defaultConfig.layout,
+    floatingPopup: {
+      config: defaultConfig,
+    } as PreviewState["floatingPopup"],
+    elementClick: {
+      config: defaultConfig,
+    } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
@@ -707,14 +715,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const FloatingPopupPositionOptions = [
     {
-      value: "bottom-right",
+      value: "bottom-right" as const,
       label: "Bottom right",
     },
     {
-      value: "bottom-left",
+      value: "bottom-left" as const,
       label: "Bottom left",
     },
   ];
+  const previewTab = tabs.find((tab) => tab.name === "Preview");
 
   return (
     <DialogContent
@@ -723,7 +732,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       className="rounded-lg p-0.5 sm:max-w-[80rem]"
       type="creation">
       <div className="flex">
-        <div className="bg-muted flex h-[90vh] w-1/3 flex-col overflow-y-auto p-8">
+        <div className="bg-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
@@ -940,6 +949,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             setPreviewState((previewState) => {
                               return {
                                 ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  config: {
+                                    ...(previewState.inline.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                floatingPopup: {
+                                  ...previewState.floatingPopup,
+                                  config: {
+                                    ...(previewState.floatingPopup.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                elementClick: {
+                                  ...previewState.elementClick,
+                                  config: {
+                                    ...(previewState.elementClick.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
                                 theme: option.value,
                               };
                             });
@@ -1004,6 +1034,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return {
                                 ...previewState,
                                 floatingPopup: {
+                                  ...previewState.floatingPopup,
                                   config,
                                 },
                                 layout: option.value,
@@ -1020,100 +1051,109 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           )}
         </div>
-        <div className="flex w-2/3 flex-col px-8 pt-8">
+        <div className="flex h-[95vh] w-2/3 flex-col px-8 pt-8">
           <HorizontalTabs
             data-testid="embed-tabs"
-            tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
+            tabs={
+              embedType === "email"
+                ? parsedTabs.filter((tab) => tab.name === "Preview")
+                : parsedTabs.filter((tab) => tab.name !== "Preview")
+            }
             linkShallow
           />
-          {tabs.map((tab) => {
-            if (embedType !== "email") {
-              return (
-                <div
-                  key={tab.href}
-                  className={classNames(
-                    searchParams?.get("embedTabName") === tab.href.split("=")[1]
-                      ? "flex flex-grow flex-col"
-                      : "hidden"
-                  )}>
-                  <div className="flex h-[55vh] flex-grow flex-col">
-                    {tab.type === "code" ? (
-                      <tab.Component
-                        namespace={namespace}
-                        embedType={embedType}
-                        calLink={calLink}
-                        previewState={previewState}
-                        ref={refOfEmbedCodesRefs.current[tab.name]}
+          <>
+            <div className="flex h-full flex-col">
+              {tabs.map((tab) => {
+                if (embedType !== "email") {
+                  if (tab.name === "Preview") return null;
+                  return (
+                    <div
+                      key={tab.href}
+                      className={classNames(
+                        searchParams?.get("embedTabName") === tab.href.split("=")[1] ? "flex-1" : "hidden"
+                      )}>
+                      {tab.type === "code" && (
+                        <tab.Component
+                          namespace={namespace}
+                          embedType={embedType}
+                          calLink={calLink}
+                          previewState={previewState}
+                          ref={refOfEmbedCodesRefs.current[tab.name]}
+                        />
+                      )}
+                      <div
+                        className={
+                          searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                        }
                       />
-                    ) : (
-                      <tab.Component
-                        namespace={namespace}
-                        embedType={embedType}
+                    </div>
+                  );
+                }
+
+                if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
+
+                return (
+                  <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
+                    <div className="flex h-[55vh] flex-grow flex-col">
+                      <EmailEmbedPreview
                         calLink={calLink}
-                        previewState={previewState}
-                        ref={iframeRef}
+                        eventType={eventTypeData?.eventType}
+                        emailContentRef={emailContentRef}
+                        username={teamSlug ?? (data?.user.username as string)}
+                        month={month as string}
+                        selectedDateAndTime={
+                          selectedDatesAndTimes
+                            ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
+                            : {}
+                        }
                       />
-                    )}
+                    </div>
+                    <div
+                      className={
+                        searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                      }
+                    />
                   </div>
-                  <div
-                    className={
-                      searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
-                    }
-                  />
-                  <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
-                    <DialogClose />
-                    {tab.type === "code" ? (
-                      <Button
-                        type="submit"
-                        onClick={() => {
-                          const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
-                          if (!currentTabCodeEl) {
-                            return;
-                          }
-                          navigator.clipboard.writeText(currentTabCodeEl.value);
-                          showToast(t("code_copied"), "success");
-                        }}>
-                        {t("copy_code")}
-                      </Button>
-                    ) : null}
-                  </DialogFooter>
-                </div>
-              );
-            }
+                );
+              })}
 
-            if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
-
-            return (
-              <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
-                <div className="flex h-[55vh] flex-grow flex-col">
-                  <EmailEmbedPreview
+              {embedType !== "email" && previewTab && (
+                <div className="flex-1">
+                  <previewTab.Component
+                    namespace={namespace}
+                    embedType={embedType}
                     calLink={calLink}
-                    eventType={eventTypeData?.eventType}
-                    emailContentRef={emailContentRef}
-                    username={teamSlug ?? (data?.user.username as string)}
-                    month={month as string}
-                    selectedDateAndTime={
-                      selectedDatesAndTimes
-                        ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
-                        : {}
-                    }
+                    previewState={previewState}
+                    ref={iframeRef}
                   />
                 </div>
-                <div
-                  className={searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"}
-                />
-                <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
-                  <DialogClose />
-                  <Button
-                    onClick={() => {
-                      handleCopyEmailText();
-                    }}>
-                    {embedType === "email" ? t("copy") : t("copy_code")}
-                  </Button>
-                </DialogFooter>
-              </div>
-            );
-          })}
+              )}
+            </div>
+            <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
+              <DialogClose />
+              <Button
+                type="submit"
+                onClick={() => {
+                  if (embedType === "email") {
+                    handleCopyEmailText();
+                  } else {
+                    const currentTabHref = searchParams?.get("embedTabName");
+                    const currentTabName = tabs.find(
+                      (tab) => tab.href === `embedTabName=${currentTabHref}`
+                    )?.name;
+                    if (!currentTabName) return;
+                    const currentTabCodeEl = refOfEmbedCodesRefs.current[currentTabName].current;
+                    if (!currentTabCodeEl) {
+                      return;
+                    }
+                    navigator.clipboard.writeText(currentTabCodeEl.value);
+                    showToast(t("code_copied"), "success");
+                  }
+                }}>
+                {embedType === "email" ? t("copy") : t("copy_code")}
+              </Button>
+            </DialogFooter>
+          </>
         </div>
       </div>
     </DialogContent>

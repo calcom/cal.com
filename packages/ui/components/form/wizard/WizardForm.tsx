@@ -1,3 +1,5 @@
+"use client";
+
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useRouter } from "next/navigation";
@@ -7,7 +9,8 @@ import { useEffect, useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
-import { Button, Steps } from "../../..";
+import { Button } from "../../button";
+import { Steps } from "../../form/step";
 
 type DefaultStep = {
   title: string;

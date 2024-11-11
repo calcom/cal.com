@@ -1,11 +1,14 @@
+"use client";
+
 import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor } from "../..";
-import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
+import type { ButtonColor } from "../button";
+import { Button } from "../button";
+import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
@@ -21,6 +24,7 @@ type ImageUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
+  testId?: string;
 };
 
 // This is separate to prevent loading the component until file upload
@@ -73,6 +77,7 @@ export default function ImageUploader({
   imageSrc,
   uploadInstruction,
   disabled = false,
+  testId,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -125,7 +130,7 @@ export default function ImageUploader({
           color={triggerButtonColor ?? "secondary"}
           type="button"
           disabled={disabled}
-          data-testid="open-upload-avatar-dialog"
+          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
           className="cursor-pointer py-1 text-sm">
           {buttonMsg}
         </Button>
@@ -147,8 +152,8 @@ export default function ImageUploader({
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
-              data-testid="open-upload-image-filechooser"
-              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
+              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"
@@ -167,7 +172,7 @@ export default function ImageUploader({
         <DialogFooter className="relative">
           <DialogClose color="minimal">{t("cancel")}</DialogClose>
           <DialogClose
-            data-testid="upload-avatar"
+            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
             color="primary"
             onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}

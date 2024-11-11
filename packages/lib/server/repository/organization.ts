@@ -4,8 +4,10 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
+import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
 const orgSelect = {
@@ -14,6 +16,7 @@ const orgSelect = {
   slug: true,
   logoUrl: true,
 };
+
 export class OrganizationRepository {
   static async createWithExistingUserAsOwner({
     orgData,
@@ -28,6 +31,7 @@ export class OrganizationRepository {
       seats: number | null;
       pricePerSeat: number | null;
       isPlatform: boolean;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
     };
     owner: {
       id: number;
@@ -68,6 +72,7 @@ export class OrganizationRepository {
       isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
       pricePerSeat: number | null;
       isPlatform: boolean;
     };
@@ -109,6 +114,7 @@ export class OrganizationRepository {
     isOrganizationAdminReviewed: boolean;
     autoAcceptEmail: string;
     seats: number | null;
+    billingPeriod?: "MONTHLY" | "ANNUALLY";
     pricePerSeat: number | null;
     isPlatform: boolean;
   }) {
@@ -130,6 +136,7 @@ export class OrganizationRepository {
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
           isPlatform: orgData.isPlatform,
+          billingPeriod: orgData.billingPeriod,
         },
         isPlatform: orgData.isPlatform,
       },
@@ -157,5 +164,138 @@ export class OrganizationRepository {
         organizationSettings: true,
       },
     });
+  }
+
+  static async findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email }: { email: string }) {
+    const emailDomain = email.split("@").at(-1);
+    const orgs = await prisma.team.findMany({
+      where: {
+        isOrganization: true,
+        isPlatform: false,
+        organizationSettings: {
+          orgAutoAcceptEmail: emailDomain,
+          isOrganizationVerified: true,
+          isAdminReviewed: true,
+        },
+      },
+    });
+    if (orgs.length > 1) {
+      logger.error(
+        "Multiple organizations found with the same auto accept email domain",
+        safeStringify({ orgs, emailDomain })
+      );
+      // Detect and fail just in case this situation arises. We should really identify the problem in this case and fix the data.
+      throw new Error("Multiple organizations found with the same auto accept email domain");
+    }
+    const org = orgs[0];
+    if (!org) {
+      return null;
+    }
+    return getParsedTeam(org);
+  }
+
+  static async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        team: {
+          id: orgId,
+        },
+      },
+      include: {
+        team: true,
+      },
+    });
+
+    const organizationSettings = await prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: orgId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+        adminGetsNoSlotsNotification: true,
+        isAdminReviewed: true,
+      },
+    });
+
+    if (!membership) {
+      throw new Error("You do not have a membership to your organization");
+    }
+
+    const metadata = teamMetadataSchema.parse(membership?.team.metadata);
+
+    return {
+      canAdminImpersonate: !!organizationSettings?.isAdminReviewed,
+      organizationSettings: {
+        lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
+        adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
+      },
+      user: {
+        role: membership?.role,
+        accepted: membership?.accepted,
+      },
+      ...membership?.team,
+      metadata,
+    };
+  }
+
+  static async findTeamsInOrgIamNotPartOf({ userId, parentId }: { userId: number; parentId: number | null }) {
+    const teamsInOrgIamNotPartOf = await prisma.team.findMany({
+      where: {
+        parentId,
+        members: {
+          none: {
+            userId,
+          },
+        },
+      },
+    });
+
+    return teamsInOrgIamNotPartOf;
+  }
+
+  static async adminFindById({ id }: { id: number }) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        isOrganization: true,
+        members: {
+          where: {
+            role: "OWNER",
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        organizationSettings: {
+          select: {
+            isOrganizationConfigured: true,
+            isOrganizationVerified: true,
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+    if (!org) {
+      throw new Error("Organization not found");
+    }
+
+    const parsedMetadata = teamMetadataSchema.parse(org.metadata);
+    if (!org?.isOrganization) {
+      throw new Error("Organization not found");
+    }
+    return { ...org, metadata: parsedMetadata };
   }
 }

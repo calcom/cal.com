@@ -110,6 +110,7 @@ describe("Cancel Booking", () => {
       body: {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
       },
     });
 
@@ -121,6 +122,7 @@ describe("Cancel Booking", () => {
       location: BookingLocations.CalVideo,
       subscriberUrl: "http://my-webhook.example.com",
       payload: {
+        cancelledBy: organizer.email,
         organizer: {
           id: organizer.id,
           username: organizer.username,

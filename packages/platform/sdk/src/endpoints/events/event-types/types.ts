@@ -59,6 +59,7 @@ export type EventType = {
   bookingLimits: number | null;
   durationLimits: number | null;
   isInstantEvent: boolean;
+  instantMeetingExpiryTimeOffsetInSeconds: number;
   assignAllTeamMembers: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
 };

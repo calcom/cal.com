@@ -1,6 +1,7 @@
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -12,13 +13,14 @@ export class OrganizationRolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private organizationsService: OrganizationsService,
-    private membershipRepository: MembershipsRepository
+    private membershipRepository: MembershipsRepository,
+    private usersService: UsersService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user: UserWithProfile = request.user;
-    const organizationId = user?.movedToProfile?.organizationId || user?.organizationId;
+    const organizationId = user ? this.usersService.getUserMainOrgId(user) : null;
 
     if (!user || !organizationId) {
       throw new ForbiddenException("No organization associated with the user.");
@@ -27,7 +29,7 @@ export class OrganizationRolesGuard implements CanActivate {
     await this.isPlatform(organizationId);
 
     const membership = await this.membershipRepository.findOrgUserMembership(organizationId, user.id);
-    const allowedRoles = this.reflector.get(Roles, context.getHandler());
+    const allowedRoles = this.reflector.get(MembershipRoles, context.getHandler());
 
     this.isMembershipAccepted(membership.accepted);
     this.isRoleAllowed(membership.role, allowedRoles);

@@ -1,5 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
-import type { AuthOptions, Session } from "next-auth";
+import { waitUntil } from "@vercel/functions";
+import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -7,13 +8,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
+import postHogClient from "@calcom/features/ee/event-tracking/lib/posthog/postHogClient";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -29,6 +31,7 @@ import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
+import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
@@ -235,6 +238,7 @@ const providers: Provider[] = [
         belongsToActiveTeam: hasActiveTeams,
         locale: user.locale,
         profile: user.allProfiles[0],
+        createdDate: user.createdDate,
       };
     },
   }),
@@ -281,9 +285,6 @@ if (isSAMLLoginEnabled) {
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
-      if (!user) throw new Error(ErrorCode.UserNotFound);
-
-      const [userProfile] = user.allProfiles;
       return {
         id: profile.id || 0,
         firstName: profile.firstName || "",
@@ -292,7 +293,7 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        profile: userProfile,
+        ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
     options: {
@@ -407,7 +408,12 @@ const mapIdentityProvider = (providerName: string) => {
   }
 };
 
-export const AUTH_OPTIONS: AuthOptions = {
+export const getOptions = ({
+  getDubId,
+}: {
+  /** so we can extract the Dub cookie in both pages and app routers */
+  getDubId: () => string | undefined;
+}): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
@@ -534,17 +540,19 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
-          org: profileOrg
-            ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                logoUrl: profileOrg.logoUrl,
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-              }
-            : null,
+          // platform org user don't need profiles nor domains
+          org:
+            profileOrg && !profileOrg.isPlatform
+              ? {
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
+              : null,
         } as JWT;
       };
       if (!user) {
@@ -556,7 +564,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (account.type === "credentials") {
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
-          return token;
+          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         // any other credentials, add user info
         return {
@@ -622,7 +630,9 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const hasValidLicense = await checkLicense(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance();
+      const hasValidLicense = await licenseKeyService.checkLicense();
+
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
@@ -923,7 +933,51 @@ export const AUTH_OPTIONS: AuthOptions = {
       return baseUrl;
     },
   },
-};
+  events: {
+    async signIn(message) {
+      /* only run this code if:
+         - it's a hosted cal account
+         - DUB_API_KEY is configured
+         - it's a new user
+      */
+      const user = message.user as User & {
+        username: string;
+        createdDate: string;
+      };
+      // check if the user was created in the last 10 minutes
+      // this is a workaround – in the future once we move to use the Account model in the DB
+      // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
+      const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
+      if ((isENVDev || IS_CALCOM) && isNewUser) {
+        if (process.env.DUB_API_KEY) {
+          const clickId = getDubId();
+          // check if there's a clickId (dub_id) cookie set by @dub/analytics
+          if (clickId) {
+            // here we use waitUntil – meaning this code will run async to not block the main thread
+            waitUntil(
+              // if so, send a lead event to Dub
+              // @see https://d.to/conversions/next-auth
+              dub.track.lead({
+                clickId,
+                eventName: "Sign Up",
+                customerId: user.id.toString(),
+                customerName: user.name,
+                customerEmail: user.email,
+                customerAvatar: user.image,
+              })
+            );
+          }
+        }
+
+        postHogClient().capture(user.id.toString(), "Sign Up", {
+          email: user.email,
+          name: user.name,
+          username: user.username,
+        });
+      }
+    },
+  },
+});
 
 /**
  * Identifies the profile the user should be logged into.

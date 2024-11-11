@@ -1,17 +1,12 @@
-"use client";
-
-import { redirect, useRouter } from "next/navigation";
-
-import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout, WizardLayoutAppDir } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+import OrgAddNewTeamMembers, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
 
-const OnboardTeamMembersPage = () => {
+const Page = () => {
   const { t } = useLocale();
 
   return (
@@ -20,45 +15,13 @@ const OnboardTeamMembersPage = () => {
         title={t("invite_organization_admins")}
         description={t("invite_organization_admins_description")}
       />
-      <AddNewTeamMembers isOrg={true} />
+      <OrgAddNewTeamMembers />
     </>
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const router = useRouter();
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const query = useCompatSearchParams();
+Page.getLayout = LayoutWrapper;
+Page.PageWrapper = PageWrapper;
 
-  return (
-    <WizardLayout
-      currentStep={4}
-      maxSteps={5}
-      isOptionalCallback={() => {
-        router.push(`/settings/organizations/${query.get("id")}/add-teams`);
-      }}>
-      {page}
-    </WizardLayout>
-  );
-};
-
-export const buildWrappedOnboardTeamMembersPage = (
-  id: string | string[] | undefined,
-  page: React.ReactElement
-) => {
-  return (
-    <WizardLayoutAppDir
-      currentStep={4}
-      maxSteps={5}
-      isOptionalCallback={() => {
-        redirect(`/settings/organizations/${id}/add-teams`);
-      }}>
-      {page}
-    </WizardLayoutAppDir>
-  );
-};
-
-OnboardTeamMembersPage.PageWrapper = PageWrapper;
-
-export default OnboardTeamMembersPage;
+export default Page;
+export { getServerSideProps };

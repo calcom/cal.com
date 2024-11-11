@@ -59,7 +59,7 @@ export const createEmbedsFixture = (page: Page) => {
             api("on", {
               action: "*",
               callback: (e) => {
-                console.log("Playwright Embed Fixture: Received event", e);
+                console.log("Playwright Embed Fixture: Received event", JSON.stringify(e.detail));
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 window.iframeReady = true; // Technically if there are multiple cal embeds, it can be set due to some other iframe. But it works for now. Improve it when it doesn't work
@@ -76,6 +76,22 @@ export const createEmbedsFixture = (page: Page) => {
         },
         { calNamespace }
       );
+
+      page.on("console", (msg) => {
+        console.log(`Browser Console: ${msg.type()}: ${msg.text()}`);
+      });
+
+      page.on("framenavigated", async (frame) => {
+        console.log(`Navigation occurred in frame: ${frame.url()}`);
+      });
+
+      page.on("pageerror", (error) => {
+        console.error(`Page error: ${error.message}`);
+      });
+
+      page.on("requestfailed", (request) => {
+        console.error(`Failed request: ${request.url()}, ${request.failure()?.errorText}`);
+      });
     },
 
     async getActionFiredDetails({ calNamespace, actionType }: { calNamespace: string; actionType: string }) {

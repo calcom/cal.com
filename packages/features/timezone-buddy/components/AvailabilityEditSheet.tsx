@@ -15,7 +15,10 @@ import {
   Form,
   Label,
   Sheet,
+  SheetBody,
+  SheetClose,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   showToast,
@@ -151,22 +154,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             ...values,
           });
         }}>
-        <SheetContent
-          bottomActions={
-            <>
-              <Button color="secondary" className="w-full justify-center">
-                {t("cancel")}
-              </Button>
-              <Button
-                disabled={!hasEditPermission || !data.hasDefaultSchedule}
-                className="w-full justify-center"
-                type="submit"
-                loading={updateMutation.isPending}
-                form="availability-form">
-                {t("save")}
-              </Button>
-            </>
-          }>
+        <SheetContent>
           <SheetHeader>
             <SheetTitle>
               {t("edit_users_availability", {
@@ -185,7 +173,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <div className="mt-4 flex flex-col space-y-4">
+          <SheetBody className="mt-4 flex flex-col space-y-4">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -220,7 +208,22 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                 />
               )}
             </div>
-          </div>
+          </SheetBody>
+          <SheetFooter>
+            <SheetClose asChild>
+              <Button color="secondary" className="w-full justify-center">
+                {t("cancel")}
+              </Button>
+            </SheetClose>
+            <Button
+              disabled={!hasEditPermission || !data.hasDefaultSchedule}
+              className="w-full justify-center"
+              type="submit"
+              loading={updateMutation.isPending}
+              form="availability-form">
+              {t("save")}
+            </Button>
+          </SheetFooter>
         </SheetContent>
       </Form>
     </Sheet>

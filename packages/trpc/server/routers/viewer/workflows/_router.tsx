@@ -5,6 +5,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
 import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
@@ -27,6 +28,7 @@ type WorkflowsRouterHandlerCache = {
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
   getVerifiedEmails?: typeof import("./getVerifiedEmails.handler").getVerifiedEmailsHandler;
   verifyEmailCode?: typeof import("./verifyEmailCode.handler").verifyEmailCodeHandler;
+  getAllActiveWorkflows?: typeof import("./getAllActiveWorkflows.handler").getAllActiveWorkflowsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -255,4 +257,23 @@ export const workflowsRouter = router({
       input,
     });
   }),
+  getAllActiveWorkflows: authedProcedure
+    .input(ZGetAllActiveWorkflowsInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows) {
+        UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows = await import("./getAllActiveWorkflows.handler").then(
+          (mod) => mod.getAllActiveWorkflowsHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows({
+        ctx,
+        input,
+      });
+    }),
 });

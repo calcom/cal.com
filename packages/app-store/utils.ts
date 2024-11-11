@@ -12,7 +12,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
-type LocationOption = {
+export type LocationOption = {
   label: string;
   value: EventLocationType["type"];
   icon?: string;
@@ -162,9 +162,12 @@ export function doesAppSupportTeamInstall({
   );
 }
 
+export function isConferencing(appCategories: string[]) {
+  return appCategories.some((category) => category === "conferencing" || category === "video");
+}
 export const defaultVideoAppCategories: AppCategories[] = [
-  "conferencing",
   "messaging",
+  "conferencing",
   // Legacy name for conferencing
   "video",
 ];

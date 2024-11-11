@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -27,7 +27,7 @@ export default class AttendeeVerifyEmail extends BaseEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       subject: this.verifyAccountInput.language(
         `verify_email_subject${this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""}`,
         {

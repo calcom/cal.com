@@ -94,7 +94,7 @@ export const RedirectToInstantMeetingModal = ({
           ) : (
             <div className="text-center">
               <p className="font-medium">{t("connecting_you_to_someone")}</p>
-              <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
+              <p className="font-bold">{t("please_do_not_close_this_tab")}</p>
               <p className="mt-2 font-medium">
                 {t("please_schedule_future_call", {
                   seconds: formatTime(timeRemaining),

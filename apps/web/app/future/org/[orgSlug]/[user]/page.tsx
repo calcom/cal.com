@@ -4,4 +4,4 @@ import { WithLayout } from "app/layoutHOC";
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
-export default WithLayout({ getLayout: null, getData, isBookingPage: true, Page });
+export default WithLayout({ getLayout: null, getData, Page });

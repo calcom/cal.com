@@ -134,9 +134,12 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
     const isAChildEvent = eventType.parentId;
+    if (!isAChildEvent) {
+      return true;
+    }
     // A child event only has one user
     const childEventAssignee = eventType.users[0];
-    if (isAChildEvent && childEventAssignee.id != user.id) {
+    if (!childEventAssignee || childEventAssignee.id != user.id) {
       return false;
     }
     return true;

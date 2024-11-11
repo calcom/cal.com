@@ -121,7 +121,7 @@ export default class CloseComCRMService implements CRM {
     await this.closeComDeleteCustomActivity(uid);
   }
 
-  async getContacts(emails: string | string[]): Promise<Contact[]> {
+  async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
     const contactsQuery = await this.closeCom.contact.search({
       emails: Array.isArray(emails) ? emails : [emails],
     });
@@ -176,5 +176,9 @@ export default class CloseComCRMService implements CRM {
     }
 
     return contacts;
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }

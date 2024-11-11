@@ -1,0 +1,98 @@
+on:
+  workflow_call:
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+jobs:
+  publish-report:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      # Unique URL path for each workflow run attempt
+      HTML_REPORT_URL_PATH: reports/${{ github.head_ref }}/${{ github.run_id }}/${{ github.run_attempt }}
+      BRANCH_REPORTS_DIR: reports/${{ github.head_ref }}
+    steps:
+      - name: Checkout GitHub Pages Branch
+        uses: actions/checkout@v4
+        with:
+          repository: calcom/test-results
+          ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+      - name: Set Git User
+        # see: https://github.com/actions/checkout/issues/13#issuecomment-724415212
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Check for workflow reports
+        run: |
+          if [ -z "$(ls -A $BRANCH_REPORTS_DIR)" ]; then
+            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
+          else
+            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
+          fi
+      - name: Cleanup old HTML reports
+        if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
+        timeout-minutes: 3
+        run: |
+          rm -rf $BRANCH_REPORTS_DIR
+          git add .
+          git commit -m "workflow: remove all reports for branch ${{ github.head_ref }}"
+      - name: Download zipped HTML report
+        uses: actions/download-artifact@v4
+        with:
+          name: html-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
+          path: ${{ env.HTML_REPORT_URL_PATH }}
+      - name: Push HTML Report
+        timeout-minutes: 3
+        # commit report, then try push-rebase-loop until it's able to merge the HTML report to the gh-pages branch
+        # this is necessary when this job running at least twice at the same time (e.g. through two pushes at the same time)
+        run: |
+          git add .
+          git commit -m "workflow: add HTML report for run-id ${{ github.run_id }} (attempt:  ${{ github.run_attempt }})"
+
+          while true; do
+            git pull --rebase
+            if [ $? -ne 0 ]; then
+              echo "Failed to rebase. Please review manually."
+              exit 1
+            fi
+
+            git push
+            if [ $? -eq 0 ]; then
+              echo "Successfully pushed HTML report to repo."
+              exit 0
+            fi
+          done
+      - name: Output Report URL as Workflow Annotation
+        id: url
+        run: |
+          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results/$HTML_REPORT_URL_PATH
+          echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
+          echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: <!-- GENERATED-E2E-RESULTS -->
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
+      - name: Update comment
+        if: steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})

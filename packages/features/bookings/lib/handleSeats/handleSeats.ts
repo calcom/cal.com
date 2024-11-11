@@ -2,6 +2,7 @@
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -29,6 +30,8 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     subscriberOptions,
     eventTrigger,
     evt,
+    workflows,
+    rescheduledBy,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -74,7 +77,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // See if attendee is already signed up for timeslot
   if (
-    seatedBooking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
+    seatedBooking.attendees.find((attendee) => {
+      return attendee.email === invitee[0].email;
+    }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
   ) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
@@ -101,9 +106,19 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     };
     try {
       await scheduleWorkflowReminders({
-        workflows: eventType.workflows,
+        workflows,
         smsReminderNumber: smsReminderNumber || null,
-        calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
+        calendarEvent: {
+          ...evt,
+          ...{
+            metadata,
+            eventType: {
+              slug: eventType.slug,
+              schedulingType: eventType.schedulingType,
+              hosts: eventType.hosts,
+            },
+          },
+        },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
@@ -114,7 +129,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
-    const webhookData = {
+    const webhookData: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
@@ -131,6 +146,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
+      rescheduledBy,
     };
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });

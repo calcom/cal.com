@@ -4,8 +4,10 @@ import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
+import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+
+import type { PageProps } from "~/videos/views/videos-single-view";
 import VideosSingleView from "~/videos/views/videos-single-view";
-import { getServerSideProps, type PageProps } from "~/videos/views/videos-single-view.getServerSideProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

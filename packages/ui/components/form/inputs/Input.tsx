@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -5,7 +7,10 @@ import { useFormContext } from "react-hook-form";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, Icon, Input, InputField, Tooltip } from "../../..";
+import { Alert } from "../../alert";
+import { Icon } from "../../icon";
+import { Tooltip } from "../../tooltip";
+import { Input, InputField } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
 
@@ -48,9 +53,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
             {isPasswordVisible ? (
-              <Icon name="eye-off" className="h-4 stroke-[2.5px]" />
+              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
             ) : (
-              <Icon name="eye" className="h-4 stroke-[2.5px]" />
+              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
             )}
             <span className="sr-only">{textLabel}</span>
           </button>
@@ -186,8 +191,8 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
   return (
     <div
       dir="ltr"
-      className="focus-within:ring-brand-default group relative mx-3 mb-1 mt-2.5 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
-      <div className="addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default flex h-7 items-center justify-center rounded-l-md border border-r-0">
+      className="focus-within:ring-brand-default group relative mx-3 mb-1 mt-2.5 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2">
+      <div className="addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default flex h-7 items-center justify-center rounded-l-md border border-r-0 transition">
         <Icon name="search" className="ms-3 h-4 w-4" data-testid="search-icon" />
       </div>
       <Input

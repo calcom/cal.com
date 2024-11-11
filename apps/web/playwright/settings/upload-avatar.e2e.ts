@@ -155,7 +155,7 @@ test.describe("Organization Logo", async () => {
 
       await page.getByTestId("upload-avatar").click();
 
-      await page.getByText("Update").click();
+      await page.getByTestId("update-org-profile-button").click();
       await page.waitForSelector("text=Your organization updated successfully");
 
       const response = await prisma.avatar.findUniqueOrThrow({
@@ -192,7 +192,7 @@ test.describe("Organization Logo", async () => {
     await test.step("it shows the correct logo on the unpublished public page", async () => {
       await page.goto(`/org/${requestedSlug}`);
 
-      expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
+      await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
 
       await expect(page.locator(`img`)).toHaveAttribute(
         "src",

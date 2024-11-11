@@ -13,6 +13,7 @@ export async function getHandler(req: NextApiRequest) {
   const variant = appConfig.variant;
   const appType = appConfig.type;
   const teamId = req.query.teamId ? Number(req.query.teamId) : undefined;
+  const returnTo = req.query?.returnTo;
 
   await checkInstalled(slug, session.user.id);
   await createDefaultInstallation({
@@ -23,7 +24,7 @@ export async function getHandler(req: NextApiRequest) {
     teamId,
   });
 
-  return { url: getInstalledAppPath({ variant, slug }) };
+  return { url: returnTo ?? getInstalledAppPath({ variant, slug }) };
 }
 
 export default defaultResponder(getHandler);

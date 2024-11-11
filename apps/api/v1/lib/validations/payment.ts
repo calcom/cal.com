@@ -1,5 +1,12 @@
 import { _PaymentModel as Payment } from "@calcom/prisma/zod";
 
-// FIXME: Payment seems a delicate endpoint, do we need to remove anything here?
-export const schemaPaymentBodyParams = Payment.omit({ id: true });
-export const schemaPaymentPublic = Payment.omit({ externalId: true });
+export const schemaPaymentPublic = Payment.pick({
+  id: true,
+  amount: true,
+  success: true,
+  refunded: true,
+  fee: true,
+  paymentOption: true,
+  currency: true,
+  bookingId: true,
+});
