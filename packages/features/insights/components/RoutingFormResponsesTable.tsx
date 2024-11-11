@@ -14,7 +14,7 @@ import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { Badge, Avatar, Icon, Tooltip } from "@calcom/ui";
+import { Badge, Avatar, Icon } from "@calcom/ui";
 import { DataTable, useFetchMoreOnBottomReached } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
@@ -118,22 +118,32 @@ export function RoutingFormResponsesTable() {
             let value = info.getValue();
 
             value = Array.isArray(value) ? value : [value];
+            if (value.length === 0) return null;
 
             return (
               <div className="flex flex-wrap gap-1">
                 {value.length > 2 ? (
                   <>
-                    {value.slice(0, 2).map((v, i) => (
+                    {value.slice(0, 2).map((v: string, i: number) => (
                       <Badge key={i} variant="gray">
                         {v}
                       </Badge>
                     ))}
-                    <Tooltip content={value.slice(2).join(", ")}>
+                    <div className="group/badge relative">
                       <Badge variant="gray">+{value.length - 2}</Badge>
-                    </Tooltip>
+                      <div className="invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md bg-white p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
+                        <div className="flex flex-col gap-1">
+                          {value.slice(2).map((v: string, i: number) => (
+                            <span key={i} className="text-sm text-gray-600">
+                              {v}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </>
                 ) : (
-                  value.map((v, i) => (
+                  value.map((v: string, i: number) => (
                     <Badge key={i} variant="gray">
                       {v}
                     </Badge>
