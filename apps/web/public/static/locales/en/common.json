@@ -709,6 +709,9 @@
   "no_teams": "You don't have any teams yet.",
   "no_teams_description": "Teams allow others to book events shared between your coworkers.",
   "submit": "Submit",
+  "confirm_remove_attribute": "Yes, remove attribute",
+  "remove_attribute": "Remove attribute",
+  "remove_attribute_confirmation_message": "Are you sure you want to remove the attribute '{{name}}'? All users currently assigned to it will be unassigned.",
   "delete": "Delete",
   "update": "Update",
   "save": "Save",
@@ -2750,6 +2753,8 @@
   "event_end_time_in_attendee_timezone_info": "Event End Time In Attendee Timezone",
   "salesforce_create_event_on_contact": "Create event on contact, if it exists. Else fallback to lead",
   "salesforce_owner_name_to_change": "Owner name to change",
+  "dont_have_access_this_page": "You don't have access to this page",
+  "you_need_admin_or_owner_privileges_to_access": "In order to view or interact with this page, you must have admin or owner privileges",
   "field_type": "Field type",
   "when_to_write": "When to write",
   "salesforce_on_booking_write_to_record": "On booking, write to a custom field on the attendee {{record}} record",
@@ -2758,5 +2763,6 @@
   "booking_start_date": "Booking start date",
   "booking_created_date": "Booking created date",
   "booking_reassigned_to_host": "Booking reassigned to {{host}}",
+  "access_denied": "Access Denied",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

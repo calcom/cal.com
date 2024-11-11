@@ -707,6 +707,9 @@ checksums:
     no_teams: b629f2ff400fbd38f3b34a25295f0146
     no_teams_description: 6394f038a3b71bf2036e82443e72591a
     submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
+    confirm_remove_attribute: 2f3b1cba07ed6ba4f87e157db59800cc
+    remove_attribute: 72944218312442e483aa41eb63abee24
+    remove_attribute_confirmation_message: 356cd8163f04fbc9b9861f2a74131ec9
     delete: 8bcf303dd10a645b5baacb02b47d72c9
     update: 079fc039262fd31b10532929685c2d1b
     save: f7a2929f33bc420195e59ac5a8bcd454
