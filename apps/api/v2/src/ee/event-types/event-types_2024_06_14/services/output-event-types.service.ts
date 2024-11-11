@@ -7,8 +7,7 @@ import {
   transformLocationsInternalToApi,
   transformBookingFieldsInternalToApi,
   parseRecurringEvent,
-  TransformedLocationsSchema,
-  BookingFieldsSchema,
+  InternalLocationSchema,
   SystemField,
   CustomField,
   parseBookingLimit,
@@ -20,12 +19,16 @@ import {
   transformEventTypeColorsInternalToApi,
   parseEventTypeColor,
   transformSeatsInternalToApi,
+  InternalLocation,
+  BookingFieldSchema,
 } from "@calcom/platform-libraries";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
   NoticeThresholdTransformedSchema,
   EventTypeOutput_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
 } from "@calcom/platform-types";
 
 type EventTypeRelations = {
@@ -118,7 +121,7 @@ export class OutputEventTypesService_2024_06_14 {
     const locations = this.transformLocations(databaseEventType.locations);
     const customName = databaseEventType?.eventName ?? undefined;
     const bookingFields = databaseEventType.bookingFields
-      ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
+      ? this.transformBookingFields(databaseEventType.bookingFields)
       : [];
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
@@ -190,7 +193,20 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformLocations(locations: any) {
     if (!locations) return [];
-    return transformLocationsInternalToApi(TransformedLocationsSchema.parse(locations));
+
+    const knownLocations: InternalLocation[] = [];
+    const unknownLocations: OutputUnknownLocation_2024_06_14[] = [];
+
+    for (const location of locations) {
+      const result = InternalLocationSchema.safeParse(location);
+      if (result.success) {
+        knownLocations.push(result.data);
+      } else {
+        unknownLocations.push({ type: "unknown", location: JSON.stringify(location) });
+      }
+    }
+
+    return [...transformLocationsInternalToApi(knownLocations), ...unknownLocations];
   }
 
   transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {
@@ -201,10 +217,26 @@ export class OutputEventTypesService_2024_06_14 {
     };
   }
 
-  transformBookingFields(bookingFields: (SystemField | CustomField)[] | null) {
+  transformBookingFields(bookingFields: any) {
     if (!bookingFields) return [];
 
-    return transformBookingFieldsInternalToApi(bookingFields);
+    const knownBookingFields: (SystemField | CustomField)[] = [];
+    const unknownBookingFields: OutputUnknownBookingField_2024_06_14[] = [];
+
+    for (const bookingField of bookingFields) {
+      const result = BookingFieldSchema.safeParse(bookingField);
+      if (result.success) {
+        knownBookingFields.push(result.data);
+      } else {
+        unknownBookingFields.push({
+          type: "unknown",
+          slug: "unknown",
+          bookingField: JSON.stringify(bookingField),
+        });
+      }
+    }
+
+    return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
   }
 
   transformRecurringEvent(recurringEvent: any) {

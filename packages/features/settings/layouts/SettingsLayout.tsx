@@ -141,6 +141,9 @@ tabs.find((tab) => {
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
   if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_your_org", href: "/settings/organizations/new" });
+  }
+  if (tab.name === "admin" && IS_CALCOM) {
     tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
   }
 });
@@ -227,9 +230,9 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
+        className="h-4 w-4 stroke-[2px] md:mt-0 ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180"
       />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
+      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -310,7 +313,7 @@ const TeamListCollapsible = () => {
                     {!team.parentId && (
                       <img
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                         alt={team.name || "Team logo"}
                       />
                     )}
@@ -339,7 +342,7 @@ const TeamListCollapsible = () => {
                   />
                   <VerticalTabItem
                     name={t("event_types_page_title")}
-                    href={`/event-types?teamIds=${team.id}`}
+                    href={`/event-types?teamId=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
@@ -457,7 +460,7 @@ const SettingsSidebarContainer = ({
                       {tab && tab.icon && (
                         <Icon
                           name={tab.icon}
-                          className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                          className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                         />
                       )}
                       {!tab.icon && tab?.avatar && (
@@ -502,7 +505,7 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                           />
                         )}
                         <Skeleton
@@ -536,7 +539,7 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                           />
                         )}
                         <Skeleton
@@ -591,7 +594,7 @@ const SettingsSidebarContainer = ({
                                   {!otherTeam.parentId && (
                                     <img
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}

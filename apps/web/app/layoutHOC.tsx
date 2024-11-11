@@ -25,6 +25,7 @@ export function WithLayout<T extends Record<string, any>>({
   isBookingPage,
   requiresLicense,
 }: WithLayoutParams<T>) {
+  // eslint-disable-next-line react/display-name
   return async <P extends "P" | "L">(p: P extends "P" ? PageProps : LayoutProps) => {
     const h = headers();
     const nonce = h.get("x-nonce") ?? undefined;

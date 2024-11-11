@@ -165,8 +165,8 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
         {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
         {data.items
           .filter((item) => item.invalidCredentialIds)
-          .map((item) => {
-            if (!item.teams.length) return <ChildAppCard item={item} />;
+          .map((item, i) => {
+            if (!item.teams.length) return <ChildAppCard key={i} item={item} />;
           })}
       </List>
       {locationType && (

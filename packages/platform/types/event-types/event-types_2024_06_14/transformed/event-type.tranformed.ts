@@ -7,7 +7,7 @@ import type {
   transformRecurrenceApiToInternal,
   transformSeatsApiToInternal,
   transformBookingFieldsApiToInternal,
-  TransformedLocationsSchema,
+  InternalLocationsSchema,
 } from "@calcom/lib/event-types/transformers";
 
 import type { CreateEventTypeInput_2024_06_14, ConfirmationPolicyTransformedSchema } from "../inputs";
@@ -32,7 +32,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
   slug: string;
   eventName?: string;
   bookingLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
-  locations?: z.infer<typeof TransformedLocationsSchema>;
+  locations?: z.infer<typeof InternalLocationsSchema>;
   bookingFields?: ReturnType<typeof transformBookingFieldsApiToInternal>;
   durationLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
   recurringEvent?: ReturnType<typeof transformRecurrenceApiToInternal>;
