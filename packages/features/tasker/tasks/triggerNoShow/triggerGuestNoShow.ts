@@ -15,7 +15,7 @@ const markAllGuestNoshowInBooking = async ({ bookingId, hostsThatJoinedTheCall }
       data: { noShow: true },
     });
   } catch (err) {
-    log.error("Error marking hosts as no show in booking", error);
+    log.error("Error marking guests as no show in booking", error);
   }
 };
 
