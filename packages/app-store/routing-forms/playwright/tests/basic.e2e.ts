@@ -327,12 +327,13 @@ test.describe("Routing Forms", () => {
         // @see https://github.com/calcom/cal.com/pull/17229
         "Routed To",
         "Booked At",
+        "Submitted At",
       ]);
       /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", ""],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", ""],
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", ""],
+        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
@@ -592,7 +593,9 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="test-routing"]');
         await page.waitForSelector("text=Attribute logic matched: No");
         await page.waitForSelector("text=Attribute logic fallback matched: Yes");
-        await page.waitForSelector("text=All assigned members of the team event type. Consider adding some attribute rules to fallback.");
+        await page.waitForSelector(
+          "text=All assigned members of the team event type. Consider adding some attribute rules to fallback."
+        );
         await page.click('[data-testid="dialog-rejection"]');
       })();
     });
