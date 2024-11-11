@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select, Input, Label } from "@calcom/ui";
 
 import type { LocalRouteWithRaqbStates, AttributeRoutingConfig } from "../../routing-forms/types/types";
@@ -20,18 +21,18 @@ const RoutingFormOptions = ({
   route: LocalRouteWithRaqbStates;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
 }) => {
+  const { t } = useLocale();
   const salesforceRoutingOptions = [
     {
-      label: "Contact owner will be the Round Robin host if available",
+      label: t("salesforce_route_to_owner"),
       value: SalesforceRoutingConfig.ROUTE_OWNER,
     },
     {
-      label:
-        "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)",
+      label: t("salesforce_do_not_route_to_owner"),
       value: SalesforceRoutingConfig.SKIP_OWNER,
     },
     {
-      label: "Route to a user that matches a lookup field on an account",
+      label: t("salesforce_route_to_custom_lookup_field"),
       value: SalesforceRoutingConfig.ACCOUNT_FIELD_LOOKUP,
     },
   ];
@@ -114,7 +115,7 @@ const RoutingFormOptions = ({
     <div>
       <div className="flex">
         <span className="text-emphasis flex items-center text-sm">
-          <img src="/app-store/salesforce/icon.png" className="mr-2 h-6 w-6" /> Salesforce option
+          <img src="/app-store/salesforce/icon.png" className="mr-2 h-6 w-6" /> {t("salesforce_option")}
         </span>
         {isAppDisabled ? (
           <Select value={appDisabledOption} isDisabled className="ml-2 w-full" />
@@ -134,7 +135,7 @@ const RoutingFormOptions = ({
       </div>
       {selectedRoutingOption?.value === SalesforceRoutingConfig.ACCOUNT_FIELD_LOOKUP ? (
         <div>
-          <Label className="mt-2">Lookup Field Name</Label>
+          <Label className="mt-2">{t("lookup_field_name")}</Label>
           <Input
             value={rrSkipToAccountLookupFieldName}
             onChange={(e) => {
