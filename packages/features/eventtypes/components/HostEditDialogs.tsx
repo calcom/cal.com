@@ -67,7 +67,6 @@ export const PriorityDialog = (
             priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
             isFixed: false,
             weight: host.weight,
-            weightAdjustment: host.weightAdjustment,
           };
         });
 
@@ -161,7 +160,6 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
           priority: host.priority,
           weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
           isFixed: false,
-          weightAdjustment: host.weightAdjustment,
         };
       });
 
