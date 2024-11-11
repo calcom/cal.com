@@ -10,10 +10,11 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui/icon";
 
-import type { GetServerSidePropsResult as PageProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
+import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
@@ -35,6 +36,8 @@ const stepRouteSchema = z.object({
   from: z.string().optional(),
 });
 
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
@@ -54,7 +57,7 @@ const OnboardingPage = (props: PageProps) => {
     ...(includeUserSettings ? (["user-settings"] as const) : []),
     "connected-calendar",
     "connected-video",
-  ] as const;
+  ];
 
   const currentStep = result.success ? result.data.step[0] : _steps[0];
   const headers = [
@@ -89,7 +92,10 @@ const OnboardingPage = (props: PageProps) => {
   // }
 
   const goToIndex = (index: number) => {
-    const newStep: (typeof steps)[number] = _steps[index];
+    const newStep: (typeof steps)[number] = _steps[index] as
+      | "user-settings"
+      | "connected-calendar"
+      | "connected-video";
     router.push(`/getting-started/${stepTransform(newStep)}`);
   };
 
