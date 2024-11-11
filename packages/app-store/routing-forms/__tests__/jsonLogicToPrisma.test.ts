@@ -227,83 +227,137 @@ describe("jsonLogicToPrisma(Reporting)", () => {
         ],
       });
     });
-  });
 
-  it("should support where All Match ['Equals', 'Equals'] operator", () => {
-    const prismaWhere = jsonLogicToPrisma({
-      logic: {
-        and: [
-          { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "a"] },
-          { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "b"] },
+    it("should support 'Any In' operator", () => {
+      const prismaWhere = jsonLogicToPrisma({
+        logic: { and: [{ in: [{ var: "267c7817-81a5-4bef-9d5b-d0faa4cd0d71" }, ["C", "D"]] }] },
+      });
+      expect(prismaWhere).toEqual({
+        AND: [
+          {
+            OR: [
+              {
+                response: {
+                  path: ["267c7817-81a5-4bef-9d5b-d0faa4cd0d71", "value"],
+                  equals: "C",
+                },
+              },
+              {
+                response: {
+                  path: ["267c7817-81a5-4bef-9d5b-d0faa4cd0d71", "value"],
+                  equals: "D",
+                },
+              },
+            ],
+          },
         ],
-      },
+      });
     });
 
-    expect(prismaWhere).toEqual({
-      AND: [
-        {
-          response: {
-            path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
-            equals: "a",
+    it("should support 'Not In' operator", () => {
+      const prismaWhere = jsonLogicToPrisma({
+        logic: { and: [{ "!": { in: [{ var: "267c7817-81a5-4bef-9d5b-d0faa4cd0d71" }, ["C", "D"]] } }] },
+      });
+      expect(prismaWhere).toEqual({
+        AND: [
+          {
+            NOT: {
+              OR: [
+                {
+                  response: {
+                    path: ["267c7817-81a5-4bef-9d5b-d0faa4cd0d71", "value"],
+                    equals: "C",
+                  },
+                },
+                {
+                  response: {
+                    path: ["267c7817-81a5-4bef-9d5b-d0faa4cd0d71", "value"],
+                    equals: "D",
+                  },
+                },
+              ],
+            },
           },
-        },
-        {
-          response: {
-            path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
-            equals: "b",
-          },
-        },
-      ],
-    });
-  });
-
-  it("should support where Any Match ['Equals', 'Equals'] operator", () => {
-    const prismaWhere = jsonLogicToPrisma({
-      logic: {
-        or: [
-          { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "a"] },
-          { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "b"] },
         ],
-      },
+      });
     });
 
-    expect(prismaWhere).toEqual({
-      OR: [
-        {
-          response: {
-            path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
-            equals: "a",
-          },
-        },
-        {
-          response: {
-            path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
-            equals: "b",
-          },
-        },
-      ],
-    });
-  });
-
-  it("should support where None Match ['Equals', 'Equals'] operator", () => {
-    const prismaWhere = jsonLogicToPrisma({
-      logic: {
-        "!": {
-          or: [
-            { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "abc"] },
-            { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "abcd"] },
+    it("should support where All Match ['Equals', 'Equals'] operator", () => {
+      const prismaWhere = jsonLogicToPrisma({
+        logic: {
+          and: [
+            { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "a"] },
+            { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "b"] },
           ],
         },
-      },
+      });
+
+      expect(prismaWhere).toEqual({
+        AND: [
+          {
+            response: {
+              path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
+              equals: "a",
+            },
+          },
+          {
+            response: {
+              path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
+              equals: "b",
+            },
+          },
+        ],
+      });
     });
 
-    expect(prismaWhere).toEqual({
-      NOT: {
+    it("should support where Any Match ['Equals', 'Equals'] operator", () => {
+      const prismaWhere = jsonLogicToPrisma({
+        logic: {
+          or: [
+            { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "a"] },
+            { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "b"] },
+          ],
+        },
+      });
+
+      expect(prismaWhere).toEqual({
         OR: [
-          { response: { path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"], equals: "abc" } },
-          { response: { path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"], equals: "abcd" } },
+          {
+            response: {
+              path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
+              equals: "a",
+            },
+          },
+          {
+            response: {
+              path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"],
+              equals: "b",
+            },
+          },
         ],
-      },
+      });
+    });
+
+    it("should support where None Match ['Equals', 'Equals'] operator", () => {
+      const prismaWhere = jsonLogicToPrisma({
+        logic: {
+          "!": {
+            or: [
+              { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "abc"] },
+              { "==": [{ var: "505d3c3c-aa71-4220-93a9-6fd1e1087939" }, "abcd"] },
+            ],
+          },
+        },
+      });
+
+      expect(prismaWhere).toEqual({
+        NOT: {
+          OR: [
+            { response: { path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"], equals: "abc" } },
+            { response: { path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"], equals: "abcd" } },
+          ],
+        },
+      });
     });
   });
 });

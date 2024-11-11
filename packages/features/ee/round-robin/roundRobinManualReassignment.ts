@@ -42,11 +42,13 @@ export const roundRobinManualReassignment = async ({
   newUserId,
   orgId,
   reassignReason,
+  reassignedById,
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
   reassignReason?: string;
+  reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -81,8 +83,8 @@ export const roundRobinManualReassignment = async ({
         isFixed: false,
         priority: 2,
         weight: 100,
-        weightAdjustment: 0,
         schedule: null,
+        createdAt: new Date(0), // use earliest possible date as fallback
       }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
@@ -164,6 +166,7 @@ export const roundRobinManualReassignment = async ({
         title: newBookingTitle,
         userPrimaryEmail: newUser.email,
         reassignReason,
+        reassignById: reassignedById,
       },
       select: bookingSelect,
     });

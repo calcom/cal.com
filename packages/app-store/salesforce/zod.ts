@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
-import { SalesforceRecordEnum } from "./lib/recordEnum";
+import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
+
+const writeToRecordEntry = z.object({
+  value: z.string(),
+  fieldType: z.nativeEnum(SalesforceFieldType),
+  whenToWrite: z.nativeEnum(WhenToWriteToRecord),
+});
 
 export const appDataSchema = eventTypeAppCardZod.extend({
   roundRobinLeadSkip: z.boolean().optional(),
@@ -18,6 +24,10 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   createEventOnLeadCheckForContact: z.boolean().optional(),
   onBookingChangeRecordOwner: z.boolean().optional(),
   onBookingChangeRecordOwnerName: z.string().optional(),
+  sendNoShowAttendeeData: z.boolean().optional(),
+  sendNoShowAttendeeDataField: z.string().optional(),
+  onBookingWriteToRecord: z.boolean().optional(),
+  onBookingWriteToRecordFields: z.record(z.string(), writeToRecordEntry).optional(),
 });
 
 export const appKeysSchema = z.object({

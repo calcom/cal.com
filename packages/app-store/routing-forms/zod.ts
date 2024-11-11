@@ -130,6 +130,7 @@ export const queryValueSaveValidationSchema = queryValueSchema
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
+  name: z.string().optional(),
   attributeRoutingConfig: z
     .object({
       skipContactOwner: z.boolean().optional(),
@@ -139,12 +140,22 @@ export const zodNonRouterRoute = z.object({
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
    * RAQB query value for form fields
+   * BRANDED to ensure we don't give it Attributes
    */
   queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
   /**
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   * BRANDED to ensure we don't give it Form Fields
    */
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * RAQB query value for fallback of `attributesQueryValue`
+   * BRANDED to ensure we don't give it Form Fields, It needs Attributes
+   */
+  fallbackAttributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * Whether the route is a fallback if no other routes match
+   */
   isFallback: z.boolean().optional(),
   action: z.object({
     type: routeActionTypeSchema,
@@ -158,6 +169,7 @@ export const zodNonRouterRouteView = zodNonRouterRoute;
 export const zodRouterRoute = z.object({
   // This is the id of the Form being used as router
   id: z.string(),
+  name: z.string().optional(),
   isRouter: z.literal(true),
 });
 

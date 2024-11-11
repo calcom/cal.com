@@ -39,4 +39,8 @@ export interface CRM {
   }) => Promise<Contact[]>;
   createContacts: (contactsToCreate: ContactCreateInput[], organizerEmail?: string) => Promise<Contact[]>;
   getAppOptions: () => any;
+  handleAttendeeNoShow?: (
+    bookingUid: string,
+    attendees: { email: string; noShow: boolean }[]
+  ) => Promise<void>;
 }

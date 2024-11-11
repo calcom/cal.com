@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
@@ -131,6 +132,17 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
       return null;
     })
     .filter(Boolean) as string[];
+  const avatarComponents = avatars
+    .slice(0, 3)
+    .map((avatar) => (
+      <Image
+        tw="rounded-full mr-[-36px] border-[6px] border-[#CDCED2]"
+        key={avatar}
+        src={avatar}
+        alt="Profile picture"
+        width="160"
+      />
+    ));
 
   // In case there is NO other attendee than the single meeting profile without an image, we add
   // that name back in here, since the event probably is a round robin event.
@@ -147,15 +159,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
             </div>
           )}
           <div tw="flex flex-row">
-            {avatars.slice(0, 3).map((avatar) => (
-              <img
-                tw="rounded-full mr-[-36px] border-[6px] border-[#CDCED2]"
-                key={avatar}
-                src={avatar}
-                alt="Profile picture"
-                width="160"
-              />
-            ))}
+            {avatarComponents}
             {avatars.length > 3 && (
               <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-inverted text-[54px] font-bold">
                 <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>

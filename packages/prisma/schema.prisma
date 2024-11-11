@@ -50,10 +50,11 @@ model Host {
   isFixed          Boolean   @default(false)
   priority         Int?
   weight           Int?
-  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
   schedule         Schedule? @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
+  createdAt        DateTime  @default(now())
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -343,6 +344,7 @@ model User {
   NotificationsSubscriptions NotificationsSubscriptions[]
   referralLinkId             String?
   features                   UserFeatures[]
+  reassignedBookings         Booking[]                    @relation("reassignByUser")
 
   @@unique([email])
   @@unique([email, username])
@@ -608,6 +610,8 @@ model Booking {
   cancellationReason           String?
   rejectionReason              String?
   reassignReason               String?
+  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById                 Int?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?

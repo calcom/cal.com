@@ -1,8 +1,7 @@
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import dSyncUserSelect from "./dSyncUserSelect";
 
@@ -50,26 +49,17 @@ const createUsersAndConnectToOrg = async (
     },
     select: dSyncUserSelect,
   });
-
-  await prisma.membership.createMany({
-    data: users.map((user) => ({
-      accepted: true,
-      userId: user.id,
-      teamId: organizationId,
-      role: MembershipRole.MEMBER,
-    })),
-  });
-
-  await prisma.profile.createMany({
-    data: users.map((user) => ({
-      uid: ProfileRepository.generateProfileUid(),
-      userId: user.id,
-      // The username is already set when creating the user
-      username: user.username!,
-      organizationId,
-    })),
-  });
-
+  // Assign created users to organization
+  for (const user of users) {
+    await createOrUpdateMemberships({
+      user,
+      team: {
+        id: organizationId,
+        isOrganization: true,
+        parentId: null, // orgs don't have a parentId
+      },
+    });
+  }
   return users;
 };
 

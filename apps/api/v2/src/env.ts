@@ -10,6 +10,8 @@ export type Environment = {
   DATABASE_URL: string;
   JWT_SECRET: string;
   SENTRY_DSN: string;
+  SENTRY_TRACES_SAMPLE_RATE?: number;
+  SENTRY_PROFILES_SAMPLE_RATE?: number;
   LOG_LEVEL: keyof typeof logLevels;
   REDIS_URL: string;
   STRIPE_API_KEY: string;

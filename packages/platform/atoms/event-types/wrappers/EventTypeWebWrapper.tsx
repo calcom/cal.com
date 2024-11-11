@@ -10,6 +10,7 @@ import type { NextRouter as NextPageRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -224,9 +225,13 @@ const EventTypeWeb = ({
     },
   });
 
-  const permalink = `${WEBSITE_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+  const orgBranding = useOrgBranding();
+
+  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
+  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
+
   const tabMap = {
     setup: (
       <EventSetupTab
