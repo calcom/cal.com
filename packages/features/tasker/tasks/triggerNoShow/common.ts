@@ -111,6 +111,7 @@ export const prepareNoShowTrigger = async (
   booking: Booking;
   webhook: TWebhook;
   hostsThatDidntJoinTheCall: Host[];
+  hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
 } | void> => {

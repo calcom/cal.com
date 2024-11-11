@@ -2,8 +2,15 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
+import type { Host } from "./common";
 
-const markAllGuestNoshowInBooking = async ({ bookingId, hostsThatJoinedTheCall }) => {
+const markAllGuestNoshowInBooking = async ({
+  bookingId,
+  hostsThatJoinedTheCall,
+}: {
+  bookingId: number;
+  hostsThatJoinedTheCall: Host[];
+}) => {
   try {
     const hostsThatJoinedTheCallEmails = hostsThatJoinedTheCall.map((h) => h.email);
 
@@ -15,7 +22,7 @@ const markAllGuestNoshowInBooking = async ({ bookingId, hostsThatJoinedTheCall }
       data: { noShow: true },
     });
   } catch (err) {
-    log.error("Error marking guests as no show in booking", error);
+    log.error("Error marking guests as no show in booking", err);
   }
 };
 
