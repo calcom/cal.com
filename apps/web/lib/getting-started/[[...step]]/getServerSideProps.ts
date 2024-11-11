@@ -28,11 +28,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User from session not found");
   }
   // prevent access of onboarding flow after completion.
-  if (user.completedOnboarding) {
+  // TODO: Not compatible with appDir
+  /*if (user.completedOnboarding) {
     return {
       notFound: true,
     };
-  }
+  }*/
 
   const locale = await getLocale(context.req);
   return {
