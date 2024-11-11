@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder.appDir";
-import prisma from "@calcom/prisma";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { CalendarCache } from "../calendar-cache";
 
@@ -14,29 +14,8 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
-const handleCalendarsToUnwatch = async (req: NextRequest) => {
-  const calendarsToUnwatch = await prisma.selectedCalendar.findMany({
-    take: 100,
-    where: {
-      user: {
-        teams: {
-          every: {
-            team: {
-              features: {
-                none: {
-                  featureId: "calendar-cache",
-                },
-              },
-            },
-          },
-        },
-      },
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      googleChannelExpiration: { not: null },
-    },
-  });
-
+const handleCalendarsToUnwatch = async () => {
+  const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch();
   const result = await Promise.allSettled(
     calendarsToUnwatch.map(async (sc) => {
       if (!sc.credentialId) return;
@@ -47,41 +26,8 @@ const handleCalendarsToUnwatch = async (req: NextRequest) => {
 
   return result;
 };
-const handleCalendarsToWatch = async (req: NextRequest) => {
-  // Get all selected calendars from users that belong to a team that has calendar cache enabled
-  const oneDayInMS = 24 * 60 * 60 * 1000;
-  const tomorrowTimestamp = String(new Date().getTime() + oneDayInMS);
-  const calendarsToWatch = await prisma.selectedCalendar.findMany({
-    take: 100,
-    where: {
-      user: {
-        teams: {
-          some: {
-            team: {
-              features: {
-                some: {
-                  featureId: "calendar-cache",
-                },
-              },
-            },
-          },
-        },
-      },
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      AND: [
-        {
-          OR: [
-            // Either is a calendar pending to be watched
-            { googleChannelExpiration: null },
-            // Or is a calendar that is about to expire
-            { googleChannelExpiration: { lt: tomorrowTimestamp } },
-          ],
-        },
-      ],
-    },
-  });
-
+const handleCalendarsToWatch = async () => {
+  const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch();
   const result = await Promise.allSettled(
     calendarsToWatch.map(async (sc) => {
       if (!sc.credentialId) return;
@@ -97,8 +43,8 @@ const handleCalendarsToWatch = async (req: NextRequest) => {
 export const GET = defaultResponder(async (request: NextRequest) => {
   validateRequest(request);
   const [watchedResult, unwatchedResult] = await Promise.all([
-    handleCalendarsToWatch(request),
-    handleCalendarsToUnwatch(request),
+    handleCalendarsToWatch(),
+    handleCalendarsToUnwatch(),
   ]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
