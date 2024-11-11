@@ -860,6 +860,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
       });
     },
+    confirmCompletedOnboarding: async () => {
+      const user = await prisma.user.findUnique({
+        where: { id: store.user.id },
+        select: { completedOnboarding: true },
+      });
+      return !!user?.completedOnboarding;
+    },
   };
 };
 

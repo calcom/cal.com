@@ -11,7 +11,9 @@ test.describe.configure({ mode: "serial" });
 test.afterEach(({ users }) => users.deleteAll());
 test.describe("Onboarding v3", () => {
   test.describe("Google Sign Up", () => {
-    test.beforeEach(async ({ page, users }) => {
+    test.afterEach(({ users }) => users.deleteAll());
+
+    test("Personal Account Flow (1-step) @test", async ({ page, users }) => {
       const user = await users.create({
         completedOnboarding: false,
         name: null,
@@ -19,12 +21,10 @@ test.describe("Onboarding v3", () => {
       });
       await user.apiLogin();
       await page.goto("/getting-started");
+
       // Verify landing on first screen
       await page.waitForURL("/getting-started");
-    });
-    test.afterEach(({ users }) => users.deleteAll());
 
-    test("Personal Account Flow (1-step)", async ({ page }) => {
       // Click "For personal use" button
       await page.getByText("For personal use").click();
 
@@ -33,10 +33,23 @@ test.describe("Onboarding v3", () => {
 
       // Should redirect directly to event-types
       await page.waitForURL("/event-types");
+
+      expect(await user.confirmCompletedOnboarding()).toEqual(true);
     });
 
-    test("Team Account Flow (4-step) @test", async ({ page }) => {
+    test("Team Account Flow (4-step) @test", async ({ page, users }) => {
       test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for Teams as Stripe is disabled");
+
+      const user = await users.create({
+        completedOnboarding: false,
+        name: null,
+        identityProvider: "GOOGLE",
+      });
+      await user.apiLogin();
+      await page.goto("/getting-started");
+
+      // Verify landing on first screen
+      await page.waitForURL("/getting-started");
 
       await page.getByText("With my team").click();
       await page.locator("button[type=submit]").click();
@@ -51,6 +64,7 @@ test.describe("Onboarding v3", () => {
       await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
       await page.locator("[data-testid=handle-later-button]").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      expect(await user.confirmCompletedOnboarding()).toEqual(true);
     });
   });
 });
