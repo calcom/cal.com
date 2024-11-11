@@ -190,27 +190,16 @@ export function RoutingFormResponsesTable() {
           const booking = info.getValue();
           if (!booking || !booking.user)
             return (
-              <Badge variant="warning" className="ml-6">
+              <Badge variant="error" className="ml-6">
                 {t("no_booking")}
               </Badge>
             );
 
           let badgeVariant: BadgeProps["variant"] = "default";
           switch (booking.status) {
-            case BookingStatus.ACCEPTED:
-              badgeVariant = "success";
-              break;
-            case BookingStatus.PENDING:
-              badgeVariant = "warning";
-              break;
-            case BookingStatus.AWAITING_HOST:
-              badgeVariant = "warning";
-              break;
             case BookingStatus.REJECTED:
-              badgeVariant = "error";
-              break;
             case BookingStatus.CANCELLED:
-              badgeVariant = "error";
+              badgeVariant = "warning";
               break;
           }
 
@@ -226,7 +215,7 @@ export function RoutingFormResponsesTable() {
                     <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
                     <div>
                       <p className="text-sm font-medium">{booking.user.name}</p>
-                      <p className="group/booking_status_email flex items-center text-xs text-gray-600">
+                      <p className="group/booking_status_email text-subtle flex items-center text-xs">
                         <span className="truncate">{booking.user.email}</span>
                         <button
                           className="invisible ml-2 group-hover/booking_status_email:visible"
