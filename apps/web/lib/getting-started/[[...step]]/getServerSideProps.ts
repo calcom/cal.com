@@ -27,12 +27,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     throw new Error("User from session not found");
   }
+  // prevent access of onboarding flow after completion.
+  if (user.completedOnboarding) {
+    return {
+      notFound: true,
+    };
+  }
 
   const locale = await getLocale(context.req);
   return {
     props: {
       ...(await serverSideTranslations(locale || "en", ["common"])),
       trpcState: ssr.dehydrate(),
+      memberOf: user.teams.filter((team) => team.accepted === true),
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },
   };

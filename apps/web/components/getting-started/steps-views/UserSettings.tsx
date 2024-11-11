@@ -7,7 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, Icon, Tooltip, RadioGroup } from "@calcom/ui";
+import { Button } from "@calcom/ui/button";
+import { RadioGroup } from "@calcom/ui/form/radio-area";
+import { Icon } from "@calcom/ui/icon";
+import { showToast } from "@calcom/ui/toast";
+import { Tooltip } from "@calcom/ui/tooltip";
+
+import { TRPCClientError } from "@trpc/client";
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 type AccountOption = "personal" | "team" | "org";
 
@@ -22,12 +29,9 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const { data: availabilities } = trpc.viewer.availability.list.useQuery();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const createSchedule = trpc.viewer.availability.schedule.create.useMutation();
   const updateProfile = trpc.viewer.updateProfile.useMutation();
-  const utils = trpc.useUtils();
   const isPending = createEventType.isPending || createSchedule.isPending || updateProfile.isPending;
   const options = [
     {
@@ -79,57 +83,77 @@ const UserSettings = (props: IUserSettingsProps) => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
-  const createDefaultAvailabilityAndEventTypes = async () => {
-    await Promise.all([
-      // create default event types
-      ...(eventTypes?.length === 0 ? DEFAULT_EVENT_TYPES.map((event) => createEventType.mutate(event)) : []),
-      // create default availability
-      ...(availabilities?.schedules.length === 0
-        ? [
-            createSchedule.mutate({
-              name: t("default_schedule_name"),
-              ...DEFAULT_SCHEDULE,
-            }),
-          ]
-        : []),
-    ]);
+  function onError(error: TRPCClientErrorLike<any>) {
+    console.error(error);
+    showToast(t("something_went_wrong"), "error");
+  }
 
-    await utils.viewer.me.refetch();
+  const createDefaultAvailabilityAndEventTypes = async ({ onSuccess }: { onSuccess: () => void }) => {
+    try {
+      await Promise.all([
+        ...DEFAULT_EVENT_TYPES.map((event) => createEventType.mutateAsync(event)),
+        createSchedule.mutateAsync({
+          name: t("default_schedule_name"),
+          ...DEFAULT_SCHEDULE,
+        }),
+      ]);
+    } catch (e: unknown) {
+      if (e instanceof TRPCClientError) {
+        onError(e);
+        return;
+      }
+      throw e;
+    }
+    onSuccess();
+  };
+
+  const selectedOptionHandlers = {
+    personal: async function handleSetupForPersonalUse() {
+      if (user.identityProvider === IdentityProvider.GOOGLE) {
+        await createDefaultAvailabilityAndEventTypes({
+          onSuccess: () => {
+            const redirectUrl = localStorage.getItem("onBoardingRedirect");
+            localStorage.removeItem("onBoardingRedirect");
+            finishOnboardingAndRedirect(redirectUrl || "/");
+          },
+        });
+      } else {
+        await createDefaultAvailabilityAndEventTypes({
+          onSuccess: () => nextStep(),
+        });
+      }
+    },
+    team: async function handleSetupForTeam() {
+      await createDefaultAvailabilityAndEventTypes({
+        onSuccess: () => {
+          finishOnboardingAndRedirect("/settings/teams/new");
+        },
+      });
+    },
+    org: function handleSetupForOrg() {
+      // Not possible? - empty anyway
+    },
+  };
+
+  const finishOnboardingAndRedirect = (redirectUrl: string) => {
+    telemetry.event(telemetryEventTypes.onboardingFinished);
+    updateProfile.mutate(
+      {
+        completedOnboarding: true,
+      },
+      {
+        onSuccess: () => {
+          router.push(redirectUrl);
+        },
+        onError,
+      }
+    );
   };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      if (selectedOption === "personal" && user.identityProvider === IdentityProvider.GOOGLE) {
-        telemetry.event(telemetryEventTypes.onboardingFinished);
-        updateProfile.mutate({
-          completedOnboarding: true,
-        });
-        await createDefaultAvailabilityAndEventTypes();
-        const redirectUrl = localStorage.getItem("onBoardingRedirect");
-        localStorage.removeItem("onBoardingRedirect");
-        redirectUrl ? router.push(redirectUrl) : router.push("/");
-        return;
-      }
-
-      if (selectedOption === "personal" && user.identityProvider !== IdentityProvider.GOOGLE) {
-        await createDefaultAvailabilityAndEventTypes();
-        nextStep();
-        return;
-      }
-
-      if (selectedOption === "team") {
-        telemetry.event(telemetryEventTypes.onboardingFinished);
-        updateProfile.mutate({
-          completedOnboarding: true,
-        });
-        await createDefaultAvailabilityAndEventTypes();
-        router.push("/settings/teams/new");
-        return;
-      }
-    } catch (error) {
-      showToast(`Error: ${error}`, "error");
-    }
+    await selectedOptionHandlers[selectedOption]();
+    return;
   };
 
   return (

@@ -50,12 +50,24 @@ const OnboardingPage = (props: PageProps) => {
     step: Array.isArray(params.step) ? params.step : [params.step],
   });
 
-  const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
+  // remove the user-settings page for invited users that have already accepted the team invite.
+  const includeUserSettings = !props.memberOf.length;
+  const _steps = [
+    ...(includeUserSettings ? ["user-settings"] : []),
+    "connected-calendar",
+    "connected-video",
+  ] as const;
+
+  const currentStep = result.success ? result.data.step[0] : _steps[0];
   const headers = [
-    {
-      title: `${t("individual_or_team_title")}`,
-      subtitle: [`${t("individual_or_team_subtitle")}`],
-    },
+    ...(includeUserSettings
+      ? [
+          {
+            title: `${t("individual_or_team_title")}`,
+            subtitle: [`${t("individual_or_team_subtitle")}`],
+          },
+        ]
+      : []),
     {
       title: `${t("connect_your_calendar")}`,
       subtitle: [`${t("connect_your_calendar_instructions")}`],
@@ -79,12 +91,11 @@ const OnboardingPage = (props: PageProps) => {
   // }
 
   const goToIndex = (index: number) => {
-    const newStep = steps[index];
+    const newStep = _steps[index];
     router.push(`/getting-started/${stepTransform(newStep)}`);
   };
 
-  const currentStepIndex = steps.indexOf(currentStep);
-
+  const currentStepIndex = _steps.indexOf(currentStep);
   return (
     <div
       className={classNames(
@@ -106,10 +117,10 @@ const OnboardingPage = (props: PageProps) => {
             <div className="mx-auto px-4 sm:max-w-[520px]">
               <header>
                 <p className="font-cal mb-3 text-[28px] font-medium leading-7">
-                  {headers[currentStepIndex]?.title || "Undefined title"}
+                  {headers[currentStepIndex].title}
                 </p>
 
-                {headers[currentStepIndex]?.subtitle.map((subtitle, index) => (
+                {headers[currentStepIndex].subtitle.map((subtitle, index) => (
                   <p className="text-subtle font-sans text-sm font-normal" key={index}>
                     {subtitle}
                   </p>
@@ -117,7 +128,7 @@ const OnboardingPage = (props: PageProps) => {
               </header>
               {currentStep !== INITIAL_STEP && (
                 <Steps
-                  maxSteps={steps.length}
+                  maxSteps={_steps.length}
                   currentStep={currentStepIndex + 1}
                   navigateToStep={goToIndex}
                 />
