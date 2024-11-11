@@ -14,16 +14,16 @@ import { CreateEventType } from "@calcom/atoms";
 export default function EventType() {
   return (
     <>
-       <CreateEventType
-          onSuccess={(eventType) => {
-            console.log("EventType created successfully", eventType);
-          }}
-          customClassNames={{
-            atomsWrapper: "border p-4 rounded-md",
-            buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
-          }}
-       />
-    <>
+      <CreateEventType
+        onSuccess={(eventType) => {
+          console.log("EventType created successfully", eventType);
+        }}
+        customClassNames={{
+          atomsWrapper: "border p-4 rounded-md",
+          buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+        }}
+      />
+    </>
   )
 }
 ```
@@ -52,20 +52,20 @@ Below code snippet can be used to render the create event type atom for a team.
 ```js
 import { CreateEventType } from "@calcom/atoms";
 
-export default function TeamEventType(teamId: number) {
+export default function TeamEventType(teamId: number) {l
   return (
     <>
-       <CreateEventType
-          teamId={teamId}
-          onSuccess={(eventType) => {
-            console.log("EventType created successfully", eventType);
-          }}
-          customClassNames={{
-            atomsWrapper: "border p-4 rounded-md",
-            buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
-          }}
-       />
-    <>
+      <CreateEventType
+        teamId={teamId}
+        onSuccess={(eventType) => {
+          console.log("EventType created successfully", eventType);
+        }}
+        customClassNames={{
+          atomsWrapper: "border p-4 rounded-md",
+          buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+        }}
+      />
+    </>
   )
 }
 ```
@@ -114,19 +114,19 @@ Below code snippet can be used to render the event type settings atom.
 ```js
 import { EventTypeSettings } from "@calcom/atoms";
 
-export default function EventTypeSettings(eventTypeId: number) {
+export function EventTypeTabs(eventTypeId: number) {
   return (
     <>
-       <EventTypeSettings
-          id={eventTypeId}
-          allowDelete={true}
-          onSuccess={(eventType) => {
-            console.log("EventType settings updated successfully", eventType);
-          }}
-          customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
-       />
-    <>
-  )
+      <EventTypeSettings
+        id={eventTypeId}
+        allowDelete={true}
+        onSuccess={(eventType) => {
+          console.log("EventType settings updated successfully", eventType);
+        }}
+        customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
+      />
+    </>
+  );
 }
 ```
 

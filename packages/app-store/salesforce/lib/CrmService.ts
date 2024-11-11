@@ -533,7 +533,7 @@ export default class SalesforceCRMService implements CRM {
     const fields = salesforceEntity.fields;
     const noShowField = fields.find((field) => field.name === sendNoShowAttendeeDataField);
 
-    if (!noShowField || (!noShowField.type as unknown as string) !== "boolean") {
+    if (!noShowField || (noShowField.type as unknown as string) !== "boolean") {
       this.log.warn(
         `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingUid}`
       );

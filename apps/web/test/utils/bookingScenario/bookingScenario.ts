@@ -1093,6 +1093,11 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    EmptyAvailability: {
+      name: "Empty Availability",
+      availability: [],
+      timeZone: Timezones["+5:30"],
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [

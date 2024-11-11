@@ -11,9 +11,9 @@ import { PaymentForm } from "@calcom/atoms";
 
 export default function StripePaymentForm(uid: string) {
   return (
-    <main>
+    <>
       <PaymentForm paymentUid={uid} />
-    </main>
+    </>
   );
 }
 ```
@@ -60,9 +60,9 @@ import { EventTypeSettings } from "@calcom/atoms";
 
 export default function EventType(id: number) {
       return (
-          <main>
-              <EventTypeSettings id={id} tabs={["setup", "availability", "payments"]} />
-          </main>
+          <>
+            <EventTypeSettings id={id} allowDelete={true} />
+          </>
       );
 }
 ```
@@ -92,7 +92,7 @@ export default function Booker( props : BookerProps ) {
           }           
          }}
       />
-    <>
+    </>
   )
 }
 ```
@@ -112,9 +112,9 @@ export default function StripePaymentForm() {
   const uid = pathname.split("/").pop();
 
   return (
-    <main>
+    <>
       <PaymentForm paymentUid={uid} />
-    </main>
+    </>
   );
 }
 ```         

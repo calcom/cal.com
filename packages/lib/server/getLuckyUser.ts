@@ -5,6 +5,13 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+export enum DistributionMethod {
+  PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
+  // BALANCED_ASSIGNMENT = "BALANCED_ASSIGNMENT",
+  // ROUND_ROBIN (for fairness, rotating through assignees)
+  // LOAD_BALANCED (ensuring an even workload)
+}
+
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -12,14 +19,18 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 type PartialUser = Pick<User, "id" | "email">;
 
 interface GetLuckyUserParams<T extends PartialUser> {
-  availableUsers: T[];
+  availableUsers: [T, ...T[]]; // ensure contains at least 1
   eventType: { id: number; isRRWeightsEnabled: boolean };
   allRRHosts: {
     user: { id: number; email: string };
+    createdAt: Date;
     weight?: number | null;
-    weightAdjustment?: number | null;
   }[];
 }
+// === dayjs.utc().startOf("month").toDate();
+const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+// TS helper function.
+const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
 
 async function leastRecentlyBookedUser<T extends PartialUser>({
   availableUsers,
@@ -107,29 +118,88 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
   return leastRecentlyBookedUser;
 }
 
+async function getHostsWithCalibration(
+  eventTypeId: number,
+  hosts: { userId: number; email: string; createdAt: Date }[]
+) {
+  const [newHostsArray, existingBookings] = await Promise.all([
+    prisma.host.findMany({
+      where: {
+        userId: {
+          in: hosts.map((host) => host.userId),
+        },
+        eventTypeId,
+        isFixed: false,
+        createdAt: {
+          gte: startOfMonth,
+        },
+      },
+    }),
+    BookingRepository.getAllBookingsForRoundRobin({
+      eventTypeId,
+      users: hosts.map((host) => ({
+        id: host.userId,
+        email: host.email,
+      })),
+      startDate: startOfMonth,
+      endDate: new Date(),
+    }),
+  ]);
+  // Return early if there are no new hosts or no existing bookings
+  if (newHostsArray.length === 0 || existingBookings.length === 0) {
+    return hosts.map((host) => ({ ...host, calibration: 0 }));
+  }
+  // Helper function to calculate calibration for a new host
+  function calculateCalibration(newHost: { userId: number; createdAt: Date }) {
+    const existingBookingsBeforeAdded = existingBookings.filter(
+      (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
+    );
+    const hostsAddedBefore = hosts.filter(
+      (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
+    );
+    return existingBookingsBeforeAdded.length && hostsAddedBefore.length
+      ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
+      : 0;
+  }
+  // Calculate calibration for each new host and store in a Map
+  const newHostsWithCalibration = new Map(
+    newHostsArray.map((newHost) => [
+      newHost.userId,
+      { ...newHost, calibration: calculateCalibration(newHost) },
+    ])
+  );
+  // Map hosts with their respective calibration values
+  return hosts.map((host) => ({
+    ...host,
+    calibration: newHostsWithCalibration.get(host.userId)?.calibration ?? 0,
+  }));
+}
+
 function getUsersWithHighestPriority<T extends PartialUser & { priority?: number | null }>({
   availableUsers,
 }: {
   availableUsers: T[];
 }) {
   const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
-
-  return availableUsers.filter(
+  const usersWithHighestPriority = availableUsers.filter(
     (user) => user.priority === highestPriority || (user.priority == null && highestPriority === 2)
   );
+  if (!isNonEmptyArray(usersWithHighestPriority)) {
+    throw new Error("Internal Error: Highest Priority filter should never return length=0.");
+  }
+  return usersWithHighestPriority;
 }
 
-async function getUsersBasedOnWeights<
+async function filterUsersBasedOnWeights<
   T extends PartialUser & {
     weight?: number | null;
-    weightAdjustment?: number | null;
   }
 >({
   availableUsers,
   bookingsOfAvailableUsers,
   allRRHosts,
   eventType,
-}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
+}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }): Promise<[T, ...T[]]> {
   //get all bookings of all other RR hosts that are not available
   const availableUserIds = new Set(availableUsers.map((user) => user.id));
 
@@ -155,19 +225,29 @@ async function getUsersBasedOnWeights<
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
+    startDate: startOfMonth,
+    endDate: new Date(),
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
 
-  // Calculate the total weightAdjustments and weight of all round-robin hosts
-  const { allWeightAdjustments, totalWeight } = allRRHosts.reduce(
-    (acc, host) => {
-      acc.allWeightAdjustments += host.weightAdjustment ?? 0;
-      acc.totalWeight += host.weight ?? 100;
-      return acc;
-    },
-    { allWeightAdjustments: 0, totalWeight: 0 }
+  const allHostsWithCalibration = await getHostsWithCalibration(
+    eventType.id,
+    allRRHosts.map((host) => {
+      return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
+    })
   );
+
+  // Calculate the total calibration and weight of all round-robin hosts
+  const totalWeight = allRRHosts.reduce((totalWeight, host) => {
+    totalWeight += host.weight ?? 100;
+    return totalWeight;
+  }, 0);
+
+  const totalCalibration = allHostsWithCalibration.reduce((totalCalibration, host) => {
+    totalCalibration += host.calibration;
+    return totalCalibration;
+  }, 0);
 
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
@@ -178,8 +258,11 @@ async function getUsersBasedOnWeights<
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
 
-    const targetNumberOfBookings = (allBookings.length + allWeightAdjustments) * targetPercentage;
-    const bookingShortfall = targetNumberOfBookings - (userBookings.length + (user.weightAdjustment ?? 0));
+    const targetNumberOfBookings = (allBookings.length + totalCalibration) * targetPercentage;
+    // I need to get the user's current calibration here
+    const userCalibration = allHostsWithCalibration.find((host) => host.userId === user.id)?.calibration ?? 0;
+
+    const bookingShortfall = targetNumberOfBookings - (userBookings.length + userCalibration);
 
     return {
       ...user,
@@ -199,8 +282,13 @@ async function getUsersBasedOnWeights<
   const userIdsWithMaxShortfallAndWeight = new Set(
     usersWithMaxShortfall.filter((user) => user.weight === maxWeight).map((user) => user.id)
   );
-
-  return availableUsers.filter((user) => userIdsWithMaxShortfallAndWeight.has(user.id));
+  const remainingUsersAfterWeightFilter = availableUsers.filter((user) =>
+    userIdsWithMaxShortfallAndWeight.has(user.id)
+  );
+  if (!isNonEmptyArray(remainingUsersAfterWeightFilter)) {
+    throw new Error("Internal Error: Weight filter should never return length=0.");
+  }
+  return remainingUsersAfterWeightFilter;
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
@@ -209,40 +297,43 @@ export async function getLuckyUser<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
-    weightAdjustment?: number | null;
   }
 >(
-  distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
-  getLuckyUserParams: GetLuckyUserParams<T>
+  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
+  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
 ) {
-  const { availableUsers, eventType, allRRHosts } = getLuckyUserParams;
-
+  const { eventType } = getLuckyUserParams;
+  // there is only one user
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
-
-  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+  const currentMonthBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
       return { id: user.id, email: user.email };
     }),
+    startDate: startOfMonth,
+    endDate: new Date(),
   });
 
-  switch (distributionAlgorithm) {
-    case "MAXIMIZE_AVAILABILITY":
-      let possibleLuckyUsers = availableUsers;
+  switch (distributionMethod) {
+    case DistributionMethod.PRIORITIZE_AVAILABILITY: {
       if (eventType.isRRWeightsEnabled) {
-        possibleLuckyUsers = await getUsersBasedOnWeights({
+        availableUsers = await filterUsersBasedOnWeights({
           ...getLuckyUserParams,
-          bookingsOfAvailableUsers,
+          availableUsers,
+          bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
         });
       }
-      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
-
-      return leastRecentlyBookedUser<T>({
+      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+      // No need to round-robin through the only user, return early also.
+      if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
+      // TS is happy.
+      return leastRecentlyBookedUser({
         ...getLuckyUserParams,
         availableUsers: highestPriorityUsers,
-        bookingsOfAvailableUsers,
+        bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
       });
+    }
   }
 }
