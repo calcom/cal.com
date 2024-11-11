@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "参与者时区的事件结束时间",
   "salesforce_create_event_on_contact": "如果联系人存在，则在联系人上创建事件。否则回退到潜在客户",
   "salesforce_owner_name_to_change": "要更改的所有者名称",
+  "dont_have_access_this_page": "您无权访问此页面",
+  "you_need_admin_or_owner_privileges_to_access": "要查看或操作此页面，您必须拥有管理员或所有者权限",
   "field_type": "字段类型",
   "when_to_write": "何时写入",
   "salesforce_on_booking_write_to_record": "预约时，写入参与者 {{record}} 记录的自定义字段",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "预约开始日期",
   "booking_created_date": "预约创建日期",
   "booking_reassigned_to_host": "预约重新分配给 {{host}}",
+  "access_denied": "访问被拒绝",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

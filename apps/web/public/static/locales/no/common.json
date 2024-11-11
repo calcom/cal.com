@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Hendelsens sluttid i deltakers tidssone",
   "salesforce_create_event_on_contact": "Opprett hendelse på kontakt, hvis den eksisterer. Ellers faller tilbake til lead",
   "salesforce_owner_name_to_change": "Eiernavn som skal endres",
+  "dont_have_access_this_page": "Du har ikke tilgang til denne siden",
+  "you_need_admin_or_owner_privileges_to_access": "For å se eller bruke denne siden, må du ha administrator- eller eierrettigheter",
   "field_type": "Felttype",
   "when_to_write": "Når skal det skrives",
   "salesforce_on_booking_write_to_record": "Ved booking, skriv til et tilpasset felt på deltaker-{{record}}-posten",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Bookingstart-dato",
   "booking_created_date": "Dato for opprettet booking",
   "booking_reassigned_to_host": "Booking omfordelt til {{host}}",
+  "access_denied": "Tilgang nektet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

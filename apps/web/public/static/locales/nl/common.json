@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Eindtijd evenement in tijdzone deelnemer",
   "salesforce_create_event_on_contact": "Maak een evenement aan op het contact, indien aanwezig. Anders terugvallen op lead",
   "salesforce_owner_name_to_change": "Eigenaarsnaam om te wijzigen",
+  "dont_have_access_this_page": "Je hebt geen toegang tot deze pagina",
+  "you_need_admin_or_owner_privileges_to_access": "Om deze pagina te bekijken of ermee te communiceren, moet je over admin- of eigenaarsrechten beschikken",
   "field_type": "Veldtype",
   "when_to_write": "Wanneer schrijven",
   "salesforce_on_booking_write_to_record": "Bij boeking, schrijf naar een aangepast veld op het {{record}}-record van de deelnemer",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Startdatum boeking",
   "booking_created_date": "Aanmaakdatum boeking",
   "booking_reassigned_to_host": "Boeking opnieuw toegewezen aan {{host}}",
+  "access_denied": "Toegang geweigerd",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

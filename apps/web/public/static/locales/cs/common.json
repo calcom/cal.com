@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Čas konce události v časovém pásmu účastníka",
   "salesforce_create_event_on_contact": "Vytvořit událost na kontaktu, pokud existuje. Jinak použít lead",
   "salesforce_owner_name_to_change": "Jméno vlastníka ke změně",
+  "dont_have_access_this_page": "K této stránce nemáte přístup",
+  "you_need_admin_or_owner_privileges_to_access": "Pro zobrazení nebo interakci s touto stránkou musíte mít administrátorská nebo vlastnická práva",
   "field_type": "Typ pole",
   "when_to_write": "Kdy zapisovat",
   "salesforce_on_booking_write_to_record": "Při rezervaci zapsat do vlastního pole záznamu účastníka {{record}}",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Datum začátku rezervace",
   "booking_created_date": "Datum vytvoření rezervace",
   "booking_reassigned_to_host": "Rezervace přeřazena hostiteli {{host}}",
+  "access_denied": "Přístup odepřen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
