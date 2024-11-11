@@ -1552,6 +1552,7 @@ export const insightsRouter = router({
         isAll: input.isAll ?? false,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
+        userId: input.userId ?? null,
       });
 
       return stats;
