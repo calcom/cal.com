@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import type { FormValues, SettingsToggleClassnames } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SettingsToggle } from "@calcom/ui";
@@ -11,13 +11,13 @@ const AssignAllTeamMembers = ({
   setAssignAllTeamMembers,
   onActive,
   onInactive,
-  customClassnames,
+  customClassNames,
 }: {
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   onActive: () => void;
   onInactive?: () => void;
-  customClassnames?: SettingsToggleClassnames;
+  customClassNames?: SettingsToggleClassNames;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -28,8 +28,8 @@ const AssignAllTeamMembers = ({
       render={() => (
         <SettingsToggle
           title={t("automatically_add_all_team_members")}
-          labelClassName={classNames("mt-0.5 font-normal", customClassnames?.label)}
-          switchContainerClassName={customClassnames?.switchContainer}
+          labelClassName={classNames("mt-0.5 font-normal", customClassNames?.label)}
+          switchContainerClassName={customClassNames?.switchContainer}
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {
             setValue("assignAllTeamMembers", active, { shouldDirty: true });

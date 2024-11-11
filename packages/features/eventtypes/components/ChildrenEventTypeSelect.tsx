@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
-import type { SelectClassnames, SwitchClassnames } from "@calcom/features/eventtypes/lib/types";
+import type { SelectClassNames, SwitchClassNames } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,12 +27,11 @@ export type ChildrenEventType = {
   hidden: boolean;
 };
 
-export type ChildrenEventTypeSelectCustomClassnames = {
-  container?: string;
-  assignToSelectClassnames?: SelectClassnames;
-  selectedChildrenListClassnames?: {
+export type ChildrenEventTypeSelectCustomClassNames = {
+  assignToSelect?: SelectClassNames;
+  selectedChildrenList?: {
     container?: string;
-    listItemClassnames?: {
+    listItem?: {
       container?: string;
       avatar?: string;
       name?: string;
@@ -41,8 +40,8 @@ export type ChildrenEventTypeSelectCustomClassnames = {
       hiddenBadge?: string;
       badgeContainer?: string;
       eventLink?: string;
-      showEventTypeOnProfileTooltip?: string;
-      showEventTypeOnProfileSwitchClassNames?: SwitchClassnames;
+      showOnProfileTooltip?: string;
+      showOnProfileSwitch?: SwitchClassNames;
       previewEventTypeTooltip?: string;
       previewEventTypeButton?: string;
       deleteEventTypeTooltip?: string;
@@ -55,12 +54,12 @@ export type ChildrenEventTypeSelectCustomClassnames = {
 export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
-  customClassnames,
+  customClassNames,
   ...props
 }: Omit<Props<ChildrenEventType, true>, "value" | "onChange"> & {
   value?: ChildrenEventType[];
   onChange: (value: readonly ChildrenEventType[]) => void;
-  customClassnames?: ChildrenEventTypeSelectCustomClassnames;
+  customClassNames?: ChildrenEventTypeSelectCustomClassNames;
 }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -71,8 +70,8 @@ export const ChildrenEventTypeSelect = ({
         name={props.name}
         placeholder={t("select")}
         options={options}
-        className={customClassnames?.assignToSelectClassnames?.select}
-        innerClassNames={customClassnames?.assignToSelectClassnames?.innerClassNames}
+        className={customClassNames?.assignToSelect?.select}
+        innerClassNames={customClassNames?.assignToSelect?.innerClassNames}
         value={value}
         isMulti
         {...props}
@@ -83,7 +82,7 @@ export const ChildrenEventTypeSelect = ({
         className={classNames(
           "border-subtle divide-subtle mt-3 divide-y rounded-md",
           value.length >= 1 && "border",
-          customClassnames?.selectedChildrenListClassnames?.container
+          customClassNames?.selectedChildrenList?.container
         )}
         ref={animationRef}>
         {value.map((children, index) => (
@@ -91,13 +90,13 @@ export const ChildrenEventTypeSelect = ({
             <div
               className={classNames(
                 "flex flex-row items-center gap-3 p-3",
-                customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.container
+                customClassNames?.selectedChildrenList?.listItem?.container
               )}>
               <Avatar
                 size="mdLg"
                 className={classNames(
                   "overflow-visible",
-                  customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.avatar
+                  customClassNames?.selectedChildrenList?.listItem?.avatar
                 )}
                 imageSrc={children.owner.avatar}
                 alt={children.owner.name || children.owner.email || ""}
@@ -107,37 +106,31 @@ export const ChildrenEventTypeSelect = ({
                   <span
                     className={classNames(
                       "text text-sm font-semibold leading-none",
-                      customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.name
+                      customClassNames?.selectedChildrenList?.listItem?.name
                     )}>
                     {children.owner.name || children.owner.email}
                     <div
                       className={classNames(
                         "flex flex-row gap-1",
-                        customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.badgeContainer
+                        customClassNames?.selectedChildrenList?.listItem?.badgeContainer
                       )}>
                       {children.owner.membership === MembershipRole.OWNER ? (
                         <Badge
                           variant="gray"
-                          className={
-                            customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.ownerBadge
-                          }>
+                          className={customClassNames?.selectedChildrenList?.listItem?.ownerBadge}>
                           {t("owner")}
                         </Badge>
                       ) : (
                         <Badge
                           variant="gray"
-                          className={
-                            customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.memberBadge
-                          }>
+                          className={customClassNames?.selectedChildrenList?.listItem?.memberBadge}>
                           {t("member")}
                         </Badge>
                       )}
                       {children.hidden && (
                         <Badge
                           variant="gray"
-                          className={
-                            customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.hiddenBadge
-                          }>
+                          className={customClassNames?.selectedChildrenList?.listItem?.hiddenBadge}>
                           {t("hidden")}
                         </Badge>
                       )}
@@ -147,7 +140,7 @@ export const ChildrenEventTypeSelect = ({
                     <small
                       className={classNames(
                         "text-subtle font-normal leading-normal",
-                        customClassnames?.selectedChildrenListClassnames?.listItemClassnames?.eventLink
+                        customClassNames?.selectedChildrenList?.listItem?.eventLink
                       )}>
                       {`/${children.owner.username}/${children.slug}`}
                     </small>
@@ -155,19 +148,13 @@ export const ChildrenEventTypeSelect = ({
                 </div>
                 <div className={classNames("flex flex-row items-center gap-2")}>
                   <Tooltip
-                    className={
-                      customClassnames?.selectedChildrenListClassnames?.listItemClassnames
-                        ?.showEventTypeOnProfileTooltip
-                    }
+                    className={customClassNames?.selectedChildrenList?.listItem?.showOnProfileTooltip}
                     content={t("show_eventtype_on_profile")}>
                     <div className="self-center rounded-md p-2">
                       <Switch
                         name="Hidden"
                         checked={!children.hidden}
-                        classNames={
-                          customClassnames?.selectedChildrenListClassnames?.listItemClassnames
-                            ?.showEventTypeOnProfileSwitchClassNames
-                        }
+                        classNames={customClassNames?.selectedChildrenList?.listItem?.showOnProfileSwitch}
                         onCheckedChange={(checked) => {
                           const newData = value.map((item) =>
                             item.owner.id === children.owner.id ? { ...item, hidden: !checked } : item
@@ -180,20 +167,14 @@ export const ChildrenEventTypeSelect = ({
                   <ButtonGroup combined>
                     {children.created && children.owner.username && (
                       <Tooltip
-                        className={
-                          customClassnames?.selectedChildrenListClassnames?.listItemClassnames
-                            ?.previewEventTypeTooltip
-                        }
+                        className={customClassNames?.selectedChildrenList?.listItem?.previewEventTypeTooltip}
                         content={t("preview")}>
                         <Button
                           data-testid="preview-button"
                           color="secondary"
                           target="_blank"
                           variant="icon"
-                          className={
-                            customClassnames?.selectedChildrenListClassnames?.listItemClassnames
-                              ?.previewEventTypeButton
-                          }
+                          className={customClassNames?.selectedChildrenList?.listItem?.previewEventTypeButton}
                           href={`${getBookerBaseUrlSync(
                             children.owner.profile?.organization?.slug ?? null
                           )}/${children.owner?.username}/${children.slug}`}
@@ -202,19 +183,13 @@ export const ChildrenEventTypeSelect = ({
                       </Tooltip>
                     )}
                     <Tooltip
-                      className={
-                        customClassnames?.selectedChildrenListClassnames?.listItemClassnames
-                          ?.deleteEventTypeTooltip
-                      }
+                      className={customClassNames?.selectedChildrenList?.listItem?.deleteEventTypeTooltip}
                       content={t("delete")}>
                       <Button
                         color="secondary"
                         target="_blank"
                         variant="icon"
-                        className={
-                          customClassnames?.selectedChildrenListClassnames?.listItemClassnames
-                            ?.deleteEventTypeButton
-                        }
+                        className={customClassNames?.selectedChildrenList?.listItem?.deleteEventTypeButton}
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }

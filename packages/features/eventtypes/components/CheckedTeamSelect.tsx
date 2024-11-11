@@ -3,12 +3,12 @@ import { useState } from "react";
 import type { Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
-import type { SelectClassnames } from "@calcom/features/eventtypes/lib/types";
+import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Button, Icon, Select, Tooltip } from "@calcom/ui";
 
-import type { PriorityDialogCustomClassnames, WeightDialogCustomClassnames } from "./HostEditDialogs";
+import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
 export type CheckedSelectOption = {
@@ -23,30 +23,33 @@ export type CheckedSelectOption = {
   defaultScheduleId?: number | null;
 };
 
-export type CheckedTeamSelectCustomClassnames = {
-  hostsSelect?: SelectClassnames;
-  selectedHostListItemClassnames?: {
+export type CheckedTeamSelectCustomClassNames = {
+  hostsSelect?: SelectClassNames;
+  selectedHostList?: {
     container?: string;
-    avatar?: string;
-    name?: string;
-    changePriorityButton?: string;
-    changeWeightButton?: string;
-    removeButton?: string;
+    listItem?: {
+      container?: string;
+      avatar?: string;
+      name?: string;
+      changePriorityButton?: string;
+      changeWeightButton?: string;
+      removeButton?: string;
+    };
   };
-  priorityDailogClassnames?: WeightDialogCustomClassnames;
-  weightDailogClassnames?: PriorityDialogCustomClassnames;
+  priorityDialog?: PriorityDialogCustomClassNames;
+  weightDialog?: WeightDialogCustomClassNames;
 };
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
   isRRWeightsEnabled,
-  customClassnames,
+  customClassNames,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
-  customClassnames?: CheckedTeamSelectCustomClassnames;
+  customClassNames?: CheckedTeamSelectCustomClassNames;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -66,14 +69,18 @@ export const CheckedTeamSelect = ({
         options={options}
         value={value}
         isMulti
-        className={customClassnames?.hostsSelect?.select}
-        innerClassNames={customClassnames?.hostsSelect?.innerClassNames}
+        className={customClassNames?.hostsSelect?.select}
+        innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
-        className={classNames("mb-4 mt-3 rounded-md", value.length >= 1 && "border-subtle border")}
+        className={classNames(
+          "mb-4 mt-3 rounded-md",
+          value.length >= 1 && "border-subtle border",
+          customClassNames?.selectedHostList?.container
+        )}
         ref={animationRef}>
         {value.map((option, index) => (
           <>
@@ -81,7 +88,7 @@ export const CheckedTeamSelect = ({
               key={option.value}
               className={classNames(
                 `flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`,
-                customClassnames?.selectedHostListItemClassnames?.container
+                customClassNames?.selectedHostList?.listItem?.container
               )}>
               {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
               {isPlatform && (
@@ -89,14 +96,14 @@ export const CheckedTeamSelect = ({
                   name="user"
                   className={classNames(
                     "mt-0.5 h-4 w-4",
-                    customClassnames?.selectedHostListItemClassnames?.avatar
+                    customClassNames?.selectedHostList?.listItem?.avatar
                   )}
                 />
               )}
               <p
                 className={classNames(
                   "text-emphasis my-auto ms-3 text-sm",
-                  customClassnames?.selectedHostListItemClassnames?.name
+                  customClassNames?.selectedHostList?.listItem?.name
                 )}>
                 {option.label}
               </p>
@@ -113,7 +120,7 @@ export const CheckedTeamSelect = ({
                         className={classNames(
                           "mr-6 h-2 p-0 text-sm hover:bg-transparent",
                           getPriorityTextAndColor(option.priority).color,
-                          customClassnames?.selectedHostListItemClassnames?.changePriorityButton
+                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
                         )}>
                         {t(getPriorityTextAndColor(option.priority).text)}
                       </Button>
@@ -123,7 +130,7 @@ export const CheckedTeamSelect = ({
                         color="minimal"
                         className={classNames(
                           "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassnames?.selectedHostListItemClassnames?.changeWeightButton
+                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
                         )}
                         onClick={() => {
                           setWeightDialogOpen(true);
@@ -144,7 +151,7 @@ export const CheckedTeamSelect = ({
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
                   className={classNames(
                     "my-auto ml-2 h-4 w-4",
-                    customClassnames?.selectedHostListItemClassnames?.removeButton
+                    customClassNames?.selectedHostList?.listItem?.removeButton
                   )}
                 />
               </div>
@@ -159,14 +166,14 @@ export const CheckedTeamSelect = ({
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
             onChange={props.onChange}
-            customClassnames={customClassnames?.priorityDailogClassnames}
+            customClassNames={customClassNames?.priorityDialog}
           />
           <WeightDialog
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}
             onChange={props.onChange}
-            customClassnames={customClassnames?.weightDailogClassnames}
+            customClassNames={customClassNames?.weightDialog}
           />
         </>
       ) : (
