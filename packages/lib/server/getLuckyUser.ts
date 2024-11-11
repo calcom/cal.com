@@ -164,7 +164,6 @@ function filterUsersBasedOnWeights<
   allRRHosts,
   allRRHostsBookings,
   allRRHostsCreatedThisMonth,
-  eventType,
 }: GetLuckyUserParams<T> & {
   bookingsOfAvailableUsers: PartialBooking[];
   bookingsOfNotAvailableUsers: PartialBooking[];
