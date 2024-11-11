@@ -4,7 +4,6 @@ import type { ParsedUrlQuery } from "querystring";
 import { z } from "zod";
 
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import appBookingFormHandler from "@calcom/app-store/routing-forms/appBookingFormHandler";
 import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
 import { enabledAppSlugs } from "@calcom/app-store/routing-forms/lib/enabledApps";
 import { zodRoutes as routesSchema } from "@calcom/app-store/routing-forms/zod";
@@ -217,6 +216,8 @@ async function handleRoutingFormOption(query: ParsedUrlQuery, eventTypeId: numbe
 
   if (!enabledRoutingFormApp) return nullReturnValue;
 
+  const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
+    .default;
   const appHandler = appBookingFormHandler[enabledRoutingFormApp];
 
   if (!appHandler) return nullReturnValue;
