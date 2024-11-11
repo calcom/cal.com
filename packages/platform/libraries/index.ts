@@ -183,3 +183,5 @@ export { MembershipRole };
 
 export { paymentDataSelect };
 export { getClientSecretFromPayment };
+
+export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
