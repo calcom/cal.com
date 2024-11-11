@@ -8,3 +8,4 @@ export { RecentFeedbackTable } from "./RecentFeedbackTable";
 export { HighestNoShowHostTable } from "./HighestNoShowHostTable";
 export { HighestRatedMembersTable } from "./HighestRatedMembersTable";
 export { LowestRatedMembersTable } from "./LowestRatedMembersTable";
+export { RoutingFormResponsesTable } from "./RoutingFormResponsesTable";

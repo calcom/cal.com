@@ -1,7 +1,19 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
+
+type RoutingFormInsightsTeamFilter = {
+  teamId?: number | null;
+  isAll: boolean;
+  organizationId?: number | null;
+  routingFormId?: string | null;
+};
+
+type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
+  startDate?: string;
+  endDate?: string;
+};
 
 class RoutingEventsInsights {
   private static async getWhereForTeamOrAllTeams({
@@ -9,12 +21,7 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-  }: {
-    teamId?: number | null;
-    isAll: boolean;
-    organizationId: number | null;
-    routingFormId?: string | null;
-  }) {
+  }: RoutingFormInsightsTeamFilter) {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
     if (isAll && organizationId) {
@@ -43,8 +50,6 @@ class RoutingEventsInsights {
       }),
     };
 
-    console.log(JSON.stringify({ formsWhereCondition }, null, 2));
-
     return formsWhereCondition;
   }
 
@@ -55,14 +60,7 @@ class RoutingEventsInsights {
     isAll = false,
     organizationId,
     routingFormId,
-  }: {
-    teamId: number | null;
-    startDate?: string;
-    endDate?: string;
-    isAll: boolean;
-    organizationId: number | null;
-    routingFormId: string | null;
-  }) {
+  }: RoutingFormInsightsFilter) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
@@ -134,66 +132,72 @@ class RoutingEventsInsights {
     });
   }
 
-  static async getRoutingFormTimeline({
+  static async getRoutingFormPaginatedResponses({
     teamId,
     startDate,
     endDate,
-    timeView = "week",
-    isAll = false,
+    isAll,
     organizationId,
-  }: {
-    teamId?: number | null;
-    startDate: string;
-    endDate: string;
-    timeView?: "week" | "month" | "year" | "day";
-    isAll?: boolean;
-    organizationId?: number | null;
-  }) {
-    // Get team IDs based on organization if applicable
-    let teamIds: number[] = [];
-    if (isAll && organizationId) {
-      const teamsFromOrg = await prisma.team.findMany({
-        where: {
-          parentId: organizationId,
+    routingFormId,
+    cursor,
+    limit,
+  }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
+    const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+
+    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: dayjs(startDate).startOf("day").toDate(),
+            lte: dayjs(endDate).endOf("day").toDate(),
+          },
+        }),
+      form: formsTeamWhereCondition,
+    };
+
+    const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
+      where: responsesWhereCondition,
+    });
+
+    const responsesPromise = prisma.app_RoutingForms_FormResponse.findMany({
+      select: {
+        id: true,
+        form: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-        select: {
-          id: true,
+        routedToBooking: {
+          select: {
+            createdAt: true,
+            user: {
+              select: { id: true, name: true, email: true, avatarUrl: true },
+            },
+          },
         },
-      });
-      teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
-    } else if (teamId) {
-      teamIds = [teamId];
-    }
+        createdAt: true,
+      },
+      where: responsesWhereCondition,
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
+      cursor: cursor ? { id: cursor } : undefined,
+    });
 
-    const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
-    const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
+    const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    // Query to get responses grouped by time period
-    const data = await prisma.$queryRaw<{ periodStart: Date; responsesCount: number; hasBooking: boolean }[]>`
-      SELECT
-        DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
-        CAST(COUNT(*) AS INTEGER) AS "responsesCount",
-        "routedToBookingUid" IS NOT NULL AS "hasBooking"
-      FROM
-        "App_RoutingForms_FormResponse"
-      WHERE
-        "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
-        ${
-          teamIds.length > 0
-            ? Prisma.sql`AND "formId" IN (
-              SELECT "id" FROM "App_RoutingForms_Form"
-              WHERE "teamId" IN (${Prisma.join(teamIds)})
-            )`
-            : Prisma.empty
-        }
-      GROUP BY
-        "periodStart",
-        "hasBooking"
-      ORDER BY
-        "periodStart";
-    `;
-
-    return data;
+    return {
+      total: totalResponses,
+      data: responses,
+      nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
+    };
   }
 }
 

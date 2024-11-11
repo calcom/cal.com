@@ -1,6 +1,6 @@
 "use client";
 
-import { RoutingKPICards } from "@calcom/features/insights/components";
+import { RoutingFormResponsesTable, RoutingKPICards } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,6 +17,8 @@ export default function InsightsPage() {
 
         <div className="mb-4 space-y-4">
           <RoutingKPICards />
+
+          <RoutingFormResponsesTable />
 
           <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}

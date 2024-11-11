@@ -1556,4 +1556,25 @@ export const insightsRouter = router({
 
       return stats;
     }),
+  routingFormResponses: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        routingFormId: z.string().optional(),
+        cursor: z.number().optional(),
+        limit: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate } = input;
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
+        teamId: input.teamId ?? null,
+        startDate,
+        endDate,
+        isAll: input.isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId ?? null,
+        cursor: input.cursor,
+        limit: input.limit,
+      });
+    }),
 });
