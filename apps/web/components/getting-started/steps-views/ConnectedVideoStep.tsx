@@ -25,6 +25,10 @@ const ConnectedVideoStep = () => {
 
   const metadata = userMetadata.parse(data?.metadata);
 
+  const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
+    (item) => item.userCredentialIds.length > 0
+  );
+
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
 
   const handleSubmit = () => {
@@ -75,7 +79,7 @@ const ConnectedVideoStep = () => {
           "text-inverted border-inverted bg-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm"
         )}
         onClick={handleSubmit}>
-        {t("set_up_later")}
+        {hasAnyInstalledVideoApps ? t("finish") : t("set_up_later")}
         <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
