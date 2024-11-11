@@ -323,16 +323,18 @@ test.describe("Routing Forms", () => {
         "Multi Select",
         "Legacy Select",
         "Select",
+        // TODO: Find a way to incorporate Routed To and Booked At into the report
+        // @see https://github.com/calcom/cal.com/pull/17229
         "Routed To",
         "Booked At",
         "Submitted At",
       ]);
-      /* TODO: Find a way to incorporate Routed To, Booked At, Submitted At into the report
+      /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", ""],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", ""],
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", ""],
-      ]); */
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+      ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
