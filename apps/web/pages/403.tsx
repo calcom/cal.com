@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
@@ -12,7 +12,7 @@ export default function AccessDenied() {
   return (
     <div className="bg-subtle flex h-screen">
       <Head>
-        <title>Access Denied | {APP_NAME}</title>
+        <title>{`${t("access_denied")} | ${APP_NAME}`}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
@@ -21,7 +21,7 @@ export default function AccessDenied() {
         <p className="text-default mb-6 mt-4 max-w-2xl text-sm">
           {t("you_need_admin_or_owner_privileges_to_access")}
         </p>
-        <Button href={WEBSITE_URL}>{t("go_back_home")}</Button>
+        <Button href={WEBAPP_URL}>{t("go_back_home")}</Button>
       </div>
     </div>
   );
