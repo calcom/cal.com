@@ -331,9 +331,9 @@ test.describe("Routing Forms", () => {
       ]);
       /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
         ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
