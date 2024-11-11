@@ -1,5 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
+import {
+  zodFields as routingFormFieldsSchema,
+  routingFormResponseInDbSchema,
+} from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
@@ -180,6 +184,7 @@ class RoutingEventsInsights {
     const responsesPromise = prisma.app_RoutingForms_FormResponse.findMany({
       select: {
         id: true,
+        response: true,
         form: {
           select: {
             id: true,
@@ -205,10 +210,37 @@ class RoutingEventsInsights {
     });
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
+    // unique set of form ids
+    const uniqueFormIds = Array.from(new Set(responses.map((r) => r.form.id)));
+
+    const formFields = await prisma.app_RoutingForms_Form.findMany({
+      where: {
+        id: { in: uniqueFormIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        fields: true,
+      },
+    });
+
+    const fields = routingFormFieldsSchema.parse(formFields.map((f) => f.fields).flat());
+    const headers = fields?.map((f) => ({
+      id: f.id,
+      label: f.label,
+      options: f.options,
+    }));
+
+    // Parse response data
+    const parsedResponses = responses.map((r) => {
+      const responseData = routingFormResponseInDbSchema.parse(r.response);
+      return { ...r, response: responseData };
+    });
 
     return {
       total: totalResponses,
-      data: responses,
+      data: parsedResponses,
+      headers,
       nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
     };
   }

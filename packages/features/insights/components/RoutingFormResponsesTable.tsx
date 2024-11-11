@@ -21,6 +21,10 @@ import { useFilterContext } from "../context/provider";
 
 type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
+type RoutingFormDataWithHeaders = RoutingFormResponse & {
+  [key: string]: { id: string; value: string };
+};
+
 export function RoutingFormResponsesTable() {
   const { t } = useLocale();
   const { filter } = useFilterContext();
@@ -57,7 +61,7 @@ export function RoutingFormResponsesTable() {
   const totalDBRowCount = data?.pages?.[0]?.total ?? 0;
   const totalFetched = flatData.length;
 
-  const columnHelper = createColumnHelper<RoutingFormResponse>();
+  const columnHelper = createColumnHelper<RoutingFormDataWithHeaders>();
 
   const columns = useMemo(
     () => [
@@ -65,6 +69,16 @@ export function RoutingFormResponsesTable() {
         id: "formName",
         header: t("form_name"),
       }),
+      ...(data?.pages?.[0]?.headers?.map((header) =>
+        columnHelper.accessor(header.label, {
+          id: header.id,
+          header: header.label,
+          cell: (info) => {
+            const value = info.getValue();
+            return value?.value;
+          },
+        })
+      ) ?? []),
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
         header: t("booking_status"),
@@ -102,10 +116,10 @@ export function RoutingFormResponsesTable() {
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t]
+    [t, data]
   );
 
-  const table = useReactTable<RoutingFormResponse>({
+  const table = useReactTable<RoutingFormDataWithHeaders>({
     data: flatData,
     columns,
     getCoreRowModel: getCoreRowModel(),
