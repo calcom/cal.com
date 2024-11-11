@@ -132,7 +132,7 @@ export class BillingService implements OnModuleDestroy {
   }
 
   async handleStripeSubscriptionDeleted(event: Stripe.Event) {
-    const subscription = event.data.object as Stripe.Checkout.Session;
+    const subscription = event.data.object as Stripe.Subscription;
     const teamId = subscription?.metadata?.teamId;
     const plan = PlatformPlan[subscription?.metadata?.plan?.toUpperCase() as keyof typeof PlatformPlan];
     if (teamId && plan) {
@@ -144,7 +144,6 @@ export class BillingService implements OnModuleDestroy {
           subscriptionId: currentBilling.subscriptionId,
           teamId,
         });
-
         return;
       }
       this.logger.log("No platform billing found.");
@@ -154,39 +153,70 @@ export class BillingService implements OnModuleDestroy {
     return;
   }
 
-  async handleStripeCheckoutEvents(event: Stripe.Event) {
-    const subscription = event.data.object as Stripe.Checkout.Session;
+  getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+    if (typeof invoice.subscription === "string") {
+      return invoice.subscription;
+    } else if (invoice.subscription && typeof invoice.subscription === "object") {
+      return invoice.subscription.id;
+    } else {
+      return null;
+    }
+  }
+  getCustomerIdFromInvoice(invoice: Stripe.Invoice): string | null {
+    if (typeof invoice.customer === "string") {
+      return invoice.customer;
+    } else if (invoice.customer && typeof invoice.customer === "object") {
+      return invoice.customer.id;
+    } else {
+      return null;
+    }
+  }
 
-    if (!subscription.metadata?.teamId) {
-      return {
-        status: "success",
-      };
+  async handleStripePaymentSuccess(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+    const customerId = this.getCustomerIdFromInvoice(invoice);
+    if (subscriptionId && customerId) {
+      await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+    }
+  }
+
+  async handleStripePaymentFailed(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+    const customerId = this.getCustomerIdFromInvoice(invoice);
+    if (subscriptionId && customerId) {
+      await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
+    }
+  }
+
+  async handleStripeCheckoutEvents(event: Stripe.Event) {
+    const checkoutSession = event.data.object as Stripe.Checkout.Session;
+
+    if (!checkoutSession.metadata?.teamId) {
+      return;
     }
 
-    const teamId = Number.parseInt(subscription.metadata.teamId);
-    const plan = subscription.metadata.plan;
+    const teamId = Number.parseInt(checkoutSession.metadata.teamId);
+    const plan = checkoutSession.metadata.plan;
     if (!plan || !teamId) {
       this.logger.log("Webhook received but not pertaining to Platform, discarding.");
-      return {
-        status: "success",
-      };
+      return;
     }
 
-    if (subscription.mode === "subscription") {
+    if (checkoutSession.mode === "subscription") {
       await this.setSubscriptionForTeam(
         teamId,
-        subscription.subscription as string,
+        checkoutSession.subscription as string,
         PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
       );
     }
 
-    if (subscription.mode === "setup") {
+    if (checkoutSession.mode === "setup") {
       await this.updateStripeSubscriptionForTeam(teamId, plan as PlatformPlan);
     }
 
-    return {
-      status: "success",
-    };
+    return;
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {

@@ -61,7 +61,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
     <div className="flex h-auto flex-col items-center justify-center px-5 py-10 md:px-10 lg:h-[100%]">
       {heading}
       <div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {platformPlans.map((plan) => {
             return (
               <div key={plan.plan} className="mx-10 my-4 md:mx-0 md:my-0">

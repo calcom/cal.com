@@ -35,19 +35,6 @@ export const platformPlans: IndividualPlatformPlan[] = [
     ],
   },
   {
-    plan: "Starter",
-    description:
-      "Perfect for just getting started with community support and access to hosted platform APIs, Cal.com Atoms (React components) and more.",
-    pricing: 99,
-    includes: [
-      "Up to 100 bookings a month",
-      "Community Support",
-      "Cal Atoms (React Library)",
-      "Platform APIs",
-      "Admin APIs",
-    ],
-  },
-  {
     plan: "Essentials",
     description:
       "Your essential package with sophisticated support, hosted platform APIs, Cal.com Atoms (React components) and more.",
