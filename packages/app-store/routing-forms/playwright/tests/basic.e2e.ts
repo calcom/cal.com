@@ -28,7 +28,7 @@ const Identifiers = {
 };
 
 async function enableContactOwnerOverride(page: Page) {
-  await page.click("text=Contact owner will be the Round Robin host");
+  await page.click("text=Contact owner will be the Round Robin host if available");
 }
 
 async function selectFirstAttributeOption({ fromLocator }: { fromLocator: Locator }) {
