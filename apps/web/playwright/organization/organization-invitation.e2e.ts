@@ -8,8 +8,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { moveUserToOrg } from "@lib/orgMigration";
 
 import { test } from "../lib/fixtures";
-import { doOnOrgDomain, getInviteLink } from "../lib/testUtils";
-import { bookTeamEvent, expectPageToBeNotFound } from "./booking.e2e";
+import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
