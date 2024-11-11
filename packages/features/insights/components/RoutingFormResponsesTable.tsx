@@ -159,7 +159,12 @@ export function RoutingFormResponsesTable() {
         header: t("booking_status"),
         cell: (info) => {
           const booking = info.getValue();
-          if (!booking || !booking.user) return <Badge variant="warning">{t("no_booking")}</Badge>;
+          if (!booking || !booking.user)
+            return (
+              <Badge variant="warning" className="ml-6">
+                {t("no_booking")}
+              </Badge>
+            );
 
           return (
             <div className="group/booking_status relative flex items-center gap-2">

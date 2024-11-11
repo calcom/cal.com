@@ -2759,5 +2759,6 @@
   "routing_forms_total_responses": "Total Responses",
   "routing_forms_total_responses_without_booking": "Total Responses Without Booking",
   "routing_forms_total_responses_with_booking": "Total Responses With Booking",
+  "routing_form_insights":"No Bookings",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
