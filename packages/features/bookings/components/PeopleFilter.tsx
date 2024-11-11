@@ -89,9 +89,6 @@ export const PeopleFilter = () => {
             {queryMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
           </Button>
         </div>
-        {filteredMembers?.length === 0 && (
-          <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
-        )}
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );

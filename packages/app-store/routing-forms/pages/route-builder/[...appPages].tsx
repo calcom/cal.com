@@ -330,11 +330,8 @@ const Route = ({
               setRoutes(newRoutes);
             },
           }}
-          label={
-            <div>
-              <span className="mr-2">{`Route ${index + 1}`}</span>
-            </div>
-          }
+          isLabelEditable={false}
+          label={route.name ?? `Route ${index + 1}`}
           className="mb-6">
           <div className="-mt-3">
             <Link href={`${appUrl}/route-builder/${route.id}`}>
@@ -460,7 +457,11 @@ const Route = ({
       className="mb-6"
       moveUp={moveUp}
       moveDown={moveDown}
-      label={route.isFallback ? "Fallback Route" : `Route ${index + 1}`}
+      label={route.name ?? (route.isFallback ? "Fallback Route" : `Route ${index + 1}`)}
+      isLabelEditable={!route.isFallback}
+      onLabelChange={(label) => {
+        setRoute(route.id, { name: label });
+      }}
       deleteField={{
         check: () => routes.length !== 1 && !route.isFallback,
         fn: () => {
@@ -468,45 +469,47 @@ const Route = ({
           setRoutes(newRoutes);
         },
       }}>
-      <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
+      <div className="mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
-            <div className="text-emphasis flex w-full items-center text-sm">
-              <div className="flex flex-grow-0 whitespace-nowrap">
-                <span>{t("send_booker_to")}</span>
+            <div className="flex w-full flex-col gap-2 text-sm lg:flex-row">
+              <div className="flex flex-grow items-center gap-2">
+                <div className="flex flex-grow-0 whitespace-nowrap">
+                  <span>{t("send_booker_to")}</span>
+                </div>
+                <Select
+                  isDisabled={disabled}
+                  className="data-testid-select-routing-action block w-full flex-grow"
+                  required
+                  value={RoutingPages.find((page) => page.value === route.action?.type)}
+                  onChange={(item) => {
+                    if (!item) {
+                      return;
+                    }
+                    const action: LocalRoute["action"] = {
+                      type: item.value,
+                      value: "",
+                    };
+
+                    if (action.type === "customPageMessage") {
+                      action.value = "We are not ready for you yet :(";
+                    } else {
+                      action.value = "";
+                    }
+
+                    setRoute(route.id, { action });
+                  }}
+                  options={RoutingPages}
+                />
               </div>
-              <Select
-                isDisabled={disabled}
-                className="data-testid-select-routing-action block w-full flex-grow px-2"
-                required
-                value={RoutingPages.find((page) => page.value === route.action?.type)}
-                onChange={(item) => {
-                  if (!item) {
-                    return;
-                  }
-                  const action: LocalRoute["action"] = {
-                    type: item.value,
-                    value: "",
-                  };
-
-                  if (action.type === "customPageMessage") {
-                    action.value = "We are not ready for you yet :(";
-                  } else {
-                    action.value = "";
-                  }
-
-                  setRoute(route.id, { action });
-                }}
-                options={RoutingPages}
-              />
               {route.action?.type ? (
                 route.action?.type === "customPageMessage" ? (
                   <TextArea
                     required
                     disabled={disabled}
                     name="customPageMessage"
-                    className="border-default flex w-full flex-grow"
+                    className="border-default flex flex-grow lg:w-fit"
                     value={route.action.value}
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
@@ -516,8 +519,8 @@ const Route = ({
                   <TextField
                     disabled={disabled}
                     name="externalRedirectUrl"
-                    className="border-default flex w-full flex-grow text-sm"
-                    containerClassName="w-full mt-2"
+                    className="border-default flex flex-grow text-sm"
+                    containerClassName="flex-grow"
                     type="url"
                     required
                     labelSrOnly
@@ -528,7 +531,7 @@ const Route = ({
                     placeholder="https://example.com"
                   />
                 ) : (
-                  <div className="block w-full">
+                  <div className="flex-grow">
                     <Select
                       required
                       className="data-testid-eventTypeRedirectUrl-select"
@@ -560,7 +563,7 @@ const Route = ({
                         <TextField
                           disabled={disabled}
                           className="border-default flex w-full flex-grow text-sm"
-                          containerClassName="w-full mt-2"
+                          containerClassName="flex-grow mt-2"
                           addOnLeading={eventTypePrefix}
                           required
                           value={customEventTypeSlug}
@@ -714,6 +717,7 @@ function useRoutes({
         }
         return {
           id: route.id,
+          name: route.name,
           attributeRoutingConfig: route.attributeRoutingConfig,
           action: route.action,
           isFallback: route.isFallback,
