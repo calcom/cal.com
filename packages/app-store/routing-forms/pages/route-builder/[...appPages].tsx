@@ -306,11 +306,8 @@ const Route = ({
               setRoutes(newRoutes);
             },
           }}
-          label={
-            <div>
-              <span className="mr-2">{`Route ${index + 1}`}</span>
-            </div>
-          }
+          isLabelEditable={false}
+          label={route.name ?? `Route ${index + 1}`}
           className="mb-6">
           <div className="-mt-3">
             <Link href={`${appUrl}/route-builder/${route.id}`}>
@@ -442,7 +439,11 @@ const Route = ({
       className="mb-6"
       moveUp={moveUp}
       moveDown={moveDown}
-      label={route.isFallback ? "Fallback Route" : `Route ${index + 1}`}
+      label={route.name ?? (route.isFallback ? "Fallback Route" : `Route ${index + 1}`)}
+      isLabelEditable={!route.isFallback}
+      onLabelChange={(label) => {
+        setRoute(route.id, { name: label });
+      }}
       deleteField={{
         check: () => routes.length !== 1 && !route.isFallback,
         fn: () => {
@@ -700,6 +701,7 @@ function useRoutes({
         }
         return {
           id: route.id,
+          name: route.name,
           attributeRoutingConfig: route.attributeRoutingConfig,
           action: route.action,
           isFallback: route.isFallback,
