@@ -7,8 +7,7 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -84,12 +83,12 @@ function TeamPage({
     }
     return acc;
   }, {} as Record<string, string>);
+  const queryString = new URLSearchParams(flattenedQueryParams).toString();
 
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
     <ul className="border-subtle rounded-md border">
       {eventTypes.map((type, index) => {
         const basePath = `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`;
-        const queryString = new URLSearchParams(flattenedQueryParams).toString();
         const url = `${basePath}${queryString ? `?${queryString}` : ""}`;
         return (
           <li
