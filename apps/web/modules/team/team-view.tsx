@@ -8,7 +8,7 @@
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
 import { usePathname } from "next/navigation";
-import router from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -37,6 +37,7 @@ function TeamPage({
   currentOrgDomain,
 }: PageProps) {
   useTheme(team.theme);
+  const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
@@ -75,45 +76,56 @@ function TeamPage({
   // slug is a route parameter, we don't want to forward it to the next route
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
+  const flattenedQueryParams = Object.entries(queryParamsToForward).reduce((acc, [key, value]) => {
+    if (Array.isArray(value)) {
+      acc[key] = value.join(",");
+    } else {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as Record<string, string>);
+
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
     <ul className="border-subtle rounded-md border">
-      {eventTypes.map((type, index) => (
-        <li
-          key={index}
-          className={classNames(
-            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative cursor-pointer border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
-            !isEmbed && "bg-default"
-          )}
-          onClick={() => {
-            router.push({
-              pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-              query: queryParamsToForward,
-            });
-            sdkActionManager?.fire("eventTypeSelected", { eventType: type });
-          }}
-          role="link"
-          title={`${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`}
-          data-testid="event-type-link">
-          <div className="px-6 py-4">
-            <div className="flex justify-between">
-              <div className="flex-shrink">
-                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
+      {eventTypes.map((type, index) => {
+        const basePath = `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`;
+        const queryString = new URLSearchParams(flattenedQueryParams).toString();
+        const url = `${basePath}${queryString ? `?${queryString}` : ""}`;
+        return (
+          <li
+            key={index}
+            className={classNames(
+              "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative cursor-pointer border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+              !isEmbed && "bg-default"
+            )}
+            onClick={() => {
+              router.push(url);
+              sdkActionManager?.fire("eventTypeSelected", { eventType: type });
+            }}
+            role="link"
+            title={`${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`}
+            data-testid="event-type-link">
+            <div className="px-6 py-4">
+              <div className="flex justify-between">
+                <div className="flex-shrink">
+                  <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                    <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
+                  </div>
+                  <EventTypeDescription className="text-sm" eventType={type} />
                 </div>
-                <EventTypeDescription className="text-sm" eventType={type} />
-              </div>
-              <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
+                <div className="mt-1 self-center">
+                  <UserAvatarGroup
+                    truncateAfter={4}
+                    className="flex flex-shrink-0"
+                    size="sm"
+                    users={type.users}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 
