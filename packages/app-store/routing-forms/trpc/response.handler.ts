@@ -100,6 +100,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       data: {
         formId,
         response: response,
+        chosenRouteId,
       },
     });
 
@@ -131,15 +132,6 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         message: "Chosen route not found",
       });
     }
-
-    await prisma.app_RoutingForms_FormResponse.update({
-      where: {
-        id: dbFormResponse.id,
-      },
-      data: {
-        chosenRouteId,
-      },
-    });
 
     const teamMembersMatchingAttributeLogicWithResult =
       form.teamId && chosenRouteId

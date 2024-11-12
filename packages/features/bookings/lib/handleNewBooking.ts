@@ -477,7 +477,9 @@ async function handler(
           : await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventType.hosts.filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // users part of virtual queue
+              allRRHosts: eventTypeWithUsers.hosts.filter(
+                (host) => !host.isFixed && userIdsSet.has(host.user.id)
+              ), // users part of virtual queue
               eventType,
               routingFormResponseId: routedTeamMemberIds ? routingFormResponseId : undefined,
             });
