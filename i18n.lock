@@ -352,9 +352,13 @@ checksums:
     other: 79acaa6cd481262bea4e743a422529d2
     email_sign_in_subject: d67308a3262ab416c083ca041b8690a1
     round_robin_emailed_you_and_attendees: 74b9d35a245724c3d901ea28a3221484
+    round_robin_emailed_host_and_attendee: 32b8afb73c8d2622e80419dc5c91b483
     emailed_you_and_attendees: e0f8269315964727ff509f17db78dec8
+    emailed_host_and_attendee: e0f8269315964727ff509f17db78dec8
     emailed_you_and_attendees_recurring: ba5f9605b0e0f16d97cc1a4462c52924
-    round_robin_emailed_you_and_attendees_recurring: 7166cfe983fb8d1dfcb0e816e599fec2
+    emailed_host_and_attendee_recurring: ba5f9605b0e0f16d97cc1a4462c52924
+    round_robin_emailed_you_and_attendees_recurring: e38959c47e3f9cf24a8cd819c5fa2fbd
+    round_robin_emailed_host_and_attendee_recurring: 340b6e5ec29b7f478e1a08106c10a9b3
     emailed_you_and_any_other_attendees: 91fdd4bf3fb673086ebcbda8d8983b32
     needs_to_be_confirmed_or_rejected: 913a2d9efd305e965aac50a6687e47f8
     needs_to_be_confirmed_or_rejected_recurring: 3f4cdc1672c21265f74da0481ff31972
@@ -2758,4 +2762,9 @@ checksums:
     booking_created_date: 902300aaa13a56a2295d561d46073eeb
     booking_reassigned_to_host: 9eb99d1201d75ac0366daf0f09bc360a
     access_denied: 589456a5c4103e29c44e9df16a4eaf82
+    salesforce_route_to_owner: 39a88a7afb1c1e8fb9215e27ae7a7033
+    salesforce_do_not_route_to_owner: bcae6e5615c17b809c2334a541f75e78
+    salesforce_route_to_custom_lookup_field: 672a24e4de55eb073559e94b9266da7d
+    salesforce_option: f09423b2785ee269db428163fc0a58d0
+    lookup_field_name: 8d81d557128a52661d1ed9e9aae0575c
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
