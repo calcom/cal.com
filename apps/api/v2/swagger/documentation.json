@@ -5033,6 +5033,37 @@
         ]
       }
     },
+    "/v2/stripe/check/{teamId}": {
+      "get": {
+        "operationId": "StripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
     "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",

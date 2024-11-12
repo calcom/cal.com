@@ -705,6 +705,9 @@
   "no_teams": "Hələ heç bir komandanız yoxdur.",
   "no_teams_description": "Komandalar həmkarlarınız arasında paylaşılan tədbirləri sifariş etməyə imkan verir.",
   "submit": "Təsdiqlə",
+  "confirm_remove_attribute": "Bəli, atributu sil",
+  "remove_attribute": "Atributu sil",
+  "remove_attribute_confirmation_message": "Atributu '{{name}}' silmək istədiyinizə əminsinizmi? Hazırda ona təyin edilmiş bütün istifadəçilər təyin edilməmiş olacaq.",
   "delete": "Sil",
   "update": "Yenilə",
   "save": "Yadda saxla",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "İştirakçı Saat Qurşağında Tədbirin Bitmə Vaxtı",
   "salesforce_create_event_on_contact": "Əgər mövcuddursa, kontakt üzərində hadisə yaradın. Əks halda, lidə qayıdın",
   "salesforce_owner_name_to_change": "Dəyişdiriləcək sahibin adı",
+  "dont_have_access_this_page": "Bu səhifəyə girişiniz yoxdur",
+  "you_need_admin_or_owner_privileges_to_access": "Bu səhifəni görmək və ya onunla qarşılıqlı əlaqədə olmaq üçün admin və ya sahib imtiyazlarına malik olmalısınız",
   "field_type": "Sahə növü",
   "when_to_write": "Nə zaman yazmaq",
   "salesforce_on_booking_write_to_record": "Rezervasiya zamanı iştirakçının {{record}} qeydinə xüsusi sahəyə yaz",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Rezervasiyanın başlama tarixi",
   "booking_created_date": "Rezervasiyanın yaradılma tarixi",
   "booking_reassigned_to_host": "Rezervasiya {{host}}-a yenidən təyin edildi",
+  "access_denied": "Giriş qadağandır",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
