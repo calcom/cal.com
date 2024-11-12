@@ -3,7 +3,7 @@ export { CalProvider } from "./cal-provider/CalProvider";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";
 export { useEventTypeById } from "./hooks/event-types/private/useEventTypeById";
-export { useHandleBookEvent } from "./hooks/useHandleBookEvent";
+export { useHandleBookEvent } from "./hooks/bookings/useHandleBookEvent";
 export * as Dialog from "./src/components/ui/dialog";
 export { Timezone } from "./timezone";
 export { SelectedCalendarsSettingsWebWrapper } from "./selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
@@ -11,3 +11,4 @@ export { DestinationCalendarSettingsWebWrapper } from "./destination-calendar/wr
 export * from "./availability";
 export { EventTypeWebWrapper as EventType } from "./event-types/wrappers/EventTypeWebWrapper";
 export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
+export { Shell } from "./src/components/ui/shell";

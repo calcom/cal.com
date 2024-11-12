@@ -9,7 +9,6 @@ import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditShe
 import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AppCategories } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -29,20 +28,13 @@ import {
 } from "@calcom/ui";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
-import type { Action, State, User } from "./MemberListItem";
+import type { Action, State, User } from "./MemberList";
 
 const formSchema = z.object({
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
-
-type ConnectedAppsType = {
-  name: string | null;
-  logo: string | null;
-  externalId: string | null;
-  app: { slug: string; categories: AppCategories[] } | null;
-};
 
 export function EditMemberSheet({
   state,
@@ -108,10 +100,10 @@ export function EditMemberSheet({
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
-      await utils.viewer.teams.lazyLoadMembers.cancel();
-      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
-        teamId: teamId,
+        teamId,
         searchTerm: undefined,
       });
 
@@ -125,7 +117,6 @@ export function EditMemberSheet({
       setRole(role);
       setMutationLoading(false);
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.lazyLoadMembers.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);

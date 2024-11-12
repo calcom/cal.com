@@ -1,4 +1,3 @@
-import { randomString } from "@calcom/lib/random";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -9,7 +8,7 @@ export const metadata = {
   installed: true,
   type: "huddle01_video",
   variant: "conferencing",
-  categories: ["conferencing"],
+  categories: ["video", "conferencing"],
   logo: "icon.svg",
   publisher: "huddle01.com",
   url: "https://huddle01.com",
@@ -21,11 +20,10 @@ export const metadata = {
   appData: {
     location: {
       linkType: "dynamic",
-      type: "integrations:huddle01",
+      type: "integrations:huddle01_video",
       label: "Huddle01 Video",
     },
   },
-  key: { apikey: randomString(12) },
   dirName: "huddle01video",
   concurrentMeetings: true,
   isOAuth: false,

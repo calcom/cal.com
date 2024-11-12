@@ -58,7 +58,6 @@ const ConferencingView = () => {
           query={query}
           customLoader={<SkeletonLoader />}
           success={({ data }) => {
-            console.log(data);
             if (!data.items.length) {
               return (
                 <EmptyScreen

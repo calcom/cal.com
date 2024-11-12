@@ -1,4 +1,4 @@
-import { ApiProperty as DocsProperty, getSchemaPath, ApiExtraModels } from "@nestjs/swagger";
+import { ApiProperty as DocsProperty, ApiExtraModels, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -11,23 +11,21 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import type { Location_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
+import type { BookingWindow_2024_06_14, BookingLimitsDuration_2024_06_14 } from "../inputs";
 import {
+  EventTypeColor_2024_06_14,
+  Seats_2024_06_14,
   Host as TeamEventTypeHostInput,
-  BookingLimitsDuration_2024_06_14,
+  BaseBookingLimitsDuration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
 } from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
-import { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
-import {
-  AddressLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
-  ValidateLocations_2024_06_14,
-} from "../inputs/locations.input";
+import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
+import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
+import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
+import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -50,6 +48,16 @@ import {
 } from "../outputs/booking-fields.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
+import type { OutputLocation_2024_06_14 } from "./locations.output";
+import {
+  OutputAddressLocation_2024_06_14,
+  OutputConferencingLocation_2024_06_14,
+  OutputIntegrationLocation_2024_06_14,
+  OutputLinkLocation_2024_06_14,
+  OutputPhoneLocation_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  ValidateOutputLocations_2024_06_14,
+} from "./locations.output";
 
 enum SchedulingTypeEnum {
   ROUND_ROBIN = "ROUND_ROBIN",
@@ -81,14 +89,17 @@ class User_2024_06_14 {
   @IsString()
   darkBrandColor!: string | null;
 
+  @Type(() => Object)
   metadata!: Record<string, unknown>;
 }
 
 @ApiExtraModels(
-  AddressLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
+  OutputAddressLocation_2024_06_14,
+  OutputLinkLocation_2024_06_14,
+  OutputIntegrationLocation_2024_06_14,
+  OutputPhoneLocation_2024_06_14,
+  OutputConferencingLocation_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   LocationDefaultFieldOutput_2024_06_14,
@@ -107,7 +118,7 @@ class User_2024_06_14 {
   SelectFieldOutput_2024_06_14,
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
-  BookingLimitsDuration_2024_06_14,
+  BaseBookingLimitsDuration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14
@@ -132,24 +143,27 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsString()
   @DocsProperty({
-    example: "Discover the culinary wonders of the Argentina by making the best flan ever!",
+    example: "Discover the culinary wonders of Argentina by making the best flan ever!",
   })
   description!: string;
 
-  @ValidateLocations_2024_06_14()
+  @ValidateOutputLocations_2024_06_14()
   @DocsProperty({
     oneOf: [
-      { $ref: getSchemaPath(AddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(LinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(IntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(PhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputConferencingLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputUnknownLocation_2024_06_14) },
     ],
     type: "array",
   })
   @Type(() => Object)
-  locations!: Location_2024_06_14[];
+  locations!: OutputLocation_2024_06_14[];
 
   @ValidateOutputBookingFields_2024_06_14()
+  @DocsProperty()
   @DocsProperty({
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldOutput_2024_06_14) },
@@ -209,10 +223,6 @@ class BaseEventTypeOutput_2024_06_14 {
   @DocsProperty()
   metadata!: Record<string, unknown>;
 
-  @IsBoolean()
-  @DocsProperty()
-  requiresConfirmation!: boolean;
-
   @IsInt()
   @DocsProperty()
   price!: number;
@@ -227,7 +237,8 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsInt()
   @DocsProperty()
-  seatsPerTimeSlot!: number | null;
+  @IsOptional()
+  seatsPerTimeSlot?: number | null;
 
   @IsBoolean()
   @DocsProperty()
@@ -239,7 +250,12 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsBoolean()
   @DocsProperty()
-  seatsShowAvailabilityCount!: boolean | null;
+  isInstantEvent!: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  seatsShowAvailabilityCount?: boolean | null;
 
   @IsInt()
   @DocsProperty()
@@ -247,7 +263,6 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @DocsProperty()
-  @Type(() => BookingLimitsCount_2024_06_14)
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
@@ -256,7 +271,6 @@ class BaseEventTypeOutput_2024_06_14 {
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => BookingLimitsDuration_2024_06_14)
   @DocsProperty()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
@@ -274,10 +288,59 @@ class BaseEventTypeOutput_2024_06_14 {
   bookingWindow?: BookingWindow_2024_06_14;
 
   @IsOptional()
+  @Type(() => BookerLayouts_2024_06_14)
+  @DocsProperty()
+  bookerLayouts?: BookerLayouts_2024_06_14;
+
+  @IsOptional()
+  @DocsProperty()
+  confirmationPolicy?: ConfirmationPolicy_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  requiresBookerEmailVerification?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hideCalendarNotes?: boolean;
+
+  @IsOptional()
+  @Type(() => EventTypeColor_2024_06_14)
+  @DocsProperty()
+  color?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
+  @Type(() => Seats_2024_06_14)
+  @DocsProperty()
+  seats?: Seats_2024_06_14;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   @DocsProperty()
   offsetStart?: number;
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty()
+  customName?: string;
+
+  @IsOptional()
+  @Type(() => DestinationCalendar_2024_06_14)
+  @DocsProperty()
+  destinationCalendar?: DestinationCalendar_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  useDestinationCalendarEmail?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hideCalendarEventDetails?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -298,10 +361,6 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
-  @IsEnum(SchedulingTypeEnum)
-  @DocsProperty({ enum: SchedulingTypeEnum })
-  schedulingType!: EventTypesOutputSchedulingType | null;
-
   @IsInt()
   @IsOptional()
   @DocsProperty()
@@ -316,7 +375,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsOptional()
   @DocsProperty({
     description:
-      "For managed event types parent event type is the event type that this event type is based on",
+      "For managed event types, parent event type is the event type that this event type is based on",
   })
   parentEventTypeId?: number | null;
 
@@ -330,4 +389,13 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsOptional()
   @DocsProperty()
   assignAllTeamMembers?: boolean;
+
+  @IsEnum(SchedulingTypeEnum)
+  @DocsProperty({ enum: SchedulingTypeEnum })
+  schedulingType!: EventTypesOutputSchedulingType | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hideCalendarEventDetails?: boolean;
 }

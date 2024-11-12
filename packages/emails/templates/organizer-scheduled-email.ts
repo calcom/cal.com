@@ -17,14 +17,21 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   t: TFunction;
   newSeat?: boolean;
   teamMember?: Person;
+  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
 
-  constructor(input: { calEvent: CalendarEvent; newSeat?: boolean; teamMember?: Person }) {
+  constructor(input: {
+    calEvent: CalendarEvent;
+    newSeat?: boolean;
+    teamMember?: Person;
+    reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+  }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = input.calEvent;
     this.t = this.calEvent.organizer.language.translate;
     this.newSeat = input.newSeat;
     this.teamMember = input.teamMember;
+    this.reassigned = input.reassigned;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -34,10 +41,6 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.calEvent.recurringEvent?.count
-          ? this.t("new_event_scheduled_recurring")
-          : this.t("new_event_scheduled"),
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         role: GenerateIcsRole.ORGANIZER,
         status: "CONFIRMED",
       }),
@@ -50,6 +53,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         attendee: this.calEvent.organizer,
         teamMember: this.teamMember,
         newSeat: this.newSeat,
+        reassigned: this.reassigned,
       }),
       text: this.getTextBody(),
     };

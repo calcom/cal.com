@@ -1,15 +1,35 @@
 import { describe, expect, it } from "vitest";
 
-import { FrequencyInput } from "@calcom/platform-enums/monorepo";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+  FrequencyInput,
+} from "@calcom/platform-enums/monorepo";
 import type {
   InputBookingField_2024_06_14,
-  Location_2024_06_14,
+  InputLocation_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
+  BookerLayouts_2024_06_14,
+  ConfirmationPolicy_2024_06_14,
+  EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
+  CreateEventTypeInput_2024_06_14,
+  SeatOptionsTransformedSchema,
+  SeatOptionsDisabledSchema,
+  InputAttendeeAddressLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputAttendeeDefinedLocation_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { CustomField } from "../internal-to-api/booking-fields";
+import {
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
+  type CustomField,
+  type SystemField,
+} from "../internal-to-api/booking-fields";
 import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
@@ -17,11 +37,15 @@ import {
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
+  transformSeatsApiToInternal,
+  transformEventColorsApiToInternal,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
 } from "./index";
 
 describe("transformLocationsApiToInternal", () => {
   it("should transform address", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "address",
         address: "London road 10-1",
@@ -37,7 +61,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 
   it("should transform link", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "link",
         link: "https://customvideo.com/join/123456",
@@ -55,7 +79,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 
   it("should transform integration", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "integration",
         integration: "cal-video",
@@ -70,7 +94,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 
   it("should transform phone", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "phone",
         phone: "+37120993151",
@@ -86,9 +110,101 @@ describe("transformLocationsApiToInternal", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform attendee address", () => {
+    const input: InputAttendeeAddressLocation_2024_06_14[] = [
+      {
+        type: "attendeeAddress",
+      },
+    ];
+
+    const expectedOutput = [{ type: "attendeeInPerson" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee phone", () => {
+    const input: InputAttendeePhoneLocation_2024_06_14[] = [
+      {
+        type: "attendeePhone",
+      },
+    ];
+
+    const expectedOutput = [{ type: "phone" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee defined", () => {
+    const input: InputAttendeeDefinedLocation_2024_06_14[] = [
+      {
+        type: "attendeeDefined",
+      },
+    ];
+
+    const expectedOutput = [{ type: "somewhereElse" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformBookingFieldsApiToInternal", () => {
+  it("should transform name field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "name",
+      label: "Your name number",
+      placeholder: "123456789",
+      disableOnPrefill: true,
+    };
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedField = {
+      ...systemBeforeFieldName,
+      label: "Your name number",
+      placeholder: "123456789",
+      disableOnPrefill: true,
+    };
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expectedField.variantsConfig.variants.fullName.fields[0].label = "Your name number";
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expectedField.variantsConfig.variants.fullName.fields[0].placeholder = "123456789";
+
+    const expectedOutput: SystemField[] = [expectedField];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform email field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "email",
+      label: "Your email",
+      placeholder: "bob@gmail.com",
+      disableOnPrefill: true,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: SystemField[] = [
+      {
+        ...systemBeforeFieldEmail,
+        label: "Your email",
+        placeholder: "bob@gmail.com",
+        disableOnPrefill: true,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should transform phone field", () => {
     const bookingField: InputBookingField_2024_06_14 = {
       type: "phone",
@@ -459,6 +575,44 @@ describe("transformBookingFieldsApiToInternal", () => {
         name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
+        labelAsSafeHtml: `<p>${bookingField.label}</p>\n`,
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: bookingField.required,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should keep disableOnPrefill property", () => {
+    const disableOnPrefill = true;
+
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "radio",
+      slug: "radio",
+      label: "Your radio buttons",
+      required: true,
+      options: ["Radio 1", "Radio 2"],
+      disableOnPrefill,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: CustomField[] = [
+      {
+        name: bookingField.slug,
+        type: bookingField.type,
+        label: bookingField.label,
         sources: [
           {
             id: "user",
@@ -470,6 +624,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: "",
+        options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill,
       },
     ];
 
@@ -585,6 +741,152 @@ describe("transformFutureBookingLimitsApiToInternal", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform disabled", () => {
+    const input: BookingWindow_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {
+      periodType: "UNLIMITED",
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformBookerLayoutsApiToInternal", () => {
+  it("should transform booker layouts", () => {
+    const input: BookerLayouts_2024_06_14 = {
+      enabledLayouts: [
+        BookerLayoutsInputEnum_2024_06_14.column,
+        BookerLayoutsInputEnum_2024_06_14.month,
+        BookerLayoutsInputEnum_2024_06_14.week,
+      ],
+      defaultLayout: BookerLayoutsInputEnum_2024_06_14.week,
+    };
+
+    const expectedOutput = {
+      enabledLayouts: [
+        BookerLayoutsOutputEnum_2024_06_14.column_view,
+        BookerLayoutsOutputEnum_2024_06_14.month_view,
+        BookerLayoutsOutputEnum_2024_06_14.week_view,
+      ],
+      defaultLayout: BookerLayoutsOutputEnum_2024_06_14.week_view,
+    };
+    const result = transformBookerLayoutsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformConfirmationPolicyApiToInternal", () => {
+  it("should transform requires confirmation - time", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      type: ConfirmationPolicyEnum.TIME,
+      noticeThreshold: {
+        count: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+      blockUnconfirmedBookingsInBooker: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: true,
+      requiresConfirmationThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+      requiresConfirmationWillBlockSlot: true,
+    };
+    const result = transformConfirmationPolicyApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform requires confirmation - always", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      type: ConfirmationPolicyEnum.ALWAYS,
+      blockUnconfirmedBookingsInBooker: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
+    };
+    const result = transformConfirmationPolicyApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform requires confirmation - disabled", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: false,
+      requiresConfirmationWillBlockSlot: false,
+      requiresConfirmationThreshold: undefined,
+    };
+    const result = transformConfirmationPolicyApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformEventColorsApiToInternal", () => {
+  it("should transform event type colors", () => {
+    const input: EventTypeColor_2024_06_14 = {
+      darkThemeHex: "#292929",
+      lightThemeHex: "#fafafa",
+    };
+
+    const expectedOutput = {
+      darkEventTypeColor: "#292929",
+      lightEventTypeColor: "#fafafa",
+    };
+
+    const result = transformEventColorsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformSeatsApiToInternal", () => {
+  it("should transform seat options", () => {
+    const input: CreateEventTypeInput_2024_06_14["seats"] = {
+      seatsPerTimeSlot: 20,
+      showAttendeeInfo: true,
+      showAvailabilityCount: false,
+    };
+
+    const expectedOutput: SeatOptionsTransformedSchema = {
+      seatsPerTimeSlot: 20,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: false,
+    };
+
+    const result = transformSeatsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform seat options - disabled", () => {
+    const input: CreateEventTypeInput_2024_06_14["seats"] = {
+      disabled: true,
+    };
+
+    const expectedOutput: SeatOptionsDisabledSchema = {
+      seatsPerTimeSlot: null,
+    };
+
+    const result = transformSeatsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformRecurrenceApiToInternal", () => {
@@ -600,7 +902,6 @@ describe("transformRecurrenceApiToInternal", () => {
       freq: 2,
     };
     const result = transformRecurrenceApiToInternal(input);
-
     expect(result).toEqual(expectedOutput);
   });
 });

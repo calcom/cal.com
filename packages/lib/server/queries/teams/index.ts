@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { parseBookingLimit } from "@calcom/lib";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -260,7 +261,7 @@ export async function getTeamWithMembers(args: {
   };
 }
 
-export async function getMinimalTeam(args: {
+export async function getTeamWithoutMembers(args: {
   id?: number;
   slug?: string;
   userId?: number;
@@ -297,6 +298,8 @@ export async function getMinimalTeam(args: {
       hideBookATeamMember: true,
       isPrivate: true,
       metadata: true,
+      bookingLimits: true,
+      includeManagedEventsInLimits: true,
       parent: {
         select: {
           id: true,
@@ -355,6 +358,7 @@ export async function getMinimalTeam(args: {
         token.expires > new Date(new Date().setHours(24))
     ),
     metadata: restTeamMetadata,
+    bookingLimits: parseBookingLimit(teamOrOrg.bookingLimits),
   };
 }
 
@@ -415,7 +419,9 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
     },
   });
 
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
+    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  });
 
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
@@ -450,7 +456,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               users: {
                 connect: [{ id: userId }],
               },
-              parentId: eventType.parentId,
+              parentId: eventType.id,
               hidden: false,
               workflows: currentWorkflowIds && {
                 create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),

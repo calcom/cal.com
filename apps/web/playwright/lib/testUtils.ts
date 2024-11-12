@@ -218,7 +218,7 @@ export async function installAppleCalendar(page: Page) {
 }
 
 export async function getInviteLink(page: Page) {
-  const json = await submitAndWaitForResponse(page, "/api/trpc/teams/createInvite?batch=1", {
+  const json = await submitAndWaitForJsonResponse(page, "/api/trpc/teams/createInvite?batch=1", {
     action: () => page.locator(`[data-testid="copy-invite-link-button"]`).click(),
   });
   return json[0].result.data.json.inviteLink as string;
@@ -446,7 +446,17 @@ export async function submitAndWaitForResponse(
   await action();
   const response = await submitPromise;
   expect(response.status()).toBe(expectedStatusCode);
-  return response.json();
+}
+export async function submitAndWaitForJsonResponse(
+  page: Page,
+  url: string,
+  { action = () => page.locator('[type="submit"]').click(), expectedStatusCode = 200 } = {}
+) {
+  const submitPromise = page.waitForResponse(url);
+  await action();
+  const response = await submitPromise;
+  expect(response.status()).toBe(expectedStatusCode);
+  return await response.json();
 }
 
 export async function confirmReschedule(page: Page, url = "/api/book/event") {

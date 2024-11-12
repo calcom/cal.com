@@ -9,7 +9,7 @@ import InsightsPage from "~/insights/insights-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Insights",
+    (t) => t("insights"),
     (t) => t("insights_subtitle")
   );
 

@@ -2,9 +2,9 @@ import { describe, it, expect, afterEach, beforeAll, afterAll } from "vitest";
 
 import prisma from "@calcom/prisma";
 
-import { getLuckyUser } from "./getLuckyUser";
+import { DistributionMethod, getLuckyUser } from "./getLuckyUser";
 
-describe("getLuckyUser tests", () => {
+describe("getLuckyUser Integration tests", () => {
   describe("should not consider no show bookings for round robin: ", () => {
     let userIds: number[] = [];
     let eventTypeId: number;
@@ -102,7 +102,7 @@ describe("getLuckyUser tests", () => {
       userIds.push(organizerThatShowedUp.id, organizerThatDidntShowUp.id);
 
       expect(
-        getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [organizerThatShowedUp, organizerThatDidntShowUp],
           eventType: {
             id: eventTypeId,
@@ -172,7 +172,7 @@ describe("getLuckyUser tests", () => {
       userIds.push(organizerWhoseAttendeeShowedUp.id, organizerWhoseAttendeeDidntShowUp.id);
 
       expect(
-        getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [organizerWhoseAttendeeShowedUp, organizerWhoseAttendeeDidntShowUp],
           eventType: {
             id: eventTypeId,
@@ -291,7 +291,7 @@ describe("getLuckyUser tests", () => {
       );
 
       expect(
-        getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [
             organizerWhoseAttendeeShowedUp,
             fixedHostOrganizerWhoseAttendeeDidNotShowUp,
@@ -366,7 +366,7 @@ describe("getLuckyUser tests", () => {
       userIds.push(user1.id, user2.id);
 
       expect(
-        getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [user1, user2],
           eventType: {
             id: eventTypeId,

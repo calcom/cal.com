@@ -1,6 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
+
+import type { Disabled_2024_06_14 } from "./disabled.input";
 
 export type BookingLimitsKeyOutputType_2024_06_14 = "PER_DAY" | "PER_WEEK" | "PER_MONTH" | "PER_YEAR";
 export type BookingLimitsKeysInputType = "day" | "week" | "month" | "year";
@@ -8,11 +10,11 @@ export type TransformBookingLimitsSchema_2024_06_14 = {
   [K in BookingLimitsKeyOutputType_2024_06_14]?: number;
 };
 
-export class BookingLimitsCount_2024_06_14 {
+export class BaseBookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per day",
     example: 1,
   })
@@ -21,7 +23,7 @@ export class BookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per week",
     example: 2,
   })
@@ -30,7 +32,7 @@ export class BookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per month",
     example: 3,
   })
@@ -39,13 +41,18 @@ export class BookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per year",
     example: 4,
   })
   year?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
+export type BookingLimitsCount_2024_06_14 = BaseBookingLimitsCount_2024_06_14 | Disabled_2024_06_14;
 // Custom validator to handle the union type
 @ValidatorConstraint({ name: "BookingLimitsCountValidator", async: false })
 class BookingLimitsCountValidator implements ValidatorConstraintInterface {
@@ -55,6 +62,9 @@ class BookingLimitsCountValidator implements ValidatorConstraintInterface {
   } = {};
   validate(value: BookingLimitsCount_2024_06_14) {
     if (!value) return false;
+    if ("disabled" in value) {
+      return true;
+    }
 
     const { day, week, month, year } = value;
 
@@ -84,7 +94,10 @@ class BookingLimitsCountValidator implements ValidatorConstraintInterface {
 
   defaultMessage() {
     const { invalidLimit, comparedLimit } = this.errorDetails;
-    return `Invalid booking limits: The number of bookings for ${invalidLimit} cannot exceed the number of bookings for ${comparedLimit}.`;
+    if (invalidLimit && comparedLimit) {
+      return `Invalid booking limits: The number of bookings for ${invalidLimit} cannot exceed the number of bookings for ${comparedLimit}.`;
+    }
+    return `Invalid booking limits count structure`;
   }
 }
 

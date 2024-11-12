@@ -35,11 +35,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.calEvent.recurringEvent?.count
-          ? this.t("your_event_has_been_scheduled_recurring")
-          : this.t("your_event_has_been_scheduled"),
         role: GenerateIcsRole.ATTENDEE,
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         status: "CONFIRMED",
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,

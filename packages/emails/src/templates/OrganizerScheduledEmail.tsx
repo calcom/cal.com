@@ -10,6 +10,7 @@ export const OrganizerScheduledEmail = (
     newSeat?: boolean;
     attendeeCancelled?: boolean;
     teamMember?: Person;
+    reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
   let subject;
@@ -49,12 +50,17 @@ export const OrganizerScheduledEmail = (
       timeFormat={timeFormat}
       isOrganizer
       subtitle={
-        <>
-          {props.attendeeCancelled
-            ? t("attendee_no_longer_attending_subtitle", { name: props.attendee.name })
-            : ""}
-        </>
+        props.subtitle ? (
+          props.subtitle
+        ) : (
+          <>
+            {props.attendeeCancelled
+              ? t("attendee_no_longer_attending_subtitle", { name: props.attendee.name })
+              : ""}
+          </>
+        )
       }
+      reassigned={props.reassigned}
       {...props}
       attendee={attendee}
     />

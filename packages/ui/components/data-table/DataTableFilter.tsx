@@ -1,9 +1,10 @@
+"use client";
+
 import type { Column } from "@tanstack/react-table";
+import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 
-import type { IconName } from "../..";
-import { Icon } from "../..";
 import { Badge } from "../badge";
 import { Button } from "../button";
 import {
@@ -15,20 +16,72 @@ import {
   CommandList,
   CommandSeparator,
 } from "../command";
+import type { IconName } from "../icon";
+import { Icon } from "../icon";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
+
+interface FilterOption {
+  label: string;
+  value: string;
+  icon?: IconName;
+  options?: FilterOption[];
+}
 
 interface DataTableFilter<TData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
-  options: {
-    label: string;
-    value: string;
-    icon?: IconName;
-  }[];
+  options: FilterOption[];
 }
+
 export function DataTableFilter<TData, TValue>({ column, title, options }: DataTableFilter<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const [currentOptions, setCurrentOptions] = useState<FilterOption[]>(options);
+  const [navigationPath, setNavigationPath] = useState<string[]>([]);
+
+  const flattenOptions = (opts: FilterOption[]): FilterOption[] => {
+    return opts.reduce((acc, option) => {
+      acc.push(option);
+      if (option.options) {
+        acc.push(...flattenOptions(option.options));
+      }
+      return acc;
+    }, [] as FilterOption[]);
+  };
+
+  const allOptions = flattenOptions(options);
+
+  const handleSelect = (option: FilterOption) => {
+    if (option.options) {
+      setCurrentOptions(option.options);
+      setNavigationPath([...navigationPath, option.label]);
+    } else {
+      if (selectedValues.has(option.value)) {
+        selectedValues.delete(option.value);
+      } else {
+        selectedValues.add(option.value);
+      }
+      const filterValues = Array.from(selectedValues);
+      column?.setFilterValue(filterValues.length ? filterValues : undefined);
+    }
+  };
+
+  const handleBack = () => {
+    if (navigationPath.length > 0) {
+      const newPath = [...navigationPath];
+      newPath.pop();
+      setNavigationPath(newPath);
+
+      let newOptions = options;
+      for (const label of newPath) {
+        const found = newOptions.find((o) => o.label === label);
+        if (found && found.options) {
+          newOptions = found.options;
+        }
+      }
+      setCurrentOptions(newOptions);
+    }
+  };
 
   return (
     <Popover>
@@ -44,7 +97,7 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
                     {selectedValues.size}
                   </Badge>
                 ) : (
-                  options
+                  allOptions
                     .filter((option) => selectedValues.has(option.value))
                     .map((option) => (
                       <Badge color="gray" key={option.value} className="rounded-sm px-1 font-normal">
@@ -62,32 +115,32 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
           <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
+            {navigationPath.length > 0 && (
+              <CommandGroup>
+                <CommandItem onSelect={handleBack}>
+                  <Icon name="arrow-left" className="mr-2 h-4 w-4" />
+                  Back
+                </CommandItem>
+              </CommandGroup>
+            )}
             <CommandGroup>
-              {options.map((option) => {
-                // TODO: It would be nice to pull these from data instead of options
+              {currentOptions.map((option) => {
                 const isSelected = selectedValues.has(option.value);
                 return (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => {
-                      if (isSelected) {
-                        selectedValues.delete(option.value);
-                      } else {
-                        selectedValues.add(option.value);
-                      }
-                      const filterValues = Array.from(selectedValues);
-                      column?.setFilterValue(filterValues.length ? filterValues : undefined);
-                    }}>
-                    <div
-                      className={classNames(
-                        "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                        isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
-                      )}>
-                      <Icon name="check" className={classNames("h-4 w-4")} />
-                    </div>
+                  <CommandItem key={option.value} onSelect={() => handleSelect(option)}>
+                    {!option.options && (
+                      <div
+                        className={classNames(
+                          "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                          isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
+                        )}>
+                        <Icon name="check" className={classNames("h-4 w-4")} />
+                      </div>
+                    )}
                     {option.icon && <Icon name={option.icon} className="text-muted mr-2 h-4 w-4" />}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
+                    {option.options && <Icon name="chevron-right" className="ml-auto h-4 w-4" />}
+                    {!option.options && facets?.get(option.value) && (
                       <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
                         {facets.get(option.value)}
                       </span>

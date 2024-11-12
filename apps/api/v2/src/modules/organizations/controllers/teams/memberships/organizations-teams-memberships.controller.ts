@@ -15,6 +15,7 @@ import {
   OrgTeamMembershipsOutputResponseDto,
   OrgTeamMembershipOutputResponseDto,
 } from "@/modules/organizations/outputs/organization-teams-memberships.output";
+import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/services/organizations-teams-memberships.service";
 import {
   Controller,
@@ -35,6 +36,7 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
@@ -42,15 +44,16 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Organizations Teams")
+@DocsTags("Orgs / Teams / Memberships")
 export class OrganizationsTeamsMembershipsController {
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
+    private oganizationsEventTypesService: OrganizationsEventTypesService,
     private readonly organizationsRepository: OrganizationsRepository
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get all the memberships of a team of an organization." })
+  @ApiOperation({ summary: "Get all memberships" })
   @UseGuards()
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -76,7 +79,7 @@ export class OrganizationsTeamsMembershipsController {
   }
 
   @Get("/:membershipId")
-  @ApiOperation({ summary: "Get the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Get a membership" })
   @UseGuards()
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -101,7 +104,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Delete a membership" })
   async deleteOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -112,6 +115,9 @@ export class OrganizationsTeamsMembershipsController {
       teamId,
       membershipId
     );
+
+    await this.oganizationsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
+
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
@@ -122,22 +128,32 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Update a membership" })
   async updateOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
     @Body() data: UpdateOrgTeamMembershipDto
   ): Promise<OrgTeamMembershipOutputResponseDto> {
-    const membership = await this.organizationsTeamsMembershipsService.updateOrgTeamMembership(
+    const currentMembership = await this.organizationsTeamsMembershipsService.getOrgTeamMembership(
+      orgId,
+      teamId,
+      membershipId
+    );
+    const updatedMembership = await this.organizationsTeamsMembershipsService.updateOrgTeamMembership(
       orgId,
       teamId,
       membershipId,
       data
     );
+
+    if (!currentMembership.accepted && updatedMembership.accepted) {
+      await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
+    }
+
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(OrgTeamMembershipOutputDto, updatedMembership, { strategy: "excludeAll" }),
     };
   }
 
@@ -145,7 +161,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a membership of an organization's team" })
+  @ApiOperation({ summary: "Create a membership" })
   async createOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -158,6 +174,9 @@ export class OrganizationsTeamsMembershipsController {
     }
 
     const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(teamId, data);
+    if (membership.accepted) {
+      await updateNewTeamMemberEventTypes(user.id, teamId);
+    }
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),

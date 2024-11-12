@@ -79,10 +79,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("profile-redirect-switch").click();
 
-    await page.getByTestId("team_username_select").click();
-
-    await page.locator("#react-select-3-input").fill("user");
-    await page.locator("#react-select-3-input").press("Enter");
+    await page.getByTestId(`team_username_select_${userTo.id}`).click();
 
     // send request
     await saveAndWaitForResponse(page);
@@ -158,10 +155,7 @@ test.describe("Out of office", () => {
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Changed notes");
 
-    await page.getByTestId("team_username_select").click();
-
-    await page.locator("#react-select-3-input").fill("userThree");
-    await page.locator("#react-select-3-input").press("Enter");
+    await page.getByTestId(`team_username_select_${userToSecond.id}`).click();
 
     // send request
     await saveAndWaitForResponse(page);

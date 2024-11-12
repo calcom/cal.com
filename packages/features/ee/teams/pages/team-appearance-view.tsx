@@ -23,7 +23,7 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] } & { isAppDir?: boolean };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] } & { isAppDir?: boolean };
 
 const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
   const { t } = useLocale();
@@ -90,10 +90,10 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
         <>
           <Form
             form={themeForm}
-            handleSubmit={(values) => {
+            handleSubmit={({ theme }) => {
               mutation.mutate({
                 id: team.id,
-                theme: values.theme === "" ? null : values.theme,
+                theme: theme === "light" || theme === "dark" ? theme : null,
               });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
@@ -105,7 +105,7 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
               <ThemeLabel
                 variant="system"
-                value={null}
+                value="system"
                 label={t("theme_system")}
                 defaultChecked={team.theme === null}
                 register={themeForm.register}
@@ -193,7 +193,7 @@ const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(params.id) },
     {
       enabled: !!Number(params.id),

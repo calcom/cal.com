@@ -11,8 +11,6 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("event_request_cancelled"),
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         status: "CANCELLED",
         role: GenerateIcsRole.ORGANIZER,
       }),

@@ -71,6 +71,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       allowDynamicBooking: true,
       allowSEOIndexing: true,
       receiveMonthlyDigestEmail: true,
+      profiles: true,
     },
   });
 
@@ -146,7 +147,7 @@ const getSession = async (ctx: TRPCContextInner) => {
   return req ? await getServerSession({ req, res }) : null;
 };
 
-const getUserSession = async (ctx: TRPCContextInner) => {
+export const getUserSession = async (ctx: TRPCContextInner) => {
   /**
    * It is possible that the session and user have already been added to the context by a previous middleware
    * or when creating the context

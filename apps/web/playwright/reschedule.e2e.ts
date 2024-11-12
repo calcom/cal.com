@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
@@ -6,7 +7,6 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { apiLogin } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
@@ -343,7 +343,7 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test.describe("Organization", () => {
-    test("Booking should be rescheduleable for a user that was moved to an organization", async ({
+    test("Booking should be rescheduleable for a user that was moved to an organization through org domain", async ({
       users,
       bookings,
       orgs,
@@ -362,59 +362,73 @@ test.describe("Reschedule Tests", async () => {
       const eventType = orgMember.eventTypes[0];
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const orgSlug = org.slug!;
-      const getNonOrgUrlFromOrgUrl = (url: string) => url.replace(orgSlug, "app");
-      await test.step("Try rescheduling through org domain", async () => {
-        const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
+      const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
 
-        return await doOnOrgDomain(
-          {
-            orgSlug: orgSlug,
-            page,
-          },
-          async ({ page, goToUrlWithErrorHandling }) => {
-            const result = await goToUrlWithErrorHandling(`/reschedule/${booking.uid}`);
-            // Verify that the reschedule page was opened on the org domain with correct username
-            expectUrlToBeABookingPageOnOrgForUsername({
-              url: result.url,
-              orgSlug,
-              username: profileUsername,
-            });
+      return await doOnOrgDomain(
+        {
+          orgSlug: orgSlug,
+          page,
+        },
+        async ({ page, goToUrlWithErrorHandling }) => {
+          const result = await goToUrlWithErrorHandling(`/reschedule/${booking.uid}`);
+          expectUrlToBeABookingPageOnOrgForUsername({
+            url: result.url,
+            orgSlug,
+            username: profileUsername,
+          });
 
-            const rescheduleUrlToBeOpenedInOrgContext = getNonOrgUrlFromOrgUrl(result.url);
-            await page.goto(rescheduleUrlToBeOpenedInOrgContext);
-            await expectSuccessfulReschedule();
-            return { url: result.url };
-          }
-        );
-      });
-
-      await test.step("Try rescheduling through non-org domain", async () => {
-        const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
-
-        // Opening the non-org URL and expecting a redirect to the org domain by reschedule endpoint
-        const result = await goToUrlWithErrorHandling({ url: `/reschedule/${booking.uid}`, page });
-
-        await doOnOrgDomain(
-          {
-            orgSlug: orgSlug,
-            page,
-          },
-          async ({ page }) => {
-            await page.goto(getNonOrgUrlFromOrgUrl(result.url));
-            await expectSuccessfulReschedule();
-          }
-        );
-      });
-
-      async function expectSuccessfulReschedule() {
-        await selectFirstAvailableTimeSlotNextMonth(page);
-        const { protocol, host } = new URL(page.url());
-        // Needed since we we're expecting a non-org URL, causing timeouts.
-        const url = getNonOrgUrlFromOrgUrl(`${protocol}//${host}/api/book/event`);
-        await confirmReschedule(page, url);
-        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-      }
+          const rescheduleUrlToBeOpenedInOrgContext = getNonOrgUrlFromOrgUrl(result.url, orgSlug);
+          await page.goto(rescheduleUrlToBeOpenedInOrgContext);
+          await expectSuccessfulReschedule(page, orgSlug);
+          return { url: result.url };
+        }
+      );
     });
+
+    test("Booking should be rescheduleable for a user that was moved to an organization through non-org domain", async ({
+      users,
+      bookings,
+      orgs,
+      page,
+    }) => {
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+      const orgMember = await users.create({
+        username: "username-outside-org",
+        organizationId: org.id,
+        profileUsername: "username-inside-org",
+        roleInOrganization: MembershipRole.MEMBER,
+      });
+      const eventType = orgMember.eventTypes[0];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const orgSlug = org.slug!;
+      const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
+
+      const result = await goToUrlWithErrorHandling({ url: `/reschedule/${booking.uid}`, page });
+
+      await doOnOrgDomain(
+        {
+          orgSlug: orgSlug,
+          page,
+        },
+        async ({ page }) => {
+          await page.goto(getNonOrgUrlFromOrgUrl(result.url, orgSlug));
+          await expectSuccessfulReschedule(page, orgSlug);
+        }
+      );
+    });
+
+    const getNonOrgUrlFromOrgUrl = (url: string, orgSlug: string) => url.replace(orgSlug, "app");
+
+    async function expectSuccessfulReschedule(page: Page, orgSlug: string) {
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      const { protocol, host } = new URL(page.url());
+      // Needed since we we're expecting a non-org URL, causing timeouts.
+      const url = getNonOrgUrlFromOrgUrl(`${protocol}//${host}/api/book/event`, orgSlug);
+      await confirmReschedule(page, url);
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    }
   });
 });
 

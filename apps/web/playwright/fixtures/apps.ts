@@ -47,7 +47,7 @@ export function createAppsFixture(page: Page) {
     },
 
     installConferencingAppSkipConfigure: async (app: string) => {
-      await page.getByTestId(`app-store-app-card-${app}`).click();
+      await page.goto(`apps/${app}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       await page.click('[data-testid="set-up-later"]');
@@ -79,7 +79,6 @@ export function createAppsFixture(page: Page) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
       await page.click(`[data-testid="save-event-types"]`);
-      page.waitForLoadState("networkidle");
 
       for (let eindex = 0; eindex < eventTypeIds.length; eindex++) {
         if (!app.organizerInputPlaceholder) continue;

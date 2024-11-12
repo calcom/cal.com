@@ -77,7 +77,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           }}
         />
       </div>
-      <label className="ml-3 text-sm font-medium leading-5" htmlFor={externalId}>
+      <label className="ml-3 break-all text-sm font-medium leading-5" htmlFor={externalId}>
         {name}
       </label>
       {!!props.destination && (

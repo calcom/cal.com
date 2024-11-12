@@ -21,6 +21,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
 
+export type EventTeamAssignmentTabBaseProps = Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">;
+
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
   slug: string,
@@ -132,19 +134,24 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={() =>
+              onActive={() => {
+                const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: true,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: 2,
-                    weight: 100,
-                    weightAdjustment: 0,
-                  })),
+                  teamMembers.map((teamMember) => {
+                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    return {
+                      isFixed: true,
+                      userId: parseInt(teamMember.value, 10),
+                      priority: 2,
+                      weight: 100,
+                      // if host was already added, retain scheduleId
+                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                    };
+                  }),
                   { shouldDirty: true }
-                )
-              }
+                );
+              }}
             />
           </div>
         </>
@@ -175,19 +182,24 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={() =>
+              onActive={() => {
+                const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: true,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: 2,
-                    weight: 100,
-                    weightAdjustment: 0,
-                  })),
+                  teamMembers.map((teamMember) => {
+                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    return {
+                      isFixed: true,
+                      userId: parseInt(teamMember.value, 10),
+                      priority: 2,
+                      weight: 100,
+                      // if host was already added, retain scheduleId
+                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                    };
+                  }),
                   { shouldDirty: true }
-                )
-              }
+                );
+              }}
             />
           </div>
         </SettingsToggle>
@@ -255,15 +267,20 @@ const RoundRobinHosts = ({
           isFixed={false}
           containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
           onActive={() => {
+            const currentHosts = getValues("hosts");
             setValue(
               "hosts",
-              teamMembers.map((teamMember) => ({
-                isFixed: false,
-                userId: parseInt(teamMember.value, 10),
-                priority: 2,
-                weight: 100,
-                weightAdjustment: 0,
-              })),
+              teamMembers.map((teamMember) => {
+                const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                return {
+                  isFixed: false,
+                  userId: parseInt(teamMember.value, 10),
+                  priority: 2,
+                  weight: 100,
+                  // if host was already added, retain scheduleId
+                  scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                };
+              }),
               { shouldDirty: true }
             );
             setValue("isRRWeightsEnabled", false);
@@ -346,6 +363,21 @@ const Hosts = ({
     );
   }, [schedulingType, setValue, getValues, submitCount]);
 
+  // To ensure existing host do not loose its scheduleId property, whenever a new host of same type is added.
+  // This is because the host is created from list option in CheckedHostField component.
+  const updatedHosts = (changedHosts: Host[]) => {
+    const existingHosts = getValues("hosts");
+    return changedHosts.map((newValue) => {
+      const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+      return existingHost
+        ? {
+            ...newValue,
+            scheduleId: existingHost.scheduleId,
+          }
+        : newValue;
+    });
+  };
+
   return (
     <Controller<FormValues>
       name="hosts"
@@ -355,7 +387,9 @@ const Hosts = ({
             <FixedHosts
               teamMembers={teamMembers}
               value={value}
-              onChange={onChange}
+              onChange={(changeValue) => {
+                onChange([...updatedHosts(changeValue)]);
+              }}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
             />
@@ -366,7 +400,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...changeValue]);
+                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -376,7 +410,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...changeValue];
+                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
@@ -392,11 +426,7 @@ const Hosts = ({
   );
 };
 
-export const EventTeamAssignmentTab = ({
-  team,
-  teamMembers,
-  eventType,
-}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
+export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {

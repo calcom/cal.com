@@ -4,6 +4,7 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
 
 import {
@@ -22,6 +23,7 @@ import { PlatformPricing } from "@components/settings/platform/pricing/platform-
 const queryClient = new QueryClient();
 
 export default function Platform() {
+  const { t } = useLocale();
   const [initialClientId, setInitialClientId] = useState("");
   const [initialClientName, setInitialClientName] = useState("");
 
@@ -58,18 +60,29 @@ export default function Platform() {
     return <div className="m-5">Loading...</div>;
   }
 
-  if (isPlatformUser && !isPaidUser) return <PlatformPricing teamId={userOrgId} />;
+  if (isPlatformUser && !isPaidUser)
+    return (
+      <PlatformPricing
+        teamId={userOrgId}
+        heading={
+          <div className="mb-5 text-center text-2xl font-semibold">
+            <h1>Subscribe to Platform</h1>
+          </div>
+        }
+      />
+    );
 
   if (isPlatformUser) {
     return (
       <QueryClientProvider client={queryClient}>
         <div>
           <Shell
-            heading="Platform"
-            title="Platform"
+            heading={t("platform")}
+            subtitle={t("platform_description")}
+            title={t("platform")}
+            description={t("platform_description")}
             hideHeadingOnMobile
             withoutMain={false}
-            subtitle="Manage everything related to platform."
             isPlatformUser={true}>
             <HelpCards />
             <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />

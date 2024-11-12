@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@calcom/prisma";
 
 import { test, todo } from "./lib/fixtures";
-import { submitAndWaitForResponse } from "./lib/testUtils";
+import { submitAndWaitForJsonResponse } from "./lib/testUtils";
 
 declare let global: {
   E2E_EMAILS?: ({ text: string } | Record<string, unknown>)[];
@@ -132,7 +132,7 @@ async function bookEvent(page: Page, calLink: string) {
   await page.fill('[name="name"]', "Integration User");
   await page.fill('[name="email"]', "integration-user@example.com");
 
-  const response = await submitAndWaitForResponse(page, "**/api/book/event", {
+  const response = await submitAndWaitForJsonResponse(page, "**/api/book/event", {
     action: () => page.press('[name="email"]', "Enter"),
   });
   const responseObj = await response.json();
