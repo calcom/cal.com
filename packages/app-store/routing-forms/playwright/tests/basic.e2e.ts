@@ -28,7 +28,7 @@ const Identifiers = {
 };
 
 async function enableContactOwnerOverride(page: Page) {
-  await page.click("text=Contact owner will be the Round Robin host");
+  await page.click("text=Contact owner will be the Round Robin host if available");
 }
 
 async function selectFirstAttributeOption({ fromLocator }: { fromLocator: Locator }) {
@@ -575,7 +575,6 @@ test.describe("Routing Forms", () => {
       await selectNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
-      await enableContactOwnerOverride(page);
       await addAttributeRoutingRule(page);
       await saveCurrentForm(page);
 

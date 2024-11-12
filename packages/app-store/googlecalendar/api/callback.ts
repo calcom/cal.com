@@ -9,7 +9,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
