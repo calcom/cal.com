@@ -12,6 +12,8 @@ const initialData: AppFlags = {
   "email-verification": false,
   "google-workspace-directory": false,
   "disable-signup": false,
+  attributes: false,
+  "organizer-request-email-v2": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
