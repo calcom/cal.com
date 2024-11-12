@@ -213,6 +213,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
+        team: {},
       },
       allRRHosts: [],
     })

@@ -300,7 +300,7 @@ async function filterUsersBasedOnWeights<
       return totalWeight;
     }, 0);
   } else {
-    const totalWeight = allRRHosts.reduce((totalWeight, host) => {
+    totalWeight = allRRHosts.reduce((totalWeight, host) => {
       totalWeight += host.weight ?? 100;
       return totalWeight;
     }, 0);
