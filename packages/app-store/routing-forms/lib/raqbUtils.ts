@@ -234,19 +234,21 @@ function getAttributesData({
   }, {} as Record<string, string | string[]>);
 }
 
+export type GetAttributesQueryValueParams = {
+  attributesQueryValue: LocalRoute["attributesQueryValue"];
+  attributes: Attribute[];
+  response: FormResponse;
+  fields: SerializableField[] | undefined;
+  getFieldResponse: GetFieldResponse;
+};
+
 function getAttributesQueryValue({
   attributesQueryValue,
   attributes,
   response,
   fields,
   getFieldResponse,
-}: {
-  attributesQueryValue: LocalRoute["attributesQueryValue"];
-  attributes: Attribute[];
-  response: FormResponse;
-  fields: SerializableField[] | undefined;
-  getFieldResponse: GetFieldResponse;
-}) {
+}: GetAttributesQueryValueParams) {
   if (!attributesQueryValue) {
     return null;
   }
