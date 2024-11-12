@@ -162,13 +162,29 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          // Email RegExp to validate if the input is a valid email
-          if (!bookingField.hidden && !emailSchema.safeParse(value).success) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: m("email_validation_error"),
-            });
+          if (!bookingField.hidden) {
+            // Email RegExp to validate if the input is a valid email
+            if (!emailSchema.safeParse(value).success) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("email_validation_error"),
+              });
+            }
+
+            // validate the excluded emails
+            const bookerEmail = value;
+            const excludedEmails =
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+            const isExcludedEmail = excludedEmails.some((email) => bookerEmail.includes(email));
+
+            if (isExcludedEmail) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("please_try_work_email_instead"),
+              });
+            }
           }
+
           continue;
         }
 
