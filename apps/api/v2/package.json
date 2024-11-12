@@ -26,7 +26,6 @@
     "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts"
   },
   "dependencies": {
-    "@axiomhq/axiom-node": "^0.12.0",
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",
