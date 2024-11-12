@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { classNames } from "@calcom/lib";
 import { IS_CALCOM, IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -62,7 +61,6 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 export function SideBar({ bannersHeight, user }: SideBarProps) {
   const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
-  const orgBranding = useOrgBranding();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const [isReferalLoading, setIsReferalLoading] = useState(false);
@@ -136,17 +134,17 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
-            {orgBranding ? (
+            {user?.org ? (
               !ENABLE_PROFILE_SWITCHER ? (
                 <Link href="/settings/organizations/profile" className="w-full px-1.5">
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
-                      alt={`${orgBranding.name} logo`}
-                      imageSrc={getPlaceholderAvatar(orgBranding.logoUrl, orgBranding.name)}
+                      alt={`${user.org.name} logo`}
+                      imageSrc={getPlaceholderAvatar(user.org.logoUrl, user.org.name)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">
-                      <span>{orgBranding.name}</span>
+                      <span>{user.org.name}</span>
                     </p>
                   </div>
                 </Link>
@@ -182,7 +180,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
                 />
               </button>
-              {!!orgBranding && (
+              {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
                   <UserDropdown small />
                 </div>
