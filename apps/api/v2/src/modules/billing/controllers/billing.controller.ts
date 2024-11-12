@@ -102,11 +102,9 @@ export class BillingController {
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
-    const event = await this.billingService.stripeService.stripe.webhooks.constructEventAsync(
-      request.body,
-      stripeSignature,
-      this.stripeWhSecret
-    );
+    const event = await this.billingService.stripeService
+      .getStripe()
+      .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
 
     switch (event.type) {
       case "checkout.session.completed":

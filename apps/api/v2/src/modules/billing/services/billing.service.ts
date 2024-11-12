@@ -64,7 +64,7 @@ export class BillingService implements OnModuleDestroy {
   }
 
   async redirectToSubscribeCheckout(teamId: number, plan: PlatformPlan, customerId?: string) {
-    const { url } = await this.stripeService.stripe.checkout.sessions.create({
+    const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
@@ -101,7 +101,7 @@ export class BillingService implements OnModuleDestroy {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
-    const { url } = await this.stripeService.stripe.checkout.sessions.create({
+    const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       success_url: `${this.webAppUrl}/settings/platform/`,
       cancel_url: `${this.webAppUrl}/settings/platform/plans`,
@@ -226,9 +226,9 @@ export class BillingService implements OnModuleDestroy {
       throw new NotFoundException("Team plan not found");
     }
 
-    const existingUserSubscription = await this.stripeService.stripe.subscriptions.retrieve(
-      teamWithBilling?.platformBilling?.subscriptionId
-    );
+    const existingUserSubscription = await this.stripeService
+      .getStripe()
+      .subscriptions.retrieve(teamWithBilling?.platformBilling?.subscriptionId);
     const currentLicensedItem = existingUserSubscription.items.data.find(
       (item) => item.price?.recurring?.usage_type === "licensed"
     );
@@ -244,21 +244,23 @@ export class BillingService implements OnModuleDestroy {
       throw new NotFoundException("There is no overage item present in the subscription");
     }
 
-    await this.stripeService.stripe.subscriptions.update(teamWithBilling?.platformBilling?.subscriptionId, {
-      items: [
-        {
-          id: currentLicensedItem.id,
-          price: this.billingConfigService.get(plan)?.base,
-        },
-        {
-          id: currentOverageItem.id,
-          price: this.billingConfigService.get(plan)?.overage,
-          clear_usage: false,
-        },
-      ],
-      billing_cycle_anchor: "now",
-      proration_behavior: "create_prorations",
-    });
+    await this.stripeService
+      .getStripe()
+      .subscriptions.update(teamWithBilling?.platformBilling?.subscriptionId, {
+        items: [
+          {
+            id: currentLicensedItem.id,
+            price: this.billingConfigService.get(plan)?.base,
+          },
+          {
+            id: currentOverageItem.id,
+            price: this.billingConfigService.get(plan)?.overage,
+            clear_usage: false,
+          },
+        ],
+        billing_cycle_anchor: "now",
+        proration_behavior: "create_prorations",
+      });
 
     await this.setSubscriptionForTeam(
       teamId,
