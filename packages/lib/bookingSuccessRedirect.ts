@@ -35,33 +35,13 @@ type ResultType = {
 } & {
   hostName?: string[];
   attendeeName?: string | null;
+  hostStartTime?: string | null;
+  attendeeStartTime?: string | null;
+  guestEmails?: string[] | null;
+  phone?: string | null;
+  attendeeFirstName?: string | null;
+  attendeeLastName?: string | null;
 };
-
-function convertResponsesToParams(obj: ResultType): ResultType {
-  interface Responses {
-    name: { lastName: string; firstName: string } | string;
-    phone: string;
-  }
-
-  const result: ResultType = { ...obj };
-  if (!result.responses) return { ...obj };
-  const responses = result.responses as unknown as Responses;
-  // Extract and conditionally add properties
-  if (typeof responses.phone === "string") {
-    (result.responses as Record<string, unknown>).phone = responses.phone;
-  }
-
-  if (typeof responses.name === "string") {
-    (result.responses as Record<string, unknown>).name = responses.name;
-  } else if (responses.name && typeof responses.name === "object") {
-    if (responses.name.firstName)
-      (result.responses as Record<string, unknown>).firstName = responses.name.firstName;
-    if (responses.name.lastName)
-      (result.responses as Record<string, unknown>).lastName = responses.name.lastName;
-  }
-
-  return result;
-}
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   const redirectQueryParamKeys: BookingResponseKey[] = [
@@ -75,26 +55,31 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "responses",
   ];
 
+  function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
+    return path.reduce(
+      (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
+      obj
+    ) as T | undefined;
+  }
+
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
-  function extractResponseDetails(booking, obj: ResultType): ResultType {
-    type Responses = {
-      phone?: string;
-      name:
-        | {
-            firstName: string;
-            lastName: string;
-          }
-        | string;
-    };
-    const responses = { ...obj } as unknown as Responses;
-    if (booking.responses?.phone) responses.phone = booking.responses.phone;
-    if (booking.responses?.name?.firstName) responses.attendeeFirstName = booking.responses.name.firstName;
-    if (booking.responses?.name?.lastName) responses.attendeeLastName = booking.responses.name.lastName;
-    return responses;
+  function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
+    const result: ResultType = { ...obj };
+    const phone = getSafe<string>(booking.responses, ["phone"]);
+    const firstName = getSafe<string>(booking.responses, ["name", "firstName"]);
+    const lastName = getSafe<string>(booking.responses, ["name", "lastName"]);
+    const name = getSafe<string>(booking.responses, ["name"]);
+
+    if (phone) result.phone = phone;
+    if (firstName) result.attendeeFirstName = firstName;
+    if (lastName) result.attendeeLastName = lastName;
+    else if (name && typeof name === "string") result.attendeeName = name; // Fallback if `name` is a string instead of an object
+
+    return result;
   }
 
   // Helper function to extract user details (e.g., host name and time zone)
-  function extractUserDetails(booking, obj: ResultType): ResultType {
+  function extractUserDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
     if (booking.user?.name) {
       const hostStartTime = dayjs(booking.startTime).tz(booking.user.timeZone).format();
       return {
@@ -107,7 +92,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   }
 
   // Helper function to extract attendee and guest details
-  function extractAttendeesAndGuests(booking, obj: ResultType): ResultType {
+  function extractAttendeesAndGuests(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
     if (!Array.isArray(booking.attendees) || booking.attendees.length === 0) return obj;
 
     const attendeeName = booking.attendees[0]?.name || null;
@@ -131,7 +116,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
       attendeeName,
       attendeeStartTime,
       hostName: [...(obj.hostName || []), ...hostNames],
-      guestEmail: guestEmails.length > 0 ? guestEmails : undefined,
+      guestEmails: guestEmails.length > 0 ? guestEmails : undefined,
     };
   }
 
@@ -159,6 +144,8 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     ),
     hostName: result.hostName?.join(", "),
     attendeeName: result.attendeeName || undefined,
+    hostStartTime: result.hostStartTime || undefined,
+    attendeeStartTime: result.attendeeStartTime || undefined,
   };
 
   return queryCompatibleParams;
