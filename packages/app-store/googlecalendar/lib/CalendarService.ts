@@ -42,12 +42,14 @@ import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-
 interface GoogleCalError extends Error {
   code?: number;
 }
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
+// eslint-disable-next-line turbo/no-undeclared-env-vars -- WEBHOOK_URL for local testing
+const WEBHOOK_URL = process.env.WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -645,8 +647,7 @@ export default class GoogleCalendarService implements Calendar {
         // A UUID or similar unique string that identifies this channel.
         id: uuid(),
         type: "web_hook",
-        // address: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/googlecalendar/webhook`,
-        address: `https://asepoz-ip-189-203-41-65.tunnelmole.net/api/integrations/googlecalendar/webhook`,
+        address: `${WEBHOOK_URL}/api/integrations/googlecalendar/webhook`,
         token: process.env.CRON_API_KEY,
         params: {
           // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
