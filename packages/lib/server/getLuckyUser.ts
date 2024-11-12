@@ -25,6 +25,32 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 
 type PartialUser = Pick<User, "id" | "email">;
 
+type AttributeWithWeights = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+    assignedUsers: {
+      weight: number | null;
+      member: {
+        userId: number;
+      };
+    }[];
+  }[];
+};
+
+type VirtualQueuesDataType = {
+  chosenRouteId: string;
+  fieldOptionData: {
+    fieldId: string;
+    selectedOptionIds: string | number | string[];
+  };
+};
+
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: [T, ...T[]]; // ensure contains at least 1
   eventType: { id: number; isRRWeightsEnabled: boolean; team: { parentId?: number | null } | null };
@@ -331,23 +357,28 @@ async function filterUsersBasedOnWeights<
   return remainingUsersAfterWeightFilter;
 }
 
-type AttributeWithWeights = {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-    assignedUsers: {
-      weight: number | null;
-      member: {
-        userId: number;
-      };
-    }[];
-  }[];
-};
+export async function getLuckyUser<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(
+  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
+  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
+) {
+  // prepare attributeWeights and virtualQueuesData
+  const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
+
+  return _getLuckyUser(
+    distributionMethod,
+    {
+      ...getLuckyUserParams,
+      availableUsers,
+    },
+    attributeWeights,
+    virtualQueuesData
+  );
+}
 
 async function getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
   allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
@@ -493,14 +524,6 @@ function getAverageAttributeWeights(
   return averageWeightsHosts;
 }
 
-type VirtualQueuesDataType = {
-  chosenRouteId: string;
-  fieldOptionData: {
-    fieldId: string;
-    selectedOptionIds: string | number | string[];
-  };
-};
-
 function getAttributesForVirtualQueues(
   response: Record<string, Pick<FormResponse[keyof FormResponse], "value">>,
   attributesQueryValueChild: Record<
@@ -548,27 +571,18 @@ function getAttributesForVirtualQueues(
   return selectionOptions;
 }
 
-// TODO: Configure distributionAlgorithm from the event type configuration
-// TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
-export async function getLuckyUser<
-  T extends PartialUser & {
-    priority?: number | null;
-    weight?: number | null;
-  }
->(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
-  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
-) {
-  //maybe pass response directly not id
-  const { eventType, routingFormResponseId } = getLuckyUserParams;
-
+async function prepareQueuesAndAttributesData<T extends PartialUser>({
+  eventType,
+  routingFormResponseId,
+  allRRHosts,
+}: Omit<GetLuckyUserParams<T>, "availableUsers">) {
   let attributeWeights;
   let virtualQueuesData;
 
-  if (routingFormResponseId && getLuckyUserParams.eventType.team?.parentId) {
+  if (routingFormResponseId && eventType.team?.parentId) {
     const attributeWithEnabledWeights = await prisma.attribute.findFirst({
       where: {
-        teamId: getLuckyUserParams.eventType.team?.parentId,
+        teamId: eventType.team?.parentId,
         isWeightsEnabled: true,
       },
       select: {
@@ -599,7 +613,7 @@ export async function getLuckyUser<
     if (attributeWithEnabledWeights) {
       // Virtual queues are defined by the attribute that has weights and is use with 'Value of field ...'
       const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
-        getLuckyUserParams.allRRHosts,
+        allRRHosts,
         routingFormResponseId,
         attributeWithEnabledWeights
       );
@@ -610,6 +624,28 @@ export async function getLuckyUser<
       }
     }
   }
+
+  return { attributeWeights, virtualQueuesData };
+}
+
+// TODO: Configure distributionAlgorithm from the event type configuration
+// TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
+async function _getLuckyUser<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(
+  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
+  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>,
+  attributeWeights?: {
+    userId: number;
+    weight: number;
+  }[],
+  virtualQueuesData?: VirtualQueuesDataType
+) {
+  //maybe pass response directly not id
+  const { eventType } = getLuckyUserParams;
 
   // there is only one user
   if (availableUsers.length === 1) {
