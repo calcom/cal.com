@@ -44,7 +44,7 @@ const testSelectedCalendar = {
   externalId: "example@cal.com",
 };
 
-test("Calendar Cache is being read and updated", async () => {
+test("Calendar Cache is being read on cache HIT", async () => {
   const credentialInDb1 = await createCredentialInDb();
   const dateFrom1 = new Date().toISOString();
   const dateTo1 = new Date().toISOString();
@@ -85,24 +85,27 @@ test("Calendar Cache is being read and updated", async () => {
       end: "2023-12-01T19:00:00Z",
     },
   ]);
+});
 
-  const credentialInDb2 = await createCredentialInDb();
-  const dateFrom2 = new Date(Date.now()).toISOString();
+test("Calendar Cache is being ignored on cache MISS", async () => {
+  const calendarCache = await CalendarCache.init(null);
+  const credentialInDb = await createCredentialInDb();
+  const dateFrom = new Date(Date.now()).toISOString();
   // Tweak date so that it's a cache miss
-  const dateTo2 = new Date(Date.now() + 100000000).toISOString();
-  const calendarService2 = new CalendarService(credentialInDb2);
+  const dateTo = new Date(Date.now() + 100000000).toISOString();
+  const calendarService = new CalendarService(credentialInDb);
 
   // Test Cache Miss
-  await calendarService2.getAvailability(dateFrom2, dateTo2, [testSelectedCalendar]);
+  await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar]);
 
-  // Expect cache to be updated in case of a MISS
-  const cachedAvailability = await calendarCache.getCachedAvailability(credentialInDb2.id, {
-    timeMin: dateFrom2,
-    timeMax: dateTo2,
+  // Expect cache to be ignored in case of a MISS
+  const cachedAvailability = await calendarCache.getCachedAvailability(credentialInDb.id, {
+    timeMin: dateFrom,
+    timeMax: dateTo,
     items: [{ id: testSelectedCalendar.externalId }],
   });
 
-  expect(cachedAvailability?.value).toEqual({ calendars: [] });
+  expect(cachedAvailability).toBeNull();
 });
 
 test("Calendar can be watched and unwatched", async () => {
