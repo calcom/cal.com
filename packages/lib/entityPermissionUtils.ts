@@ -62,14 +62,14 @@ export async function getEntityPermissionLevel(
         return ENTITY_PERMISSION_LEVEL.TEAM_READ_ONLY;
       }
     }
-
-    const ownedByUser = entity.userId === userId;
-    if (ownedByUser) {
-      return ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE;
-    }
-
-    return ENTITY_PERMISSION_LEVEL.NONE;
   }
+
+  const ownedByUser = entity.userId === userId;
+  if (ownedByUser) {
+    return ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE;
+  }
+
+  return ENTITY_PERMISSION_LEVEL.NONE;
 }
 
 async function getMembership(teamId: number | null, userId: number) {
