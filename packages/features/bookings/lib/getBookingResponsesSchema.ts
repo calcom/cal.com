@@ -252,7 +252,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!(await phoneSchema.safeParseAsync(value)).success) {
+          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           continue;
