@@ -99,6 +99,9 @@ const baseFieldSchema = z.object({
    * @requires supportsLengthCheck = true
    */
   maxLength: z.number().optional(),
+
+  // Emails that needs to be excluded
+  excludeEmails: z.string().optional(),
 });
 
 export const variantsConfigSchema = z.object({
