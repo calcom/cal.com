@@ -705,6 +705,9 @@
   "no_teams": "まだチームがありません。",
   "no_teams_description": "チームを使用することにより、同僚の間で共有されているイベントを予約できるようになります。",
   "submit": "送信",
+  "confirm_remove_attribute": "はい、属性を削除します",
+  "remove_attribute": "属性を削除",
+  "remove_attribute_confirmation_message": "属性「{{name}}」を削除してもよろしいですか？現在この属性が割り当てられているすべてのユーザーの割り当てが解除されます。",
   "delete": "削除",
   "update": "更新",
   "save": "保存",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "参加者のタイムゾーンでのイベント終了時間",
   "salesforce_create_event_on_contact": "連絡先が存在する場合はイベントを作成し、存在しない場合はリードにフォールバック",
   "salesforce_owner_name_to_change": "変更する所有者名",
+  "dont_have_access_this_page": "このページにアクセスする権限がありません",
+  "you_need_admin_or_owner_privileges_to_access": "このページを表示または操作するには、管理者または所有者の権限が必要です",
   "field_type": "フィールドタイプ",
   "when_to_write": "書き込むタイミング",
   "salesforce_on_booking_write_to_record": "予約時、参加者の{{record}}レコードのカスタムフィールドに書き込む",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "予約開始日",
   "booking_created_date": "予約作成日",
   "booking_reassigned_to_host": "予約が{{host}}に再割り当てされました",
+  "access_denied": "アクセスが拒否されました",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

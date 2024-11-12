@@ -705,6 +705,9 @@
   "no_teams": "អ្នកមិនមានក្រុមណាមួយនៅឡើយទេ។",
   "no_teams_description": "ក្រុមអនុញ្ញាតឱ្យអ្នកដទៃកក់ព្រឹត្តិការណ៍ដែលចែករំលែករវាងមិត្តរួមការងាររបស់អ្នក។",
   "submit": "ដាក់ស្នើ",
+  "confirm_remove_attribute": "បាទ/ចាស, លុបគុណលក្ខណៈ",
+  "remove_attribute": "លុបគុណលក្ខណៈ",
+  "remove_attribute_confirmation_message": "តើអ្នកប្រាកដថាចង់លុបគុណលក្ខណៈ '{{name}}' មែនទេ? អ្នកប្រើប្រាស់ទាំងអស់ដែលបានផ្ដល់ឱ្យវានឹងត្រូវបានដកចេញ។",
   "delete": "លុប",
   "update": "ធ្វើបច្ចុប្បន្នភាព",
   "save": "រក្សាទុក",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "ពេលវេលាបញ្ចប់ព្រឹត្តិការណ៍នៅក្នុងតំបន់ពេលវេលារបស់អ្នកចូលរួម",
   "salesforce_create_event_on_contact": "បង្កើតព្រឹត្តិការណ៍នៅលើទំនាក់ទំនង បើមាន។ បើមិនដូច្នោះទេ ត្រឡប់ទៅ lead វិញ",
   "salesforce_owner_name_to_change": "ឈ្មោះម្ចាស់ដែលត្រូវផ្លាស់ប្តូរ",
+  "dont_have_access_this_page": "អ្នកមិនមានសិទ្ធិចូលប្រើទំព័រនេះទេ",
+  "you_need_admin_or_owner_privileges_to_access": "ដើម្បីមើល ឬប្រើប្រាស់ទំព័រនេះ អ្នកត្រូវតែមានសិទ្ធិជាអ្នកគ្រប់គ្រង ឬម្ចាស់",
   "field_type": "ប្រភេទវាល",
   "when_to_write": "ពេលណាត្រូវសរសេរ",
   "salesforce_on_booking_write_to_record": "នៅពេលកក់ សរសេរទៅវាលផ្ទាល់ខ្លួននៅលើកំណត់ត្រា {{record}} របស់អ្នកចូលរួម",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "កាលបរិច្ឆេទចាប់ផ្តើមការកក់",
   "booking_created_date": "កាលបរិច្ឆេទបង្កើតការកក់",
   "booking_reassigned_to_host": "ការកក់ត្រូវបានកំណត់ឡើងវិញទៅ {{host}}",
+  "access_denied": "ការចូលប្រើត្រូវបានបដិសេធ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
