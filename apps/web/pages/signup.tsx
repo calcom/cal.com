@@ -1,24 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
-import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { pushGTMEvent } from "@calcom/lib/gtm";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { APP_NAME, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo } from "@calcom/ui";
@@ -101,25 +96,11 @@ const FEATURES = [
   },
 ];
 
-function addOrUpdateQueryParam(url: string, key: string, value: string) {
-  const separator = url.includes("?") ? "&" : "?";
-  const param = `${key}=${encodeURIComponent(value)}`;
-  return `${url}${separator}${param}`;
-}
-
-export default function Signup({
-  prepopulateFormValues,
-  token,
-  orgSlug,
-  redirectUrl,
-  emailVerificationEnabled,
-}: SignupProps) {
+export default function Signup({ prepopulateFormValues, orgSlug, redirectUrl }: SignupProps) {
   useTheme("light");
   const [premiumUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const searchParams = useCompatSearchParams();
-  const telemetry = useTelemetry();
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
@@ -151,69 +132,6 @@ export default function Signup({
         throw new Error(err.message);
       }
     }
-  };
-
-  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
-  const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
-
-  const signUp: SubmitHandler<FormValues> = async (_data) => {
-    const { cfToken, ...data } = _data;
-    await fetch("/api/auth/signup", {
-      body: JSON.stringify({
-        ...data,
-        language: i18n.language,
-        token,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        "cf-access-token": cfToken ?? "invalid-token",
-      },
-      method: "POST",
-    })
-      .then(handleErrorsAndStripe)
-      .then(async () => {
-        if (process.env.NEXT_PUBLIC_GTM_ID)
-          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
-
-        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
-        const gettingStartedWithPlatform = "settings/platform/new";
-
-        const constructCallBackIfUrlPresent = () => {
-          if (isOrgInviteByLink) {
-            return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
-          }
-
-          return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
-        };
-
-        const constructCallBackIfUrlNotPresent = () => {
-          if (!!isPlatformUser) {
-            return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
-          }
-
-          return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
-        };
-
-        const constructCallBackUrl = () => {
-          const callbackUrlSearchParams = searchParams?.get("callbackUrl");
-
-          return !!callbackUrlSearchParams
-            ? constructCallBackIfUrlPresent()
-            : constructCallBackIfUrlNotPresent();
-        };
-
-        const callBackUrl = constructCallBackUrl();
-
-        await signIn<"credentials">("credentials", {
-          ...data,
-          callbackUrl: callBackUrl,
-        });
-      })
-      .catch((err) => {
-        formMethods.setError("apiError", { message: err.message });
-      });
   };
 
   return (
