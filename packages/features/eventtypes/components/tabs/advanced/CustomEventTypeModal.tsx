@@ -1,4 +1,4 @@
-import type { InputClassnames } from "eventtypes/lib/types";
+import type { InputClassNames } from "eventtypes/lib/types";
 import type { FC } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider } from "react-hook-form";
@@ -16,7 +16,7 @@ interface FormValues {
 }
 
 export type CustomEventTypeModalClassNames = {
-  eventNameInput?: InputClassnames;
+  eventNameInput?: InputClassNames;
   availableVariables?: {
     container?: string;
     header?: string;

@@ -49,6 +49,7 @@ import {
   ColorPicker,
 } from "@calcom/ui";
 
+import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
@@ -58,6 +59,7 @@ import RequiresConfirmationController from "./RequiresConfirmationController";
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
   eventName?: InputClassNames;
+  customEventTypeModal?: CustomEventTypeModalClassNames;
   addToCalendarEmailOrganizer?: {
     switch?: SwitchClassNames;
     select?: {
@@ -930,6 +932,7 @@ export const EventAdvancedTab = ({
           placeHolder={eventNamePlaceholder}
           isNameFieldSplit={isSplit}
           event={eventNameObject}
+          customClassNames={customClassNames?.customEventTypeModal}
         />
       )}
     </div>
