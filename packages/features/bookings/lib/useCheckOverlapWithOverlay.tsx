@@ -36,8 +36,6 @@ export function useCheckOverlapWithOverlay({
   const isOverlapping =
     overlayBusyDates &&
     overlayBusyDates.some((busyDate) => {
-      // const busyDateStart = dayjs(busyDate.start);
-      // const busyDateEnd = dayjs(busyDate.end);
       const busyDateStart = !busyDate.options?.multiDayEvent
         ? dayjs(busyDate.start)
         : dayjs(busyDate.options?.multiDayEvent?.start);
