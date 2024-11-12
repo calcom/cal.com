@@ -49,6 +49,7 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
+        team: {},
       },
       allRRHosts: [],
     })
@@ -96,6 +97,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
+        team: {},
       },
       allRRHosts: [],
     })
@@ -297,6 +299,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          team: {},
         },
         allRRHosts,
       })
@@ -391,6 +394,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          team: {},
         },
         allRRHosts,
       })
@@ -485,6 +489,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          team: {},
         },
         allRRHosts,
       })
@@ -565,6 +570,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          team: {},
         },
         allRRHosts,
       })
@@ -588,6 +594,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          team: {},
         },
         allRRHosts,
       })
