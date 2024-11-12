@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "참석자 시간대의 이벤트 종료 시간",
   "salesforce_create_event_on_contact": "연락처가 존재하는 경우 이벤트 생성. 그렇지 않으면 리드로 대체",
   "salesforce_owner_name_to_change": "변경할 소유자 이름",
+  "dont_have_access_this_page": "이 페이지에 접근할 수 없습니다",
+  "you_need_admin_or_owner_privileges_to_access": "이 페이지를 보거나 상호작용하려면 관리자 또는 소유자 권한이 필요합니다",
   "field_type": "필드 유형",
   "when_to_write": "작성 시기",
   "salesforce_on_booking_write_to_record": "예약 시, 참석자 {{record}} 레코드의 사용자 정의 필드에 작성",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "예약 시작 날짜",
   "booking_created_date": "예약 생성 날짜",
   "booking_reassigned_to_host": "예약이 {{host}}에게 재할당됨",
+  "access_denied": "접근 거부됨",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
