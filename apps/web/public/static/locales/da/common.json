@@ -705,6 +705,9 @@
   "no_teams": "Du har ikke nogen teams endnu.",
   "no_teams_description": "Teams giver andre mulighed for at booke begivenheder, der deles mellem dine kolleger.",
   "submit": "Videre",
+  "confirm_remove_attribute": "Ja, fjern attribut",
+  "remove_attribute": "Fjern attribut",
+  "remove_attribute_confirmation_message": "Er du sikker på, at du vil fjerne attributten '{{name}}'? Alle brugere, der i øjeblikket er tildelt den, vil blive frakoblet.",
   "delete": "Slet",
   "update": "Opdatér",
   "save": "Gem",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Begivenhedens sluttidspunkt i deltagers tidszone",
   "salesforce_create_event_on_contact": "Opret begivenhed på kontakt, hvis den eksisterer. Ellers fald tilbage til lead",
   "salesforce_owner_name_to_change": "Ejernavn der skal ændres",
+  "dont_have_access_this_page": "Du har ikke adgang til denne side",
+  "you_need_admin_or_owner_privileges_to_access": "For at kunne se eller interagere med denne side, skal du have administrator- eller ejerrettigheder",
   "field_type": "Felttype",
   "when_to_write": "Hvornår der skal skrives",
   "salesforce_on_booking_write_to_record": "Ved booking, skriv til et brugerdefineret felt på deltagerens {{record}}-post",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Bookings startdato",
   "booking_created_date": "Dato for oprettelse af booking",
   "booking_reassigned_to_host": "Booking omfordelt til {{host}}",
+  "access_denied": "Adgang nægtet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

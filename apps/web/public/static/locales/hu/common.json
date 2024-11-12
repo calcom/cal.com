@@ -705,6 +705,9 @@
   "no_teams": "Még nincs csapatod.",
   "no_teams_description": "A csapatok lehetővé teszik mások számára, hogy lefoglalják a munkatársai között megosztott eseményeket.",
   "submit": "Beküldés",
+  "confirm_remove_attribute": "Igen, az attribútum eltávolítása",
+  "remove_attribute": "Attribútum eltávolítása",
+  "remove_attribute_confirmation_message": "Biztosan el szeretné távolítani a(z) '{{name}}' attribútumot? Minden jelenleg hozzárendelt felhasználó hozzárendelése megszűnik.",
   "delete": "Törlés",
   "update": "Frissítés",
   "save": "Mentés",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Esemény befejezési ideje a résztvevő időzónájában",
   "salesforce_create_event_on_contact": "Esemény létrehozása a kapcsolaton, ha létezik. Egyébként visszalépés a leadre",
   "salesforce_owner_name_to_change": "Módosítandó tulajdonos neve",
+  "dont_have_access_this_page": "Nincs hozzáférése ehhez az oldalhoz",
+  "you_need_admin_or_owner_privileges_to_access": "Az oldal megtekintéséhez vagy használatához adminisztrátori vagy tulajdonosi jogosultság szükséges",
   "field_type": "Mező típusa",
   "when_to_write": "Mikor írjon",
   "salesforce_on_booking_write_to_record": "Foglaláskor írjon egy egyéni mezőbe a résztvevő {{record}} rekordjában",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Foglalás kezdő dátuma",
   "booking_created_date": "Foglalás létrehozásának dátuma",
   "booking_reassigned_to_host": "Foglalás átirányítva a következő házigazdához: {{host}}",
+  "access_denied": "Hozzáférés megtagadva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
