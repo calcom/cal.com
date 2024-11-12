@@ -148,7 +148,7 @@ const fetchEventTypesBatch = async (
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 
-  log.debug(
+  log.info(
     "fetchEventTypesBatch",
     safeStringify({
       mappedEventTypes,
@@ -207,7 +207,7 @@ const filterEventTypes = async (
       evType.hosts = [];
     });
 
-  log.debug(
+  log.info(
     "filteredEventTypes",
     safeStringify({
       filteredEventTypes,
