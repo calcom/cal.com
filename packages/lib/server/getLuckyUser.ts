@@ -381,7 +381,12 @@ export async function getLuckyUser<
 }
 
 // this will only use the weight for the first rule that uses that the attribute that has weights enabled
-function getAverageAttributeWeights(
+function getAverageAttributeWeights<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(
   allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
   attributesQueryValueChild: Record<
     string,
@@ -411,8 +416,8 @@ function getAverageAttributeWeights(
     const allRRHostsWeights = new Map<number, number[]>();
 
     if (attributeId === attributeWithWeights.id) {
-      obj.value.forEach((arrayobj) => {
-        arrayobj.forEach((attributeOption) => {
+      obj.value.forEach((arrayobj: string[]) => {
+        arrayobj.forEach((attributeOption: string) => {
           // attributeOption is either optionId or label, we only care about labels here
           const attributeOptionWithUsers = attributeWithWeights.options.find(
             (option) => option.value.toLowerCase() === attributeOption.toLowerCase()
@@ -477,8 +482,8 @@ function getAttributesForVirtualQueues(
     const attributeId = obj.field;
 
     if (attributeId === attributeWithWeights.id) {
-      obj.value.some((arrayobj) => {
-        arrayobj.some((attributeOptionId) => {
+      obj.value.some((arrayobj: string[]) => {
+        arrayobj.some((attributeOptionId: string) => {
           const content = attributeOptionId.slice(1, -1);
 
           const routingFormFieldId = content.includes("field:") ? content.split("field:")[1] : null;

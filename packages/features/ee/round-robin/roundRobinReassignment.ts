@@ -128,11 +128,8 @@ export const roundRobinReassignment = async ({
 
   const reassignedRRHost = await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
     availableUsers,
-    eventType: {
-      id: eventType.id,
-      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
-    },
-    allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
+    eventType,
+    allRRHosts: eventType.hosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
   });
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
