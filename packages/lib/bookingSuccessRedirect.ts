@@ -76,8 +76,17 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   ];
 
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
-  function extractResponseDetails(booking: BookingResponseType, obj: ResultType): ResultType {
-    const responses = { ...obj };
+  function extractResponseDetails(booking, obj: ResultType): ResultType {
+    type Responses = {
+      phone?: string;
+      name:
+        | {
+            firstName: string;
+            lastName: string;
+          }
+        | string;
+    };
+    const responses = { ...obj } as unknown as Responses;
     if (booking.responses?.phone) responses.phone = booking.responses.phone;
     if (booking.responses?.name?.firstName) responses.attendeeFirstName = booking.responses.name.firstName;
     if (booking.responses?.name?.lastName) responses.attendeeLastName = booking.responses.name.lastName;
@@ -85,7 +94,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   }
 
   // Helper function to extract user details (e.g., host name and time zone)
-  function extractUserDetails(booking: BookingResponseType, obj: ResultType): ResultType {
+  function extractUserDetails(booking, obj: ResultType): ResultType {
     if (booking.user?.name) {
       const hostStartTime = dayjs(booking.startTime).tz(booking.user.timeZone).format();
       return {
@@ -98,7 +107,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   }
 
   // Helper function to extract attendee and guest details
-  function extractAttendeesAndGuests(booking: BookingResponseType, obj: ResultType): ResultType {
+  function extractAttendeesAndGuests(booking, obj: ResultType): ResultType {
     if (!Array.isArray(booking.attendees) || booking.attendees.length === 0) return obj;
 
     const attendeeName = booking.attendees[0]?.name || null;
