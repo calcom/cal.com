@@ -4,13 +4,13 @@ import db from "@calcom/prisma";
 
 import type { AppFlags } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
-import { getFeatureFlagMap } from "./server/utils";
+import { getFeatureFlag } from "./server/utils";
 
 export class FeaturesRepository implements IFeaturesRepository {
   async checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags) {
     try {
-      const flags = await getFeatureFlagMap(db);
-      return flags[slug];
+      const feature = await getFeatureFlag(db, slug);
+      return feature;
     } catch (err) {
       captureException(err);
       throw err;

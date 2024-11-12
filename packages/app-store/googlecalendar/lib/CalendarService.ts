@@ -3,11 +3,11 @@ import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
+import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import {
@@ -20,6 +20,7 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -40,6 +41,12 @@ import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
+
+const ONE_MINUTE_MS = 60 * 1000;
+const CACHING_TIME = ONE_MINUTE_MS;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
+
 interface GoogleCalError extends Error {
   code?: number;
 }
@@ -493,9 +500,12 @@ export default class GoogleCalendarService implements Calendar {
   }): Promise<EventBusyDate[] | null> {
     const { timeMin, timeMax, items } = args;
     const calendar = await this.authedCalendar();
-    const calendarCacheEnabled = await getFeatureFlag(prisma, "calendar-cache");
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
-    if (!calendarCacheEnabled) {
+    const calendarCache = await CalendarCache.init(null);
+    const cached = await calendarCache.getCachedAvailability(this.credential.id, args);
+    if (cached) {
+      freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    } else {
       ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
         async () =>
           new AxiosLikeResponseToFetchResponse(
@@ -504,26 +514,12 @@ export default class GoogleCalendarService implements Calendar {
             })
           )
       ));
-    } else {
-      const cached = await CalendarCache.getCachedAvailability(this.credential.id, args);
-      if (cached) {
-        freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
-      } else {
-        ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
-          async () =>
-            new AxiosLikeResponseToFetchResponse(
-              await calendar.freebusy.query({
-                requestBody: { timeMin, timeMax, items },
-              })
-            )
-        ));
 
-        await CalendarCache.upsertCachedAvailability(
-          this.credential.id,
-          args,
-          JSON.parse(JSON.stringify(freeBusyResult))
-        );
-      }
+      await calendarCache.upsertCachedAvailability(
+        this.credential.id,
+        args,
+        JSON.parse(JSON.stringify(freeBusyResult))
+      );
     }
     if (!freeBusyResult.calendars) return null;
 
@@ -640,6 +636,71 @@ export default class GoogleCalendarService implements Calendar {
       this.log.error("There was an error getting calendars: ", safeStringify(error));
       throw error;
     }
+  }
+
+  async watchCalendar({ calendarId }: { calendarId: string }) {
+    const calendar = await this.authedCalendar();
+    const res = await calendar.events.watch({
+      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+      calendarId,
+      requestBody: {
+        // A UUID or similar unique string that identifies this channel.
+        id: uuid(),
+        type: "web_hook",
+        // address: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/googlecalendar/webhook`,
+        address: `https://asepoz-ip-189-203-41-65.tunnelmole.net/api/integrations/googlecalendar/webhook`,
+        token: process.env.CRON_API_KEY,
+        params: {
+          // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
+          ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
+        },
+      },
+    });
+    const response = res.data;
+    await GoogleRepository.upsertSelectedCalendar({
+      userId: this.credential.userId!,
+      externalId: calendarId,
+      credentialId: this.credential.id,
+      googleChannelId: response?.id,
+      googleChannelKind: response?.kind,
+      googleChannelResourceId: response?.resourceId,
+      googleChannelResourceUri: response?.resourceUri,
+      googleChannelExpiration: response?.expiration,
+    });
+
+    return res.data;
+  }
+  async unwatchCalendar({ calendarId }: { calendarId: string }) {
+    const credentialId = this.credential.id;
+    const sc = await prisma.selectedCalendar.findFirst({
+      where: {
+        credentialId,
+        externalId: calendarId,
+      },
+    });
+    // Delete the calendar cache to force a fresh cache
+    await prisma.calendarCache.deleteMany({ where: { credentialId } });
+    const calendar = await this.authedCalendar();
+    await calendar.channels
+      .stop({
+        requestBody: {
+          resourceId: sc?.googleChannelResourceId,
+          id: sc?.googleChannelId,
+        },
+      })
+      .catch((err) => {
+        console.warn(JSON.stringify(err));
+      });
+    await GoogleRepository.upsertSelectedCalendar({
+      userId: this.credential.userId!,
+      externalId: calendarId,
+      credentialId: this.credential.id,
+      googleChannelId: null,
+      googleChannelKind: null,
+      googleChannelResourceId: null,
+      googleChannelResourceUri: null,
+      googleChannelExpiration: null,
+    });
   }
 }
 
