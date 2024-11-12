@@ -159,30 +159,30 @@ export type TabMap = {
   payments?: React.ReactNode;
 };
 
-export type SettingsToggleClassnames = {
+export type SettingsToggleClassNames = {
   switchContainer?: string;
   label?: string;
   description?: string;
   children?: string;
 };
 
-export type SwitchClassnames = {
+export type SwitchClassNames = {
   container?: string;
   thumb?: string;
 };
 
-export type InputClassnames = {
+export type InputClassNames = {
   container?: string;
   label?: string;
   input?: string;
   addOn?: string;
 };
-export type CheckboxClassnames = {
+export type CheckboxClassNames = {
   checkbox?: string;
   description?: string;
   container?: string;
 };
-export type SelectClassnames = {
+export type SelectClassNames = {
   innerClassNames?: {
     input?: string;
     option?: string;

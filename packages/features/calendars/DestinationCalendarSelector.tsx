@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
-import type { SelectClassnames } from "@calcom/features/eventtypes/lib/types";
+import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge, Icon, Select } from "@calcom/ui";
@@ -17,7 +17,7 @@ interface Props {
   maxWidth?: number;
   hideAdvancedText?: boolean;
   calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
-  customClassnames?: SelectClassnames;
+  customClassNames?: SelectClassNames;
 }
 
 interface Option {
@@ -55,7 +55,7 @@ const DestinationCalendarSelector = ({
   hideAdvancedText,
   maxWidth,
   calendarsQueryData,
-  customClassnames,
+  customClassNames,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const connectedCalendarsList = calendarsQueryData?.connectedCalendars;
@@ -161,9 +161,9 @@ const DestinationCalendarSelector = ({
         isSearchable={false}
         className={classNames(
           "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm",
-          customClassnames?.select
+          customClassNames?.select
         )}
-        innerClassNames={customClassnames?.innerClassNames}
+        innerClassNames={customClassNames?.innerClassNames}
         onChange={(newValue) => {
           setSelectedOption(newValue);
           if (!newValue) {
