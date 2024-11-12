@@ -41,7 +41,9 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
+  CreateTeamEventTypeInput,
   CreateTeamEventTypeInput_2024_06_14,
+  CreateTeamEventTypeInputPipe,
   GetTeamEventTypesQuery_2024_06_14,
   SkipTakePagination,
   TeamEventTypeOutput_2024_06_14,
@@ -75,7 +77,8 @@ export class OrganizationsEventTypesController {
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Body() bodyEventType: CreateTeamEventTypeInput_2024_06_14
+    @Body(new CreateTeamEventTypeInputPipe())
+    bodyEventType: CreateTeamEventTypeInput
   ): Promise<CreateTeamEventTypeOutput> {
     const transformedBody = await this.inputService.transformAndValidateCreateTeamEventTypeInput(
       user.id,

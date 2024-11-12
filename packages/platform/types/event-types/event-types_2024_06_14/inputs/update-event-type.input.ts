@@ -5,7 +5,17 @@ import {
   ApiExtraModels,
 } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
-import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
+import {
+  IsString,
+  IsInt,
+  IsBoolean,
+  IsOptional,
+  Min,
+  ValidateNested,
+  IsArray,
+  ArrayNotEmpty,
+  ArrayUnique,
+} from "class-validator";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
@@ -359,6 +369,19 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @DocsPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "List of possible lengths in minutes for this event type that user can choose from. Must include value passed to `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions!: number[];
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {
@@ -376,4 +399,17 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_20
     description: "If true, all current and future team members will be assigned to this event type",
   })
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "List of possible lengths in minutes for this event type that user can choose from. Must include value passed to `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions!: number[];
 }

@@ -14,6 +14,8 @@ import {
   IsEnum,
   IsArray,
   ValidateNested,
+  ArrayUnique,
+  ArrayNotEmpty,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -397,6 +399,21 @@ export class Host {
   priority?: keyof typeof HostPriority = "medium";
 }
 
+export class CreateVariableLengthEventTypeInput_2024_06_14 extends CreateEventTypeInput_2024_06_14 {
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "List of possible lengths in minutes for this event type that user can choose from. Must include value passed to `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions!: number[];
+}
+
 export class CreateTeamEventTypeInput_2024_06_14 extends CreateEventTypeInput_2024_06_14 {
   @Transform(({ value }) => {
     if (value === "collective") {
@@ -426,4 +443,19 @@ export class CreateTeamEventTypeInput_2024_06_14 extends CreateEventTypeInput_20
     description: "If true, all current and future team members will be assigned to this event type",
   })
   assignAllTeamMembers?: boolean;
+}
+
+export class CreateTeamVariableLengthEventTypeInput_2024_06_14 extends CreateTeamEventTypeInput_2024_06_14 {
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "List of possible lengths in minutes for this event type that user can choose from. Must include value passed to `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions!: number[];
 }
