@@ -575,7 +575,6 @@ test.describe("Routing Forms", () => {
       await selectNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
-      await enableContactOwnerOverride(page);
       await addAttributeRoutingRule(page);
       await saveCurrentForm(page);
 
