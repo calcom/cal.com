@@ -5,7 +5,9 @@ import { googleapisMock, setCredentialsMock } from "./__mocks__/googleapis";
 import { expect, test, vi } from "vitest";
 import "vitest-fetch-mock";
 
-import CalendarService, { getTimeMax, getTimeMin } from "./CalendarService";
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+
+import CalendarService from "./CalendarService";
 
 vi.mock("@calcom/features/flags/server/utils", () => ({
   getFeatureFlag: vi.fn().mockReturnValue(true),
@@ -48,15 +50,15 @@ test("Calendar Cache is being read and updated", async () => {
   const dateTo1 = new Date().toISOString();
 
   // Create cache
-  await prismock.calendarCache.create({
-    data: {
-      credentialId: credentialInDb1.id,
-      key: JSON.stringify({
-        timeMin: getTimeMin(dateFrom1),
-        timeMax: getTimeMax(dateTo1),
-        items: [{ id: testSelectedCalendar.externalId }],
-      }),
-      value: {
+  await CalendarCache.upsertCachedAvailability(
+    credentialInDb1.id,
+    {
+      timeMin: dateFrom1,
+      timeMax: dateTo1,
+      items: [{ id: testSelectedCalendar.externalId }],
+    },
+    JSON.parse(
+      JSON.stringify({
         calendars: [
           {
             busy: [
@@ -67,10 +69,9 @@ test("Calendar Cache is being read and updated", async () => {
             ],
           },
         ],
-      },
-      expiresAt: String(Date.now() + 10000),
-    },
-  });
+      })
+    )
+  );
 
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarService = new CalendarService(credentialInDb1);
@@ -94,15 +95,10 @@ test("Calendar Cache is being read and updated", async () => {
   await calendarService2.getAvailability(dateFrom2, dateTo2, [testSelectedCalendar]);
 
   // Expect cache to be updated in case of a MISS
-  const calendarCache = await prismock.calendarCache.findFirst({
-    where: {
-      credentialId: credentialInDb2.id,
-      key: JSON.stringify({
-        timeMin: getTimeMin(dateFrom2),
-        timeMax: getTimeMax(dateTo2),
-        items: [{ id: testSelectedCalendar.externalId }],
-      }),
-    },
+  const calendarCache = await CalendarCache.getCachedAvailability(credentialInDb2.id, {
+    timeMin: dateFrom2,
+    timeMax: dateTo2,
+    items: [{ id: testSelectedCalendar.externalId }],
   });
 
   expect(calendarCache?.value).toEqual({ calendars: [] });
