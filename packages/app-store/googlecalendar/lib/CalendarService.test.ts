@@ -110,7 +110,7 @@ test("Calendar can be watched and unwatched", async () => {
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
   await calendarCache.watchCalendar({ calendarId: testSelectedCalendar.externalId });
-  const watchedCalendar = await prismock.selectedCalendar.findUnique({
+  const watchedCalendar = await prismock.selectedCalendar.findFirst({
     where: {
       userId: credentialInDb1.userId!,
       externalId: testSelectedCalendar.externalId,
