@@ -26,7 +26,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
   await ssrInit(ctx);
-  const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -50,15 +49,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   // username + email prepopulated from query params
   const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
-
-  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: `/auth/error?error=Signup is disabled in this instance`,
-      },
-    } as const;
-  }
 
   // no token given, treat as a normal signup without verification token
   if (!token) {
