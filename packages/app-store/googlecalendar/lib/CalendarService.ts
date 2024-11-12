@@ -514,12 +514,6 @@ export default class GoogleCalendarService implements Calendar {
             })
           )
       ));
-
-      await calendarCache.upsertCachedAvailability(
-        this.credential.id,
-        args,
-        JSON.parse(JSON.stringify(freeBusyResult))
-      );
     }
     if (!freeBusyResult.calendars) return null;
 
