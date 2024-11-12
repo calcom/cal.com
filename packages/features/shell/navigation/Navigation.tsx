@@ -36,7 +36,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "members",
     href: "/members",
-    icon: "users",
+    icon: "building",
   },
   {
     name: "teams",
