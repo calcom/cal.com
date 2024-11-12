@@ -33,7 +33,7 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
-  eventAdvancedTabClassNames?: EventAdvancedTabCustomClassNames;
+  eventAdvancedTab?: EventAdvancedTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -174,7 +174,7 @@ const EventType = ({
         user={user?.data}
         isUserLoading={isUserLoading}
         showToast={showToast}
-        customClassNames={customClassNames?.eventAdvancedTabClassNames}
+        customClassNames={customClassNames?.eventAdvancedTab}
       />
     ) : (
       <></>
