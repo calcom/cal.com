@@ -705,6 +705,9 @@
   "no_teams": "Ainda não tem nenhuma equipa.",
   "no_teams_description": "As equipas permitem-lhe reservar eventos partilhados entre os seus colaboradores.",
   "submit": "Enviar",
+  "confirm_remove_attribute": "Sim, remover atributo",
+  "remove_attribute": "Remover atributo",
+  "remove_attribute_confirmation_message": "Você tem certeza de que deseja remover o atributo '{{name}}'? Todos os usuários atualmente atribuídos a ele serão desassociados.",
   "delete": "Apagar",
   "update": "Atualizar",
   "save": "Guardar",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Hora de fim do evento no fuso horário do participante",
   "salesforce_create_event_on_contact": "Criar evento no contacto, se existir. Caso contrário, recorrer ao lead",
   "salesforce_owner_name_to_change": "Nome do proprietário a alterar",
+  "dont_have_access_this_page": "Você não tem acesso a esta página",
+  "you_need_admin_or_owner_privileges_to_access": "Para visualizar ou interagir com esta página, você deve ter privilégios de administrador ou proprietário",
   "field_type": "Tipo de campo",
   "when_to_write": "Quando escrever",
   "salesforce_on_booking_write_to_record": "Na reserva, escrever num campo personalizado no registo {{record}} do participante",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Data de início da reserva",
   "booking_created_date": "Data de criação da reserva",
   "booking_reassigned_to_host": "Reserva reatribuída a {{host}}",
+  "access_denied": "Acesso negado",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
