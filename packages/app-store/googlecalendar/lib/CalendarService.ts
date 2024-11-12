@@ -44,21 +44,6 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
-const ONE_MINUTE_MS = 60 * 1000;
-const CACHING_TIME = ONE_MINUTE_MS;
-
-/** Expand the start date to the start of the month */
-export function getTimeMin(timeMin: string) {
-  const dateMin = new Date(timeMin);
-  return new Date(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0).toISOString();
-}
-
-/** Expand the end date to the end of the month */
-export function getTimeMax(timeMax: string) {
-  const dateMax = new Date(timeMax);
-  return new Date(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0).toISOString();
-}
-
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
