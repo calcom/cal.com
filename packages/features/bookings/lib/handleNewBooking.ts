@@ -472,6 +472,26 @@ async function handler(
 
         const userIdsSet = new Set(users.map((user) => user.id));
 
+        let routingFormResponse;
+
+        if (routedTeamMemberIds) {
+          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+            where: {
+              id: routingFormResponseId,
+            },
+            select: {
+              response: true,
+              form: {
+                select: {
+                  routes: true,
+                  fields: true,
+                },
+              },
+              chosenRouteId: true,
+            },
+          });
+        }
+
         const newLuckyUser = isSameRoundRobinHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
@@ -481,7 +501,7 @@ async function handler(
                 (host) => !host.isFixed && userIdsSet.has(host.user.id)
               ), // users part of virtual queue
               eventType,
-              routingFormResponseId: routedTeamMemberIds ? routingFormResponseId : undefined,
+              routingFormResponse,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop

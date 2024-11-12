@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { Prisma, User } from "@prisma/client";
 
 import { acrossQueryValueCompatiblity } from "@calcom/app-store/routing-forms/lib/raqbUtils";
 import { getFieldResponse } from "@calcom/app-store/routing-forms/trpc/utils";
@@ -60,7 +60,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     createdAt: Date;
     weight?: number | null;
   }[];
-  routingFormResponseId?: number;
+  routingFormResponse?: RoutingFormResponse | null;
 }
 // === dayjs.utc().startOf("month").toDate();
 const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
@@ -497,13 +497,13 @@ function getAttributesForVirtualQueues(
 
 async function prepareQueuesAndAttributesData<T extends PartialUser>({
   eventType,
-  routingFormResponseId,
+  routingFormResponse,
   allRRHosts,
 }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
   let attributeWeights;
   let virtualQueuesData;
 
-  if (routingFormResponseId && eventType.team?.parentId) {
+  if (routingFormResponse && eventType.team?.parentId) {
     const attributeWithEnabledWeights = await prisma.attribute.findFirst({
       where: {
         teamId: eventType.team?.parentId,
@@ -538,7 +538,7 @@ async function prepareQueuesAndAttributesData<T extends PartialUser>({
       // Virtual queues are defined by the attribute that has weights and is use with 'Value of field ...'
       const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
         allRRHosts,
-        routingFormResponseId,
+        routingFormResponse,
         attributeWithEnabledWeights
       );
 
@@ -552,29 +552,22 @@ async function prepareQueuesAndAttributesData<T extends PartialUser>({
   return { attributeWeights, virtualQueuesData };
 }
 
+type RoutingFormResponse = {
+  response: Prisma.JsonValue;
+  chosenRouteId: string | null;
+  form: {
+    fields: Prisma.JsonValue;
+    routes: Prisma.JsonValue;
+  };
+};
+
 async function getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
   allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
-  routingFormResponseId: number,
+  routingFormResponse: RoutingFormResponse,
   attributeWithWeights: AttributeWithWeights
 ) {
   // variable to return
   let averageWeightsHosts: { userId: number; weight: number }[] = [];
-
-  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
-    where: {
-      id: routingFormResponseId,
-    },
-    select: {
-      response: true,
-      form: {
-        select: {
-          routes: true,
-          fields: true,
-        },
-      },
-      chosenRouteId: true,
-    },
-  });
 
   const chosenRouteId = routingFormResponse?.chosenRouteId ?? undefined;
 
