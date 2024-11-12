@@ -56,7 +56,7 @@ export const FormBuilderField = ({
   className: string;
 }) => {
   const { t } = useLocale();
-  const { control, formState } = useFormContext();
+  const { control, formState, setError, clearErrors } = useFormContext();
 
   const { hidden, placeholder, label, noLabel, translatedDefaultLabel } = getAndUpdateNormalizedValues(
     field,
@@ -79,6 +79,20 @@ export const FormBuilderField = ({
                 readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
                   onChange(val);
+
+                  if (field.name === "email" && field.type === "email") {
+                    if (formState.errors) {
+                      clearErrors("email");
+                    }
+                    const bookerEmail = val as string;
+                    const excludedEmails =
+                      field.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+                    const isBlockedEmail = excludedEmails.some((email) => bookerEmail.includes(email));
+
+                    if (isBlockedEmail) {
+                      setError("email", { message: t("please_try_work_email_instead") });
+                    }
+                  }
                 }}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
