@@ -99,7 +99,10 @@ export const DisableAllEmailsSetting = ({
       <SettingsToggle
         labelClassName={classNames("text-sm", customClassNames?.settingsToggle?.label)}
         toggleSwitchAtTheEnd={true}
-        switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
+        switchContainerClassName={classNames(
+          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+          customClassNames?.settingsToggle?.switchContainer
+        )}
         descriptionClassName={customClassNames?.settingsToggle?.description}
         title={title}
         description={t("disable_all_emails_description")}

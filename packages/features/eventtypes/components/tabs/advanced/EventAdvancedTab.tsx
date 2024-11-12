@@ -86,8 +86,6 @@ export type EventAdvancedTabCustomClassNames = {
   };
   timezoneLockToggle?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
-    lightColorPicker?: string;
-    darkColorPicker?: string;
     warningText?: string;
   };
   roundRobinReschedule?: SettingsToggleClassNames;
@@ -748,7 +746,8 @@ export const EventAdvancedTab = ({
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              isEventTypeColorChecked && "rounded-b-none"
+              isEventTypeColorChecked && "rounded-b-none",
+              customClassNames?.eventTypeColors?.switchContainer
             )}
             title={t("event_type_color")}
             {...eventTypeColorLocked}

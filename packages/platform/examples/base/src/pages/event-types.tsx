@@ -95,7 +95,161 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {eventTypeId && (
           <div>
             <EventTypeSettings
-              customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
+              customClassNames={{
+                atomsWrapper: "!w-[50vw] !m-auto",
+                eventAdvancedTab: {
+                  destinationCalendar: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    select: "border border-purple-300 shadow-sm",
+                    innerClassNames: {
+                      input: "",
+                      option: "",
+                      control: "",
+                      singleValue: "",
+                      valueContainer: "",
+                      multiValue: "",
+                      menu: "",
+                      menuList: "",
+                    },
+                    label: "",
+                  },
+                  eventName: {
+                    container: "bg-purple-50 border border-purple-200 shadow-sm",
+                    input: "border border-purple-300 shadow-inner",
+                    label: "",
+                    addOn: "",
+                  },
+                  addToCalendarEmailOrganizer: {
+                    switch: {
+                      container: "bg-purple-50 border border-purple-200 shadow-inner",
+                      thumb: "bg-purple-300 border border-purple-400 shadow-sm",
+                    },
+                    select: {
+                      container: "",
+                      select: "",
+                      displayEmailLabel: "",
+                    },
+                  },
+                  requiresConfirmation: {
+                    toggle: {
+                      switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                      label: "",
+                      description: "",
+                      children: "",
+                    },
+                    radioGroupContainer: "",
+                    alwaysConfirmationRadio: "",
+                    conditionalConfirmationRadio: {
+                      container: "",
+                      timeInput: "",
+                      timeUnitSelect: "",
+                      checkbox: "",
+                      checkboxDescription: "",
+                    },
+                  },
+                  bookerEmailVerification: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  calendarNotes: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  eventDetailsVisibility: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  bookingRedirect: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    textFieldClassNames: {
+                      container: "bg-purple-50 border border-purple-200 shadow-sm",
+                      label: "",
+                      input: "",
+                      addOn: "",
+                    },
+                    forwardParamsCheckboxClassNames: {
+                      checkbox: "",
+                      description: "",
+                      container: "bg-purple-50 border border-purple-300 shadow-sm",
+                    },
+                    error: "bg-purple-50 text-purple-700 border border-purple-300",
+                  },
+                  seatsOptions: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    textInputClassNames: {
+                      container: "bg-purple-50 border border-purple-200 shadow-sm",
+                      label: "",
+                      input: "",
+                      addOn: "",
+                    },
+                    showAttendeesCheckboxClassNames: {
+                      checkbox: "",
+                      description: "",
+                      container: "",
+                    },
+                    showAvalableSeatCountCheckboxClassNames: {
+                      checkbox: "",
+                      description: "",
+                      container: "",
+                    },
+                  },
+                  timezoneLockToggle: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  eventTypeColors: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    warningText: "",
+                  },
+                  roundRobinReschedule: {
+                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  emailNotifications: {
+                    settingsToggle: {
+                      switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                      label: "",
+                      description: "",
+                      children: "",
+                    },
+                    confirmationDialog: {
+                      container: "bg-purple-50 border border-purple-300 shadow-lg",
+                      dialogTitle: "",
+                      description: "",
+                      confirmInput: {
+                        container: "",
+                        label: "",
+                        input: "",
+                        addOn: "",
+                      },
+                      dialogFooter: {
+                        container: "bg-purple-50",
+                        confirmButton: "",
+                        cancelButton: "",
+                      },
+                    },
+                  },
+                },
+              }}
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
