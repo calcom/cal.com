@@ -17,7 +17,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -175,7 +175,7 @@ const EmailEmbed = ({
       shallow
     );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug });
+  const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
   const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
 
@@ -431,7 +431,7 @@ const EmailEmbedPreview = ({
                                       selectedDateAndTime[key].map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${WEBSITE_URL}/${
+                                        const bookingURL = `${eventType.bookerUrl}/${
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length

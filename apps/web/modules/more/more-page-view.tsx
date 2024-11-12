@@ -1,6 +1,7 @@
 "use client";
 
-import Shell, { MobileNavigationMoreItems } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
+import { MobileNavigationMoreItems } from "@calcom/features/shell/navigation/Navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function MorePage() {

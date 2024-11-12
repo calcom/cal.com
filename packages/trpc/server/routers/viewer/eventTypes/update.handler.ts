@@ -21,7 +21,6 @@ import type { TrpcSessionUser } from "../../../trpc";
 import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
-  addWeightAdjustmentToNewHosts,
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
@@ -66,7 +65,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     assignAllTeamMembers,
     hosts,
     id,
-    hashedLink,
+    multiplePrivateLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
     userId,
@@ -83,6 +82,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       title: true,
       isRRWeightsEnabled: true,
+      hosts: {
+        select: {
+          userId: true,
+          priority: true,
+          weight: true,
+          isFixed: true,
+        },
+      },
       aiPhoneCallConfig: {
         select: {
           generalPrompt: true,
@@ -276,25 +283,41 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
-    const hostsWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
-      hosts,
-      isWeightsEnabled,
-      eventTypeId: id,
-      prisma: ctx.prisma,
-    });
+    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+
+    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
     data.hosts = {
-      deleteMany: {},
-      create: hostsWithWeightAdjustment.map((host) => {
-        const { ...rest } = host;
+      deleteMany: {
+        OR: removedHosts.map((host) => ({
+          userId: host.userId,
+          eventTypeId: id,
+        })),
+      },
+      create: newHosts.map((host) => {
         return {
-          ...rest,
+          ...host,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2, // default to medium priority
+          priority: host.priority ?? 2,
           weight: host.weight ?? 100,
-          weightAdjustment: host.weightAdjustment,
         };
       }),
+      update: existingHosts.map((host) => ({
+        where: {
+          userId_eventTypeId: {
+            userId: host.userId,
+            eventTypeId: id,
+          },
+        },
+        data: {
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2,
+          weight: host.weight ?? 100,
+        },
+      })),
     };
   }
 
@@ -343,41 +366,54 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-
-  const connectedLink = await ctx.prisma.hashedLink.findFirst({
+  const connectedLinks = await ctx.prisma.hashedLink.findMany({
     where: {
       eventTypeId: input.id,
     },
     select: {
       id: true,
+      link: true,
     },
   });
 
-  if (hashedLink) {
-    // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
-    if (!connectedLink) {
-      // create a hashed link
-      await ctx.prisma.hashedLink.upsert({
+  const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
+
+  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
+    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
+      (link) => !connectedMultiplePrivateLinks.includes(link)
+    );
+    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
+      (link) => !multiplePrivateLinks.includes(link)
+    );
+    if (singleLinksToBeDeleted.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
-        },
-        update: {
-          link: hashedLink,
-        },
-        create: {
-          link: hashedLink,
-          eventType: {
-            connect: { id: input.id },
+          link: {
+            in: singleLinksToBeDeleted,
           },
         },
       });
     }
+    if (multiplePrivateLinksToBeInserted.length > 0) {
+      await ctx.prisma.hashedLink.createMany({
+        data: multiplePrivateLinksToBeInserted.map((link) => {
+          return {
+            link: link,
+            eventTypeId: input.id,
+          };
+        }),
+      });
+    }
   } else {
-    // check if hashed connection exists. If it does, disconnect
-    if (connectedLink) {
-      await ctx.prisma.hashedLink.delete({
+    // Delete all the single-use links for this event.
+    if (connectedMultiplePrivateLinks.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
+          link: {
+            in: connectedMultiplePrivateLinks,
+          },
         },
       });
     }
@@ -470,8 +506,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
-    hashedLink,
-    connectedLink,
     updatedEventType,
     children,
     profileId: ctx.user.profile.id,

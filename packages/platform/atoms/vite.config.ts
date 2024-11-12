@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },
+    ssr: {
+      noExternal: ["turndown"], // Example if you want to disable SSR for your library
+    },
     build: {
       commonjsOptions: {
         include: [/@calcom\/lib/, /@calcom\/features/, /node_modules/],

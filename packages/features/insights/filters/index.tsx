@@ -23,7 +23,7 @@ const ClearFilters = () => {
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        className="min-w-24 h-[38px] border-0"
+        className="h-[38px] min-w-24 border-0"
         onClick={() => {
           clearFilters();
         }}>
@@ -72,7 +72,7 @@ export const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-nowrap sm:justify-between">
+      <div className="flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-between">
         <Download />
         <DateSelect />
       </div>

@@ -19,10 +19,11 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = () => {
-  const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
-  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
-  const org = useBookerStore((state) => state.org);
+export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
+  const [username, eventSlug, isTeamEvent, org] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
+    shallow
+  );
 
   const event = trpc.viewer.public.event.useQuery(
     {
@@ -30,8 +31,12 @@ export const useEvent = () => {
       eventSlug: eventSlug ?? "",
       isTeamEvent,
       org: org ?? null,
+      fromRedirectOfNonOrgLink: props?.fromRedirectOfNonOrgLink,
     },
-    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
+    {
+      refetchOnWindowFocus: false,
+      enabled: Boolean(username) && Boolean(eventSlug),
+    }
   );
 
   return {
@@ -66,6 +71,8 @@ export const useScheduleForEvent = ({
   selectedDate,
   orgSlug,
   teamMemberEmail,
+  fromRedirectOfNonOrgLink,
+  isTeamEvent,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -78,9 +85,10 @@ export const useScheduleForEvent = ({
   selectedDate?: string | null;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  fromRedirectOfNonOrgLink?: boolean;
+  isTeamEvent?: boolean;
 } = {}) => {
   const { timezone } = useTimePreferences();
-  const event = useEvent();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, timeZoneFromStore] =
     useBookerStore(
       (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.timeZone],
@@ -92,12 +100,10 @@ export const useScheduleForEvent = ({
 
   const pathname = usePathname();
 
-  const isTeam = !!event.data?.team?.parentId;
-
   const schedule = useSchedule({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
-    eventId: event.data?.id ?? eventId,
+    eventId,
     timezone: timeZoneFromStore ?? timezone,
     selectedDate,
     prefetchNextMonth,
@@ -106,7 +112,7 @@ export const useScheduleForEvent = ({
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
-    isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
+    isTeamEvent,
     orgSlug,
     teamMemberEmail,
   });

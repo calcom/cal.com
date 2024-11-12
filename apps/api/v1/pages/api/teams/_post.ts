@@ -123,9 +123,11 @@ async function postHandler(req: NextApiRequest) {
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
+    bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
   } = {
     ...data,
     smsLockReviewedByAdmin: false,
+    bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits || undefined,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
 

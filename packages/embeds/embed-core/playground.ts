@@ -1,6 +1,9 @@
 import type { GlobalCal, EmbedEvent } from "./src/embed";
 
 const Cal = window.Cal as GlobalCal;
+Cal.config = Cal.config || {};
+Cal.config.forwardQueryParams = true;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const callback = function (e: any) {
   const detail = e.detail;
@@ -361,7 +364,12 @@ Cal.ns.popupHideEventTypeDetails("ui", {
   hideEventTypeDetails: true,
 });
 
-Cal("init", "popupReschedule", {
+Cal("init", "popupRescheduleWithReschedulePath", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "popupRescheduleWithRescheduleUidParam", {
   debug: true,
   origin: origin,
 });
@@ -407,6 +415,11 @@ Cal("init", "floatingButton", {
 });
 
 Cal("init", "routingFormAuto", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "routingFormHeadlessRouter", {
   debug: true,
   origin: origin,
 });
@@ -461,7 +474,7 @@ if (only === "all" || only == "ns:monthView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-monthView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-monthView-iframe",
@@ -486,7 +499,7 @@ if (only === "all" || only == "ns:weekView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-weekView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-weekView-iframe",
@@ -515,7 +528,7 @@ if (only === "all" || only == "ns:columnView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-columnView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-columnView-iframe",
@@ -525,9 +538,79 @@ if (only === "all" || only == "ns:columnView") {
       },
     }
   );
+
   Cal.ns.columnView("on", {
     action: "*",
     callback,
+  });
+}
+
+if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "columnViewHideEventTypeDetails", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.columnViewHideEventTypeDetails(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-columnViewHideEventTypeDetails .place",
+      calLink: "free/30min",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-columnView-iframe",
+        },
+        "flag.coep": "true",
+        layout: "column_view",
+      },
+    }
+  );
+
+  Cal.ns.columnViewHideEventTypeDetails("ui", {
+    hideEventTypeDetails: true,
+  });
+  
+  Cal.ns.columnViewHideEventTypeDetails("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only == "ns:autoScrollTest") {
+  if (!calLink) {
+    throw new Error("cal-link parameter is required for autoScrollTest");
+  }
+  Cal("init", "autoScrollTest", {
+    debug: true,
+    origin: origin,
+  });
+  Cal.ns.autoScrollTest("inline", {
+    elementOrSelector: "#cal-booking-place-autoScrollTest .place",
+    calLink: calLink,
+    config: {
+      "flag.coep": "true",
+    },
+  });
+}
+
+if (only === "all" || only == "ns:pageParamsForwarding") {
+  Cal("init", "pageParamsForwarding", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.pageParamsForwarding("inline", {
+    elementOrSelector: "#cal-booking-place-pageParamsForwarding .place",
+    calLink: "pro/paid?embedType=inline&month=2024-08&date=2024-08-26&slot=2024-08-26T14%3A00%3A00.000Z",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-pageParamsForwarding-iframe",
+      },
+      "flag.coep": "true",
+    },
   });
 }
 

@@ -94,6 +94,7 @@ const createTeamEventType = async (
     teamEventLength?: number;
     seatsPerTimeSlot?: number;
     managedEventUnlockedFields?: Record<string, boolean>;
+    assignAllTeamMembers?: boolean;
   }
 ) => {
   return await prisma.eventType.create({
@@ -138,6 +139,7 @@ const createTeamEventType = async (
               },
             }
           : undefined,
+      assignAllTeamMembers: scenario?.assignAllTeamMembers,
     },
   });
 };
@@ -153,6 +155,8 @@ const createTeamAndAddUser = async (
     isDnsSetup,
     index,
     orgRequestedSlug,
+    schedulingType,
+    assignAllTeamMembersForSubTeamEvents,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -163,6 +167,8 @@ const createTeamAndAddUser = async (
     organizationId?: number | null;
     index?: number;
     orgRequestedSlug?: string;
+    schedulingType?: SchedulingType;
+    assignAllTeamMembersForSubTeamEvents?: boolean;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -189,7 +195,10 @@ const createTeamAndAddUser = async (
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
-    await createTeamEventType(user, team);
+    await createTeamEventType(user, team, {
+      schedulingType: schedulingType,
+      assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
+    });
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
@@ -278,6 +287,8 @@ export const createUsersFixture = (
         addManagedEventToTeamMates?: boolean;
         managedEventUnlockedFields?: Record<string, boolean>;
         orgRequestedSlug?: string;
+        assignAllTeamMembers?: boolean;
+        assignAllTeamMembersForSubTeamEvents?: boolean;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -292,6 +303,12 @@ export const createUsersFixture = (
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
         { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        {
+          title: "Multiple duration",
+          slug: "multiple-duration",
+          length: 30,
+          metadata: { multipleDuration: [30, 60, 90] },
+        },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
@@ -372,7 +389,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://google.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -526,6 +543,8 @@ export const createUsersFixture = (
               hasSubteam: scenario.hasSubteam,
               organizationId: opts?.organizationId,
               orgRequestedSlug: scenario.orgRequestedSlug,
+              schedulingType: scenario.schedulingType,
+              assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
             },
             workerInfo
           );
@@ -573,8 +592,6 @@ export const createUsersFixture = (
               await updateChildrenEventTypes({
                 eventTypeId: teamEvent.id,
                 currentUserId: user.id,
-                hashedLink: "",
-                connectedLink: null,
                 oldEventType: {
                   team: null,
                 },

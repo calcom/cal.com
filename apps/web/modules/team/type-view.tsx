@@ -53,7 +53,7 @@ function Type({
         isInstantMeeting={isInstantMeeting}
         hideBranding={isBrandingHidden}
         isTeamEvent
-        entity={eventData.entity}
+        entity={{ ...eventData.entity, eventTypeId: eventData?.eventTypeId }}
         durationConfig={eventData.metadata?.multipleDuration}
         /* TODO: Currently unused, evaluate it is needed-
          *       Possible alternative approach is to have onDurationChange.

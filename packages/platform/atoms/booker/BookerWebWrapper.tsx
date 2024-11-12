@@ -30,7 +30,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const event = useEvent();
+  const event = useEvent({ fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink });
   const bookerLayout = useBookerLayout(event.data);
 
   const selectedDate = searchParams?.get("date");
@@ -52,7 +52,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   useInitializeBookerStore({
     ...props,
-    eventId: event?.data?.id,
+    eventId: props.entity.eventTypeId ?? event?.data?.id,
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
@@ -125,6 +125,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
    * */
   const schedule = useScheduleForEvent({
     prefetchNextMonth,
+    eventId: props.entity.eventTypeId ?? event.data?.id,
     username: props.username,
     monthCount,
     dayCount,
@@ -133,6 +134,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     duration: props.duration,
     selectedDate,
     teamMemberEmail: props.teamMemberEmail,
+    fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
+    isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
   });
   const bookings = useBookings({
     event,

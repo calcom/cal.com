@@ -76,14 +76,14 @@ const attendeeRescheduleSeatedBooking = async (
       }),
     ]);
   }
-
   // Add the new attendees to the new time slot booking attendees
   for (const attendee of newTimeSlotBooking.attendees) {
-    const language = await getTranslation(attendee.locale ?? "en", "common");
+    const translate = await getTranslation(attendee.locale ?? "en", "common");
     evt.attendees.push({
       email: attendee.email,
       name: attendee.name,
-      language,
+      timeZone: attendee.timeZone,
+      language: { translate, locale: attendee.locale ?? "en" },
     });
   }
 

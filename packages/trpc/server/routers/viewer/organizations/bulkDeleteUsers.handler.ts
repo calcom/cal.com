@@ -1,4 +1,4 @@
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
@@ -17,11 +17,12 @@ type BulkDeleteUsersHandler = {
 
 export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHandler) {
   const currentUser = ctx.user;
+  const currentUserOrgId = currentUser.organizationId ?? currentUser.profiles[0].organizationId;
 
-  if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.organizationId)))
+  if (!(await isOrganisationAdmin(currentUser?.id, currentUserOrgId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // Loop over all users in input.userIds and remove all memberships for the organization including child teams
@@ -35,7 +36,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
           {
             parentId: currentUser.organizationId,
           },
-          { id: currentUser.organizationId },
+          { id: currentUserOrgId },
         ],
       },
     },
@@ -63,7 +64,10 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
   await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation]);
-  await updateQuantitySubscriptionFromStripe(currentUser.organizationId);
+
+  const teamBilling = await TeamBilling.findAndInit(currentUserOrgId);
+  await teamBilling.updateQuantity();
+
   return {
     success: true,
     usersDeleted: input.userIds.length,

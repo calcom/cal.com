@@ -161,7 +161,11 @@ export default function Success(props: PageProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
   const parsedRating = rating ? parseInt(rating, 10) : 3;
-  const currentUserEmail = searchParams?.get("cancelledBy") ?? session?.user?.email ?? undefined;
+  const currentUserEmail =
+    searchParams?.get("rescheduledBy") ??
+    searchParams?.get("cancelledBy") ??
+    session?.user?.email ??
+    undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
@@ -311,8 +315,23 @@ export default function Success(props: PageProps) {
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
     if (bookingInfo.user) {
-      return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
-        user: bookingInfo.user.name || bookingInfo.user.email,
+      const isHost = bookingInfo.user.id === session?.user?.id;
+      const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
+      const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
+      const host = bookingInfo.user.name || bookingInfo.user.email;
+      if (isHost) {
+        return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
+          user: attendee,
+        });
+      }
+      if (isAttendee) {
+        return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
+          user: host,
+        });
+      }
+      return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
+        host,
+        attendee,
       });
     }
     return t(`emailed_you_and_attendees${titleSuffix}`);
@@ -361,14 +380,24 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
+  const isRerouting = searchParams?.get("cal.rerouting") === "true";
+  const isRescheduled = bookingInfo?.rescheduled;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
     }
 
+    if (isRerouting) {
+      return t("This meeting has been rerouted");
+    }
+
     if (isNotAttendingSeatedEvent) {
       return t("no_longer_attending");
+    }
+
+    if (isRescheduled) {
+      return t("your_event_has_been_rescheduled");
     }
 
     if (isEventCancelled) {
@@ -472,6 +501,7 @@ export default function Success(props: PageProps) {
                         id="modal-headline">
                         {successPageHeadline}
                       </h3>
+
                       <div className="mt-3">
                         <p className="text-default">{getTitle()}</p>
                       </div>
@@ -687,6 +717,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
+                      !isRerouting &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -746,6 +777,18 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
+                    {isRerouting && typeof window !== "undefined" && window.opener && (
+                      <div className="flex justify-center">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            window.opener.focus();
+                            window.close();
+                          }}>
+                          Go Back
+                        </Button>
+                      </div>
+                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&

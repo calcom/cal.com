@@ -54,6 +54,9 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
       payloadTemplate: true,
       appId: true,
       secret: true,
+      time: true,
+      timeUnit: true,
+      eventTriggers: true,
     },
   });
 

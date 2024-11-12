@@ -80,6 +80,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
       eventTypeId: eventType.id,
+      time: values.time,
+      timeUnit: values.timeUnit,
     });
   };
 
@@ -237,6 +239,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     payloadTemplate: values.payloadTemplate,
                     secret: values.secret,
                     eventTypeId: webhookToEdit?.eventTypeId || undefined,
+                    timeUnit: values.timeUnit,
+                    time: values.time,
                   });
                 }}
               />

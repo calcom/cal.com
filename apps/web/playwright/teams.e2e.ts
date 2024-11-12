@@ -263,7 +263,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       id: teamEventId,
     } = await owner.getFirstTeamEvent(team.id);
 
-    await page.goto("/event-types");
+    await page.goto(`/event-types?teamId=${team.id}`);
 
     await page.getByTestId(`event-type-options-${teamEventId}`).first().click();
     await page.getByTestId("embed").click();
