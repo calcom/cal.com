@@ -705,6 +705,9 @@
   "no_teams": "Nie masz jeszcze żadnych drużyn.",
   "no_teams_description": "Drużyny pozwalają innym na rezerwowanie wydarzeń dzielonych pomiędzy Twoich współpracowników.",
   "submit": "Prześlij",
+  "confirm_remove_attribute": "Tak, usuń atrybut",
+  "remove_attribute": "Usuń atrybut",
+  "remove_attribute_confirmation_message": "Czy na pewno chcesz usunąć atrybut '{{name}}'? Wszyscy użytkownicy obecnie do niego przypisani zostaną odłączeni.",
   "delete": "Usuń",
   "update": "Aktualizuj",
   "save": "Zapisz",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Czas zakończenia wydarzenia w strefie czasowej uczestnika",
   "salesforce_create_event_on_contact": "Utwórz wydarzenie na kontakcie, jeśli istnieje. W przeciwnym razie użyj leada",
   "salesforce_owner_name_to_change": "Nazwa właściciela do zmiany",
+  "dont_have_access_this_page": "Nie masz dostępu do tej strony",
+  "you_need_admin_or_owner_privileges_to_access": "Aby wyświetlić lub korzystać z tej strony, musisz mieć uprawnienia administratora lub właściciela",
   "field_type": "Typ pola",
   "when_to_write": "Kiedy zapisać",
   "salesforce_on_booking_write_to_record": "Przy rezerwacji, zapisz do niestandardowego pola w rekordzie {{record}} uczestnika",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Data rozpoczęcia rezerwacji",
   "booking_created_date": "Data utworzenia rezerwacji",
   "booking_reassigned_to_host": "Rezerwacja przypisana ponownie do {{host}}",
+  "access_denied": "Odmowa dostępu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

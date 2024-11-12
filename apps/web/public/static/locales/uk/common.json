@@ -705,6 +705,9 @@
   "no_teams": "У вас ще немає команд.",
   "no_teams_description": "Завдяки командам охочі можуть бронювати спільні заходи для ваших колег.",
   "submit": "Надіслати",
+  "confirm_remove_attribute": "Так, видалити атрибут",
+  "remove_attribute": "Видалити атрибут",
+  "remove_attribute_confirmation_message": "Ви впевнені, що хочете видалити атрибут '{{name}}'? Усі користувачі, які зараз мають цей атрибут, втратять його.",
   "delete": "Видалити",
   "update": "Оновити",
   "save": "Зберегти",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Час закінчення події в часовому поясі учасника",
   "salesforce_create_event_on_contact": "Створити подію для контакту, якщо він існує. В іншому випадку створити для ліда",
   "salesforce_owner_name_to_change": "Ім'я власника для зміни",
+  "dont_have_access_this_page": "Ви не маєте доступу до цієї сторінки",
+  "you_need_admin_or_owner_privileges_to_access": "Щоб переглядати або взаємодіяти з цією сторінкою, ви повинні мати права адміністратора або власника",
   "field_type": "Тип поля",
   "when_to_write": "Коли записувати",
   "salesforce_on_booking_write_to_record": "При бронюванні, записати в користувацьке поле запису {{record}} учасника",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Дата початку бронювання",
   "booking_created_date": "Дата створення бронювання",
   "booking_reassigned_to_host": "Бронювання перепризначено {{host}}",
+  "access_denied": "Доступ заборонено",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

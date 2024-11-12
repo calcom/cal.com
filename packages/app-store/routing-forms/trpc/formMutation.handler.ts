@@ -367,7 +367,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       });
     }
 
-    if (!canEditEntity(sourceForm, userId)) {
+    if (!(await canEditEntity(sourceForm, userId))) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,
