@@ -1,12 +1,14 @@
 import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { handleMultiDayOverlayEvents } from "@calcom/features/bookings/lib/handleMultiDayOverlayEvents";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
-import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
+// import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { localStorage } from "@calcom/lib/webstorage";
 
+// import { BookingStatus } from "@calcom/prisma/enums";
 import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
@@ -65,17 +67,8 @@ export const LargeCalendar = ({
 
   const overlayEventsForDate = useMemo(() => {
     if (!overlayEvents || !displayOverlay) return [];
-    return overlayEvents.map((event, id) => {
-      return {
-        id,
-        start: dayjs(event.start).toDate(),
-        end: dayjs(event.end).toDate(),
-        title: event.title ?? "Busy",
-        options: {
-          status: "ACCEPTED",
-        },
-      } as CalendarEvent;
-    });
+    // handle multi day events
+    return handleMultiDayOverlayEvents(overlayEvents);
   }, [overlayEvents, displayOverlay]);
 
   return (

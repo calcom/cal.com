@@ -1,9 +1,20 @@
 import { create } from "zustand";
 
+import type { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyData } from "@calcom/types/Calendar";
 
 interface IOverlayCalendarStore {
-  overlayBusyDates: EventBusyData[] | undefined;
+  overlayBusyDates:
+    | (EventBusyData & {
+        options?: {
+          status?: BookingStatus;
+          multiDayEvent?: {
+            start: Date | string;
+            end: Date | string;
+          };
+        };
+      })[]
+    | undefined;
   setOverlayBusyDates: (busyDates: EventBusyData[]) => void;
   continueWithProviderModal: boolean;
   setContinueWithProviderModal: (value: boolean) => void;

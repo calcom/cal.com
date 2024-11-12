@@ -507,12 +507,20 @@ export default class Office365CalendarService implements Calendar {
     return responses.reduce(
       (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
         if (!subResponse.body?.value) return acc;
+        function checkforAllDayEvent(dateTime: string | undefined | null) {
+          const parsedDateTime = dayjs(dateTime).utc();
+          return parsedDateTime.isSame(parsedDateTime.startOf("day"));
+        }
         return acc.concat(
           subResponse.body.value.reduce((acc: BufferedBusyTime[], evt: BodyValue) => {
             if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return acc;
             return acc.concat({
-              start: `${evt.start.dateTime}Z`,
-              end: `${evt.end.dateTime}Z`,
+              start: checkforAllDayEvent(`${evt.start.dateTime}Z`)
+                ? dayjs(`${evt.start.dateTime}Z`).startOf("day").utc().format()
+                : `${evt.start.dateTime}Z`,
+              end: checkforAllDayEvent(`${evt.end.dateTime}Z`)
+                ? dayjs(`${evt.end.dateTime}Z`).subtract(1, "day").endOf("day").utc().format()
+                : `${evt.end.dateTime}Z`,
               title: `${evt.subject}` ?? undefined,
             });
           }, [])

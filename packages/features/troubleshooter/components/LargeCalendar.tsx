@@ -7,6 +7,7 @@ import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/week
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
+import { handleMultiDayOverlayEvents } from "../../bookings/lib/handleMultiDayOverlayEvents";
 import { useTimePreferences } from "../../bookings/lib/timePreferences";
 import { useSchedule } from "../../schedules/lib/use-schedule";
 import { useTroubleshooterStore } from "../store";
@@ -75,21 +76,17 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     // end: dayjs(endTime)
     //   .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
     //   .toDate(),
-
-    const calendarEvents = busyEvents?.busy.map((event, idx) => {
-      return {
-        id: idx,
-        title: event.title ?? `Busy`,
-        start: new Date(event.start),
-        end: new Date(event.end),
+    // handle multi day events
+    const calendarEvents = handleMultiDayOverlayEvents(
+      busyEvents.busy.map((event) => ({
+        ...event,
         options: {
           borderColor:
             event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",
-          status: BookingStatus.ACCEPTED,
           "data-test-id": "troubleshooter-busy-event",
         },
-      };
-    });
+      }))
+    );
 
     if (busyEvents.dateOverrides) {
       busyEvents.dateOverrides.forEach((dateOverride) => {

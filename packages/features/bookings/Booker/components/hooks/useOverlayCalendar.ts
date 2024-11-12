@@ -37,13 +37,34 @@ export const useOverlayCalendar = ({
       const usersTimezoneDate = nowDate.tz(timezone);
 
       const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
-
-      const offsettedArray = overlayBusyDates.map((item) => {
-        return {
-          ...item,
-          start: dayjs(item.start).add(offset, "hours").toDate(),
-          end: dayjs(item.end).add(offset, "hours").toDate(),
-        };
+      // handle multi day events
+      const offsettedArray = overlayBusyDates.flatMap((item) => {
+        const daysDiff = dayjs(item.end).diff(item.start, "day");
+        const overlayBusyDate = [];
+        for (let i = 0; i <= daysDiff; i++) {
+          const currentDate = dayjs(item.start).startOf("day").add(i, "day");
+          const overlayItem = {
+            ...item,
+            start:
+              i === 0
+                ? dayjs(item.start).add(offset, "hours").toDate()
+                : dayjs(currentDate).add(offset, "hours").toDate(),
+            end:
+              i === daysDiff
+                ? dayjs(item.end).add(offset, "hours").toDate()
+                : dayjs(currentDate.endOf("day")).add(offset, "hours").toDate(),
+            ...(daysDiff > 0 && {
+              options: {
+                multiDayEvent: {
+                  start: dayjs(item.start).toDate(),
+                  end: dayjs(item.end).toDate(),
+                },
+              },
+            }),
+          };
+          overlayBusyDate.push(overlayItem);
+        }
+        return overlayBusyDate;
       });
       setOverlayBusyDates(offsettedArray);
     }

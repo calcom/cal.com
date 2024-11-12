@@ -608,7 +608,7 @@ export default class GoogleCalendarService implements Calendar {
                     calendarId: item.id,
                     timeMin: timeMin,
                     timeMax: timeMax,
-                    fields: "items(summary,start/dateTime, end/dateTime)",
+                    fields: "items(summary,start/dateTime, start/date, end/dateTime, end/date)",
                   })
                 )
             );
@@ -617,8 +617,12 @@ export default class GoogleCalendarService implements Calendar {
 
             return eventData.items.map((event) => {
               const busyData: EventBusyData = {
-                start: event.start?.dateTime || "",
-                end: event.end?.dateTime || "",
+                start: event.start?.date
+                  ? dayjs(event.start?.date).startOf("day").utc().format()
+                  : event.start?.dateTime || "",
+                end: event.end?.date
+                  ? dayjs(event.end?.date).subtract(1, "day").endOf("day").utc().format()
+                  : event.end?.dateTime || "",
                 title: event.summary || "",
               };
               return busyData;
