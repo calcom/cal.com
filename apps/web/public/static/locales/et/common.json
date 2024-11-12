@@ -705,6 +705,9 @@
   "no_teams": "Teil pole veel ühtegi meeskonda.",
   "no_teams_description": "Meeskonnad võimaldavad teistel broneerida teie töökaaslaste vahel jagatud sündmusi.",
   "submit": "Esita",
+  "confirm_remove_attribute": "Jah, eemalda atribuut",
+  "remove_attribute": "Eemalda atribuut",
+  "remove_attribute_confirmation_message": "Kas olete kindel, et soovite atribuudi '{{name}}' eemaldada? Kõik sellele määratud kasutajad eemaldatakse.",
   "delete": "Kustuta",
   "update": "Uuendus",
   "save": "Salvesta",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Sündmuse lõpuaeg osaleja ajavööndis",
   "salesforce_create_event_on_contact": "Loo sündmus kontaktil, kui see eksisteerib. Vastasel juhul kasuta liidi",
   "salesforce_owner_name_to_change": "Muudetava omaniku nimi",
+  "dont_have_access_this_page": "Teil ei ole sellele lehele juurdepääsu",
+  "you_need_admin_or_owner_privileges_to_access": "Selle lehe vaatamiseks või sellega suhtlemiseks peate omama administraatori või omaniku õigusi",
   "field_type": "Välja tüüp",
   "when_to_write": "Millal kirjutada",
   "salesforce_on_booking_write_to_record": "Broneeringu korral kirjuta osaleja {{record}} kirje kohandatud väljale",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Broneeringu alguskuupäev",
   "booking_created_date": "Broneeringu loomise kuupäev",
   "booking_reassigned_to_host": "Broneering määrati ümber {{host}}-le",
+  "access_denied": "Juurdepääs keelatud",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
