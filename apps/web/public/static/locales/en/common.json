@@ -2757,5 +2757,7 @@
   "booking_start_date": "Booking start date",
   "booking_created_date": "Booking created date",
   "booking_reassigned_to_host": "Booking reassigned to {{host}}",
+  "exclude_emails_that_contain" : "Exclude emails that contain ...",
+  "please_try_work_email_instead" : "Please try a work email instead",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
