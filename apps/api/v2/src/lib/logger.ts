@@ -1,7 +1,7 @@
+import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import type { LoggerOptions } from "winston";
-import { format, transports } from "winston";
-
-import { AxiomTransport } from "./axiom-transport";
+import { format, transports as Transports } from "winston";
+import type Transport from "winston-transport";
 
 const formattedTimestamp = format.timestamp({
   format: "YYYY-MM-DD HH:mm:ss.SSS",
@@ -38,14 +38,14 @@ export const logLevels = {
 export const loggerConfig = (): LoggerOptions => {
   const isProduction = process.env.NODE_ENV === "production";
 
-  const transports = [new transports.Console()];
+  const transports: Transport[] = [];
+  transports.push(new Transports.Console());
 
-  if (!!process.env.AXIOM_TOKEN && !!process.env.AXIOM_DATASET && !!process.env.API_ENV) {
+  if (!!process.env.AXIOM_TOKEN && !!process.env.AXIOM_DATASET) {
     transports.push(
       new AxiomTransport({
         token: process.env.AXIOM_TOKEN,
         dataset: process.env.AXIOM_DATASET,
-        environment: process.env.API_ENV,
       })
     );
   }
