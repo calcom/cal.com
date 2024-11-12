@@ -175,12 +175,12 @@ function preprocess<T extends z.ZodType>({
             const bookerEmail = value;
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
-            const isExcludedEmail = excludedEmails.some((email) => bookerEmail.includes(email));
 
-            if (isExcludedEmail) {
+            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: m("please_try_work_email_instead"),
+                message: m("exclude_emails_match_found_error_message"),
               });
             }
           }
