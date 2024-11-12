@@ -27,7 +27,7 @@ function getTimeMax(timeMax: string) {
   return new Date(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0).toISOString();
 }
 
-function parseKeyForCache(args: FreeBusyArgs): string {
+export function parseKeyForCache(args: FreeBusyArgs): string {
   const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
   const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
   const key = JSON.stringify({ timeMin, timeMax, items });

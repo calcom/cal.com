@@ -8,6 +8,7 @@ import { v4 as uuid } from "uuid";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import {
@@ -493,27 +494,23 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async getCacheOrFetchAvailability(args: {
-    timeMin: string;
-    timeMax: string;
-    items: { id: string }[];
-  }): Promise<EventBusyDate[] | null> {
-    const { timeMin, timeMax, items } = args;
+  async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     const calendar = await this.authedCalendar();
+    const apires = await this.oAuthManagerInstance.request(
+      async () => new AxiosLikeResponseToFetchResponse(await calendar.freebusy.query({ requestBody }))
+    );
+    return apires.json;
+  }
+
+  async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<EventBusyDate[] | null> {
+    const { timeMin, timeMax, items } = args;
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     const calendarCache = await CalendarCache.init(null);
     const cached = await calendarCache.getCachedAvailability(this.credential.id, args);
     if (cached) {
       freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
     } else {
-      ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
-        async () =>
-          new AxiosLikeResponseToFetchResponse(
-            await calendar.freebusy.query({
-              requestBody: { timeMin, timeMax, items },
-            })
-          )
-      ));
+      freeBusyResult = await this.fetchAvailability({ timeMin, timeMax, items });
     }
     if (!freeBusyResult.calendars) return null;
 
@@ -694,6 +691,24 @@ export default class GoogleCalendarService implements Calendar {
       googleChannelResourceUri: null,
       googleChannelExpiration: null,
     });
+  }
+
+  async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
+    const calendarCache = await CalendarCache.init(null);
+    await calendarCache.upsertCachedAvailability(this.credential.id, args, JSON.parse(JSON.stringify(data)));
+  }
+
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    const date = new Date();
+    const parsedArgs = {
+      /** Expand the start date to the start of the month */
+      timeMin: new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0).toISOString(),
+      /** Expand the end date to the end of the month */
+      timeMax: new Date(date.getFullYear(), date.getMonth() + 1, 0, 0, 0, 0, 0).toISOString(),
+      items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
+    };
+    const data = await this.fetchAvailability(parsedArgs);
+    await this.setAvailabilityInCache(parsedArgs, data);
   }
 }
 

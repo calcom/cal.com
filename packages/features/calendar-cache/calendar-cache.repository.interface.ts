@@ -1,6 +1,6 @@
 import type { CalendarCache, Prisma } from "@prisma/client";
 
-type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
+export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
 export interface ICalendarCacheRepository {
   watchCalendar(args: { calendarId: string }): Promise<any>;
