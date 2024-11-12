@@ -9,8 +9,7 @@
     "../types/*.d.ts",
     "../types/next-auth.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "./components/data-table/tanstack.d.ts"
+    "**/*.tsx"
   ],
   "exclude": ["dist", "build", "node_modules"]
 }
