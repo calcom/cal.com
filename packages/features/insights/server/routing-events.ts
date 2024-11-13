@@ -234,6 +234,12 @@ class RoutingEventsInsights {
             uid: true,
             status: true,
             createdAt: true,
+            attendees: {
+              select: {
+                timeZone: true,
+                email: true,
+              },
+            },
             user: {
               select: { id: true, name: true, email: true, avatarUrl: true },
             },
@@ -251,8 +257,6 @@ class RoutingEventsInsights {
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    console.log("length of responses", responses.length);
-    console.log("total responses", totalResponses);
     // unique set of form ids
     const uniqueFormIds = Array.from(new Set(responses.map((r) => r.form.id)));
 

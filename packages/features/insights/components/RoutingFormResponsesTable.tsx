@@ -153,6 +153,21 @@ export function RoutingFormResponsesTable() {
           );
         },
       }),
+      columnHelper.accessor("bookedAttendees", {
+        id: "bookedBy",
+        header: t("booked_by"),
+        cell: (info) => {
+          const row = info.row.original;
+          const attendees = row.routedToBooking?.attendees;
+          if (!attendees) return null;
+
+          return attendees.map((attendee) => (
+            <Badge key={attendee.email} variant="gray">
+              {attendee.email}
+            </Badge>
+          ));
+        },
+      }),
       ...(data?.pages?.[0]?.headers?.map((header) =>
         columnHelper.accessor(header.id, {
           id: header.id,
