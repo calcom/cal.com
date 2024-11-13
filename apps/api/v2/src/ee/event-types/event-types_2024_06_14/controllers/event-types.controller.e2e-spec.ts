@@ -199,7 +199,7 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
-    it.only("should create an event type", async () => {
+    it("should create an event type", async () => {
       const nameBookingField: NameFieldInput_2024_06_14 = {
         type: "name",
         label: "Your name sir / madam",
