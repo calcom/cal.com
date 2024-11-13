@@ -705,6 +705,9 @@
   "no_teams": "עדיין אין לך צוותים.",
   "no_teams_description": "בעזרת צוותים, אנשים אחרים יכולים לקבוע מועד לאירועים המשותפים לעמיתיך.",
   "submit": "שליחה",
+  "confirm_remove_attribute": "כן, הסר את המאפיין",
+  "remove_attribute": "הסר מאפיין",
+  "remove_attribute_confirmation_message": "האם אתה בטוח שברצונך להסיר את המאפיין '{{name}}'? כל המשתמשים המוקצים לו יוסרו.",
   "delete": "מחיקה",
   "update": "עדכון",
   "save": "שמירה",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "זמן סיום האירוע באזור הזמן של המשתתף",
   "salesforce_create_event_on_contact": "צור אירוע על איש קשר, אם קיים. אחרת, חזור ללידים",
   "salesforce_owner_name_to_change": "שם הבעלים לשינוי",
+  "dont_have_access_this_page": "אין לך גישה לדף זה",
+  "you_need_admin_or_owner_privileges_to_access": "כדי לצפות או לפעול בדף זה, עליך להיות בעל הרשאות מנהל או בעלים",
   "field_type": "סוג שדה",
   "when_to_write": "מתי לכתוב",
   "salesforce_on_booking_write_to_record": "בעת הזמנה, כתוב לשדה מותאם אישית ברשומת המשתתף {{record}}",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "תאריך תחילת ההזמנה",
   "booking_created_date": "תאריך יצירת ההזמנה",
   "booking_reassigned_to_host": "ההזמנה הועברה למארח {{host}}",
+  "access_denied": "הגישה נדחתה",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
