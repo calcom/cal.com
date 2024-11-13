@@ -1,5 +1,6 @@
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "../../lib/constants";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import type { FormResponse, LocalRoute } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
@@ -80,6 +81,25 @@ export function getUrlSearchParamsToForward({
     }
   }
 
+  const attributeRoutingConfigParams: Record<string, any> = {};
+
+  if (attributeRoutingConfig) {
+    for (const key of Object.keys(attributeRoutingConfig)) {
+      if (key === "skipContactOwner" && attributeRoutingConfig[key]) {
+        attributeRoutingConfigParams["cal.skipContactOwner"] = "true";
+      }
+
+      // TODO: How do we move this logic to their respective app packages
+      if (key === "salesforce") {
+        const salesforceData = attributeRoutingConfig[key];
+
+        if (salesforceData?.rrSkipToAccountLookupField && salesforceData.rrSKipToAccountLookupFieldName) {
+          attributeRoutingConfigParams["cal.salesforce.rrSkipToAccountLookupField"] = "true";
+        }
+      }
+    }
+  }
+
   const allQueryParams: Params = {
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
@@ -87,8 +107,8 @@ export function getUrlSearchParamsToForward({
     ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
-    ["cal.routingFormResponseId"]: String(formResponseId),
-    ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
+    [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId),
+    ...attributeRoutingConfigParams,
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
       : null),

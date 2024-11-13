@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { routingFormAppDataSchemas } from "./appDataSchemas";
+
 export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
@@ -128,14 +130,17 @@ export const queryValueSaveValidationSchema = queryValueSchema
   )
   .nullish();
 
+export const attributeRoutingConfigSchema = z
+  .object({
+    skipContactOwner: z.boolean().optional(),
+    salesforce: routingFormAppDataSchemas["salesforce"],
+  })
+  .nullish();
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
   name: z.string().optional(),
-  attributeRoutingConfig: z
-    .object({
-      skipContactOwner: z.boolean().optional(),
-    })
-    .nullish(),
+  attributeRoutingConfig: attributeRoutingConfigSchema,
 
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
