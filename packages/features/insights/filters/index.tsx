@@ -7,6 +7,7 @@ import { DateSelect } from "./DateSelect";
 import { Download } from "./Download/index";
 import { EventTypeList } from "./EventTypeList";
 import { FilterType } from "./FilterType";
+import { RoutingFormFieldFilter } from "./RoutingFormFieldFilter";
 import { RoutingFormFilterList } from "./RoutingFormFilterList";
 import { TeamAndSelfList } from "./TeamAndSelfList";
 import { UserListInTeam } from "./UsersListInTeam";
@@ -50,6 +51,7 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
           <>
             <RoutingFormFilterList />
             <BookingStatusFilter />
+            <RoutingFormFieldFilter />
           </>
         ) : null}
 

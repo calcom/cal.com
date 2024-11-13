@@ -22,6 +22,7 @@ export const RoutingKPICards = () => {
     initialConfig,
     selectedRoutingFormId,
     selectedBookingStatus,
+    selectedRoutingFormFilter,
   } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
@@ -38,6 +39,7 @@ export const RoutingKPICards = () => {
       routingFormId: selectedRoutingFormId ?? undefined,
       userId: selectedMemberUserId ?? undefined,
       bookingStatus: selectedBookingStatus ?? undefined,
+      fieldFilter: selectedRoutingFormFilter ?? undefined,
     },
     {
       staleTime: 30000,

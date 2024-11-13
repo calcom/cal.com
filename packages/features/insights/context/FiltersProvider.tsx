@@ -104,6 +104,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     selectedTeamName,
     selectedRoutingFormId,
     selectedBookingStatus,
+    selectedRoutingFormFilter,
     isAll,
     initialConfig,
   } = configFilters;
@@ -123,6 +124,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           initialConfig,
           selectedRoutingFormId,
           selectedBookingStatus,
+          selectedRoutingFormFilter,
         },
         setConfigFilters: (newConfigFilters) => {
           setConfigFilters({
@@ -178,6 +180,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             initialConfig,
             selectedRoutingFormId: null,
             selectedBookingStatus: null,
+            selectedRoutingFormFilter: null,
           });
 
           const newSearchParams = new URLSearchParams();

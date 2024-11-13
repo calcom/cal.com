@@ -53,6 +53,7 @@ export function RoutingFormResponsesTable() {
     selectedRoutingFormId,
     selectedMemberUserId,
     selectedBookingStatus,
+    selectedRoutingFormFilter,
   } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
@@ -67,6 +68,7 @@ export function RoutingFormResponsesTable() {
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
+        fieldFilter: selectedRoutingFormFilter ?? undefined,
         limit: 20,
       },
       {

@@ -1545,7 +1545,16 @@ export const insightsRouter = router({
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
     .input(
-      rawDataInputSchema.extend({ routingFormId: z.string().optional(), bookingStatus: bookingStatusSchema })
+      rawDataInputSchema.extend({
+        routingFormId: z.string().optional(),
+        bookingStatus: bookingStatusSchema,
+        fieldFilter: z
+          .object({
+            fieldId: z.string(),
+            optionId: z.string(),
+          })
+          .optional(),
+      })
     )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
@@ -1559,6 +1568,7 @@ export const insightsRouter = router({
         routingFormId: input.routingFormId ?? null,
         userId: input.userId ?? null,
         bookingStatus: input.bookingStatus ?? null,
+        fieldFilter: input.fieldFilter ?? null,
       });
 
       return stats;
@@ -1570,6 +1580,12 @@ export const insightsRouter = router({
         cursor: z.number().optional(),
         limit: z.number().optional(),
         bookingStatus: bookingStatusSchema,
+        fieldFilter: z
+          .object({
+            fieldId: z.string(),
+            optionId: z.string(),
+          })
+          .optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1585,6 +1601,7 @@ export const insightsRouter = router({
         userId: input.userId ?? null,
         limit: input.limit,
         bookingStatus: input.bookingStatus ?? null,
+        fieldFilter: input.fieldFilter ?? null,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure

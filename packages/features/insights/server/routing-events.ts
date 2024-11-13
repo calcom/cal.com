@@ -19,8 +19,11 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   startDate?: string;
   endDate?: string;
   userId?: number | null;
-  fieldFilters?: Record<string, string[]>;
   bookingStatus?: BookingStatus | "NO_BOOKING" | null;
+  fieldFilter?: {
+    fieldId: string;
+    optionId: string;
+  } | null;
 };
 
 class RoutingEventsInsights {
@@ -164,7 +167,7 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    fieldFilters,
+    fieldFilter,
     bookingStatus,
   }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
@@ -173,6 +176,9 @@ class RoutingEventsInsights {
       organizationId,
       routingFormId,
     });
+
+    // {"83316968-45bf-4c9d-b5d4-5368a8d2d2a8": {"label": "skills", "value": ["e1e55ea5-ff29-4be6-bea5-0536637f50cb", "f06c756f-58be-4d87-9210-8b30f0eb4e49", "2f7c51cf-919f-4f75-823f-d824131cd3a6"]}}
+    // [fieldId]: {label: string, value: [optionId]}
 
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
       ...(startDate &&
@@ -194,19 +200,16 @@ class RoutingEventsInsights {
                 }),
           }
         : {}),
-      ...(fieldFilters &&
-        Object.keys(fieldFilters).length > 0 && {
-          AND: Object.entries(fieldFilters).map(([fieldId, values]) => ({
-            OR: values.map((value) => ({
-              response: {
-                path: [`$.${fieldId}.value`],
-                array_contains: value,
-              },
-            })),
-          })),
-        }),
+      ...(fieldFilter && {
+        response: {
+          path: [fieldFilter.fieldId, "value"],
+          array_contains: [fieldFilter.optionId],
+        },
+      }),
       form: formsTeamWhereCondition,
     };
+    console.log("--------------------------------");
+    console.log("responsesWhereCondition", responsesWhereCondition);
 
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,
@@ -243,6 +246,9 @@ class RoutingEventsInsights {
     });
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
+
+    console.log("length of responses", responses.length);
+    console.log("total responses", totalResponses);
     // unique set of form ids
     const uniqueFormIds = Array.from(new Set(responses.map((r) => r.form.id)));
 

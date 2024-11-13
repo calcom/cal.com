@@ -14,6 +14,10 @@ interface IFilter {
   selectedEventTypeId?: number | null;
   selectedRoutingFormId?: string | null;
   selectedBookingStatus?: BookingStatus | "NO_BOOKING" | null;
+  selectedRoutingFormFilter?: {
+    fieldId: string;
+    optionId: string;
+  } | null;
   isAll?: boolean;
   initialConfig?: {
     teamId?: number | null;
