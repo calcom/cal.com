@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Hora de finalización del evento en la zona horaria del asistente",
   "salesforce_create_event_on_contact": "Crear evento en el contacto, si existe. De lo contrario, usar lead como alternativa",
   "salesforce_owner_name_to_change": "Nombre del propietario a cambiar",
+  "dont_have_access_this_page": "No tienes acceso a esta página",
+  "you_need_admin_or_owner_privileges_to_access": "Para ver o interactuar con esta página, debes tener privilegios de administrador o propietario",
   "field_type": "Tipo de campo",
   "when_to_write": "Cuándo escribir",
   "salesforce_on_booking_write_to_record": "Al reservar, escribir en un campo personalizado en el registro {{record}} del asistente",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Fecha de inicio de la reserva",
   "booking_created_date": "Fecha de creación de la reserva",
   "booking_reassigned_to_host": "Reserva reasignada a {{host}}",
+  "access_denied": "Acceso denegado",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

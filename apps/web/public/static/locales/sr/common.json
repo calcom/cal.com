@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Vreme završetka događaja u vremenskoj zoni učesnika",
   "salesforce_create_event_on_contact": "Kreiraj događaj na kontaktu, ako postoji. U suprotnom, prebaci na lead",
   "salesforce_owner_name_to_change": "Ime vlasnika koje treba promeniti",
+  "dont_have_access_this_page": "Nemate pristup ovoj stranici",
+  "you_need_admin_or_owner_privileges_to_access": "Da biste pregledali ili koristili ovu stranicu, morate imati administratorske ili vlasničke privilegije",
   "field_type": "Tip polja",
   "when_to_write": "Kada pisati",
   "salesforce_on_booking_write_to_record": "Pri rezervaciji, upiši u prilagođeno polje na {{record}} zapisu učesnika",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Datum početka rezervacije",
   "booking_created_date": "Datum kreiranja rezervacije",
   "booking_reassigned_to_host": "Rezervacija dodeljena {{host}}-u",
+  "access_denied": "Pristup odbijen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

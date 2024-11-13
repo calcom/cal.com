@@ -23,6 +23,14 @@ export class PlatformBillingRepositoryFixture {
     });
   }
 
+  async get(orgId: number) {
+    return this.prismaWriteClient.platformBilling.findFirst({
+      where: {
+        id: orgId,
+      },
+    });
+  }
+
   async deleteSubscriptionForTeam(teamId: number) {
     // silently try to delete the subscription
     try {

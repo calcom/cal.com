@@ -2764,5 +2764,10 @@
   "booking_created_date": "Booking created date",
   "booking_reassigned_to_host": "Booking reassigned to {{host}}",
   "access_denied": "Access Denied",
+  "salesforce_route_to_owner": "Contact owner will be the Round Robin host if available",
+  "salesforce_do_not_route_to_owner": "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)",
+  "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
+  "salesforce_option": "Salesforce Option",
+  "lookup_field_name": "Lookup Field Name",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

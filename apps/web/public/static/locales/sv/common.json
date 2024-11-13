@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Händelsens sluttid i deltagarens tidszon",
   "salesforce_create_event_on_contact": "Skapa händelse på kontakt om den finns, annars fallback till lead",
   "salesforce_owner_name_to_change": "Ägarnamn att ändra",
+  "dont_have_access_this_page": "Du har inte åtkomst till den här sidan",
+  "you_need_admin_or_owner_privileges_to_access": "För att visa eller interagera med den här sidan måste du ha administratörs- eller ägarprivilegier",
   "field_type": "Fälttyp",
   "when_to_write": "När ska det skrivas",
   "salesforce_on_booking_write_to_record": "Vid bokning, skriv till ett anpassat fält på deltagarens {{record}}-post",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Bokningens startdatum",
   "booking_created_date": "Bokningens skapandedatum",
   "booking_reassigned_to_host": "Bokning omtilldelad till {{host}}",
+  "access_denied": "Åtkomst nekad",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

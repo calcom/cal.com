@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Ereignis-Endzeit in der Zeitzone des Teilnehmers",
   "salesforce_create_event_on_contact": "Event für Kontakt erstellen, falls vorhanden. Andernfalls auf Lead zurückgreifen",
   "salesforce_owner_name_to_change": "Zu ändernder Besitzername",
+  "dont_have_access_this_page": "Sie haben keinen Zugriff auf diese Seite",
+  "you_need_admin_or_owner_privileges_to_access": "Um diese Seite anzuzeigen oder mit ihr zu interagieren, benötigen Sie Administrator- oder Eigentümerrechte",
   "field_type": "Feldtyp",
   "when_to_write": "Wann schreiben",
   "salesforce_on_booking_write_to_record": "Bei Buchung in ein benutzerdefiniertes Feld des Teilnehmer-{{record}}-Datensatzes schreiben",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Buchungs-Startdatum",
   "booking_created_date": "Buchungs-Erstellungsdatum",
   "booking_reassigned_to_host": "Buchung an {{host}} neu zugewiesen",
+  "access_denied": "Zugriff verweigert",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

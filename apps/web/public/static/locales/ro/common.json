@@ -2745,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Ora de sfârșit a evenimentului în fusul orar al participantului",
   "salesforce_create_event_on_contact": "Creați evenimentul pe contact, dacă există. Altfel, reveniți la lead",
   "salesforce_owner_name_to_change": "Numele proprietarului de schimbat",
+  "dont_have_access_this_page": "Nu aveți acces la această pagină",
+  "you_need_admin_or_owner_privileges_to_access": "Pentru a vizualiza sau interacționa cu această pagină, trebuie să aveți privilegii de administrator sau proprietar",
   "field_type": "Tip câmp",
   "when_to_write": "Când să se scrie",
   "salesforce_on_booking_write_to_record": "La rezervare, scrie într-un câmp personalizat în înregistrarea {{record}} a participantului",
@@ -2753,5 +2755,6 @@
   "booking_start_date": "Data de început a rezervării",
   "booking_created_date": "Data creării rezervării",
   "booking_reassigned_to_host": "Rezervare reatribuită către {{host}}",
+  "access_denied": "Acces refuzat",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
