@@ -110,6 +110,7 @@ model EventType {
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
+  autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
