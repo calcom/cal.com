@@ -29,6 +29,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
   const [firstRender, setFirstRender] = useState(true);
 
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
 
   const multipleDurationOptions = [
     5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
@@ -94,6 +95,15 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 />
               </>
             )}
+          </div>
+          <div className="[&_label]:my-1 [&_label]:font-normal">
+            <SettingsToggle
+              title={t("translate_description_button")}
+              checked={!!autoTranslateDescriptionEnabled}
+              onCheckedChange={(value) => {
+                formMethods.setValue("autoTranslateDescriptionEnabled", value);
+              }}
+            />
           </div>
           <TextField
             required
