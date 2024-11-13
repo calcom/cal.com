@@ -75,7 +75,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
 
   const normalizedCurrentResponses: Record<string, { label: string; value: string }> = {};
   Object.entries(responses).forEach(([question, response]) => {
-    const value = typeof response === "object" ? response?.value : response;
+    const value = typeof response === "object" && response && "value" in response ? response.value : response;
     const field = form?.fields?.find((f) => f.label === question);
 
     if (field) {
