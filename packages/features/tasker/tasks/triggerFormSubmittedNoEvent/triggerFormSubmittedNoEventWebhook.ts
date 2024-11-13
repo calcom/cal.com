@@ -57,36 +57,37 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
   }
 
   const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
-  const recentResponses = await prisma.app_RoutingForms_FormResponse.findMany({
-    where: {
-      formId: form.id,
-      createdAt: {
-        gte: twentyMinutesAgo,
-        lt: new Date(),
+  const recentResponses =
+    (await prisma.app_RoutingForms_FormResponse.findMany({
+      where: {
+        formId: form.id,
+        createdAt: {
+          gte: twentyMinutesAgo,
+          lt: new Date(),
+        },
+        routedToBookingUid: {
+          not: null,
+        },
+        NOT: {
+          id: responseId,
+        },
       },
-      routedToBookingUid: {
-        not: null,
-      },
-      NOT: {
-        id: responseId,
-      },
-    },
-  });
+    })) ?? [];
 
-  const normalizedCurrentResponses: Record<string, { label: string; value: string }> = {};
+  const normalizedCurrentResponses: Record<string, { label: string; value: unknown }> = {};
   Object.entries(responses).forEach(([question, response]) => {
     const value = typeof response === "object" && response && "value" in response ? response.value : response;
     const field = form?.fields?.find((f) => f.label === question);
 
     if (field) {
       normalizedCurrentResponses[field.id] = {
-        label: question,
-        value: value,
+        label: question as string,
+        value,
       };
     }
   });
 
-  const hasDuplicate = recentResponses.some((response) => {
+  const hasDuplicate = recentResponses?.some((response) => {
     return JSON.stringify(response.response) === JSON.stringify(normalizedCurrentResponses);
   });
 
