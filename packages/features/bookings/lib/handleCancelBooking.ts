@@ -368,13 +368,16 @@ async function handler(req: CustomRequest) {
   await Promise.all(promises);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+  const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
   await sendCancelledReminders({
     workflows,
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
-      metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
+      ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+        ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
+        : {}),
       bookerUrl,
       ...{
         eventType: {

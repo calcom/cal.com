@@ -49,7 +49,7 @@ export async function acceptTeamOrOrgInvite(page: Page) {
 }
 
 async function inviteAnEmail(page: Page, invitedUserEmail: string) {
-  await page.locator('button:text("Add")').click();
+  await page.getByTestId("new-organization-member-button").click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   await submitAndWaitForResponse(page, "/api/trpc/teams/inviteMember?batch=1", {
     action: () => page.locator('button:text("Send invite")').click(),

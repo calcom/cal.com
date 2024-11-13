@@ -23,7 +23,7 @@ const ClearFilters = () => {
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        className="min-w-24 h-[38px] border-0"
+        className="h-[38px] min-w-24 border-0"
         onClick={() => {
           clearFilters();
         }}>

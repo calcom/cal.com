@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import CrmManager from "@calcom/core/crmManager/crmManager";
@@ -7,24 +8,17 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export async function getCRMContactOwnerForRRLeadSkip(
   bookerEmail: string,
-  eventTypeId: number
+  eventTypeMetadata: Prisma.JsonValue
 ): Promise<string | undefined> {
-  const eventTypeMetadataQuery = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: { metadata: true },
-  });
+  const parsedEventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventTypeMetadata);
 
-  const eventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventTypeMetadataQuery?.metadata);
+  if (!parsedEventTypeMetadata.success || !parsedEventTypeMetadata.data?.apps) return;
 
-  if (!eventTypeMetadata.success || !eventTypeMetadata.data?.apps) return;
-
-  const crm = await getCRMManagerWithRRLeadSkip(eventTypeMetadata.data.apps);
+  const crm = await getCRMManagerWithRRLeadSkip(parsedEventTypeMetadata.data.apps);
 
   if (!crm) return;
 
-  const contact = await crm.getContacts(bookerEmail, true);
+  const contact = await crm.getContacts({ emails: bookerEmail, forRoundRobinSkip: true });
   if (!contact?.length) return;
   return contact[0].ownerEmail;
 }
@@ -57,5 +51,5 @@ async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMeta
     },
   });
   if (!crmCredential) return;
-  return new CrmManager(crmCredential);
+  return new CrmManager(crmCredential, crmRoundRobinLeadSkip);
 }

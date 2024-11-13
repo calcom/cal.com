@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
@@ -45,6 +47,12 @@ const getHandler = async <
   return UNSTABLE_HANDLER_CACHE[nameInCache] as unknown as T["default"];
 };
 
+export const ZFormByResponseIdInputSchema = z.object({
+  formResponseId: z.number(),
+});
+
+export type TFormQueryInputSchema = z.infer<typeof ZFormQueryInputSchema>;
+
 const appRoutingForms = router({
   public: router({
     response: publicProcedure.input(ZResponseInputSchema).mutation(async ({ ctx, input }) => {
@@ -57,6 +65,15 @@ const appRoutingForms = router({
     const handler = await getHandler("formQuery", () => import("./formQuery.handler"));
     return handler({ ctx, input });
   }),
+  getResponseWithFormFields: authedProcedure
+    .input(ZFormByResponseIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getResponseWithFormFields",
+        () => import("./getResponseWithFormFields.handler")
+      );
+      return handler({ ctx, input });
+    }),
   formMutation: authedProcedure.input(ZFormMutationInputSchema).mutation(async ({ ctx, input }) => {
     const handler = await getHandler("formMutation", () => import("./formMutation.handler"));
     return handler({ ctx, input });

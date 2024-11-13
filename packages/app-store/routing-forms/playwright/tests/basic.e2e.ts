@@ -28,20 +28,26 @@ const Identifiers = {
 };
 
 async function enableContactOwnerOverride(page: Page) {
-  await page.click("text=Contact owner will be the Round Robin host");
+  await page.click("text=Contact owner will be the Round Robin host if available");
 }
 
 async function selectFirstAttributeOption({ fromLocator }: { fromLocator: Locator }) {
   await selectOptionUsingLocator({
     locator: fromLocator,
-    option: 1
+    option: 1,
   });
 }
 
-async function selectFirstValueForAttributeValue({ fromLocator, option }: { fromLocator: Locator, option: number }) {
+async function selectFirstValueForAttributeValue({
+  fromLocator,
+  option,
+}: {
+  fromLocator: Locator;
+  option: number;
+}) {
   await selectOptionUsingLocator({
     locator: fromLocator,
-    option
+    option,
   });
 }
 
@@ -59,7 +65,7 @@ async function addAttributeRoutingRule(page: Page) {
   await selectFirstValueForAttributeValue({
     fromLocator: attributeValueSelector,
     // Select 'Value of Field Short Text' option
-    option: numOfOptionsInAttribute + 1
+    option: numOfOptionsInAttribute + 1,
   });
 }
 
@@ -317,11 +323,17 @@ test.describe("Routing Forms", () => {
         "Multi Select",
         "Legacy Select",
         "Select",
+        // TODO: Find a way to incorporate Routed To and Booked At into the report
+        // @see https://github.com/calcom/cal.com/pull/17229
+        "Routed To",
+        "Booked At",
+        "Submitted At",
       ]);
+      /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2"],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2"],
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2"],
+        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
@@ -563,7 +575,6 @@ test.describe("Routing Forms", () => {
       await selectNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
-      await enableContactOwnerOverride(page);
       await addAttributeRoutingRule(page);
       await saveCurrentForm(page);
 
@@ -571,7 +582,7 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="test-preview"]');
         await page.fill('[data-testid="form-field-short-text"]', "large");
         await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector('text=@example.com');
+        await page.waitForSelector("text=@example.com");
         await page.click('[data-testid="dialog-rejection"]');
       })();
 
@@ -579,9 +590,12 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="test-preview"]');
         await page.fill('[data-testid="form-field-short-text"]', "medium");
         await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector('text=No matching members.');
+        await page.waitForSelector("text=Attribute logic matched: No");
+        await page.waitForSelector("text=Attribute logic fallback matched: Yes");
+        await page.waitForSelector(
+          "text=All assigned members of the team event type. Consider adding some attribute rules to fallback."
+        );
         await page.click('[data-testid="dialog-rejection"]');
-
       })();
     });
   });
@@ -751,15 +765,12 @@ async function selectOption({
     .click();
 }
 
-export async function selectOptionUsingLocator({
-  locator,
-  option,
-}: {
-  locator: Locator;
-  option: number;
-}) {
+export async function selectOptionUsingLocator({ locator, option }: { locator: Locator; option: number }) {
   await locator.click();
-  await locator.locator('[id*="react-select-"][aria-disabled]').nth(option - 1).click();
+  await locator
+    .locator('[id*="react-select-"][aria-disabled]')
+    .nth(option - 1)
+    .click();
 }
 
 async function verifyFieldOptionsInRule(options: string[], page: Page) {

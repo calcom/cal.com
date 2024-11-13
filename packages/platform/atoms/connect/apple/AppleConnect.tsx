@@ -34,6 +34,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   tooltip,
   tooltipSide = "bottom",
   isClickable,
+  onSuccess,
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -60,6 +61,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
         toast({
           description: "Calendar credentials added successfully",
         });
+        onSuccess?.();
       }
     },
     onError: (err) => {
@@ -91,6 +93,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance="apple" />}
                 tooltipSide={tooltipSide}
                 tooltipOffset={10}
+                tooltipClassName="p-0 text-inherit bg-inherit"
                 className={cn("", !isDisabled && "cursor-pointer", className)}
                 onClick={() => setIsDialogOpen(true)}>
                 {displayedLabel}

@@ -23,7 +23,7 @@ const SAMLSSO = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,

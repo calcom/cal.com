@@ -1,9 +1,8 @@
-import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import type { EventAdvancedWebWrapperProps } from "@calcom/atoms/event-types/wrappers/EventAdvancedWebWrapper";
+import { useAtomsContext, useIsPlatform } from "@calcom/atoms/monorepo";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
@@ -14,7 +13,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
@@ -39,21 +38,26 @@ import {
   SettingsToggle,
   Switch,
   TextField,
-  showToast,
   ColorPicker,
 } from "@calcom/ui";
 
+import CustomEventTypeModal from "./CustomEventTypeModal";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
 type BookingField = z.infer<typeof fieldSchema>;
 
-const CustomEventTypeModal = dynamic(() => import("./CustomEventTypeModal"));
-
-export type EventAdvancedTabProps = EventAdvancedWebWrapperProps & {
-  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
-  user?: RouterOutputs["viewer"]["me"];
+export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
+  user?: Partial<
+    Pick<RouterOutputs["viewer"]["me"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
+  >;
   isUserLoading?: boolean;
+  showToast: (message: string, variant: "success" | "warning" | "error") => void;
+};
+
+export type EventAdvancedTabProps = EventAdvancedBaseProps & {
+  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
+  showBookerLayoutSelector: boolean;
 };
 
 export const EventAdvancedTab = ({
@@ -62,7 +66,11 @@ export const EventAdvancedTab = ({
   calendarsQueryData,
   user,
   isUserLoading,
+  showToast,
+  showBookerLayoutSelector,
 }: EventAdvancedTabProps) => {
+  const isPlatform = useIsPlatform();
+  const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
@@ -169,7 +177,7 @@ export const EventAdvancedTab = ({
   const displayDestinationCalendarSelector =
     !!calendarsQueryData?.connectedCalendars?.length && (!team || isChildrenManagedEventType);
 
-  const verifiedSecondaryEmails = [
+  let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
       value: -1,
@@ -178,6 +186,20 @@ export const EventAdvancedTab = ({
       .filter((secondaryEmail) => !!secondaryEmail.emailVerified)
       .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
   ];
+
+  const removePlatformClientIdFromEmail = (email: string, clientId: string) =>
+    email.replace(`+${clientId}`, "");
+
+  let userEmail = user?.email || "";
+
+  if (isPlatform && platformContext.clientId) {
+    verifiedSecondaryEmails = verifiedSecondaryEmails.map((email) => ({
+      ...email,
+      label: removePlatformClientIdFromEmail(email.label, platformContext.clientId),
+    }));
+    userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
+  }
+
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
   return (
     <div className="flex flex-col space-y-4">
@@ -257,7 +279,7 @@ export const EventAdvancedTab = ({
                 placeholder={
                   selectedSecondaryEmailId === -1 && (
                     <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                      <Badge variant="blue">{t("default")}</Badge> {user?.email || ""}
+                      <Badge variant="blue">{t("default")}</Badge> {userEmail}
                     </span>
                   )
                 }
@@ -275,13 +297,15 @@ export const EventAdvancedTab = ({
           )}
         </div>
       </div>
-      <BookerLayoutSelector
-        fallbackToUserSettings
-        isDark={selectedThemeIsDark}
-        isOuterBorder={true}
-        user={user}
-        isUserLoading={isUserLoading}
-      />
+      {showBookerLayoutSelector && (
+        <BookerLayoutSelector
+          fallbackToUserSettings
+          isDark={selectedThemeIsDark}
+          isOuterBorder={true}
+          user={user}
+          isUserLoading={isUserLoading}
+        />
+      )}
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
@@ -419,45 +443,47 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
-      <Controller
-        name="multiplePrivateLinks"
-        render={() => {
-          return (
-            <SettingsToggle
-              labelClassName="text-sm"
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                multiplePrivateLinksVisible && "rounded-b-none"
-              )}
-              childrenClassName="lg:ml-0"
-              data-testid="multiplePrivateLinksCheck"
-              title={t("multiple_private_links_title")}
-              {...multiplePrivateLinksLocked}
-              description={t("multiple_private_links_description", { appName: APP_NAME })}
-              tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
-              checked={multiplePrivateLinksVisible}
-              onCheckedChange={(e) => {
-                if (!e) {
-                  formMethods.setValue("multiplePrivateLinks", [], { shouldDirty: true });
-                } else {
-                  formMethods.setValue(
-                    "multiplePrivateLinks",
-                    [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
-                    { shouldDirty: true }
-                  );
-                }
-                setMultiplePrivateLinksVisible(e);
-              }}>
-              {!isManagedEventType && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
-                </div>
-              )}
-            </SettingsToggle>
-          );
-        }}
-      />
+      {!isPlatform && (
+        <Controller
+          name="multiplePrivateLinks"
+          render={() => {
+            return (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  multiplePrivateLinksVisible && "rounded-b-none"
+                )}
+                childrenClassName="lg:ml-0"
+                data-testid="multiplePrivateLinksCheck"
+                title={t("multiple_private_links_title")}
+                {...multiplePrivateLinksLocked}
+                description={t("multiple_private_links_description", { appName: APP_NAME })}
+                tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
+                checked={multiplePrivateLinksVisible}
+                onCheckedChange={(e) => {
+                  if (!e) {
+                    formMethods.setValue("multiplePrivateLinks", [], { shouldDirty: true });
+                  } else {
+                    formMethods.setValue(
+                      "multiplePrivateLinks",
+                      [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
+                      { shouldDirty: true }
+                    );
+                  }
+                  setMultiplePrivateLinksVisible(e);
+                }}>
+                {!isManagedEventType && (
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                  </div>
+                )}
+              </SettingsToggle>
+            );
+          }}
+        />
+      )}
       <Controller
         name="seatsPerTimeSlotEnabled"
         render={({ field: { value, onChange } }) => (

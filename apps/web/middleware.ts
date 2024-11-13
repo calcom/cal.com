@@ -167,7 +167,6 @@ export const config = {
     "/event-types",
     "/future/event-types/",
     "/settings/admin/:path*",
-    "/future/settings/admin/:path*",
     "/apps/installed/:category/",
     "/future/apps/installed/:category/",
     "/apps/:slug/",

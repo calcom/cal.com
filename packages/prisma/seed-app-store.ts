@@ -359,7 +359,12 @@ export default async function main() {
   await createApp("make", "make", ["automation"], "make_automation", {
     invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
   });
-  await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
+
+  if (process.env.HUDDLE01_API_TOKEN) {
+    await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video", {
+      apiKey: process.env.HUDDLE01_API_TOKEN,
+    });
+  }
 
   // Payment apps
   if (

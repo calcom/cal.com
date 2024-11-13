@@ -5,7 +5,7 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
@@ -26,9 +26,11 @@ export class OAuthClientUsersService {
     isPlatformManaged: boolean,
     organizationId?: number
   ) {
-    const existsWithEmail = await this.managedUserExistsWithEmail(oAuthClientId, body.email);
-    if (existsWithEmail) {
-      throw new BadRequestException("User with the provided e-mail already exists.");
+    const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
+    if (existingUser) {
+      throw new ConflictException(
+        `User with the provided e-mail already exists. Existing user ID=${existingUser.id}`
+      );
     }
 
     let user: User;
@@ -81,8 +83,6 @@ export class OAuthClientUsersService {
       user.defaultScheduleId = defaultSchedule.id;
     }
 
-    await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);
-
     return {
       user,
       tokens: {
@@ -93,10 +93,9 @@ export class OAuthClientUsersService {
     };
   }
 
-  async managedUserExistsWithEmail(oAuthClientId: string, email: string) {
+  async getExistingUserByEmail(oAuthClientId: string, email: string) {
     const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
-    const user = await this.userRepository.findByEmail(oAuthEmail);
-    return !!user;
+    return await this.userRepository.findByEmail(oAuthEmail);
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {

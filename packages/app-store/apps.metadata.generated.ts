@@ -19,6 +19,7 @@ import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
+import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -75,6 +76,7 @@ import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import synthflow_config_json from "./synthflow/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
+import telli_config_json from "./telli/config.json";
 import basic_config_json from "./templates/basic/config.json";
 import booking_pages_tag_config_json from "./templates/booking-pages-tag/config.json";
 import event_type_app_card_config_json from "./templates/event-type-app-card/config.json";
@@ -116,6 +118,7 @@ export const appStoreMetadata = {
   dailyvideo: dailyvideo__metadata_ts,
   deel: deel_config_json,
   demodesk: demodesk_config_json,
+  dialpad: dialpad_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -172,6 +175,7 @@ export const appStoreMetadata = {
   synthflow: synthflow_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
+  telli: telli_config_json,
   basic: basic_config_json,
   "booking-pages-tag": booking_pages_tag_config_json,
   "event-type-app-card": event_type_app_card_config_json,

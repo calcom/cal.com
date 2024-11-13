@@ -1,6 +1,7 @@
 ---
 title: Booking redirects
 description: Find out how to manage the booking flow.
+"icon": "clipboard"
 ---
 
 When creating an OAuth client you can specify:
@@ -34,6 +35,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
     return (
         <p>{booking.title}</p>
     )
+};
 ```
 
 An example implementation can be found [here](https://github.com/calcom/cal.com/blob/main/packages/platform/examples/base/src/pages/%5BbookingUid%5D.tsx).

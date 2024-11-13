@@ -34,7 +34,7 @@ type BookerLayoutSelectorProps = {
   isLoading?: boolean;
   isDisabled?: boolean;
   isOuterBorder?: boolean;
-  user?: RouterOutputs["viewer"]["me"];
+  user?: Partial<Pick<RouterOutputs["viewer"]["me"], "defaultBookerLayouts">>;
   isUserLoading?: boolean;
 };
 
@@ -104,7 +104,7 @@ type BookerLayoutFieldsProps = {
   showUserSettings: boolean;
   isDark?: boolean;
   isOuterBorder?: boolean;
-  user?: RouterOutputs["viewer"]["me"];
+  user?: Partial<Pick<RouterOutputs["viewer"]["me"], "defaultBookerLayouts">>;
   isUserLoading?: boolean;
 };
 

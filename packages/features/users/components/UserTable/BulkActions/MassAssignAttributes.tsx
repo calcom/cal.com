@@ -1,9 +1,11 @@
 import type { Table } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 import { parseAsString, useQueryState, parseAsArrayOf } from "nuqs";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc";
 import {
   Alert,
@@ -22,10 +24,11 @@ import {
   showToast,
 } from "@calcom/ui";
 
-import type { User } from "../UserListTable";
+import type { UserTableUser } from "../types";
 
 interface Props {
-  table: Table<User>;
+  table: Table<UserTableUser>;
+  filters: ColumnFiltersState;
 }
 
 function useSelectedAttributes() {
@@ -78,7 +81,7 @@ function SelectedAttributeToAssign() {
 
   return (
     <CommandList>
-      <div className="flex flex items-center items-center gap-2 border-b px-3 py-2">
+      <div className="flex items-center gap-2 border-b px-3 py-2">
         <span className="block">{foundAttribute.name}</span>
         {translateableType && <span className="text-muted block text-xs">({t(translateableType)})</span>}
       </div>
@@ -119,9 +122,11 @@ function SelectedAttributeToAssign() {
           <>
             <CommandItem>
               <Input
-                value={selectedAttributeOption[0] || ""}
+                defaultValue={selectedAttributeOption[0] || ""}
                 type={foundAttribute.type === "TEXT" ? "text" : "number"}
-                onChange={(e) => {
+                onBlur={(e) => {
+                  // trigger onBlur so it's set as Apply is pressed (but not onChange) which triggers
+                  // a re-render which also loses focus.
                   setSelectedAttributeOption([e.target.value]);
                 }}
               />
@@ -133,13 +138,78 @@ function SelectedAttributeToAssign() {
   );
 }
 
-export function MassAssignAttributesBulkAction({ table }: Props) {
+export function MassAssignAttributesBulkAction({ table, filters }: Props) {
   const { selectedAttribute, setSelectedAttribute, foundAttributeInCache } = useSelectedAttributes();
   const [selectedAttributeOptions, setSelectedAttributeOptions] = useSelectedAttributeOption();
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
+  const utils = trpc.useContext();
   const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
     onSuccess: (success) => {
+      // Optimistically update the infinite query data
+      const selectedRows = table.getSelectedRowModel().flatRows;
+
+      utils.viewer.organizations.listMembers.setInfiniteData(
+        {
+          limit: 10,
+          searchTerm: "",
+          expand: ["attributes"],
+          filters: filters.map((filter) => ({
+            id: filter.id,
+            value: filter.value as string[],
+          })),
+        },
+        // @ts-expect-error i really dont know how to type this
+        (oldData) => {
+          const newPages = oldData?.pages.map((page) => ({
+            ...page,
+            rows: page.rows.map((row) => {
+              if (selectedRows.some((selectedRow) => selectedRow.original.id === row.id)) {
+                // Update the attributes for the selected users
+
+                const attributeOptionValues = foundAttributeInCache?.options.filter((option) =>
+                  selectedAttributeOptions.includes(option.id)
+                );
+
+                const newAttributes =
+                  row.attributes?.filter((attr) => attr.attributeId !== selectedAttribute) || [];
+
+                if (attributeOptionValues && attributeOptionValues.length > 0) {
+                  const newAttributeValues = attributeOptionValues?.map((value) => ({
+                    id: value.id,
+                    attributeId: value.attributeId,
+                    value: value.value,
+                    slug: value.slug,
+                  }));
+                  newAttributes.push(...newAttributeValues);
+                } else {
+                  // Text or number input we don't have an option to fall back on
+                  newAttributes.push({
+                    id: "-1",
+                    attributeId: foundAttributeInCache?.id ?? "-1",
+                    value: selectedAttributeOptions[0],
+                    slug: slugify(selectedAttributeOptions[0]),
+                  });
+                }
+
+                return {
+                  ...row,
+                  attributes: newAttributes,
+                };
+              }
+              return row;
+            }),
+          }));
+
+          return {
+            ...oldData,
+            pages: newPages,
+          };
+        }
+      );
+
+      setSelectedAttribute(null);
+      setSelectedAttributeOptions([]);
       showToast(success.message, "success");
     },
     onError: (error) => {
@@ -202,7 +272,7 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="users">{t("mass_assign_attributes")}</Button>
+          <Button StartIcon="map-pin">{t("add_attributes")}</Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>
@@ -262,9 +332,6 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
                         attributes: attributesToAssign,
                         userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
                       });
-
-                      setSelectedAttribute(null);
-                      setSelectedAttributeOptions([]);
                     }
                   }}>
                   {t("apply")}

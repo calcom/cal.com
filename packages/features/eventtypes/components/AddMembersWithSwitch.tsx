@@ -16,16 +16,18 @@ interface IUserToValue {
   username: string | null;
   avatar: string;
   email: string;
+  defaultScheduleId: number | null;
 }
 
 export const mapUserToValue = (
-  { id, name, username, avatar, email }: IUserToValue,
+  { id, name, username, avatar, email, defaultScheduleId }: IUserToValue,
   pendingString: string
 ) => ({
   value: `${id || ""}`,
   label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
   avatar,
   email,
+  defaultScheduleId,
 });
 
 const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
@@ -72,7 +74,7 @@ const CheckedHostField = ({
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
-                  weightAdjustment: option.weightAdjustment ?? 0,
+                  scheduleId: option.defaultScheduleId,
                 }))
               );
           }}
