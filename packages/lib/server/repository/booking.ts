@@ -94,7 +94,6 @@ export class BookingRepository {
       };
     };
   }) {
-    console.log(`users ${JSON.stringify(users)}`);
     const whereClause: Prisma.BookingWhereInput = {
       OR: [
         {

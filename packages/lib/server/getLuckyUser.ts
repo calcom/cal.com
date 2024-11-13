@@ -1,6 +1,6 @@
 import type { Prisma, User } from "@prisma/client";
 
-import type { GetAttributesQueryValueParams } from "@calcom/app-store/routing-forms/lib/raqbUtils";
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/routing-forms/lib/raqbUtils";
 import { getFieldResponse } from "@calcom/app-store/routing-forms/trpc/utils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes, children1Schema } from "@calcom/app-store/routing-forms/zod";
@@ -10,10 +10,7 @@ import type { Booking } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-async function getAttributesQueryValue(params: GetAttributesQueryValueParams) {
-  const { acrossQueryValueCompatiblity } = await import("@calcom/app-store/routing-forms/lib/raqbUtils");
-  return acrossQueryValueCompatiblity.getAttributesQueryValue(params);
-}
+const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 
 export enum DistributionMethod {
   PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
@@ -282,7 +279,6 @@ async function filterUsersBasedOnWeights<
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
 
-  //todo: check this function
   const allHostsWithCalibration = await getHostsWithCalibration(
     eventType.id,
     allRRHosts.map((host) => {
