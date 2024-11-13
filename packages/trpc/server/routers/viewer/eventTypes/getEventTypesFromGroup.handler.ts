@@ -59,7 +59,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
               position: "desc",
             },
             {
-              id: "asc",
+              id: "desc",
             },
           ],
           limit,
@@ -91,7 +91,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
             position: "desc",
           },
           {
-            id: "asc",
+            id: "desc",
           },
         ],
       })) ?? [];
