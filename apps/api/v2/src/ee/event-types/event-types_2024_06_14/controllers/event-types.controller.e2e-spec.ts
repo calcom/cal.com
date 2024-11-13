@@ -199,7 +199,7 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
-    it("should create an event type", async () => {
+    it.only("should create an event type", async () => {
       const nameBookingField: NameFieldInput_2024_06_14 = {
         type: "name",
         label: "Your name sir / madam",
@@ -212,6 +212,7 @@ describe("Event types Endpoints", () => {
         slug: "coding-class",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
+        lengthInMinutesOptions: [30, 60, 90],
         locations: [
           {
             type: "integration",
@@ -300,6 +301,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.title).toEqual(body.title);
           expect(createdEventType.description).toEqual(body.description);
           expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
+          expect(createdEventType.lengthInMinutesOptions).toEqual(body.lengthInMinutesOptions);
           expect(createdEventType.locations).toEqual(body.locations);
           expect(createdEventType.ownerId).toEqual(user.id);
           expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
@@ -360,6 +362,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.title).toEqual(eventType.title);
       expect(fetchedEventType?.description).toEqual(eventType.description);
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
@@ -665,6 +668,7 @@ describe("Event types Endpoints", () => {
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
+        lengthInMinutesOptions: [15, 30],
         bookingFields: [
           nameBookingField,
           {
@@ -733,6 +737,7 @@ describe("Event types Endpoints", () => {
 
           expect(updatedEventType.id).toEqual(eventType.id);
           expect(updatedEventType.title).toEqual(newTitle);
+          expect(updatedEventType.lengthInMinutesOptions).toEqual(body.lengthInMinutesOptions);
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
@@ -772,6 +777,7 @@ describe("Event types Endpoints", () => {
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
+          eventType.lengthInMinutesOptions = updatedEventType.lengthInMinutesOptions;
           eventType.bookingLimitsCount = updatedEventType.bookingLimitsCount;
           eventType.onlyShowFirstAvailableSlot = updatedEventType.onlyShowFirstAvailableSlot;
           eventType.bookingLimitsDuration = updatedEventType.bookingLimitsDuration;
@@ -819,6 +825,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.title).toEqual(eventType.title);
       expect(fetchedEventType.description).toEqual(eventType.description);
       expect(fetchedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
@@ -857,6 +864,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.title).toEqual(eventType.title);
       expect(fetchedEventType?.description).toEqual(eventType.description);
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);

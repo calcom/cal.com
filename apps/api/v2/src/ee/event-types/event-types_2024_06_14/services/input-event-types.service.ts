@@ -104,6 +104,7 @@ export class InputEventTypesService_2024_06_14 {
 
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -135,7 +136,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: this.getMetadataMultipleDuration(inputEventType.lengthInMinutesOptions),
+        multipleDuration: lengthInMinutesOptions,
       },
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
@@ -150,18 +151,10 @@ export class InputEventTypesService_2024_06_14 {
     return eventType;
   }
 
-  getMetadataMultipleDuration(lengthInMinutesOptions: number[] | undefined) {
-    if (lengthInMinutesOptions) {
-      return {
-        multipleDuration: lengthInMinutesOptions,
-      };
-    }
-    return undefined;
-  }
-
   async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -201,7 +194,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: this.getMetadataMultipleDuration(inputEventType.lengthInMinutesOptions),
+        multipleDuration: lengthInMinutesOptions,
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
