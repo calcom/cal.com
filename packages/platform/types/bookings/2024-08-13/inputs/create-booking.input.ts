@@ -64,6 +64,16 @@ export class CreateBookingInput_2024_08_13 {
   @IsDateString()
   start!: string;
 
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @ApiProperty({
+    example: 30,
+    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
+    If not provided then event type default length will be used for the booking.`,
+  })
+  lengthInMinutes?: number;
+
   @ApiProperty({
     type: Number,
     description: "The ID of the event type that is booked.",
