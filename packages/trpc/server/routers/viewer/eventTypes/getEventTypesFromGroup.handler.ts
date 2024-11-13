@@ -46,7 +46,7 @@ export const getEventTypesFromGroup = async ({
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
 
   const eventTypes: MappedEventType[] = [];
-  const currentCursor = cursor;
+  let currentCursor = cursor;
   let nextCursor: number | null | undefined = undefined;
   let isFetchingForFirstTime = true;
 
@@ -54,6 +54,7 @@ export const getEventTypesFromGroup = async ({
     const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor, searchQuery);
     const filteredBatch = await filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
     eventTypes.push(...filteredBatch);
+    currentCursor = batch.nextCursor;
     nextCursor = batch.nextCursor;
   };
 
