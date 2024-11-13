@@ -90,7 +90,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
         (field) => {
           if (!response.response || typeof response.response !== "object") return false;
 
-          return typeof field.value === "string" && field.value === emailValue;
+          return typeof field.value === "string" && field.value.toLowerCase() === emailValue.toLowerCase();
         }
       );
     });
