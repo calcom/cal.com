@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
+import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
   IsInt,
   IsDateString,
@@ -14,11 +15,34 @@ import {
   IsObject,
   IsBoolean,
   Min,
+  registerDecorator,
+  Validate,
 } from "class-validator";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
 import { ValidateMetadata } from "./validators/validate-metadata";
+
+function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
+  return function (target: object, propertyName: string) {
+    registerDecorator({
+      name: "requireEmailOrPhone",
+      target: target.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const obj = args.object as Attendee;
+          return !!(obj.email || obj.attendeePhoneNumber);
+        },
+        defaultMessage(): string {
+          return "At least one contact method (email or phone number) must be provided";
+        },
+      },
+    });
+  };
+}
 
 class Attendee {
   @ApiProperty({
@@ -29,13 +53,16 @@ class Attendee {
   @IsString()
   name!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
     description: "The email of the attendee.",
     example: "john.doe@example.com",
+    default: "",
   })
   @IsEmail()
-  email!: string;
+  @IsOptional()
+  @RequireEmailOrPhone()
+  email = "";
 
   @ApiProperty({
     type: String,
@@ -44,6 +71,17 @@ class Attendee {
   })
   @IsTimeZone()
   timeZone!: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "The phone number of the attendee in international format.",
+    example: "+919876543210",
+  })
+  @IsOptional()
+  @Validate((value: string) => !value || isValidPhoneNumber(value), {
+    message: "Invalid phone number format. Please use international format.",
+  })
+  attendeePhoneNumber?: string;
 
   @ApiPropertyOptional({
     enum: BookingLanguage,

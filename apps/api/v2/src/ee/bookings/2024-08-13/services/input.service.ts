@@ -161,8 +161,13 @@ export class InputBookingsService_2024_08_13 {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
             email: inputBooking.attendee.email,
+            attendeePhoneNumber: inputBooking.attendee.attendeePhoneNumber,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email,
+            attendeePhoneNumber: inputBooking.attendee.attendeePhoneNumber,
+          },
     };
   }
 
