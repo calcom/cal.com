@@ -27,6 +27,7 @@ import {
   ApiExcludeController as DocsExcludeController,
   ApiOperation as DocsOperation,
   ApiOkResponse as DocsOkResponse,
+  ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiBadRequestResponse as DocsBadRequestResponse,
   ApiHeader as DocsHeader,
 } from "@nestjs/swagger";
@@ -49,6 +50,7 @@ export class OAuthFlowController {
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
   @UseGuards(NextAuthGuard)
+  @DocsExcludeEndpoint()
   async authorize(
     @Param("clientId") clientId: string,
     @Body() body: OAuthAuthorizeInput,
@@ -82,6 +84,7 @@ export class OAuthFlowController {
 
   @Post("/exchange")
   @HttpCode(HttpStatus.OK)
+  @DocsExcludeEndpoint()
   async exchange(
     @Headers("Authorization") authorization: string,
     @Param("clientId") clientId: string,

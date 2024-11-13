@@ -4438,87 +4438,6 @@
         ]
       }
     },
-    "/v2/oauth/{clientId}/authorize": {
-      "post": {
-        "operationId": "OAuthFlowController_authorize",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OAuthAuthorizeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "OAuth"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/exchange": {
-      "post": {
-        "operationId": "OAuthFlowController_exchange",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth"
-        ]
-      }
-    },
     "/v2/oauth/{clientId}/refresh": {
       "post": {
         "operationId": "OAuthFlowController_refreshAccessToken",
@@ -6064,28 +5983,6 @@
           }
         }
       },
-      "OAuthAuthorizeInput": {
-        "type": "object",
-        "properties": {
-          "redirectUri": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "redirectUri"
-        ]
-      },
-      "ExchangeAuthorizationCodeInput": {
-        "type": "object",
-        "properties": {
-          "clientSecret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "clientSecret"
-        ]
-      },
       "RefreshTokenInput": {
         "type": "object",
         "properties": {
@@ -6966,6 +6863,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -7189,6 +7098,7 @@
         },
         "required": [
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug"
         ]
@@ -8331,6 +8241,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -8554,6 +8476,7 @@
         "required": [
           "id",
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "description",
@@ -8668,6 +8591,18 @@
           "lengthInMinutes": {
             "type": "number",
             "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "title": {
             "type": "string",
@@ -8889,7 +8824,10 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutesOptions"
+        ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -10148,6 +10086,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -10384,6 +10334,7 @@
         },
         "required": [
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "schedulingType",
@@ -10464,6 +10415,19 @@
             "type": "number",
             "minimum": 1,
             "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 1
+            }
           },
           "title": {
             "type": "string",
@@ -10890,6 +10854,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -11120,7 +11096,10 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutesOptions"
+        ]
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -12830,6 +12809,11 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
           "eventTypeId": {
             "type": "number",
             "description": "The ID of the event type that is booked.",
@@ -12875,6 +12859,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
@@ -12886,6 +12871,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -12937,6 +12927,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee",
           "instant"
@@ -12949,6 +12940,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -13000,6 +12996,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
