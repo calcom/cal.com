@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.6.16",
+  "version": "4.6.22",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
