@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
 
 export type EventSetupTabProps = Pick<
@@ -27,7 +28,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
     formMethods.getValues("metadata")?.multipleDuration
   );
   const [firstRender, setFirstRender] = useState(true);
-
+  const meQuery = useMeQuery();
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
   const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
 
@@ -103,6 +104,12 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
               onCheckedChange={(value) => {
                 formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
               }}
+              disabled={meQuery.isPending || !meQuery.data?.organizationId}
+              tooltip={
+                !meQuery.isPending && !meQuery.data?.organizationId
+                  ? t("orgs_upgrade_to_enable_feature")
+                  : undefined
+              }
             />
           </div>
           <TextField
