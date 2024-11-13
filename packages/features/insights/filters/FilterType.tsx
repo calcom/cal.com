@@ -1,4 +1,7 @@
+import { useMemo } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 import type { IconName } from "@calcom/ui";
 import {
   Dropdown,
@@ -12,8 +15,10 @@ import {
 
 import { useFilterContext } from "../context/provider";
 
+type FilterType = "event-type" | "user" | "routing_forms" | `rf_${string}` | "booking_status";
+
 type Option = {
-  value: "event-type" | "user";
+  value: FilterType;
   label: string;
   StartIcon: IconName;
 };
@@ -21,34 +26,76 @@ type Option = {
 export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?: boolean }) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
-  const { selectedFilter, selectedUserId } = filter;
+  const { selectedFilter, selectedUserId, selectedTeamId, selectedRoutingFormId, isAll, initialConfig } =
+    filter;
+  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
 
-  let filterOptions: Option[] = [
+  // Dynamically load filters if showRoutingFilters is set to true
+  // Query routing form field options when showRoutingFilters is true
+  const { data: routingFormFieldOptions } = trpc.viewer.insights.getRoutingFormFieldOptions.useQuery(
     {
-      label: t("event_type"),
-      value: "event-type",
-      StartIcon: "link",
+      teamId: selectedTeamId ?? -1,
+      isAll: !!isAll,
+      routingFormId: selectedRoutingFormId ?? undefined,
     },
     {
-      label: t("user"),
-      value: "user",
-      StartIcon: "user",
-    },
-    ...(showRoutingFilters
-      ? [
-          {
-            label: t("routing_forms"),
-            value: "routing_forms",
-            StartIcon: "calendar-check",
-          },
-        ]
-      : []),
-  ];
+      enabled: showRoutingFilters && initialConfigIsReady,
+      trpc: {
+        context: {
+          skipBatch: true,
+        },
+      },
+    }
+  );
 
-  if (selectedUserId) {
-    // remove user option from filterOptions
-    filterOptions = filterOptions.filter((option) => option.value !== "user");
-  }
+  const filterOptions = useMemo(() => {
+    let options: Option[] = [
+      {
+        label: t("event_type"),
+        value: "event-type",
+        StartIcon: "link",
+      },
+      {
+        label: t("user"),
+        value: "user",
+        StartIcon: "users" as IconName,
+      },
+    ];
+
+    // Add routing forms filter options
+    if (showRoutingFilters) {
+      options.push({
+        label: t("routing_forms"),
+        value: "routing_forms" as FilterType,
+        StartIcon: "calendar-check-2" as IconName,
+      });
+
+      options.push({
+        label: t("booking_status"),
+        value: "booking_status" as FilterType,
+        StartIcon: "circle" as IconName,
+      });
+
+      // Add dynamic routing form field options
+      if (routingFormFieldOptions?.length) {
+        options = [
+          ...options,
+          ...routingFormFieldOptions.map((option) => ({
+            label: option.label,
+            value: `rf_${option.id}` as FilterType,
+            StartIcon: "layers" as IconName,
+          })),
+        ];
+      }
+    }
+
+    if (selectedUserId) {
+      // remove user option from filterOptions
+      options = options.filter((option) => option.value !== "user");
+    }
+
+    return options;
+  }, [t, showRoutingFilters, routingFormFieldOptions, selectedUserId]);
 
   const filterValue = selectedFilter
     ? filterOptions.find((option) => option.value === selectedFilter[0])
@@ -64,7 +111,7 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-44">
+      <DropdownMenuContent className="z-50 w-44">
         {filterOptions?.map((option) => (
           <DropdownMenuItem key={option.label} className="w-44">
             <DropdownItem

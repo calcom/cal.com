@@ -3,8 +3,7 @@ import { memo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Icon } from "@calcom/ui";
-import { FilterSelect } from "@calcom/ui/filter-select";
+import { Icon, FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -23,10 +22,15 @@ export const RoutingFormFilterList = memo(() => {
   const { selectedTeamId, selectedRoutingFormId, isAll } = filter;
   const { selectedFilter } = filter;
 
-  const { data: allForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
-    teamId: selectedTeamId,
-    isAll,
-  });
+  const { data: allForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
+    {
+      teamId: selectedTeamId ?? undefined,
+      isAll: isAll ?? false,
+    },
+    {
+      enabled: selectedFilter?.includes("routing_forms"),
+    }
+  );
 
   if (!selectedFilter?.includes("routing_forms")) return null;
 
@@ -37,7 +41,7 @@ export const RoutingFormFilterList = memo(() => {
       title={t("routing_form")}
       options={filterOptions}
       selectedValue={selectedRoutingFormId}
-      onChange={(value) => setConfigFilters({ selectedRoutingFormId: value })}
+      onChange={(value) => setConfigFilters({ selectedRoutingFormId: value as string })}
       buttonIcon={<Icon name="filter" className="mr-2 h-4 w-4" />}
     />
   );

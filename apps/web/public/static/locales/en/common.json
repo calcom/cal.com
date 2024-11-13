@@ -405,6 +405,8 @@
   "back_to_bookings": "Back to bookings",
   "free_to_pick_another_event_type": "Feel free to pick another event anytime.",
   "cancelled": "Canceled",
+  "no_booking": "No booking",
+  "awaiting_host": "Awaiting host",
   "cancellation_successful": "Cancellation successful",
   "really_cancel_booking": "Really cancel your booking?",
   "cannot_cancel_booking": "You cannot cancel this booking",

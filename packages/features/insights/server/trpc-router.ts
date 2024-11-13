@@ -1583,7 +1583,11 @@ export const insightsRouter = router({
     .input(
       z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
     )
-    .query(async ({ input }) => {
-      return await RoutingEventsInsights.getRoutingFormFieldOptions(input);
+    .query(async ({ input, ctx }) => {
+      const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
+        ...input,
+        organizationId: ctx.user.organizationId ?? null,
+      });
+      return options;
     }),
 });

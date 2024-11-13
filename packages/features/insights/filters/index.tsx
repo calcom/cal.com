@@ -2,6 +2,7 @@ import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, Tooltip } from "@calcom/ui";
 
+import { BookingStatusFilter } from "./BookingStatusFilter";
 import { DateSelect } from "./DateSelect";
 import { Download } from "./Download/index";
 import { EventTypeList } from "./EventTypeList";
@@ -45,7 +46,12 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
 
         <EventTypeList />
 
-        {showRoutingFilters && <RoutingFormFilterList />}
+        {showRoutingFilters ? (
+          <>
+            <RoutingFormFilterList />
+            <BookingStatusFilter />
+          </>
+        ) : null}
 
         <FilterType showRoutingFilters={showRoutingFilters} />
 

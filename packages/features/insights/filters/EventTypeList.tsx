@@ -3,8 +3,7 @@ import { memo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Icon } from "@calcom/ui";
-import { FilterSelect } from "@calcom/ui/filter-select";
+import { Icon, FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 

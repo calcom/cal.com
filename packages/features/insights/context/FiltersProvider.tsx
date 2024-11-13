@@ -16,7 +16,9 @@ const querySchema = z.object({
   userId: z.coerce.number().nullable(),
   memberUserId: z.coerce.number().nullable(),
   eventTypeId: z.coerce.number().nullable(),
-  filter: z.enum(["event-type", "user", "routing_form"]).nullable(),
+  filter: z
+    .union([z.enum(["event-type", "user", "routing_form", "booking_status"]), z.string().regex(/^rf_.*$/)])
+    .nullable(),
   routingFormId: z.string().nullable(),
 });
 
@@ -72,7 +74,9 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     selectedTeamId: teamIdParsed || null,
     selectedTeamName: null,
     selectedEventTypeId: eventTypeIdParsed || null,
-    selectedFilter: filterParsed ? [filterParsed] : null,
+    selectedFilter: filterParsed
+      ? [filterParsed as "event-type" | "user" | "routing_forms" | `rf_${string}`]
+      : null,
     selectedRoutingFormId: routingFormIdParsed || null,
     isAll: false,
     initialConfig: {
