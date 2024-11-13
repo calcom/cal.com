@@ -445,6 +445,7 @@ export class EventTypeRepository {
       requiresConfirmation: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
+      autoTranslateDescriptionEnabled: true,
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,

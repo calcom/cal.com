@@ -101,7 +101,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
               title={t("translate_description_button")}
               checked={!!autoTranslateDescriptionEnabled}
               onCheckedChange={(value) => {
-                formMethods.setValue("autoTranslateDescriptionEnabled", value);
+                formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
               }}
             />
           </div>

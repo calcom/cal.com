@@ -109,6 +109,7 @@ export const useEventTypeForm = ({
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       aiPhoneCallConfig: {
