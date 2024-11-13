@@ -346,6 +346,7 @@ class RoutingEventsInsights {
       ? Prisma.sql`AND ${Prisma.raw(teamConditions.join(" AND "))}`
       : Prisma.sql``;
 
+    // If youre at this point wondering what this does. This groups the responses by form and field and counts the number of responses for each option that don't have a booking.
     const result = await prisma.$queryRaw<
       {
         formId: string;
@@ -353,60 +354,77 @@ class RoutingEventsInsights {
         fieldId: string;
         fieldLabel: string;
         optionId: string;
+        optionLabel: string;
         count: number;
-        routes: Prisma.JsonValue;
       }[]
     >`
-      WITH response_data AS (
+      WITH form_fields AS (
         SELECT 
-          r.id as response_id,
-          r."formId",
-          r.response::jsonb as response_json
-        FROM "App_RoutingForms_FormResponse" r
-        WHERE r."routedToBookingUid" IS NULL
+          f.id as form_id,
+          f.name as form_name,
+          field->>'id' as field_id,
+          field->>'label' as field_label,
+          opt->>'id' as option_id,
+          opt->>'label' as option_label
+        FROM "App_RoutingForms_Form" f,
+        LATERAL jsonb_array_elements(f.fields) as field
+        LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
+        WHERE true
+        ${whereClause}
       ),
-      field_values AS (
+      response_stats AS (
         SELECT 
-          rd.response_id,
-          rd."formId",
+          r."formId",
           key as field_id,
-          value->>'label' as field_label,
           CASE 
-            WHEN jsonb_typeof(value->'value') = 'array' THEN 
-              jsonb_array_elements_text(value->'value')
-            ELSE 
+            WHEN jsonb_typeof(value->'value') = 'array' THEN
+              v.value_item
+            ELSE
               value->>'value'
-          END as option_value
-        FROM response_data rd,
-             jsonb_each(rd.response_json) as fields(key, value)
+          END as selected_option,
+          COUNT(DISTINCT r.id) as response_count
+        FROM "App_RoutingForms_FormResponse" r
+        CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
+        LEFT JOIN LATERAL jsonb_array_elements_text(
+          CASE 
+            WHEN jsonb_typeof(value->'value') = 'array' 
+            THEN value->'value'
+            ELSE NULL
+          END
+        ) as v(value_item) ON true
+        WHERE r."routedToBookingUid" IS NULL
+        GROUP BY r."formId", key, selected_option
       )
       SELECT 
-        f.id as "formId",
-        f.name as "formName",
-        fv.field_id as "fieldId",
-        fv.field_label as "fieldLabel",
-        fv.option_value as "optionId",
-        COUNT(DISTINCT fv.response_id)::integer as count,
-        f.routes as routes
-      FROM field_values fv
-      JOIN "App_RoutingForms_Form" f ON f.id = fv."formId"
-      WHERE fv.option_value IS NOT NULL
-      ${whereClause}
-      GROUP BY 
-        f.id,
-        f.name,
-        fv.field_id,
-        fv.field_label,
-        fv.option_value,
-        f.routes
+        ff.form_id as "formId",
+        ff.form_name as "formName",
+        ff.field_id as "fieldId",
+        ff.field_label as "fieldLabel",
+        ff.option_id as "optionId",
+        ff.option_label as "optionLabel",
+        COALESCE(rs.response_count, 0)::integer as count
+      FROM form_fields ff
+      LEFT JOIN response_stats rs ON 
+        rs."formId" = ff.form_id AND 
+        rs.field_id = ff.field_id AND 
+        rs.selected_option = ff.option_id
+      WHERE ff.option_id IS NOT NULL
       ORDER BY count DESC`;
 
-    console.log(result);
+    const groupedByFormAndField = result.reduce((acc, curr) => {
+      const formKey = curr.formName;
+      acc[formKey] = acc[formKey] || {};
+      const labelKey = curr.fieldLabel;
+      acc[formKey][labelKey] = acc[formKey][labelKey] || [];
+      acc[formKey][labelKey].push({
+        optionId: curr.optionId,
+        count: curr.count,
+        optionLabel: curr.optionLabel,
+      });
+      return acc;
+    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
 
-    return result.map((row) => ({
-      ...row,
-      routes: row.routes as any[],
-    }));
+    return groupedByFormAndField;
   }
 }
 
