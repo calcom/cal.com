@@ -42,7 +42,7 @@ export class GoogleService {
     });
   }
 
-  static async findGoogleCalendarCredential({ userId }: { userId: number }) {
+  static async findFirstGoogleCalendarCredential({ userId }: { userId: number }) {
     return await CredentialRepository.findFirstByAppIdAndUserId({
       appId: "google-calendar",
       userId,
@@ -71,6 +71,43 @@ export class GoogleService {
       return allCalendars;
     } catch (error) {
       logger.error("Error fetching all Google Calendars", { error });
+      throw error;
+    }
+  }
+
+  static async getPrimaryCalendar(
+    calendar: calendar_v3.Calendar,
+    fields: string[] = ["id", "summary", "primary", "accessRole"]
+  ): Promise<calendar_v3.Schema$CalendarListEntry | null> {
+    let pageToken: string | undefined;
+    let firstCalendar: calendar_v3.Schema$CalendarListEntry | undefined;
+
+    try {
+      do {
+        const response: any = await calendar.calendarList.list({
+          fields: `items(${fields.join(",")}),nextPageToken`,
+          pageToken,
+          maxResults: 250, // 250 is max
+        });
+
+        const cals = response.data.items ?? [];
+        const primaryCal = cals.find((cal: calendar_v3.Schema$CalendarListEntry) => cal.primary);
+        if (primaryCal) {
+          return primaryCal;
+        }
+
+        // Store the first calendar in case no primary is found
+        if (cals.length > 0 && !firstCalendar) {
+          firstCalendar = cals[0];
+        }
+
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
+
+      // should not be reached because Google Cal always has a primary cal
+      return firstCalendar ?? null;
+    } catch (error) {
+      logger.error("Error in `getPrimaryCalendar`", { error });
       throw error;
     }
   }

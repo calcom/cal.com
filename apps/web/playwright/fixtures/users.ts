@@ -860,6 +860,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
       });
     },
+    confirmCompletedOnboarding: async () => {
+      const user = await prisma.user.findUnique({
+        where: { id: store.user.id },
+        select: { completedOnboarding: true },
+      });
+      return !!user?.completedOnboarding;
+    },
   };
 };
 
@@ -878,7 +885,8 @@ type CustomUserOptsKeys =
   | "organizationId"
   | "twoFactorEnabled"
   | "disableImpersonation"
-  | "role";
+  | "role"
+  | "identityProvider";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -944,6 +952,7 @@ const createUser = (
             },
           }
         : undefined,
+    identityProvider: opts?.identityProvider,
   };
 
   function getOrganizationRelatedProps({

@@ -625,7 +625,7 @@ export const getOptions = ({
         const grantedScopes = account.scope?.split(" ") ?? [];
         if (
           account.provider === "google" &&
-          !(await GoogleService.findGoogleCalendarCredential({
+          !(await GoogleService.findFirstGoogleCalendarCredential({
             userId: user.id as number,
           })) &&
           GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))
@@ -660,10 +660,7 @@ export const getOptions = ({
             version: "v3",
             auth: oAuth2Client,
           });
-          const cals = await GoogleService.getAllCalendars(calendar);
-          const primaryCal = cals.find((cal) => cal.primary) ?? cals[0];
-          await GoogleService.updateProfilePhoto(oAuth2Client, user.id as number);
-
+          const primaryCal = await GoogleService.getPrimaryCalendar(calendar);
           if (primaryCal?.id) {
             await GoogleService.createSelectedCalendar({
               credentialId: gcalCredential.id,
@@ -671,6 +668,7 @@ export const getOptions = ({
               externalId: primaryCal.id,
             });
           }
+          await GoogleService.updateProfilePhoto(oAuth2Client, user.id as number);
         }
 
         return {
