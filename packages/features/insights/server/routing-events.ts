@@ -73,6 +73,7 @@ class RoutingEventsInsights {
     routingFormId,
     userId,
     bookingStatus,
+    fieldFilter,
   }: RoutingFormInsightsFilter) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
@@ -103,6 +104,12 @@ class RoutingEventsInsights {
                 }),
           }
         : {}),
+      ...(fieldFilter && {
+        response: {
+          path: [fieldFilter.fieldId, "value"],
+          array_contains: [fieldFilter.optionId],
+        },
+      }),
       form: formsWhereCondition,
     };
 
@@ -176,9 +183,6 @@ class RoutingEventsInsights {
       organizationId,
       routingFormId,
     });
-
-    // {"83316968-45bf-4c9d-b5d4-5368a8d2d2a8": {"label": "skills", "value": ["e1e55ea5-ff29-4be6-bea5-0536637f50cb", "f06c756f-58be-4d87-9210-8b30f0eb4e49", "2f7c51cf-919f-4f75-823f-d824131cd3a6"]}}
-    // [fieldId]: {label: string, value: [optionId]}
 
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
       ...(startDate &&
