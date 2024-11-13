@@ -141,7 +141,8 @@ checksums:
     requested_to_reschedule_subject_attendee: 8c41aa43f412fd739407d9a1eaa82c15
     hi_user_name: fc0d6128cf9a150638e635d2b2aa7397
     ics_event_title: ad10ef33288a55748e6001607d528ff3
-    please_book_a_time_sometime_later: 89f131f8b3c7b4bc1a288a0ba052541c
+    please_book_a_time_sometime_later: 5353ec92d16f02eba6365819fddfc215
+    schedule_instead: d09667d846cefe86d8a1275a6624b310
     new_event_subject: eea212a9fd5e66baf8b983b8bc9d7d63
     join_by_entrypoint: 116d507f1b3a64cd2538e1073935173c
     notes: 93c7ef9bc767f51fbe360afcf6b1fecb
