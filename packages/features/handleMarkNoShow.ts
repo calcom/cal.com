@@ -213,6 +213,10 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const booking = await BookingRepository.findBookingByUidAndUserId({ bookingUid, userId });
+
+  if (!booking)
+    throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
+
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
@@ -222,9 +226,6 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
       message: "Cannot mark no-show before the meeting has started.",
     });
   }
-
-  if (!booking)
-    throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
 };
 
 export default handleMarkNoShow;
