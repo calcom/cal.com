@@ -17,7 +17,7 @@ export const myStatsHandler = async ({ ctx }: MyStatsOptions) => {
     where: {
       id: sessionUser.id,
     },
-       select: {
+    select: {
       _count: {
         select: {
           bookings: true,
@@ -41,12 +41,10 @@ export const myStatsHandler = async ({ ctx }: MyStatsOptions) => {
       },
     },
   });
-  let sumOfTeamEventTypes = 0;
-  for (const team of additionalUserInfo?.teams || []) {
-    for (const _eventType of team.team.eventTypes) {
-      sumOfTeamEventTypes++;
-    }
-  }
+  const sumOfTeamEventTypes = additionalUserInfo?.teams.reduce(
+    (sum, team) => sum + team.team.eventTypes.length,
+    0
+  );
 
   return {
     id: sessionUser.id,
