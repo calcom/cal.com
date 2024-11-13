@@ -86,7 +86,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       key,
       userId: req.session.user.id,
     });
-    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
+    await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
 
     // If we still don't have a primary calendar skip creating the selected calendar.
     // It can be toggled on later.
@@ -112,7 +112,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         externalId: selectedCalendarWhereUnique.externalId,
         userId: selectedCalendarWhereUnique.userId,
       });
-      await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
+      await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
