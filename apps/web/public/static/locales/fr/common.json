@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Sélectionnez quelques créneaux disponibles et intégrez-les dans votre e-mail.",
   "select_time": "Sélectionner un créneau",
   "select_date": "Sélectionner une date",
-  "connecting_you_to_someone": "Nous vous mettons en relation avec quelqu'un.",
+  "connecting_you_to_someone": "Nous vous mettons en relation avec quelqu'un de {{orgName}}.",
   "please_do_not_close_this_tab": "Veuillez ne pas fermer ou actualiser cette page",
   "see_all_available_times": "Voir tous les créneaux disponibles",
   "org_team_names_example_1": "p. ex. Équipe marketing",

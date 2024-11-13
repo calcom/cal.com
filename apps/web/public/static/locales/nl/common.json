@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Selecteer enkele beschikbare tijden en voeg ze toe aan uw e-mail",
   "select_time": "Tijd selecteren",
   "select_date": "Datum selecteren",
-  "connecting_you_to_someone": "We verbinden je met iemand.",
+  "connecting_you_to_someone": "We verbinden je met iemand van {{orgName}}.",
   "please_do_not_close_this_tab": "Sluit of vernieuw deze pagina niet",
   "see_all_available_times": "Bekijk alle beschikbare tijden",
   "org_team_names_example_1": "bijvoorbeeld Marketingteam",

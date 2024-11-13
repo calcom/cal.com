@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "選取幾個開放預約的時段，然後嵌入您的電子郵件",
   "select_time": "選取時間",
   "select_date": "選取日期",
-  "connecting_you_to_someone": "我們正在為您連接某人。",
+  "connecting_you_to_someone": "我們正在為您連接 {{orgName}} 的人員。",
   "please_do_not_close_this_tab": "請勿關閉或重新整理此頁面",
   "see_all_available_times": "查看所有可預約時段",
   "org_team_names_example_1": "例如行銷團隊",

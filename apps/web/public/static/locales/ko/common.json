@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "사용 가능한 시간을 몇 개 선택하여 이메일에 포함시키세요",
   "select_time": "시간 선택",
   "select_date": "날짜 선택",
-  "connecting_you_to_someone": "다른 사람과 연결 중입니다.",
+  "connecting_you_to_someone": "{{orgName}}의 담당자와 연결 중입니다.",
   "please_do_not_close_this_tab": "이 페이지를 닫거나 새로 고침하지 마세요",
   "see_all_available_times": "모든 사용 가능한 시간 보기",
   "org_team_names_example_1": "예: 마케팅 팀",

@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Selecione alguns horários disponíveis e incorpore-os no seu E-mail",
   "select_time": "Selecionar horário",
   "select_date": "Selecionar data",
-  "connecting_you_to_someone": "Estamos a conectá-lo a alguém.",
+  "connecting_you_to_someone": "Estamos conectando você a alguém da {{orgName}}.",
   "please_do_not_close_this_tab": "Por favor, não feche ou atualize esta página",
   "see_all_available_times": "Ver todos os horários disponíveis",
   "org_team_names_example_1": "Por exemplo, Equipa de Marketing",

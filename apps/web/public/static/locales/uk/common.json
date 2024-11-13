@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Виберіть кілька доступних часових проміжків і вбудуйте їх в електронний лист",
   "select_time": "Виберіть час",
   "select_date": "Виберіть дату",
-  "connecting_you_to_someone": "Ми з'єднуємо вас з кимось.",
+  "connecting_you_to_someone": "Ми з'єднуємо вас із представником {{orgName}}.",
   "please_do_not_close_this_tab": "Будь ласка, не закривайте і не оновлюйте цю сторінку",
   "see_all_available_times": "Переглянути доступні часові проміжки",
   "org_team_names_example_1": "напр. команда маркетингу",

@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "出席できる時間帯をいくつか選んで、メールに埋め込みます",
   "select_time": "時間帯を選ぶ",
   "select_date": "日付を選ぶ",
-  "connecting_you_to_someone": "誰かに接続しています。",
+  "connecting_you_to_someone": "{{orgName}}の担当者におつなぎしています。",
   "please_do_not_close_this_tab": "このページを閉じたり、リフレッシュしたりしないでください",
   "see_all_available_times": "出席できる時間帯をすべて表示",
   "org_team_names_example_1": "例：マーケティングチーム",

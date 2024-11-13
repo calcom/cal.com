@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "选择几个可预约时间并将它们嵌入到您的电子邮件",
   "select_time": "选择时间",
   "select_date": "选择日期",
-  "connecting_you_to_someone": "我们正在为您创建连接",
+  "connecting_you_to_someone": "我们正在为您接通{{orgName}}的工作人员。",
   "please_do_not_close_this_tab": "请不要关闭或刷新此页面",
   "see_all_available_times": "查看所有可预约时间",
   "org_team_names_example_1": "例如，营销团队",

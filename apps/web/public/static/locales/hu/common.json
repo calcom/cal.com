@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Válasszon ki néhány elérhető időpontot, és ágyazza be e-mailjeibe",
   "select_time": "Válasszon időt",
   "select_date": "Válasszon dátumot",
-  "connecting_you_to_someone": "Összekapcsolunk valakivel.",
+  "connecting_you_to_someone": "Kapcsolatba hozzuk egy {{orgName}} munkatársával.",
   "please_do_not_close_this_tab": "Kérjük, ne zárja be vagy frissítse ezt az oldalt",
   "see_all_available_times": "Az összes elérhető időpont megtekintése",
   "org_team_names_example_1": "például. Marketing Csapat",

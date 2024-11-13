@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Velg noen tilgjengelige tider og legg dem inn i e-posten din",
   "select_time": "Velg tid",
   "select_date": "Velg dato",
-  "connecting_you_to_someone": "Vi kobler deg til noen.",
+  "connecting_you_to_someone": "Vi kobler deg til noen fra {{orgName}}.",
   "please_do_not_close_this_tab": "Vennligst ikke lukk eller oppdater denne siden",
   "see_all_available_times": "Se alle tilgjengelige tider",
   "org_team_names_example_1": "f.eks. Markedsføringsteam",

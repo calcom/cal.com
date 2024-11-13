@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "Vyberte několik dostupných časů a vložte je do e-mailu",
   "select_time": "Vyberte čas",
   "select_date": "Vyberte datum",
-  "connecting_you_to_someone": "Spojujeme vás s někým.",
+  "connecting_you_to_someone": "Spojujeme vás s někým z {{orgName}}.",
   "please_do_not_close_this_tab": "Prosím, nezavírejte ani neobnovujte tuto stránku",
   "see_all_available_times": "Zobrazit všechny dostupné časy",
   "org_team_names_example_1": "Např. marketingový tým",
