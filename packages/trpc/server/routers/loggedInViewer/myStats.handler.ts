@@ -48,10 +48,10 @@ export const myStatsHandler = async ({ ctx }: MyStatsOptions) => {
 
   return {
     id: sessionUser.id,
-    sumOfBookings: additionalUserInfo?.bookings.length,
-    sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
-    sumOfTeams: additionalUserInfo?.teams.length,
-    sumOfEventTypes: additionalUserInfo?.eventTypes.length,
+    sumOfBookings: additionalUserInfo?._count.bookings,
+    sumOfCalendars: additionalUserInfo?._count.selectedCalendars,
+    sumOfTeams: additionalUserInfo?._count.teams,
+    sumOfEventTypes: additionalUserInfo?._count.eventTypes,
     sumOfTeamEventTypes,
   };
 };

@@ -26,16 +26,13 @@ const useIntercomHook = isInterComEnabled
 export const useIntercom = () => {
   const hookData = useIntercomHook();
   const { data } = trpc.viewer.me.useQuery();
-  const { data: statsData } = trpc.viewer.myStats.useQuery(
-    {},
-    {
-      trpc: {
-        context: {
-          skipBatch: true,
-        },
+  const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
+    trpc: {
+      context: {
+        skipBatch: true,
       },
-    }
-  );
+    },
+  });
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
@@ -132,16 +129,13 @@ export const useIntercom = () => {
 export const useBootIntercom = () => {
   const { boot } = useIntercom();
   const { data: user } = trpc.viewer.me.useQuery();
-  const { data: statsData } = trpc.viewer.myStats.useQuery(
-    {},
-    {
-      trpc: {
-        context: {
-          skipBatch: true,
-        },
+  const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
+    trpc: {
+      context: {
+        skipBatch: true,
       },
-    }
-  );
+    },
+  });
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
