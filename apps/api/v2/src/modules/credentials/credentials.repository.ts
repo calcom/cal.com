@@ -4,6 +4,7 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
 
 @Injectable()
 export class CredentialsRepository {
@@ -36,6 +37,10 @@ export class CredentialsRepository {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, userId } });
   }
 
+  getByTypeAndTeamId(type: string, teamId: number) {
+    return this.dbWrite.prisma.credential.findFirst({ where: { type, teamId } });
+  }
+
   getAllUserCredentialsByTypeAndId(type: string, userId: number) {
     return this.dbRead.prisma.credential.findMany({ where: { type, userId } });
   }
@@ -61,6 +66,18 @@ export class CredentialsRepository {
             email: true,
           },
         },
+      },
+    });
+  }
+
+  async getAllUserCredentialsById(userId: number) {
+    return await this.dbRead.prisma.credential.findMany({
+      where: {
+        userId,
+      },
+      select: credentialForCalendarServiceSelect,
+      orderBy: {
+        id: "asc",
       },
     });
   }

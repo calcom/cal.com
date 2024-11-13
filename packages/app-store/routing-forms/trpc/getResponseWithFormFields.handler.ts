@@ -1,5 +1,7 @@
 import type { z } from "zod";
 
+import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -9,7 +11,6 @@ import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
 import type { ZFormByResponseIdInputSchema } from "./_router";
-import { canEditEntity } from "@calcom/lib/entityPermissionUtils";
 
 type GetResponseWithFormFieldsOptions = {
   ctx: {
@@ -21,8 +22,8 @@ type GetResponseWithFormFieldsOptions = {
 async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithFormFieldsOptions) {
   const { user } = ctx;
   const { formResponseId } = input;
+  const translate = await getTranslation(user.locale ?? "en", "common");
 
-  
   const formResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
       id: formResponseId,
@@ -48,6 +49,7 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
           },
           team: {
             select: {
+              id: true,
               members: true,
               slug: true,
               parent: {
@@ -65,16 +67,18 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
   if (!formResponse) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Form response not found",
+      message: translate("form_response_not_found"),
     });
   }
 
   const form = formResponse.form;
 
-  if (!canEditEntity(form, user.id)) {
+  // TODO: To make the check stricter, we could check if the user is admin/owner of the team or a member that is the organizer.
+  // But the exact criteria of showing a booking to the user could be trickier. Maybe we allow hosts as well to access the booking and thus should allow them as well to reroute
+  if (!(await canAccessEntity(form, user.id))) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "You don't have access to this form",
+      message: translate("you_dont_have_access_to_reroute_this_booking"),
     });
   }
 

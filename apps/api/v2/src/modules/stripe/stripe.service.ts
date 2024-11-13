@@ -1,13 +1,14 @@
 import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Credential } from "@prisma/client";
 import Stripe from "stripe";
 import { z } from "zod";
 
@@ -17,9 +18,17 @@ import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 
 import stringify = require("qs-stringify");
 
+type IntegrationOAuthCallbackState = {
+  accessToken: string;
+  returnTo: string;
+  onErrorReturnTo: string;
+  fromApp: boolean;
+  teamId?: number | null;
+};
+
 @Injectable()
 export class StripeService {
-  public stripe: Stripe;
+  private stripe: Stripe;
   private redirectUri = `${this.config.get("api.url")}/stripe/save`;
 
   constructor(
@@ -27,11 +36,16 @@ export class StripeService {
     private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
-    private readonly tokensRepository: TokensRepository
+    private readonly tokensRepository: TokensRepository,
+    private readonly membershipRepository: MembershipsRepository
   ) {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
     });
+  }
+
+  getStripe() {
+    return this.stripe;
   }
 
   async getStripeRedirectUrl(state: string, userEmail?: string, userName?: string | null) {
@@ -76,6 +90,7 @@ export class StripeService {
 
   async saveStripeAccount(state: string, code: string, accessToken: string): Promise<{ url: string }> {
     const userId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+    const oAuthCallbackState: IntegrationOAuthCallbackState = JSON.parse(state);
 
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
@@ -92,6 +107,19 @@ export class StripeService {
       data["default_currency"] = account.default_currency;
     }
 
+    if (oAuthCallbackState.teamId) {
+      await this.checkIfUserHasAdminAccessToTeam(oAuthCallbackState.teamId, userId);
+
+      await this.appsRepository.createTeamAppCredential(
+        "stripe_payment",
+        data as unknown as Prisma.InputJsonObject,
+        oAuthCallbackState.teamId,
+        "stripe"
+      );
+
+      return { url: getReturnToValueFromQueryState(state) };
+    }
+
     await this.appsRepository.createAppCredential(
       "stripe_payment",
       data as unknown as Prisma.InputJsonObject,
@@ -102,18 +130,39 @@ export class StripeService {
     return { url: getReturnToValueFromQueryState(state) };
   }
 
-  async checkIfStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+  async checkIfIndividualStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
 
-    if (!stripeCredentials) {
+    return await this.validateStripeCredentials(stripeCredentials);
+  }
+
+  async checkIfTeamStripeAccountConnected(teamId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+    const stripeCredentials = await this.credentialRepository.getByTypeAndTeamId("stripe_payment", teamId);
+
+    return await this.validateStripeCredentials(stripeCredentials);
+  }
+
+  async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
+    const teamMembership = await this.membershipRepository.findMembershipByTeamId(teamId, userId);
+    const hasAdminAccessToTeam = teamMembership?.role === "ADMIN" || teamMembership?.role === "OWNER";
+
+    if (!hasAdminAccessToTeam) {
+      throw new BadRequestException("You must be team owner or admin to do this");
+    }
+  }
+
+  async validateStripeCredentials(
+    credentials?: Credential | null
+  ): Promise<{ status: typeof SUCCESS_STATUS }> {
+    if (!credentials) {
       throw new NotFoundException("Credentials for stripe not found.");
     }
 
-    if (stripeCredentials.invalid) {
+    if (credentials.invalid) {
       throw new BadRequestException("Invalid stripe credentials.");
     }
 
-    const stripeKey = JSON.stringify(stripeCredentials.key);
+    const stripeKey = JSON.stringify(credentials.key);
     const stripeKeyObject = JSON.parse(stripeKey);
 
     const stripeAccount = await stripeInstance.accounts.retrieve(stripeKeyObject?.stripe_user_id);

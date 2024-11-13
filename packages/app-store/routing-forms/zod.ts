@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { routingFormAppDataSchemas } from "./appDataSchemas";
+
 export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
@@ -64,6 +66,7 @@ export enum RouteActionType {
 export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
 /**
  * Stricter schema for validating before saving to DB
+ * It doesn't decide what will be saved, it is just to validate the data before saving
  */
 export const queryValueSaveValidationSchema = queryValueSchema
   .omit({ children1: true })
@@ -78,6 +81,7 @@ export const queryValueSaveValidationSchema = queryValueSchema
                 field: z.any().optional(),
                 operator: z.any().optional(),
                 value: z.any().optional(),
+                valueSrc: z.any().optional(),
               })
               .optional(),
           })
@@ -94,7 +98,13 @@ export const queryValueSaveValidationSchema = queryValueSchema
             if (!isObject(rule.properties)) return;
 
             const value = rule.properties.value || [];
-            if (!(value instanceof Array)) {
+            const valueSrc = rule.properties.valueSrc;
+            if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+              return;
+            }
+
+            if (!valueSrc.length) {
+              // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
               return;
             }
 
@@ -120,23 +130,37 @@ export const queryValueSaveValidationSchema = queryValueSchema
   )
   .nullish();
 
+export const attributeRoutingConfigSchema = z
+  .object({
+    skipContactOwner: z.boolean().optional(),
+    salesforce: routingFormAppDataSchemas["salesforce"],
+  })
+  .nullish();
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  attributeRoutingConfig: z
-    .object({
-      skipContactOwner: z.boolean().optional(),
-    })
-    .nullish(),
+  name: z.string().optional(),
+  attributeRoutingConfig: attributeRoutingConfigSchema,
 
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
    * RAQB query value for form fields
+   * BRANDED to ensure we don't give it Attributes
    */
   queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
   /**
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   * BRANDED to ensure we don't give it Form Fields
    */
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * RAQB query value for fallback of `attributesQueryValue`
+   * BRANDED to ensure we don't give it Form Fields, It needs Attributes
+   */
+  fallbackAttributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  /**
+   * Whether the route is a fallback if no other routes match
+   */
   isFallback: z.boolean().optional(),
   action: z.object({
     type: routeActionTypeSchema,
@@ -150,6 +174,7 @@ export const zodNonRouterRouteView = zodNonRouterRoute;
 export const zodRouterRoute = z.object({
   // This is the id of the Form being used as router
   id: z.string(),
+  name: z.string().optional(),
   isRouter: z.literal(true),
 });
 

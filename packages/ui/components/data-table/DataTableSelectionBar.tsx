@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 
-import type { IconName } from "../..";
+import type { IconName } from "../icon";
 
 export type ActionItem<TData> =
   | {

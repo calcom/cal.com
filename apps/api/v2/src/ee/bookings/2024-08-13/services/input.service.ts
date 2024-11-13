@@ -1,8 +1,12 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { bookingResponsesSchema } from "@/ee/bookings/2024-08-13/services/output.service";
+import {
+  bookingResponsesSchema,
+  seatedBookingResponsesSchema,
+} from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
@@ -15,15 +19,21 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries";
 import {
+  CancelBookingInput,
   CancelBookingInput_2024_08_13,
+  CancelSeatedBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  RescheduleBookingInput,
   RescheduleBookingInput_2024_08_13,
+  RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -73,7 +83,8 @@ export class InputBookingsService_2024_08_13 {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly config: ConfigService,
-    private readonly apiKeyRepository: ApiKeyRepository
+    private readonly apiKeyRepository: ApiKeyRepository,
+    private readonly bookingSeatRepository: BookingSeatRepository
   ) {}
 
   async createBookingRequest(
@@ -82,6 +93,7 @@ export class InputBookingsService_2024_08_13 {
   ): Promise<BookingRequest> {
     const bodyTransformed = await this.transformInputCreateBooking(body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+    const requestId = request.get("X-Request-Id");
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -90,6 +102,13 @@ export class InputBookingsService_2024_08_13 {
       : DEFAULT_PLATFORM_PARAMS;
 
     const location = request.body.location || request.body.meetingUrl;
+    this.logger.log(`createBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      location,
+      oAuthClientId,
+      ...oAuthParams,
+    });
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
@@ -106,10 +125,13 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
       inputBooking.attendee.timeZone
     );
-    const endTime = startTime.plus({ minutes: eventType.length });
+    const endTime = startTime.plus({ minutes: lengthInMinutes });
 
     return {
       start: startTime.toISO(),
@@ -131,6 +153,25 @@ export class InputBookingsService_2024_08_13 {
           }
         : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
     };
+  }
+
+  validateBookingLengthInMinutes(inputBooking: CreateBookingInput_2024_08_13, eventType: EventType) {
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+    if (inputBooking.lengthInMinutes && !eventTypeMetadata?.multipleDuration) {
+      throw new BadRequestException(
+        "Can't specify 'lengthInMinutes' because event type does not have multiple possible lengths. Please, remove the 'lengthInMinutes' field from the request."
+      );
+    }
+    if (
+      inputBooking.lengthInMinutes &&
+      !eventTypeMetadata?.multipleDuration?.includes(inputBooking.lengthInMinutes)
+    ) {
+      throw new BadRequestException(
+        `Provided 'lengthInMinutes' is not one of the possible lengths for the event type. The possible lengths are: ${eventTypeMetadata?.multipleDuration?.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   async createRecurringBookingRequest(
@@ -239,9 +280,11 @@ export class InputBookingsService_2024_08_13 {
   async createRescheduleBookingRequest(
     request: Request,
     bookingUid: string,
-    body: RescheduleBookingInput_2024_08_13
+    body: RescheduleBookingInput
   ): Promise<BookingRequest> {
-    const bodyTransformed = await this.transformInputRescheduleBooking(bookingUid, body);
+    const bodyTransformed = this.isRescheduleSeatedBody(body)
+      ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
+      : await this.transformInputRescheduleBooking(bookingUid, body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -256,6 +299,60 @@ export class InputBookingsService_2024_08_13 {
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
+    return body.hasOwnProperty("seatUid");
+  }
+
+  async transformInputRescheduleSeatedBooking(
+    bookingUid: string,
+    inputBooking: RescheduleSeatedBookingInput_2024_08_13
+  ) {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+    // todo create booking seat module, repository and fetch the seat to get info
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
+    }
+    if (!booking.eventTypeId) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} is missing event type`);
+    }
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(booking.eventTypeId);
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
+    }
+
+    const seat = await this.bookingSeatRepository.getByReferenceUid(inputBooking.seatUid);
+    if (!seat) {
+      throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
+    }
+
+    const { responses: bookingResponses } = seatedBookingResponsesSchema.parse(seat.data);
+    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+
+    if (!attendee) {
+      throw new NotFoundException(
+        `Attendee with e-mail ${bookingResponses.email} for booking with uid=${bookingUid} and seatUid=${inputBooking.seatUid} not found`
+      );
+    }
+
+    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
+    const endTime = startTime.plus({ minutes: eventType.length });
+
+    return {
+      start: startTime.toISO(),
+      end: endTime.toISO(),
+      eventTypeId: eventType.id,
+      timeZone: attendee.timeZone,
+      language: attendee.locale,
+      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
+      // metadata: booking.metadata || {},
+      metadata: {},
+      hasHashedBookingLink: false,
+      guests: [],
+      responses: { ...bookingResponses },
+      rescheduleUid: inputBooking.seatUid,
+    };
   }
 
   async transformInputRescheduleBooking(bookingUid: string, inputBooking: RescheduleBookingInput_2024_08_13) {
@@ -371,9 +468,11 @@ export class InputBookingsService_2024_08_13 {
   async createCancelBookingRequest(
     request: Request,
     bookingUid: string,
-    body: CancelBookingInput_2024_08_13
+    body: CancelBookingInput
   ): Promise<BookingRequest> {
-    const bodyTransformed = await this.transformInputCancelBooking(bookingUid, body);
+    const bodyTransformed = this.isCancelSeatedBody(body)
+      ? await this.transformInputCancelSeatedBooking(bookingUid, body)
+      : await this.transformInputCancelBooking(bookingUid, body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -387,6 +486,10 @@ export class InputBookingsService_2024_08_13 {
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
+    return body.hasOwnProperty("seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
@@ -407,6 +510,31 @@ export class InputBookingsService_2024_08_13 {
       uid,
       cancellationReason: inputBooking.cancellationReason,
       allRemainingBookings,
+    };
+  }
+
+  async transformInputCancelSeatedBooking(
+    bookingUid: string,
+    inputBooking: CancelSeatedBookingInput_2024_08_13
+  ) {
+    let allRemainingBookings = false;
+    let uid = bookingUid;
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
+      bookingUid
+    );
+
+    if (recurringBooking.length) {
+      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
+      allRemainingBookings = true;
+      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
+      uid = recurringBooking[0].uid;
+    }
+
+    return {
+      uid,
+      cancellationReason: "",
+      allRemainingBookings,
+      seatReferenceUid: inputBooking.seatUid,
     };
   }
 

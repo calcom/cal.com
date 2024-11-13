@@ -15,6 +15,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: ["John"],
+            valueSrc: ["value"],
           },
         },
       },
@@ -48,6 +49,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: [],
+            valueSrc: ["value"],
           },
         },
       },
@@ -84,6 +86,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: [],
+            valueSrc: ["value"],
           },
         },
       },
@@ -110,6 +113,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: [[]],
+            valueSrc: ["value"],
           },
         },
       },
@@ -136,6 +140,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: [undefined, undefined],
+            valueSrc: ["value"],
           },
         },
       },
@@ -162,6 +167,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: [null],
+            valueSrc: ["value"],
           },
         },
       },
@@ -183,6 +189,7 @@ describe("queryValueValidationSchema", () => {
             field: "name",
             operator: "equal",
             value: [""],
+            valueSrc: ["value"],
           },
         },
       },
@@ -208,5 +215,43 @@ describe("queryValueValidationSchema", () => {
 
     const result2 = queryValueSaveValidationSchema.safeParse(undefined);
     expect(result2.success).toBe(true);
+  });
+
+  it("should allow fields with no value if valueSrc is empty", () => {
+    const result = queryValueSaveValidationSchema.safeParse({
+      id: "7",
+      type: "group",
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "name",
+            operator: "is_empty",
+            value: [],
+            valueSrc: [],
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should not allow fields with no value if valueSrc is not empty", () => {
+    const result = queryValueSaveValidationSchema.safeParse({
+      id: "7",
+      type: "group",
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "name",
+            operator: "is_empty",
+            value: [],
+            valueSrc: ["value"],
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(false);
   });
 });

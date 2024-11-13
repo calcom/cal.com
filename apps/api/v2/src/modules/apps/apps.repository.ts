@@ -21,4 +21,15 @@ export class AppsRepository {
       },
     });
   }
+
+  async createTeamAppCredential(type: string, key: Prisma.InputJsonValue, teamId: number, appId: string) {
+    return this.dbWrite.prisma.credential.create({
+      data: {
+        type: type,
+        key: key,
+        teamId: teamId,
+        appId: appId,
+      },
+    });
+  }
 }

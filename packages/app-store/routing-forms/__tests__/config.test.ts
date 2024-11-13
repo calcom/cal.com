@@ -87,9 +87,12 @@ describe("Query Builder Config", () => {
       assertCommonStructure(AttributesBaseConfig);
     });
 
-    it("should support multiselect_some_in operator for multiselect", () => {
+    it("should support multiselect_some_in and multiselect_not_some_in operators for multiselect", () => {
       expect(AttributesBaseConfig.types.multiselect.widgets.multiselect.operators).toContain(
         "multiselect_some_in"
+      );
+      expect(AttributesBaseConfig.types.multiselect.widgets.multiselect.operators).toContain(
+        "multiselect_not_some_in"
       );
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
