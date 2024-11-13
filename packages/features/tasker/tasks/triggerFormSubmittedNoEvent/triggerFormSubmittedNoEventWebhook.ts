@@ -56,13 +56,13 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
     return;
   }
 
-  const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
+  const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
   const recentResponses =
     (await prisma.app_RoutingForms_FormResponse.findMany({
       where: {
         formId: form.id,
         createdAt: {
-          gte: twentyMinutesAgo,
+          gte: sixtyMinutesAgo,
           lt: new Date(),
         },
         routedToBookingUid: {
