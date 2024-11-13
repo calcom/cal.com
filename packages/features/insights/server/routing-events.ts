@@ -212,8 +212,6 @@ class RoutingEventsInsights {
       }),
       form: formsTeamWhereCondition,
     };
-    console.log("--------------------------------");
-    console.log("responsesWhereCondition", responsesWhereCondition);
 
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,

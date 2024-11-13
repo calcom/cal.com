@@ -2765,5 +2765,8 @@
   "routing_form_insights_form_name_header": "Form Name",
   "routing_form_insights_booking_status_header": "Booking",
   "routing_form_insights_response_no_booking": "No Booking",
+  "routing_form_insights_booked_by": "Booked by",
+  "routing_form_insights_created_at": "Created at",
+  "routing_form_insights_booking_status": "Booking Status",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

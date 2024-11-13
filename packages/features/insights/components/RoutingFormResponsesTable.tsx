@@ -16,7 +16,7 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { DataTable, useFetchMoreOnBottomReached, Badge, Avatar, Icon, Button } from "@calcom/ui";
+import { DataTable, useFetchMoreOnBottomReached, Badge, Avatar, Icon } from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
@@ -127,35 +127,9 @@ export function RoutingFormResponsesTable() {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor("formName", {
-        id: "formName",
-        header: t("form_name"),
-        cell: (info) => {
-          const routingFormId = info.row.original.formId;
-          return (
-            <div className="relative">
-              <span className="group/form_name inline-flex items-center">
-                <span className="inline-block">{info.getValue().slice(0, 4)}</span>
-                <span className="inline-block group-hover/form_name:blur-[1px]">
-                  {info.getValue().slice(4)}
-                </span>
-                <Button
-                  href={`/apps/routing-forms/form-edit/${routingFormId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  color="secondary"
-                  size="sm"
-                  className="invisible absolute rounded-lg rounded-md group-hover/form_name:visible group-hover/form_name:translate-x-0 group-hover/form_name:opacity-100">
-                  Open
-                </Button>
-              </span>
-            </div>
-          );
-        },
-      }),
       columnHelper.accessor("bookedAttendees", {
         id: "bookedBy",
-        header: t("booked_by"),
+        header: t("routing_form_insights_booked_by"),
         cell: (info) => {
           const row = info.row.original;
           const attendees = row.routedToBooking?.attendees;
@@ -212,9 +186,17 @@ export function RoutingFormResponsesTable() {
           },
         })
       ) ?? []),
+      columnHelper.accessor("createdAt", {
+        id: "createdAt",
+        header: t("routing_form_insights_created_at"),
+        cell: (info) => {
+          const createdAt = info.getValue();
+          return dayjs(createdAt).format("MMM D, YYYY HH:mm");
+        },
+      }),
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
-        header: t("booking_status"),
+        header: t("routing_form_insights_booking_status"),
         cell: (info) => {
           const booking = info.getValue();
           if (!booking || !booking.user)
