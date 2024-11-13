@@ -55,7 +55,7 @@ export const getEventTypesFromGroup = async ({
     const filteredBatch = await filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
     eventTypes.push(...filteredBatch);
     paginationCursor = batch.nextCursor;
-    hasMoreResults = batch.nextCursor !== undefined;
+    hasMoreResults = !!batch.nextCursor;
   };
 
   while (eventTypes.length < limit && (hasMoreResults || isFirstFetch)) {
