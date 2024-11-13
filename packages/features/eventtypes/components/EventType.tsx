@@ -24,7 +24,6 @@ export type Host = {
   userId: number;
   priority: number;
   weight: number;
-  weightAdjustment: number;
   scheduleId?: number | null;
 };
 
@@ -42,6 +41,7 @@ const tabs = [
   "workflows",
   "webhooks",
   "ai",
+  "payments",
 ] as const;
 
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];

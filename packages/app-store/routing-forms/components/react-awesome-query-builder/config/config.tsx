@@ -133,9 +133,9 @@ function getTypes(configFor: ConfigFor) {
   const multiSelectOperators = BasicConfig.types.multiselect.widgets.multiselect.operators || [];
 
   if (configFor === ConfigFor.Attributes) {
-    // Attributes don't need reporting at the moment. So, we can support multiselect_some_in operator for attributes.
+    // Attributes don't need reporting at the moment. So, we can support multiselect_some_in and multiselect_not_some_in operators for attributes.
     // We could probably use them in FormFields later once they are supported through Prisma query as well
-    multiSelectOperators.push("multiselect_some_in");
+    multiSelectOperators.push("multiselect_some_in", "multiselect_not_some_in");
   }
 
   const types: Types = {

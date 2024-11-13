@@ -42,9 +42,9 @@ function throwIfInvalidQueryValueToBeSaved({
     if (!parsedFormFieldsQueryValue.success) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} form fields: ${parsedFormFieldsQueryValue.error.errors
-          .map((err) => err.message)
-          .join(", ")}`,
+        message: `Route ${routeIndex + 1} form fields: ${getErrorMessageFromZodError(
+          parsedFormFieldsQueryValue.error
+        )}`,
       });
     }
 
@@ -52,12 +52,28 @@ function throwIfInvalidQueryValueToBeSaved({
     if (!parsedAttributesQueryValue.success) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} attributes: ${parsedAttributesQueryValue.error.errors
-          .map((err) => err.message)
-          .join(", ")}`,
+        message: `Route ${routeIndex + 1} attributes: ${getErrorMessageFromZodError(
+          parsedAttributesQueryValue.error
+        )}`,
+      });
+    }
+
+    const parsedFallbackAttributesQueryValue = queryValueSaveValidationSchema.safeParse(
+      route.fallbackAttributesQueryValue
+    );
+    if (!parsedFallbackAttributesQueryValue.success) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Route ${routeIndex + 1} fallback attributes: ${getErrorMessageFromZodError(
+          parsedFallbackAttributesQueryValue.error
+        )}`,
       });
     }
   });
+
+  function getErrorMessageFromZodError(zodError: Zod.ZodError) {
+    return zodError.errors.map((err) => err.message).join(", ");
+  }
 }
 
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
@@ -351,7 +367,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       });
     }
 
-    if (!canEditEntity(sourceForm, userId)) {
+    if (!(await canEditEntity(sourceForm, userId))) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,

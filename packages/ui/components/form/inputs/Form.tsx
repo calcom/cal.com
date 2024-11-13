@@ -5,7 +5,7 @@ import { FormProvider } from "react-hook-form";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 
-import { showToast } from "../../..";
+import { showToast } from "../../toast";
 
 type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<
   JSX.IntrinsicElements["form"],

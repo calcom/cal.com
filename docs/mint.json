@@ -129,7 +129,7 @@
       "pages": [
         "self-hosting/deployments/aws",
         "self-hosting/deployments/azure",
-        "self-hosting/deployments/elastio",
+        "self-hosting/deployments/elestio",
         "self-hosting/deployments/gcp",
         "self-hosting/deployments/railway",
         "self-hosting/deployments/render",
@@ -194,7 +194,9 @@
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
-            "platform/atoms/calendar-settings"
+            "platform/atoms/event-type",
+            "platform/atoms/calendar-settings",
+            "platform/atoms/payment-form"
           ]
         },
         "platform/quickstart",
