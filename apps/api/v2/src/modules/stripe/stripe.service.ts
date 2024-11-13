@@ -28,7 +28,7 @@ type IntegrationOAuthCallbackState = {
 
 @Injectable()
 export class StripeService {
-  public stripe: Stripe;
+  private stripe: Stripe;
   private redirectUri = `${this.config.get("api.url")}/stripe/save`;
 
   constructor(
@@ -42,6 +42,10 @@ export class StripeService {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
     });
+  }
+
+  getStripe() {
+    return this.stripe;
   }
 
   async getStripeRedirectUrl(state: string, userEmail?: string, userName?: string | null) {

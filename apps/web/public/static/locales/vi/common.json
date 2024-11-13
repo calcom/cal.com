@@ -705,6 +705,9 @@
   "no_teams": "Bạn chưa có bất kỳ nhóm nào.",
   "no_teams_description": "Các nhóm cho phép người khác đăng ký các sự kiện được chia sẻ giữa đồng nghiệp của bạn.",
   "submit": "Gửi đi",
+  "confirm_remove_attribute": "Có, xóa thuộc tính",
+  "remove_attribute": "Xóa thuộc tính",
+  "remove_attribute_confirmation_message": "Bạn có chắc chắn muốn xóa thuộc tính '{{name}}'? Tất cả người dùng hiện đang được gán cho thuộc tính này sẽ bị gỡ gán.",
   "delete": "Xóa bỏ",
   "update": "Cập nhật",
   "save": "Lưu",
@@ -2742,6 +2745,8 @@
   "event_end_time_in_attendee_timezone_info": "Thời gian kết thúc sự kiện theo múi giờ của Người tham dự",
   "salesforce_create_event_on_contact": "Tạo sự kiện trên liên hệ, nếu tồn tại. Nếu không, chuyển sang khách hàng tiềm năng",
   "salesforce_owner_name_to_change": "Tên chủ sở hữu cần thay đổi",
+  "dont_have_access_this_page": "Bạn không có quyền truy cập trang này",
+  "you_need_admin_or_owner_privileges_to_access": "Để xem hoặc tương tác với trang này, bạn cần có quyền quản trị viên hoặc chủ sở hữu",
   "field_type": "Loại trường",
   "when_to_write": "Khi nào ghi",
   "salesforce_on_booking_write_to_record": "Khi đặt lịch, ghi vào trường tùy chỉnh trên bản ghi {{record}} của người tham dự",
@@ -2750,5 +2755,6 @@
   "booking_start_date": "Ngày bắt đầu đặt lịch",
   "booking_created_date": "Ngày tạo đặt lịch",
   "booking_reassigned_to_host": "Đặt lịch được chuyển giao cho {{host}}",
+  "access_denied": "Từ chối truy cập",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
