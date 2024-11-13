@@ -74,17 +74,24 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       },
     })) ?? [];
 
-  const currentEmail = Object.entries(responses).find(([question, response]) => {
-    const value = typeof response === "object" && response && "value" in response ? response.value : response;
-    return typeof value === "string" && value.includes("@");
-  })?.[1];
+  const emailValue = Object.values(responses).find(
+    (response): response is { value: string; label: string } => {
+      const value =
+        typeof response === "object" && response && "value" in response ? response.value : response;
+      return typeof value === "string" && value.includes("@");
+    }
+  )?.value;
 
   // Check for duplicate email in recent responses
   const hasDuplicate =
-    currentEmail?.value &&
+    emailValue &&
     recentResponses.some((response) => {
-      return Object.values(response.response).some(
-        (field) => typeof field.value === "string" && field.value === currentEmail.value
+      return Object.values(response.response as Record<string, { value: string; label: string }>).some(
+        (field) => {
+          if (!response.response || typeof response.response !== "object") return false;
+
+          return typeof field.value === "string" && field.value === emailValue;
+        }
       );
     });
 
