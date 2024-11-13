@@ -46,26 +46,26 @@ export const getEventTypesFromGroup = async ({
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
 
   const eventTypes: MappedEventType[] = [];
-  let currentCursor = cursor;
-  let nextCursor: number | null | undefined = undefined;
-  let isFetchingForFirstTime = true;
+  let paginationCursor = cursor;
+  let hasMoreResults = true;
+  let isFirstFetch = true;
 
   const fetchAndFilterEventTypes = async () => {
-    const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor, searchQuery);
+    const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, paginationCursor, searchQuery);
     const filteredBatch = await filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
     eventTypes.push(...filteredBatch);
-    currentCursor = batch.nextCursor;
-    nextCursor = batch.nextCursor;
+    paginationCursor = batch.nextCursor;
+    hasMoreResults = batch.nextCursor !== undefined;
   };
 
-  while (eventTypes.length < limit && (nextCursor || isFetchingForFirstTime)) {
+  while (eventTypes.length < limit && (hasMoreResults || isFirstFetch)) {
     await fetchAndFilterEventTypes();
-    isFetchingForFirstTime = false;
+    isFirstFetch = false;
   }
 
   return {
     eventTypes,
-    nextCursor: nextCursor ?? undefined,
+    nextCursor: paginationCursor ?? undefined,
   };
 };
 
