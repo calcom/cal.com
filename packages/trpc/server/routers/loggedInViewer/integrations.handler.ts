@@ -1,5 +1,7 @@
+// import type { TeamQuery } from "@calcom/ee/teams/teams.repository";
+import type { Prisma } from "@prisma/client";
+
 import type { CredentialOwner } from "@calcom/app-store/types";
-import type { TeamQuery } from "@calcom/ee/teams/teams.repository";
 import checkAppSetupStatus from "@calcom/lib/apps/checkAppSetupStatus";
 import constructUserTeams from "@calcom/lib/apps/constructUserTeams";
 import getAppDependencyData from "@calcom/lib/apps/getAppDependencyData";
@@ -18,6 +20,26 @@ type IntegrationsOptions = {
   };
   input: TIntegrationsInputSchema;
 };
+
+export type TeamQuery = Prisma.TeamGetPayload<{
+  select: {
+    id: true;
+    credentials: {
+      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
+    };
+    name: true;
+    logoUrl: true;
+    members: {
+      select: {
+        role: true;
+      };
+    };
+  };
+}>;
+
+// type TeamQueryWithParent = TeamQuery & {
+//   parent?: TeamQuery | null;
+// };
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
