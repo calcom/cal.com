@@ -12,7 +12,6 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { GoogleService } from "@calcom/lib/server/service/google";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";

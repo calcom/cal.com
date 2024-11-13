@@ -5,6 +5,9 @@ import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
+import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
+import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
@@ -161,6 +164,9 @@ export { getTranslation };
 
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
+export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
+export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
+
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { IcsFeedCalendarService };
@@ -180,3 +186,11 @@ export { MembershipRole };
 
 export { paymentDataSelect };
 export { getClientSecretFromPayment };
+
+export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+
+export { AttendeeScheduledEmail };
+
+export { OrganizerScheduledEmail };
+
+export { AttendeeDeclinedEmail };
