@@ -1,7 +1,6 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -106,8 +105,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      const calendarCacheRepository = await CalendarCache.initFromCredentialId(gcalCredential.id);
-      await calendarCacheRepository.watchCalendar({ calendarId: primaryCal.id });
       await GoogleRepository.upsertSelectedCalendar({
         credentialId: gcalCredential.id,
         externalId: selectedCalendarWhereUnique.externalId,
