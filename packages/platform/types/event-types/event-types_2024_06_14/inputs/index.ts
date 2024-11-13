@@ -13,5 +13,3 @@ export * from "./event-type-color.input";
 export * from "./seats.input";
 export * from "./destination-calendar.input";
 export * from "./disabled.input";
-export * from "./create-event-type-input.pipe";
-export * from "./create-team-event-type-input.pipe";

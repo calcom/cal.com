@@ -24,9 +24,7 @@ import {
   CustomField,
 } from "@calcom/platform-libraries";
 import {
-  CreateEventTypeInput,
   CreateEventTypeInput_2024_06_14,
-  CreateVariableLengthEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
   InputEventTransformed_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -52,7 +50,7 @@ export class InputEventTypesService_2024_06_14 {
 
   async transformAndValidateCreateEventTypeInput(
     userId: UserWithProfile["id"],
-    inputEventType: CreateEventTypeInput
+    inputEventType: CreateEventTypeInput_2024_06_14
   ) {
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
@@ -96,8 +94,8 @@ export class InputEventTypesService_2024_06_14 {
     return transformedBody;
   }
 
-  transformInputCreateEventType(inputEventType: CreateEventTypeInput) {
-    const defaultLocations: CreateEventTypeInput["locations"] = [
+  transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
+    const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
       {
         type: "integration",
         integration: "cal-video",
@@ -137,7 +135,6 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: this.getMetadataMultipleDuration(inputEventType),
       },
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
@@ -150,15 +147,6 @@ export class InputEventTypesService_2024_06_14 {
     };
 
     return eventType;
-  }
-
-  getMetadataMultipleDuration(inputEventType: CreateEventTypeInput | UpdateEventTypeInput_2024_06_14) {
-    if ("lengthInMinutesOptions" in inputEventType) {
-      return {
-        multipleDuration: inputEventType.lengthInMinutesOptions,
-      };
-    }
-    return undefined;
   }
 
   async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
@@ -203,7 +191,6 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: this.getMetadataMultipleDuration(inputEventType),
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,

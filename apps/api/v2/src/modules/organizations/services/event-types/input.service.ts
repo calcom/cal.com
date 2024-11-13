@@ -139,7 +139,7 @@ export class InputOrganizationsEventTypesService {
 
   async getChildEventTypesForManagedEventType(
     eventTypeId: number | null,
-    inputEventType: CreateTeamEventTypeInput_2024_06_14 | UpdateTeamEventTypeInput_2024_06_14,
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14,
     teamId: number
   ) {
     let eventType = null;
@@ -163,7 +163,7 @@ export class InputOrganizationsEventTypesService {
 
   async getOwnersIdsForManagedEventType(
     teamId: number,
-    inputEventType: CreateTeamEventTypeInput_2024_06_14 | UpdateTeamEventTypeInput_2024_06_14,
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14,
     eventType: { children: { userId: number | null }[] } | null
   ) {
     if (inputEventType.assignAllTeamMembers) {

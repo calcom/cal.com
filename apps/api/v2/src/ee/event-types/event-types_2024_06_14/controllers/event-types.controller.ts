@@ -33,8 +33,7 @@ import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platf
 import {
   UpdateEventTypeInput_2024_06_14,
   GetEventTypesQuery_2024_06_14,
-  CreateEventTypeInput,
-  CreateEventTypeInputPipe,
+  CreateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -66,8 +65,7 @@ export class EventTypesController_2024_06_14 {
   })
   @ApiOperation({ summary: "Create an event type" })
   async createEventType(
-    @Body(new CreateEventTypeInputPipe())
-    body: CreateEventTypeInput,
+    @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
