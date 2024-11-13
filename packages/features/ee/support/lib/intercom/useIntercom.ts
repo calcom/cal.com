@@ -26,7 +26,16 @@ const useIntercomHook = isInterComEnabled
 export const useIntercom = () => {
   const hookData = useIntercomHook();
   const { data } = trpc.viewer.me.useQuery();
-  const { data: statsData } = trpc.viewer.meStats.useQuery();
+  const { data: statsData } = trpc.viewer.myStats.useQuery(
+    {},
+    {
+      trpc: {
+        context: {
+          skipBatch: true,
+        },
+      },
+    }
+  );
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
@@ -123,11 +132,22 @@ export const useIntercom = () => {
 export const useBootIntercom = () => {
   const { boot } = useIntercom();
   const { data: user } = trpc.viewer.me.useQuery();
-  const { data: statsData } = trpc.viewer.meStats.useQuery();
+  const { data: statsData } = trpc.viewer.myStats.useQuery(
+    {},
+    {
+      trpc: {
+        context: {
+          skipBatch: true,
+        },
+      },
+    }
+  );
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
-    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user || !statsData)
+      return;
+
     boot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statsData]);

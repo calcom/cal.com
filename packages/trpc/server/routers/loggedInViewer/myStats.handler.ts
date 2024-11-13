@@ -3,14 +3,14 @@ import type { Session } from "next-auth";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-type MeStatsOptions = {
+type MyStatsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     session: Session;
   };
 };
 
-export const meStatsHandler = async ({ ctx }: MeStatsOptions) => {
+export const myStatsHandler = async ({ ctx }: MyStatsOptions) => {
   const { user: sessionUser } = ctx;
 
   const additionalUserInfo = await prisma.user.findFirst({
