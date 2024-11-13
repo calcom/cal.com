@@ -20,6 +20,7 @@ import {
   roundRobinReassignment,
   roundRobinManualReassignment,
   handleMarkNoShow,
+  confirmBookingHandler,
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
@@ -413,5 +414,46 @@ export class BookingsService_2024_08_13 {
     });
 
     return this.outputService.getOutputReassignedBooking(reassigned);
+  }
+
+  async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    await confirmBookingHandler({
+      ctx: {
+        user: requestUser,
+      },
+      input: {
+        bookingId: booking.id,
+        confirmed: true,
+        recurringEventId: booking.recurringEventId,
+      },
+    });
+
+    return this.getBooking(bookingUid);
+  }
+
+  async declineBooking(bookingUid: string, requestUser: UserWithProfile, reason?: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    await confirmBookingHandler({
+      ctx: {
+        user: requestUser,
+      },
+      input: {
+        bookingId: booking.id,
+        confirmed: false,
+        recurringEventId: booking.recurringEventId,
+        reason,
+      },
+    });
+
+    return this.getBooking(bookingUid);
   }
 }
