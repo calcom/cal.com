@@ -29,6 +29,7 @@ import {
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
@@ -369,7 +370,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(1);
             expect(data[0].eventTypeId).toEqual(team1EventTypeId);
           });
@@ -384,7 +389,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(1);
             expect(data[0].eventTypeId).toEqual(team2EventTypeId);
           });
@@ -399,7 +408,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
             expect(data.find((booking) => booking.eventTypeId === team1EventTypeId)).toBeDefined();
             expect(data.find((booking) => booking.eventTypeId === team2EventTypeId)).toBeDefined();
@@ -428,6 +441,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(teamUser.email);
+      await userRepositoryFixture.deleteByEmail(teamUserEmail2);
       await bookingsRepositoryFixture.deleteAllBookings(teamUser.id, teamUser.email);
       await app.close();
     });

@@ -28,7 +28,7 @@ import {
   SheetTitle,
 } from "@calcom/ui";
 
-import type { Action } from "../UserListTable";
+import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
 
 type MembershipOption = {
@@ -68,7 +68,7 @@ export function EditForm({
   selectedUser: RouterOutputs["viewer"]["organizations"]["getUser"];
   avatarUrl: string;
   domainUrl: string;
-  dispatch: Dispatch<Action>;
+  dispatch: Dispatch<UserTableAction>;
 }) {
   const setEditMode = useEditMode((state) => state.setEditMode);
   const [mutationLoading, setMutationLoading] = useState(false);

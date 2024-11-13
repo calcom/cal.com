@@ -7,7 +7,10 @@ import { useFormContext } from "react-hook-form";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, Icon, Input, InputField, Tooltip } from "../../..";
+import { Alert } from "../../alert";
+import { Icon } from "../../icon";
+import { Tooltip } from "../../tooltip";
+import { Input, InputField } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
 

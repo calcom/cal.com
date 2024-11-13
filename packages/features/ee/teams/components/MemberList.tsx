@@ -1,25 +1,40 @@
+"use client";
+
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef, Table } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  getFacetedUniqueValues,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
 import classNames from "classnames";
-import { m } from "framer-motion";
-import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
-import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "react";
+import { signIn } from "next-auth/react";
+import { useQueryState, parseAsBoolean } from "nuqs";
+import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Avatar, Badge, Checkbox, DataTable } from "@calcom/ui";
 import {
+  Avatar,
+  Badge,
   Button,
   ButtonGroup,
+  Checkbox,
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
   ConfirmationDialogContent,
   Dialog,
   DialogClose,
@@ -34,6 +49,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -66,7 +82,12 @@ export type State = {
 
 export type Action =
   | {
-      type: "SET_DELETE_ID" | "SET_IMPERSONATE_ID" | "EDIT_USER_SHEET" | "TEAM_AVAILABILITY";
+      type:
+        | "SET_DELETE_ID"
+        | "SET_IMPERSONATE_ID"
+        | "EDIT_USER_SHEET"
+        | "TEAM_AVAILABILITY"
+        | "INVITE_MEMBER";
       payload: Payload;
     }
   | {
@@ -86,6 +107,14 @@ const initialState: State = {
   teamAvailability: {
     showModal: false,
   },
+};
+
+const initalColumnVisibility = {
+  select: true,
+  member: true,
+  role: true,
+  teams: true,
+  actions: true,
 };
 
 function reducer(state: State, action: Action): State {
@@ -111,18 +140,24 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+interface Props {
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
+  isOrgAdminOrOwner: boolean | undefined;
+  setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
+}
+
 export default function MemberList(props: Props) {
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
+
   const utils = trpc.useUtils();
-  const [state, dispatch] = useReducer(reducer, initialState);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
+
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
-  const { copyToClipboard, isCopied } = useCopy();
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
     {
@@ -139,6 +174,9 @@ export default function MemberList(props: Props) {
       staleTime: 0,
     }
   );
+
+  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const removeMemberFromCache = ({
     utils,
@@ -182,7 +220,7 @@ export default function MemberList(props: Props) {
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
-        searchTerm: searchTerm,
+        searchTerm: debouncedSearchTerm,
       });
 
       if (previousValue) {
@@ -190,7 +228,7 @@ export default function MemberList(props: Props) {
           utils,
           memberId: state.deleteMember.user?.id as number,
           teamId: teamIds[0],
-          searchTerm: searchTerm,
+          searchTerm: debouncedSearchTerm,
         });
       }
       return { previousValue };
@@ -237,8 +275,11 @@ export default function MemberList(props: Props) {
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
+      // Disabling select for this PR: Will work on actions etc in a follow up
       {
         id: "select",
+        enableHiding: false,
+        enableSorting: false,
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -259,6 +300,7 @@ export default function MemberList(props: Props) {
       {
         id: "member",
         accessorFn: (data) => data.email,
+        enableHiding: false,
         header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
@@ -291,9 +333,8 @@ export default function MemberList(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore Weird typing issue
-          return rows.getValue(id).includes(filterValue);
+          const userEmail = rows.original.email;
+          return filterValue.includes(userEmail);
         },
       },
       {
@@ -546,137 +587,94 @@ export default function MemberList(props: Props) {
 
     return cols;
   }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
-
+  //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
   const totalFetched = flatData.length;
 
-  const fetchMoreOnBottomReached = useCallback(
-    (containerRefElement?: HTMLDivElement | null) => {
-      if (containerRefElement) {
-        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
-          fetchNextPage();
-        }
-      }
+  const table = useReactTable({
+    data: flatData,
+    columns: memorisedColumns,
+    enableRowSelection: true,
+    debugTable: true,
+    manualPagination: true,
+    initialState: {
+      columnVisibility: initalColumnVisibility,
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+  });
+
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+    tableContainerRef,
+    fetchNextPage,
+    isFetching,
+    totalFetched,
+    totalDBRowCount
   );
 
-  useEffect(() => {
-    fetchMoreOnBottomReached(tableContainerRef.current);
-  }, [fetchMoreOnBottomReached]);
+  const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
   return (
-    <div className="mb-6">
+    <>
       <DataTable
         data-testid="team-member-list-container"
-        onSearch={(value) => setSearchTerm(value)}
-        selectionOptions={[
-          {
-            type: "action",
-            icon: "handshake",
-            label: "Group Meeting",
-            needsXSelected: 2,
-            onClick: () => {
-              setDynamicLinkVisible((old) => !old);
-            },
-          },
-          {
-            type: "render",
-            render: (table) => <EventTypesList table={table} teamId={props.team.id} />,
-          },
-          {
-            type: "render",
-            render: (table) => (
-              <DeleteBulkTeamMembers
-                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-                onRemove={() => table.toggleAllPageRowsSelected(false)}
-                isOrg={checkIsOrg(props.team)}
-                teamId={props.team.id}
-              />
-            ),
-          },
-        ]}
-        renderAboveSelection={(table: Table<User>) => {
-          const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
-          const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
-
-          const users = table
-            .getSelectedRowModel()
-            .flatRows.map((row) => row.original.username)
-            .filter((u) => u !== null);
-
-          const usersNameAsString = users.join("+");
-
-          const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
-          const domainWithoutHttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
-
-          return (
-            <>
-              {isVisible ? (
-                <m.div
-                  layout
-                  className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
-                  <div className="w-[300px] items-center truncate p-2">
-                    <p>{domainWithoutHttps}</p>
-                  </div>
-                  <div className="ml-auto flex items-center">
-                    <Button
-                      StartIcon="copy"
-                      size="sm"
-                      onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
-                      {!isCopied ? t("copy") : t("copied")}
-                    </Button>
-                    <Button
-                      EndIcon="external-link"
-                      size="sm"
-                      href={dynamicLinkOfSelectedUsers}
-                      target="_blank"
-                      rel="noopener noreferrer">
-                      Open
-                    </Button>
-                  </div>
-                </m.div>
-              ) : null}
-            </>
-          );
-        }}
+        table={table}
         tableContainerRef={tableContainerRef}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-        tableCTA={
-          isAdminOrOwner || props.isOrgAdminOrOwner ? (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon="plus"
-              size="sm"
-              className="rounded-md"
-              onClick={() => props.setShowMemberInvitationModal(true)}
-              data-testid="new-member-button">
-              {t("add")}
-            </Button>
-          ) : (
-            <></>
-          )
-        }
-        columns={memorisedColumns}
-        data={flatData}
         isPending={isPending}
-        filterableItems={[
-          {
-            tableAccessor: "role",
-            title: "Role",
-            options: [
-              { label: "Owner", value: "OWNER" },
-              { label: "Admin", value: "ADMIN" },
-              { label: "Member", value: "MEMBER" },
-              { label: "Pending", value: "PENDING" },
-            ],
-          },
-        ]}
-      />
+        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+        <DataTableToolbar.Root>
+          <div className="flex w-full gap-2">
+            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.FilterButton table={table} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            {isAdminOrOwner && (
+              <DataTableToolbar.CTA
+                type="button"
+                color="primary"
+                StartIcon="plus"
+                className="rounded-md"
+                onClick={() => props.setShowMemberInvitationModal(true)}
+                data-testid="new-member-button">
+                {t("add")}
+              </DataTableToolbar.CTA>
+            )}
+          </div>
+          <div className="flex gap-2 justify-self-start">
+            <DataTableFilters.ActiveFilters table={table} />
+          </div>
+        </DataTableToolbar.Root>
 
+        {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
+          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+            <DynamicLink table={table} domain={domain} />
+          </DataTableSelectionBar.Root>
+        )}
+        {numberOfSelectedRows > 0 && (
+          <DataTableSelectionBar.Root>
+            <p className="text-brand-subtle w-full px-2 text-center leading-none">
+              {numberOfSelectedRows} selected
+            </p>
+            {numberOfSelectedRows >= 2 && (
+              <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
+                Group Meeting
+              </Button>
+            )}
+            <EventTypesList table={table} teamId={props.team.id} />
+            <DeleteBulkTeamMembers
+              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+              onRemove={() => table.toggleAllPageRowsSelected(false)}
+              isOrg={checkIsOrg(props.team)}
+              teamId={props.team.id}
+            />
+          </DataTableSelectionBar.Root>
+        )}
+      </DataTable>
       {state.deleteMember.showModal && (
         <Dialog
           open={true}
@@ -747,6 +745,6 @@ export default function MemberList(props: Props) {
           teamId={props.team.id}
         />
       )}
-    </div>
+    </>
   );
 }

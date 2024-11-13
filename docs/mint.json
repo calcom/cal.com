@@ -129,7 +129,10 @@
       "pages": [
         "self-hosting/deployments/aws",
         "self-hosting/deployments/azure",
+        "self-hosting/deployments/elestio",
         "self-hosting/deployments/gcp",
+        "self-hosting/deployments/railway",
+        "self-hosting/deployments/render",
         "self-hosting/deployments/vercel"
       ]
     },
@@ -182,9 +185,22 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        {
+          "group": "Atoms",
+          "icon": "atom",
+          "pages": [
+            "platform/atoms/google-calendar-connect",
+            "platform/atoms/outlook-calendar-connect",
+            "platform/atoms/apple-calendar-connect",
+            "platform/atoms/availability-settings",
+            "platform/atoms/booker",
+            "platform/atoms/event-type",
+            "platform/atoms/calendar-settings",
+            "platform/atoms/payment-form"
+          ]
+        },
         "platform/quickstart",
         "platform/booking-redirects",
-        "platform/atoms-reference",
         "platform/faq"
       ]
     },

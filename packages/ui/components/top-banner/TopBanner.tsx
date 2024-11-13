@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 
-import { Icon, type IconName } from "../..";
+import { Icon } from "../icon";
+import type { IconName } from "../icon";
 
 export type TopBannerProps = {
   icon?: IconName;

@@ -19,6 +19,7 @@ import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { highPerfRouter } from "./highPerf/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
@@ -61,5 +62,6 @@ export const viewerRouter = mergeRouters(
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
     attributes: attributesRouter,
+    highPerf: highPerfRouter,
   })
 );

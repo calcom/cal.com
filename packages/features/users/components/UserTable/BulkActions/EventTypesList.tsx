@@ -22,10 +22,10 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { User } from "../UserListTable";
+import type { UserTableUser } from "../types";
 
 interface Props {
-  table: Table<User>;
+  table: Table<UserTableUser>;
   orgTeams: RouterOutputs["viewer"]["organizations"]["getTeams"] | undefined;
 }
 

@@ -31,6 +31,7 @@ import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  NameFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -199,18 +200,36 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: false,
+      };
+
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class",
         slug: "coding-class",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
+        lengthInMinutesOptions: [30, 60, 90],
         locations: [
           {
             type: "integration",
             integration: "cal-video",
           },
+          {
+            type: "attendeePhone",
+          },
+          {
+            type: "attendeeAddress",
+          },
+          {
+            type: "attendeeDefined",
+          },
         ],
         bookingFields: [
+          nameBookingField,
           {
             type: "select",
             label: "select which language you want to learn",
@@ -218,6 +237,7 @@ describe("Event types Endpoints", () => {
             required: true,
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
+            disableOnPrefill: true,
           },
         ],
         scheduleId: firstSchedule.id,
@@ -281,6 +301,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.title).toEqual(body.title);
           expect(createdEventType.description).toEqual(body.description);
           expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
+          expect(createdEventType.lengthInMinutesOptions).toEqual(body.lengthInMinutesOptions);
           expect(createdEventType.locations).toEqual(body.locations);
           expect(createdEventType.ownerId).toEqual(user.id);
           expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
@@ -304,12 +325,16 @@ describe("Event types Endpoints", () => {
           );
           expect(createdEventType.color).toEqual(body.color);
 
-          const responseBookingFields = body.bookingFields || [];
+          const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
-            { isDefault: true, required: true, slug: "name", type: "name" },
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
             { isDefault: true, required: true, slug: "email", type: "email" },
+            // note(Lauris): location booking field is added if multiple locations are passed
+            { isDefault: true, required: false, slug: "location", type: "radioInput" },
             { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
-            ...responseBookingFields.map((field) => ({ isDefault: false, ...field })),
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
@@ -337,6 +362,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.title).toEqual(eventType.title);
       expect(fetchedEventType?.description).toEqual(eventType.description);
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
@@ -630,11 +656,31 @@ describe("Event types Endpoints", () => {
     });
 
     it("should update event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: true,
+      };
+
       const newTitle = "Coding class in Italian!";
 
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
+        lengthInMinutesOptions: [15, 30],
+        bookingFields: [
+          nameBookingField,
+          {
+            type: "select",
+            label: "select which language you want to learn",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+            disableOnPrefill: false,
+          },
+        ],
         bookingLimitsCount: {
           day: 4,
           week: 10,
@@ -691,10 +737,23 @@ describe("Event types Endpoints", () => {
 
           expect(updatedEventType.id).toEqual(eventType.id);
           expect(updatedEventType.title).toEqual(newTitle);
+          expect(updatedEventType.lengthInMinutesOptions).toEqual(body.lengthInMinutesOptions);
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
-          expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
+
+          const requestBookingFields = body.bookingFields || [];
+          const expectedBookingFields = [
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
+            { isDefault: true, required: true, slug: "email", type: "email" },
+            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
+          ];
+
+          expect(updatedEventType.bookingFields).toEqual(expectedBookingFields);
+
           expect(updatedEventType.ownerId).toEqual(user.id);
           expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
           expect(updatedEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
@@ -718,6 +777,7 @@ describe("Event types Endpoints", () => {
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
+          eventType.lengthInMinutesOptions = updatedEventType.lengthInMinutesOptions;
           eventType.bookingLimitsCount = updatedEventType.bookingLimitsCount;
           eventType.onlyShowFirstAvailableSlot = updatedEventType.onlyShowFirstAvailableSlot;
           eventType.bookingLimitsDuration = updatedEventType.bookingLimitsDuration;
@@ -732,6 +792,7 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.color = updatedEventType.color;
+          eventType.bookingFields = updatedEventType.bookingFields;
         });
     });
 
@@ -764,6 +825,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.title).toEqual(eventType.title);
       expect(fetchedEventType.description).toEqual(eventType.description);
       expect(fetchedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
@@ -802,6 +864,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.title).toEqual(eventType.title);
       expect(fetchedEventType?.description).toEqual(eventType.description);
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
@@ -860,7 +923,7 @@ describe("Event types Endpoints", () => {
     });
   });
 
-  describe("Handle legacy event-types booking fields", () => {
+  describe("Handle event-types booking fields", () => {
     let app: INestApplication;
 
     let oAuthClient: PlatformOAuthClient;
@@ -885,6 +948,7 @@ describe("Event types Endpoints", () => {
       { isDefault: true, required: false, slug: "notes", type: "textarea" },
       { isDefault: true, required: false, slug: "guests", type: "multiemail" },
       { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+      { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false },
     ];
 
     beforeAll(async () => {
@@ -1037,6 +1101,21 @@ describe("Event types Endpoints", () => {
             defaultLabel: "reason_for_reschedule",
             defaultPlaceholder: "reschedule_placeholder",
           },
+          {
+            name: "attendeePhoneNumber",
+            type: "phone",
+            hidden: true,
+            sources: [
+              {
+                id: "default",
+                type: "default",
+                label: "Default",
+              },
+            ],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "phone_number",
+          },
         ],
       };
       const legacyEventType = await eventTypesRepositoryFixture.create(legacyEventTypeInput, user.id);
@@ -1152,6 +1231,21 @@ describe("Event types Endpoints", () => {
             defaultLabel: "reason_for_reschedule",
             defaultPlaceholder: "reschedule_placeholder",
           },
+          {
+            name: "attendeePhoneNumber",
+            type: "phone",
+            hidden: true,
+            sources: [
+              {
+                id: "default",
+                type: "default",
+                label: "Default",
+              },
+            ],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "phone_number",
+          },
         ],
       };
       const legacyEventType = await eventTypesRepositoryFixture.create(legacyEventTypeInput, user.id);
@@ -1175,6 +1269,204 @@ describe("Event types Endpoints", () => {
               required: userDefinedBookingField.required,
               placeholder: userDefinedBookingField.placeholder,
             },
+          ]);
+        });
+    });
+
+    it("should return event type with unknown bookingField", async () => {
+      const unknownSystemField = {
+        name: "unknown-whatever",
+        type: "unknown-whatever",
+        label: "your team",
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: true,
+        placeholder: "FC Barcelona",
+      };
+
+      const eventTypeInput = {
+        title: "unknown field event type two",
+        description: "unknown field event type description two",
+        length: 40,
+        hidden: false,
+        slug: "unknown-field-type-two",
+        locations: [],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [unknownSystemField],
+      };
+      const eventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+
+          expect(fetchedEventType.bookingFields).toEqual([
+            {
+              type: "unknown",
+              slug: "unknown",
+              bookingField: JSON.stringify(unknownSystemField),
+            },
+          ]);
+        });
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
+        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
+      } catch (e) {
+        // Event type might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      await app.close();
+    });
+  });
+
+  describe("Handle event-types locations", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+
+    const userEmail = "locations-event-types-test-e2e@api.com";
+    const name = "bob-the-locations-builder";
+    const username = name;
+    let user: User;
+    let legacyEventTypeId1: number;
+    let legacyEventTypeId2: number;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({ name: "organization" });
+      oAuthClient = await createOAuthClient(organization.id);
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        name,
+        username,
+      });
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["redirect-uri"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should return integration location with link and credentialId", async () => {
+      const eventTypeInput = {
+        title: "event type discord",
+        description: "event type description",
+        length: 40,
+        hidden: false,
+        slug: "discord-event-type",
+        locations: [
+          {
+            type: "integrations:discord_video",
+            link: "https://discord.com/users/100",
+            credentialId: 100,
+          },
+        ],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [],
+      };
+      const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+      legacyEventTypeId1 = legacyEventType.id;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${legacyEventTypeId1}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+          expect(fetchedEventType.locations).toEqual([
+            {
+              type: "integration",
+              integration: "discord-video",
+              link: eventTypeInput.locations[0].link,
+              credentialId: eventTypeInput.locations[0].credentialId,
+            },
+          ]);
+        });
+    });
+
+    it("should return unsupported location", async () => {
+      const eventTypeInput = {
+        title: "event type not existing",
+        description: "event type description",
+        length: 40,
+        hidden: false,
+        slug: "not-existing-event-type",
+        locations: [
+          {
+            type: "this-type-does-not-exist",
+          },
+        ],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [],
+      };
+      const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+      legacyEventTypeId1 = legacyEventType.id;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${legacyEventTypeId1}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+          expect(fetchedEventType.locations).toEqual([
+            { type: "unknown", location: JSON.stringify(eventTypeInput.locations[0]) },
           ]);
         });
     });

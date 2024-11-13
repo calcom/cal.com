@@ -15,15 +15,20 @@ export class InternalTasker implements Tasker {
   };
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();
+    console.info(`Processing ${tasks.length} tasks`, tasks);
+
     const tasksPromises = tasks.map(async (task) => {
+      console.info(`Processing task ${task.id}`, task);
       const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
       if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
+
       const taskHandler = await taskHandlerGetter();
       return taskHandler(task.payload)
         .then(async () => {
           await Task.succeed(task.id);
         })
         .catch(async (error) => {
+          console.info(`Error processing task ${task.id}: ${error}`);
           await Task.retry(task.id, error instanceof Error ? error.message : "Unknown error");
         });
     });

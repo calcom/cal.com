@@ -7,10 +7,10 @@ import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
 
-import type { Action } from "./UserListTable";
+import type { UserTableAction } from "./types";
 
 interface Props {
-  dispatch: Dispatch<Action>;
+  dispatch: Dispatch<UserTableAction>;
 }
 
 export function InviteMemberModal(props: Props) {

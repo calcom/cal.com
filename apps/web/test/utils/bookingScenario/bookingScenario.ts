@@ -78,6 +78,7 @@ type InputWorkflowReminder = {
 type InputHost = {
   userId: number;
   isFixed?: boolean;
+  scheduleId?: number | null;
 };
 /**
  * Data to be mocked
@@ -165,7 +166,7 @@ export type InputEventType = {
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-  schedule?: InputUser["schedules"][number];
+  schedule?: InputUser["schedules"][number] | null;
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
@@ -222,6 +223,13 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
             id: host.userId,
           },
         },
+        schedule: host.scheduleId
+          ? {
+              connect: {
+                id: host.scheduleId,
+              },
+            }
+          : undefined,
       };
 
       await prismock.host.create({
@@ -1083,6 +1091,11 @@ export const TestData = {
           date: null,
         },
       ],
+      timeZone: Timezones["+5:30"],
+    },
+    EmptyAvailability: {
+      name: "Empty Availability",
+      availability: [],
       timeZone: Timezones["+5:30"],
     },
     IstWorkHoursWithDateOverride: (dateString: string) => ({

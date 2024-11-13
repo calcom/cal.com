@@ -28,7 +28,11 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { GetBookingOutput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
+import {
+  GetBookingOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
@@ -478,7 +482,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(5);
           });
       });
@@ -492,7 +500,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(3);
           });
       });
@@ -506,7 +518,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(3);
           });
       });
@@ -520,7 +536,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(4);
           });
       });
@@ -534,7 +554,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(1);
           });
       });
@@ -548,7 +572,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(5);
           });
       });
@@ -562,7 +590,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(3);
           });
       });
@@ -576,7 +608,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(1);
           });
       });
@@ -590,7 +626,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(3);
           });
       });
@@ -604,7 +644,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
           });
       });
@@ -618,7 +662,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(5);
           });
       });
@@ -632,7 +680,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
           });
       });
@@ -646,7 +698,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(3);
           });
       });
@@ -660,9 +716,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
-            console.log("asap data", JSON.stringify(data, null, 2));
             expect(data[0].start).toEqual(createdBooking.start);
             expect(data[1].start).toEqual(bookingInThePast.startTime.toISOString());
           });
@@ -677,7 +736,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
             expect(data[0].start).toEqual(bookingInThePast.startTime.toISOString());
             expect(data[1].start).toEqual(createdBooking.start);
@@ -693,7 +756,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
             expect(data[0].start).toEqual(createdBooking.start);
             expect(data[1].start).toEqual(bookingInThePast.startTime.toISOString());
@@ -709,7 +776,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
             expect(data[0].start).toEqual(bookingInThePast.startTime.toISOString());
             expect(data[1].start).toEqual(createdBooking.start);
@@ -725,7 +796,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
             expect(data[0].start).toEqual(createdBooking.start);
             expect(data[1].start).toEqual(bookingInThePast.startTime.toISOString());
@@ -741,7 +816,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = responseBody.data;
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
             expect(data.length).toEqual(2);
             expect(data[0].start).toEqual(bookingInThePast.startTime.toISOString());
             expect(data[1].start).toEqual(createdBooking.start);
@@ -765,6 +844,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.reschedulingReason).toEqual(body.reschedulingReason);
             expect(data.start).toEqual(body.start);
@@ -793,6 +874,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.status).toEqual("cancelled");
 

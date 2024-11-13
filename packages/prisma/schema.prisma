@@ -50,12 +50,16 @@ model Host {
   isFixed          Boolean   @default(false)
   priority         Int?
   weight           Int?
-  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
+  schedule         Schedule? @relation(fields: [scheduleId], references: [id])
+  scheduleId       Int?
+  createdAt        DateTime  @default(now())
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model EventType {
@@ -190,6 +194,7 @@ model Credential {
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
+  @@index([invalid])
 }
 
 enum IdentityProvider {
@@ -339,6 +344,7 @@ model User {
   NotificationsSubscriptions NotificationsSubscriptions[]
   referralLinkId             String?
   features                   UserFeatures[]
+  reassignedBookings         Booking[]                    @relation("reassignByUser")
 
   @@unique([email])
   @@unique([email, username])
@@ -487,6 +493,8 @@ model Membership {
   @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
+  @@index([accepted])
+  @@index([role])
 }
 
 model VerificationToken {
@@ -601,6 +609,9 @@ model Booking {
   destinationCalendarId        Int?
   cancellationReason           String?
   rejectionReason              String?
+  reassignReason               String?
+  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById                 Int?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?
@@ -625,6 +636,7 @@ model Booking {
   cancelledBy                  String?
   /// @zod.email()
   rescheduledBy                String?
+  // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
 
   @@index([eventTypeId])
@@ -645,6 +657,7 @@ model Schedule {
   name                 String
   timeZone             String?
   availability         Availability[]
+  Host                 Host[]
 
   @@index([userId])
 }
@@ -770,6 +783,7 @@ enum WebhookTriggerEvents {
   OOO_CREATED
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  FORM_SUBMITTED_NO_EVENT
 }
 
 model Webhook {

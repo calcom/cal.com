@@ -33,6 +33,7 @@ export type IconName =
   | "chevron-left"
   | "chevron-right"
   | "chevron-up"
+  | "chevrons-down-up"
   | "chevrons-left"
   | "chevrons-right"
   | "circle-alert"
@@ -132,6 +133,7 @@ export type IconName =
   | "users"
   | "venetian-mask"
   | "video"
+  | "waypoints"
   | "webhook"
   | "x"
   | "zap";

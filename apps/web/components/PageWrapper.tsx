@@ -40,6 +40,8 @@ function PageWrapper(props: AppProps) {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
     pageStatus = "500";
+  } else if (router.pathname === "/403") {
+    pageStatus = "403";
   }
 
   // On client side don't let nonce creep into DOM

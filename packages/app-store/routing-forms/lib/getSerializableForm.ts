@@ -81,6 +81,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
         name: true,
         email: true,
         avatarUrl: true,
+        defaultScheduleId: true,
       },
     });
   }
