@@ -17,23 +17,27 @@ export const myStatsHandler = async ({ ctx }: MyStatsOptions) => {
     where: {
       id: sessionUser.id,
     },
-    select: {
-      bookings: {
-        select: { id: true },
+       select: {
+      _count: {
+        select: {
+          bookings: true,
+          selectedCalendars: true,
+          teams: true,
+          eventTypes: true,
+        },
       },
-      selectedCalendars: true,
       teams: {
         select: {
           team: {
             select: {
-              id: true,
-              eventTypes: true,
+              eventTypes: {
+                select: {
+                  id: true,
+                },
+              },
             },
           },
         },
-      },
-      eventTypes: {
-        select: { id: true },
       },
     },
   });
