@@ -33,6 +33,10 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
     id: z.string(),
     name: z.string(),
     teamId: z.number().nullable(),
+    fields: z
+      .array(z.object({ id: z.string(), label: z.string() }).passthrough())
+      .nullable()
+      .default([]),
   }),
 });
 
@@ -49,6 +53,44 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
   });
 
   if (bookingFromResponse) {
+    return;
+  }
+
+  const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
+  const recentResponses = await prisma.app_RoutingForms_FormResponse.findMany({
+    where: {
+      formId: form.id,
+      createdAt: {
+        gte: twentyMinutesAgo,
+        lt: new Date(),
+      },
+      routedToBookingUid: {
+        not: null,
+      },
+      NOT: {
+        id: responseId,
+      },
+    },
+  });
+
+  const normalizedCurrentResponses: Record<string, { label: string; value: string }> = {};
+  Object.entries(responses).forEach(([question, response]) => {
+    const value = typeof response === "object" ? response?.value : response;
+    const field = form?.fields?.find((f) => f.label === question);
+
+    if (field) {
+      normalizedCurrentResponses[field.id] = {
+        label: question,
+        value: value,
+      };
+    }
+  });
+
+  const hasDuplicate = recentResponses.some((response) => {
+    return JSON.stringify(response.response) === JSON.stringify(normalizedCurrentResponses);
+  });
+
+  if (hasDuplicate) {
     return;
   }
 
