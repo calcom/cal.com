@@ -85,7 +85,10 @@ export default async function handler(req: NextApiRequest) {
         ogConfig
       );
 
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
+      return new Response(img.body, {
+        status: 200,
+        headers: { "Content-Type": "image/png", "cache-control": "max-age=86400" },
+      });
     }
     case "app": {
       const { name, description, slug } = appSchema.parse({
