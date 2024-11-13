@@ -62,6 +62,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     isRRWeightsEnabled: z.boolean(),
     metadata: EventTypeMetaDataSchema,
     bookingFields: eventTypeBookingFields,
+    autoTranslateDescriptionEnabled: z.boolean(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);
