@@ -521,7 +521,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     boolean: BooleanFieldInput_2024_06_14,
   };
 
-  private reservedSystemSlugs = ["location", "rescheduleReason"];
+  private reservedSystemSlugs = ["location", "rescheduleReason", "attendeePhoneNumber"];
 
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {

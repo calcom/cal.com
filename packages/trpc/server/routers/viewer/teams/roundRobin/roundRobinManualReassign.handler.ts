@@ -14,7 +14,7 @@ type RoundRobinManualReassignOptions = {
 };
 
 export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobinManualReassignOptions) => {
-  const { bookingId, teamMemberId } = input;
+  const { bookingId, teamMemberId, reassignReason } = input;
 
   // Check if user has access to change booking
   const isAllowed = await BookingRepository.doesUserIdHaveAccessToBooking({ userId: ctx.user.id, bookingId });
@@ -23,7 +23,13 @@ export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobin
     throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });
   }
 
-  await roundRobinManualReassignment({ bookingId, newUserId: teamMemberId, orgId: ctx.user.organizationId });
+  await roundRobinManualReassignment({
+    bookingId,
+    newUserId: teamMemberId,
+    orgId: ctx.user.organizationId,
+    reassignReason,
+    reassignedById: ctx.user.id,
+  });
 
   return { success: true };
 };

@@ -10,6 +10,10 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 
+import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
+
+export type NoShowAttendees = { email: string; noShow: boolean }[];
+
 const buildResultPayload = async (
   bookingUid: string,
   attendeeEmails: string[],
@@ -41,7 +45,7 @@ const logFailedResults = (results: PromiseSettledResult<any>[]) => {
 };
 
 class ResponsePayload {
-  attendees: { email: string; noShow: boolean }[];
+  attendees: NoShowAttendees;
   noShowHost: boolean;
   message: string;
 
@@ -101,6 +105,8 @@ const handleMarkNoShow = async ({
 
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);
+
+      await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
     if (noShowHost) {

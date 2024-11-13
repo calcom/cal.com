@@ -19,7 +19,6 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
-import { useFetchMoreOnBottomReached } from "@calcom/features/users/components/UserTable/useFetchMoreOnBottomReached";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -50,6 +49,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

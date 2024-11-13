@@ -207,7 +207,6 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
-    "@calcom/ui",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -218,10 +217,6 @@ const nextConfig = {
     lodash: {
       transform: "lodash/{{member}}",
     },
-    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-    // "@calcom/ui": {
-    //   transform: "@calcom/ui/components/{{member}}",
-    // },
   },
   images: {
     unoptimized: true,
@@ -668,7 +663,7 @@ const nextConfig = {
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
-      autoInstrumentServerFunctions: true,
+      autoInstrumentServerFunctions: false,
       hideSourceMaps: true,
       // disable source map generation for the server code
       disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,

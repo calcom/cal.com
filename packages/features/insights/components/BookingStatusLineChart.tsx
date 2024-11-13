@@ -1,5 +1,6 @@
 import { Title } from "@tremor/react";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -33,8 +34,8 @@ export const BookingStatusLineChart = () => {
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
       timeView: selectedTimeView,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate: dayjs.utc(startDate).toISOString(),
+      endDate: dayjs.utc(endDate).toISOString(),
       teamId: selectedTeamId ?? undefined,
       eventTypeId: selectedEventTypeId ?? undefined,
       userId: selectedUserId ?? undefined,
