@@ -81,7 +81,7 @@ interface InfiniteEventTypeListProps {
   group: InfiniteEventTypeGroup;
   readOnly: boolean;
   bookerUrl: string | null;
-  pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
+  pages: { nextCursor: number | null | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
   lockedByOrg?: boolean;
   isPending?: boolean;
   debouncedSearchTerm?: string;
@@ -349,9 +349,14 @@ export const InfiniteEventTypeList = ({
           group: { teamId: group?.teamId, parentId: group?.parentId },
         },
         (data) => {
+          if (!data) return { pages: [], pageParams: [] };
+
           return {
-            pageParams: data?.pageParams ?? [],
-            pages: newOrder,
+            ...data,
+            pages: newOrder.map((page) => ({
+              ...page,
+              nextCursor: page.nextCursor ?? undefined,
+            })),
           };
         }
       );
