@@ -150,7 +150,7 @@ model EventType {
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
-  descriptionTranslations                 Translation[]
+  descriptionTranslations                 EventTypeTranslation[]
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -1588,16 +1588,20 @@ model AttributeToUser {
   @@unique([memberId, attributeOptionId])
 }
 
-model Translation {
-  id             String     @id @default(cuid())
-  sourceText     String     @db.Text
+enum EventTypeAutoTranslatedField {
+  DESCRIPTION // Currently the only field we translate
+}
+
+model EventTypeTranslation {
+  id             String                       @id @default(cuid())
+  field          EventTypeAutoTranslatedField
   sourceLang     String
   targetLang     String
-  translatedText String     @db.Text
-  createdAt      DateTime   @default(now())
-  eventType      EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId    Int?
+  translatedText String                       @db.Text
+  createdAt      DateTime                     @default(now())
+  eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId    Int
 
-  @@unique([sourceText, targetLang])
-  @@index([sourceText, targetLang])
+  @@unique([eventTypeId, field, targetLang])
+  @@index([eventTypeId, field, targetLang])
 }
