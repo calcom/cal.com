@@ -9,12 +9,19 @@ import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { EmptyScreen } from "@calcom/ui";
 
 import { StripeConnect } from "../../connect/stripe/StripeConnect";
-import { useCheck } from "../../hooks/stripe/useCheck";
+import { useCheck, useTeamCheck } from "../../hooks/stripe/useCheck";
 import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeAppIntegration";
 
 const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { allowConnect, checked } = useCheck({});
-  const isStripeConnected = !checked || !allowConnect;
+  const { allowConnect: allowConnectTeam, checked: checkedTeam } = useTeamCheck({ teamId: eventType.teamId });
+
+  const isAllowConnect = eventType.teamId ? allowConnectTeam : allowConnect;
+  const isChecking = eventType.teamId ? !checkedTeam : !checked;
+
+  const isStripeConnected = isChecking || !isAllowConnect;
+
+  if (isChecking) return <div>Checking...</div>;
 
   return (
     <div>
@@ -22,9 +29,10 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
         <EmptyScreen
           Icon="grid-3x3"
           headline="Stripe not connected"
-          description="You need to connect Stripe to use this feature. Pleae click on the button below to connect."
+          description="You need to connect Stripe to use this feature. Please click on the button below to connect."
           buttonRaw={
             <StripeConnect
+              teamId={eventType.teamId}
               label="Connect to Stripe"
               loadingLabel="Connect to Stripe"
               alreadyConnectedLabel="Connect to Stripe"
@@ -43,8 +51,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
 
 const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
-  const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe");
-
+  const { data: stripeData, isLoading } = useAtomsEventTypeById("stripe", eventType.teamId);
   const transformedAppData = {
     ...stripeData?.app,
     logo: `https://app.cal.com${stripeData?.app.logo}`,
@@ -52,21 +59,50 @@ const StripeAppCard = ({ eventType }: { eventType: EventTypeSetupProps["eventTyp
 
   if (isLoading || !stripeData) return null;
 
-  return (
-    <div>
+  if (!!transformedAppData.teams && transformedAppData.teams.length > 0) {
+    const eventTypeAssociatedTeam = transformedAppData.teams.find((team) => team.teamId === eventType.teamId);
+
+    if (!eventTypeAssociatedTeam) return null;
+
+    return (
       <EventTypeAppCard
         getAppData={getAppDataGetter(transformedAppData.slug as EventTypeAppsList)}
         setAppData={getAppDataSetter(
           transformedAppData.slug as EventTypeAppsList,
           transformedAppData.categories as string[],
-          transformedAppData.userCredentialIds && (transformedAppData.userCredentialIds[0] as number)
+          eventTypeAssociatedTeam.credentialId
         )}
-        key={transformedAppData.slug}
-        app={transformedAppData as EventTypeApp}
+        key={(transformedAppData.slug ?? stripeData.app.slug) + eventTypeAssociatedTeam.credentialId}
+        app={
+          {
+            ...transformedAppData,
+            credentialOwner: {
+              name: eventTypeAssociatedTeam.name,
+              avatar: eventTypeAssociatedTeam.logoUrl,
+              teamId: eventTypeAssociatedTeam.teamId,
+              credentialId: eventTypeAssociatedTeam.credentialId,
+            },
+          } as unknown as EventTypeApp
+        }
         eventType={eventType as unknown as EventTypeForAppCard}
         eventTypeFormMetadata={eventTypeFormMetadata}
       />
-    </div>
+    );
+  }
+
+  return (
+    <EventTypeAppCard
+      getAppData={getAppDataGetter(transformedAppData.slug as EventTypeAppsList)}
+      setAppData={getAppDataSetter(
+        transformedAppData.slug as EventTypeAppsList,
+        transformedAppData.categories as string[],
+        transformedAppData.userCredentialIds && (transformedAppData.userCredentialIds[0] as number)
+      )}
+      key={transformedAppData.slug}
+      app={transformedAppData as unknown as EventTypeApp}
+      eventType={eventType as unknown as EventTypeForAppCard}
+      eventTypeFormMetadata={eventTypeFormMetadata}
+    />
   );
 };
 

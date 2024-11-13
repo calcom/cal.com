@@ -3,7 +3,10 @@ import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servic
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
+import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
@@ -14,7 +17,10 @@ import {
   getAllUserBookings,
   handleInstantMeeting,
   handleCancelBooking,
+  roundRobinReassignment,
+  roundRobinManualReassignment,
   handleMarkNoShow,
+  confirmBookingHandler,
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
@@ -22,8 +28,8 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
-  CancelBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
@@ -46,9 +52,12 @@ export class BookingsService_2024_08_13 {
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly outputService: OutputBookingsService_2024_08_13,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
+    private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -107,7 +116,7 @@ export class BookingsService_2024_08_13 {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
     return this.outputService.getOutputCreateRecurringSeatedBookings(
-      bookings.map((booking) => ({ id: booking.id || 0, seatUid: booking.seatReferenceUid || "" }))
+      bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
     );
   }
 
@@ -282,6 +291,20 @@ export class BookingsService_2024_08_13 {
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
+    if (this.inputService.isCancelSeatedBody(body)) {
+      const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
+
+      if (!seat) {
+        throw new BadRequestException(
+          "Invalid seatUid: this seat does not exist or has already been cancelled."
+        );
+      }
+
+      if (seat && bookingUid !== seat.booking.uid) {
+        throw new BadRequestException("Invalid seatUid: this seat does not belong to this booking.");
+      }
+    }
+
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
     return this.getBooking(bookingUid);
@@ -341,5 +364,96 @@ export class BookingsService_2024_08_13 {
       startTime: new Date(newBooking.start),
       fromReschedule: oldBookingUid,
     });
+  }
+
+  async reassignBooking(bookingUid: string, requestUser: UserWithProfile) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const profile = this.usersService.getUserMainProfile(requestUser);
+
+    await roundRobinReassignment({
+      bookingId: booking.id,
+      orgId: profile?.organizationId || null,
+    });
+
+    const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
+    if (!reassigned) {
+      throw new NotFoundException(`Reassigned booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    return this.outputService.getOutputReassignedBooking(reassigned);
+  }
+
+  async reassignBookingToUser(
+    bookingUid: string,
+    newUserId: number,
+    reassignedById: number,
+    body: ReassignToUserBookingInput_2024_08_13
+  ) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const user = await this.usersRepository.findByIdWithProfile(newUserId);
+    if (!user) {
+      throw new NotFoundException(`User with id=${newUserId} was not found in the database`);
+    }
+
+    const profile = this.usersService.getUserMainProfile(user);
+
+    const reassigned = await roundRobinManualReassignment({
+      bookingId: booking.id,
+      newUserId,
+      orgId: profile?.organizationId || null,
+      reassignReason: body.reason,
+      reassignedById,
+    });
+
+    return this.outputService.getOutputReassignedBooking(reassigned);
+  }
+
+  async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    await confirmBookingHandler({
+      ctx: {
+        user: requestUser,
+      },
+      input: {
+        bookingId: booking.id,
+        confirmed: true,
+        recurringEventId: booking.recurringEventId,
+      },
+    });
+
+    return this.getBooking(bookingUid);
+  }
+
+  async declineBooking(bookingUid: string, requestUser: UserWithProfile, reason?: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    await confirmBookingHandler({
+      ctx: {
+        user: requestUser,
+      },
+      input: {
+        bookingId: booking.id,
+        confirmed: false,
+        recurringEventId: booking.recurringEventId,
+        reason,
+      },
+    });
+
+    return this.getBooking(bookingUid);
   }
 }

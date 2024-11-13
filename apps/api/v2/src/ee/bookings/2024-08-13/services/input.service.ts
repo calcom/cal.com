@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -32,6 +33,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -91,6 +93,7 @@ export class InputBookingsService_2024_08_13 {
   ): Promise<BookingRequest> {
     const bodyTransformed = await this.transformInputCreateBooking(body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+    const requestId = request.get("X-Request-Id");
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -99,6 +102,13 @@ export class InputBookingsService_2024_08_13 {
       : DEFAULT_PLATFORM_PARAMS;
 
     const location = request.body.location || request.body.meetingUrl;
+    this.logger.log(`createBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      location,
+      oAuthClientId,
+      ...oAuthParams,
+    });
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
@@ -115,10 +125,13 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
       inputBooking.attendee.timeZone
     );
-    const endTime = startTime.plus({ minutes: eventType.length });
+    const endTime = startTime.plus({ minutes: lengthInMinutes });
 
     return {
       start: startTime.toISO(),
@@ -140,6 +153,25 @@ export class InputBookingsService_2024_08_13 {
           }
         : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
     };
+  }
+
+  validateBookingLengthInMinutes(inputBooking: CreateBookingInput_2024_08_13, eventType: EventType) {
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+    if (inputBooking.lengthInMinutes && !eventTypeMetadata?.multipleDuration) {
+      throw new BadRequestException(
+        "Can't specify 'lengthInMinutes' because event type does not have multiple possible lengths. Please, remove the 'lengthInMinutes' field from the request."
+      );
+    }
+    if (
+      inputBooking.lengthInMinutes &&
+      !eventTypeMetadata?.multipleDuration?.includes(inputBooking.lengthInMinutes)
+    ) {
+      throw new BadRequestException(
+        `Provided 'lengthInMinutes' is not one of the possible lengths for the event type. The possible lengths are: ${eventTypeMetadata?.multipleDuration?.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   async createRecurringBookingRequest(

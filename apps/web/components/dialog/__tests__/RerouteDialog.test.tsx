@@ -248,7 +248,7 @@ async function mockMessageFromOpenedTab({ type, data }: { type: string; data: an
   return messageReceivedPromise;
 }
 
-function expectEventTypeInfoInCurrentRouting({
+async function expectEventTypeInfoInCurrentRouting({
   eventTypeText,
   eventTypeHref,
 }: {
@@ -257,10 +257,10 @@ function expectEventTypeInfoInCurrentRouting({
 }) {
   const eventTypeEl = screen.getByTestId("current-routing-status-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
+  await expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
 }
 
-function expectEventTypeInfoInReroutePreview({
+async function expectEventTypeInfoInReroutePreview({
   eventTypeText,
   eventTypeHref,
 }: {
@@ -269,7 +269,7 @@ function expectEventTypeInfoInReroutePreview({
 }) {
   const eventTypeEl = screen.getByTestId("reroute-preview-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
+  await expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
 }
 
 function expectOrganizerInfoInCurrentRouting({ organizerText }: { organizerText: string }) {

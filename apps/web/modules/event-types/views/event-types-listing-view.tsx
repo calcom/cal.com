@@ -18,9 +18,11 @@ import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/S
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -60,7 +62,6 @@ import {
 } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
@@ -80,7 +81,7 @@ interface InfiniteEventTypeListProps {
   group: InfiniteEventTypeGroup;
   readOnly: boolean;
   bookerUrl: string | null;
-  pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
+  pages: { nextCursor: number | null | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
   lockedByOrg?: boolean;
   isPending?: boolean;
   debouncedSearchTerm?: string;
@@ -257,6 +258,7 @@ export const InfiniteEventTypeList = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
+  const { copyToClipboard } = useCopy();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -347,9 +349,14 @@ export const InfiniteEventTypeList = ({
           group: { teamId: group?.teamId, parentId: group?.parentId },
         },
         (data) => {
+          if (!data) return { pages: [], pageParams: [] };
+
           return {
-            pageParams: data?.pageParams ?? [],
-            pages: newOrder,
+            ...data,
+            pages: newOrder.map((page) => ({
+              ...page,
+              nextCursor: page.nextCursor ?? undefined,
+            })),
           };
         }
       );
@@ -566,7 +573,7 @@ export const InfiniteEventTypeList = ({
                                     StartIcon="link"
                                     onClick={() => {
                                       showToast(t("link_copied"), "success");
-                                      navigator.clipboard.writeText(calLink);
+                                      copyToClipboard(calLink);
                                     }}
                                   />
                                 </Tooltip>
@@ -579,7 +586,7 @@ export const InfiniteEventTypeList = ({
                                       StartIcon="venetian-mask"
                                       onClick={() => {
                                         showToast(t("private_link_copied"), "success");
-                                        navigator.clipboard.writeText(placeholderHashedLink);
+                                        copyToClipboard(placeholderHashedLink);
                                         setPrivateLinkCopyIndices((prev) => {
                                           const prevIndex = prev[type.slug] ?? 0;
                                           prev[type.slug] = (prevIndex + 1) % type.hashedLink.length;
@@ -893,6 +900,7 @@ const InfiniteScrollMain = ({
 }) => {
   const searchParams = useCompatSearchParams();
   const { data } = useTypedQuery(querySchema);
+  const orgBranding = useOrgBranding();
 
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
@@ -910,6 +918,18 @@ const InfiniteScrollMain = ({
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
+
+  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
+
+  // If the event type group is the same as the org branding team, or the parent team, set the bookerUrl to the org branding URL
+  // This is to ensure that the bookerUrl is always the same as the one in the org branding settings
+  // This keeps the app working for personal event types that were not migrated to the org (rare)
+  if (
+    activeEventTypeGroup[0].teamId === orgBranding?.id ||
+    activeEventTypeGroup[0].parentId === orgBranding?.id
+  ) {
+    activeEventTypeGroup[0].bookerUrl = bookerUrl;
+  }
 
   return (
     <>

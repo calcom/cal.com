@@ -88,7 +88,7 @@ export const RedirectToInstantMeetingModal = ({
                   onGoBack();
                 }}
                 color="primary">
-                {t("go_back")}
+                {t("schedule_instead")}
               </Button>
             </div>
           ) : (

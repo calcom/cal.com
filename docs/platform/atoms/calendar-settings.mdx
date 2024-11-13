@@ -13,7 +13,7 @@ export default function CalendarSettingsComponent() {
   return (
     <>
       <CalendarSettings />
-    <>
+    </>
   )
 }
 ```
@@ -22,8 +22,8 @@ For a demonstration of the calendar settings atom, please refer to the video bel
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/7f6969363b8743abafcec3974f281987?sid=493e7b5d-b3ae-4821-94a3-972260630e6c"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -64,13 +64,13 @@ export default function DestinationCalendars() {
   return (
     <>
       <DestinationCalendarSettings classNames="mx-5" statusLoader={loadingStatus} />
-    <>
+    </>
   )
 }
 ```
 This is how the destination calendar settings atom looks:
 
-<img src="/images/destination_calendar_settings.png" />
+<img src="/images/DestinationCalendar.png" />
 
 Customizations can be done to the destination calendar settings atom via props. Below is a list of props that can be passed to the calendar settings atom
 <p></p>
@@ -91,13 +91,13 @@ export default function SelectedCalendars( props : SelectedCalendarsProps ) {
   return (
     <>
       <SelectedCalendarSettings classNames="mx-5 mb-6" />
-    <>
+    </>
   )
 }
 ```
 This is how the selected calendar settings atom looks:
 
-<img src="/images/selected_calendar_settings.png" />
+<img src="/images/SelectedCalendar.png" />
 
 Customizations can be done to the destination calendar settings atom via props. Below is a list of props that can be passed to the calendar settings atom
 <p></p>
