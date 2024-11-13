@@ -755,6 +755,55 @@ describe("attribute weights and virtual queues", () => {
       },
     ];
 
+    const routingFormResponse = {
+      response: {
+        [fieldId]: {
+          label: "company_size",
+          value: attributeOptionIdFirst,
+        },
+      },
+      form: {
+        routes: [
+          {
+            id: routeId,
+            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
+            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            attributesQueryValue: {
+              id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
+              type: "group",
+              children1: {
+                "a8999bb9-89ab-4cde-b012-31932649cc93": {
+                  type: "rule",
+                  properties: {
+                    field: attributeId,
+                    value: [[`{field:${fieldId}}`]],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributeRoutingConfig: {},
+          },
+        ],
+        fields: [
+          {
+            id: fieldId,
+            type: "select",
+            label: "company_size",
+            options: [
+              { id: attributeOptionIdFirst, label: "1-10" },
+              { id: attributeOptionIdSecond, label: "11-20" },
+            ],
+            required: true,
+          },
+        ],
+      },
+      chosenRouteId: routeId,
+    };
+
     await expect(
       getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         availableUsers: users,
@@ -764,54 +813,7 @@ describe("attribute weights and virtual queues", () => {
           team: { parentId: 1 },
         },
         allRRHosts,
-        routingFormResponse: {
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdFirst,
-            },
-          },
-          form: {
-            routes: [
-              {
-                id: routeId,
-                action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
-                queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
-                attributesQueryValue: {
-                  id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
-                  type: "group",
-                  children1: {
-                    "a8999bb9-89ab-4cde-b012-31932649cc93": {
-                      type: "rule",
-                      properties: {
-                        field: attributeId,
-                        value: [[`{field:${fieldId}}`]],
-                        operator: "multiselect_some_in",
-                        valueSrc: ["value"],
-                        valueType: ["multiselect"],
-                        valueError: [null],
-                      },
-                    },
-                  },
-                },
-                attributeRoutingConfig: {},
-              },
-            ],
-            fields: [
-              {
-                id: fieldId,
-                type: "select",
-                label: "company_size",
-                options: [
-                  { id: attributeOptionIdFirst, label: "1-10" },
-                  { id: attributeOptionIdSecond, label: "11-20" },
-                ],
-                required: true,
-              },
-            ],
-          },
-          chosenRouteId: routeId,
-        },
+        routingFormResponse,
       })
     ).resolves.toStrictEqual(users[1]);
   });
