@@ -53,8 +53,6 @@ async function postHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
-  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  await calendarCacheRepository.watchCalendar({ calendarId: externalId });
   await SelectedCalendarRepository.upsert({
     userId: user.id,
     integration,
