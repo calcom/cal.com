@@ -1615,4 +1615,14 @@ export const insightsRouter = router({
       });
       return options;
     }),
+  failedBookingsByField: userBelongsToTeamProcedure
+    .input(
+      z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
+    )
+    .query(async ({ ctx, input }) => {
+      return await RoutingEventsInsights.getFailedBookingsByRoutingFormGroup({
+        ...input,
+        organizationId: ctx.user.organizationId ?? null,
+      });
+    }),
 });

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import {
   zodFields as routingFormFieldsSchema,
@@ -316,6 +316,97 @@ class RoutingEventsInsights {
     const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
 
     return fields;
+  }
+
+  static async getFailedBookingsByRoutingFormGroup({
+    teamId,
+    isAll,
+    routingFormId,
+    organizationId,
+  }: RoutingFormInsightsTeamFilter) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+
+    const teamConditions = [];
+
+    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    if (formsWhereCondition.teamId?.in) {
+      // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+      teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    if (routingFormId) {
+      teamConditions.push(`f.id = '${routingFormId}'`);
+    }
+
+    const whereClause = teamConditions.length
+      ? Prisma.sql`AND ${Prisma.raw(teamConditions.join(" AND "))}`
+      : Prisma.sql``;
+
+    const result = await prisma.$queryRaw<
+      {
+        formId: string;
+        formName: string;
+        fieldId: string;
+        fieldLabel: string;
+        optionId: string;
+        count: number;
+        routes: Prisma.JsonValue;
+      }[]
+    >`
+      WITH response_data AS (
+        SELECT 
+          r.id as response_id,
+          r."formId",
+          r.response::jsonb as response_json
+        FROM "App_RoutingForms_FormResponse" r
+        WHERE r."routedToBookingUid" IS NULL
+      ),
+      field_values AS (
+        SELECT 
+          rd.response_id,
+          rd."formId",
+          key as field_id,
+          value->>'label' as field_label,
+          CASE 
+            WHEN jsonb_typeof(value->'value') = 'array' THEN 
+              jsonb_array_elements_text(value->'value')
+            ELSE 
+              value->>'value'
+          END as option_value
+        FROM response_data rd,
+             jsonb_each(rd.response_json) as fields(key, value)
+      )
+      SELECT 
+        f.id as "formId",
+        f.name as "formName",
+        fv.field_id as "fieldId",
+        fv.field_label as "fieldLabel",
+        fv.option_value as "optionId",
+        COUNT(DISTINCT fv.response_id)::integer as count,
+        f.routes as routes
+      FROM field_values fv
+      JOIN "App_RoutingForms_Form" f ON f.id = fv."formId"
+      WHERE fv.option_value IS NOT NULL
+      ${whereClause}
+      GROUP BY 
+        f.id,
+        f.name,
+        fv.field_id,
+        fv.field_label,
+        fv.option_value,
+        f.routes
+      ORDER BY count DESC`;
+
+    console.log(result);
+
+    return result.map((row) => ({
+      ...row,
+      routes: row.routes as any[],
+    }));
   }
 }
 
