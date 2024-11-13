@@ -45,8 +45,15 @@ export function RoutingFormResponsesTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const { dateRange, selectedTeamId, isAll, initialConfig, selectedRoutingFormId, selectedMemberUserId } =
-    filter;
+  const {
+    dateRange,
+    selectedTeamId,
+    isAll,
+    initialConfig,
+    selectedRoutingFormId,
+    selectedMemberUserId,
+    selectedBookingStatus,
+  } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
@@ -59,6 +66,7 @@ export function RoutingFormResponsesTable() {
         userId: selectedMemberUserId ?? undefined,
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
+        bookingStatus: selectedBookingStatus ?? undefined,
         limit: 20,
       },
       {

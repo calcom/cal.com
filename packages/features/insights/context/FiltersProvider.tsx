@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
 import type { FilterContextType } from "./provider";
@@ -20,8 +21,10 @@ const querySchema = z.object({
     .union([z.enum(["event-type", "user", "routing_form", "booking_status"]), z.string().regex(/^rf_.*$/)])
     .nullable(),
   routingFormId: z.string().nullable(),
+  bookingStatus: z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).nullable(),
 });
 
+// TODO(SEAN): We can have a big refactor here and move this all out of context and into query state. This will make it easier to create shareable links
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
   const utils = trpc.useUtils();
@@ -36,6 +39,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     eventTypeIdParsed,
     filterParsed,
     routingFormIdParsed,
+    bookingStatusParsed,
     memberUserIdParsed;
 
   const safe = querySchema.safeParse({
@@ -47,6 +51,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     filter: searchParams?.get("filter") ?? null,
     memberUserId: searchParams?.get("memberUserId") ?? null,
     routingFormId: searchParams?.get("routingFormId") ?? null,
+    bookingStatus: searchParams?.get("bookingStatus") ?? null,
   });
 
   if (!safe.success) {
@@ -60,6 +65,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     filterParsed = safe.data.filter;
     routingFormIdParsed = safe.data.routingFormId;
     memberUserIdParsed = safe.data.memberUserId;
+    bookingStatusParsed = safe.data.bookingStatus;
   }
 
   const [configFilters, setConfigFilters] = useState<FilterContextType["filter"]>({
@@ -78,6 +84,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
       ? [filterParsed as "event-type" | "user" | "routing_forms" | `rf_${string}`]
       : null,
     selectedRoutingFormId: routingFormIdParsed || null,
+    selectedBookingStatus: bookingStatusParsed || null,
     isAll: false,
     initialConfig: {
       userId: null,
@@ -96,6 +103,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     selectedFilter,
     selectedTeamName,
     selectedRoutingFormId,
+    selectedBookingStatus,
     isAll,
     initialConfig,
   } = configFilters;
@@ -114,6 +122,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           isAll,
           initialConfig,
           selectedRoutingFormId,
+          selectedBookingStatus,
         },
         setConfigFilters: (newConfigFilters) => {
           setConfigFilters({
@@ -131,6 +140,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             dateRange,
             initialConfig,
             selectedRoutingFormId,
+            selectedBookingStatus,
           } = newConfigFilters;
           const [startTime, endTime] = dateRange || [null, null];
           const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
@@ -147,6 +157,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setParamsIfDefined("endTime", endTime?.format("YYYY-MM-DD"));
           setParamsIfDefined("filter", selectedFilter?.[0]);
           setParamsIfDefined("routingFormId", selectedRoutingFormId);
+          setParamsIfDefined("bookingStatus", selectedBookingStatus);
           router.push(`${pathname}?${newSearchParams.toString()}`);
         },
         clearFilters: () => {
@@ -166,6 +177,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             dateRange: [dayjs().subtract(1, "week"), dayjs(), "w"],
             initialConfig,
             selectedRoutingFormId: null,
+            selectedBookingStatus: null,
           });
 
           const newSearchParams = new URLSearchParams();

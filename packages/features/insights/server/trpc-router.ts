@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -33,6 +34,8 @@ interface BuildBaseWhereConditionType {
   isAll?: boolean;
   ctx: BuildBaseWhereConditionCtxType;
 }
+
+const bookingStatusSchema = z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).optional();
 
 const buildBaseWhereCondition = async ({
   teamId,
@@ -1541,7 +1544,9 @@ export const insightsRouter = router({
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(rawDataInputSchema.extend({ routingFormId: z.string().optional() }))
+    .input(
+      rawDataInputSchema.extend({ routingFormId: z.string().optional(), bookingStatus: bookingStatusSchema })
+    )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
 
@@ -1553,6 +1558,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
         userId: input.userId ?? null,
+        bookingStatus: input.bookingStatus ?? null,
       });
 
       return stats;
@@ -1563,6 +1569,7 @@ export const insightsRouter = router({
         routingFormId: z.string().optional(),
         cursor: z.number().optional(),
         limit: z.number().optional(),
+        bookingStatus: bookingStatusSchema,
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1577,6 +1584,7 @@ export const insightsRouter = router({
         cursor: input.cursor,
         userId: input.userId ?? null,
         limit: input.limit,
+        bookingStatus: input.bookingStatus ?? null,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure

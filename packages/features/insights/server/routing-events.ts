@@ -6,6 +6,7 @@ import {
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
+import type { BookingStatus } from "@calcom/prisma/enums";
 
 type RoutingFormInsightsTeamFilter = {
   teamId?: number | null;
@@ -19,6 +20,7 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   endDate?: string;
   userId?: number | null;
   fieldFilters?: Record<string, string[]>;
+  bookingStatus?: BookingStatus | "NO_BOOKING" | null;
 };
 
 class RoutingEventsInsights {
@@ -67,6 +69,7 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
     userId,
+    bookingStatus,
   }: RoutingFormInsightsFilter) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
@@ -85,11 +88,18 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId && {
-        routedToBooking: {
-          userId,
-        },
-      }),
+      ...(userId || bookingStatus
+        ? {
+            ...(bookingStatus === "NO_BOOKING"
+              ? { routedToBooking: null }
+              : {
+                  routedToBooking: {
+                    ...(userId && { userId }),
+                    ...(bookingStatus && { status: bookingStatus }),
+                  },
+                }),
+          }
+        : {}),
       form: formsWhereCondition,
     };
 
@@ -155,6 +165,7 @@ class RoutingEventsInsights {
     limit,
     userId,
     fieldFilters,
+    bookingStatus,
   }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
@@ -171,11 +182,18 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId && {
-        routedToBooking: {
-          userId,
-        },
-      }),
+      ...(userId || bookingStatus
+        ? {
+            ...(bookingStatus === "NO_BOOKING"
+              ? { routedToBooking: null }
+              : {
+                  routedToBooking: {
+                    ...(userId && { userId }),
+                    ...(bookingStatus && { status: bookingStatus }),
+                  },
+                }),
+          }
+        : {}),
       ...(fieldFilters &&
         Object.keys(fieldFilters).length > 0 && {
           AND: Object.entries(fieldFilters).map(([fieldId, values]) => ({
