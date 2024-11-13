@@ -2,6 +2,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
+import { isSelectFilterValue, isTextFilterValue } from "@calcom/ui/data-table";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,6 +14,57 @@ type GetOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TListMembersSchema;
+};
+
+const makeWhereClause = (filterValue: FilterValue) => {
+  if (isSelectFilterValue(filterValue)) {
+    return {
+      in: filterValue,
+    };
+  } else if (isTextFilterValue(filterValue)) {
+    const { operator, value } = filterValue.data;
+
+    switch (operator) {
+      case "equals":
+        return {
+          equals: value,
+        };
+      case "notEquals":
+        return {
+          not: value,
+        };
+      case "contains":
+        return {
+          contains: value,
+        };
+      case "notContains":
+        return {
+          NOT: {
+            contains: value,
+          },
+        };
+      case "startsWith":
+        return {
+          startsWith: value,
+        };
+      case "endsWith":
+        return {
+          endsWith: value,
+        };
+      case "isEmpty":
+        return {
+          equals: "",
+        };
+      case "isNotEmpty":
+        return {
+          NOT: {
+            equals: "",
+          },
+        };
+    }
+  }
+
+  return {};
 };
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
@@ -81,9 +133,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               attribute: {
                 id: filter.id,
               },
-              value: {
-                in: filter.value,
-              },
+              value: makeWhereClause(filter.value),
             },
           },
         };

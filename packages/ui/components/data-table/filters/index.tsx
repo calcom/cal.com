@@ -22,6 +22,8 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { FilterOptions } from "./FilterOptions";
+import type { FilterableColumn } from "./types";
 import { useFiltersSearchState } from "./utils";
 
 interface ColumnVisiblityProps<TData> {
@@ -169,25 +171,20 @@ interface ActiveFiltersProps<TData> {
 }
 
 function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
-  const { t } = useLocale();
   const [_state, _setState] = useFiltersSearchState();
 
   const columns = table.getAllColumns().filter((column) => column.getCanFilter());
 
-  const filterableColumns = useMemo(() => {
+  const filterableColumns = useMemo<FilterableColumn[]>(() => {
     return columns.map((column) => {
       return {
         id: column.id,
         title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
+        filterType: column.columnDef.meta?.filterType || "select",
         options: column.getFacetedUniqueValues(),
       };
     });
   }, [columns]);
-
-  const handleRemoveFilter = (columnId: string) => {
-    _setState({ activeFilters: (_state.activeFilters || []).filter((filter) => filter.f !== columnId) });
-    table.getColumn(columnId)?.setFilterValue(undefined);
-  };
 
   return (
     <>
@@ -203,60 +200,13 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0" align="start">
-              <Command>
-                <CommandInput placeholder={t("search_options")} />
-                <CommandList>
-                  <CommandEmpty>{t("no_options_found")}</CommandEmpty>
-                  {Array.from(column.options).map(([option]) => {
-                    if (!option) return null;
-                    return (
-                      <CommandItem
-                        key={option}
-                        onSelect={() => {
-                          const newFilterValue = filter.v?.includes(option)
-                            ? filter.v?.filter((value) => value !== option)
-                            : [...(filter.v || []), option];
-                          _setState({
-                            activeFilters: _state.activeFilters.map((f) =>
-                              f.f === filter.f ? { ...f, v: newFilterValue } : f
-                            ),
-                          });
-                          table
-                            .getColumn(filter.f)
-                            ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
-                        }}>
-                        <div
-                          className={classNames(
-                            "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                            Array.isArray(table.getColumn(column.id)?.getFilterValue()) &&
-                              (table.getColumn(column.id)?.getFilterValue() as string[])?.includes(option)
-                              ? "bg-primary"
-                              : "opacity-50"
-                          )}>
-                          {Array.isArray(table.getColumn(column.id)?.getFilterValue()) &&
-                            (table.getColumn(column.id)?.getFilterValue() as string[])?.includes(option) && (
-                              <Icon name="check" className="text-primary-foreground h-4 w-4" />
-                            )}
-                        </div>
-                        {option}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandList>
-                <CommandSeparator />
-                <CommandGroup>
-                  <CommandItem
-                    onSelect={() => {
-                      handleRemoveFilter(column.id);
-                    }}
-                    className={classNames(
-                      "w-full justify-center text-center",
-                      buttonClasses({ color: "secondary" })
-                    )}>
-                    {t("clear")}
-                  </CommandItem>
-                </CommandGroup>
-              </Command>
+              <FilterOptions
+                column={column}
+                filter={filter}
+                state={_state}
+                setState={_setState}
+                table={table}
+              />
             </PopoverContent>
           </Popover>
         );

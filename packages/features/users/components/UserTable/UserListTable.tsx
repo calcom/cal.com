@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -16,12 +15,7 @@ import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import {
-  downloadAsCsv,
-  generateCsvRaw,
-  generateHeaderFromReactTable,
-  sanitizeValue,
-} from "@calcom/lib/csvUtils";
+import { downloadAsCsv, generateCsvRaw, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -37,7 +31,12 @@ import {
   DataTablePagination,
   showToast,
 } from "@calcom/ui";
-import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
+import {
+  useFetchMoreOnBottomReached,
+  textFilter,
+  isTextFilterValue,
+  type FilterValue,
+} from "@calcom/ui/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -128,7 +127,12 @@ export function UserListTable() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<
+    Array<{
+      id: string;
+      value: FilterValue;
+    }>
+  >([]);
 
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -136,9 +140,9 @@ export function UserListTable() {
         limit: 10,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
-        filters: columnFilters.map((filter) => ({
-          id: filter.id,
-          value: filter.value as string[],
+        filters: columnFilters.map(({ id, value }) => ({
+          id,
+          value,
         })),
       },
       {
@@ -152,9 +156,9 @@ export function UserListTable() {
       limit: 100, // Max limit
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
-      filters: columnFilters.map((filter) => ({
-        id: filter.id,
-        value: filter.value as string[],
+      filters: columnFilters.map(({ id, value }) => ({
+        id,
+        value,
       })),
     },
     {
@@ -186,6 +190,9 @@ export function UserListTable() {
         (attributes?.map((attribute) => ({
           id: attribute.id,
           header: attribute.name,
+          meta: {
+            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
+          },
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -202,8 +209,13 @@ export function UserListTable() {
               </>
             );
           },
-          filterFn: (rows, id, filterValue) => {
-            const attributeValues = rows.original.attributes.filter((attr) => attr.attributeId === id);
+          filterFn: (row, id, filterValue) => {
+            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+
+            if (isTextFilterValue(filterValue)) {
+              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+            }
+
             if (attributeValues.length === 0) return false;
             return attributeValues.some((attr) => filterValue.includes(attr.value));
           },
