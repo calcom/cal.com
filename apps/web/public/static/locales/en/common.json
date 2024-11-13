@@ -561,7 +561,7 @@
   "current_password": "Current Password",
   "change_password": "Change Password",
   "change_secret": "Change Secret",
-  "try_work_email": "Please try work email instead",
+  "try_work_email": "Please enter a valid work email address",
   "exclude_emails_that_contain": "Exlude emails that contain ...",
   "new_password_matches_old_password": "New password matches your old password. Please choose a different password.",
   "forgotten_secret_description": "If you have lost or forgotten this secret, you can change it, but be aware that all integrations using this secret will need to be updated",
