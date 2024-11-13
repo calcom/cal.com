@@ -65,7 +65,6 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     isFixed: host.isFixed,
     priority: host.priority,
     weight: host.weight,
-    weightAdjustment: host.weightAdjustment,
   }));
 };
 
