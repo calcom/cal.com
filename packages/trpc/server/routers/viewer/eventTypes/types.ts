@@ -63,6 +63,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     metadata: EventTypeMetaDataSchema,
     bookingFields: eventTypeBookingFields,
     autoTranslateDescriptionEnabled: z.boolean(),
+    sourceLang: z.string(), // TODO: Enforce type check
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);

@@ -446,6 +446,12 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      descriptionTranslations: {
+        select: {
+          translatedText: true,
+          targetLang: true,
+        }
+      },
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
