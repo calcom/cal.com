@@ -38,7 +38,7 @@ export const RoutingFormFilterList = memo(() => {
 
   return (
     <FilterSelect
-      title={t("routing_form")}
+      title={t("routing_forms")}
       options={filterOptions}
       selectedValue={selectedRoutingFormId}
       onChange={(value) => setConfigFilters({ selectedRoutingFormId: value as string })}

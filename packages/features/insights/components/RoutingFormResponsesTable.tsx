@@ -136,9 +136,14 @@ export function RoutingFormResponsesTable() {
           if (!attendees) return null;
 
           return attendees.map((attendee) => (
-            <Badge key={attendee.email} variant="gray">
-              {attendee.email}
-            </Badge>
+            <div key={attendee.email} className="group relative w-[200px]">
+              <div className="no-scrollbar overflow-x-auto">
+                <Badge variant="gray" className="whitespace-nowrap">
+                  {attendee.email}
+                </Badge>
+              </div>
+              <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent group-hover:from-gray-100" />
+            </div>
           ));
         },
       }),

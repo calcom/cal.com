@@ -411,6 +411,7 @@ class RoutingEventsInsights {
       WHERE ff.option_id IS NOT NULL
       ORDER BY count DESC`;
 
+    // First group by form and field
     const groupedByFormAndField = result.reduce((acc, curr) => {
       const formKey = curr.formName;
       acc[formKey] = acc[formKey] || {};
@@ -424,7 +425,24 @@ class RoutingEventsInsights {
       return acc;
     }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
 
-    return groupedByFormAndField;
+    // Convert to array and sort by total count
+    const sortedEntries = Object.entries(groupedByFormAndField)
+      .map(([formName, fields]) => ({
+        formName,
+        fields,
+        totalCount: Object.values(fields)
+          .flat()
+          .reduce((sum, item) => sum + item.count, 0),
+      }))
+      .sort((a, b) => b.totalCount - a.totalCount);
+
+    // Convert back to original format
+    const sortedGroupedByFormAndField = sortedEntries.reduce((acc, { formName, fields }) => {
+      acc[formName] = fields;
+      return acc;
+    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+
+    return sortedGroupedByFormAndField;
   }
 }
 
