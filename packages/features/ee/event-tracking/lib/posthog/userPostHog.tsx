@@ -34,12 +34,19 @@ const usePostHogHook: () => InternalPostHogHook = isPostHogEnabled
 const usePostHog = (): PostHogMethods => {
   const posthog = usePostHogHook();
   const { data: userData } = trpc.viewer.me.useQuery();
+  const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+  });
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
   const lastPropertiesString = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!userData) return;
+    if (!userData || !statsData) return;
 
     const properties = {
       name: userData.name,
@@ -56,6 +63,11 @@ const usePostHog = (): PostHogMethods => {
       has_orgs_plan: !!userData.organizationId,
       organization: userData.organization?.slug,
       is_premium: userData.isPremium,
+      sum_of_bookings: statsData?.sumOfBookings,
+      sum_of_calendars: statsData?.sumOfCalendars,
+      sum_of_teams: statsData?.sumOfTeams,
+      sum_of_event_types: statsData?.sumOfEventTypes,
+      sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
     };
 
     // Clean properties
@@ -74,7 +86,7 @@ const usePostHog = (): PostHogMethods => {
         posthog.identify(String(userData.id));
       }
     }
-  }, [userData, hasPaidPlan, hasTeamPlan, posthog]);
+  }, [userData, statsData, hasPaidPlan, hasTeamPlan, posthog]);
 
   return {
     capture: (event: string, properties?: Record<string, any>) => {
