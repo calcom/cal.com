@@ -573,7 +573,7 @@ function FieldEditDialog({
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
-                    {!!fieldType?.supportsExlusion ? (
+                    {!!fieldType?.supportsExclusion ? (
                       <FieldWithExlusionSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -632,7 +632,7 @@ function FieldWithExlusionSupport({
 } & React.HTMLAttributes<HTMLDivElement>) {
   const { t } = useLocale();
   const fieldType = getCurrentFieldType(fieldForm);
-  if (!fieldType.supportsExlusion && fieldType.value !== "email") {
+  if (!fieldType?.supportsExclusion && fieldType.value !== "email") {
     return null;
   }
 

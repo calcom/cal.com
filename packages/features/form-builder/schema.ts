@@ -102,9 +102,9 @@ const baseFieldSchema = z.object({
   maxLength: z.number().optional(),
 
   /**
-   * It is the emails that user want to exlude
-   * It is used for types with `supportsExlusion= true`.
-   * @requires supportsExlusion= true
+   * It is the emails that user want to exclude
+   * It is used for types with `supportsExclusion= true`.
+   * @requires supportsExclusion= true
    * */
   filterString: z.string().optional(),
 });
@@ -145,7 +145,7 @@ export const fieldTypeConfigSchema = z
         maxLength: z.number(),
       })
       .optional(),
-    supportsExlusion: z.boolean().default(false).optional(),
+    supportsExclusion: z.boolean().default(false).optional(),
     propsType: z.enum([
       "text",
       "textList",

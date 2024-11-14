@@ -79,7 +79,7 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     label: "Email",
     value: "email",
     isTextType: true,
-    supportsExlusion: true,
+    supportsExclusion: true,
   },
   phone: {
     label: "Phone",
