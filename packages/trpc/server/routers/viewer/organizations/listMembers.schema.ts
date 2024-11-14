@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ZSelectFilterValue, ZTextFilterValue } from "@calcom/ui/data-table";
+import { ZSelectFilterValue, ZTextFilterValue } from "@calcom/ui";
 
 const expandableColumns = z.enum(["attributes"]);
 

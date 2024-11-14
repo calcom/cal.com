@@ -1,19 +1,20 @@
-import type { Filter, FiltersSearchState, SetFiltersSearchState } from "../types";
-import type { FilterableColumn, SelectFilterValue, TextFilterValue } from "../types";
-import type { Table } from "../types";
+import { type Table } from "@tanstack/react-table";
+
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
 import { TextFilterOptions } from "./TextFilterOptions";
+import type { FilterableColumn, FilterValue, SelectFilterValue, TextFilterValue } from "./types";
+import type { ActiveFilter, FiltersSearchState, SetFiltersSearchState } from "./utils";
 
 export type FilterOptionsProps<TData> = {
   column: FilterableColumn;
-  filter: Filter;
+  filter: ActiveFilter;
   state: FiltersSearchState;
   setState: SetFiltersSearchState;
   table: Table<TData>;
 };
 
 export function FilterOptions<TData>({ column, filter, state, setState, table }: FilterOptionsProps<TData>) {
-  const filterValue = table.getColumn(column.id)?.getFilterValue();
+  const filterValue = table.getColumn(column.id)?.getFilterValue() as FilterValue | undefined;
 
   const setMultiSelectFilterValue = (value: SelectFilterValue) => {
     setState({
@@ -38,7 +39,7 @@ export function FilterOptions<TData>({ column, filter, state, setState, table }:
     return (
       <TextFilterOptions
         column={column}
-        filterValue={filterValue}
+        filterValue={filterValue as TextFilterValue | undefined}
         setFilterValue={setTextFilterValue}
         removeFilter={removeFilter}
       />
@@ -47,7 +48,7 @@ export function FilterOptions<TData>({ column, filter, state, setState, table }:
     return (
       <MultiSelectFilterOptions
         column={column}
-        filterValue={filterValue}
+        filterValue={filterValue as SelectFilterValue | undefined}
         setFilterValue={setMultiSelectFilterValue}
         removeFilter={removeFilter}
       />

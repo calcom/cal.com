@@ -2,7 +2,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { Form, Input, Select, Button } from "@calcom/ui";
 
-import type { FilterableColumn, TextFilterValue } from "./types";
+import type { FilterableColumn, TextFilterValue, TextFilterOperator } from "./types";
 
 export type TextFilterOperatorOption = {
   label: string;
@@ -49,13 +49,15 @@ export function TextFilterOptions({
       <Form
         form={form}
         handleSubmit={({ operatorOption, operand }) => {
-          setFilterValue({
-            type: "text",
-            data: {
-              operator: operatorOption.value,
-              operand: operatorOption.requiresOperand ? operand : "",
-            },
-          });
+          if (operatorOption) {
+            setFilterValue({
+              type: "text",
+              data: {
+                operator: operatorOption.value,
+                operand: operatorOption.requiresOperand ? operand : "",
+              },
+            });
+          }
         }}>
         <div>
           <Controller
@@ -73,7 +75,7 @@ export function TextFilterOptions({
                     }
                   }}
                 />
-                {value.requiresOperand && <Input className="mt-2" {...form.register("operand")} />}
+                {value?.requiresOperand && <Input className="mt-2" {...form.register("operand")} />}
               </>
             )}
           />

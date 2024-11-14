@@ -48,8 +48,8 @@ import {
   DropdownMenuTrigger,
   showToast,
   Tooltip,
+  useFetchMoreOnBottomReached,
 } from "@calcom/ui";
-import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

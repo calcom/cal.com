@@ -2,7 +2,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
-import { makeWhereClause } from "@calcom/ui/data-table";
+import { makeWhereClause } from "@calcom/ui";
 
 import { TRPCError } from "@trpc/server";
 
@@ -67,7 +67,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
             some: {
               team: {
                 name: {
-                  in: filter.value,
+                  in: filter.value as string[],
                 },
               },
             },

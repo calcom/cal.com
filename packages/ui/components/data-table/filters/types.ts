@@ -33,5 +33,5 @@ export type FilterableColumn = {
   id: string;
   title: string;
   filterType: "text" | "select";
-  options: Record<string, string>;
+  options: Map<string, number>;
 };

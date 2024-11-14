@@ -12,12 +12,12 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { FilterableColumn } from "./types";
+import type { FilterableColumn, SelectFilterValue } from "./types";
 
 export type MultiSelectFilterOptionsProps = {
   column: FilterableColumn;
-  filterValue?: string[];
-  setFilterValue: (value: string[]) => void;
+  filterValue?: SelectFilterValue;
+  setFilterValue: (value: SelectFilterValue) => void;
   removeFilter: (columnId: string) => void;
 };
 
@@ -34,7 +34,7 @@ export function MultiSelectFilterOptions({
       <CommandInput placeholder={t("search_options")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
-        {Array.from(column.options).map(([option]) => {
+        {Array.from(column.options.keys()).map((option) => {
           if (!option) return null;
           return (
             <CommandItem

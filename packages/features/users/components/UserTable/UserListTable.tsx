@@ -29,9 +29,11 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
   showToast,
+  useFiltersSearchState,
+  useFetchMoreOnBottomReached,
+  textFilter,
+  isTextFilterValue,
 } from "@calcom/ui";
-import { useFiltersSearchState } from "@calcom/ui/data-table";
-import { useFetchMoreOnBottomReached, textFilter, isTextFilterValue } from "@calcom/ui/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";

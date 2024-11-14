@@ -3,7 +3,7 @@
 import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
 import { z } from "zod";
 
-import type { SelectFilterValue, TextFilterValue } from "./types";
+import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
 import { ZSelectFilterValue, ZTextFilterValue } from "./types";
 
 const filterSchema = z.object({
@@ -18,6 +18,10 @@ export const filtersSearchParams = {
 export function useFiltersSearchState() {
   return useQueryStates(filtersSearchParams);
 }
+
+export type FiltersSearchState = ReturnType<typeof useFiltersSearchState>[0];
+export type SetFiltersSearchState = ReturnType<typeof useFiltersSearchState>[1];
+export type ActiveFilter = NonNullable<FiltersSearchState["activeFilters"]>[number];
 
 export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
   switch (filterValue.data.operator) {
