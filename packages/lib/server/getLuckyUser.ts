@@ -415,8 +415,6 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
       },
     });
 
-    console.log(`attributeWithEnabledWeights ${JSON.stringify(attributeWithEnabledWeights)}`);
-
     if (attributeWithEnabledWeights) {
       // Virtual queues are defined by the attribute that has weights and is used with 'Value of field ...'
       const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
