@@ -11,9 +11,12 @@ import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName
 import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
-type OriginalRescheduledBooking = {
-  rescheduledBy?: string | null;
-} | null;
+type OriginalRescheduledBooking =
+  | {
+      rescheduledBy?: string | null;
+    }
+  | null
+  | undefined;
 
 export type Host = {
   id: number;
@@ -55,8 +58,8 @@ export function sendWebhookPayload(
   triggerEvent: WebhookTriggerEvents,
   booking: Booking,
   maxStartTime: number,
-  hostEmail?: string,
-  originalRescheduledBooking?: OriginalRescheduledBooking
+  originalRescheduledBooking?: OriginalRescheduledBooking,
+  hostEmail?: string
 ): Promise<any> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
