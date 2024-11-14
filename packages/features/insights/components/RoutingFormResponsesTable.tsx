@@ -88,37 +88,35 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   if (value.length === 0) return null;
 
   return (
-    <CellWithOverflowX>
-      <div className="flex flex-wrap gap-1">
-        {value.length > 2 ? (
-          <>
-            {value.slice(0, 2).map((v: string, i: number) => (
-              <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-                {v}
-              </Badge>
-            ))}
-            <div className="group/badge relative">
-              <Badge variant="gray">+{value.length - 2}</Badge>
-              <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
-                <div className="flex flex-col gap-1">
-                  {value.slice(2).map((v: string, i: number) => (
-                    <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-sm text-gray-600">
-                      {v}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          value.map((v: string, i: number) => (
+    <div className="flex flex-wrap gap-1">
+      {value.length > 2 ? (
+        <>
+          {value.slice(0, 2).map((v: string, i: number) => (
             <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
               {v}
             </Badge>
-          ))
-        )}
-      </div>
-    </CellWithOverflowX>
+          ))}
+          <div className="group/badge relative">
+            <Badge variant="gray">+{value.length - 2}</Badge>
+            <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
+              <div className="flex flex-col gap-1">
+                {value.slice(2).map((v: string, i: number) => (
+                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-sm text-gray-600">
+                    {v}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        value.map((v: string, i: number) => (
+          <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
+            {v}
+          </Badge>
+        ))
+      )}
+    </div>
   );
 }
 
