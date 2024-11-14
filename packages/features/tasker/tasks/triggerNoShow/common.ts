@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -9,6 +10,10 @@ import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
 import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
+
+type OriginalRescheduledBooking = {
+  rescheduledBy?: string | null;
+} | null;
 
 export type Host = {
   id: number;
@@ -50,7 +55,8 @@ export function sendWebhookPayload(
   triggerEvent: WebhookTriggerEvents,
   booking: Booking,
   maxStartTime: number,
-  hostEmail?: string
+  hostEmail?: string,
+  originalRescheduledBooking?: OriginalRescheduledBooking
 ): Promise<any> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
@@ -67,6 +73,7 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       ...(!!hostEmail ? { hostEmail } : {}),
+      ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
@@ -114,10 +121,26 @@ export const prepareNoShowTrigger = async (
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  originalRescheduledBooking?: OriginalRescheduledBooking;
 } | void> => {
   const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
+  let originalRescheduledBooking = null;
+
+  if (booking.fromReschedule) {
+    originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: booking.uid,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      select: {
+        rescheduledBy: true,
+      },
+    });
+  }
 
   if (booking.status !== BookingStatus.ACCEPTED) {
     log.debug(
@@ -173,5 +196,6 @@ export const prepareNoShowTrigger = async (
     numberOfHostsThatJoined,
     webhook,
     didGuestJoinTheCall,
+    originalRescheduledBooking,
   };
 };
