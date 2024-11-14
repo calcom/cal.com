@@ -7,18 +7,19 @@ import type { FilterableColumn, TextFilterValue } from "./types";
 export type TextFilterOperatorOption = {
   label: string;
   value: TextFilterOperator;
+  requiresOperand: boolean;
 };
 
 export const textFilterOperatorOptions: Array<TextFilterOperatorOption> = [
   // TODO: Translate
-  { value: "equals", label: "Is" },
-  { value: "notEquals", label: "Is not" },
-  { value: "contains", label: "Contains" },
-  { value: "notContains", label: "Does not contain" },
-  { value: "startsWith", label: "Starts with" },
-  { value: "endsWith", label: "Ends with" },
-  { value: "isEmpty", label: "Is empty" },
-  { value: "isNotEmpty", label: "Not empty" },
+  { value: "equals", label: "Is", requiresOperand: true },
+  { value: "notEquals", label: "Is not", requiresOperand: true },
+  { value: "contains", label: "Contains", requiresOperand: true },
+  { value: "notContains", label: "Does not contain", requiresOperand: true },
+  { value: "startsWith", label: "Starts with", requiresOperand: true },
+  { value: "endsWith", label: "Ends with", requiresOperand: true },
+  { value: "isEmpty", label: "Is empty", requiresOperand: false },
+  { value: "isNotEmpty", label: "Not empty", requiresOperand: false },
 ];
 
 export type TextFilterOptionsProps = {
@@ -52,7 +53,7 @@ export function TextFilterOptions({
             type: "text",
             data: {
               operator: operatorOption.value,
-              operand,
+              operand: operatorOption.requiresOperand ? operand : "",
             },
           });
         }}>
@@ -61,19 +62,21 @@ export function TextFilterOptions({
             name="operatorOption"
             control={form.control}
             render={({ field: { value } }) => (
-              <Select
-                options={textFilterOperatorOptions}
-                value={value}
-                isSearchable={false}
-                onChange={(event) => {
-                  if (event) {
-                    form.setValue("operatorOption", { ...event }, { shouldDirty: true });
-                  }
-                }}
-              />
+              <>
+                <Select
+                  options={textFilterOperatorOptions}
+                  value={value}
+                  isSearchable={false}
+                  onChange={(event) => {
+                    if (event) {
+                      form.setValue("operatorOption", { ...event }, { shouldDirty: true });
+                    }
+                  }}
+                />
+                {value.requiresOperand && <Input className="mt-2" {...form.register("operand")} />}
+              </>
             )}
           />
-          <Input className="mt-2" {...form.register("operand")} />
 
           <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
 

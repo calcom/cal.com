@@ -55,10 +55,12 @@ export const isSelectFilterValue = (filterValue: unknown): filterValue is Select
   return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
 };
 
-export function makeWhereClause(filterValue: FilterValue) {
+export function makeWhereClause(columnName: string, filterValue: FilterValue) {
   if (isSelectFilterValue(filterValue)) {
     return {
-      in: filterValue,
+      [columnName]: {
+        in: filterValue,
+      },
     };
   } else if (isTextFilterValue(filterValue)) {
     const { operator, operand } = filterValue.data;
@@ -66,38 +68,54 @@ export function makeWhereClause(filterValue: FilterValue) {
     switch (operator) {
       case "equals":
         return {
-          equals: operand,
+          [columnName]: {
+            equals: operand,
+          },
         };
       case "notEquals":
         return {
-          not: operand,
+          [columnName]: {
+            not: operand,
+          },
         };
       case "contains":
         return {
-          contains: operand,
+          [columnName]: {
+            contains: operand,
+          },
         };
       case "notContains":
         return {
           NOT: {
-            contains: operand,
+            [columnName]: {
+              contains: operand,
+            },
           },
         };
       case "startsWith":
         return {
-          startsWith: operand,
+          [columnName]: {
+            startsWith: operand,
+          },
         };
       case "endsWith":
         return {
-          endsWith: operand,
+          [columnName]: {
+            endsWith: operand,
+          },
         };
       case "isEmpty":
         return {
-          equals: "",
+          [columnName]: {
+            equals: "",
+          },
         };
       case "isNotEmpty":
         return {
           NOT: {
-            equals: "",
+            [columnName]: {
+              equals: "",
+            },
           },
         };
     }
