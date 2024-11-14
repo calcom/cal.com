@@ -308,7 +308,7 @@ export function RoutingFormResponsesTable() {
             let value = info.getValue();
             value = Array.isArray(value) ? value : [value];
             return (
-              <div className="max-w-[200px] overflow-hidden">
+              <div className="max-w-[200px]">
                 <ResponseValueCell value={value} rowId={info.row.original.id} />
               </div>
             );
@@ -321,7 +321,7 @@ export function RoutingFormResponsesTable() {
         header: t("routing_form_insights_booking_status"),
         size: 250,
         cell: (info) => (
-          <div className="max-w-[250px] overflow-hidden">
+          <div className="max-w-[250px]">
             <BookingStatusCell
               booking={info.getValue()}
               rowId={info.row.original.id}
