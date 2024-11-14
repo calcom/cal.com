@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createEmailExclusionRegex } from "@calcom/lib/createEmailExlusionRegex";
+import { createEmailExclusionRegex } from "@calcom/lib/createEmailExclusionRegex";
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -288,13 +288,13 @@ export const fieldTypesSchemaMap: Partial<
     },
     superRefine: ({ field, response, ctx, m }) => {
       const value = response ?? "";
-      const exlusionString = field.filterString;
+      const exclusionString = field.filterString;
 
-      if (!exlusionString) return;
+      if (!exclusionString) return;
 
-      const exlusionRegex = createEmailExclusionRegex(exlusionString);
+      const exclusionRegex = createEmailExclusionRegex(exclusionString);
 
-      if (exlusionRegex.test(value)) {
+      if (exclusionRegex.test(value)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m(`try_work_email`),

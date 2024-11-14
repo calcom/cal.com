@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { createEmailExclusionRegex } from "./createEmailExlusionRegex";
+import { createEmailExclusionRegex } from "./createEmailExclusionRegex";
 
 describe("createExclusionRegex", () => {
   it("should create regex for full email match", () => {

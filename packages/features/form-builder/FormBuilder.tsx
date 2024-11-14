@@ -574,7 +574,7 @@ function FieldEditDialog({
                     ) : null}
 
                     {!!fieldType?.supportsExclusion ? (
-                      <FieldWithExlusionSupport containerClassName="mt-6" fieldForm={fieldForm} />
+                      <FieldWithExclusionSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
                     <Controller
@@ -621,11 +621,9 @@ function FieldEditDialog({
   );
 }
 
-function FieldWithExlusionSupport({
+function FieldWithExclusionSupport({
   fieldForm,
   containerClassName = "",
-  className,
-  ...rest
 }: {
   fieldForm: UseFormReturn<RhfFormField>;
   containerClassName?: string;
