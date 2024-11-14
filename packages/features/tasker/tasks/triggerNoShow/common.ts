@@ -134,7 +134,7 @@ export const prepareNoShowTrigger = async (
   if (booking.fromReschedule) {
     originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
-        uid: booking.uid,
+        uid: booking.fromReschedule,
         status: {
           in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
