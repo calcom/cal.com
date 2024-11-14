@@ -95,7 +95,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   });
 
   // Use the custom hook
-  useDefaultRoutingForm({
+  const { mostPopularForm } = useDefaultRoutingForm({
     teamId: teamIdParsed,
     isAll: safe.success ? !!safe.data.teamId : false,
     routingFormId: routingFormIdParsed,
@@ -193,7 +193,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             isAll: !!initialConfig?.isAll,
             dateRange: [dayjs().subtract(1, "week"), dayjs(), "w"],
             initialConfig,
-            selectedRoutingFormId: null,
+            selectedRoutingFormId: mostPopularForm?.id ?? null, // Set the most popular form as default when clearing filters
             selectedBookingStatus: null,
             selectedRoutingFormFilter: null,
           });

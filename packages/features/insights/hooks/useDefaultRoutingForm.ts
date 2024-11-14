@@ -32,23 +32,29 @@ export function useDefaultRoutingForm({
     }
   );
 
+  // Get the most popular form
+  const mostPopularForm = routingForms?.length
+    ? [...routingForms].sort((a, b) => (b._count?.responses ?? 0) - (a._count?.responses ?? 0))[0]
+    : null;
+
   // Effect to set default routing form only once when the page loads
   useEffect(() => {
-    if (isRoutingInsights && !routingFormId && routingForms?.length && !hasSetDefault.current) {
-      // Sort forms by response count and get the most popular one
-      const mostPopularForm = [...routingForms].sort(
-        (a, b) => (b._count?.responses ?? 0) - (a._count?.responses ?? 0)
-      )[0];
-
-      if (mostPopularForm) {
-        hasSetDefault.current = true;
-        const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
-        newSearchParams.set("routingFormId", mostPopularForm.id);
-        router.push(`${pathname}?${newSearchParams.toString()}`);
-        onRoutingFormChange(mostPopularForm.id);
-      }
+    if (isRoutingInsights && !routingFormId && mostPopularForm && !hasSetDefault.current) {
+      hasSetDefault.current = true;
+      const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
+      newSearchParams.set("routingFormId", mostPopularForm.id);
+      router.push(`${pathname}?${newSearchParams.toString()}`);
+      onRoutingFormChange(mostPopularForm.id);
     }
-  }, [isRoutingInsights, routingFormId, routingForms, pathname, searchParams, router, onRoutingFormChange]);
+  }, [
+    isRoutingInsights,
+    routingFormId,
+    mostPopularForm,
+    pathname,
+    searchParams,
+    router,
+    onRoutingFormChange,
+  ]);
 
-  return { routingForms };
+  return { routingForms, mostPopularForm };
 }
