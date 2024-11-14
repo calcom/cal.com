@@ -42,6 +42,8 @@ type ContactRecord = {
   [key: string]: any;
 };
 
+type Attendee = { email: string; name: string };
+
 const salesforceTokenSchema = z.object({
   id: z.string(),
   issued_at: z.string(),
@@ -629,6 +631,42 @@ export default class SalesforceCRMService implements CRM {
     return dominantAccountId;
   }
 
+  private async createAttendeeRecord({
+    attendee,
+    recordType,
+    organizerId,
+    accountId,
+  }: {
+    attendee: Attendee;
+    recordType: SalesforceRecordEnum;
+    organizerId?: string;
+    accountId?: string;
+  }) {
+    const conn = await this.conn;
+
+    return await conn
+      .sobject(recordType)
+      .create({
+        ...this.generateCreateRecordBody({
+          attendee,
+          recordType: recordType,
+          organizerId,
+        }),
+        AccountId: accountId,
+      })
+      .then((result) => {
+        if (result.success) {
+          return [{ id: result.id, email: attendee.email }];
+        } else {
+          return [];
+        }
+      })
+      .catch((error) => {
+        this.log.error(`Error creating Salesforce contact for ${attendee.email} with error ${error}`);
+        return [];
+      });
+  }
+
   private generateCreateRecordBody({
     attendee,
     recordType,
@@ -862,6 +900,37 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return query.records[0] as Record<string, any>;
+  }
+
+  private async createNewContactUnderAnAccount({
+    attendee,
+    accountId,
+    organizerId,
+  }: {
+    attendee: Attendee;
+    accountId: string;
+    organizerId?: string;
+  }) {
+    const conn = await this.conn;
+
+    // First see if the contact already exists and connect it to the account
+    const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
+    if (userQuery.records.length) {
+      const contact = userQuery.records[0] as { Id: string; Email: string };
+      await conn.sobject(SalesforceRecordEnum.CONTACT).update({
+        // The first argument is the WHERE clause
+        Id: contact.Id,
+        AccountId: accountId,
+      });
+      return [{ id: contact.Id, email: contact.Email }];
+    }
+
+    return await this.createAttendeeRecord({
+      attendee,
+      recordType: SalesforceRecordEnum.CONTACT,
+      accountId,
+      organizerId,
+    });
   }
 
   async findUserEmailFromLookupField(
