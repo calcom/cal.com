@@ -36,7 +36,7 @@ export const BookingStatusFilter = () => {
 
   return (
     <FilterSelect
-      title={t("booking_status")}
+      title={t("routing_form_insights_booking_status")}
       options={bookingStatusOptions}
       selectedValue={selectedBookingStatus}
       onChange={(value) => {
