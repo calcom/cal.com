@@ -517,23 +517,12 @@ export class InputBookingsService_2024_08_13 {
     bookingUid: string,
     inputBooking: CancelSeatedBookingInput_2024_08_13
   ) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
-
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
-    }
-
+    // note(Lauris): for recurring seated booking it is not possible to cancel all remaining bookings
+    // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: "",
-      allRemainingBookings,
+      allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };
   }
