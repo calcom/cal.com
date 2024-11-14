@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import { DistributionMethod, getLuckyUser } from "./getLuckyUser";
+import { DistributionMethod, getLuckyUser, prepareQueuesAndAttributesData } from "./getLuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
@@ -612,6 +612,166 @@ describe("maximize availability and weights", () => {
 });
 
 describe("attribute weights and virtual queues", () => {
+  it("prepareQueuesAndAttributesData returns correct attributeWeights and virtualQueuesData", async () => {
+    const attributeOneOptionIdFirst = uuid();
+    const attributeOneOptionIdSecond = uuid();
+    const attributeTwoOptionIdFirst = uuid();
+    const attributeTwoOptionIdSecond = uuid();
+    const attributeId = uuid();
+    const routeId = uuid();
+    const fieldIdOne = uuid();
+    const fieldIdTwo = uuid();
+
+    const routingFormResponse = {
+      response: {
+        [fieldIdOne]: {
+          label: "company_size",
+          value: attributeOneOptionIdFirst,
+        },
+        [fieldIdTwo]: { label: "headquarters", value: attributeTwoOptionIdSecond },
+      },
+      form: {
+        routes: [
+          {
+            id: uuid(),
+            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
+            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            attributesQueryValue: {
+              id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
+              type: "group",
+              children1: {
+                "a8999bb9-89ab-4cde-b012-31932649cc93": {
+                  type: "rule",
+                  properties: {
+                    field: uuid(), //another attribute
+                    value: [[`{field:${fieldIdOne}}`]],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributeRoutingConfig: {},
+          },
+          {
+            //chosen route
+            id: routeId,
+            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
+            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            attributesQueryValue: {
+              id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
+              type: "group",
+              children1: {
+                "a8999bb9-89ab-4cde-b012-31932649cc93": {
+                  type: "rule",
+                  properties: {
+                    field: attributeId,
+                    value: [[`{field:${fieldIdTwo}}`]],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributeRoutingConfig: {},
+          },
+        ],
+        fields: [
+          {
+            id: fieldIdOne,
+            type: "select",
+            label: "company_size",
+            options: [
+              { id: attributeOneOptionIdFirst, label: "1-10" },
+              { id: attributeOneOptionIdSecond, label: "11-20" },
+            ],
+            required: true,
+          },
+          {
+            id: fieldIdTwo,
+            type: "select",
+            label: "headquarters",
+            options: [
+              { id: attributeTwoOptionIdFirst, label: "USA" },
+              { id: attributeTwoOptionIdSecond, label: "Germany" },
+            ],
+            required: true,
+          },
+        ],
+      },
+      chosenRouteId: routeId,
+    };
+
+    prismaMock.attribute.findFirst.mockResolvedValue({
+      name: "Headquaters",
+      id: attributeId,
+      type: AttributeType.SINGLE_SELECT,
+      slug: "headquarters",
+      options: [
+        {
+          id: "12345",
+          value: "Germany",
+          slug: "Germany",
+          assignedUsers: [
+            {
+              weight: 120,
+              member: {
+                userId: 1,
+              },
+            },
+            {
+              weight: 150,
+              member: {
+                userId: 2,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const queuesAndAttributesData = await prepareQueuesAndAttributesData({
+      eventType: { id: 1, isRRWeightsEnabled: true, team: { parentId: 1 } },
+      routingFormResponse,
+      allRRHosts: [
+        {
+          user: {
+            id: 1,
+            email: "test1@example.com",
+          },
+          createdAt: new Date(),
+          weight: 10,
+        },
+        {
+          user: {
+            id: 2,
+            email: "test2@example.com",
+          },
+          createdAt: new Date(),
+          weight: 150,
+        },
+      ],
+    });
+
+    expect(queuesAndAttributesData).toEqual({
+      attributeWeights: [
+        { userId: 1, weight: 120 },
+        { userId: 2, weight: 150 },
+      ],
+      virtualQueuesData: {
+        chosenRouteId: routeId,
+        fieldOptionData: {
+          fieldId: fieldIdTwo,
+          selectedOptionIds: attributeTwoOptionIdSecond,
+        },
+      },
+    });
+  });
+
   it("uses attribute weights and counts only bookings within virtual queue", async () => {
     const users: GetLuckyUserAvailableUsersType = [
       buildUser({
@@ -642,118 +802,12 @@ describe("attribute weights and virtual queues", () => {
       }),
     ];
 
-    const formId = uuid();
     const attributeOptionIdFirst = uuid();
     const attributeOptionIdSecond = uuid();
     const attributeId = uuid();
     const routeId = uuid();
     const fieldId = uuid();
-
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([]);
-    prismaMock.booking.findMany.mockResolvedValue([
-      {
-        ...buildBooking({
-          id: 1,
-          userId: 1,
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-        }),
-        routedFromRoutingFormReponse: {
-          id: 1,
-          formId,
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdFirst, // booking part of virtual queue
-            },
-          },
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-          routedToBookingUid: "aG1DQuUmrHk417RwmjWJyB",
-          chosenRouteId: routeId,
-        },
-      },
-      {
-        ...buildBooking({
-          id: 3,
-          userId: 2,
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        }),
-        routedFromRoutingFormReponse: {
-          id: 1,
-          formId,
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdFirst, // booking part of virtual queue
-            },
-          },
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-          routedToBookingUid: "aG1DQuUmrHk417RwmjWJyB",
-          chosenRouteId: routeId,
-        },
-      },
-      {
-        ...buildBooking({
-          id: 3,
-          userId: 2,
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        }),
-        routedFromRoutingFormReponse: {
-          id: 1,
-          formId,
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdSecond, // different queue, booking doesn't count
-            },
-          },
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-          routedToBookingUid: "aG1DQuUmrHk417RwmjWJyB",
-          chosenRouteId: routeId,
-        },
-      },
-    ]);
-
-    prismaMock.attribute.findFirst.mockResolvedValue({
-      name: "Company Size",
-      id: attributeId,
-      type: AttributeType.SINGLE_SELECT,
-      slug: "company_size",
-      options: [
-        {
-          id: "4321",
-          value: "1-10",
-          slug: "1-10",
-          assignedUsers: [
-            {
-              weight: 80,
-              member: {
-                userId: 1,
-              },
-            },
-            {
-              weight: 100,
-              member: {
-                userId: 2,
-              },
-            },
-          ],
-        },
-      ],
-    });
-
-    const allRRHosts = [
-      {
-        user: { id: users[0].id, email: users[0].email },
-        weight: users[0].weight,
-        createdAt: new Date(0),
-      },
-      {
-        user: { id: users[1].id, email: users[1].email },
-        weight: users[1].weight,
-        createdAt: new Date(0),
-      },
-    ];
+    const formId = uuid();
 
     const routingFormResponse = {
       response: {
@@ -803,6 +857,109 @@ describe("attribute weights and virtual queues", () => {
       },
       chosenRouteId: routeId,
     };
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([]);
+    prismaMock.booking.findMany.mockResolvedValue([
+      {
+        ...buildBooking({
+          id: 1,
+          userId: 1,
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+        }),
+        routedFromRoutingFormReponse: {
+          id: 1,
+          formId,
+          response: {
+            [fieldId]: {
+              label: "company_size",
+              value: attributeOptionIdFirst, // booking part of virtual queue
+            },
+          },
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          chosenRouteId: routeId,
+        },
+      },
+      {
+        ...buildBooking({
+          id: 3,
+          userId: 2,
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+        }),
+        routedFromRoutingFormReponse: {
+          id: 1,
+          formId,
+          response: {
+            [fieldId]: {
+              label: "company_size",
+              value: attributeOptionIdFirst, // booking part of virtual queue
+            },
+          },
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          chosenRouteId: routeId,
+        },
+      },
+      {
+        ...buildBooking({
+          id: 3,
+          userId: 2,
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+        }),
+        routedFromRoutingFormReponse: {
+          id: 1,
+          formId,
+          response: {
+            [fieldId]: {
+              label: "company_size",
+              value: attributeOptionIdSecond, // different queue, booking doesn't count
+            },
+          },
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          chosenRouteId: routeId,
+        },
+      },
+    ]);
+
+    prismaMock.attribute.findFirst.mockResolvedValue({
+      name: "Company Size",
+      id: attributeId,
+      type: AttributeType.SINGLE_SELECT,
+      slug: "company_size",
+      options: [
+        {
+          id: "4321",
+          value: "1-10",
+          slug: "1-10",
+          assignedUsers: [
+            {
+              weight: 80,
+              member: {
+                userId: 1,
+              },
+            },
+            {
+              weight: 100,
+              member: {
+                userId: 2,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const allRRHosts = [
+      {
+        user: { id: users[0].id, email: users[0].email },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: users[1].id, email: users[1].email },
+        weight: users[1].weight,
+        createdAt: new Date(0),
+      },
+    ];
 
     await expect(
       getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {

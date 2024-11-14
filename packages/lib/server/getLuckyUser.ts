@@ -376,7 +376,7 @@ export async function getLuckyUser<
   );
 }
 
-async function prepareQueuesAndAttributesData<T extends PartialUser>({
+export async function prepareQueuesAndAttributesData<T extends PartialUser>({
   eventType,
   routingFormResponse,
   allRRHosts,
@@ -415,6 +415,8 @@ async function prepareQueuesAndAttributesData<T extends PartialUser>({
       },
     });
 
+    console.log(`attributeWithEnabledWeights ${JSON.stringify(attributeWithEnabledWeights)}`);
+
     if (attributeWithEnabledWeights) {
       // Virtual queues are defined by the attribute that has weights and is used with 'Value of field ...'
       const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
@@ -422,6 +424,8 @@ async function prepareQueuesAndAttributesData<T extends PartialUser>({
         routingFormResponse,
         attributeWithEnabledWeights
       );
+
+      console.log(`attributeWithEnabledWeights ${JSON.stringify(attributeWithEnabledWeights)}`);
 
       if (queueAndAtributeWeightData?.averageWeightsHosts && queueAndAtributeWeightData?.virtualQueuesData) {
         attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
