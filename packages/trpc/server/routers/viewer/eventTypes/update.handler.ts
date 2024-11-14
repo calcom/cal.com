@@ -316,6 +316,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          scheduleId: host.scheduleId ?? null,
         },
       })),
     };

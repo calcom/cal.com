@@ -14,6 +14,8 @@ import {
   IsEnum,
   IsArray,
   ValidateNested,
+  ArrayNotEmpty,
+  ArrayUnique,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -107,6 +109,19 @@ export class CreateEventTypeInput_2024_06_14 {
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes!: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions?: number[];
 
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
