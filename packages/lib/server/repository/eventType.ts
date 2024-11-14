@@ -655,7 +655,7 @@ export class EventTypeRepository {
     });
   }
 
-  static async findByIdIncludeHosts({ id }: { id: number }) {
+  static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
     return await prisma.eventType.findUnique({
       where: {
         id,
@@ -666,11 +666,18 @@ export class EventTypeRepository {
             user: {
               select: {
                 id: true,
+                name: true,
                 email: true,
               },
             },
             weight: true,
+            priority: true,
             createdAt: true,
+          },
+        },
+        team: {
+          select: {
+            parentId: true,
           },
         },
       },

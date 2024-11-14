@@ -8,9 +8,9 @@ import { v5 as uuidv5 } from "uuid";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
+  getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
-  getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -60,7 +60,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { DistributionMethod, getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -91,11 +90,11 @@ import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type {
-  Invitee,
-  IEventTypePaymentCredentialType,
-  IsFixedAwareUser,
-  BookingType,
   Booking,
+  BookingType,
+  IEventTypePaymentCredentialType,
+  Invitee,
+  IsFixedAwareUser,
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
@@ -468,13 +467,38 @@ async function handler(
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
           eventType.rescheduleWithSameRoundRobinHost;
 
+        const userIdsSet = new Set(users.map((user) => user.id));
+
+        let routingFormResponse;
+
+        if (routedTeamMemberIds) {
+          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+            where: {
+              id: routingFormResponseId,
+            },
+            select: {
+              response: true,
+              form: {
+                select: {
+                  routes: true,
+                  fields: true,
+                },
+              },
+              chosenRouteId: true,
+            },
+          });
+        }
+
         const newLuckyUser = isSameRoundRobinHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+              allRRHosts: eventTypeWithUsers.hosts.filter(
+                (host) => !host.isFixed && userIdsSet.has(host.user.id)
+              ), // users part of virtual queue
               eventType,
+              routingFormResponse: routingFormResponse ?? null,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -962,14 +986,6 @@ async function handler(
       originalRescheduledBooking,
     });
 
-    // @NOTE: Add specific try catch for all subsequent async calls to avoid error
-    // Sync Services
-    await syncServicesUpdateWebUser(
-      await prisma.user.findFirst({
-        where: { id: userId },
-        select: { id: true, email: true, name: true, username: true, createdDate: true },
-      })
-    );
     evt.uid = booking?.uid ?? null;
     evt.oneTimePassword = booking?.oneTimePassword ?? null;
 

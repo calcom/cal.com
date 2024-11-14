@@ -1,6 +1,12 @@
+/**
+ * This route is used only by "Test Preview" button
+ * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
+ */
+import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
@@ -8,6 +14,7 @@ import { DistributionMethod, getOrderedListOfLuckyUsers } from "@calcom/lib/serv
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { findTeamMembersMatchingAttributeLogicOfRoute } from "@calcom/routing-forms/lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
@@ -26,6 +33,33 @@ interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   input: TFindTeamMembersMatchingAttributeLogicInputSchema;
 }
 
+async function getEnrichedSerializableForm<
+  TForm extends App_RoutingForms_Form & {
+    user: {
+      id: number;
+      username: string | null;
+      movedToProfileId: number | null;
+    };
+    team: {
+      parent: {
+        slug: string | null;
+      } | null;
+      metadata: unknown;
+    } | null;
+  }
+>(form: TForm) {
+  const formWithUserInfoProfile = {
+    ...form,
+    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+  };
+
+  const serializableForm = await getSerializableForm({
+    form: enrichFormWithMigrationData(formWithUserInfoProfile),
+  });
+
+  return serializableForm;
+}
+
 export const findTeamMembersMatchingAttributeLogicHandler = async ({
   ctx,
   input,
@@ -41,6 +75,26 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     where: {
       id: formId,
       ...entityPrismaWhereClause({ userId: user.id }),
+    },
+    include: {
+      team: {
+        select: {
+          parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          metadata: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          movedToProfileId: true,
+        },
+      },
     },
   });
 
@@ -58,7 +112,10 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     });
   }
 
-  const serializableForm = await getSerializableForm({ form });
+  const beforeEnrichedForm = performance.now();
+  const serializableForm = await getEnrichedSerializableForm(form);
+  const afterEnrichedForm = performance.now();
+  const timeTakenToEnrichForm = afterEnrichedForm - beforeEnrichedForm;
 
   if (!serializableForm.fields) {
     throw new TRPCError({
@@ -89,10 +146,16 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       checkedFallback: false,
       mainWarnings: [],
       fallbackWarnings: [],
+      eventTypeRedirectUrl: null,
+      isUsingAttributeWeights: false,
     };
   }
 
-  if (!route.action.eventTypeId) {
+  const eventTypeId = route.action.eventTypeId;
+  // e.g. /team/abc/team-event-type
+  const eventTypeRedirectPath = route.action.value;
+
+  if (!eventTypeId) {
     // If it ever happens, should automatically be fixed by saving the form again from route-builder.
     // Legacy route actions do not have eventTypeId.
     throw new TRPCError({
@@ -101,7 +164,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHosts({ id: route.action.eventTypeId });
+  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({
@@ -133,7 +196,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     }
   );
 
-  const urlSearchParams = getUrlSearchParamsToForwardForTestPreview({
+  const urlSearchParamsToForward = getUrlSearchParamsToForwardForTestPreview({
     formResponse: response,
     fields: serializableForm.fields,
     attributeRoutingConfig: route.attributeRoutingConfig ?? null,
@@ -142,12 +205,26 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       : [],
   });
 
+  const eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+    eventTypeRedirectUrl: eventTypeRedirectPath,
+    form: serializableForm,
+    allURLSearchParams: urlSearchParamsToForward,
+  });
+
+  const timeBeforeCrm = performance.now();
   const contactOwnerEmail = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-    query: fromEntriesWithDuplicateKeys(urlSearchParams.entries()),
+    query: fromEntriesWithDuplicateKeys(urlSearchParamsToForward.entries()),
     eventTypeId: eventType.id,
     eventData: eventType,
     chosenRoute: route,
   });
+  const timeAfterCrm = performance.now();
+
+  const timeTaken: Record<string, number | null | undefined> = {
+    ...teamMembersMatchingAttributeLogicTimeTaken,
+    crm: timeAfterCrm - timeBeforeCrm,
+    enrichForm: timeTakenToEnrichForm,
+  };
 
   if (!matchingTeamMembersWithResult) {
     return {
@@ -156,6 +233,8 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       checkedFallback,
       mainWarnings,
       fallbackWarnings,
+      eventTypeRedirectUrl,
+      isUsingAttributeWeights: false,
       result: null,
     };
   }
@@ -171,23 +250,44 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     });
   }
 
+  const timeBeforeGetOrderedLuckyUsers = performance.now();
+  const {
+    users: orderedLuckyUsers,
+    perUserData,
+    isUsingAttributeWeights,
+  } = matchingTeamMembers.length
+    ? await getOrderedListOfLuckyUsers(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+        // Assuming all are available
+        availableUsers: [
+          {
+            ...matchingHosts[0].user,
+            weight: matchingHosts[0].weight,
+            priority: matchingHosts[0].priority,
+          },
+          ...matchingHosts.slice(1).map((host) => ({
+            ...host.user,
+            weight: host.weight,
+            priority: host.priority,
+          })),
+        ],
+        eventType,
+        allRRHosts: matchingHosts,
+        routingFormResponse: {
+          response,
+          form,
+          chosenRouteId: route.id,
+        },
+      })
+    : { users: [], perUserData: null, isUsingAttributeWeights: false };
+  const timeAfterGetOrderedLuckyUsers = performance.now();
+  timeTaken.getOrderedLuckyUsers = timeAfterGetOrderedLuckyUsers - timeBeforeGetOrderedLuckyUsers;
+
   console.log("_enablePerf, _concurrency", _enablePerf, _concurrency);
   if (_enablePerf) {
-    const serverTimingHeader = getServerTimingHeader(teamMembersMatchingAttributeLogicTimeTaken);
+    const serverTimingHeader = getServerTimingHeader(timeTaken);
     ctx.res?.setHeader("Server-Timing", serverTimingHeader);
     console.log("Server-Timing", serverTimingHeader);
   }
-  const { users: orderedLuckyUsers, perUserData } = matchingTeamMembers.length
-    ? await getOrderedListOfLuckyUsers(DistributionMethod.PRIORITIZE_AVAILABILITY, {
-        // Assuming all are available
-        availableUsers: [matchingTeamMembers[0], ...matchingTeamMembers.slice(1)],
-        eventType: {
-          id: eventType.id,
-          isRRWeightsEnabled: eventType.isRRWeightsEnabled,
-        },
-        allRRHosts: matchingHosts,
-      })
-    : { users: [], perUserData: null };
 
   return {
     troubleshooter,
@@ -203,6 +303,8 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       })),
       perUserData,
     },
+    isUsingAttributeWeights,
+    eventTypeRedirectUrl,
   };
 };
 

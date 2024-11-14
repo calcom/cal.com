@@ -162,6 +162,9 @@ export function getUrlSearchParamsToForwardForTestPreview({
   GetUrlSearchParamsToForwardOptions,
   "formResponse" | "fields" | "attributeRoutingConfig" | "teamMembersMatchingAttributeLogic"
 >) {
+  // There are no existing query params to forward in test preview. These are available only when doing the actual form submission
+  const searchParams = new URLSearchParams();
+  searchParams.set("cal.isTestPreviewLink", "true");
   return getUrlSearchParamsToForward({
     formResponse,
     fields,
@@ -169,7 +172,6 @@ export function getUrlSearchParamsToForwardForTestPreview({
     teamMembersMatchingAttributeLogic,
     // There is no form response being stored in test preview
     formResponseId: null,
-    // There are no existing query params to forward in test preview. These are available only when doing the actual form submission
-    searchParams: new URLSearchParams(),
+    searchParams,
   });
 }

@@ -82,7 +82,10 @@ export class WebhooksController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all webooks (paginated)" })
+  @ApiOperation({
+    summary: "Get all webooks",
+    description: "Gets a paginated list of webhooks for the authenticated user.",
+  })
   async getWebhooks(
     @GetUser() user: UserWithProfile,
     @Query() query: SkipTakePagination

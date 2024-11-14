@@ -237,6 +237,8 @@ type SingleFormComponentProps = {
 };
 
 type MembersMatchResultType = {
+  isUsingAttributeWeights: boolean;
+  eventTypeRedirectUrl: string | null;
   contactOwnerEmail: string | null;
   teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
   perUserData: {
@@ -383,7 +385,10 @@ const TeamMembersMatchResult = ({
           </div>
         )}
         <div className="mt-2" data-testid="matching-members">
-          {t("matching_members_queue")}: {renderQueue()}
+          {membersMatchResult.isUsingAttributeWeights
+            ? t("matching_members_queue_using_attribute_weights")
+            : t("matching_members_queue_using_event_assignee_weights")}
+          {renderQueue()}
         </div>
       </div>
     </div>
@@ -417,7 +422,7 @@ export const TestFormDialog = ({
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [eventTypeUrl, setEventTypeUrl] = useState("");
+  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
   const isTeamForm = !!form.teamId;
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
@@ -429,6 +434,8 @@ export const TestFormDialog = ({
     trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogic.useMutation({
       onSuccess(data) {
         setMembersMatchResult({
+          isUsingAttributeWeights: data.isUsingAttributeWeights,
+          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
           contactOwnerEmail: data.contactOwnerEmail,
           teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
           perUserData: data.result ? data.result.perUserData : null,
@@ -456,20 +463,22 @@ export const TestFormDialog = ({
         form,
         allURLSearchParams: new URLSearchParams(),
       });
-      setEventTypeUrl(eventTypeRedirectUrl);
+      setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
     }
 
     setChosenRoute(route || null);
 
     if (!route) return;
 
-    findTeamMembersMatchingAttributeLogicMutation.mutate({
-      formId: form.id,
-      response,
-      route,
-      isPreview: true,
-      _enablePerf: searchParams.get("enablePerf") === "true",
-    });
+    if (isTeamForm) {
+      findTeamMembersMatchingAttributeLogicMutation.mutate({
+        formId: form.id,
+        response,
+        route,
+        isPreview: true,
+        _enablePerf: searchParams.get("enablePerf") === "true",
+      });
+    }
   }
 
   const renderTestResult = () => {
@@ -519,7 +528,14 @@ export const TestFormDialog = ({
           ) : (
             <div className="flex flex-col space-y-2">
               <span className="text-default underline">
-                <a target="_blank" href={eventTypeUrl} rel="noreferrer" data-testid="test-routing-result">
+                <a
+                  target="_blank"
+                  className={cn(
+                    findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
+                  )}
+                  href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
+                  rel="noreferrer"
+                  data-testid="test-routing-result">
                   {chosenRoute.action.value}
                 </a>
               </span>
