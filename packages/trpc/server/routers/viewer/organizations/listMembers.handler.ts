@@ -16,57 +16,6 @@ type GetOptions = {
   input: TListMembersSchema;
 };
 
-const makeWhereClause = (filterValue: FilterValue) => {
-  if (isSelectFilterValue(filterValue)) {
-    return {
-      in: filterValue,
-    };
-  } else if (isTextFilterValue(filterValue)) {
-    const { operator, value } = filterValue.data;
-
-    switch (operator) {
-      case "equals":
-        return {
-          equals: value,
-        };
-      case "notEquals":
-        return {
-          not: value,
-        };
-      case "contains":
-        return {
-          contains: value,
-        };
-      case "notContains":
-        return {
-          NOT: {
-            contains: value,
-          },
-        };
-      case "startsWith":
-        return {
-          startsWith: value,
-        };
-      case "endsWith":
-        return {
-          endsWith: value,
-        };
-      case "isEmpty":
-        return {
-          equals: "",
-        };
-      case "isNotEmpty":
-        return {
-          NOT: {
-            equals: "",
-          },
-        };
-    }
-  }
-
-  return {};
-};
-
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0].organizationId;
   const searchTerm = input.searchTerm;
@@ -238,5 +187,56 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   };
 };
+
+function makeWhereClause(filterValue: FilterValue) {
+  if (isSelectFilterValue(filterValue)) {
+    return {
+      in: filterValue,
+    };
+  } else if (isTextFilterValue(filterValue)) {
+    const { operator, value } = filterValue.data;
+
+    switch (operator) {
+      case "equals":
+        return {
+          equals: value,
+        };
+      case "notEquals":
+        return {
+          not: value,
+        };
+      case "contains":
+        return {
+          contains: value,
+        };
+      case "notContains":
+        return {
+          NOT: {
+            contains: value,
+          },
+        };
+      case "startsWith":
+        return {
+          startsWith: value,
+        };
+      case "endsWith":
+        return {
+          endsWith: value,
+        };
+      case "isEmpty":
+        return {
+          equals: "",
+        };
+      case "isNotEmpty":
+        return {
+          NOT: {
+            equals: "",
+          },
+        };
+    }
+  }
+
+  return {};
+}
 
 export default listMembersHandler;
