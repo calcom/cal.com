@@ -1601,7 +1601,7 @@ model EventTypeTranslation {
   createdAt      DateTime                     @default(now())
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
-  updatedBy      Int
+  updatedBy      Int?
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
 
