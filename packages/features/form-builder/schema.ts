@@ -109,8 +109,8 @@ const baseFieldSchema = z.object({
       const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
 
       /*
-      valid patterns - [example, example.anything, anyone@example.anything]
-      invalid patterns - Patterns involving Caps [Example, Example.anything, Anyone@example.anything]
+      Valid patterns - [ example, example.anything, anyone@example.anything ]
+      Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
     */
 
       const isValid = !allDomains.some((domain) => !regex.test(domain));
