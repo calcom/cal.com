@@ -54,3 +54,53 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
 export const isSelectFilterValue = (filterValue: unknown): filterValue is SelectFilterValue => {
   return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
 };
+
+export function makeWhereClause(filterValue: FilterValue) {
+  if (isSelectFilterValue(filterValue)) {
+    return {
+      in: filterValue,
+    };
+  } else if (isTextFilterValue(filterValue)) {
+    const { operator, operand } = filterValue.data;
+
+    switch (operator) {
+      case "equals":
+        return {
+          equals: operand,
+        };
+      case "notEquals":
+        return {
+          not: operand,
+        };
+      case "contains":
+        return {
+          contains: operand,
+        };
+      case "notContains":
+        return {
+          NOT: {
+            contains: operand,
+          },
+        };
+      case "startsWith":
+        return {
+          startsWith: operand,
+        };
+      case "endsWith":
+        return {
+          endsWith: operand,
+        };
+      case "isEmpty":
+        return {
+          equals: "",
+        };
+      case "isNotEmpty":
+        return {
+          NOT: {
+            equals: "",
+          },
+        };
+    }
+  }
+  return {};
+}
