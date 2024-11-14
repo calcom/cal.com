@@ -32,7 +32,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const isRoutingInsights = pathname?.includes("/insights/routing");
 
   let startTimeParsed,
     endTimeParsed,
@@ -69,17 +68,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     memberUserIdParsed = safe.data.memberUserId;
     bookingStatusParsed = safe.data.bookingStatus;
   }
-
-  // Query to get routing forms list
-  const { data: routingForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
-    {
-      teamId: teamIdParsed ?? undefined,
-      isAll: safe.success ? !!safe.data.teamId : false,
-    },
-    {
-      enabled: isRoutingInsights,
-    }
-  );
 
   const [configFilters, setConfigFilters] = useState<FilterContextType["filter"]>({
     dateRange: [
