@@ -400,32 +400,53 @@ export default class SalesforceCRMService implements CRM {
       : [];
   }
 
-  async createContacts(contactsToCreate: { email: string; name: string }[], organizerEmail?: string) {
+  async createContacts(contactsToCreate: Attendee[], organizerEmail?: string) {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
+    // See if the organizer exists in the CRM
     const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
     const createdContacts: { id: string; email: string }[] = [];
 
-    if (createEventOn === SalesforceRecordEnum.CONTACT || createEventOn === SalesforceRecordEnum.LEAD) {
-      // See if the organizer exists in the CRM
+    if (createEventOn === SalesforceRecordEnum.CONTACT) {
       await Promise.all(
         contactsToCreate.map(async (attendee) => {
-          return await conn
-            .sobject(createEventOn)
-            .create(
-              this.generateCreateRecordBody({
-                attendee,
-                recordType: createEventOn,
-                organizerId,
-              })
-            )
-            .then((result) => {
-              if (result.success) {
-                createdContacts.push({ id: result.id, email: attendee.email });
-              }
-            });
+          return await this.createAttendeeRecord({
+            attendee,
+            recordType: SalesforceRecordEnum.CONTACT,
+            organizerId,
+          }).then((result) => {
+            createdContacts.push(...result);
+          });
         })
+      );
+    }
+
+    if (createEventOn === SalesforceRecordEnum.LEAD) {
+      // Base this off of the first contact
+      const attendee = contactsToCreate[0];
+
+      if (appOptions.createNewContactUnderAccount) {
+        // Check for an account
+        const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
+
+        if (accountId) {
+          const createdAccountContacts = await this.createNewContactUnderAnAccount({
+            attendee,
+            accountId,
+            organizerId,
+          });
+
+          if (createdContacts.length > 0) {
+            createdContacts.push(...createdAccountContacts);
+          }
+        }
+      }
+
+      await this.createAttendeeRecord({ attendee, recordType: SalesforceRecordEnum.LEAD, organizerId }).then(
+        (result) => {
+          createdContacts.push(...result);
+        }
       );
     }
 
@@ -443,34 +464,16 @@ export default class SalesforceCRMService implements CRM {
       let contactCreated = false;
 
       if (accountId && appOptions.createNewContactUnderAccount) {
-        // First see if the contact already exists and connect it to the account
-        const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
-        if (userQuery.records.length) {
-          const contact = userQuery.records[0] as { Id: string; Email: string };
-          await conn.sobject(SalesforceRecordEnum.CONTACT).update({
-            // The first argument is the WHERE clause
-            Id: contact.Id,
-            AccountId: accountId,
-          });
-          return [{ id: contact.Id, email: contact.Email }];
-        }
+        const createdAccountContacts = await this.createNewContactUnderAnAccount({
+          attendee,
+          accountId,
+          organizerId,
+        });
 
-        await conn
-          .sobject(SalesforceRecordEnum.CONTACT)
-          .create({
-            ...this.generateCreateRecordBody({
-              attendee,
-              recordType: SalesforceRecordEnum.CONTACT,
-              organizerId,
-            }),
-            AccountId: accountId,
-          })
-          .then((result) => {
-            if (result.success) {
-              createdContacts.push({ id: result.id, email: attendee.email });
-              contactCreated = true;
-            }
-          });
+        if (createdContacts.length > 0) {
+          createdContacts.push(...createdAccountContacts);
+          contactCreated = true;
+        }
       }
 
       if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
