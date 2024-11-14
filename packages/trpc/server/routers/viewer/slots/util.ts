@@ -466,7 +466,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  let currentSeats: CurrentSeats | undefined;
 
   const eventHosts: {
     isFixed: boolean;
@@ -497,7 +496,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     contactOwnerEmail,
   });
 
-  let { aggregatedAvailability, allUsersAvailability, usersWithCredentials } =
+  let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
       input,
       eventType,
@@ -506,7 +505,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       loggerWithEventDetails,
       startTime,
       endTime,
-      currentSeats,
       bypassBusyCalendarTimes,
     });
 
@@ -522,7 +520,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
       if (routedHostsAndFixedHosts.length > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials } =
+        ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
           await calculateHostsAndAvailabilities({
             input,
             eventType,
@@ -531,7 +529,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             loggerWithEventDetails,
             startTime,
             endTime,
-            currentSeats,
             bypassBusyCalendarTimes,
           }));
       }
@@ -1017,7 +1014,6 @@ const calculateHostsAndAvailabilities = async ({
   loggerWithEventDetails,
   startTime,
   endTime,
-  currentSeats,
   bypassBusyCalendarTimes,
 }: {
   input: TGetScheduleInputSchema;
@@ -1030,7 +1026,6 @@ const calculateHostsAndAvailabilities = async ({
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
-  currentSeats?: CurrentSeats | undefined;
   bypassBusyCalendarTimes: boolean;
 }) => {
   if (
@@ -1064,6 +1059,7 @@ const calculateHostsAndAvailabilities = async ({
   });
 
   const durationToUse = input.duration || 0;
+  let currentSeats: CurrentSeats | undefined;
 
   const startTimeDate =
     input.rescheduleUid && durationToUse
@@ -1176,5 +1172,5 @@ const calculateHostsAndAvailabilities = async ({
     eventType.schedulingType
   );
 
-  return { aggregatedAvailability, allUsersAvailability, usersWithCredentials };
+  return { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats };
 };
