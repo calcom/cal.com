@@ -51,6 +51,7 @@ export type BookerEvent = Pick<
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
+  | "descriptionTranslations"
 > & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];

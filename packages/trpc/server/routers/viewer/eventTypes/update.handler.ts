@@ -74,6 +74,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     secondaryEmailId,
     aiPhoneCallConfig,
     isRRWeightsEnabled,
+    autoTranslateDescriptionEnabled,
     ...rest
   } = input;
 
@@ -153,6 +154,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
+    autoTranslateDescriptionEnabled: !!autoTranslateDescriptionEnabled,
     bookingFields,
     isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),

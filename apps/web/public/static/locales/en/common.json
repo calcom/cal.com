@@ -2770,5 +2770,6 @@
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce Option",
   "lookup_field_name": "Lookup Field Name",
+  "translate_description_button": "Translate description to the visitor's browser language using AI",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

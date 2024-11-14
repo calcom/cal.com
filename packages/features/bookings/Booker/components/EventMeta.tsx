@@ -48,6 +48,7 @@ export const EventMeta = ({
     | "recurringEvent"
     | "price"
     | "isDynamic"
+    | "descriptionTranslations"
   > | null;
   isPending: boolean;
   isPlatform?: boolean;
@@ -101,6 +102,10 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
+  const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
+  const translatedDescription = (event?.descriptionTranslations ?? []).find((translation) =>
+    browserLocale.startsWith(translation.targetLang)
+  )?.translatedText;
 
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
@@ -122,7 +127,7 @@ export const EventMeta = ({
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {event.description && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">

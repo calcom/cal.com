@@ -67,6 +67,13 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   metadata: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
+  autoTranslateDescriptionEnabled: true,
+  descriptionTranslations: {
+    select: {
+      translatedText: true,
+      targetLang: true,
+    }
+  },
   requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
