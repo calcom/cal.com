@@ -3751,7 +3751,7 @@ __metadata:
     prisma: ^5.7.1
     react: ^18
     react-dom: ^18
-    react-select: ^5.8.0
+    react-select: ^5.8.3
     tailwindcss: ^3.3.0
     typescript: ^4.9.4
   languageName: unknown
@@ -4162,7 +4162,7 @@ __metadata:
     "@vercel/functions": ^1.4.0
     framer-motion: ^10.12.8
     lexical: ^0.9.0
-    react-select: ^5.7.0
+    react-select: ^5.8.3
     react-sticky-box: ^2.0.4
     react-virtual: ^2.10.4
     stripe-event-types: ^3.1.0
@@ -4331,7 +4331,7 @@ __metadata:
     "@sendgrid/client": ^7.7.0
     "@vercel/og": ^0.6.3
     bcryptjs: ^2.4.3
-    city-timezones: ^1.2.1
+    city-timezones: ^1.2.2
     i18next: ^23.2.3
     ical.js: ^1.4.0
     ics: ^2.37.0
@@ -4955,7 +4955,7 @@ __metadata:
     react-day-picker: ^8.10.1
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
-    react-select: ^5.7.0
+    react-select: ^5.8.3
     react-virtual: ^2.10.4
     typescript: ^4.9.4
   languageName: unknown
@@ -5142,8 +5142,8 @@ __metadata:
     react-phone-input-2: ^2.15.1
     react-phone-number-input: ^3.2.7
     react-schemaorg: ^2.0.0
-    react-select: ^5.7.0
-    react-timezone-select: ^1.4.0
+    react-select: ^5.8.3
+    react-timezone-select: ^3.2.8
     react-turnstile: ^1.1.3
     react-use-intercom: 1.5.1
     recoil: ^0.7.7
@@ -20209,7 +20209,7 @@ __metadata:
     "@vitest/ui": ^2.1.1
     c8: ^7.13.0
     checkly: latest
-    city-timezones: ^1.2.1
+    city-timezones: ^1.2.2
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
     husky: ^8.0.0
@@ -20717,12 +20717,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"city-timezones@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "city-timezones@npm:1.2.1"
+"city-timezones@npm:^1.2.2":
+  version: 1.3.0
+  resolution: "city-timezones@npm:1.3.0"
   dependencies:
     lodash: ^4.17.21
-  checksum: e73f773022cfe108e8bbd191e1bff7d98fd1c59dbb92e2ade71c15e95922af97a44b86254ca30aba92a797d48d45a4be60911f2f918f6ea37c6d67f560ce07b9
+  checksum: 2fbb0cd7c8ef01ce68ed0e9fb36105a6790eef59060bb30e5bf5241123af6d1cd3e229e66e3ee8fafca9dfe273618ffdc6ca8673b5c8b1f1c8f4292252bbaa85
   languageName: node
   linkType: hard
 
@@ -37723,9 +37723,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-select@npm:^5.7.0":
-  version: 5.7.2
-  resolution: "react-select@npm:5.7.2"
+"react-select@npm:^5.8.3":
+  version: 5.8.3
+  resolution: "react-select@npm:5.8.3"
   dependencies:
     "@babel/runtime": ^7.12.0
     "@emotion/cache": ^11.4.0
@@ -37739,27 +37739,7 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 1cb03c308be98b0bb89361dd842b92010ebd6769e388c380f2303ccfb14768b2085d0b94478dcd67841991272570fd27f75ea3035a230378fe14215d857e8ff7
-  languageName: node
-  linkType: hard
-
-"react-select@npm:^5.8.0":
-  version: 5.8.0
-  resolution: "react-select@npm:5.8.0"
-  dependencies:
-    "@babel/runtime": ^7.12.0
-    "@emotion/cache": ^11.4.0
-    "@emotion/react": ^11.8.1
-    "@floating-ui/dom": ^1.0.1
-    "@types/react-transition-group": ^4.4.0
-    memoize-one: ^6.0.0
-    prop-types: ^15.6.0
-    react-transition-group: ^4.3.0
-    use-isomorphic-layout-effect: ^1.1.2
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: c8398cc0aefb5ee5438b6176c86676e2d3fed7457c16b0769f423a0da0ae431a7df25c2cadf13b709700882b8ebd80a58b1e557fec3e22ad3cbf60164ca9e745
+  checksum: 7678fdd5d441531deba4dfd0edcc0d53cb04297f0f4b7c8ab32023819b1787b60541e056f44a96c2a58ac720dbe973b02c6544820ff4f0541a6155b814503829
   languageName: node
   linkType: hard
 
@@ -37835,17 +37815,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-timezone-select@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "react-timezone-select@npm:1.4.0"
+"react-timezone-select@npm:^3.2.8":
+  version: 3.2.8
+  resolution: "react-timezone-select@npm:3.2.8"
   dependencies:
-    react-select: ^5.7.0
-    spacetime: ^7.1.4
-    timezone-soft: ^1.3.1
+    spacetime: ^7.6.0
+    timezone-soft: ^1.5.2
   peerDependencies:
-    react: ^18 || ^17.0.1 || ^16
-    react-dom: ^18 || ^17.0.1 || ^16
-  checksum: 646205fb2c66694dfc70c6a32b079eb64d0e82269b8f3172011a312f6fc745a158453f7eb3565a0dac78184c3d93d005bccbe7796cc5387684be033faf90b131
+    react: ^16 || ^17.0.1 || ^18 || ^19.0.0-0
+    react-dom: ^16 || ^17.0.1 || ^18 || ^19.0.0-0
+    react-select: ^5.8.0
+  checksum: a4d825ea05d2164798795bc4d2d5fdc745b33e5ef93d8d1e24e01f1be1fc0c18042189b57f03e9673b36a896b0c788e3fa22d71e3c5f817de7c123f37c5a6544
   languageName: node
   linkType: hard
 
@@ -40346,10 +40326,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"spacetime@npm:^7.1.4":
-  version: 7.1.4
-  resolution: "spacetime@npm:7.1.4"
-  checksum: a0153759f2da8a94bc86a10d823876297a99fc397405ae371aadcb932d3ae73dc6afa77a3d50826c02ee9c85571b7bc50563040d395d10c42ef3fb2b1b9465e2
+"spacetime@npm:^7.6.0":
+  version: 7.6.2
+  resolution: "spacetime@npm:7.6.2"
+  checksum: 992fe82ef85738ea8da843c6c566ea152396ca93e4e7915d4e51be22f48306dae69cf504b826803d94ba62d7116a0f54205ce7b61d55f904ee60aaee2b95d51b
   languageName: node
   linkType: hard
 
@@ -42046,10 +42026,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"timezone-soft@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "timezone-soft@npm:1.3.1"
-  checksum: 0402405ee6b7bf93b6c5935938903eaa1878bd052c2aaa1c4055395d3400cd0a00461c32136d2b4a8bff66659275c37e14222807a1a898110815a67170c3e3cc
+"timezone-soft@npm:^1.5.2":
+  version: 1.5.2
+  resolution: "timezone-soft@npm:1.5.2"
+  checksum: eaca4455157aa7f7d4d2c4642d71b02f08dc3ead951ba2a4a9e33abccc14852654097c8f8a10c75d1323a5c4d37db736e31ecb6a550b703cc739e1c23248d336
   languageName: node
   linkType: hard
 
