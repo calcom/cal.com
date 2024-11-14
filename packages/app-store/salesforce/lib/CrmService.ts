@@ -8,7 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
@@ -215,7 +215,13 @@ export default class SalesforceCRMService implements CRM {
       await this.checkRecordOwnerNameFromRecordId(contacts[0].id, ownerId);
     }
     if (appOptions.onBookingWriteToRecord && appOptions.onBookingWriteToRecordFields) {
-      await this.writeToPersonRecord(contacts[0].id, event.startTime, event.organizer.email, event?.uid);
+      await this.writeToPersonRecord(
+        contacts[0].id,
+        event.startTime,
+        event.organizer.email,
+        event.responses,
+        event?.uid
+      );
     }
     return createdEvent;
   };
@@ -729,6 +735,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     startTime: string,
     organizerEmail: string,
+    calEventResponses: CalEventResponses,
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
@@ -751,6 +758,7 @@ export default class SalesforceCRMService implements CRM {
       startTime,
       bookingUid,
       organizerEmail,
+      calEventResponses,
     });
 
     // Update the person record
@@ -767,6 +775,7 @@ export default class SalesforceCRMService implements CRM {
     startTime,
     bookingUid,
     organizerEmail,
+    calEventResponses,
   }: {
     existingFields: jsforce.Field[];
     personRecord: Record<string, any>;
@@ -774,6 +783,7 @@ export default class SalesforceCRMService implements CRM {
     startTime: string;
     bookingUid?: string | null;
     organizerEmail: string;
+    calEventResponses: CalEventResponses;
   }): Promise<Record<string, any>> {
     const writeOnRecordBody: Record<string, any> = {};
 
@@ -787,8 +797,12 @@ export default class SalesforceCRMService implements CRM {
 
       // Handle different field types
       if (fieldConfig.fieldType === field.type) {
-        if (field.type === SalesforceFieldType.TEXT) {
-          writeOnRecordBody[field.name] = fieldConfig.value.substring(0, field.length);
+        if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
+          writeOnRecordBody[field.name] = this.getTextFieldValue({
+            fieldValue: fieldConfig.value,
+            fieldLength: field.length,
+            calEventResponses,
+          });
         } else if (field.type === SalesforceFieldType.DATE) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
@@ -804,6 +818,26 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return writeOnRecordBody;
+  }
+
+  private getTextFieldValue({
+    fieldValue,
+    fieldLength,
+    calEventResponses,
+  }: {
+    fieldValue: string;
+    fieldLength: number;
+    calEventResponses: CalEventResponses;
+  }) {
+    let valueToWrite = fieldValue.substring(0, fieldLength);
+    // Check if we need to replace any values with values from the booking questions
+    const regexValueToReplace = /\{(.*?)\}/g;
+    valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
+      return calEventResponses[captured]?.value.toString() ?? match;
+    });
+
+    // Trim incase the replacement values increased the length
+    return valueToWrite.substring(0, fieldLength);
   }
 
   private async getDateFieldValue(
