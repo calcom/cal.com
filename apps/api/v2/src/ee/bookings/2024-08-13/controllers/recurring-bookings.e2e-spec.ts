@@ -490,13 +490,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
             const bookings = await bookingsRepositoryFixture.getByRecurringBookingUid(recurringBookingUid);
 
-            bookings.forEach((booking, index) => {
-              if (index >= 2) {
-                expect(booking.status).toEqual("CANCELLED");
-              } else {
-                expect(booking.status).toEqual("ACCEPTED");
-              }
-            });
+            const bookingFirst = bookings.find((booking) => booking.uid === recurringBooking[0].uid);
+            expect(bookingFirst?.status).toEqual("ACCEPTED");
+            const bookingSecond = bookings.find((booking) => booking.uid === recurringBooking[1].uid);
+            expect(bookingSecond?.status).toEqual("ACCEPTED");
+            const bookingThird = bookings.find((booking) => booking.uid === recurringBooking[2].uid);
+            expect(bookingThird?.status).toEqual("CANCELLED");
+            const bookingFourth = bookings.find((booking) => booking.uid === recurringBooking[3].uid);
+            expect(bookingFourth?.status).toEqual("CANCELLED");
           } else {
             throw new Error(
               "Invalid response data - expected recurring booking but received non array response"
