@@ -85,7 +85,6 @@ export default class SalesforceCRMService implements CRM {
       throw new HttpError({ statusCode: 400, message: "Salesforce consumer secret missing." });
 
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
-
     try {
       /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
               Needs further investigation ASAP */
@@ -137,10 +136,10 @@ export default class SalesforceCRMService implements CRM {
     }
   };
 
-  private getSalesforceUserFromOwnerId = async (ownerId: string) => {
+  private getSalesforceUserFromUserId = async (userId: string) => {
     const conn = await this.conn;
 
-    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${ownerId}' AND IsActive = true`);
+    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${userId}' AND IsActive = true`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -380,7 +379,7 @@ export default class SalesforceCRMService implements CRM {
 
       const ownersQuery = (await Promise.all(
         Array.from(ownerIds).map(async (ownerId) => {
-          return this.getSalesforceUserFromOwnerId(ownerId);
+          return this.getSalesforceUserFromUserId(ownerId);
         })
       )) as { records: ContactRecord[] }[];
       const contactsWithOwners = records.map((record) => {
@@ -533,7 +532,7 @@ export default class SalesforceCRMService implements CRM {
     const fields = salesforceEntity.fields;
     const noShowField = fields.find((field) => field.name === sendNoShowAttendeeDataField);
 
-    if (!noShowField || (!noShowField.type as unknown as string) !== "boolean") {
+    if (!noShowField || (noShowField.type as unknown as string) !== "boolean") {
       this.log.warn(
         `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingUid}`
       );
@@ -691,7 +690,7 @@ export default class SalesforceCRMService implements CRM {
 
     const ownerId = recordQuery.records[0].OwnerId;
 
-    const ownerQuery = await this.getSalesforceUserFromOwnerId(ownerId);
+    const ownerQuery = await this.getSalesforceUserFromUserId(ownerId);
 
     if (!ownerQuery || !ownerQuery.records.length) return;
 
@@ -863,5 +862,46 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return query.records[0] as Record<string, any>;
+  }
+
+  async findUserEmailFromLookupField(
+    attendeeEmail: string,
+    fieldName: string,
+    salesforceObject: SalesforceRecordEnum
+  ) {
+    const conn = await this.conn;
+
+    // Ensure the field exists on the record
+    const existingFields = await this.ensureFieldsExistOnObject([fieldName], salesforceObject);
+
+    if (!existingFields.length) return;
+
+    const lookupField = existingFields[0];
+
+    if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
+      const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
+
+      if (!accountId) return;
+
+      const accountQuery = (await conn.query(
+        `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
+      )) as {
+        records: { [key: string]: any };
+      };
+
+      if (!accountQuery.records.length) return;
+
+      const lookupFieldUserId = accountQuery.records[0][lookupField.name];
+
+      if (!lookupFieldUserId) return;
+
+      const userQuery = await this.getSalesforceUserFromUserId(lookupFieldUserId);
+
+      if (!userQuery.records.length) return;
+
+      const user = userQuery.records[0] as { Email: string };
+
+      return user.Email;
+    }
   }
 }
