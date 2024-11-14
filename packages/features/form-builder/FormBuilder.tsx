@@ -574,7 +574,6 @@ function FieldEditDialog({
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
-                    {/* render only for primary email field */}
                     {fieldType.value === "email" && fieldForm.getValues("name") === "email" && (
                       <InputField
                         {...fieldForm.register("excludeEmails")}
