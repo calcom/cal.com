@@ -1098,7 +1098,7 @@ async function main() {
         },
         ...Array.from({ length: 10 }, (_, i) => ({
           memberData: {
-            email: `member${i}@acme.com`,
+            email: `member${i}-acme@example.com`,
             password: {
               create: {
                 hash: `member${i}-acme`,
