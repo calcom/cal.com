@@ -6,10 +6,10 @@ import {
   IsDateString,
   IsTimeZone,
   IsEnum,
-  IsEmail,
   ValidateNested,
   IsArray,
   IsString,
+  isEmail,
   IsOptional,
   IsUrl,
   IsObject,
@@ -34,7 +34,10 @@ function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any, args: ValidationArguments) {
           const obj = args.object as Attendee;
-          return !!(obj.email || obj.attendeePhoneNumber);
+
+          const hasPhoneNumber = !!obj.attendeePhoneNumber && obj.attendeePhoneNumber.trim().length > 0;
+          const hasEmail = !!obj.email && obj.email.trim().length > 0;
+          return hasPhoneNumber || hasEmail;
         },
         defaultMessage(): string {
           return "At least one contact method (email or phone number) must be provided";
@@ -57,12 +60,14 @@ class Attendee {
     type: String,
     description: "The email of the attendee.",
     example: "john.doe@example.com",
-    default: "",
+    default: "", // Kept the default empty string
   })
-  @IsEmail()
   @IsOptional()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid email format",
+  })
   @RequireEmailOrPhone()
-  email = "";
+  email = ""; // Default to empty string
 
   @ApiProperty({
     type: String,
