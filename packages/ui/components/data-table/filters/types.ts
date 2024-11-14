@@ -21,7 +21,7 @@ export const ZTextFilterValue = z.object({
   type: z.literal("text"),
   data: z.object({
     operator: ZTextFilterOperator,
-    value: z.string(),
+    operand: z.string(),
   }),
 });
 

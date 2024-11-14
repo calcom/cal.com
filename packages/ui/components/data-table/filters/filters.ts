@@ -3,17 +3,17 @@ import type { TextFilterValue } from "./types";
 export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
   switch (filterValue.data.operator) {
     case "equals":
-      return cellValue.toLowerCase() === (filterValue.data.value || "").toLowerCase();
+      return cellValue.toLowerCase() === (filterValue.data.operand || "").toLowerCase();
     case "notEquals":
-      return cellValue.toLowerCase() !== (filterValue.data.value || "").toLowerCase();
+      return cellValue.toLowerCase() !== (filterValue.data.operand || "").toLowerCase();
     case "contains":
-      return cellValue.toLowerCase().includes((filterValue.data.value || "").toLowerCase());
+      return cellValue.toLowerCase().includes((filterValue.data.operand || "").toLowerCase());
     case "notContains":
-      return !cellValue.toLowerCase().includes((filterValue.data.value || "").toLowerCase());
+      return !cellValue.toLowerCase().includes((filterValue.data.operand || "").toLowerCase());
     case "startsWith":
-      return cellValue.toLowerCase().startsWith((filterValue.data.value || "").toLowerCase());
+      return cellValue.toLowerCase().startsWith((filterValue.data.operand || "").toLowerCase());
     case "endsWith":
-      return cellValue.toLowerCase().endsWith((filterValue.data.value || "").toLowerCase());
+      return cellValue.toLowerCase().endsWith((filterValue.data.operand || "").toLowerCase());
     case "isEmpty":
       return cellValue.trim() === "";
     case "isNotEmpty":

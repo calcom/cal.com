@@ -194,34 +194,34 @@ function makeWhereClause(filterValue: FilterValue) {
       in: filterValue,
     };
   } else if (isTextFilterValue(filterValue)) {
-    const { operator, value } = filterValue.data;
+    const { operator, operand } = filterValue.data;
 
     switch (operator) {
       case "equals":
         return {
-          equals: value,
+          equals: operand,
         };
       case "notEquals":
         return {
-          not: value,
+          not: operand,
         };
       case "contains":
         return {
-          contains: value,
+          contains: operand,
         };
       case "notContains":
         return {
           NOT: {
-            contains: value,
+            contains: operand,
           },
         };
       case "startsWith":
         return {
-          startsWith: value,
+          startsWith: operand,
         };
       case "endsWith":
         return {
-          endsWith: value,
+          endsWith: operand,
         };
       case "isEmpty":
         return {

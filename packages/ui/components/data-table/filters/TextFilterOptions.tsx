@@ -39,7 +39,7 @@ export function TextFilterOptions({
       operatorOption: filterValue
         ? textFilterOperatorOptions.find((o) => o.value === filterValue.data.operator)
         : textFilterOperatorOptions[0],
-      value: filterValue?.data.value || "",
+      operand: filterValue?.data.operand || "",
     },
   });
 
@@ -47,12 +47,12 @@ export function TextFilterOptions({
     <div className="mx-3 my-2">
       <Form
         form={form}
-        handleSubmit={({ operatorOption, value }) => {
+        handleSubmit={({ operatorOption, operand }) => {
           setFilterValue({
             type: "text",
             data: {
               operator: operatorOption.value,
-              value,
+              operand,
             },
           });
         }}>
@@ -73,7 +73,7 @@ export function TextFilterOptions({
               />
             )}
           />
-          <Input className="mt-2" {...form.register("value")} />
+          <Input className="mt-2" {...form.register("operand")} />
 
           <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
 
