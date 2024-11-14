@@ -12,7 +12,7 @@ export type FilterOptionsProps<TData> = {
   table: Table<TData>;
 };
 
-export function FilterOptions<TData>({ column, state, setState, table }: FilterOptionsProps<TData>) {
+export function FilterOptions<TData>({ column, filter, state, setState, table }: FilterOptionsProps<TData>) {
   const filterValue = table.getColumn(column.id)?.getFilterValue();
 
   const setMultiSelectFilterValue = (value: SelectFilterValue) => {
