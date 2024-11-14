@@ -1599,6 +1599,9 @@ model EventTypeTranslation {
   targetLang     String
   translatedText String                       @db.Text
   createdAt      DateTime                     @default(now())
+  createdBy      Int?
+  updatedAt      DateTime                     @updatedAt
+  updatedBy      Int?
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
 
