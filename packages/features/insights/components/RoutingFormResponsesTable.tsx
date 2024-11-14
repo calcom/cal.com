@@ -305,14 +305,7 @@ export function RoutingFormResponsesTable() {
           },
         });
       }) ?? []),
-      columnHelper.accessor("createdAt", {
-        id: "createdAt",
-        header: t("routing_form_insights_created_at"),
-        cell: (info) => {
-          const createdAt = info.getValue();
-          return dayjs(createdAt).format("MMM D, YYYY HH:mm");
-        },
-      }),
+
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
         header: t("routing_form_insights_booking_status"),
