@@ -45,53 +45,57 @@ export function TextFilterOptions({
   });
 
   return (
-    <Form
-      form={form}
-      handleSubmit={({ data: { operator, value } }) => {
-        setFilterValue({
-          type: "text",
-          data: {
-            operator: operator.value,
-            value,
-          },
-        });
-      }}>
-      <div>
-        <Controller
-          name="data.operator"
-          control={form.control}
-          render={({ field: { value } }) => (
-            <Select
-              options={textFilterOperatorOptions}
-              value={value}
-              isSearchable={false}
-              onChange={(event) => {
-                if (event) {
-                  form.setValue("data.operator", { ...event }, { shouldDirty: true });
-                }
-              }}
-            />
-          )}
-        />
+    <div className="mx-3 my-2">
+      <Form
+        form={form}
+        handleSubmit={({ data: { operator, value } }) => {
+          setFilterValue({
+            type: "text",
+            data: {
+              operator: operator.value,
+              value,
+            },
+          });
+        }}>
+        <div>
+          <Controller
+            name="data.operator"
+            control={form.control}
+            render={({ field: { value } }) => (
+              <Select
+                options={textFilterOperatorOptions}
+                value={value}
+                isSearchable={false}
+                onChange={(event) => {
+                  if (event) {
+                    form.setValue("data.operator", { ...event }, { shouldDirty: true });
+                  }
+                }}
+              />
+            )}
+          />
+          <Input className="mt-2" {...form.register("data.value")} />
 
-        <Input {...form.register("data.value")} />
-        <div className="flex space-x-2">
-          <Button
-            type="submit"
-            color="primary"
-            loading={form.formState.isSubmitting}
-            disabled={form.formState.isSubmitting}>
-            Apply
-          </Button>
-          <Button
-            type="button"
-            color="secondary"
-            disabled={form.formState.isSubmitting}
-            onClick={() => removeFilter(column.id)}>
-            Clear
-          </Button>
+          <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
+
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              color="secondary"
+              disabled={form.formState.isSubmitting}
+              onClick={() => removeFilter(column.id)}>
+              Clear
+            </Button>
+            <Button
+              type="submit"
+              color="primary"
+              loading={form.formState.isSubmitting}
+              disabled={form.formState.isSubmitting}>
+              Apply
+            </Button>
+          </div>
         </div>
-      </div>
-    </Form>
+      </Form>
+    </div>
   );
 }
