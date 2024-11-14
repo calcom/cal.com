@@ -77,6 +77,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest
   } = input;
 
+  console.log("input", rest);
+
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {

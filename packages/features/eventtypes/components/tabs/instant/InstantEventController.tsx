@@ -1,7 +1,7 @@
 import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, useFieldArray } from "react-hook-form";
 import { components } from "react-select";
 import type { OptionProps, SingleValueProps } from "react-select";
 
@@ -76,6 +76,11 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
+  const { fields, append, remove } = useFieldArray({
+    control: formMethods.control,
+    name: "instantMeetingParameters",
+  });
+
   const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -98,6 +103,7 @@ export default function InstantEventController({
     isDefault: schedule.isDefault,
     isManaged: false,
   }));
+  console.log("fields", formMethods.watch());
 
   return (
     <LicenseRequired>
@@ -171,6 +177,66 @@ export default function InstantEventController({
                             );
                           }}
                         />
+                        <div>
+                          <Label>{t("only_show_if_parameter_set")}</Label>
+                          <div className="space-y-2">
+                            {fields.map((field, index) => (
+                              <div key={field.id} className="flex gap-2">
+                                {console.log("field", field)}
+                                <TextField
+                                  required
+                                  name={`instantMeetingParameters.${index}`}
+                                  labelSrOnly
+                                  type="text"
+                                  value={field.value}
+                                  containerClassName="flex-1 max-w-80"
+                                  onChange={(e) => {
+                                    formMethods.setValue(
+                                      `instantMeetingParameters.${index}`,
+                                      e.target.value,
+                                      { shouldDirty: true }
+                                    );
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  color="destructive"
+                                  variant="icon"
+                                  StartIcon="trash"
+                                  onClick={() => remove(index)}
+                                />
+                              </div>
+                            ))}
+                            <Button
+                              color="minimal"
+                              StartIcon="plus"
+                              onClick={() => append("")}
+                              className="mt-2">
+                              {t("add_parameter")}
+                            </Button>
+                          </div>
+                        </div>
+                        {/* <Controller
+                          name="instantMeetingParameters"
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <>
+                                <Label>{t("only_show_if_parameter_set")}</Label>
+                                <TextField
+                                  required
+                                  name="instantMeetingParameters"
+                                  labelSrOnly
+                                  type="text"
+                                  defaultValue={value}
+                                  containerClassName="max-w-80"
+                                  onChange={(e) => {
+                                    onChange(Math.abs(Number(e.target.value)));
+                                  }}
+                                />
+                              </>
+                            );
+                          }}
+                        /> */}
                         <Controller
                           name="instantMeetingExpiryTimeOffsetInSeconds"
                           render={({ field: { value, onChange } }) => (

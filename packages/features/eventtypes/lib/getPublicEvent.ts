@@ -58,6 +58,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  instantMeetingParameters: true,
   aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
@@ -293,6 +294,7 @@ export const getPublicEvent = async (
         logoUrl: null,
       },
       isInstantEvent: false,
+      instantMeetingParameters: [],
       showInstantEventConnectNowModal: false,
     };
   }
@@ -447,7 +449,7 @@ export const getPublicEvent = async (
   if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
     users = [];
   }
-
+  console.log("eventWithUserProfiles", eventWithUserProfiles);
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
