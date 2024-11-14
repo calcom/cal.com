@@ -72,7 +72,7 @@ function BookedByCell({
   rowId: number;
 }) {
   const cellId = useId();
-  if (!attendees) return null;
+  if (!attendees) return <div className="h-6 w-[200px]" />;
 
   return attendees.map((attendee) => (
     <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
@@ -85,10 +85,10 @@ function BookedByCell({
 
 function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number }) {
   const cellId = useId();
-  if (value.length === 0) return null;
+  if (value.length === 0) return <div className="h-6 w-[200px]" />;
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex w-[200px] flex-wrap gap-1">
       {value.length > 2 ? (
         <>
           {value.slice(0, 2).map((v: string, i: number) => (
@@ -135,9 +135,11 @@ function BookingStatusCell({
 
   if (!booking || !booking.user) {
     return (
-      <Badge variant="error" className="ml-6" key={`${cellId}-no-booking-${rowId}`}>
-        {t("no_booking")}
-      </Badge>
+      <div className="w-[250px]">
+        <Badge variant="error" className="ml-6" key={`${cellId}-no-booking-${rowId}`}>
+          {t("no_booking")}
+        </Badge>
+      </div>
     );
   }
 
@@ -287,19 +289,29 @@ export function RoutingFormResponsesTable() {
       columnHelper.accessor("bookedAttendees", {
         id: "bookedBy",
         header: t("routing_form_insights_booked_by"),
+        size: 200,
         cell: (info) => {
           const row = info.row.original;
-          return <BookedByCell attendees={row.routedToBooking?.attendees} rowId={row.id} />;
+          return (
+            <div className="max-w-[200px]">
+              <BookedByCell attendees={row.routedToBooking?.attendees} rowId={row.id} />
+            </div>
+          );
         },
       }),
       ...(headers?.map((header) => {
         return columnHelper.accessor(header.id, {
           id: `${header.formId}-${header.id}`,
           header: header.label,
+          size: 200,
           cell: (info) => {
             let value = info.getValue();
             value = Array.isArray(value) ? value : [value];
-            return <ResponseValueCell value={value} rowId={info.row.original.id} />;
+            return (
+              <div className="max-w-[200px] overflow-hidden">
+                <ResponseValueCell value={value} rowId={info.row.original.id} />
+              </div>
+            );
           },
         });
       }) ?? []),
@@ -307,13 +319,16 @@ export function RoutingFormResponsesTable() {
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
         header: t("routing_form_insights_booking_status"),
+        size: 250,
         cell: (info) => (
-          <BookingStatusCell
-            booking={info.getValue()}
-            rowId={info.row.original.id}
-            copyToClipboard={copyToClipboard}
-            t={t}
-          />
+          <div className="max-w-[250px] overflow-hidden">
+            <BookingStatusCell
+              booking={info.getValue()}
+              rowId={info.row.original.id}
+              copyToClipboard={copyToClipboard}
+              t={t}
+            />
+          </div>
         ),
       }),
     ],
@@ -326,6 +341,9 @@ export function RoutingFormResponsesTable() {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    defaultColumn: {
+      size: 200,
+    },
   });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
