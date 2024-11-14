@@ -201,6 +201,7 @@ const BookerComponent = ({
               onGoBack={() => {
                 onGoBackInstantMeeting();
               }}
+              orgName={event.data?.entity?.name}
             />
           )}
         </>

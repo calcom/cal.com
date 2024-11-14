@@ -9,7 +9,6 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import type { ColumnMeta } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -31,8 +30,8 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
   showToast,
+  useFetchMoreOnBottomReached,
 } from "@calcom/ui";
-import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -47,11 +46,6 @@ import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-
-type CustomColumnMeta<TData, TValue> = ColumnMeta<TData, TValue> & {
-  sticky?: boolean;
-  stickLeft?: number;
-};
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -212,9 +206,10 @@ export function UserListTable() {
         enableHiding: false,
         enableSorting: false,
         meta: {
-          sticky: true,
-          stickLeft: 0,
-        } as CustomColumnMeta<UserTableUser, unknown>,
+          sticky: {
+            position: "left",
+          },
+        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -240,9 +235,8 @@ export function UserListTable() {
           return `Members`;
         },
         meta: {
-          sticky: true,
-          stickyLeft: 24,
-        } as CustomColumnMeta<UserTableUser, unknown>,
+          sticky: { position: "left", gap: 24 },
+        },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -344,6 +338,9 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        meta: {
+          sticky: { position: "right" },
+        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
