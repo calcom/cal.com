@@ -34,13 +34,12 @@ export function TextFilterOptions({
   setFilterValue,
   removeFilter,
 }: TextFilterOptionsProps) {
-  const form = useForm<TextFilterValue>({
+  const form = useForm({
     defaultValues: {
-      type: "text",
-      data: {
-        operator: textFilterOperatorOptions[0],
-        value: "",
-      },
+      operatorOption: filterValue
+        ? textFilterOperatorOptions.find((o) => o.value === filterValue.data.operator)
+        : textFilterOperatorOptions[0],
+      value: filterValue?.data.value || "",
     },
   });
 
@@ -48,18 +47,18 @@ export function TextFilterOptions({
     <div className="mx-3 my-2">
       <Form
         form={form}
-        handleSubmit={({ data: { operator, value } }) => {
+        handleSubmit={({ operatorOption, value }) => {
           setFilterValue({
             type: "text",
             data: {
-              operator: operator.value,
+              operator: operatorOption.value,
               value,
             },
           });
         }}>
         <div>
           <Controller
-            name="data.operator"
+            name="operatorOption"
             control={form.control}
             render={({ field: { value } }) => (
               <Select
@@ -68,13 +67,13 @@ export function TextFilterOptions({
                 isSearchable={false}
                 onChange={(event) => {
                   if (event) {
-                    form.setValue("data.operator", { ...event }, { shouldDirty: true });
+                    form.setValue("operatorOption", { ...event }, { shouldDirty: true });
                   }
                 }}
               />
             )}
           />
-          <Input className="mt-2" {...form.register("data.value")} />
+          <Input className="mt-2" {...form.register("value")} />
 
           <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
 
