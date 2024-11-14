@@ -3,7 +3,6 @@ import { Flex, Text, Metric } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib";
@@ -85,7 +84,7 @@ export const RoutingKPICards = () => {
 
   return (
     <>
-      <Grid numColsSm={2} numColsLg={4} className="gap-x-4 gap-y-4">
+      <Grid numColsSm={2} numColsLg={4} className="mt-4 gap-x-4 gap-y-4">
         {categories.map((item) => (
           <CardInsights key={item.title}>
             <Text className="text-default">{item.title}</Text>
@@ -102,14 +101,15 @@ export const RoutingKPICards = () => {
 const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
   const { categories } = props;
   return (
-    <Grid numColsSm={2} numColsLg={4} className="gap-x-4 gap-y-4">
+    <Grid numColsSm={2} numColsLg={4} className="mt-4 gap-x-4 gap-y-4">
       {categories.map((item) => (
         <CardInsights key={item.title}>
-          <SkeletonContainer className="flex w-full flex-col">
-            <SkeletonText className="mt-2 h-4 w-32" />
-            <SkeletonText className="mt-2 h-6 w-16" />
-            <SkeletonText className="mt-4 h-6 w-44" />
-          </SkeletonContainer>
+          <div className="animate-pulse">
+            <div className="h-4 w-24 rounded bg-gray-200" />
+            <div className="mt-4 flex items-baseline space-x-3">
+              <div className="h-8 w-16 rounded bg-gray-200" />
+            </div>
+          </div>
         </CardInsights>
       ))}
     </Grid>

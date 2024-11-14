@@ -7,6 +7,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
+import { useDefaultRoutingForm } from "../hooks/useDefaultRoutingForm";
 import type { FilterContextType } from "./provider";
 import { FilterProvider } from "./provider";
 
@@ -31,6 +32,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const isRoutingInsights = pathname?.includes("/insights/routing");
 
   let startTimeParsed,
     endTimeParsed,
@@ -68,6 +70,17 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     bookingStatusParsed = safe.data.bookingStatus;
   }
 
+  // Query to get routing forms list
+  const { data: routingForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
+    {
+      teamId: teamIdParsed ?? undefined,
+      isAll: safe.success ? !!safe.data.teamId : false,
+    },
+    {
+      enabled: isRoutingInsights,
+    }
+  );
+
   const [configFilters, setConfigFilters] = useState<FilterContextType["filter"]>({
     dateRange: [
       startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "week"),
@@ -90,6 +103,20 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
       userId: null,
       teamId: null,
       isAll: null,
+    },
+  });
+
+  // Use the custom hook
+  useDefaultRoutingForm({
+    teamId: teamIdParsed,
+    isAll: safe.success ? !!safe.data.teamId : false,
+    routingFormId: routingFormIdParsed,
+    onRoutingFormChange: (formId) => {
+      setConfigFilters((prev) => ({
+        ...prev,
+        selectedFilter: prev.selectedFilter ? [...prev.selectedFilter, "routing_forms"] : ["routing_forms"],
+        selectedRoutingFormId: formId,
+      }));
     },
   });
 

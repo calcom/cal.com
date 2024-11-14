@@ -1,4 +1,4 @@
-import { BarList, Card } from "@tremor/react";
+import { BarList } from "@tremor/react";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -27,26 +27,30 @@ function FormCard({ formName, fields }: FormCardProps) {
   }));
 
   return (
-    <Card className="h-[400px] w-full">
+    <div className="border-subtle h-[400px] w-full rounded-md border">
       <div className="flex flex-col">
-        <h3 className="text-emphasis mb-4">{formName}</h3>
-        <ToggleGroup
-          options={toggleOptions}
-          value={selectedField}
-          className="w-fit"
-          onValueChange={(value) => value && setSelectedField(value)}
-        />
-        {selectedFieldData && (
-          <div className="scrollbar-thin mt-4 h-full overflow-y-auto">
-            <BarList
-              data={selectedFieldData}
-              valueFormatter={(value: number) => value.toString()}
-              className="mt-2"
-            />
-          </div>
-        )}
+        <div className="bg-subtle border-subtle flex h-12 items-center border-b">
+          <h3 className="text-default px-2 text-left align-middle font-medium">{formName}</h3>
+        </div>
+        <div className="p-4">
+          <ToggleGroup
+            options={toggleOptions}
+            value={selectedField}
+            className="w-fit"
+            onValueChange={(value) => value && setSelectedField(value)}
+          />
+          {selectedFieldData && (
+            <div className="scrollbar-thin mt-4 h-full overflow-y-auto">
+              <BarList
+                data={selectedFieldData}
+                valueFormatter={(value: number) => value.toString()}
+                className="mt-2"
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -69,12 +73,20 @@ export function FailedBookingsByField() {
   if (!data) return null;
 
   return (
-    <div className="">
-      <h2 className="text-emphasis mb-4 font-bold">Failed Bookings By Field</h2>
-      <div className={classNames("grid grid-cols-1 gap-6 lg:grid-cols-2")}>
-        {Object.entries(data).map(([formName, fields]) => (
-          <FormCard key={formName} formName={formName} fields={fields} />
-        ))}
+    <div className="w-full text-sm">
+      <div className="flex h-12 items-center">
+        <h2 className="text-emphasis text-md font-semibold">Failed Bookings By Field</h2>
+      </div>
+      <div className="">
+        <div
+          className={classNames(
+            "grid grid-cols-1 gap-6",
+            data.length === 1 ? "lg:grid-cols-1" : "lg:grid-cols-2"
+          )}>
+          {Object.entries(data).map(([formName, fields]) => (
+            <FormCard key={formName} formName={formName} fields={fields} />
+          ))}
+        </div>
       </div>
     </div>
   );
