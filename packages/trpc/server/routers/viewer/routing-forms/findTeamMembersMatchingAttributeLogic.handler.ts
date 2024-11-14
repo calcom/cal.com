@@ -1,21 +1,17 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
-import type { z } from "zod";
 
-import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { DistributionMethod, getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import { entries } from "@calcom/prisma/zod-utils";
 import { findTeamMembersMatchingAttributeLogicOfRoute } from "@calcom/routing-forms/lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
-import type { FormResponse, SerializableForm } from "@calcom/routing-forms/types/types";
 import { RouteActionType } from "@calcom/routing-forms/zod";
-import type { routingFormResponseInDbSchema } from "@calcom/routing-forms/zod";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -35,7 +31,9 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { prisma, user } = ctx;
-  const { getOwnerEmailFromCrm } = await import("@calcom/web/lib/getOwnerEmailFromCrm");
+  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+    "@calcom/web/lib/getTeamMemberEmailFromCrm"
+  );
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
 
@@ -61,6 +59,13 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   }
 
   const serializableForm = await getSerializableForm({ form });
+
+  if (!serializableForm.fields) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Form fields not found",
+    });
+  }
 
   if (!route) {
     throw new TRPCError({
@@ -105,15 +110,6 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     });
   }
 
-  const emailIdentifierValueInResponse = getEmailIdentifierValueFromResponse({
-    form: serializableForm,
-    response,
-  });
-
-  const contactOwnerEmail = emailIdentifierValueInResponse
-    ? await getOwnerEmailFromCrm(eventType, emailIdentifierValueInResponse)
-    : null;
-
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     timeTaken: teamMembersMatchingAttributeLogicTimeTaken,
@@ -136,6 +132,22 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       concurrency: _concurrency,
     }
   );
+
+  const urlSearchParams = getUrlSearchParamsToForwardForTestPreview({
+    formResponse: response,
+    fields: serializableForm.fields,
+    attributeRoutingConfig: route.attributeRoutingConfig ?? null,
+    teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult
+      ? matchingTeamMembersWithResult.map((member) => member.userId)
+      : [],
+  });
+
+  const contactOwnerEmail = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+    query: fromEntriesWithDuplicateKeys(urlSearchParams.entries()),
+    eventTypeId: eventType.id,
+    eventData: eventType,
+    chosenRoute: route,
+  });
 
   if (!matchingTeamMembersWithResult) {
     return {
@@ -165,11 +177,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     ctx.res?.setHeader("Server-Timing", serverTimingHeader);
     console.log("Server-Timing", serverTimingHeader);
   }
-  const {
-    users: orderedLuckyUsers,
-    perUserData,
-    usersAndTheirBookingShortfalls,
-  } = matchingTeamMembers.length
+  const { users: orderedLuckyUsers, perUserData } = matchingTeamMembers.length
     ? await getOrderedListOfLuckyUsers(DistributionMethod.PRIORITIZE_AVAILABILITY, {
         // Assuming all are available
         availableUsers: [matchingTeamMembers[0], ...matchingTeamMembers.slice(1)],
@@ -179,7 +187,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
         },
         allRRHosts: matchingHosts,
       })
-    : { users: [], perUserData: null, usersAndTheirBookingShortfalls: [] };
+    : { users: [], perUserData: null };
 
   return {
     troubleshooter,
@@ -187,7 +195,6 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     checkedFallback,
     mainWarnings,
     fallbackWarnings,
-    usersAndTheirBookingShortfalls,
     result: {
       users: orderedLuckyUsers.map((user) => ({
         id: user.id,
@@ -195,7 +202,6 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
         email: user.email,
       })),
       perUserData,
-      usersAndTheirBookingShortfalls,
     },
   };
 };
@@ -214,61 +220,3 @@ function getServerTimingHeader(timeTaken: Record<string, number | null | undefin
 }
 
 export default findTeamMembersMatchingAttributeLogicHandler;
-
-function getResponseByIdentifier({
-  form,
-  response,
-  identifier,
-}: {
-  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
-  response: z.infer<typeof routingFormResponseInDbSchema>;
-  identifier: string;
-}) {
-  if (!form.fields) {
-    return null;
-  }
-  const fields = form.fields;
-  const fieldsResponseByIdentifier = entries(response).map(([formFieldId, value]) => {
-    const field = fields.find((field) => field.id === formFieldId);
-    if (!field) {
-      return [formFieldId, value.value];
-    }
-    return [getFieldIdentifier(field), value.value];
-  });
-
-  const responseForField = fieldsResponseByIdentifier.find(
-    ([fieldIdentifierInResponse]) => fieldIdentifierInResponse === identifier
-  );
-
-  if (!responseForField) {
-    return null;
-  }
-
-  return responseForField[1] ?? null;
-}
-
-function getEmailIdentifierValueFromResponse({
-  form,
-  response,
-}: {
-  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
-  response: FormResponse;
-}) {
-  const emailValue = getResponseByIdentifier({ form, response, identifier: "email" });
-  if (!emailValue) {
-    return null;
-  }
-  if (emailValue instanceof Array) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: '"email" field must not be an array',
-    });
-  }
-  if (typeof emailValue === "number") {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: '"email" field must not be a number',
-    });
-  }
-  return emailValue;
-}

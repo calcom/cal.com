@@ -241,7 +241,9 @@ type MembersMatchResultType = {
   teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
   perUserData: {
     bookingsCount: Record<number, number>;
-    bookingShortfalls: Record<number, number>;
+    bookingShortfalls: Record<number, number> | null;
+    calibrations: Record<number, number> | null;
+    weights: Record<number, number> | null;
   } | null;
   checkedFallback: boolean;
   mainWarnings: string[] | null;
@@ -298,7 +300,8 @@ const TeamMembersMatchResult = ({
 
     const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic;
 
-    if (matchingMembers.length) {
+    if (matchingMembers.length && membersMatchResult.perUserData) {
+      const perUserData = membersMatchResult.perUserData;
       return (
         <span className="font-semibold">
           <div className="mt-2 overflow-x-auto">
@@ -308,7 +311,11 @@ const TeamMembersMatchResult = ({
                   <th className="py-2 pr-4">#</th>
                   <th className="py-2 pr-4">Email</th>
                   <th className="py-2 pr-4">Bookings</th>
-                  <th className="py-2">Shortfall</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">Weight</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? <th className="py-2">Calibration</th> : null}
+                  {membersMatchResult.perUserData.bookingShortfalls ? (
+                    <th className="border-l py-2 pl-2">Shortfall</th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
@@ -316,10 +323,16 @@ const TeamMembersMatchResult = ({
                   <tr key={member.id} className="border-b">
                     <td className="py-2 pr-4">{index + 1}</td>
                     <td className="py-2 pr-4">{member.email}</td>
-                    <td className="py-2">{membersMatchResult.perUserData?.bookingsCount[member.id] ?? 0}</td>
-                    <td className="py-2">
-                      {membersMatchResult.perUserData?.bookingShortfalls[member.id] ?? 0}
-                    </td>
+                    <td className="py-2">{perUserData.bookingsCount[member.id] ?? 0}</td>
+                    {perUserData.weights ? (
+                      <td className="py-2">{perUserData.weights[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.calibrations ? (
+                      <td className="py-2">{perUserData.calibrations[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.bookingShortfalls ? (
+                      <td className="border-l py-2 pl-2">{perUserData.bookingShortfalls[member.id] ?? 0}</td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -361,10 +374,15 @@ const TeamMembersMatchResult = ({
       <div className="mt-4">
         {membersMatchResult.contactOwnerEmail ? (
           <div data-testid="contact-owner-email">
-            {t("contact_owner")}: {membersMatchResult.contactOwnerEmail}
+            {t("contact_owner")}:{" "}
+            <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
           </div>
-        ) : null}
-        <div data-testid="matching-members">
+        ) : (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}: <span className="font-semibold">Not found</span>
+          </div>
+        )}
+        <div className="mt-2" data-testid="matching-members">
           {t("matching_members_queue")}: {renderQueue()}
         </div>
       </div>
@@ -430,14 +448,15 @@ export const TestFormDialog = ({
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
+    let eventTypeRedirectUrl: string | null = null;
+
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      setEventTypeUrl(
-        getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: route.action.value,
-          form,
-          allURLSearchParams: new URLSearchParams(),
-        })
-      );
+      eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+        eventTypeRedirectUrl: route.action.value,
+        form,
+        allURLSearchParams: new URLSearchParams(),
+      });
+      setEventTypeUrl(eventTypeRedirectUrl);
     }
 
     setChosenRoute(route || null);
@@ -525,7 +544,7 @@ export const TestFormDialog = ({
 
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-      <DialogContent enableOverflow>
+      <DialogContent size="md" enableOverflow>
         <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
         <div>
           <form

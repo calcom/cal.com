@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, beforeAll, afterAll } from "vitest";
+import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } from "vitest";
 
 import prisma from "@calcom/prisma";
 
@@ -34,6 +34,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await deleteUsers();
+  vi.useRealTimers();
 });
 
 afterAll(async () => {
@@ -113,28 +114,62 @@ const createUserWithBookings = async ({
   return user;
 };
 
-const createOrganizerWithBookings = async ({
-  user,
+const createHostWithBookings = async ({
+  user: userData,
   bookings,
+  weight,
+  createdAt,
 }: {
   user: UserProps;
   bookings: (BookingPropsRelatedToLuckyUserAlgorithm & OptionalBookingProps)[];
+  weight?: number;
+  createdAt?: Date;
 }) => {
-  return createUserWithBookings({ user, bookings });
+  const user = await createUserWithBookings({ user: userData, bookings });
+
+  const host = await prisma.host.create({
+    data: {
+      user: { connect: { id: user.id } },
+      eventType: { connect: { id: commonEventTypeId } },
+      weight,
+      createdAt: createdAt ?? new Date(),
+    },
+    include: {
+      user: {
+        include: {
+          bookings: true,
+        },
+      },
+    },
+  });
+  console.log({
+    [user.id]: user.email,
+  });
+  return {
+    ...host,
+    user: {
+      ...host.user,
+      weight,
+    },
+  };
 };
+
+function expectLuckyUsers(luckyUsers: { email: string }[], expectedLuckyUsers: { email: string }[]) {
+  expect(luckyUsers.map((user) => user.email)).toEqual(expectedLuckyUsers.map((user) => user.email));
+}
 
 describe("getLuckyUser Integration tests", () => {
   describe("should not consider no show bookings for round robin: ", () => {
     it("When a host is no show, that is chosen when competing with another host that showed up for the booking", async () => {
       const createOrganizerThatShowedUp = async (email: string) => {
-        return createOrganizerWithBookings({
+        return createHostWithBookings({
           user: { email },
           bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T05:30:00.000Z") }],
         });
       };
 
       const createOrganizerThatDidntShowUp = async (email: string) => {
-        return createOrganizerWithBookings({
+        return createHostWithBookings({
           user: { email },
           bookings: [
             {
@@ -146,10 +181,12 @@ describe("getLuckyUser Integration tests", () => {
         });
       };
 
-      const organizerThatShowedUp = await createOrganizerThatShowedUp("test-user1@example.com");
-      const organizerThatDidntShowUp = await createOrganizerThatDidntShowUp("test-user2@example.com");
+      const organizerHostThatShowedUp = await createOrganizerThatShowedUp("test-user1@example.com");
+      const organizerHostThatDidntShowUp = await createOrganizerThatDidntShowUp("test-user2@example.com");
+      const organizerThatShowedUp = organizerHostThatShowedUp.user;
+      const organizerThatDidntShowUp = organizerHostThatDidntShowUp.user;
       console.log({
-        organizerThatShowedUp: {
+        organizerHostThatShowedUp: {
           id: organizerThatShowedUp.id,
           email: organizerThatShowedUp.email,
           bookings: JSON.stringify(organizerThatShowedUp.bookings),
@@ -173,7 +210,7 @@ describe("getLuckyUser Integration tests", () => {
     });
 
     it("When a attendee is a noShow for organizers booking, that organizer is competing with another host whose attendee showed up for the booking", async () => {
-      const organizerWhoseAttendeeShowedUp = await createOrganizerWithBookings({
+      const organizerHostWhoseAttendeeShowedUp = await createHostWithBookings({
         user: { email: "test-user1@example.com" },
         bookings: [
           {
@@ -193,7 +230,9 @@ describe("getLuckyUser Integration tests", () => {
         ],
       });
 
-      const organizerWhoseAttendeeDidntShowUp = await createOrganizerWithBookings({
+      const organizerWhoseAttendeeShowedUp = organizerHostWhoseAttendeeShowedUp.user;
+
+      const organizerHostWhoseAttendeeDidntShowUp = await createHostWithBookings({
         user: { email: "test-user2@example.com" },
         bookings: [
           {
@@ -213,6 +252,8 @@ describe("getLuckyUser Integration tests", () => {
         ],
       });
 
+      const organizerWhoseAttendeeDidntShowUp = organizerHostWhoseAttendeeDidntShowUp.user;
+
       expect(
         getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [organizerWhoseAttendeeShowedUp, organizerWhoseAttendeeDidntShowUp],
@@ -226,7 +267,7 @@ describe("getLuckyUser Integration tests", () => {
     });
 
     it("When a organizer is attendee (event types with fixed hosts) and no show, that organizer is competing other hosts", async () => {
-      const organizerWhoseAttendeeShowedUp = await createOrganizerWithBookings({
+      const organizerHostWhoseAttendeeShowedUp = await createHostWithBookings({
         user: { email: "test-user1@example.com" },
         bookings: [
           {
@@ -245,8 +286,9 @@ describe("getLuckyUser Integration tests", () => {
           },
         ],
       });
+      const organizerWhoseAttendeeShowedUp = organizerHostWhoseAttendeeShowedUp.user;
 
-      const fixedHostOrganizerWhoseAttendeeDidNotShowUp = await createOrganizerWithBookings({
+      const fixedHostOrganizerHostWhoseAttendeeDidNotShowUp = await createHostWithBookings({
         user: { email: "test-user2@example.com" },
         bookings: [
           {
@@ -281,8 +323,10 @@ describe("getLuckyUser Integration tests", () => {
           },
         ],
       });
+      const fixedHostOrganizerWhoseAttendeeDidNotShowUp =
+        fixedHostOrganizerHostWhoseAttendeeDidNotShowUp.user;
 
-      const organizerWhoWasAttendeeAndDidntShowUp = await createOrganizerWithBookings({
+      const organizerHostWhoWasAttendeeAndDidntShowUp = await createHostWithBookings({
         user: { email: `test-user3@example.com` },
         bookings: [
           {
@@ -303,6 +347,8 @@ describe("getLuckyUser Integration tests", () => {
         ],
       });
 
+      const organizerWhoWasAttendeeAndDidntShowUp = organizerHostWhoWasAttendeeAndDidntShowUp.user;
+
       expect(
         getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [
@@ -320,7 +366,7 @@ describe("getLuckyUser Integration tests", () => {
     });
 
     it("should consider booking when noShowHost is null", async () => {
-      const userWithBookingThatHappenedLater = await createOrganizerWithBookings({
+      const hostWithBookingThatHappenedLater = await createHostWithBookings({
         user: { email: "test-user1@example.com" },
         bookings: [
           {
@@ -342,7 +388,9 @@ describe("getLuckyUser Integration tests", () => {
         ],
       });
 
-      const userWithBookingThatHappenedEarlier = await createOrganizerWithBookings({
+      const userWithBookingThatHappenedLater = hostWithBookingThatHappenedLater.user;
+
+      const hostWithBookingThatHappenedEarlier = await createHostWithBookings({
         user: { email: "test-user2@example.com" },
         bookings: [
           {
@@ -364,6 +412,8 @@ describe("getLuckyUser Integration tests", () => {
         ],
       });
 
+      const userWithBookingThatHappenedEarlier = hostWithBookingThatHappenedEarlier.user;
+
       expect(
         getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
           availableUsers: [userWithBookingThatHappenedLater, userWithBookingThatHappenedEarlier],
@@ -379,151 +429,348 @@ describe("getLuckyUser Integration tests", () => {
 });
 
 describe("getOrderedListOfLuckyUsers Integration tests", () => {
-  describe("should not consider no show bookings for round robin: ", () => {
-    describe("3 users with no bookings", () => {
-      it("should be sorted by as provided in availableUsers if no other criteria like weight/priority/calibration (TODO: make it independent of availableUsers order)", async () => {
-        const [user1, user2, user3] = await Promise.all([
-          createOrganizerWithBookings({ user: { email: "test-user1@example.com" }, bookings: [] }),
-          createOrganizerWithBookings({ user: { email: "test-user2@example.com" }, bookings: [] }),
-          createOrganizerWithBookings({ user: { email: "test-user3@example.com" }, bookings: [] }),
-        ]);
+  beforeEach(() => {
+    vi.setSystemTime("2024-11-14T00:00:13Z");
+  });
 
-        const { users: luckyUsers } = await getOrderedListOfLuckyUsers(
-          DistributionMethod.PRIORITIZE_AVAILABILITY,
-          {
-            availableUsers: [user2, user1, user3],
-            eventType: {
-              id: commonEventTypeId,
-              isRRWeightsEnabled: false,
-            },
-            allRRHosts: [],
-          }
-        );
+  it("should sort as per availableUsers if no other criteria like weight/priority/calibration (TODO: make it independent of availableUsers order)", async () => {
+    const [host1, host2, host3] = await Promise.all([
+      createHostWithBookings({
+        user: { email: "test-user1@example.com" },
+        bookings: [],
+        createdAt: new Date(),
+      }),
+      createHostWithBookings({
+        user: { email: "test-user2@example.com" },
+        bookings: [],
+        createdAt: new Date(),
+      }),
+      createHostWithBookings({
+        user: { email: "test-user3@example.com" },
+        bookings: [],
+        createdAt: new Date(),
+      }),
+    ]);
 
-        expect(luckyUsers).toEqual([user2, user1, user3]);
+    const user1 = host1.user;
+    const user2 = host2.user;
+    const user3 = host3.user;
 
-        const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers(
-          DistributionMethod.PRIORITIZE_AVAILABILITY,
-          {
-            availableUsers: [user3, user1, user2],
-            eventType: {
-              id: commonEventTypeId,
-              isRRWeightsEnabled: false,
-            },
-            allRRHosts: [],
-          }
-        );
-        expect(luckyUsers2).toEqual([user3, user1, user2]);
-      });
+    const { users: luckyUsers } = await getOrderedListOfLuckyUsers(
+      DistributionMethod.PRIORITIZE_AVAILABILITY,
+      {
+        availableUsers: [user2, user1, user3],
+        eventType: {
+          id: commonEventTypeId,
+          isRRWeightsEnabled: false,
+        },
+        allRRHosts: [],
+      }
+    );
 
-      it("should be sorted by as provided in availableUsers even if weights are enabled and different. It is because no bookings are there to prefer some particular user", async () => {
-        const [user1, user2, user3] = await Promise.all([
-          createOrganizerWithBookings({ user: { email: "test-user1@example.com" }, bookings: [] }),
-          createOrganizerWithBookings({ user: { email: "test-user2@example.com" }, bookings: [] }),
-          createOrganizerWithBookings({ user: { email: "test-user3@example.com" }, bookings: [] }),
-        ]);
+    expectLuckyUsers(luckyUsers, [user2, user1, user3]);
 
-        const { users: luckyUsers } = await getOrderedListOfLuckyUsers(
-          DistributionMethod.PRIORITIZE_AVAILABILITY,
-          {
-            availableUsers: [user2, user1, user3],
-            eventType: {
-              id: commonEventTypeId,
-              isRRWeightsEnabled: true,
-            },
-            allRRHosts: [
-              {
-                user: user1,
-                createdAt: new Date(),
-                weight: 100,
-              },
-              {
-                user: user2,
-                createdAt: new Date(),
-                weight: 200,
-              },
-              {
-                user: user3,
-                createdAt: new Date(),
-                weight: 100,
-              },
-            ],
-          }
-        );
+    const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers(
+      DistributionMethod.PRIORITIZE_AVAILABILITY,
+      {
+        availableUsers: [user3, user1, user2],
+        eventType: {
+          id: commonEventTypeId,
+          isRRWeightsEnabled: false,
+        },
+        allRRHosts: [],
+      }
+    );
+    expectLuckyUsers(luckyUsers2, [user3, user1, user2]);
+  });
 
-        expect(luckyUsers).toEqual([user2, user1, user3]);
-      });
+  describe("should sort as per weights", () => {
+    const isRRWeightsEnabled = true;
+    it("even if there are no bookings", async () => {
+      const [host1WithWeight100, host2WithWeight200, host3WithWeight100] = await Promise.all([
+        createHostWithBookings({
+          user: { email: "test-user1@example.com" },
+          bookings: [],
+          createdAt: new Date(),
+          weight: 100,
+        }),
+        createHostWithBookings({
+          user: { email: "test-user2@example.com" },
+          bookings: [],
+          createdAt: new Date(),
+          weight: 200,
+        }),
+        createHostWithBookings({
+          user: { email: "test-user3@example.com" },
+          bookings: [],
+          createdAt: new Date(),
+          weight: 100,
+        }),
+      ]);
+
+      const user1WithWeight100 = host1WithWeight100.user;
+      const userWithHighestWeight = host2WithWeight200.user;
+      const user2WithWeight100 = host3WithWeight100.user;
+
+      const allRRHosts = [host1WithWeight100, host2WithWeight200, host3WithWeight100];
+      const { users: luckyUsers } = await getOrderedListOfLuckyUsers(
+        DistributionMethod.PRIORITIZE_AVAILABILITY,
+        {
+          availableUsers: [userWithHighestWeight, user1WithWeight100, user2WithWeight100],
+          eventType: {
+            id: commonEventTypeId,
+            isRRWeightsEnabled,
+          },
+          allRRHosts,
+        }
+      );
+
+      expectLuckyUsers(luckyUsers, [
+        // It has the highest weight
+        userWithHighestWeight,
+        // It has the same weight as the next one but comes earlier in availableUsers array
+        user1WithWeight100,
+        // It is the last choice
+        user2WithWeight100,
+      ]);
+
+      const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers(
+        DistributionMethod.PRIORITIZE_AVAILABILITY,
+        {
+          availableUsers: [user2WithWeight100, userWithHighestWeight, user1WithWeight100],
+          eventType: {
+            id: commonEventTypeId,
+            isRRWeightsEnabled,
+          },
+          allRRHosts,
+        }
+      );
+      expectLuckyUsers(luckyUsers2, [
+        // It has the highest weight and zero bookings.
+        userWithHighestWeight,
+        // It has the same weight as the next one but comes earlier in availableUsers array
+        user2WithWeight100,
+        // It is the last choice
+        user1WithWeight100,
+      ]);
     });
 
-    describe("3 users with 1, 2, 3 bookings each", () => {
-      it.only("should sorted considering weights and current booking count", async () => {
-        const [
-          userWithOneBookingAndWeight200,
-          userWithTwoBookingsAndWeight100,
-          userWithThreeBookingsAndWeight100,
-        ] = await Promise.all([
-          createOrganizerWithBookings({
+    it("consider booking count for the current month", async () => {
+      const [
+        hostWithOneBookingAndWeight200,
+        hostWithTwoBookingsAndWeight100,
+        hostWithThreeBookingsAndWeight100,
+      ] = await Promise.all([
+        createHostWithBookings({
+          user: { email: "test-user1@example.com" },
+          bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date() }],
+          createdAt: new Date(),
+          weight: 200,
+        }),
+        createHostWithBookings({
+          user: { email: "test-user2@example.com" },
+          bookings: [
+            { eventTypeId: commonEventTypeId, createdAt: new Date() },
+            { eventTypeId: commonEventTypeId, createdAt: new Date() },
+          ],
+          createdAt: new Date(),
+          weight: 100,
+        }),
+        createHostWithBookings({
+          user: { email: "test-user3@example.com" },
+          bookings: [
+            { eventTypeId: commonEventTypeId, createdAt: new Date() },
+            { eventTypeId: commonEventTypeId, createdAt: new Date() },
+            { eventTypeId: commonEventTypeId, createdAt: new Date() },
+          ],
+          createdAt: new Date(),
+          weight: 100,
+        }),
+      ]);
+
+      const userWithOneBookingAndWeight200 = hostWithOneBookingAndWeight200.user;
+      const userWithTwoBookingsAndWeight100 = hostWithTwoBookingsAndWeight100.user;
+      const userWithThreeBookingsAndWeight100 = hostWithThreeBookingsAndWeight100.user;
+
+      const availableUsers = [
+        userWithThreeBookingsAndWeight100,
+        userWithTwoBookingsAndWeight100,
+        userWithOneBookingAndWeight200,
+      ];
+
+      const getLuckUserParams = {
+        availableUsers,
+        eventType: {
+          id: commonEventTypeId,
+          isRRWeightsEnabled,
+        },
+        allRRHosts: [
+          hostWithOneBookingAndWeight200,
+          hostWithTwoBookingsAndWeight100,
+          hostWithThreeBookingsAndWeight100,
+        ],
+      };
+
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers(
+        DistributionMethod.PRIORITIZE_AVAILABILITY,
+        {
+          ...getLuckUserParams,
+          availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
+        }
+      );
+
+      expectLuckyUsers(luckyUsers, [
+        // User with 1 booking is chosen first because it has higher weight and lesser bookings
+        userWithOneBookingAndWeight200,
+        // User with 2 bookings is chosen next because it has lesser bookings
+        userWithTwoBookingsAndWeight100,
+        // User with 3 bookings is chosen last because it has the most bookings
+        userWithThreeBookingsAndWeight100,
+      ]);
+
+      if (!perUserData?.bookingShortfalls) {
+        throw new Error("bookingShortfalls is not defined");
+      }
+      expect(perUserData.bookingShortfalls[userWithThreeBookingsAndWeight100.id]).toBe(-1.5);
+      expect(perUserData.bookingShortfalls[userWithTwoBookingsAndWeight100.id]).toBe(-0.5);
+      expect(perUserData.bookingShortfalls[userWithOneBookingAndWeight200.id]).toBe(2);
+    });
+
+    it("not considering bookings that were created in previous months", async () => {
+      const [
+        hostWithOneBookingInPreviousMonthAndWeight200,
+        hostWithTwoBookingsInPreviousMonthAndWeight100,
+        hostWithThreeBookingsInPreviousMonthAndWeight100,
+      ] = await Promise.all([
+        createHostWithBookings({
+          user: { email: "test-user1@example.com" },
+          bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") }],
+          weight: 200,
+          createdAt: new Date(),
+        }),
+        createHostWithBookings({
+          user: { email: "test-user2@example.com" },
+          bookings: [
+            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
+            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
+          ],
+          weight: 100,
+          createdAt: new Date(),
+        }),
+        createHostWithBookings({
+          user: { email: "test-user3@example.com" },
+          bookings: [
+            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
+            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
+            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
+          ],
+          weight: 100,
+          createdAt: new Date(),
+        }),
+      ]);
+
+      const userWithOneBookingInPreviousMonthAndWeight200 =
+        hostWithOneBookingInPreviousMonthAndWeight200.user;
+      const userWithTwoBookingsInPreviousMonthAndWeight100 =
+        hostWithTwoBookingsInPreviousMonthAndWeight100.user;
+      const userWithThreeBookingsInPreviousMonthAndWeight100 =
+        hostWithThreeBookingsInPreviousMonthAndWeight100.user;
+
+      const availableUsers = [
+        userWithThreeBookingsInPreviousMonthAndWeight100,
+        userWithTwoBookingsInPreviousMonthAndWeight100,
+        userWithOneBookingInPreviousMonthAndWeight200,
+      ];
+
+      const getLuckUserParams = {
+        availableUsers,
+        eventType: {
+          id: commonEventTypeId,
+          isRRWeightsEnabled,
+        },
+        allRRHosts: [
+          hostWithOneBookingInPreviousMonthAndWeight200,
+          hostWithTwoBookingsInPreviousMonthAndWeight100,
+          hostWithThreeBookingsInPreviousMonthAndWeight100,
+        ],
+      };
+
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers(
+        DistributionMethod.PRIORITIZE_AVAILABILITY,
+        {
+          ...getLuckUserParams,
+          availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
+        }
+      );
+
+      expectLuckyUsers(luckyUsers, [
+        // User with 1 booking is chosen first because it has higher weight and lesser bookings
+        userWithOneBookingInPreviousMonthAndWeight200,
+        // User with 3 bookings is chosen next because it comes earlier in availableUsers array
+        userWithThreeBookingsInPreviousMonthAndWeight100,
+        // User with 2 bookings is chosen last because it comes later in availableUsers array
+        userWithTwoBookingsInPreviousMonthAndWeight100,
+      ]);
+
+      if (!perUserData?.bookingShortfalls) {
+        throw new Error("bookingShortfalls is not defined");
+      }
+
+      // Because no one has any bookings in the current month, the booking shortfall should be 0 for all users
+      expect(perUserData.bookingShortfalls[userWithThreeBookingsInPreviousMonthAndWeight100.id]).toBe(0);
+      expect(perUserData.bookingShortfalls[userWithTwoBookingsInPreviousMonthAndWeight100.id]).toBe(0);
+      expect(perUserData.bookingShortfalls[userWithOneBookingInPreviousMonthAndWeight200.id]).toBe(0);
+    });
+
+    describe("should sort as per host creation data calibration", () => {
+      it("not considering bookings that were created in previous months", async () => {
+        const today = new Date();
+        const tenthOfTheMonth = new Date(today.getFullYear(), today.getMonth(), 10);
+        const secondsInDay = 24 * 60 * 60 * 1000;
+        const ninthOfTheMonth = new Date(tenthOfTheMonth.getTime() - secondsInDay);
+        const eighthOfTheMonth = new Date(tenthOfTheMonth.getTime() - 2 * secondsInDay);
+        const [host1, host2, host3] = await Promise.all([
+          createHostWithBookings({
             user: { email: "test-user1@example.com" },
-            bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date() }],
+            bookings: [
+              { eventTypeId: commonEventTypeId, createdAt: new Date(tenthOfTheMonth.getTime() + 1000) },
+            ],
+            weight: 200,
+            createdAt: tenthOfTheMonth,
           }),
-          createOrganizerWithBookings({
+          createHostWithBookings({
             user: { email: "test-user2@example.com" },
             bookings: [
-              { eventTypeId: commonEventTypeId, createdAt: new Date() },
-              { eventTypeId: commonEventTypeId, createdAt: new Date() },
+              { eventTypeId: commonEventTypeId, createdAt: new Date(ninthOfTheMonth.getTime() + 1000) },
+              { eventTypeId: commonEventTypeId, createdAt: new Date(ninthOfTheMonth.getTime() + 2000) },
             ],
+            weight: 100,
+            createdAt: ninthOfTheMonth,
           }),
-          createOrganizerWithBookings({
+          createHostWithBookings({
             user: { email: "test-user3@example.com" },
             bookings: [
-              { eventTypeId: commonEventTypeId, createdAt: new Date() },
-              { eventTypeId: commonEventTypeId, createdAt: new Date() },
-              { eventTypeId: commonEventTypeId, createdAt: new Date() },
+              { eventTypeId: commonEventTypeId, createdAt: new Date(eighthOfTheMonth.getTime() + 1000) },
+              { eventTypeId: commonEventTypeId, createdAt: new Date(eighthOfTheMonth.getTime() + 2000) },
+              { eventTypeId: commonEventTypeId, createdAt: new Date(eighthOfTheMonth.getTime() + 3000) },
             ],
+            weight: 100,
+            createdAt: eighthOfTheMonth,
           }),
         ]);
 
-        const availableUsers = [
-          {
-            ...userWithThreeBookingsAndWeight100,
-            weight: 100,
-          },
-          {
-            ...userWithTwoBookingsAndWeight100,
-            weight: 100,
-          },
-          {
-            ...userWithOneBookingAndWeight200,
-            weight: 200,
-          },
-        ];
+        const availableUsers = [host3.user, host2.user, host1.user];
 
         const getLuckUserParams = {
           availableUsers,
           eventType: {
             id: commonEventTypeId,
-            isRRWeightsEnabled: true,
+            isRRWeightsEnabled,
           },
-          allRRHosts: [
-            {
-              user: availableUsers[0],
-              createdAt: new Date(),
-              weight: availableUsers[0].weight,
-            },
-            {
-              user: availableUsers[1],
-              createdAt: new Date(),
-              weight: availableUsers[1].weight,
-            },
-            {
-              user: userWithThreeBookingsAndWeight100,
-              createdAt: new Date(),
-              weight: availableUsers[2].weight,
-            },
-          ],
+          allRRHosts: [host1, host2, host3],
         };
 
-        const { users: luckyUsers, usersAndTheirBookingShortfalls } = await getOrderedListOfLuckyUsers(
+        const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers(
           DistributionMethod.PRIORITIZE_AVAILABILITY,
           {
             ...getLuckUserParams,
@@ -534,34 +781,15 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           }
         );
 
-        expect(luckyUsers.map((user) => user.id)).toEqual([
-          userWithOneBookingAndWeight200.id,
-          userWithTwoBookingsAndWeight100.id,
-          userWithThreeBookingsAndWeight100.id,
-        ]);
+        if (!perUserData?.bookingShortfalls || !perUserData?.calibrations) {
+          throw new Error("bookingShortfalls or calibrations is not defined");
+        }
 
-        expect(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          usersAndTheirBookingShortfalls!.map((user) => ({
-            id: user.id,
-            bookingShortfall: user.bookingShortfall,
-          }))
-        ).toEqual(
-          expect.arrayContaining([
-            {
-              id: userWithThreeBookingsAndWeight100.id,
-              bookingShortfall: -1.5,
-            },
-            {
-              id: userWithTwoBookingsAndWeight100.id,
-              bookingShortfall: -0.5,
-            },
-            {
-              id: userWithOneBookingAndWeight200.id,
-              bookingShortfall: 2,
-            },
-          ])
-        );
+        expect(perUserData.calibrations[host1.user.id]).toBe(2.5);
+        expect(perUserData.calibrations[host2.user.id]).toBe(3);
+        expect(perUserData.calibrations[host3.user.id]).toBe(0);
+
+        expectLuckyUsers(luckyUsers, [host1.user, host3.user, host2.user]);
       });
     });
   });

@@ -96,15 +96,16 @@ function leastRecentlyBookedUser<T extends PartialUser>({
 
 function getHostsWithCalibration(
   hosts: { userId: number; email: string; createdAt: Date }[],
-  allRRHostsBookings: PartialBooking[],
+  allRRHostsBookingsOfThisMonth: PartialBooking[],
   allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[]
 ) {
-  const existingBookings = allRRHostsBookings;
+  const existingBookings = allRRHostsBookingsOfThisMonth;
 
   // Return early if there are no new hosts or no existing bookings
   if (allRRHostsCreatedThisMonth.length === 0 || existingBookings.length === 0) {
     return hosts.map((host) => ({ ...host, calibration: 0 }));
   }
+
   // Helper function to calculate calibration for a new host
   function calculateCalibration(newHost: { userId: number; createdAt: Date }) {
     const existingBookingsBeforeAdded = existingBookings.filter(
@@ -113,9 +114,21 @@ function getHostsWithCalibration(
     const hostsAddedBefore = hosts.filter(
       (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
     );
-    return existingBookingsBeforeAdded.length && hostsAddedBefore.length
-      ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
-      : 0;
+
+    const calibration =
+      existingBookingsBeforeAdded.length && hostsAddedBefore.length
+        ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
+        : 0;
+    log.debug(
+      "calculateCalibration",
+      safeStringify({
+        newHost,
+        existingBookingsBeforeAdded: existingBookingsBeforeAdded.length,
+        hostsAddedBefore: hostsAddedBefore.length,
+        calibration,
+      })
+    );
+    return calibration;
   }
   // Calculate calibration for each new host and store in a Map
   const newHostsWithCalibration = new Map(
@@ -160,25 +173,25 @@ function filterUsersBasedOnWeights<
 >({
   availableUsers,
   bookingsOfAvailableUsers,
-  bookingsOfNotAvailableUsers,
+  bookingsOfNotAvailableUsersOfThisMonth,
   allRRHosts,
-  allRRHostsBookings,
+  allRRHostsBookingsOfThisMonth,
   allRRHostsCreatedThisMonth,
 }: GetLuckyUserParams<T> & {
   bookingsOfAvailableUsers: PartialBooking[];
-  bookingsOfNotAvailableUsers: PartialBooking[];
-  allRRHostsBookings: PartialBooking[];
+  bookingsOfNotAvailableUsersOfThisMonth: PartialBooking[];
+  allRRHostsBookingsOfThisMonth: PartialBooking[];
   allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
 }) {
   //get all bookings of all other RR hosts that are not available
 
-  const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
+  const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsersOfThisMonth);
 
   const allHostsWithCalibration = getHostsWithCalibration(
     allRRHosts.map((host) => {
       return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
     }),
-    allRRHostsBookings,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth
   );
 
@@ -195,7 +208,8 @@ function filterUsersBasedOnWeights<
 
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
-    const targetPercentage = (user.weight ?? 100) / totalWeight;
+    const userWeight = user.weight ?? 100;
+    const targetPercentage = userWeight / totalWeight;
     const userBookings = bookingsOfAvailableUsers.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
@@ -209,7 +223,11 @@ function filterUsersBasedOnWeights<
 
     return {
       ...user,
+      calibration: userCalibration,
+      weight: userWeight,
+      targetNumberOfBookings,
       bookingShortfall,
+      numBookings: userBookings.length,
     };
   });
 
@@ -235,15 +253,20 @@ function filterUsersBasedOnWeights<
     userIdsWithMaxShortfallAndWeight.has(user.id)
   );
 
-  console.log({
-    allRRHosts,
-    totalWeight,
-    totalCalibration,
-    maxShortfall,
-    allHostsWithCalibration: JSON.stringify(allHostsWithCalibration),
-    usersWithMaxShortfall: usersWithMaxShortfall.map((user) => user.id),
-    usersWithBookingShortfalls: usersWithBookingShortfalls.map((user) => user.id),
-    remainingUsersAfterWeightFilter: remainingUsersAfterWeightFilter.map((user) => user.id),
+  log.debug({
+    userIdsWithMaxShortfallAndWeight: userIdsWithMaxShortfallAndWeight,
+    usersWithMaxShortfall: usersWithMaxShortfall.map((user) => user.email),
+    usersWithBookingShortfalls: safeStringify(
+      usersWithBookingShortfalls.map((user) => ({
+        calibration: user.calibration,
+        bookingShortfall: user.bookingShortfall,
+        email: user.email,
+        targetNumberOfBookings: user.targetNumberOfBookings,
+        weight: user.weight,
+        numBookings: user.numBookings,
+      }))
+    ),
+    remainingUsersAfterWeightFilter: remainingUsersAfterWeightFilter.map((user) => user.email),
   });
 
   if (!isNonEmptyArray(remainingUsersAfterWeightFilter)) {
@@ -253,6 +276,7 @@ function filterUsersBasedOnWeights<
     remainingUsersAfterWeightFilter,
     usersAndTheirBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
       id: user.id,
+      calibration: user.calibration,
       bookingShortfall: user.bookingShortfall,
     })),
   };
@@ -284,20 +308,22 @@ export async function getLuckyUser<
 ) {
   const {
     currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsers,
-    allRRHostsBookings,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
 
-  return getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
+  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
     ...getLuckyUserParams,
     currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsers,
-    allRRHostsBookings,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   });
+
+  return luckyUser;
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
@@ -313,9 +339,9 @@ export function getLuckyUser_requiresDataToBePreFetched<
     availableUsers,
     ...getLuckyUserParams
   }: GetLuckyUserParams<T> & {
-    bookingsOfNotAvailableUsers: PartialBooking[];
+    bookingsOfNotAvailableUsersOfThisMonth: PartialBooking[];
     currentMonthBookingsOfAvailableUsers: PartialBooking[];
-    allRRHostsBookings: PartialBooking[];
+    allRRHostsBookingsOfThisMonth: PartialBooking[];
     allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
     organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
   }
@@ -323,8 +349,8 @@ export function getLuckyUser_requiresDataToBePreFetched<
   const {
     eventType,
     currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsers,
-    allRRHostsBookings,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   } = getLuckyUserParams;
@@ -336,7 +362,8 @@ export function getLuckyUser_requiresDataToBePreFetched<
 
   switch (distributionMethod) {
     case DistributionMethod.PRIORITIZE_AVAILABILITY: {
-      let usersAndTheirBookingShortfalls: { id: number; bookingShortfall: number }[] = [];
+      let usersAndTheirBookingShortfalls: { id: number; bookingShortfall: number; calibration: number }[] =
+        [];
       if (eventType.isRRWeightsEnabled) {
         const {
           remainingUsersAfterWeightFilter,
@@ -345,8 +372,8 @@ export function getLuckyUser_requiresDataToBePreFetched<
           ...getLuckyUserParams,
           availableUsers,
           bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-          bookingsOfNotAvailableUsers,
-          allRRHostsBookings,
+          bookingsOfNotAvailableUsersOfThisMonth,
+          allRRHostsBookingsOfThisMonth,
           allRRHostsCreatedThisMonth,
         });
         availableUsers = remainingUsersAfterWeightFilter;
@@ -409,8 +436,8 @@ async function fetchAllDataNeededForCalculations<
 
   const [
     currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsers,
-    allRRHostsBookings,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   ] = await Promise.all([
@@ -489,10 +516,17 @@ async function fetchAllDataNeededForCalculations<
   const endTime = performance.now();
   log.info(`fetchAllDataNeededForCalculations took ${endTime - startTime}ms`);
 
+  console.log({
+    currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers.length,
+    bookingsOfNotAvailableUsersOfThisMonth: bookingsOfNotAvailableUsersOfThisMonth.length,
+    allRRHostsBookingsOfThisMonth: allRRHostsBookingsOfThisMonth.length,
+    allRRHostsCreatedThisMonth: allRRHostsCreatedThisMonth.length,
+  });
+
   return {
     currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsers,
-    allRRHostsBookings,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   };
@@ -507,16 +541,12 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
   getLuckyUserParams: GetLuckyUserParams<AvailableUser>
 ) {
-  const { availableUsers } = getLuckyUserParams;
-  // Return early if no users available
-  if (!availableUsers.length || availableUsers.length === 1) {
-    return { users: availableUsers, perUserData: null };
-  }
+  const { availableUsers, eventType } = getLuckyUserParams;
 
   const {
     currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsers,
-    allRRHostsBookings,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
@@ -528,8 +558,8 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
         return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
       }),
       currentMonthBookingsOfAvailableUsers,
-      bookingsOfNotAvailableUsers,
-      allRRHostsBookings,
+      bookingsOfNotAvailableUsersOfThisMonth,
+      allRRHostsBookingsOfThisMonth,
       allRRHostsCreatedThisMonth,
       organizersWithLastCreated,
     })
@@ -541,16 +571,17 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   const perUserBookingsCount: Record<number, number> = {};
 
   const startTime = performance.now();
-  let usersAndTheirBookingShortfalls: { id: number; bookingShortfall: number }[] = [];
+  let usersAndTheirBookingShortfalls: { id: number; bookingShortfall: number; calibration: number }[] = [];
   // Keep getting lucky users until none remain
   while (remainingAvailableUsers.length > 0) {
     const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
       getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
         ...getLuckyUserParams,
+        eventType,
         availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
         currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
-        bookingsOfNotAvailableUsers,
-        allRRHostsBookings,
+        bookingsOfNotAvailableUsersOfThisMonth,
+        allRRHostsBookingsOfThisMonth,
         allRRHostsCreatedThisMonth,
         organizersWithLastCreated,
       });
@@ -580,15 +611,26 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   const endTime = performance.now();
   log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
 
+  const bookingShortfalls: Record<number, number> = {};
+  const calibrations: Record<number, number> = {};
+
+  usersAndTheirBookingShortfalls.forEach((user) => {
+    bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
+    calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
+  });
+
+  const weights = remainingAvailableUsers.reduce((acc, user) => {
+    acc[user.id] = user.weight ?? 100;
+    return acc;
+  }, {} as Record<number, number>);
+
   return {
     users: Array.from(orderedUsersSet),
-    usersAndTheirBookingShortfalls,
     perUserData: {
       bookingsCount: perUserBookingsCount,
-      bookingShortfalls: usersAndTheirBookingShortfalls.reduce((acc, user) => {
-        acc[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
-        return acc;
-      }, {} as Record<number, number>),
+      bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
+      calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
+      weights: eventType.isRRWeightsEnabled ? weights : null,
     },
   };
 }
