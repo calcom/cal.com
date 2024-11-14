@@ -57,12 +57,17 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
 }) => {
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { setTimezone, timeFormat, timezone: preferenceTimezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const [timezoneFromBookerStore, setBookerStoreTimezone] = useBookerStore(
+    (state) => [state.timeZone, state.setTimeZone],
+    shallow
+  );
+  const timezone = timezoneFromBookerStore ?? preferenceTimezone;
   const [seatedEventData, setSeatedEventData] = useBookerStore(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
@@ -175,7 +180,10 @@ export const EventMeta = ({
                       container: () => "max-w-full",
                     }}
                     value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>

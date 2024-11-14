@@ -32,6 +32,7 @@ type StoreInitializeType = {
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
+  timeZone?: string | null;
   teamMemberEmail?: string | null;
 };
 
@@ -150,6 +151,9 @@ export type BookerStore = {
   org?: string | null;
   setOrg: (org: string | null | undefined) => void;
 
+  timeZone: string | null;
+  setTimeZone: (timeZone: string | null) => void;
+  
   teamMemberEmail?: string | null;
 };
 
@@ -242,6 +246,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ seatedEventData });
     updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
   },
+  timeZone: getQueryParam("tz") ?? null,
+  setTimeZone: (timeZone: string | null) => {
+    set({ timeZone });
+  },
   initialize: ({
     username,
     eventSlug,
@@ -256,6 +264,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     durationConfig,
     org,
     isInstantMeeting,
+    timeZone = null,
     teamMemberEmail,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
@@ -269,6 +278,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
+      get().timeZone === timeZone &&
       get().rescheduledBy === rescheduledBy &&
       get().teamMemberEmail
     )
@@ -285,6 +295,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       layout: layout || BookerLayouts.MONTH_VIEW,
       isTeamEvent: isTeamEvent || false,
       durationConfig,
+      timeZone,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate:
         selectedDateInStore ||
@@ -378,6 +389,7 @@ export const useInitializeBookerStore = ({
   durationConfig,
   org,
   isInstantMeeting,
+  timeZone = null,
   teamMemberEmail,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
@@ -396,6 +408,7 @@ export const useInitializeBookerStore = ({
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
+      timeZone,
       teamMemberEmail,
     });
   }, [
@@ -413,6 +426,7 @@ export const useInitializeBookerStore = ({
     verifiedEmail,
     durationConfig,
     isInstantMeeting,
+    timeZone,
     teamMemberEmail,
   ]);
 };
