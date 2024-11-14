@@ -103,7 +103,7 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
-  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
@@ -113,6 +113,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
@@ -131,6 +132,7 @@ function BookingListItem(booking: BookingItemProps) {
   });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
@@ -265,6 +267,17 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenReassignDialog(true);
       },
       icon: "users" as const,
+    });
+  }
+
+  if (isBookingInPast || isOngoing) {
+    editBookingActions.push({
+      id: "no_show",
+      label: t("mark_as_no_show"),
+      onClick: () => {
+        setIsNoShowDialogOpen(true);
+      },
+      icon: "eye-off" as const,
     });
   }
 
@@ -417,12 +430,14 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
-      <ReassignDialog
-        isOpenDialog={isOpenReassignDialog}
-        setIsOpenDialog={setIsOpenReassignDialog}
-        bookingId={booking.id}
-        teamId={booking.eventType?.team?.id || 0}
-      />
+      {isOpenReassignDialog && (
+        <ReassignDialog
+          isOpenDialog={isOpenReassignDialog}
+          setIsOpenDialog={setIsOpenReassignDialog}
+          bookingId={booking.id}
+          teamId={booking.eventType?.team?.id || 0}
+        />
+      )}
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
@@ -450,6 +465,14 @@ function BookingListItem(booking: BookingItemProps) {
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
           timeFormat={userTimeFormat ?? null}
+        />
+      )}
+      {isNoShowDialogOpen && (
+        <NoShowAttendeesDialog
+          bookingUid={booking.uid}
+          attendees={attendeeList}
+          setIsOpen={setIsNoShowDialogOpen}
+          isOpen={isNoShowDialogOpen}
         />
       )}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
@@ -983,7 +1006,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
             />
           ))}
           <DropdownMenuSeparator />
-          <div className=" flex justify-end p-2">
+          <div className="flex justify-end p-2 ">
             <Button
               data-testid="update-no-show"
               color="secondary"
@@ -999,6 +1022,75 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     </Dropdown>
   );
 };
+
+const NoShowAttendeesDialog = ({
+  attendees,
+  isOpen,
+  setIsOpen,
+  bookingUid,
+}: {
+  attendees: AttendeeProps[];
+  isOpen: boolean;
+  setIsOpen: (value: boolean) => void;
+  bookingUid: string;
+}) => {
+  const { t } = useLocale();
+  const [noShowAttendees, setNoShowAttendees] = useState(
+    attendees.map((attendee) => ({
+      id: attendee.id,
+      email: attendee.email,
+      name: attendee.name,
+      noShow: attendee.noShow || false,
+    }))
+  );
+
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+    onSuccess: async (data) => {
+      const newValue = data.attendees[0];
+      setNoShowAttendees((old) =>
+        old.map((attendee) =>
+          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
+        )
+      );
+      showToast(t(data.message), "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  return (
+    <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
+      <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
+        {noShowAttendees.map((attendee) => (
+          <form
+            key={attendee.id}
+            onSubmit={(e) => {
+              e.preventDefault();
+              noShowMutation.mutate({
+                bookingUid,
+                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+              });
+            }}>
+            <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
+              <span className="text-emphasis flex flex-col text-sm">
+                {attendee.name}
+                {attendee.email && <span className="text-muted">({attendee.email})</span>}
+              </span>
+              <Button color="minimal" type="submit" StartIcon={attendee.noShow ? "eye-off" : "eye"}>
+                {attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+              </Button>
+            </div>
+          </form>
+        ))}
+        <DialogFooter>
+          <DialogClose>{t("done")}</DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { t } = useLocale();
@@ -1035,7 +1127,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <div className=" flex justify-end space-x-2 p-2">
+        <div className="flex justify-end space-x-2 p-2 ">
           <Link href={`mailto:${selectedEmail}`}>
             <Button
               color="secondary"

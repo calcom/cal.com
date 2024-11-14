@@ -14,6 +14,8 @@ import {
   IsEnum,
   IsArray,
   ValidateNested,
+  ArrayNotEmpty,
+  ArrayUnique,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -54,16 +56,16 @@ import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
-  AddressLocation_2024_06_14,
-  AttendeeAddressLocation_2024_06_14,
-  AttendeeDefinedLocation_2024_06_14,
-  AttendeePhoneLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
+  InputAddressLocation_2024_06_14,
+  InputAttendeeAddressLocation_2024_06_14,
+  InputAttendeeDefinedLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputIntegrationLocation_2024_06_14,
+  InputLinkLocation_2024_06_14,
+  InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
 } from "./locations.input";
-import type { Location_2024_06_14 } from "./locations.input";
+import type { InputLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
 
@@ -74,10 +76,10 @@ export const CREATE_EVENT_DESCRIPTION_EXAMPLE =
 export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
 
 @ApiExtraModels(
-  AddressLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
+  InputAddressLocation_2024_06_14,
+  InputLinkLocation_2024_06_14,
+  InputIntegrationLocation_2024_06_14,
+  InputPhoneLocation_2024_06_14,
   PhoneFieldInput_2024_06_14,
   AddressFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
@@ -98,15 +100,28 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   Recurrence_2024_06_14,
   BaseConfirmationPolicy_2024_06_14,
   Seats_2024_06_14,
-  AttendeeAddressLocation_2024_06_14,
-  AttendeePhoneLocation_2024_06_14,
-  AttendeeDefinedLocation_2024_06_14
+  InputAttendeeAddressLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputAttendeeDefinedLocation_2024_06_14
 )
 export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes!: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions?: number[];
 
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
@@ -127,18 +142,18 @@ export class CreateEventTypeInput_2024_06_14 {
     description:
       "Locations where the event will take place. If not provided, cal video link will be used as the location.",
     oneOf: [
-      { $ref: getSchemaPath(AddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(LinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(IntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(PhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(AttendeeAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(AttendeePhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(AttendeeDefinedLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
     ],
     type: "array",
   })
   @Type(() => Object)
-  locations?: Location_2024_06_14[];
+  locations?: InputLocation_2024_06_14[];
 
   @IsOptional()
   @ValidateInputBookingFields_2024_06_14()

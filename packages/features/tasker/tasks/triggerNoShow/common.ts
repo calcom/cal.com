@@ -60,14 +60,22 @@ export function sendWebhookPayload(
     createdAt: new Date().toISOString(),
     webhook,
     data: {
+      title: booking.title,
       bookingId: booking.id,
       bookingUid: booking.uid,
       startTime: booking.startTime,
+      attendees: booking.attendees,
       endTime: booking.endTime,
-      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ? { email: hostEmail } : {}),
+      ...(!!hostEmail ? { hostEmail } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
+        hosts: undefined,
+        users: undefined,
+      },
+      webhook: {
+        ...webhook,
+        secret: undefined,
       },
       message:
         triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
@@ -103,6 +111,7 @@ export const prepareNoShowTrigger = async (
   booking: Booking;
   webhook: TWebhook;
   hostsThatDidntJoinTheCall: Host[];
+  hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
 } | void> => {
@@ -122,7 +131,8 @@ export const prepareNoShowTrigger = async (
     return;
   }
 
-  const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
+  const dailyVideoReference =
+    booking.references?.filter((reference) => reference.type === "daily_video")?.pop() ?? null;
 
   if (!dailyVideoReference) {
     log.error(
@@ -139,9 +149,16 @@ export const prepareNoShowTrigger = async (
   const hosts = getHosts(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
-  const hostsThatDidntJoinTheCall = hosts.filter(
-    (host) => !checkIfUserJoinedTheCall(host.id, allParticipants)
-  );
+  const hostsThatJoinedTheCall: Host[] = [];
+  const hostsThatDidntJoinTheCall: Host[] = [];
+
+  for (const host of hosts) {
+    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+      hostsThatJoinedTheCall.push(host);
+    } else {
+      hostsThatDidntJoinTheCall.push(host);
+    }
+  }
 
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
@@ -149,5 +166,12 @@ export const prepareNoShowTrigger = async (
     (meeting) => meeting.max_participants < numberOfHostsThatJoined
   );
 
-  return { hostsThatDidntJoinTheCall, booking, numberOfHostsThatJoined, webhook, didGuestJoinTheCall };
+  return {
+    hostsThatDidntJoinTheCall,
+    hostsThatJoinedTheCall,
+    booking,
+    numberOfHostsThatJoined,
+    webhook,
+    didGuestJoinTheCall,
+  };
 };

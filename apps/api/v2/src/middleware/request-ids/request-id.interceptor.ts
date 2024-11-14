@@ -21,19 +21,15 @@ export class ResponseInterceptor implements NestInterceptor {
         const { statusCode } = response;
         const responseTime = Date.now() - startTime;
 
-        // Log response in JSON format
-        this.logger.log(
-          JSON.stringify({
-            requestId,
-            method,
-            url,
-            statusCode,
-            responseTime,
-            responseBody: data,
-            timestamp: new Date().toISOString(),
-            message: "Outgoing Response",
-          })
-        );
+        this.logger.log("Outgoing Response", {
+          requestId,
+          method,
+          url,
+          statusCode,
+          responseTime,
+          responseBody: data,
+          timestamp: new Date().toISOString(),
+        });
       })
     );
   }

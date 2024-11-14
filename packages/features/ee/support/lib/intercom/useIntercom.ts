@@ -26,11 +26,18 @@ const useIntercomHook = isInterComEnabled
 export const useIntercom = () => {
   const hookData = useIntercomHook();
   const { data } = trpc.viewer.me.useQuery();
+  const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+  });
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
   const boot = async () => {
-    if (!data) return;
+    if (!data || !statsData) return;
     let userHash;
 
     const req = await fetch(`/api/intercom-hash`);
@@ -61,13 +68,13 @@ export const useIntercom = () => {
         metadata: data?.metadata,
         completed_onboarding: data.completedOnboarding,
         is_logged_in: !!data,
-        sum_of_bookings: data?.sumOfBookings,
-        sum_of_calendars: data?.sumOfCalendars,
-        sum_of_teams: data?.sumOfTeams,
+        sum_of_bookings: statsData?.sumOfBookings,
+        sum_of_calendars: statsData?.sumOfCalendars,
+        sum_of_teams: statsData?.sumOfTeams,
         has_orgs_plan: !!data?.organizationId,
         organization: data?.organization?.slug,
-        sum_of_event_types: data?.sumOfEventTypes,
-        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        sum_of_event_types: statsData?.sumOfEventTypes,
+        sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
         is_premium: data?.isPremium,
       },
     });
@@ -104,13 +111,13 @@ export const useIntercom = () => {
         metadata: data?.metadata,
         completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
-        sum_of_bookings: data?.sumOfBookings,
-        sum_of_calendars: data?.sumOfCalendars,
-        sum_of_teams: data?.sumOfTeams,
+        sum_of_bookings: statsData?.sumOfBookings,
+        sum_of_calendars: statsData?.sumOfCalendars,
+        sum_of_teams: statsData?.sumOfTeams,
         has_orgs_plan: !!data?.organizationId,
         organization: data?.organization?.slug,
-        sum_of_event_types: data?.sumOfEventTypes,
-        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        sum_of_event_types: statsData?.sumOfEventTypes,
+        sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
         is_premium: data?.isPremium,
       },
     });
@@ -122,13 +129,22 @@ export const useIntercom = () => {
 export const useBootIntercom = () => {
   const { boot } = useIntercom();
   const { data: user } = trpc.viewer.me.useQuery();
+  const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+  });
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
-    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user || !statsData)
+      return;
+
     boot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, statsData]);
 };
 
 export default useIntercom;
