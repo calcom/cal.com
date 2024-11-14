@@ -307,6 +307,18 @@ export class BookingsService_2024_08_13 {
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
+    if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
+      const booking = await this.bookingsRepository.getByUid(bookingUid);
+      const recurringBookingUid = booking?.recurringEventId;
+      if (!recurringBookingUid) {
+        return this.getBooking(bookingUid);
+      }
+      const bookings = (await this.getBooking(recurringBookingUid)) as any[];
+      if (Array.isArray(bookings)) {
+        return bookings.filter((booking) => booking.status === "cancelled");
+      }
+      return bookings;
+    }
     return this.getBooking(bookingUid);
   }
 

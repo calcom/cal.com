@@ -3162,6 +3162,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6975,6 +6976,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -7198,6 +7211,7 @@
         },
         "required": [
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug"
         ]
@@ -8340,6 +8354,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -8563,6 +8589,7 @@
         "required": [
           "id",
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "description",
@@ -8677,6 +8704,18 @@
           "lengthInMinutes": {
             "type": "number",
             "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "title": {
             "type": "string",
@@ -8898,7 +8937,10 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutesOptions"
+        ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -10157,6 +10199,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -10393,6 +10447,7 @@
         },
         "required": [
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "schedulingType",
@@ -10473,6 +10528,19 @@
             "type": "number",
             "minimum": 1,
             "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 1
+            }
           },
           "title": {
             "type": "string",
@@ -10899,6 +10967,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -11129,7 +11209,10 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutesOptions"
+        ]
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -12839,6 +12922,11 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
           "eventTypeId": {
             "type": "number",
             "description": "The ID of the event type that is booked.",
@@ -12884,6 +12972,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
@@ -12895,6 +12984,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -12946,6 +13040,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee",
           "instant"
@@ -12958,6 +13053,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -13009,6 +13109,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
