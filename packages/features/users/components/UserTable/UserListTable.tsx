@@ -30,12 +30,8 @@ import {
   DataTablePagination,
   showToast,
 } from "@calcom/ui";
-import {
-  useFetchMoreOnBottomReached,
-  textFilter,
-  isTextFilterValue,
-  type FilterValue,
-} from "@calcom/ui/data-table";
+import { useFiltersSearchState } from "@calcom/ui/data-table";
+import { useFetchMoreOnBottomReached, textFilter, isTextFilterValue } from "@calcom/ui/data-table";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -121,12 +117,13 @@ export function UserListTable() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const [columnFilters, setColumnFilters] = useState<
-    Array<{
-      id: string;
-      value: FilterValue;
-    }>
-  >([]);
+  const [filtersSearchState] = useFiltersSearchState();
+  const columnFilters = useMemo(() => {
+    return (filtersSearchState.activeFilters || []).map((filter) => ({
+      id: filter.f,
+      value: filter.v,
+    }));
+  }, [filtersSearchState.activeFilters]);
 
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -134,10 +131,7 @@ export function UserListTable() {
         limit: 10,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
-        filters: columnFilters.map(({ id, value }) => ({
-          id,
-          value,
-        })),
+        filters: columnFilters,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -150,10 +144,7 @@ export function UserListTable() {
       limit: 100, // Max limit
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
-      filters: columnFilters.map(({ id, value }) => ({
-        id,
-        value,
-      })),
+      filters: columnFilters,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -399,7 +390,6 @@ export function UserListTable() {
     state: {
       columnFilters,
     },
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
