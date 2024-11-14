@@ -5936,6 +5936,7 @@ __metadata:
     "@radix-ui/react-tabs": ^1.0.0
     "@radix-ui/react-tooltip": ^1.0.0
     "@stripe/stripe-js": ^1.35.0
+    "@tailwindcss/container-queries": ^0.1.1
     "@tanstack/react-query": ^4.3.9
     "@typeform/embed-react": ^1.2.4
     "@types/bcryptjs": ^2.4.2
@@ -17570,6 +17571,15 @@ __metadata:
   dependencies:
     defer-to-connect: ^2.0.1
   checksum: fc9cb993e808806692e4a3337c90ece0ec00c89f4b67e3652a356b89730da98bc824273a6d67ca84d5f33cd85f317dcd5ce39d8cc0a2f060145a608a7cb8ce92
+  languageName: node
+  linkType: hard
+
+"@tailwindcss/container-queries@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@tailwindcss/container-queries@npm:0.1.1"
+  peerDependencies:
+    tailwindcss: ">=3.2.0"
+  checksum: 2515ae0ce3ca5f3eb2a54116e97cbf4bce45d5fc7ad4b01f3204f51937461ff099c878048afbca22ca422ea3a9c1779df68a7cfe320ca155da47a8dde3257f4b
   languageName: node
   linkType: hard
 
