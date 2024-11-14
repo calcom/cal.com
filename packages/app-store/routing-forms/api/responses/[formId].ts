@@ -87,20 +87,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: formId,
       ...entityPrismaWhereClause({ userId: user.id }),
     },
-    include: {
-      team: {
-        select: {
-          members: true,
-        },
-      },
-    },
   });
 
   if (!form) {
     return res.status(404).json({ message: "Form not found or unauthorized" });
   }
 
-  if (!canEditEntity(form, user.id)) {
+  if (!(await canEditEntity(form, user.id))) {
     return res.status(404).json({ message: "Form not found or unauthorized" });
   }
 
