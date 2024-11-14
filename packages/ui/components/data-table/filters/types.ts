@@ -27,7 +27,9 @@ export const ZTextFilterValue = z.object({
 
 export type TextFilterValue = z.infer<typeof ZTextFilterValue>;
 
-export type FilterValue = TextFilterValue | SelectFilterValue;
+export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue]);
+
+export type FilterValue = z.infer<typeof ZFilterValue>;
 
 export type FilterableColumn = {
   id: string;

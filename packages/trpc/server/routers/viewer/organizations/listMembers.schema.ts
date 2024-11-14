@@ -1,19 +1,13 @@
 import { z } from "zod";
 
-import { ZSelectFilterValue, ZTextFilterValue } from "@calcom/ui";
+import { ZFilterValue } from "@calcom/ui";
 
 const expandableColumns = z.enum(["attributes"]);
 
-const ZListMembersFilter = z.union([
-  z.object({
-    id: z.string(),
-    value: ZSelectFilterValue,
-  }),
-  z.object({
-    id: z.string(),
-    value: ZTextFilterValue,
-  }),
-]);
+const ZListMembersFilter = z.object({
+  id: z.string(),
+  value: ZFilterValue,
+});
 
 export const ZListMembersSchema = z.object({
   limit: z.number().min(1).max(100),

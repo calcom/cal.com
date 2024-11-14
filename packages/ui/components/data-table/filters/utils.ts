@@ -8,7 +8,7 @@ import { ZSelectFilterValue, ZTextFilterValue } from "./types";
 
 const filterSchema = z.object({
   f: z.string(),
-  v: z.union([ZSelectFilterValue, ZTextFilterValue]).optional(),
+  v: z.union([ZSelectFilterValue, ZTextFilterValue]),
 });
 
 export const filtersSearchParams = {

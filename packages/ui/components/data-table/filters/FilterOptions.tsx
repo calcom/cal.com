@@ -20,7 +20,7 @@ export function FilterOptions<TData>({ column, filter, state, setState, table }:
     setState({
       activeFilters: state.activeFilters.map((item) => (item.f === filter.f ? { ...item, v: value } : item)),
     });
-    table.getColumn(column.id)?.setFilterValue(value.length ? value : undefined);
+    table.getColumn(column.id)?.setFilterValue(value);
   };
 
   const setTextFilterValue = (value: TextFilterValue) => {
