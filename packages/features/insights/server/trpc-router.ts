@@ -1625,4 +1625,21 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
       });
     }),
+  routingFormResponsesHeaders: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        teamId: z.number().optional(),
+        isAll: z.boolean(),
+        organizationId: z.number().optional(),
+        routingFormId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await RoutingEventsInsights.getRoutingFormHeaders({
+        teamId: input.teamId ?? null,
+        isAll: input.isAll,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId ?? null,
+      });
+    }),
 });

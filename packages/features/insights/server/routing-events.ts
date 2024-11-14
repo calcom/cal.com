@@ -255,29 +255,6 @@ class RoutingEventsInsights {
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    // unique set of form ids
-    const uniqueFormIds = Array.from(new Set(responses.map((r) => r.form.id)));
-
-    const formFields = await prisma.app_RoutingForms_Form.findMany({
-      where: {
-        id: { in: uniqueFormIds },
-      },
-      select: {
-        id: true,
-        name: true,
-        fields: true,
-      },
-    });
-
-    const fields = routingFormFieldsSchema.parse(formFields.map((f) => f.fields).flat());
-    const headers = fields?.map((f) => {
-      return {
-        id: f.id,
-        label: f.label,
-        options: f.options,
-      };
-    });
-
     // Parse response data
     const parsedResponses = responses.map((r) => {
       const responseData = routingFormResponseInDbSchema.parse(r.response);
@@ -287,7 +264,6 @@ class RoutingEventsInsights {
     return {
       total: totalResponses,
       data: parsedResponses,
-      headers,
       nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
     };
   }
@@ -443,6 +419,40 @@ class RoutingEventsInsights {
     }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
 
     return sortedGroupedByFormAndField;
+  }
+
+  static async getRoutingFormHeaders({
+    teamId,
+    isAll,
+    organizationId,
+    routingFormId,
+  }: RoutingFormInsightsTeamFilter) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+
+    const routingForms = await prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        name: true,
+        fields: true,
+      },
+    });
+
+    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    const headers = fields?.map((f) => {
+      return {
+        id: f.id,
+        label: f.label,
+        options: f.options,
+      };
+    });
+
+    return headers;
   }
 }
 

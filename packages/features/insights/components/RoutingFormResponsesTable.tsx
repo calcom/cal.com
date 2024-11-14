@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRef, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
+import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -30,6 +31,15 @@ type RoutingFormTableRow = {
   routedToBooking: RoutingFormResponse["routedToBooking"];
   [key: string]: any;
 };
+
+function CellWithOverflowX({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={classNames("group relative max-w-[200px]", className)}>
+      <div className="no-scrollbar overflow-x-auto">{children}</div>
+      <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent group-hover:from-gray-100" />
+    </div>
+  );
+}
 
 // Upper case the first letter of each word and replace underscores with spaces
 function bookingStatusToText(status: BookingStatus) {
@@ -57,6 +67,18 @@ export function RoutingFormResponsesTable() {
   } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
+
+  const { data: headers } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
+    {
+      teamId: selectedTeamId,
+      isAll: isAll ?? false,
+      organizationId: initialConfig?.organizationId,
+      routingFormId: selectedRoutingFormId ?? undefined,
+    },
+    {
+      enabled: initialConfigIsReady,
+    }
+  );
 
   const { data, fetchNextPage, isFetching, hasNextPage } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
@@ -95,9 +117,6 @@ export function RoutingFormResponsesTable() {
         routedToBooking: response.routedToBooking,
       };
 
-      // Get the headers from the first page
-      const headers = data?.pages?.[0]?.headers;
-
       Object.entries(response.response).forEach(([fieldId, field]) => {
         const header = headers?.find((h) => h.id === fieldId);
 
@@ -121,7 +140,7 @@ export function RoutingFormResponsesTable() {
 
       return row;
     });
-  }, [flatData, data?.pages]);
+  }, [flatData, headers]);
 
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
@@ -136,18 +155,15 @@ export function RoutingFormResponsesTable() {
           if (!attendees) return null;
 
           return attendees.map((attendee) => (
-            <div key={attendee.email} className="group relative w-[200px]">
-              <div className="no-scrollbar overflow-x-auto">
-                <Badge variant="gray" className="whitespace-nowrap">
-                  {attendee.email}
-                </Badge>
-              </div>
-              <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent group-hover:from-gray-100" />
-            </div>
+            <CellWithOverflowX key={attendee.email} className="w-[200px]">
+              <Badge variant="gray" className="whitespace-nowrap">
+                {attendee.email}
+              </Badge>
+            </CellWithOverflowX>
           ));
         },
       }),
-      ...(data?.pages?.[0]?.headers?.map((header) =>
+      ...(headers?.map((header) =>
         columnHelper.accessor(header.id, {
           id: header.id,
           header: header.label,
@@ -158,35 +174,37 @@ export function RoutingFormResponsesTable() {
             if (value.length === 0) return null;
 
             return (
-              <div className="flex flex-wrap gap-1">
-                {value.length > 2 ? (
-                  <>
-                    {value.slice(0, 2).map((v: string, i: number) => (
+              <CellWithOverflowX>
+                <div className="flex flex-wrap gap-1">
+                  {value.length > 2 ? (
+                    <>
+                      {value.slice(0, 2).map((v: string, i: number) => (
+                        <Badge key={i} variant="gray">
+                          {v}
+                        </Badge>
+                      ))}
+                      <div className="group/badge relative">
+                        <Badge variant="gray">+{value.length - 2}</Badge>
+                        <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
+                          <div className="flex flex-col gap-1">
+                            {value.slice(2).map((v: string, i: number) => (
+                              <span key={i} className="text-sm text-gray-600">
+                                {v}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    value.map((v: string, i: number) => (
                       <Badge key={i} variant="gray">
                         {v}
                       </Badge>
-                    ))}
-                    <div className="group/badge relative">
-                      <Badge variant="gray">+{value.length - 2}</Badge>
-                      <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
-                        <div className="flex flex-col gap-1">
-                          {value.slice(2).map((v: string, i: number) => (
-                            <span key={i} className="text-sm text-gray-600">
-                              {v}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  value.map((v: string, i: number) => (
-                    <Badge key={i} variant="gray">
-                      {v}
-                    </Badge>
-                  ))
-                )}
-              </div>
+                    ))
+                  )}
+                </div>
+              </CellWithOverflowX>
             );
           },
         })
@@ -258,7 +276,7 @@ export function RoutingFormResponsesTable() {
         },
       }),
     ],
-    [data?.pages, t]
+    [headers, t]
   );
 
   const table = useReactTable<RoutingFormTableRow>({
