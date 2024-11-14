@@ -1630,7 +1630,6 @@ export const insightsRouter = router({
       z.object({
         teamId: z.number().optional(),
         isAll: z.boolean(),
-        organizationId: z.number().optional(),
         routingFormId: z.string().optional(),
       })
     )
