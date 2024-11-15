@@ -109,6 +109,7 @@ test("Calendar Cache is being ignored on cache MISS", async () => {
 });
 
 test("Calendar can be watched and unwatched", async () => {
+  process.env.GOOGLE_WEBHOOK_TOKEN = "test-webhook-token";
   const credentialInDb1 = await createCredentialInDb();
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);

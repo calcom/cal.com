@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 type SelectedCalendarCreateInput = {
   credentialId: number;
@@ -53,15 +54,11 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
-        AND: [
-          {
-            OR: [
-              // Either is a calendar pending to be watched
-              { googleChannelExpiration: null },
-              // Or is a calendar that is about to expire
-              { googleChannelExpiration: { lt: tomorrowTimestamp } },
-            ],
-          },
+        OR: [
+          // Either is a calendar pending to be watched
+          { googleChannelExpiration: null },
+          // Or is a calendar that is about to expire
+          { googleChannelExpiration: { lt: tomorrowTimestamp } },
         ],
       },
     });
@@ -91,5 +88,38 @@ export class SelectedCalendarRepository {
       },
     });
     return nextBatch;
+  }
+  static async delete(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    return await prisma.selectedCalendar.delete({
+      where: {
+        userId_integration_externalId: {
+          userId: data.userId,
+          externalId: data.externalId,
+          integration: data.integration,
+        },
+      },
+    });
+  }
+  static async findMany(args: Prisma.SelectedCalendarFindManyArgs) {
+    return await prisma.selectedCalendar.findMany(args);
+  }
+  static async findByGoogleChannelId(googleChannelId: string) {
+    return await prisma.selectedCalendar.findUnique({
+      where: {
+        googleChannelId,
+      },
+      select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }

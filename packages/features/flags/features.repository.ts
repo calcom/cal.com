@@ -9,8 +9,7 @@ import { getFeatureFlag } from "./server/utils";
 export class FeaturesRepository implements IFeaturesRepository {
   async checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags) {
     try {
-      const feature = await getFeatureFlag(db, slug);
-      return feature;
+      return await getFeatureFlag(db, slug);
     } catch (err) {
       captureException(err);
       throw err;

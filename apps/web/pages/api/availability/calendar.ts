@@ -8,8 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import prisma from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
@@ -25,19 +24,8 @@ async function authMiddleware(req: CustomNextApiRequest) {
     throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   }
 
-  const userWithCredentials = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      },
-      timeZone: true,
-      id: true,
-      selectedCalendars: true,
-    },
-  });
+  const userWithCredentials = await UserRepository.findUserWithCredentials({ id: session.user.id });
+
   if (!userWithCredentials) {
     throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   }
@@ -69,14 +57,10 @@ async function deleteHandler(req: CustomNextApiRequest) {
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
   await calendarCacheRepository.unwatchCalendar({ calendarId: externalId });
-  await prisma.selectedCalendar.delete({
-    where: {
-      userId_integration_externalId: {
-        userId: user.id,
-        externalId,
-        integration,
-      },
-    },
+  await SelectedCalendarRepository.delete({
+    userId: user.id,
+    externalId,
+    integration,
   });
 
   return { message: "Calendar Selection Saved" };
@@ -85,13 +69,9 @@ async function deleteHandler(req: CustomNextApiRequest) {
 async function getHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
-  const selectedCalendarIds = await prisma.selectedCalendar.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      externalId: true,
-    },
+  const selectedCalendarIds = await SelectedCalendarRepository.findMany({
+    where: { userId: user.id },
+    select: { externalId: true },
   });
   // get user's credentials + their connected integrations
   const calendarCredentials = getCalendarCredentials(user.credentials);

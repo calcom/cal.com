@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import monitorCallbackAsync from "@calcom/core/sentryWrapper";
+
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
-import { performance } from "./perfObserver";
 
 type Handle<T> = (req: NextRequest) => Promise<T>;
 
@@ -10,11 +11,8 @@ type Handle<T> = (req: NextRequest) => Promise<T>;
 export const defaultResponder =
   <T>(f: Handle<T>) =>
   async (req: NextRequest) => {
-    let ok = false;
     try {
-      performance.mark("Start");
-      const result = await f(req);
-      ok = true;
+      const result = await monitorCallbackAsync(f, req);
       if (result) {
         return NextResponse.json(result);
       }
@@ -27,8 +25,5 @@ export const defaultResponder =
         captureException(err);
       }
       return NextResponse.json({ message: error.message, url: error.url, method: error.method });
-    } finally {
-      performance.mark("End");
-      performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");
     }
   };

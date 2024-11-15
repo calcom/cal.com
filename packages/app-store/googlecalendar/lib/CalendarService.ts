@@ -49,8 +49,10 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- WEBHOOK_URL for local testing
-const WEBHOOK_URL = process.env.WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+// eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
+const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
+const GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -496,10 +498,10 @@ export default class GoogleCalendarService implements Calendar {
 
   async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     const calendar = await this.authedCalendar();
-    const apires = await this.oAuthManagerInstance.request(
+    const apiResponse = await this.oAuthManagerInstance.request(
       async () => new AxiosLikeResponseToFetchResponse(await calendar.freebusy.query({ requestBody }))
     );
-    return apires.json;
+    return apiResponse.json;
   }
 
   async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<EventBusyDate[] | null> {
@@ -630,6 +632,10 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async watchCalendar({ calendarId }: { calendarId: string }) {
+    if (!GOOGLE_WEBHOOK_TOKEN) {
+      log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
+      return;
+    }
     const calendar = await this.authedCalendar();
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -638,8 +644,8 @@ export default class GoogleCalendarService implements Calendar {
         // A UUID or similar unique string that identifies this channel.
         id: uuid(),
         type: "web_hook",
-        address: `${WEBHOOK_URL}/api/integrations/googlecalendar/webhook`,
-        token: process.env.CRON_API_KEY,
+        address: GOOGLE_WEBHOOK_URL,
+        token: GOOGLE_WEBHOOK_TOKEN,
         params: {
           // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
           ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
