@@ -68,7 +68,7 @@ function BookedByCell({
   attendees,
   rowId,
 }: {
-  attendees: NonNullable<RoutingFormResponse["routedToBooking"]>["attendees"];
+  attendees: { email: string; timeZone: string }[] | undefined;
   rowId: number;
 }) {
   const cellId = useId();
@@ -293,7 +293,7 @@ export function RoutingFormResponsesTable() {
           const row = info.row.original;
           return (
             <div className="max-w-[200px]">
-              <BookedByCell attendees={row.routedToBooking?.attendees} rowId={row.id} />
+              <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />
             </div>
           );
         },

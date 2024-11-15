@@ -10,6 +10,11 @@ import { showToast } from "@calcom/ui";
 
 type RawRoutingData = RouterOutputs["viewer"]["insights"]["rawRoutingData"] | undefined;
 
+interface BatchResult {
+  data: RawRoutingData[];
+  nextCursor: string | null;
+}
+
 const RoutingDownload = () => {
   const { filter } = useFilterContext();
   const { t } = useLocale();
@@ -41,7 +46,7 @@ const RoutingDownload = () => {
 
       // Fetch data in batches until there's no more data
       while (hasMore) {
-        const result = await fetchBatch(cursor);
+        const result: BatchResult = await fetchBatch(cursor);
         allData = [...allData, ...result.data];
         hasMore = result.hasMore;
         cursor = result.nextCursor;
@@ -51,7 +56,7 @@ const RoutingDownload = () => {
         const filename = `RoutingInsights-${filter.dateRange[0].format(
           "YYYY-MM-DD"
         )}-${filter.dateRange[1].format("YYYY-MM-DD")}.csv`;
-        downloadAsCsv(allData, filename);
+        downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
     } catch (error) {
       showToast(t("error_downloading_data"), "error");
