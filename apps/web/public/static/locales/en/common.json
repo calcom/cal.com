@@ -2778,5 +2778,7 @@
   "filter_operator_ends_with": "Ends with",
   "filter_operator_is_empty": "Is empty",
   "filter_operator_not_empty": "Not empty",
+  "exclude_emails_that_contain" : "Exclude emails that contain ...",
+  "exclude_emails_match_found_error_message" : "Please enter a valid work email address",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
