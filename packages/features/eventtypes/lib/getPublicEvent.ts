@@ -489,6 +489,7 @@ export const getPublicEvent = async (
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     showInstantEventConnectNowModal,
+    instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };

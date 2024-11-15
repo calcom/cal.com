@@ -76,9 +76,9 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<FormValues>({
     control: formMethods.control,
-    name: "instantMeetingParameters",
+    name: "instantMeetingParameters" as const,
   });
 
   const { shouldLockDisableProps } = useLockedFieldsManager({
@@ -103,7 +103,6 @@ export default function InstantEventController({
     isDefault: schedule.isDefault,
     isManaged: false,
   }));
-  console.log("fields", formMethods.watch());
 
   return (
     <LicenseRequired>
@@ -182,13 +181,12 @@ export default function InstantEventController({
                           <div className="space-y-2">
                             {fields.map((field, index) => (
                               <div key={field.id} className="flex gap-2">
-                                {console.log("field", field)}
                                 <TextField
                                   required
                                   name={`instantMeetingParameters.${index}`}
                                   labelSrOnly
                                   type="text"
-                                  value={field.value}
+                                  value={formMethods.watch(`instantMeetingParameters.${index}`)}
                                   containerClassName="flex-1 max-w-80"
                                   onChange={(e) => {
                                     formMethods.setValue(
@@ -216,27 +214,6 @@ export default function InstantEventController({
                             </Button>
                           </div>
                         </div>
-                        {/* <Controller
-                          name="instantMeetingParameters"
-                          render={({ field: { onChange, value } }) => {
-                            return (
-                              <>
-                                <Label>{t("only_show_if_parameter_set")}</Label>
-                                <TextField
-                                  required
-                                  name="instantMeetingParameters"
-                                  labelSrOnly
-                                  type="text"
-                                  defaultValue={value}
-                                  containerClassName="max-w-80"
-                                  onChange={(e) => {
-                                    onChange(Math.abs(Number(e.target.value)));
-                                  }}
-                                />
-                              </>
-                            );
-                          }}
-                        /> */}
                         <Controller
                           name="instantMeetingExpiryTimeOffsetInSeconds"
                           render={({ field: { value, onChange } }) => (
