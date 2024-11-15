@@ -12,7 +12,7 @@ export default function PostHogPageView() {
     // Track pageviews
     if (pathname && posthog) {
       let url = window.origin + pathname;
-      if (searchParams.toString()) {
+      if (searchParams?.toString()) {
         url = `${url}?${searchParams.toString()}`;
       }
       posthog.capture("$pageview", {

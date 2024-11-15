@@ -3257,6 +3257,230 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/reassign": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_reassignBooking",
+        "summary": "Automatically reassign booking to a new host",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/v2/bookings/{bookingUid}/reassign/{userId}": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
+        "summary": "Reassign a booking to a specific user",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReassignToUserBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/v2/bookings/{bookingUid}/confirm": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_confirmBooking",
+        "summary": "Confirm booking that requires a confirmation",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/v2/bookings/{bookingUid}/decline": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_declineBooking",
+        "summary": "Decline booking that requires a confirmation",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclineBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -4214,97 +4438,6 @@
         ]
       }
     },
-    "/v2/oauth/{clientId}/authorize": {
-      "post": {
-        "operationId": "OAuthFlowController_authorize",
-        "summary": "Authorize an OAuth client",
-        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OAuthAuthorizeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
-          },
-          "400": {
-            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
-          }
-        },
-        "tags": [
-          "OAuth"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/exchange": {
-      "post": {
-        "operationId": "OAuthFlowController_exchange",
-        "summary": "Exchange authorization code for access tokens",
-        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully exchanged authorization code for access and refresh tokens.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
-          }
-        },
-        "tags": [
-          "OAuth"
-        ]
-      }
-    },
     "/v2/oauth/{clientId}/refresh": {
       "post": {
         "operationId": "OAuthFlowController_refreshAccessToken",
@@ -5119,7 +5252,8 @@
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
-        "summary": "Get all webooks (paginated)",
+        "summary": "Get all webooks",
+        "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
           {
             "name": "take",
@@ -5848,28 +5982,6 @@
             "type": "boolean"
           }
         }
-      },
-      "OAuthAuthorizeInput": {
-        "type": "object",
-        "properties": {
-          "redirectUri": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "redirectUri"
-        ]
-      },
-      "ExchangeAuthorizationCodeInput": {
-        "type": "object",
-        "properties": {
-          "clientSecret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "clientSecret"
-        ]
       },
       "RefreshTokenInput": {
         "type": "object",
@@ -6751,6 +6863,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -6974,6 +7098,7 @@
         },
         "required": [
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug"
         ]
@@ -8116,6 +8241,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -8339,6 +8476,7 @@
         "required": [
           "id",
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "description",
@@ -8453,6 +8591,18 @@
           "lengthInMinutes": {
             "type": "number",
             "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "title": {
             "type": "string",
@@ -8674,7 +8824,10 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutesOptions"
+        ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -9933,6 +10086,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -10169,6 +10334,7 @@
         },
         "required": [
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "schedulingType",
@@ -10249,6 +10415,19 @@
             "type": "number",
             "minimum": 1,
             "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 1
+            }
           },
           "title": {
             "type": "string",
@@ -10675,6 +10854,18 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [
+              15,
+              30,
+              60
+            ],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -10905,7 +11096,10 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutesOptions"
+        ]
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -12615,6 +12809,11 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
           "eventTypeId": {
             "type": "number",
             "description": "The ID of the event type that is booked.",
@@ -12660,6 +12859,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
@@ -12671,6 +12871,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -12722,6 +12927,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee",
           "instant"
@@ -12734,6 +12940,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -12785,6 +12996,7 @@
         },
         "required": [
           "start",
+          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
@@ -13318,6 +13530,78 @@
           "status",
           "data"
         ]
+      },
+      "ReassignedToDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "ReassignBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+              }
+            ],
+            "description": "Booking data, which can be either a ReassignAutoBookingOutput object or a ReassignManualBookingOutput object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ReassignToUserBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Host has to take another call",
+            "description": "Reason for reassigning the booking"
+          }
+        }
+      },
+      "DeclineBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Host has to take another call",
+            "description": "Reason for declining a booking that requires a confirmation"
+          }
+        }
       },
       "ReserveSlotInput": {
         "type": "object",
