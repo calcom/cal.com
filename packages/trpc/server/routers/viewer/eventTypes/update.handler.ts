@@ -35,6 +35,7 @@ type User = {
     id: SessionUser["profile"]["id"] | null;
   };
   selectedCalendars: SessionUser["selectedCalendars"];
+  organizationId: number | null;
 };
 
 type UpdateOptions = {
@@ -154,7 +155,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
-    autoTranslateDescriptionEnabled: !!autoTranslateDescriptionEnabled,
+    autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled), // this feature is allowed for org users only
     bookingFields,
     isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),

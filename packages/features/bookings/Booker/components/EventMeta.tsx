@@ -49,6 +49,7 @@ export const EventMeta = ({
     | "price"
     | "isDynamic"
     | "descriptionTranslations"
+    | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
   isPlatform?: boolean;
@@ -125,7 +126,7 @@ export const EventMeta = ({
             />
           )}
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
-          {event.description && (
+          {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
             </EventMetaBlock>

@@ -72,7 +72,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     select: {
       translatedText: true,
       targetLang: true,
-    }
+    },
   },
   requiresBookerEmailVerification: true,
   recurringEvent: true,
@@ -301,6 +301,8 @@ export const getPublicEvent = async (
       },
       isInstantEvent: false,
       showInstantEventConnectNowModal: false,
+      autoTranslateDescriptionEnabled: false,
+      descriptionTranslations: [],
     };
   }
 

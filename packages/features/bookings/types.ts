@@ -52,6 +52,7 @@ export type BookerEvent = Pick<
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
   | "descriptionTranslations"
+  | "autoTranslateDescriptionEnabled"
 > & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
