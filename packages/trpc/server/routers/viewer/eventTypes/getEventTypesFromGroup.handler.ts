@@ -6,6 +6,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
+// import { SchedulingType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
@@ -21,15 +22,8 @@ type GetByViewerOptions = {
 };
 
 type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
-type MappedEventType = Awaited<ReturnType<typeof mapEventType>>;
 
-export const getEventTypesFromGroup = async ({
-  ctx,
-  input,
-}: GetByViewerOptions): Promise<{
-  eventTypes: MappedEventType[];
-  nextCursor: number | null | undefined;
-}> => {
+export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getEventTypesFromGroup:${ctx.user.id}`,
     rateLimitingType: "common",
@@ -37,48 +31,13 @@ export const getEventTypesFromGroup = async ({
 
   const userProfile = ctx.user.profile;
   const { group, limit, cursor, filters, searchQuery } = input;
-  const { teamId } = group;
+  const { teamId, parentId } = group;
 
   const isFilterSet = (filters && hasFilter(filters)) || !!teamId;
   const isUpIdInFilter = filters?.upIds?.includes(userProfile.upId);
 
   const shouldListUserEvents =
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
-
-  const eventTypes: MappedEventType[] = [];
-  const currentCursor = cursor;
-  let nextCursor: number | null | undefined = undefined;
-  let isFetchingForFirstTime = true;
-
-  const fetchAndFilterEventTypes = async () => {
-    const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor, searchQuery);
-    const filteredBatch = await filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
-    eventTypes.push(...filteredBatch);
-    nextCursor = batch.nextCursor;
-  };
-
-  while (eventTypes.length < limit && (nextCursor || isFetchingForFirstTime)) {
-    await fetchAndFilterEventTypes();
-    isFetchingForFirstTime = false;
-  }
-
-  return {
-    eventTypes,
-    nextCursor: nextCursor ?? undefined,
-  };
-};
-
-const fetchEventTypesBatch = async (
-  ctx: GetByViewerOptions["ctx"],
-  input: GetByViewerOptions["input"],
-  shouldListUserEvents: boolean | undefined,
-  cursor: TGetEventTypesFromGroupSchema["cursor"],
-  searchQuery: TGetEventTypesFromGroupSchema["searchQuery"]
-) => {
-  const userProfile = ctx.user.profile;
-  const { group, limit, filters } = input;
-  const { teamId, parentId } = group;
-  const isFilterSet = (filters && hasFilter(filters)) || !!teamId;
 
   const eventTypes: EventType[] = [];
 
@@ -140,8 +99,8 @@ const fetchEventTypesBatch = async (
     eventTypes.push(...teamEventTypes);
   }
 
-  let nextCursor: number | null | undefined = undefined;
-  if (eventTypes.length > limit) {
+  let nextCursor: typeof cursor | undefined = undefined;
+  if (eventTypes && eventTypes.length > limit) {
     const nextItem = eventTypes.pop();
     nextCursor = nextItem?.id;
   }
@@ -149,45 +108,37 @@ const fetchEventTypesBatch = async (
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 
   log.info(
-    "fetchEventTypesBatch",
+    "mappedEventTypes before filtering",
     safeStringify({
+      input,
       mappedEventTypes,
     })
   );
 
-  return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? undefined };
-};
-
-const filterEventTypes = async (
-  eventTypes: MappedEventType[],
-  userId: number,
-  shouldListUserEvents: boolean | undefined,
-  teamId: number | null | undefined
-) => {
-  const filteredEventTypes = eventTypes.filter((eventType) => {
-    if (!eventType.parentId) {
+  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    if (!isAChildEvent) {
       return true;
     }
     // A child event only has one user
     const childEventAssignee = eventType.users[0];
-
-    if (!childEventAssignee || childEventAssignee.id !== userId) {
+    if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
       return false;
     }
     return true;
   });
 
   log.info(
-    "mappedEventTypes before and after filtering",
+    "mappedEventTypes after filtering",
     safeStringify({
-      beforeFiltering: eventTypes,
-      afterFiltering: filteredEventTypes,
+      input,
+      filteredEventTypes,
     })
   );
 
   const membership = await prisma.membership.findFirst({
     where: {
-      userId,
+      userId: ctx.user.id,
       teamId: teamId ?? 0,
       accepted: true,
       role: "MEMBER",
@@ -207,12 +158,8 @@ const filterEventTypes = async (
       evType.hosts = [];
     });
 
-  log.info(
-    "filteredEventTypes",
-    safeStringify({
-      filteredEventTypes,
-    })
-  );
-
-  return filteredEventTypes;
+  return {
+    eventTypes: filteredEventTypes || [],
+    nextCursor,
+  };
 };
