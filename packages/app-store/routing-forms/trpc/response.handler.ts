@@ -100,6 +100,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       data: {
         formId,
         response: response,
+        chosenRouteId,
       },
     });
 
