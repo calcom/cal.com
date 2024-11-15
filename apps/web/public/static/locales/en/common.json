@@ -2770,5 +2770,7 @@
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce Option",
   "lookup_field_name": "Lookup Field Name",
+  "exclude_emails_that_contain" : "Exclude emails that contain ...",
+  "exclude_emails_match_found_error_message" : "Please enter a valid work email address",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
