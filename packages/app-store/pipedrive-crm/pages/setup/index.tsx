@@ -82,12 +82,7 @@ export default function PipedriveComSetup() {
                     name="client_id"
                     control={form.control}
                     render={({ field }) => (
-                      <TextField
-                        className="my-0"
-                        name="client_id"
-                        placeholder={t("provide_client_id")}
-                        {...field}
-                      />
+                      <TextField className="my-0" placeholder={t("provide_client_id")} {...field} />
                     )}
                   />
                   <Controller
@@ -96,7 +91,6 @@ export default function PipedriveComSetup() {
                     render={({ field }) => (
                       <TextField
                         className="my-0"
-                        name="client_secret"
                         placeholder={t("provide_client_secret")}
                         type="password"
                         {...field}
