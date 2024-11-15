@@ -16,89 +16,92 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] =>
-  [
-    {
-      name: "event_types_page_title",
-      href: "/event-types",
-      icon: "link",
+const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
+  {
+    name: "event_types_page_title",
+    href: "/event-types",
+    icon: "link",
+  },
+  {
+    name: "bookings",
+    href: "/bookings/upcoming",
+    icon: "calendar",
+    badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
+  },
+  {
+    name: "availability",
+    href: "/availability",
+    icon: "clock",
+  },
+  ...(orgBranding
+    ? [
+        {
+          name: "members",
+          href: `/orgs/${orgBranding.slug}/members`,
+          icon: "building",
+        } satisfies NavigationItemType,
+      ]
+    : []),
+  {
+    name: "teams",
+    href: "/teams",
+    icon: "users",
+    onlyDesktop: true,
+    badge: <TeamInviteBadge />,
+  },
+  {
+    name: "apps",
+    href: "/apps",
+    icon: "grid-3x3",
+    isCurrent: ({ pathname: path, item }) => {
+      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
     },
-    {
-      name: "bookings",
-      href: "/bookings/upcoming",
-      icon: "calendar",
-      badge: <UnconfirmedBookingBadge />,
-      isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
-    },
-    {
-      name: "availability",
-      href: "/availability",
-      icon: "clock",
-    },
-    orgBranding && {
-      name: "members",
-      href: `/orgs/${orgBranding.slug}/members`,
-      icon: "building",
-    },
-    {
-      name: "teams",
-      href: "/teams",
-      icon: "users",
-      onlyDesktop: true,
-      badge: <TeamInviteBadge />,
-    },
-    {
-      name: "apps",
-      href: "/apps",
-      icon: "grid-3x3",
-      isCurrent: ({ pathname: path, item }) => {
-        // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-        return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+    child: [
+      {
+        name: "app_store",
+        href: "/apps",
+        isCurrent: ({ pathname: path, item }) => {
+          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+          return (
+            (path?.startsWith(item.href) ?? false) &&
+            !(path?.includes("routing-forms/") ?? false) &&
+            !(path?.includes("/installed") ?? false)
+          );
+        },
       },
-      child: [
-        {
-          name: "app_store",
-          href: "/apps",
-          isCurrent: ({ pathname: path, item }) => {
-            // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-            return (
-              (path?.startsWith(item.href) ?? false) &&
-              !(path?.includes("routing-forms/") ?? false) &&
-              !(path?.includes("/installed") ?? false)
-            );
-          },
-        },
-        {
-          name: "installed_apps",
-          href: "/apps/installed/calendar",
-          isCurrent: ({ pathname: path }) =>
-            (path?.startsWith("/apps/installed/") ?? false) ||
-            (path?.startsWith("/v2/apps/installed/") ?? false),
-        },
-      ],
-    },
-    {
-      name: MORE_SEPARATOR_NAME,
-      href: "/more",
-      icon: "ellipsis",
-    },
-    {
-      name: "routing_forms",
-      href: "/apps/routing-forms/forms",
-      icon: "file-text",
-      isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
-    },
-    {
-      name: "workflows",
-      href: "/workflows",
-      icon: "zap",
-    },
-    {
-      name: "insights",
-      href: "/insights",
-      icon: "chart-bar",
-    },
-  ].filter(Boolean);
+      {
+        name: "installed_apps",
+        href: "/apps/installed/calendar",
+        isCurrent: ({ pathname: path }) =>
+          (path?.startsWith("/apps/installed/") ?? false) ||
+          (path?.startsWith("/v2/apps/installed/") ?? false),
+      },
+    ],
+  },
+  {
+    name: MORE_SEPARATOR_NAME,
+    href: "/more",
+    icon: "ellipsis",
+  },
+  {
+    name: "routing_forms",
+    href: "/apps/routing-forms/forms",
+    icon: "file-text",
+    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: "zap",
+  },
+  {
+    name: "insights",
+    href: "/insights",
+    icon: "chart-bar",
+  },
+];
 
 const platformNavigationItems: NavigationItemType[] = [
   {
