@@ -500,7 +500,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description
   ) {
     // TODO: we want to support the other locales in Locales enum + turn this into a background job using Bull Queue
-    const targetLocales = ["en", "es", "de", "pt", "fr", "it", "ar", "zh", "ru"] as const;
+    const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "zh", "ru"] as const).filter(
+      (locale) => locale !== ctx.user.locale
+    );
 
     const translations = await Promise.all(
       targetLocales.map(async (targetLocale) => {
