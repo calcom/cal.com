@@ -5,7 +5,9 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/dayjs": "*",
+    "@calcom/lib": "*",
+    "pipedrive": "22.3.1-rc.5"
   },
   "devDependencies": {
     "@calcom/types": "*"
