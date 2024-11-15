@@ -454,6 +454,122 @@ class RoutingEventsInsights {
 
     return headers;
   }
+
+  static async getRawData({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    userId,
+    bookingStatus,
+    fieldFilter,
+  }: RoutingFormInsightsFilter) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+
+    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: dayjs(startDate).startOf("day").toDate(),
+            lte: dayjs(endDate).endOf("day").toDate(),
+          },
+        }),
+      ...(userId || bookingStatus
+        ? {
+            ...(bookingStatus === "NO_BOOKING"
+              ? { routedToBooking: null }
+              : {
+                  routedToBooking: {
+                    ...(userId && { userId }),
+                    ...(bookingStatus && { status: bookingStatus }),
+                  },
+                }),
+          }
+        : {}),
+      ...(fieldFilter && {
+        response: {
+          path: [fieldFilter.fieldId, "value"],
+          array_contains: [fieldFilter.optionId],
+        },
+      }),
+      form: formsWhereCondition,
+    };
+
+    const responses = await prisma.app_RoutingForms_FormResponse.findMany({
+      where: responsesWhereCondition,
+      select: {
+        id: true,
+        response: true,
+        createdAt: true,
+        form: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        routedToBooking: {
+          select: {
+            uid: true,
+            status: true,
+            createdAt: true,
+            startTime: true,
+            endTime: true,
+            attendees: {
+              select: {
+                email: true,
+                name: true,
+                timeZone: true,
+              },
+            },
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Transform the data into a flat structure suitable for CSV
+    return responses.map((response) => {
+      const parsedResponse = routingFormResponseInDbSchema.parse(response.response);
+      const flatResponse: Record<string, any> = {
+        responseId: response.id,
+        formId: response.form.id,
+        formName: response.form.name,
+        submittedAt: response.createdAt.toISOString(),
+        hasBooking: !!response.routedToBooking,
+        bookingStatus: response.routedToBooking?.status || "NO_BOOKING",
+        bookingCreatedAt: response.routedToBooking?.createdAt?.toISOString() || "",
+        bookingStartTime: response.routedToBooking?.startTime?.toISOString() || "",
+        bookingEndTime: response.routedToBooking?.endTime?.toISOString() || "",
+        attendeeName: response.routedToBooking?.attendees[0]?.name || "",
+        attendeeEmail: response.routedToBooking?.attendees[0]?.timeZone || "",
+        attendeeTimezone: response.routedToBooking?.attendees[0]?.timeZone || "",
+        routedToName: response.routedToBooking?.user?.name || "",
+        routedToEmail: response.routedToBooking?.user?.email || "",
+      };
+
+      // Add form fields as columns
+      Object.entries(parsedResponse).forEach(([fieldId, field]) => {
+        flatResponse[`field_${fieldId}`] = Array.isArray(field.value) ? field.value.join(", ") : field.value;
+      });
+
+      return flatResponse;
+    });
+  }
 }
 
 export { RoutingEventsInsights };

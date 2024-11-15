@@ -1641,4 +1641,47 @@ export const insightsRouter = router({
         routingFormId: input.routingFormId ?? null,
       });
     }),
+  rawRoutingData: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        routingFormId: z.string().optional(),
+        bookingStatus: bookingStatusSchema,
+        fieldFilter: z
+          .object({
+            fieldId: z.string(),
+            optionId: z.string(),
+          })
+          .optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate, userId, isAll, routingFormId, bookingStatus, fieldFilter } = input;
+
+      if (!teamId && !userId) {
+        return { data: "", filename: "" };
+      }
+
+      try {
+        const csvData = await RoutingEventsInsights.getRawData({
+          teamId,
+          startDate,
+          endDate,
+          userId,
+          isAll,
+          organizationId: ctx.user.organizationId,
+          routingFormId,
+          bookingStatus,
+          fieldFilter,
+        });
+
+        const csvAsString = EventsInsights.objectToCsv(csvData);
+        const downloadAs = `RoutingInsights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
+          "YYYY-MM-DD"
+        )}-${randomString(10)}.csv`;
+
+        return { data: csvAsString, filename: downloadAs };
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 });

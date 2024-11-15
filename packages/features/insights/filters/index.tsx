@@ -4,7 +4,7 @@ import { Button, Icon, Tooltip } from "@calcom/ui";
 
 import { BookingStatusFilter } from "./BookingStatusFilter";
 import { DateSelect } from "./DateSelect";
-import { Download } from "./Download/index";
+import { Download, RoutingDownload } from "./Download";
 import { EventTypeList } from "./EventTypeList";
 import { FilterType } from "./FilterType";
 import { RoutingFormFieldFilter } from "./RoutingFormFieldFilter";
@@ -84,7 +84,7 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
         </Tooltip>
       </ButtonGroup> */}
       <div className="flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-between">
-        <Download />
+        {showRoutingFilters ? <RoutingDownload /> : <Download />}
         <DateSelect />
       </div>
     </div>
