@@ -1,7 +1,7 @@
 import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { useFormContext, Controller, useFieldArray } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 import { components } from "react-select";
 import type { OptionProps, SingleValueProps } from "react-select";
 
@@ -76,11 +76,9 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
-  const { fields, append, remove } = useFieldArray<FormValues>({
-    control: formMethods.control,
-    // @ts-expect-error - this is a hack. TODO: fix this
-    name: "instantMeetingParameters" as const,
-  });
+  const [parameters, setParameters] = useState<string[]>(
+    formMethods.getValues("instantMeetingParameters") || []
+  );
 
   const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
@@ -180,21 +178,22 @@ export default function InstantEventController({
                         <div>
                           <Label>{t("only_show_if_parameter_set")}</Label>
                           <div className="space-y-2">
-                            {fields.map((field, index) => (
-                              <div key={field.id} className="flex gap-2">
+                            {parameters.map((parameter, index) => (
+                              <div key={index} className="flex gap-2">
                                 <TextField
                                   required
-                                  name={`instantMeetingParameters.${index}`}
+                                  name={`parameter-${index}`}
                                   labelSrOnly
                                   type="text"
-                                  value={formMethods.watch(`instantMeetingParameters.${index}`)}
+                                  value={parameter}
                                   containerClassName="flex-1 max-w-80"
                                   onChange={(e) => {
-                                    formMethods.setValue(
-                                      `instantMeetingParameters.${index}`,
-                                      e.target.value,
-                                      { shouldDirty: true }
-                                    );
+                                    const newParameters = [...parameters];
+                                    newParameters[index] = e.target.value;
+                                    setParameters(newParameters);
+                                    formMethods.setValue("instantMeetingParameters", newParameters, {
+                                      shouldDirty: true,
+                                    });
                                   }}
                                 />
                                 <Button
@@ -202,12 +201,27 @@ export default function InstantEventController({
                                   color="destructive"
                                   variant="icon"
                                   StartIcon="trash"
-                                  onClick={() => remove(index)}
+                                  onClick={() => {
+                                    const newParameters = parameters.filter((_, i) => i !== index);
+                                    setParameters(newParameters);
+                                    formMethods.setValue("instantMeetingParameters", newParameters, {
+                                      shouldDirty: true,
+                                    });
+                                  }}
                                 />
                               </div>
                             ))}
                           </div>
-                          <Button color="minimal" StartIcon="plus" onClick={() => append("" as any)}>
+                          <Button
+                            color="minimal"
+                            StartIcon="plus"
+                            onClick={() => {
+                              const newParameters = [...parameters, ""];
+                              setParameters(newParameters);
+                              formMethods.setValue("instantMeetingParameters", newParameters, {
+                                shouldDirty: true,
+                              });
+                            }}>
                             {t("add_parameter")}
                           </Button>
                         </div>
