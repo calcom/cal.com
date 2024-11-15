@@ -207,6 +207,7 @@ const filterEventTypes = async (
       evType.hosts = [];
     });
 
+  // Remove calVideoLogo from organization objects
   filteredEventTypes.forEach((eventType) => {
     eventType.users?.forEach((user) => {
       if (user.profile?.organization) {
