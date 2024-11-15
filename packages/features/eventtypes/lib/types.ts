@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -61,23 +62,6 @@ type PhoneCallConfig = {
   guestCompany?: string;
   templateType: string;
   schedulerName?: string;
-};
-
-enum EventTypeAutoTranslatedField {
-  DESCRIPTION = "DESCRIPTION",
-}
-
-type EventTypeTranslation = {
-  id: string;
-  field: EventTypeAutoTranslatedField;
-  sourceLang: string;
-  targetLang: string;
-  translatedText: string;
-  createdAt: Date;
-  createdBy: number;
-  updatedAt: Date;
-  updatedBy: number | null;
-  eventTypeId: number;
 };
 
 export type FormValues = {
