@@ -29,6 +29,7 @@ interface FilterSelectProps {
   buttonIcon?: React.ReactNode;
   placeholder?: string;
   emptyText?: string;
+  testId?: string;
 }
 
 export function FilterSelect({
@@ -39,13 +40,14 @@ export function FilterSelect({
   buttonIcon,
   placeholder,
   emptyText = "No results",
+  testId,
 }: FilterSelectProps) {
   const selectedOption = options.find((option) => option.value === selectedValue);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="border-subtle rounded-md">
+        <Button color="secondary" className="border-subtle rounded-md" data-testid={`${testId}-button`}>
           {buttonIcon}
           {title}
           {selectedValue && (
@@ -62,15 +64,16 @@ export function FilterSelect({
           <CommandInput placeholder={placeholder ?? title} />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => {
+            <CommandGroup data-testId={`${testId}-group`}>
+              {options.map((option, index) => {
                 const isSelected = selectedValue === option.value;
                 return (
                   <CommandItem
                     key={option.value}
                     onSelect={() => {
                       onChange(isSelected ? null : option.value);
-                    }}>
+                    }}
+                    data-testId={`${testId}-group-option-${index}`}>
                     <div
                       className={classNames(
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",

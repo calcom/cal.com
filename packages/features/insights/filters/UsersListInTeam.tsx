@@ -37,6 +37,7 @@ export const UserListInTeam = () => {
       onChange={(value) => setConfigFilters({ selectedMemberUserId: Number(value) })}
       buttonIcon={<Icon name="users" className="mr-2 h-4 w-4" />}
       placeholder={t("search")}
+      testId="people-filter"
     />
   );
 };
