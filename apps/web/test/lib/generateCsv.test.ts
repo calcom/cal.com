@@ -67,6 +67,7 @@ describe("generate Csv for Org Users Table", () => {
     completedOnboarding: true,
     teams: [],
     attributes: [],
+    lastActiveAt: null,
   };
 
   it("should return null if no headers", () => {
