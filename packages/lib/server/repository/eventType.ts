@@ -610,6 +610,7 @@ export class EventTypeRepository {
         },
       },
       secondaryEmailId: true,
+      maxLeadThreshold: true,
     });
 
     return await prisma.eventType.findFirst({

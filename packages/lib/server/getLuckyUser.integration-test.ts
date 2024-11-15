@@ -2,7 +2,7 @@ import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } 
 
 import prisma from "@calcom/prisma";
 
-import { DistributionMethod, getLuckyUser, getOrderedListOfLuckyUsers } from "./getLuckyUser";
+import { getLuckyUser, getOrderedListOfLuckyUsers } from "./getLuckyUser";
 
 let commonEventTypeId: number;
 const userIds: number[] = [];
@@ -197,13 +197,15 @@ describe("getLuckyUser Integration tests", () => {
           bookings: JSON.stringify(organizerThatDidntShowUp.bookings),
         },
       });
-      const luckyUser = await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+      const luckyUser = await getLuckyUser({
         availableUsers: [organizerThatShowedUp, organizerThatDidntShowUp],
         eventType: {
           id: commonEventTypeId,
           isRRWeightsEnabled: false,
+          team: {},
         },
         allRRHosts: [],
+        routingFormResponse: null,
       });
 
       expect(luckyUser.email).toBe(organizerThatDidntShowUp.email);
@@ -255,13 +257,15 @@ describe("getLuckyUser Integration tests", () => {
       const organizerWhoseAttendeeDidntShowUp = organizerHostWhoseAttendeeDidntShowUp.user;
 
       expect(
-        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+        getLuckyUser({
           availableUsers: [organizerWhoseAttendeeShowedUp, organizerWhoseAttendeeDidntShowUp],
           eventType: {
             id: commonEventTypeId,
             isRRWeightsEnabled: false,
+            team: {},
           },
           allRRHosts: [],
+          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(organizerWhoseAttendeeDidntShowUp);
     });
@@ -350,7 +354,7 @@ describe("getLuckyUser Integration tests", () => {
       const organizerWhoWasAttendeeAndDidntShowUp = organizerHostWhoWasAttendeeAndDidntShowUp.user;
 
       expect(
-        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+        getLuckyUser({
           availableUsers: [
             organizerWhoseAttendeeShowedUp,
             fixedHostOrganizerWhoseAttendeeDidNotShowUp,
@@ -359,8 +363,10 @@ describe("getLuckyUser Integration tests", () => {
           eventType: {
             id: commonEventTypeId,
             isRRWeightsEnabled: false,
+            team: {},
           },
           allRRHosts: [],
+          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(organizerWhoWasAttendeeAndDidntShowUp);
     });
@@ -415,13 +421,15 @@ describe("getLuckyUser Integration tests", () => {
       const userWithBookingThatHappenedEarlier = hostWithBookingThatHappenedEarlier.user;
 
       expect(
-        getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+        getLuckyUser({
           availableUsers: [userWithBookingThatHappenedLater, userWithBookingThatHappenedEarlier],
           eventType: {
             id: commonEventTypeId,
             isRRWeightsEnabled: false,
+            team: {},
           },
           allRRHosts: [],
+          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(userWithBookingThatHappenedEarlier);
     });
@@ -456,31 +464,29 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
     const user2 = host2.user;
     const user3 = host3.user;
 
-    const { users: luckyUsers } = await getOrderedListOfLuckyUsers(
-      DistributionMethod.PRIORITIZE_AVAILABILITY,
-      {
-        availableUsers: [user2, user1, user3],
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled: false,
-        },
-        allRRHosts: [],
-      }
-    );
+    const { users: luckyUsers } = await getOrderedListOfLuckyUsers({
+      availableUsers: [user2, user1, user3],
+      eventType: {
+        id: commonEventTypeId,
+        isRRWeightsEnabled: false,
+        team: {},
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
 
     expectLuckyUsers(luckyUsers, [user2, user1, user3]);
 
-    const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers(
-      DistributionMethod.PRIORITIZE_AVAILABILITY,
-      {
-        availableUsers: [user3, user1, user2],
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled: false,
-        },
-        allRRHosts: [],
-      }
-    );
+    const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers({
+      availableUsers: [user3, user1, user2],
+      eventType: {
+        id: commonEventTypeId,
+        isRRWeightsEnabled: false,
+        team: {},
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
     expectLuckyUsers(luckyUsers2, [user3, user1, user2]);
   });
 
@@ -513,17 +519,16 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       const user2WithWeight100 = host3WithWeight100.user;
 
       const allRRHosts = [host1WithWeight100, host2WithWeight200, host3WithWeight100];
-      const { users: luckyUsers } = await getOrderedListOfLuckyUsers(
-        DistributionMethod.PRIORITIZE_AVAILABILITY,
-        {
-          availableUsers: [userWithHighestWeight, user1WithWeight100, user2WithWeight100],
-          eventType: {
-            id: commonEventTypeId,
-            isRRWeightsEnabled,
-          },
-          allRRHosts,
-        }
-      );
+      const { users: luckyUsers } = await getOrderedListOfLuckyUsers({
+        availableUsers: [userWithHighestWeight, user1WithWeight100, user2WithWeight100],
+        eventType: {
+          id: commonEventTypeId,
+          isRRWeightsEnabled,
+          team: {},
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      });
 
       expectLuckyUsers(luckyUsers, [
         // It has the highest weight
@@ -534,17 +539,16 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         user2WithWeight100,
       ]);
 
-      const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers(
-        DistributionMethod.PRIORITIZE_AVAILABILITY,
-        {
-          availableUsers: [user2WithWeight100, userWithHighestWeight, user1WithWeight100],
-          eventType: {
-            id: commonEventTypeId,
-            isRRWeightsEnabled,
-          },
-          allRRHosts,
-        }
-      );
+      const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers({
+        availableUsers: [user2WithWeight100, userWithHighestWeight, user1WithWeight100],
+        eventType: {
+          id: commonEventTypeId,
+          isRRWeightsEnabled,
+          team: {},
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      });
       expectLuckyUsers(luckyUsers2, [
         // It has the highest weight and zero bookings.
         userWithHighestWeight,
@@ -611,13 +615,10 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         ],
       };
 
-      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers(
-        DistributionMethod.PRIORITIZE_AVAILABILITY,
-        {
-          ...getLuckUserParams,
-          availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
-        }
-      );
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
+        ...getLuckUserParams,
+        availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
+      });
 
       expectLuckyUsers(luckyUsers, [
         // User with 1 booking is chosen first because it has higher weight and lesser bookings
@@ -695,13 +696,10 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         ],
       };
 
-      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers(
-        DistributionMethod.PRIORITIZE_AVAILABILITY,
-        {
-          ...getLuckUserParams,
-          availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
-        }
-      );
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
+        ...getLuckUserParams,
+        availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
+      });
 
       expectLuckyUsers(luckyUsers, [
         // User with 1 booking is chosen first because it has higher weight and lesser bookings
@@ -770,16 +768,10 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           allRRHosts: [host1, host2, host3],
         };
 
-        const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers(
-          DistributionMethod.PRIORITIZE_AVAILABILITY,
-          {
-            ...getLuckUserParams,
-            availableUsers: [
-              getLuckUserParams.availableUsers[0],
-              ...getLuckUserParams.availableUsers.slice(1),
-            ],
-          }
-        );
+        const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
+          ...getLuckUserParams,
+          availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
+        });
 
         if (!perUserData?.bookingShortfalls || !perUserData?.calibrations) {
           throw new Error("bookingShortfalls or calibrations is not defined");

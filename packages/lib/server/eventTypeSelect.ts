@@ -56,4 +56,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   durationLimits: true,
   eventTypeColor: true,
   hideCalendarEventDetails: true,
+  maxLeadThreshold: true,
 });

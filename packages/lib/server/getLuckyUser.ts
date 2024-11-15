@@ -18,13 +18,6 @@ async function getAttributesQueryValue() {
   return getAttributesQueryValue;
 }
 
-export enum DistributionMethod {
-  PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
-  // BALANCED_ASSIGNMENT = "BALANCED_ASSIGNMENT",
-  // ROUND_ROBIN (for fairness, rotating through assignees)
-  // LOAD_BALANCED (ensuring an even workload)
-}
-
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -364,10 +357,7 @@ export async function getLuckyUser<
     priority?: number | null;
     weight?: number | null;
   }
->(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
-  getLuckyUserParams: GetLuckyUserParams<T>
-) {
+>(getLuckyUserParams: GetLuckyUserParams<T>) {
   const {
     currentMonthBookingsOfAvailableUsers,
     bookingsOfNotAvailableUsersOfThisMonth,
@@ -378,7 +368,7 @@ export async function getLuckyUser<
     virtualQueuesData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
 
-  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
+  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
     ...getLuckyUserParams,
     currentMonthBookingsOfAvailableUsers,
     bookingsOfNotAvailableUsersOfThisMonth,
@@ -407,17 +397,12 @@ type FetchedData = {
   virtualQueuesData?: VirtualQueuesDataType | null;
 };
 
-// TODO: Configure distributionAlgorithm from the event type configuration
-// TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 export function getLuckyUser_requiresDataToBePreFetched<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
->(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
-  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData
-) {
+>({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
   const {
     eventType,
     currentMonthBookingsOfAvailableUsers,
@@ -432,51 +417,46 @@ export function getLuckyUser_requiresDataToBePreFetched<
     return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
   }
 
-  switch (distributionMethod) {
-    case DistributionMethod.PRIORITIZE_AVAILABILITY: {
-      let usersAndTheirBookingShortfalls: {
-        id: number;
-        bookingShortfall: number;
-        calibration: number;
-        weight: number;
-      }[] = [];
-      if (eventType.isRRWeightsEnabled) {
-        const {
-          remainingUsersAfterWeightFilter,
-          usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
-        } = filterUsersBasedOnWeights({
-          ...getLuckyUserParams,
-          availableUsers,
-          currentMonthBookingsOfAvailableUsers,
-          bookingsOfNotAvailableUsersOfThisMonth,
-          allRRHostsBookingsOfThisMonth,
-          allRRHostsCreatedThisMonth,
-        });
-        availableUsers = remainingUsersAfterWeightFilter;
-        usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-      }
-      const highestPriorityUsers = getUsersWithHighestPriority({
-        availableUsers,
-      });
-      // No need to round-robin through the only user, return early also.
-      if (highestPriorityUsers.length === 1) {
-        return {
-          luckyUser: highestPriorityUsers[0],
-          usersAndTheirBookingShortfalls,
-        };
-      }
-      // TS is happy.
-      return {
-        luckyUser: leastRecentlyBookedUser({
-          ...getLuckyUserParams,
-          availableUsers: highestPriorityUsers,
-          bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-          organizersWithLastCreated,
-        }),
-        usersAndTheirBookingShortfalls,
-      };
-    }
+  let usersAndTheirBookingShortfalls: {
+    id: number;
+    bookingShortfall: number;
+    calibration: number;
+    weight: number;
+  }[] = [];
+  if (eventType.isRRWeightsEnabled) {
+    const {
+      remainingUsersAfterWeightFilter,
+      usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
+    } = filterUsersBasedOnWeights({
+      ...getLuckyUserParams,
+      availableUsers,
+      currentMonthBookingsOfAvailableUsers,
+      bookingsOfNotAvailableUsersOfThisMonth,
+      allRRHostsBookingsOfThisMonth,
+      allRRHostsCreatedThisMonth,
+    });
+    availableUsers = remainingUsersAfterWeightFilter;
+    usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
   }
+
+  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+  // No need to round-robin through the only user, return early also.
+  if (highestPriorityUsers.length === 1) {
+    return {
+      luckyUser: highestPriorityUsers[0],
+      usersAndTheirBookingShortfalls: [],
+    };
+  }
+  // TS is happy.
+  return {
+    luckyUser: leastRecentlyBookedUser({
+      ...getLuckyUserParams,
+      availableUsers: highestPriorityUsers,
+      bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+      organizersWithLastCreated,
+    }),
+    usersAndTheirBookingShortfalls,
+  };
 }
 
 async function fetchAllDataNeededForCalculations<
@@ -626,7 +606,6 @@ type AvailableUserBase = PartialUser & {
 };
 
 export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
   getLuckyUserParams: GetLuckyUserParams<AvailableUser>
 ) {
   const { availableUsers, eventType } = getLuckyUserParams;
@@ -670,7 +649,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   // Keep getting lucky users until none remain
   while (remainingAvailableUsers.length > 0) {
     const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
-      getLuckyUser_requiresDataToBePreFetched(distributionMethod, {
+      getLuckyUser_requiresDataToBePreFetched({
         ...getLuckyUserParams,
         eventType,
         availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
