@@ -9,7 +9,6 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -745,21 +744,6 @@ export class UserRepository {
       },
       data: {
         avatarUrl,
-      },
-    });
-  }
-  static async findUserWithCredentials({ id }: { id: number }) {
-    return await prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-        timeZone: true,
-        id: true,
-        selectedCalendars: true,
       },
     });
   }
