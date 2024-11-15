@@ -444,7 +444,7 @@ export function getLuckyUser_requiresDataToBePreFetched<
   if (highestPriorityUsers.length === 1) {
     return {
       luckyUser: highestPriorityUsers[0],
-      usersAndTheirBookingShortfalls: [],
+      usersAndTheirBookingShortfalls,
     };
   }
   // TS is happy.
