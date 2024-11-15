@@ -10,6 +10,7 @@ import {
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import { EventTypeTranslationRepository } from "@calcom/lib/server/repository/eventTypeTranslation";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
@@ -476,6 +477,32 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
+  }
+
+  // Logic for updating `descriptionTranslations`
+  const description = eventType.description;
+  if (ctx.user.organizationId && autoTranslateDescriptionEnabled && description) {
+    const existingTargetLocales = (eventType.descriptionTranslations ?? []).map((trans) => trans.targetLang);
+    // TODO: we want to support the other locales in Locales enum + turn this into a background job using Bull Queue
+    const nonExistingTargetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "zh", "ru"] as const).filter(
+      (locale) => !existingTargetLocales.includes(locale)
+    );
+
+    const createdTranslations: EventTypeTranslation[] = await Promise.all(
+      nonExistingTargetLocales.map(async (locale) => {
+        const translatedText = await ReplexicaService.localizeText(description, sourceLang, locale);
+
+        return await EventTypeTranslationRepository.createDescriptionTranslation({
+          eventTypeId: id,
+          sourceLang,
+          targetLang: locale,
+          translatedText,
+          createdBy: ctx.user.id,
+        });
+      })
+    );
+
+    data.descriptionTranslations = [...(eventType.descriptionTranslations ?? []), ...createdTranslations];
   }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
