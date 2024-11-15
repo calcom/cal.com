@@ -498,7 +498,7 @@ async function handler(
                 (host) => !host.isFixed && userIdsSet.has(host.user.id)
               ), // users part of virtual queue
               eventType,
-              routingFormResponse,
+              routingFormResponse: routingFormResponse ?? null,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop

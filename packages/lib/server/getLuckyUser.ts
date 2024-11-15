@@ -3,12 +3,15 @@ import type { Prisma, User } from "@prisma/client";
 import { getFieldResponse } from "@calcom/app-store/routing-forms/trpc/utils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes, children1Schema } from "@calcom/app-store/routing-forms/zod";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
 async function getAttributesQueryValue() {
   const { getAttributesQueryValue } = (await import("@calcom/app-store/routing-forms/lib/raqbUtils"))
     .acrossQueryValueCompatiblity;
@@ -20,6 +23,14 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 };
 
 type PartialUser = Pick<User, "id" | "email">;
+type RoutingFormResponse = {
+  response: Prisma.JsonValue;
+  chosenRouteId: string | null;
+  form: {
+    fields: Prisma.JsonValue;
+    routes: Prisma.JsonValue;
+  };
+};
 
 type AttributeWithWeights = {
   name: string;
@@ -56,58 +67,22 @@ interface GetLuckyUserParams<T extends PartialUser> {
     createdAt: Date;
     weight?: number | null;
   }[];
-  routingFormResponse?: RoutingFormResponse | null;
+  routingFormResponse: RoutingFormResponse | null;
 }
 // === dayjs.utc().startOf("month").toDate();
 const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+
 // TS helper function.
 const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
 
-async function leastRecentlyBookedUser<T extends PartialUser>({
+function leastRecentlyBookedUser<T extends PartialUser>({
   availableUsers,
-  eventType,
   bookingsOfAvailableUsers,
-}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
-  // First we get all organizers (fixed host/single round robin user)
-  const organizersWithLastCreated = await prisma.user.findMany({
-    where: {
-      id: {
-        in: availableUsers.map((user) => user.id),
-      },
-    },
-    select: {
-      id: true,
-      bookings: {
-        select: {
-          createdAt: true,
-        },
-        where: {
-          eventTypeId: eventType.id,
-          status: BookingStatus.ACCEPTED,
-          attendees: {
-            some: {
-              noShow: false,
-            },
-          },
-          // not:true won't match null, thus we need to do an OR with null case separately(for bookings that might have null value for `noShowHost` as earlier it didn't have default false)
-          // https://github.com/calcom/cal.com/pull/15323#discussion_r1687728207
-          OR: [
-            {
-              noShowHost: false,
-            },
-            {
-              noShowHost: null,
-            },
-          ],
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 1,
-      },
-    },
-  });
-
+  organizersWithLastCreated,
+}: GetLuckyUserParams<T> & {
+  bookingsOfAvailableUsers: PartialBooking[];
+  organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
+}) {
   const organizerIdAndAtCreatedPair = organizersWithLastCreated.reduce(
     (keyValuePair: { [userId: number]: Date }, user) => {
       keyValuePair[user.id] = user.bookings[0]?.createdAt || new Date(0);
@@ -135,6 +110,15 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
     ...attendeeUserIdAndAtCreatedPair,
   };
 
+  log.info(
+    "userIdAndAtCreatedPair",
+    safeStringify({
+      organizerIdAndAtCreatedPair,
+      attendeeUserIdAndAtCreatedPair,
+      userIdAndAtCreatedPair,
+    })
+  );
+
   if (!userIdAndAtCreatedPair) {
     throw new Error("Unable to find users by availableUser ids."); // should never happen.
   }
@@ -143,45 +127,28 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
     if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
     else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
     // if two (or more) dates are identical, we randomize the order
-    else return Math.random() > 0.5 ? 1 : -1;
+    else return 0;
   })[0];
 
   return leastRecentlyBookedUser;
 }
 
-async function getHostsWithCalibration(
-  eventTypeId: number,
-  hosts: { userId: number; email: string; createdAt: Date }[],
-  virtualQueuesData?: VirtualQueuesDataType
-) {
-  const [newHostsArray, existingBookings] = await Promise.all([
-    prisma.host.findMany({
-      where: {
-        userId: {
-          in: hosts.map((host) => host.userId),
-        },
-        eventTypeId,
-        isFixed: false,
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
-    }),
-    BookingRepository.getAllBookingsForRoundRobin({
-      eventTypeId,
-      users: hosts.map((host) => ({
-        id: host.userId,
-        email: host.email,
-      })),
-      startDate: startOfMonth,
-      endDate: new Date(),
-      virtualQueuesData,
-    }),
-  ]);
+function getHostsWithCalibration({
+  hosts,
+  allRRHostsBookingsOfThisMonth,
+  allRRHostsCreatedThisMonth,
+}: {
+  hosts: { userId: number; email: string; createdAt: Date }[];
+  allRRHostsBookingsOfThisMonth: PartialBooking[];
+  allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
+}) {
+  const existingBookings = allRRHostsBookingsOfThisMonth;
+
   // Return early if there are no new hosts or no existing bookings
-  if (newHostsArray.length === 0 || existingBookings.length === 0) {
+  if (allRRHostsCreatedThisMonth.length === 0 || existingBookings.length === 0) {
     return hosts.map((host) => ({ ...host, calibration: 0 }));
   }
+
   // Helper function to calculate calibration for a new host
   function calculateCalibration(newHost: { userId: number; createdAt: Date }) {
     const existingBookingsBeforeAdded = existingBookings.filter(
@@ -190,13 +157,25 @@ async function getHostsWithCalibration(
     const hostsAddedBefore = hosts.filter(
       (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
     );
-    return existingBookingsBeforeAdded.length && hostsAddedBefore.length
-      ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
-      : 0;
+
+    const calibration =
+      existingBookingsBeforeAdded.length && hostsAddedBefore.length
+        ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
+        : 0;
+    log.debug(
+      "calculateCalibration",
+      safeStringify({
+        newHost,
+        existingBookingsBeforeAdded: existingBookingsBeforeAdded.length,
+        hostsAddedBefore: hostsAddedBefore.length,
+        calibration,
+      })
+    );
+    return calibration;
   }
   // Calculate calibration for each new host and store in a Map
   const newHostsWithCalibration = new Map(
-    newHostsArray.map((newHost) => [
+    allRRHostsCreatedThisMonth.map((newHost) => [
       newHost.userId,
       { ...newHost, calibration: calculateCalibration(newHost) },
     ])
@@ -220,68 +199,40 @@ function getUsersWithHighestPriority<T extends PartialUser & { priority?: number
   if (!isNonEmptyArray(usersWithHighestPriority)) {
     throw new Error("Internal Error: Highest Priority filter should never return length=0.");
   }
+
+  log.info(
+    "getUsersWithHighestPriority",
+    safeStringify({
+      highestPriorityUsers: usersWithHighestPriority.map((user) => user.id),
+    })
+  );
   return usersWithHighestPriority;
 }
 
-async function filterUsersBasedOnWeights<
+function filterUsersBasedOnWeights<
   T extends PartialUser & {
     weight?: number | null;
   }
 >({
   availableUsers,
-  bookingsOfAvailableUsers,
+  currentMonthBookingsOfAvailableUsers,
+  bookingsOfNotAvailableUsersOfThisMonth,
   allRRHosts,
-  eventType,
-  virtualQueuesData,
+  allRRHostsBookingsOfThisMonth,
+  allRRHostsCreatedThisMonth,
   attributeWeights,
-}: GetLuckyUserParams<T> & {
-  bookingsOfAvailableUsers: PartialBooking[];
-  virtualQueuesData?: VirtualQueuesDataType;
-  attributeWeights?: {
-    userId: number;
-    weight: number;
-  }[];
-}): Promise<[T, ...T[]]> {
+}: GetLuckyUserParams<T> & FetchedData) {
   //get all bookings of all other RR hosts that are not available
-  const availableUserIds = new Set(availableUsers.map((user) => user.id));
 
-  const notAvailableHosts = allRRHosts.reduce(
-    (
-      acc: {
-        id: number;
-        email: string;
-      }[],
-      host
-    ) => {
-      if (!availableUserIds.has(host.user.id)) {
-        acc.push({
-          id: host.user.id,
-          email: host.user.email,
-        });
-      }
-      return acc;
-    },
-    []
-  );
+  const allBookings = currentMonthBookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsersOfThisMonth);
 
-  //only get bookings where response matches the virtual queue
-  const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
-    eventTypeId: eventType.id,
-    users: notAvailableHosts,
-    startDate: startOfMonth,
-    endDate: new Date(),
-    virtualQueuesData,
-  });
-
-  const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
-
-  const allHostsWithCalibration = await getHostsWithCalibration(
-    eventType.id,
-    allRRHosts.map((host) => {
+  const allHostsWithCalibration = getHostsWithCalibration({
+    hosts: allRRHosts.map((host) => {
       return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
     }),
-    virtualQueuesData
-  );
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+  });
 
   // Calculate the total calibration and weight of all round-robin hosts
   let totalWeight: number;
@@ -306,14 +257,11 @@ async function filterUsersBasedOnWeights<
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     let userWeight = user.weight ?? 100;
-
     if (attributeWeights) {
       userWeight = attributeWeights.find((userWeight) => userWeight.userId === user.id)?.weight ?? 100;
     }
-
     const targetPercentage = userWeight / totalWeight;
-
-    const userBookings = bookingsOfAvailableUsers.filter(
+    const userBookings = currentMonthBookingsOfAvailableUsers.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
@@ -325,7 +273,11 @@ async function filterUsersBasedOnWeights<
 
     return {
       ...user,
+      calibration: userCalibration,
+      weight: userWeight,
+      targetNumberOfBookings,
       bookingShortfall,
+      numBookings: userBookings.length,
     };
   });
 
@@ -339,15 +291,65 @@ async function filterUsersBasedOnWeights<
   const maxWeight = Math.max(...usersWithMaxShortfall.map((user) => user.weight ?? 100));
 
   const userIdsWithMaxShortfallAndWeight = new Set(
-    usersWithMaxShortfall.filter((user) => user.weight === maxWeight).map((user) => user.id)
+    usersWithMaxShortfall
+      .filter((user) => {
+        const weight = user.weight ?? 100;
+        return weight === maxWeight;
+      })
+      .map((user) => user.id)
   );
+
   const remainingUsersAfterWeightFilter = availableUsers.filter((user) =>
     userIdsWithMaxShortfallAndWeight.has(user.id)
   );
+
+  log.debug(
+    "filterUsersBasedOnWeights",
+    safeStringify({
+      userIdsWithMaxShortfallAndWeight: userIdsWithMaxShortfallAndWeight,
+      usersWithMaxShortfall: usersWithMaxShortfall.map((user) => user.email),
+      usersWithBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
+        calibration: user.calibration,
+        bookingShortfall: user.bookingShortfall,
+        email: user.email,
+        targetNumberOfBookings: user.targetNumberOfBookings,
+        weight: user.weight,
+        numBookings: user.numBookings,
+      })),
+      remainingUsersAfterWeightFilter: remainingUsersAfterWeightFilter.map((user) => user.email),
+    })
+  );
+
   if (!isNonEmptyArray(remainingUsersAfterWeightFilter)) {
     throw new Error("Internal Error: Weight filter should never return length=0.");
   }
-  return remainingUsersAfterWeightFilter;
+  return {
+    remainingUsersAfterWeightFilter,
+    usersAndTheirBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
+      id: user.id,
+      calibration: user.calibration,
+      bookingShortfall: user.bookingShortfall,
+      weight: user.weight,
+    })),
+  };
+}
+
+async function getCurrentMonthsBookings({
+  eventTypeId,
+  users,
+  virtualQueuesData,
+}: {
+  eventTypeId: number;
+  users: { id: number; email: string }[];
+  virtualQueuesData: VirtualQueuesDataType | null;
+}) {
+  return await BookingRepository.getAllBookingsForRoundRobin({
+    eventTypeId: eventTypeId,
+    users,
+    startDate: startOfMonth,
+    endDate: new Date(),
+    virtualQueuesData,
+  });
 }
 
 export async function getLuckyUser<
@@ -355,16 +357,356 @@ export async function getLuckyUser<
     priority?: number | null;
     weight?: number | null;
   }
->({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>) {
-  const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
-  return _getLuckyUser(
-    {
+>(getLuckyUserParams: GetLuckyUserParams<T>) {
+  const {
+    currentMonthBookingsOfAvailableUsers,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+    organizersWithLastCreated,
+    attributeWeights,
+    virtualQueuesData,
+  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
+
+  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
+    ...getLuckyUserParams,
+    currentMonthBookingsOfAvailableUsers,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+    organizersWithLastCreated,
+    attributeWeights,
+    virtualQueuesData,
+  });
+
+  return luckyUser;
+}
+
+type FetchedData = {
+  bookingsOfNotAvailableUsersOfThisMonth: PartialBooking[];
+  currentMonthBookingsOfAvailableUsers: PartialBooking[];
+  allRRHostsBookingsOfThisMonth: PartialBooking[];
+  allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
+  organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
+  attributeWeights?:
+    | {
+        userId: number;
+        weight: number;
+      }[]
+    | null;
+  virtualQueuesData?: VirtualQueuesDataType | null;
+};
+
+export function getLuckyUser_requiresDataToBePreFetched<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
+  const {
+    eventType,
+    currentMonthBookingsOfAvailableUsers,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+    organizersWithLastCreated,
+  } = getLuckyUserParams;
+
+  // there is only one user
+  if (availableUsers.length === 1) {
+    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
+  }
+
+  let usersAndTheirBookingShortfalls: {
+    id: number;
+    bookingShortfall: number;
+    calibration: number;
+    weight: number;
+  }[] = [];
+  if (eventType.isRRWeightsEnabled) {
+    const {
+      remainingUsersAfterWeightFilter,
+      usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
+    } = filterUsersBasedOnWeights({
       ...getLuckyUserParams,
       availableUsers,
-    },
-    attributeWeights,
-    virtualQueuesData
+      currentMonthBookingsOfAvailableUsers,
+      bookingsOfNotAvailableUsersOfThisMonth,
+      allRRHostsBookingsOfThisMonth,
+      allRRHostsCreatedThisMonth,
+    });
+    availableUsers = remainingUsersAfterWeightFilter;
+    usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+  }
+
+  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+  // No need to round-robin through the only user, return early also.
+  if (highestPriorityUsers.length === 1) {
+    return {
+      luckyUser: highestPriorityUsers[0],
+      usersAndTheirBookingShortfalls,
+    };
+  }
+  // TS is happy.
+  return {
+    luckyUser: leastRecentlyBookedUser({
+      ...getLuckyUserParams,
+      availableUsers: highestPriorityUsers,
+      bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+      organizersWithLastCreated,
+    }),
+    usersAndTheirBookingShortfalls,
+  };
+}
+
+async function fetchAllDataNeededForCalculations<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(getLuckyUserParams: GetLuckyUserParams<T>) {
+  const startTime = performance.now();
+
+  const { availableUsers, allRRHosts, eventType } = getLuckyUserParams;
+  const notAvailableHosts = (function getNotAvailableHosts() {
+    const availableUserIds = new Set(availableUsers.map((user) => user.id));
+    return allRRHosts.reduce(
+      (
+        acc: {
+          id: number;
+          email: string;
+        }[],
+        host
+      ) => {
+        if (!availableUserIds.has(host.user.id)) {
+          acc.push({
+            id: host.user.id,
+            email: host.user.email,
+          });
+        }
+        return acc;
+      },
+      []
+    );
+  })();
+
+  const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
+
+  const [
+    currentMonthBookingsOfAvailableUsers,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+    organizersWithLastCreated,
+  ] = await Promise.all([
+    getCurrentMonthsBookings({
+      eventTypeId: eventType.id,
+      users: availableUsers.map((user) => {
+        return { id: user.id, email: user.email };
+      }),
+      virtualQueuesData: virtualQueuesData ?? null,
+    }),
+
+    getCurrentMonthsBookings({
+      eventTypeId: eventType.id,
+      users: notAvailableHosts,
+      virtualQueuesData: virtualQueuesData ?? null,
+    }),
+
+    getCurrentMonthsBookings({
+      eventTypeId: eventType.id,
+      users: allRRHosts.map((host) => {
+        return { id: host.user.id, email: host.user.email };
+      }),
+      virtualQueuesData: virtualQueuesData ?? null,
+    }),
+
+    prisma.host.findMany({
+      where: {
+        userId: {
+          in: allRRHosts.map((host) => host.user.id),
+        },
+        eventTypeId: eventType.id,
+        isFixed: false,
+        createdAt: {
+          gte: startOfMonth,
+        },
+      },
+    }),
+
+    prisma.user.findMany({
+      where: {
+        id: {
+          in: availableUsers.map((user) => user.id),
+        },
+      },
+      select: {
+        id: true,
+        bookings: {
+          select: {
+            createdAt: true,
+          },
+          where: {
+            eventTypeId: eventType.id,
+            status: BookingStatus.ACCEPTED,
+            attendees: {
+              some: {
+                noShow: false,
+              },
+            },
+            // not:true won't match null, thus we need to do an OR with null case separately(for bookings that might have null value for `noShowHost` as earlier it didn't have default false)
+            // https://github.com/calcom/cal.com/pull/15323#discussion_r1687728207
+            OR: [
+              {
+                noShowHost: false,
+              },
+              {
+                noShowHost: null,
+              },
+            ],
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+        },
+      },
+    }),
+  ]);
+
+  const endTime = performance.now();
+  log.info(`fetchAllDataNeededForCalculations took ${endTime - startTime}ms`);
+
+  log.debug(
+    "fetchAllDataNeededForCalculations",
+    safeStringify({
+      currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers.length,
+      bookingsOfNotAvailableUsersOfThisMonth: bookingsOfNotAvailableUsersOfThisMonth.length,
+      allRRHostsBookingsOfThisMonth: allRRHostsBookingsOfThisMonth.length,
+      allRRHostsCreatedThisMonth: allRRHostsCreatedThisMonth.length,
+      virtualQueuesData,
+      attributeWeights,
+    })
   );
+
+  return {
+    currentMonthBookingsOfAvailableUsers,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+    organizersWithLastCreated,
+    attributeWeights,
+    virtualQueuesData,
+  };
+}
+
+type AvailableUserBase = PartialUser & {
+  priority: number | null;
+  weight: number | null;
+};
+
+export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
+  getLuckyUserParams: GetLuckyUserParams<AvailableUser>
+) {
+  const { availableUsers, eventType } = getLuckyUserParams;
+
+  const {
+    currentMonthBookingsOfAvailableUsers,
+    bookingsOfNotAvailableUsersOfThisMonth,
+    allRRHostsBookingsOfThisMonth,
+    allRRHostsCreatedThisMonth,
+    organizersWithLastCreated,
+    attributeWeights,
+    virtualQueuesData,
+  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
+
+  log.info(
+    "getOrderedListOfLuckyUsers",
+    safeStringify({
+      availableUsers: availableUsers.map((user) => {
+        return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
+      }),
+      currentMonthBookingsOfAvailableUsers,
+      bookingsOfNotAvailableUsersOfThisMonth,
+      allRRHostsBookingsOfThisMonth,
+      allRRHostsCreatedThisMonth,
+      organizersWithLastCreated,
+    })
+  );
+
+  let remainingAvailableUsers = [...availableUsers];
+  let currentMonthBookingsOfRemainingAvailableUsers = [...currentMonthBookingsOfAvailableUsers];
+  const orderedUsersSet = new Set<AvailableUser>();
+  const perUserBookingsCount: Record<number, number> = {};
+
+  const startTime = performance.now();
+  let usersAndTheirBookingShortfalls: {
+    id: number;
+    bookingShortfall: number;
+    calibration: number;
+    weight: number;
+  }[] = [];
+  // Keep getting lucky users until none remain
+  while (remainingAvailableUsers.length > 0) {
+    const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
+      getLuckyUser_requiresDataToBePreFetched({
+        ...getLuckyUserParams,
+        eventType,
+        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
+        currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
+        bookingsOfNotAvailableUsersOfThisMonth,
+        allRRHostsBookingsOfThisMonth,
+        allRRHostsCreatedThisMonth,
+        organizersWithLastCreated,
+        attributeWeights,
+        virtualQueuesData,
+      });
+
+    if (!usersAndTheirBookingShortfalls.length) {
+      usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+    }
+
+    if (orderedUsersSet.has(luckyUser)) {
+      // It is helpful in breaking the loop as same user is returned again and again.
+      // Also, it tells a bug in the code.
+      throw new Error(
+        `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
+      );
+    }
+
+    orderedUsersSet.add(luckyUser);
+    perUserBookingsCount[luckyUser.id] = currentMonthBookingsOfAvailableUsers.filter(
+      (booking) => booking.userId === luckyUser.id
+    ).length;
+    remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
+    currentMonthBookingsOfRemainingAvailableUsers = currentMonthBookingsOfRemainingAvailableUsers.filter(
+      (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
+    );
+  }
+
+  const endTime = performance.now();
+  log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
+
+  const bookingShortfalls: Record<number, number> = {};
+  const calibrations: Record<number, number> = {};
+  const weights: Record<number, number> = {};
+
+  usersAndTheirBookingShortfalls.forEach((user) => {
+    bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
+    calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
+    weights[user.id] = user.weight;
+  });
+
+  return {
+    users: Array.from(orderedUsersSet),
+    isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
+    perUserData: {
+      bookingsCount: perUserBookingsCount,
+      bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
+      calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
+      weights: eventType.isRRWeightsEnabled ? weights : null,
+    },
+  };
 }
 
 export async function prepareQueuesAndAttributesData<T extends PartialUser>({
@@ -374,11 +716,12 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
 }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
   let attributeWeights;
   let virtualQueuesData;
-
-  if (routingFormResponse && eventType.team?.parentId) {
+  const organizationId = eventType.team?.parentId;
+  log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
+  if (routingFormResponse && organizationId) {
     const attributeWithEnabledWeights = await prisma.attribute.findFirst({
       where: {
-        teamId: eventType.team?.parentId,
+        teamId: organizationId,
         isWeightsEnabled: true,
       },
       select: {
@@ -414,7 +757,7 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
         attributeWithEnabledWeights
       );
 
-      console.log(`attributeWithEnabledWeights ${JSON.stringify(attributeWithEnabledWeights)}`);
+      log.debug(`attributeWithEnabledWeights ${safeStringify(attributeWithEnabledWeights)}`);
 
       if (queueAndAtributeWeightData?.averageWeightsHosts && queueAndAtributeWeightData?.virtualQueuesData) {
         attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
@@ -528,10 +871,9 @@ function getAverageAttributeWeights<
           );
 
           allRRHosts.forEach((rrHost) => {
-            const weight =
-              attributeOptionWithUsers?.assignedUsers.find(
-                (assignedUser) => rrHost.user.id === assignedUser.member.userId
-              )?.weight ?? 100;
+            const weight = attributeOptionWithUsers?.assignedUsers.find(
+              (assignedUser) => rrHost.user.id === assignedUser.member.userId
+            )?.weight;
 
             if (weight) {
               if (allRRHostsWeights.has(rrHost.user.id)) {
@@ -554,7 +896,10 @@ function getAverageAttributeWeights<
       });
     }
   });
-
+  log.debug(
+    "getAverageAttributeWeights",
+    safeStringify({ allRRHosts, attributesQueryValueChild, attributeWithWeights, averageWeightsHosts })
+  );
   return averageWeightsHosts;
 }
 
@@ -603,62 +948,4 @@ function getAttributesForVirtualQueues(
     }
   });
   return selectionOptions;
-}
-
-type RoutingFormResponse = {
-  response: Prisma.JsonValue;
-  chosenRouteId: string | null;
-  form: {
-    fields: Prisma.JsonValue;
-    routes: Prisma.JsonValue;
-  };
-};
-
-async function _getLuckyUser<
-  T extends PartialUser & {
-    priority?: number | null;
-    weight?: number | null;
-  }
->(
-  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>,
-  attributeWeights?: {
-    userId: number;
-    weight: number;
-  }[],
-  virtualQueuesData?: VirtualQueuesDataType
-) {
-  //maybe pass response directly not id
-  const { eventType } = getLuckyUserParams;
-
-  // there is only one user
-  if (availableUsers.length === 1) {
-    return availableUsers[0];
-  }
-  const currentMonthBookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
-    eventTypeId: eventType.id,
-    users: availableUsers.map((user) => {
-      return { id: user.id, email: user.email };
-    }),
-    startDate: startOfMonth,
-    endDate: new Date(),
-    virtualQueuesData,
-  });
-  if (eventType.isRRWeightsEnabled) {
-    availableUsers = await filterUsersBasedOnWeights({
-      ...getLuckyUserParams,
-      availableUsers,
-      bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-      virtualQueuesData,
-      attributeWeights,
-    });
-  }
-  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-  // No need to round-robin through the only user, return early also.
-  if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
-  // TS is happy.
-  return leastRecentlyBookedUser({
-    ...getLuckyUserParams,
-    availableUsers: highestPriorityUsers,
-    bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-  });
 }
