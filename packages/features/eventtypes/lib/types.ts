@@ -63,6 +63,23 @@ type PhoneCallConfig = {
   schedulerName?: string;
 };
 
+enum EventTypeAutoTranslatedField {
+  DESCRIPTION = "DESCRIPTION",
+}
+
+type EventTypeTranslation = {
+  id: string;
+  field: EventTypeAutoTranslatedField;
+  sourceLang: string;
+  targetLang: string;
+  translatedText: string;
+  createdAt: Date;
+  createdBy: number;
+  updatedAt: Date;
+  updatedBy: number | null;
+  eventTypeId: number;
+};
+
 export type FormValues = {
   id: number;
   title: string;
@@ -110,6 +127,7 @@ export type FormValues = {
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   autoTranslateDescriptionEnabled: boolean;
+  descriptionTranslations: EventTypeTranslation[];
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;

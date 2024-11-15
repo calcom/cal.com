@@ -138,6 +138,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     isRRWeightsEnabled: false,
     eventTypeColor: null,
     autoTranslateDescriptionEnabled: false,
+    descriptionTranslations: [],
     ...eventType,
   };
 };
