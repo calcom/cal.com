@@ -8,7 +8,7 @@ export type CreateEventTypeTranslation = Omit<
 > & { userId: number };
 
 export type UpdateEventTypeTranslation = Partial<
-  Omit<EventTypeTranslation, "id" | "createdAt" | "updatedAt" | "updatedBy" | "eventType">
+  Omit<EventTypeTranslation, "id" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy" | "eventType">
 >;
 
 export class EventTypeTranslationRepository {
