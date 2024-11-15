@@ -735,7 +735,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     startTime: string,
     organizerEmail: string,
-    calEventResponses?: CalEventResponses,
+    calEventResponses?: CalEventResponses | null,
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
@@ -783,7 +783,7 @@ export default class SalesforceCRMService implements CRM {
     startTime: string;
     bookingUid?: string | null;
     organizerEmail: string;
-    calEventResponses?: CalEventResponses;
+    calEventResponses?: CalEventResponses | null;
   }): Promise<Record<string, any>> {
     const writeOnRecordBody: Record<string, any> = {};
 
@@ -827,7 +827,7 @@ export default class SalesforceCRMService implements CRM {
   }: {
     fieldValue: string;
     fieldLength: number;
-    calEventResponses?: CalEventResponses;
+    calEventResponses?: CalEventResponses | null;
   }) {
     let valueToWrite = fieldValue.substring(0, fieldLength);
 
