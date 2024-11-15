@@ -38,9 +38,9 @@ export function UpgradeTip({
 
   const hasUnpublishedTeam = !!data?.[0];
 
-  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return children;
+  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return <>{children}</>;
 
-  if (plan === "enterprise" && hasEnterprisePlan) return children;
+  if (plan === "enterprise" && hasEnterprisePlan) return <>{children}</>;
 
   if (isPending) return <>{isParentLoading}</>;
 
