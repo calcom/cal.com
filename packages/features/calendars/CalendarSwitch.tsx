@@ -28,8 +28,6 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
-        // new URLSearchParams does not accept numbers
-        credentialId: String(credentialId),
       };
 
       if (isOn) {
@@ -38,7 +36,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ ...body, credentialId }),
         });
 
         if (!res.ok) {
