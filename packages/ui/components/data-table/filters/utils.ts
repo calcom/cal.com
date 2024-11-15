@@ -1,6 +1,7 @@
 "use client";
 
 import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
+import { useMemo } from "react";
 import { z } from "zod";
 
 import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
