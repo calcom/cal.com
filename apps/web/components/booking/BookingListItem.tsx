@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -52,6 +53,8 @@ import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import SkeletonLoader from "./SkeletonLoader";
+
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
@@ -73,6 +76,13 @@ type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
   eventType: TeamEvent;
 };
 type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse">;
+type AttendeeList = {
+  name?: string;
+  email: string;
+  id: number;
+  noShow: boolean;
+  phoneNumber: string | null;
+};
 
 function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
@@ -102,6 +112,20 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
+  const [attendeeList, setAttendeeList] = useState<AttendeeList[]>([]);
+
+  useEffect(() => {
+    const attendeeList: AttendeeList[] = booking.attendees.map((attendee) => {
+      return {
+        name: attendee.name || "",
+        email: attendee.email,
+        id: attendee.id,
+        noShow: attendee.noShow || false,
+        phoneNumber: attendee.phoneNumber,
+      };
+    });
+    setAttendeeList(attendeeList);
+  }, [booking.attendees]);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
@@ -413,15 +437,10 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
+
+  if (!attendeeList || attendeeList.length === 0) {
+    return <SkeletonLoader />;
+  }
 
   return (
     <>
@@ -469,6 +488,7 @@ function BookingListItem(booking: BookingItemProps) {
       )}
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
+          setAttendeeList={setAttendeeList}
           bookingUid={booking.uid}
           attendees={attendeeList}
           setIsOpen={setIsNoShowDialogOpen}
@@ -653,6 +673,7 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {booking.attendees.length !== 0 && (
                 <DisplayAttendees
+                  setAttendeeList={setAttendeeList}
                   attendees={attendeeList}
                   user={booking.user}
                   currentEmail={userEmail}
@@ -820,33 +841,31 @@ type NoShowProps = {
   isBookingInPast: boolean;
 };
 
-const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
+type setAttendeeList = {
+  setAttendeeList: Dispatch<SetStateAction<AttendeeList[]>>;
+};
+
+const Attendee = (attendeeProps: AttendeeProps & NoShowProps & setAttendeeList) => {
+  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber, setAttendeeList } = attendeeProps;
   const { t } = useLocale();
 
-  const [noShow, setNoShow] = useState(noShowAttendee);
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
+      const newValue = data.attendees[0];
+      setAttendeeList((old: AttendeeList[]) =>
+        old.map((attendee: AttendeeList) =>
+          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
+        )
+      );
       showToast(data.message, "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
-
-  function toggleNoShow({
-    attendee,
-    bookingUid,
-  }: {
-    attendee: { email: string; noShow: boolean };
-    bookingUid: string;
-  }) {
-    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
-    setNoShow(!noShow);
-  }
 
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
@@ -901,7 +920,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 onClick={(e) => {
                   e.preventDefault();
                   setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  noShowMutation.mutate({
+                    bookingUid,
+                    attendees: [{ email: email, noShow: !noShow }],
+                  });
                 }}
                 StartIcon="eye">
                 {t("unmark_as_no_show")}
@@ -912,7 +934,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 onClick={(e) => {
                   e.preventDefault();
                   setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  noShowMutation.mutate({
+                    bookingUid,
+                    attendees: [{ email: email, noShow: !noShow }],
+                  });
                 }}
                 StartIcon="eye-off">
                 {t("mark_as_no_show")}
@@ -927,29 +952,30 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
 type GroupedAttendeeProps = {
   attendees: AttendeeProps[];
+  setAttendeeList: Dispatch<SetStateAction<AttendeeList[]>>;
   bookingUid: string;
 };
 
 const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
-  const { bookingUid } = groupedAttendeeProps;
-  const attendees = groupedAttendeeProps.attendees.map((attendee) => {
-    return {
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    };
-  });
+  const { bookingUid, attendees, setAttendeeList } = groupedAttendeeProps;
   const { t } = useLocale();
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
+      const newValue = data.attendees;
+      setAttendeeList((old) =>
+        old.map((attendee) =>
+          newValue.some((newAttendee) => newAttendee.email === attendee.email)
+            ? { ...attendee, ...newValue.find((newAttendee) => newAttendee.email === attendee.email) }
+            : attendee
+        )
+      );
       showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
-  const { control, handleSubmit } = useForm<{
+  const { control, handleSubmit, setValue } = useForm<{
     attendees: AttendeeProps[];
   }>({
     defaultValues: {
@@ -962,6 +988,10 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     control,
     name: "attendees",
   });
+
+  useEffect(() => {
+    setValue("attendees", attendees);
+  }, [attendees]);
 
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
     const filteredData = data.attendees.slice(1);
@@ -1024,31 +1054,25 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
 };
 
 const NoShowAttendeesDialog = ({
+  setAttendeeList,
   attendees,
   isOpen,
   setIsOpen,
   bookingUid,
 }: {
+  setAttendeeList: Dispatch<SetStateAction<AttendeeList[]>>;
   attendees: AttendeeProps[];
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
   bookingUid: string;
 }) => {
   const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(
-    attendees.map((attendee) => ({
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    }))
-  );
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
       const newValue = data.attendees[0];
-      setNoShowAttendees((old) =>
-        old.map((attendee) =>
+      setAttendeeList((old: AttendeeList[]) =>
+        old.map((attendee: AttendeeList) =>
           attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
         )
       );
@@ -1062,7 +1086,7 @@ const NoShowAttendeesDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
       <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
-        {noShowAttendees.map((attendee) => (
+        {attendees.map((attendee) => (
           <form
             key={attendee.id}
             onSubmit={(e) => {
@@ -1156,12 +1180,14 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
 };
 
 const DisplayAttendees = ({
+  setAttendeeList,
   attendees,
   user,
   currentEmail,
   bookingUid,
   isBookingInPast,
 }: {
+  setAttendeeList: Dispatch<SetStateAction<AttendeeList[]>>;
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
@@ -1175,7 +1201,12 @@ const DisplayAttendees = ({
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+      <Attendee
+        {...attendees[0]}
+        bookingUid={bookingUid}
+        isBookingInPast={isBookingInPast}
+        setAttendeeList={setAttendeeList}
+      />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
@@ -1183,17 +1214,31 @@ const DisplayAttendees = ({
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+                  <Attendee
+                    {...attendee}
+                    bookingUid={bookingUid}
+                    isBookingInPast={isBookingInPast}
+                    setAttendeeList={setAttendeeList}
+                  />
                 </p>
               ))}>
               {isBookingInPast ? (
-                <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />
+                <GroupedAttendees
+                  attendees={attendees}
+                  bookingUid={bookingUid}
+                  setAttendeeList={setAttendeeList}
+                />
               ) : (
                 <GroupedGuests guests={attendees} />
               )}
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+            <Attendee
+              {...attendees[1]}
+              bookingUid={bookingUid}
+              isBookingInPast={isBookingInPast}
+              setAttendeeList={setAttendeeList}
+            />
           )}
         </>
       )}
