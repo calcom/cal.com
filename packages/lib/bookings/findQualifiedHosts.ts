@@ -11,7 +11,7 @@ export const findQualifiedHosts = async <
   hosts?: (Pick<Host, "isFixed" | "createdAt"> & {
     user: T;
   })[];
-  users: T[];
+  users?: T[];
   schedulingType: SchedulingType | null;
 }): Promise<
   {
@@ -32,7 +32,7 @@ export const findQualifiedHosts = async <
           })),
           maxLeadThreshold: eventType.maxLeadThreshold,
         })
-      : eventType.users.map((user) => {
+      : (eventType.users || []).map((user) => {
           return {
             isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
             email: user.email,

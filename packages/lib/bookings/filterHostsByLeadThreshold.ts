@@ -1,4 +1,6 @@
-import prisma from "@calcom/prisma";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
+
+const START_OF_MONTH = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
 export const errorCodes = {
   MAX_LEAD_THRESHOLD_FALSY: "Max lead threshold should be null or > 1, not 0.",
@@ -21,29 +23,21 @@ const computeLeadOffsets = async <T = Record<string, unknown>>({
     createdAt: Date;
     user: {
       id: number;
+      email: string;
     };
   })[];
 }) => {
   if (!hosts.length) return [];
-
-  const mostRecentDate = getMostRecentDate(hosts.map(({ createdAt }) => createdAt));
-  const userIds = hosts.map((host) => host.user.id);
+  // use either the beginning of the month, of the most recently added host; whichever is most recent
+  const startDate = getMostRecentDate([...hosts.map(({ createdAt }) => createdAt), START_OF_MONTH]);
   // we need booking data now, this cannot be queried ahead of time as it requires knowing the most recent host date
   // data only available after the initial call.
-  const bookingCounts = await prisma.booking.groupBy({
-    by: ["userId"],
-    where: {
-      userId: {
-        in: userIds,
-      },
-      eventTypeId,
-      createdAt: {
-        gt: mostRecentDate,
-      },
-    },
-    _count: {
-      _all: true,
-    },
+  const bookingCounts = await BookingRepository.groupByActiveBookingCounts({
+    startDate,
+    users: hosts.map((host) => ({
+      ...host.user,
+    })),
+    eventTypeId,
   });
   const { minBookingCount, bookingCountMap } = bookingCounts.reduce(
     (
@@ -98,7 +92,7 @@ export const filterHostsByLeadThreshold = async <T = Record<string, unknown>>({
   maxLeadThreshold,
   eventTypeId,
 }: {
-  hosts: ({ isFixed: boolean; createdAt: Date; user: { id: number } } & T)[];
+  hosts: ({ isFixed: boolean; createdAt: Date; user: { id: number; email: string } } & T)[];
   maxLeadThreshold: number | null;
   eventTypeId: number;
 }): Promise<Omit<T, "leadOffset">[]> => {

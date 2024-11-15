@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import {
   filterHostsByLeadThreshold,
@@ -27,7 +28,7 @@ afterEach(() => {
 
 describe("filterHostByLeadThreshold", () => {
   it("skips filter if host is fixed", async () => {
-    const hosts = [{ isFixed: true, createdAt: new Date(), user: { id: 1 } }];
+    const hosts = [{ isFixed: true, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } }];
     expect(
       filterHostsByLeadThreshold({
         hosts,
@@ -61,8 +62,8 @@ describe("filterHostByLeadThreshold", () => {
       { userId: 2, _count: { _all: 10 } },
     ]);
     const hosts = [
-      { isFixed: false, createdAt: new Date(), user: { id: 1 } },
-      { isFixed: false, createdAt: new Date(), user: { id: 2 } },
+      { isFixed: false, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+      { isFixed: false, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
     ];
     // host is not disqualified as the threshold of 11 is not exceeded.
     expect(
@@ -97,8 +98,8 @@ describe("filterHostByLeadThreshold", () => {
     ]);
     const hosts = [
       // fixed users do not count towards disqualification.
-      { isFixed: true, createdAt: new Date(), user: { id: 1 } },
-      { isFixed: false, createdAt: new Date(), user: { id: 2 } },
+      { isFixed: true, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+      { isFixed: false, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
     ];
     // with a reduced threshold of 3 the second host (t=10) is disqualified
     expect(
@@ -111,10 +112,37 @@ describe("filterHostByLeadThreshold", () => {
     expect(prismaMock.booking.groupBy).toHaveBeenCalledWith({
       by: ["userId"],
       where: {
-        createdAt: { gt: hosts[1].createdAt },
+        OR: [
+          {
+            user: {
+              id: {
+                in: [2],
+              },
+            },
+            OR: [
+              {
+                noShowHost: false,
+              },
+              {
+                noShowHost: null,
+              },
+            ],
+          },
+          {
+            attendees: {
+              some: {
+                email: {
+                  in: ["example2@acme.com"],
+                },
+              },
+            },
+          },
+        ],
+        attendees: { some: { noShow: false } },
+        status: BookingStatus.ACCEPTED,
         eventTypeId: 1,
-        userId: {
-          in: [2],
+        createdAt: {
+          gte: hosts[1].createdAt,
         },
       },
       _count: { _all: true },
