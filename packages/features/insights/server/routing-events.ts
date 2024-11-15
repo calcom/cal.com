@@ -114,22 +114,28 @@ class RoutingEventsInsights {
     };
 
     // Get total forms count
-    const totalForms = await prisma.app_RoutingForms_Form.count({
+    const totalFormsPromise = prisma.app_RoutingForms_Form.count({
       where: formsWhereCondition,
     });
 
     // Get total responses
-    const totalResponses = await prisma.app_RoutingForms_FormResponse.count({
+    const totalResponsesPromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,
     });
 
     // Get responses without booking
-    const responsesWithoutBooking = await prisma.app_RoutingForms_FormResponse.count({
+    const responsesWithoutBookingPromise = prisma.app_RoutingForms_FormResponse.count({
       where: {
         ...responsesWhereCondition,
         routedToBookingUid: null,
       },
     });
+
+    const [totalForms, totalResponses, responsesWithoutBooking] = await Promise.all([
+      totalFormsPromise,
+      totalResponsesPromise,
+      responsesWithoutBookingPromise,
+    ]);
 
     return {
       created: totalForms,
