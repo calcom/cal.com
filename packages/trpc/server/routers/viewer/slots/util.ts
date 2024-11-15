@@ -478,10 +478,10 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
   const skipContactOwner = input.skipContactOwner;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
-
+  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
     hosts: eventHosts,
-    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    routedTeamMemberIds,
     contactOwnerEmail,
   });
 
@@ -756,6 +756,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const troubleshooterData = enableTroubleshooter
     ? {
         troubleshooter: {
+          routedTeamMemberIds: routedTeamMemberIds,
           // One that Salesforce asked for
           askedContactOwner: contactOwnerEmailFromInput,
           // One that we used as per Routing skipContactOwner flag
