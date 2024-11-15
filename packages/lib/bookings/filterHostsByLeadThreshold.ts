@@ -79,7 +79,7 @@ export const _filterHostByLeadThreshold = ({
   if (!maxLeadThreshold) {
     throw new Error(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
   }
-  return host.leadOffset <= maxLeadThreshold;
+  return host.leadOffset < maxLeadThreshold; // leadOffset is 0-indexed.
 };
 
 /*
