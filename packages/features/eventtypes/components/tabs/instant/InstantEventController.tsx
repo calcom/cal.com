@@ -78,6 +78,7 @@ export default function InstantEventController({
 
   const { fields, append, remove } = useFieldArray<FormValues>({
     control: formMethods.control,
+    // @ts-expect-error - this is a hack. TODO: fix this
     name: "instantMeetingParameters" as const,
   });
 
@@ -205,11 +206,7 @@ export default function InstantEventController({
                                 />
                               </div>
                             ))}
-                            <Button
-                              color="minimal"
-                              StartIcon="plus"
-                              onClick={() => append("")}
-                              className="mt-2">
+                            <Button color="minimal" StartIcon="plus" onClick={() => append("" as any)}>
                               {t("add_parameter")}
                             </Button>
                           </div>

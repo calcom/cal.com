@@ -72,7 +72,8 @@ const BookerComponent = ({
   const searchParams = useSearchParams();
 
   const areInstantMeetingParametersSet = !!event.data?.instantMeetingParameters
-    ? event.data.instantMeetingParameters.every((param) => Array.from(searchParams.values()).includes(param))
+    ? searchParams &&
+      event.data.instantMeetingParameters.every((param) => Array.from(searchParams.values()).includes(param))
     : true;
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
