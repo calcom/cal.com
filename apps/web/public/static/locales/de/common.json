@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "Weiterleitung an einen Benutzer, der mit einem Lookup-Feld eines Accounts übereinstimmt",
   "salesforce_option": "Salesforce-Option",
   "lookup_field_name": "Name des Lookup-Felds",
+  "rr_distribution_method": "Verteilung",
+  "rr_distribution_method_description": "Ermöglicht die Optimierung der Verteilung für maximale Verfügbarkeit oder eine ausgewogenere Zuweisung.",
+  "rr_distribution_method_availability_title": "Verfügbarkeit maximieren",
+  "rr_distribution_method_availability_description": "Ermöglicht Buchenden, Meetings zu buchen, wann immer ein Host verfügbar ist. Nutzen Sie dies, um die Anzahl potenzieller Meetings zu maximieren, wenn die gleichmäßige Verteilung der Meetings auf die Hosts weniger wichtig ist.",
+  "rr_distribution_method_balanced_title": "Lastverteilung",
+  "rr_distribution_method_balanced_description": "Wir überwachen, wie viele Buchungen bei jedem Host eingegangen sind und vergleichen dies mit anderen. Hosts, die zu weit voraus sind, werden temporär deaktiviert, damit die Buchungen gleichmäßig verteilt werden.",
+  "exclude_emails_that_contain": "E-Mails ausschließen, die ... enthalten",
+  "exclude_emails_match_found_error_message": "Bitte geben Sie eine gültige Geschäfts-E-Mail-Adresse ein",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

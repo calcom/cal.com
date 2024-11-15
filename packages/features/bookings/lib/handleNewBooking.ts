@@ -57,7 +57,7 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DistributionMethod, getLuckyUser } from "@calcom/lib/server/getLuckyUser";
+import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -469,7 +469,7 @@ async function handler(
 
         const newLuckyUser = isSameRoundRobinHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
-          : await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+          : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
               allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),

@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "路由至符合帳戶查詢欄位的使用者",
   "salesforce_option": "Salesforce選項",
   "lookup_field_name": "查詢欄位名稱",
+  "rr_distribution_method": "分配方式",
+  "rr_distribution_method_description": "可以優化分配方式以達到最大可用性或更平衡的任務分配。",
+  "rr_distribution_method_availability_title": "最大化可用性",
+  "rr_distribution_method_availability_description": "讓預約者可以在任何主持人有空的時候預約會議。當會議在主持人之間的平均分配不是那麼重要時，可使用此選項來最大化潛在會議預約數量。",
+  "rr_distribution_method_balanced_title": "負載平衡",
+  "rr_distribution_method_balanced_description": "系統會監控每位主持人的預約數量並與其他人進行比較，當某些主持人的預約量遠超過其他人時，系統會暫時停用這些主持人，以確保預約能夠均勻分配。",
+  "exclude_emails_that_contain": "排除包含...的電子郵件",
+  "exclude_emails_match_found_error_message": "請輸入有效的工作電子郵件地址",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
