@@ -12,7 +12,9 @@ export const RoutingFormFieldFilter = () => {
   const { selectedFilter, selectedTeamId, isAll, selectedRoutingFormId, selectedRoutingFormFilter } = filter;
 
   // Get the field ID from the filter value (rf_123 -> 123)
-  const fieldId = selectedFilter?.[0]?.startsWith("rf_") ? selectedFilter[0].substring(3) : null;
+  const fieldId = selectedFilter
+    ? selectedFilter.find((filter) => filter.startsWith("rf_"))?.substring(3) ?? null
+    : null;
 
   const { data: fieldOptions } = trpc.viewer.insights.getRoutingFormFieldOptions.useQuery(
     {
@@ -26,7 +28,9 @@ export const RoutingFormFieldFilter = () => {
   );
 
   const currentField = useMemo(() => {
-    return fieldOptions?.find((option) => `rf_${option.id}` === selectedFilter?.[0]);
+    return fieldOptions?.find((option) => {
+      return `${option.id}` === fieldId;
+    });
   }, [fieldOptions, selectedFilter]);
 
   // Return null if no routing form field is selected
