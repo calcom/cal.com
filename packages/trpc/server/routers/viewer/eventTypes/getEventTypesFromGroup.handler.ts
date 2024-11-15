@@ -215,6 +215,16 @@ const filterEventTypes = async (
         user.profile.organization = orgWithoutCalVideoLogo;
       }
     });
+
+    // Clean child event types
+    eventType.children?.forEach((child) => {
+      child.users?.forEach((user) => {
+        if (user.profile?.organization) {
+          const { calVideoLogo, ...orgWithoutCalVideoLogo } = user.profile.organization;
+          user.profile.organization = orgWithoutCalVideoLogo;
+        }
+      });
+    });
   });
 
   log.info(
