@@ -206,10 +206,10 @@ export default function InstantEventController({
                                 />
                               </div>
                             ))}
-                            <Button color="minimal" StartIcon="plus" onClick={() => append("" as any)}>
-                              {t("add_parameter")}
-                            </Button>
                           </div>
+                          <Button color="minimal" StartIcon="plus" onClick={() => append("" as any)}>
+                            {t("add_parameter")}
+                          </Button>
                         </div>
                         <Controller
                           name="instantMeetingExpiryTimeOffsetInSeconds"
