@@ -1671,7 +1671,7 @@ export const insightsRouter = router({
           startDate,
           endDate,
           userId,
-          isAll,
+          isAll: isAll ?? false,
           organizationId: ctx.user.organizationId,
           routingFormId,
           bookingStatus,

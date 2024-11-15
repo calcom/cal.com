@@ -507,7 +507,7 @@ class RoutingEventsInsights {
     const formFieldsMap = forms.reduce((acc, form) => {
       const fields = routingFormFieldsSchema.parse(form.fields);
       acc[form.id] =
-        fields?.reduce((fieldMap, field) => {
+        fields?.reduce((fieldMap: Record<string, FormFieldOption>, field) => {
           fieldMap[field.id] = {
             label: field.label,
             type: field.type,
