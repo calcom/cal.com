@@ -266,10 +266,10 @@ export const insightsRouter = router({
 
     const r = await buildBaseWhereCondition({
       teamId,
-      eventTypeId,
-      memberUserId,
-      userId,
-      isAll,
+      eventTypeId: eventTypeId ?? undefined,
+      memberUserId: memberUserId ?? undefined,
+      userId: userId ?? undefined,
+      isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
         userOrganizationId: ctx.user.organizationId,
@@ -431,10 +431,10 @@ export const insightsRouter = router({
 
       const r = await buildBaseWhereCondition({
         teamId,
-        eventTypeId,
-        memberUserId,
-        userId: selfUserId,
-        isAll,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: selfUserId ?? undefined,
+        isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
           userOrganizationId: ctx.user.organizationId,
@@ -513,10 +513,10 @@ export const insightsRouter = router({
 
     const r = await buildBaseWhereCondition({
       teamId,
-      eventTypeId,
-      memberUserId,
-      userId,
-      isAll,
+      eventTypeId: eventTypeId ?? undefined,
+      memberUserId: memberUserId ?? undefined,
+      userId: userId ?? undefined,
+      isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
         userOrganizationId: ctx.user.organizationId,
@@ -651,10 +651,10 @@ export const insightsRouter = router({
 
     const { whereCondition: whereConditional } = await buildBaseWhereCondition({
       teamId,
-      eventTypeId,
-      memberUserId,
-      userId,
-      isAll,
+      eventTypeId: eventTypeId ?? undefined,
+      memberUserId: memberUserId ?? undefined,
+      userId: userId ?? undefined,
+      isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
         userOrganizationId: ctx.user.organizationId,
@@ -719,10 +719,10 @@ export const insightsRouter = router({
 
       const r = await buildBaseWhereCondition({
         teamId,
-        eventTypeId,
-        memberUserId,
-        userId,
-        isAll,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
           userOrganizationId: ctx.user.organizationId,
@@ -800,10 +800,10 @@ export const insightsRouter = router({
 
       const r = await buildBaseWhereCondition({
         teamId,
-        eventTypeId,
-        memberUserId,
-        userId,
-        isAll,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
           userOrganizationId: ctx.user.organizationId,
@@ -1159,10 +1159,10 @@ export const insightsRouter = router({
 
     const r = await buildBaseWhereCondition({
       teamId,
-      eventTypeId,
-      memberUserId,
-      userId,
-      isAll,
+      eventTypeId: eventTypeId ?? undefined,
+      memberUserId: memberUserId ?? undefined,
+      userId: userId ?? undefined,
+      isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
         userOrganizationId: ctx.user.organizationId,
@@ -1278,10 +1278,10 @@ export const insightsRouter = router({
       const user = ctx.user;
       const r = await buildBaseWhereCondition({
         teamId,
-        eventTypeId,
-        memberUserId,
-        userId,
-        isAll,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
           userOrganizationId: ctx.user.organizationId,
@@ -1358,10 +1358,10 @@ export const insightsRouter = router({
 
       const r = await buildBaseWhereCondition({
         teamId,
-        eventTypeId,
-        memberUserId,
-        userId,
-        isAll,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
           userOrganizationId: ctx.user.organizationId,
@@ -1437,10 +1437,10 @@ export const insightsRouter = router({
 
       const r = await buildBaseWhereCondition({
         teamId,
-        eventTypeId,
-        memberUserId,
-        userId,
-        isAll,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
           userOrganizationId: ctx.user.organizationId,

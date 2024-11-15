@@ -506,18 +506,21 @@ class RoutingEventsInsights {
 
     const formFieldsMap = forms.reduce((acc, form) => {
       const fields = routingFormFieldsSchema.parse(form.fields);
-      acc[form.id] = fields.reduce((fieldMap, field) => {
-        fieldMap[field.id] = {
-          label: field.label,
-          type: field.type,
-          options:
-            field.options?.reduce((optMap, opt) => {
-              optMap[opt.id] = opt.label;
-              return optMap;
-            }, {} as Record<string, string>) ?? {},
-        };
-        return fieldMap;
-      }, {} as Record<string, FormFieldOption>);
+      acc[form.id] =
+        fields?.reduce((fieldMap, field) => {
+          fieldMap[field.id] = {
+            label: field.label,
+            type: field.type,
+            options:
+              field.options?.reduce((optMap, opt) => {
+                if (opt.id !== null) {
+                  optMap[opt.id] = opt.label;
+                }
+                return optMap;
+              }, {} as Record<string, string>) ?? {},
+          };
+          return fieldMap;
+        }, {}) || {};
       return acc;
     }, {} as FormFieldsMap);
 
