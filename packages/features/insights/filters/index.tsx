@@ -38,6 +38,16 @@ const ClearFilters = () => {
 };
 
 export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: boolean }) => {
+  const { filter } = useFilterContext();
+  const { selectedFilter } = filter;
+
+  // Get all filters that relate to the routing form
+  const routingFormFieldIds = selectedFilter
+    ? selectedFilter.map((filter) => {
+        if (filter.startsWith("rf_")) return filter.substring(3);
+      })
+    : [];
+
   return (
     <div className="ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
@@ -51,7 +61,9 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
           <>
             <RoutingFormFilterList />
             <BookingStatusFilter />
-            <RoutingFormFieldFilter />
+            {routingFormFieldIds.map((fieldId) => {
+              if (fieldId) return <RoutingFormFieldFilter fieldId={fieldId} />;
+            })}
           </>
         ) : null}
 
