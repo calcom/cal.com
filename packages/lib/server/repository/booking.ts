@@ -23,6 +23,71 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
+const buildWhereClauseForActiveBookings = ({
+  eventTypeId,
+  startDate,
+  endDate,
+  users,
+  virtualQueuesData,
+}: {
+  eventTypeId: number;
+  startDate?: Date;
+  endDate?: Date;
+  users: { id: number; email: string }[];
+  virtualQueuesData?: {
+    chosenRouteId: string;
+    fieldOptionData: {
+      fieldId: string;
+      selectedOptionIds: string | number | string[];
+    };
+  };
+}): Prisma.BookingWhereInput => ({
+  OR: [
+    {
+      user: {
+        id: {
+          in: users.map((user) => user.id),
+        },
+      },
+      OR: [
+        {
+          noShowHost: false,
+        },
+        {
+          noShowHost: null,
+        },
+      ],
+    },
+    {
+      attendees: {
+        some: {
+          email: {
+            in: users.map((user) => user.email),
+          },
+        },
+      },
+    },
+  ],
+  attendees: { some: { noShow: false } },
+  status: BookingStatus.ACCEPTED,
+  eventTypeId,
+  ...(startDate || endDate
+    ? {
+        createdAt: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
+    : {}),
+  ...(virtualQueuesData
+    ? {
+        routedFromRoutingFormReponse: {
+          chosenRouteId: virtualQueuesData.chosenRouteId,
+        },
+      }
+    : {}),
+});
+
 export class BookingRepository {
   static async getBookingAttendees(bookingId: number) {
     return await prisma.attendee.findMany({
@@ -75,6 +140,28 @@ export class BookingRepository {
     });
   }
 
+  static async groupByActiveBookingCounts({
+    users,
+    eventTypeId,
+    startDate,
+  }: {
+    users: { id: number; email: string }[];
+    eventTypeId: number;
+    startDate?: Date;
+  }) {
+    return await prisma.booking.groupBy({
+      by: ["userId"],
+      where: buildWhereClauseForActiveBookings({
+        users,
+        eventTypeId,
+        startDate,
+      }),
+      _count: {
+        _all: true,
+      },
+    });
+  }
+
   static async getAllBookingsForRoundRobin({
     users,
     eventTypeId,
@@ -94,55 +181,14 @@ export class BookingRepository {
       };
     };
   }) {
-    const whereClause: Prisma.BookingWhereInput = {
-      OR: [
-        {
-          user: {
-            id: {
-              in: users.map((user) => user.id),
-            },
-          },
-          OR: [
-            {
-              noShowHost: false,
-            },
-            {
-              noShowHost: null,
-            },
-          ],
-        },
-        {
-          attendees: {
-            some: {
-              email: {
-                in: users.map((user) => user.email),
-              },
-            },
-          },
-        },
-      ],
-      attendees: { some: { noShow: false } },
-      status: BookingStatus.ACCEPTED,
-      eventTypeId,
-      ...(startDate && endDate
-        ? {
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          }
-        : {}),
-      ...(virtualQueuesData
-        ? {
-            routedFromRoutingFormReponse: {
-              chosenRouteId: virtualQueuesData.chosenRouteId,
-            },
-          }
-        : {}),
-    };
-
     const allBookings = await prisma.booking.findMany({
-      where: whereClause,
+      where: buildWhereClauseForActiveBookings({
+        eventTypeId,
+        startDate,
+        endDate,
+        users,
+        virtualQueuesData,
+      }),
       select: {
         id: true,
         attendees: true,
@@ -180,7 +226,6 @@ export class BookingRepository {
         }
       });
     }
-    console.log(`queueBookings ${JSON.stringify(queueBookings.map((booking) => booking.id))}`);
     return queueBookings;
   }
 

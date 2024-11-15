@@ -149,6 +149,7 @@ model EventType {
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
+  maxLeadThreshold                        Int?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?

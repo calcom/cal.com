@@ -15,13 +15,6 @@ async function getAttributesQueryValue() {
   return getAttributesQueryValue;
 }
 
-export enum DistributionMethod {
-  PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
-  // BALANCED_ASSIGNMENT = "BALANCED_ASSIGNMENT",
-  // ROUND_ROBIN (for fairness, rotating through assignees)
-  // LOAD_BALANCED (ensuring an even workload)
-}
-
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -362,14 +355,9 @@ export async function getLuckyUser<
     priority?: number | null;
     weight?: number | null;
   }
->(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
-  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
-) {
+>({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>) {
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
-
   return _getLuckyUser(
-    distributionMethod,
     {
       ...getLuckyUserParams,
       availableUsers,
@@ -625,15 +613,12 @@ type RoutingFormResponse = {
   };
 };
 
-// TODO: Configure distributionAlgorithm from the event type configuration
-// TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 async function _getLuckyUser<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
 >(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
   { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>,
   attributeWeights?: {
     userId: number;
@@ -657,27 +642,22 @@ async function _getLuckyUser<
     endDate: new Date(),
     virtualQueuesData,
   });
-
-  switch (distributionMethod) {
-    case DistributionMethod.PRIORITIZE_AVAILABILITY: {
-      if (eventType.isRRWeightsEnabled) {
-        availableUsers = await filterUsersBasedOnWeights({
-          ...getLuckyUserParams,
-          availableUsers,
-          bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-          virtualQueuesData,
-          attributeWeights,
-        });
-      }
-      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-      // No need to round-robin through the only user, return early also.
-      if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
-      // TS is happy.
-      return leastRecentlyBookedUser({
-        ...getLuckyUserParams,
-        availableUsers: highestPriorityUsers,
-        bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-      });
-    }
+  if (eventType.isRRWeightsEnabled) {
+    availableUsers = await filterUsersBasedOnWeights({
+      ...getLuckyUserParams,
+      availableUsers,
+      bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+      virtualQueuesData,
+      attributeWeights,
+    });
   }
+  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+  // No need to round-robin through the only user, return early also.
+  if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
+  // TS is happy.
+  return leastRecentlyBookedUser({
+    ...getLuckyUserParams,
+    availableUsers: highestPriorityUsers,
+    bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+  });
 }
