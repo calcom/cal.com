@@ -735,7 +735,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     startTime: string,
     organizerEmail: string,
-    calEventResponses: CalEventResponses,
+    calEventResponses?: CalEventResponses,
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
@@ -783,7 +783,7 @@ export default class SalesforceCRMService implements CRM {
     startTime: string;
     bookingUid?: string | null;
     organizerEmail: string;
-    calEventResponses: CalEventResponses;
+    calEventResponses?: CalEventResponses;
   }): Promise<Record<string, any>> {
     const writeOnRecordBody: Record<string, any> = {};
 
@@ -827,9 +827,12 @@ export default class SalesforceCRMService implements CRM {
   }: {
     fieldValue: string;
     fieldLength: number;
-    calEventResponses: CalEventResponses;
+    calEventResponses?: CalEventResponses;
   }) {
     let valueToWrite = fieldValue.substring(0, fieldLength);
+
+    if (!calEventResponses) return valueToWrite;
+
     // Check if we need to replace any values with values from the booking questions
     const regexValueToReplace = /\{(.*?)\}/g;
     valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
