@@ -1,5 +1,4 @@
-import type { Host } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
@@ -8,7 +7,7 @@ export const findQualifiedHosts = async <
 >(eventType: {
   id: number;
   maxLeadThreshold: number | null;
-  hosts?: (Pick<Host, "isFixed" | "createdAt"> & {
+  hosts?: ({ isFixed: boolean; createdAt: Date } & {
     user: T;
   })[];
   users?: T[];
