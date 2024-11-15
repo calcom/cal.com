@@ -9,15 +9,12 @@ const mergeUserAndTeamAppCredentials = (
   includeTeamInstalledApps?: boolean
 ) => {
   const teamAppCredentials = getTeamAppCredentials(userTeams);
-  let credentials: Credentials = userCredentialIds;
 
   if (!includeTeamInstalledApps) {
-    credentials = teamAppCredentials;
-  } else {
-    credentials = userCredentialIds.concat(teamAppCredentials);
+    return teamAppCredentials;
   }
 
-  return credentials;
+  return userCredentialIds.concat(teamAppCredentials);
 };
 
 export default mergeUserAndTeamAppCredentials;
