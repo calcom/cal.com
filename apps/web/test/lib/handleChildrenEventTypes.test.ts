@@ -29,7 +29,7 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-describe("handleChildrenEventTypes @test", () => {
+describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {
       mockFindFirstEventType();
@@ -112,6 +112,7 @@ describe("handleChildrenEventTypes @test", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -182,7 +183,7 @@ describe("handleChildrenEventTypes @test", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -265,6 +266,7 @@ describe("handleChildrenEventTypes @test", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -337,7 +339,7 @@ describe("handleChildrenEventTypes @test", () => {
           length: 30,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -378,6 +380,7 @@ describe("handleChildrenEventTypes @test", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
