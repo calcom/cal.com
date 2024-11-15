@@ -23,7 +23,7 @@ export function UpgradeTip({
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
   /**Chldren renders when the user is in a team */
-  children: JSX.Element;
+  children: ReactNode;
   isParentLoading?: ReactNode;
   plan: "team" | "enterprise";
 }) {

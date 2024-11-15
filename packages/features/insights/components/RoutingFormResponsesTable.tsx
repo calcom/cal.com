@@ -72,7 +72,7 @@ function BookedByCell({
   rowId: number;
 }) {
   const cellId = useId();
-  if (!attendees) return <div className="h-6 w-[200px]" />;
+  if (!attendees || attendees.length === 0) return null;
 
   return attendees.map((attendee) => (
     <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">

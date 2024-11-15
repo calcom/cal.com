@@ -8,11 +8,12 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
-type RawRoutingData = RouterOutputs["viewer"]["insights"]["rawRoutingData"] | undefined;
+type RawRoutingData = RouterOutputs["viewer"]["insights"]["rawRoutingData"]["data"][number] | undefined;
 
 interface BatchResult {
   data: RawRoutingData[];
-  nextCursor: string | null;
+  nextCursor: number | null;
+  hasMore: boolean;
 }
 
 const RoutingDownload = () => {
