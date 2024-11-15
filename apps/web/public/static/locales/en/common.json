@@ -2770,5 +2770,11 @@
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce Option",
   "lookup_field_name": "Lookup Field Name",
+  "rr_distribution_method": "Distribution",
+  "rr_distribution_method_description": "Allows for optimising distribution for maximum availability or to aim for a more balanced assignment.",
+  "rr_distribution_method_availability_title": "Maximize availability",
+  "rr_distribution_method_availability_description": "Allows bookers to book meetings whenever a host is available. Use this to maximize the number of potential meetings booked and when the even distribution of meetings across hosts is less important.",
+  "rr_distribution_method_balanced_title": "Load balancing",
+  "rr_distribution_method_balanced_description": "We will monitor how many bookings have been made with each host and compare this with others, disabling some hosts that are too far ahead so bookings are evenly distributed.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
