@@ -207,6 +207,15 @@ const filterEventTypes = async (
       evType.hosts = [];
     });
 
+  filteredEventTypes.forEach((eventType) => {
+    eventType.users?.forEach((user) => {
+      if (user.profile?.organization) {
+        const { calVideoLogo, ...orgWithoutCalVideoLogo } = user.profile.organization;
+        user.profile.organization = orgWithoutCalVideoLogo;
+      }
+    });
+  });
+
   log.info(
     "filteredEventTypes",
     safeStringify({
