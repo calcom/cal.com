@@ -335,6 +335,13 @@ export default async function main() {
     });
   }
 
+  if (process.env.PIPE_DRIVE_CLIENT_ID && process.env.PIPE_DRIVE_CLIENT_SECRET) {
+    await createApp("pipedrive-crm", "pipedrive-crm", ["crm"], "pipedrive-crm_other_calendar", {
+      client_id: process.env.PIPE_DRIVE_CLIENT_ID,
+      client_secret: process.env.PIPE_DRIVE_CLIENT_SECRET,
+    });
+  }
+
   await createApp("wipe-my-cal", "wipemycalother", ["automation"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
