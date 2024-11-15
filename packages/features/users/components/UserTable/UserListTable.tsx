@@ -339,7 +339,8 @@ export function UserListTable() {
         id: "actions",
         enableHiding: false,
         meta: {
-          sticky: { position: "right" },
+          // TODO: fix the CSS to make the actions column sticky
+          // sticky: { position: "right" },
         },
         cell: ({ row }) => {
           const user = row.original;
