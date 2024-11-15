@@ -14280,7 +14280,7 @@
             "description": "The time zone of the attendee.",
             "example": "America/New_York"
           },
-          "attendeePhoneNumber": {
+          "phoneNumber": {
             "type": "string",
             "description": "The phone number of the attendee in international format.",
             "example": "+919876543210"

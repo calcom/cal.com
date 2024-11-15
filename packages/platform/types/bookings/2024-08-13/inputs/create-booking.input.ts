@@ -35,7 +35,7 @@ function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
         validate(value: any, args: ValidationArguments) {
           const obj = args.object as Attendee;
 
-          const hasPhoneNumber = !!obj.attendeePhoneNumber && obj.attendeePhoneNumber.trim().length > 0;
+          const hasPhoneNumber = !!obj.phoneNumber && obj.phoneNumber.trim().length > 0;
           const hasEmail = !!obj.email && obj.email.trim().length > 0;
           return hasPhoneNumber || hasEmail;
         },
@@ -86,7 +86,7 @@ class Attendee {
   @Validate((value: string) => !value || isValidPhoneNumber(value), {
     message: "Invalid phone number format. Please use international format.",
   })
-  attendeePhoneNumber?: string;
+  phoneNumber?: string;
 
   @ApiPropertyOptional({
     enum: BookingLanguage,
