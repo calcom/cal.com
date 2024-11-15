@@ -2,9 +2,12 @@ import type { Table } from "@tanstack/react-table";
 
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
 
-export const downloadAsCsv = (csvRaw: string, filename: string) => {
+export const downloadAsCsv = (data: string | Record<string, any>[], filename: string) => {
+  // If data is an array of objects, convert it to CSV string
+  const csvString = typeof data === "string" ? data : objectsToCsv(data);
+
   // Create a Blob from the text data
-  const blob = new Blob([csvRaw], { type: "text/plain" });
+  const blob = new Blob([csvString], { type: "text/plain" });
 
   // Create an Object URL for the Blob
   const url = window.URL.createObjectURL(blob);
@@ -12,13 +15,37 @@ export const downloadAsCsv = (csvRaw: string, filename: string) => {
   // Create a download link
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename; // Specify the filename
+  a.download = filename;
 
   // Simulate a click event to trigger the download
   a.click();
 
   // Release the Object URL to free up memory
   window.URL.revokeObjectURL(url);
+};
+
+export const objectsToCsv = (data: Record<string, any>[]): string => {
+  if (!data.length) return "";
+
+  // Get headers from the first object
+  const headers = Object.keys(data[0]);
+
+  // Create CSV rows
+  const csvRows = [
+    // Header row
+    headers.map((header) => sanitizeValue(header)).join(","),
+    // Data rows
+    ...data.map((row) =>
+      headers
+        .map((header) => {
+          const value = row[header];
+          return sanitizeValue(value?.toString() ?? "");
+        })
+        .join(",")
+    ),
+  ];
+
+  return csvRows.join("\n");
 };
 
 export const sanitizeValue = (value: string) => {

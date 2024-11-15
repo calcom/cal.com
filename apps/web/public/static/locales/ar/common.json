@@ -2215,7 +2215,7 @@
   "add_times_to_your_email": "حدّد بعض الفترات المتاحة وأدرجها في رسالتك الإلكترونية",
   "select_time": "اختيار الوقت",
   "select_date": "اختيار التاريخ",
-  "connecting_you_to_someone": "نقوم بربطك بشخص ما.",
+  "connecting_you_to_someone": "نقوم بربطك بشخص من {{orgName}}.",
   "please_do_not_close_this_tab": "من فضلك لا تغلق أو تحدّث هذه الصفحة",
   "see_all_available_times": "رؤية كل الأوقات المتاحة",
   "org_team_names_example_1": "مثال، فريق التسويق",
@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "التوجيه إلى مستخدم يطابق حقل البحث في الحساب",
   "salesforce_option": "خيار Salesforce",
   "lookup_field_name": "اسم حقل البحث",
+  "rr_distribution_method": "التوزيع",
+  "rr_distribution_method_description": "يتيح تحسين التوزيع لتحقيق أقصى قدر من التوفر أو لتحقيق توزيع أكثر توازناً.",
+  "rr_distribution_method_availability_title": "تعظيم التوفر",
+  "rr_distribution_method_availability_description": "يسمح للحاجزين بحجز الاجتماعات عندما يكون المضيف متاحاً. استخدم هذا الخيار لزيادة عدد الاجتماعات المحتملة التي يمكن حجزها عندما يكون التوزيع المتساوي للاجتماعات بين المضيفين أقل أهمية.",
+  "rr_distribution_method_balanced_title": "توازن الأحمال",
+  "rr_distribution_method_balanced_description": "سنراقب عدد الحجوزات التي تمت مع كل مضيف ونقارنها مع الآخرين، مع تعطيل بعض المضيفين الذين تجاوزوا الحد بكثير لضمان توزيع الحجوزات بشكل متساوٍ.",
+  "exclude_emails_that_contain": "استبعاد رسائل البريد الإلكتروني التي تحتوي على ...",
+  "exclude_emails_match_found_error_message": "يرجى إدخال عنوان بريد إلكتروني صالح للعمل",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
