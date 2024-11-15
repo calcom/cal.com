@@ -5,13 +5,6 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-export enum DistributionMethod {
-  PRIORITIZE_AVAILABILITY = "PRIORITIZE_AVAILABILITY",
-  // BALANCED_ASSIGNMENT = "BALANCED_ASSIGNMENT",
-  // ROUND_ROBIN (for fairness, rotating through assignees)
-  // LOAD_BALANCED (ensuring an even workload)
-}
-
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -291,17 +284,12 @@ async function filterUsersBasedOnWeights<
   return remainingUsersAfterWeightFilter;
 }
 
-// TODO: Configure distributionAlgorithm from the event type configuration
-// TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 export async function getLuckyUser<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
->(
-  distributionMethod: DistributionMethod = DistributionMethod.PRIORITIZE_AVAILABILITY,
-  { availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>
-) {
+>({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T>) {
   const { eventType } = getLuckyUserParams;
   // there is only one user
   if (availableUsers.length === 1) {
@@ -315,25 +303,20 @@ export async function getLuckyUser<
     startDate: startOfMonth,
     endDate: new Date(),
   });
-
-  switch (distributionMethod) {
-    case DistributionMethod.PRIORITIZE_AVAILABILITY: {
-      if (eventType.isRRWeightsEnabled) {
-        availableUsers = await filterUsersBasedOnWeights({
-          ...getLuckyUserParams,
-          availableUsers,
-          bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-        });
-      }
-      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-      // No need to round-robin through the only user, return early also.
-      if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
-      // TS is happy.
-      return leastRecentlyBookedUser({
-        ...getLuckyUserParams,
-        availableUsers: highestPriorityUsers,
-        bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
-      });
-    }
+  if (eventType.isRRWeightsEnabled) {
+    availableUsers = await filterUsersBasedOnWeights({
+      ...getLuckyUserParams,
+      availableUsers,
+      bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+    });
   }
+  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+  // No need to round-robin through the only user, return early also.
+  if (highestPriorityUsers.length === 1) return highestPriorityUsers[0];
+  // TS is happy.
+  return leastRecentlyBookedUser({
+    ...getLuckyUserParams,
+    availableUsers: highestPriorityUsers,
+    bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+  });
 }

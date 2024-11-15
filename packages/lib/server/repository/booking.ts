@@ -22,6 +22,56 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
+const buildWhereClauseForActiveBookings = ({
+  eventTypeId,
+  startDate,
+  endDate,
+  users,
+}: {
+  eventTypeId: number;
+  startDate?: Date;
+  endDate?: Date;
+  users: { id: number; email: string }[];
+}): Prisma.BookingWhereInput => ({
+  OR: [
+    {
+      user: {
+        id: {
+          in: users.map((user) => user.id),
+        },
+      },
+      OR: [
+        {
+          noShowHost: false,
+        },
+        {
+          noShowHost: null,
+        },
+      ],
+    },
+    {
+      attendees: {
+        some: {
+          email: {
+            in: users.map((user) => user.email),
+          },
+        },
+      },
+    },
+  ],
+  attendees: { some: { noShow: false } },
+  status: BookingStatus.ACCEPTED,
+  eventTypeId,
+  ...(startDate || endDate
+    ? {
+        createdAt: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
+    : {}),
+});
+
 export class BookingRepository {
   static async getBookingAttendees(bookingId: number) {
     return await prisma.attendee.findMany({
@@ -74,6 +124,28 @@ export class BookingRepository {
     });
   }
 
+  static async groupByActiveBookingCounts({
+    users,
+    eventTypeId,
+    startDate,
+  }: {
+    users: { id: number; email: string }[];
+    eventTypeId: number;
+    startDate?: Date;
+  }) {
+    return await prisma.booking.groupBy({
+      by: ["userId"],
+      where: buildWhereClauseForActiveBookings({
+        users,
+        eventTypeId,
+        startDate,
+      }),
+      _count: {
+        _all: true,
+      },
+    });
+  }
+
   static async getAllBookingsForRoundRobin({
     users,
     eventTypeId,
@@ -85,48 +157,13 @@ export class BookingRepository {
     startDate?: Date;
     endDate?: Date;
   }) {
-    const whereClause: Prisma.BookingWhereInput = {
-      OR: [
-        {
-          user: {
-            id: {
-              in: users.map((user) => user.id),
-            },
-          },
-          OR: [
-            {
-              noShowHost: false,
-            },
-            {
-              noShowHost: null,
-            },
-          ],
-        },
-        {
-          attendees: {
-            some: {
-              email: {
-                in: users.map((user) => user.email),
-              },
-            },
-          },
-        },
-      ],
-      attendees: { some: { noShow: false } },
-      status: BookingStatus.ACCEPTED,
-      eventTypeId,
-      ...(startDate && endDate
-        ? {
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          }
-        : {}),
-    };
-
     const allBookings = await prisma.booking.findMany({
-      where: whereClause,
+      where: buildWhereClauseForActiveBookings({
+        eventTypeId,
+        startDate,
+        endDate,
+        users,
+      }),
       select: {
         id: true,
         attendees: true,

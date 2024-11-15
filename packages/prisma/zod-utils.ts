@@ -696,6 +696,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
