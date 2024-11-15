@@ -90,7 +90,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       description: true,
       descriptionTranslations: {
         select: {
-          targetLang: true,
+          id: true,
         },
       },
       isRRWeightsEnabled: true,
@@ -504,29 +504,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       (locale) => locale !== ctx.user.locale
     );
 
-    const translations = await Promise.all(
-      targetLocales.map(async (targetLocale) => {
-        const translatedText = await ReplexicaService.localizeText(
-          description,
-          ctx.user.locale,
-          targetLocale
-        );
-        return {
-          eventTypeId: id,
-          sourceLang: ctx.user.locale,
-          targetLang: targetLocale,
-          translatedText,
-          userId: ctx.user.id,
-        };
-      })
+    // First, get all translations in parallel
+    const translatedTexts = await Promise.all(
+      targetLocales.map((targetLocale) =>
+        ReplexicaService.localizeText(description, ctx.user.locale, targetLocale)
+      )
     );
 
-    // Then create all translations in a single database call
-    const createdTranslations = await EventTypeTranslationRepository.createManyDescriptionTranslations(
-      translations
+    // Then create all translations in a single DB call
+    await EventTypeTranslationRepository.createManyDescriptionTranslations(
+      targetLocales.map((targetLocale, index) => ({
+        eventTypeId: id,
+        sourceLang: ctx.user.locale,
+        targetLang: targetLocale,
+        translatedText: translatedTexts[index],
+        userId: ctx.user.id,
+      }))
     );
-
-    data.descriptionTranslations = [...createdTranslations];
   }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
