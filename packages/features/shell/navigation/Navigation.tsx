@@ -3,7 +3,10 @@ import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import {
+  useOrgBranding,
+  type OrganizationBranding,
+} from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
 
@@ -13,92 +16,91 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const ORGANIZATION_ONLY = ["/members"];
-
-const navigation: NavigationItemType[] = [
-  {
-    name: "event_types_page_title",
-    href: "/event-types",
-    icon: "link",
-  },
-  {
-    name: "bookings",
-    href: "/bookings/upcoming",
-    icon: "calendar",
-    badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
-  },
-  {
-    name: "availability",
-    href: "/availability",
-    icon: "clock",
-  },
-  {
-    name: "members",
-    href: "/members",
-    icon: "building",
-  },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: "users",
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
-  {
-    name: "apps",
-    href: "/apps",
-    icon: "grid-3x3",
-    isCurrent: ({ pathname: path, item }) => {
-      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] =>
+  [
+    {
+      name: "event_types_page_title",
+      href: "/event-types",
+      icon: "link",
     },
-    child: [
-      {
-        name: "app_store",
-        href: "/apps",
-        isCurrent: ({ pathname: path, item }) => {
-          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-          return (
-            (path?.startsWith(item.href) ?? false) &&
-            !(path?.includes("routing-forms/") ?? false) &&
-            !(path?.includes("/installed") ?? false)
-          );
+    {
+      name: "bookings",
+      href: "/bookings/upcoming",
+      icon: "calendar",
+      badge: <UnconfirmedBookingBadge />,
+      isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
+    },
+    {
+      name: "availability",
+      href: "/availability",
+      icon: "clock",
+    },
+    orgBranding && {
+      name: "members",
+      href: `/orgs/${orgBranding.slug}/members`,
+      icon: "building",
+    },
+    {
+      name: "teams",
+      href: "/teams",
+      icon: "users",
+      onlyDesktop: true,
+      badge: <TeamInviteBadge />,
+    },
+    {
+      name: "apps",
+      href: "/apps",
+      icon: "grid-3x3",
+      isCurrent: ({ pathname: path, item }) => {
+        // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+        return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+      },
+      child: [
+        {
+          name: "app_store",
+          href: "/apps",
+          isCurrent: ({ pathname: path, item }) => {
+            // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+            return (
+              (path?.startsWith(item.href) ?? false) &&
+              !(path?.includes("routing-forms/") ?? false) &&
+              !(path?.includes("/installed") ?? false)
+            );
+          },
         },
-      },
-      {
-        name: "installed_apps",
-        href: "/apps/installed/calendar",
-        isCurrent: ({ pathname: path }) =>
-          (path?.startsWith("/apps/installed/") ?? false) ||
-          (path?.startsWith("/v2/apps/installed/") ?? false),
-      },
-    ],
-  },
-  {
-    name: MORE_SEPARATOR_NAME,
-    href: "/more",
-    icon: "ellipsis",
-  },
-  {
-    name: "routing_forms",
-    href: "/apps/routing-forms/forms",
-    icon: "file-text",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: "zap",
-  },
-  {
-    name: "insights",
-    href: "/insights",
-    icon: "chart-bar",
-  },
-];
+        {
+          name: "installed_apps",
+          href: "/apps/installed/calendar",
+          isCurrent: ({ pathname: path }) =>
+            (path?.startsWith("/apps/installed/") ?? false) ||
+            (path?.startsWith("/v2/apps/installed/") ?? false),
+        },
+      ],
+    },
+    {
+      name: MORE_SEPARATOR_NAME,
+      href: "/more",
+      icon: "ellipsis",
+    },
+    {
+      name: "routing_forms",
+      href: "/apps/routing-forms/forms",
+      icon: "file-text",
+      isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    },
+    {
+      name: "workflows",
+      href: "/workflows",
+      icon: "zap",
+    },
+    {
+      name: "insights",
+      href: "/insights",
+      icon: "chart-bar",
+    },
+  ].filter(Boolean);
 
-const platformNavigation: NavigationItemType[] = [
+const platformNavigationItems: NavigationItemType[] = [
   {
     name: "Dashboard",
     href: "/settings/platform/",
@@ -140,20 +142,16 @@ const platformNavigation: NavigationItemType[] = [
   },
 ];
 
-const useDesktopNavigationItems = (isPlatformNavigation = false) => {
+const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   return useMemo(() => {
-    const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
+    const navigationType = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
     const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
 
     const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-      !isPlatformNavigation ? navigation : platformNavigation
+      !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems
     ).reduce<Record<string, NavigationItemType[]>>(
       (items, item, index) => {
-        // skip organization-only item if not in an org
-        if (!orgBranding && ORGANIZATION_ONLY.includes(item.href)) {
-          return items;
-        }
         // We filter out the "more" separator in` desktop navigation
         if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
         // Items for mobile bottom navigation
@@ -173,7 +171,7 @@ const useDesktopNavigationItems = (isPlatformNavigation = false) => {
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
-  const { desktopNavigationItems } = useDesktopNavigationItems(isPlatformNavigation);
+  const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
 
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
@@ -199,7 +197,7 @@ export function MobileNavigationContainer({
 
 const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
-  const { mobileNavigationBottomItems } = useDesktopNavigationItems(isPlatformNavigation);
+  const { mobileNavigationBottomItems } = useNavigationItems(isPlatformNavigation);
 
   return (
     <>
@@ -219,7 +217,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 };
 
 export const MobileNavigationMoreItems = () => {
-  const { mobileNavigationMoreItems } = useDesktopNavigationItems();
+  const { mobileNavigationMoreItems } = useNavigationItems();
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
