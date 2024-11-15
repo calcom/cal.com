@@ -29,7 +29,7 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
   showToast,
-  useFiltersSearchState,
+  useColumnFilters,
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
@@ -119,22 +119,7 @@ export function UserListTable() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const [filtersSearchState] = useFiltersSearchState();
-  const columnFilters = useMemo(() => {
-    return (filtersSearchState.activeFilters || [])
-      .map((filter) => ({
-        id: filter.f,
-        value: filter.v,
-      }))
-      .filter((filter) => {
-        // Keep the empty array state on the client side,
-        // but do not send it to the actual query.
-        if (Array.isArray(filter.value) && filter.value.length === 0) {
-          return false;
-        }
-        return true;
-      });
-  }, [filtersSearchState.activeFilters]);
+  const columnFilters = useColumnFilters();
 
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(

@@ -19,6 +19,27 @@ export function useFiltersSearchState() {
   return useQueryStates(filtersSearchParams);
 }
 
+export function useColumnFilters() {
+  const [filtersSearchState] = useFiltersSearchState();
+  const columnFilters = useMemo(() => {
+    return (filtersSearchState.activeFilters || [])
+      .map((filter) => ({
+        id: filter.f,
+        value: filter.v,
+      }))
+      .filter((filter) => {
+        // The empty arrays in `filtersSearchState` keep the filter UI component,
+        // but we do not send them to the actual query.
+        // Otherwise, { value: [] } would result in nothing being returned.
+        if (Array.isArray(filter.value) && filter.value.length === 0) {
+          return false;
+        }
+        return true;
+      });
+  }, [filtersSearchState.activeFilters]);
+  return columnFilters;
+}
+
 export type FiltersSearchState = ReturnType<typeof useFiltersSearchState>[0];
 export type SetFiltersSearchState = ReturnType<typeof useFiltersSearchState>[1];
 export type ActiveFilter = NonNullable<FiltersSearchState["activeFilters"]>[number];
