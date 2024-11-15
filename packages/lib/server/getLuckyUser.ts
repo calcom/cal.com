@@ -528,9 +528,10 @@ function getAverageAttributeWeights<
           );
 
           allRRHosts.forEach((rrHost) => {
-            const weight = attributeOptionWithUsers?.assignedUsers.find(
-              (assignedUser) => rrHost.user.id === assignedUser.member.userId
-            )?.weight;
+            const weight =
+              attributeOptionWithUsers?.assignedUsers.find(
+                (assignedUser) => rrHost.user.id === assignedUser.member.userId
+              )?.weight ?? 100;
 
             if (weight) {
               if (allRRHostsWeights.has(rrHost.user.id)) {
