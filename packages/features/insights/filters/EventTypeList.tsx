@@ -37,7 +37,7 @@ export const EventTypeList = memo(() => {
       title={t("event_type")}
       options={filterOptions}
       selectedValue={selectedEventTypeId}
-      onChange={(value) => setConfigFilters({ selectedEventTypeId: value })}
+      onChange={(value) => setConfigFilters({ selectedEventTypeId: value ? Number(value) : null })}
       buttonIcon={<Icon name="calendar" className="mr-2 h-4 w-4" />}
       emptyText={t("no_options_available")}
     />

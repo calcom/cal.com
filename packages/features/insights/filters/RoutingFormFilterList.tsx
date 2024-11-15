@@ -7,7 +7,7 @@ import { Icon, FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
-type Form = RouterOutputs["viewer"]["appRoutingForms"]["forms"][number];
+type Form = RouterOutputs["viewer"]["insights"]["getRoutingFormsForFilters"][number];
 
 function buildFilterOptions(forms: Form[]) {
   return forms.map((form) => ({

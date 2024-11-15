@@ -4,6 +4,7 @@ import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
@@ -24,7 +25,7 @@ const RoutingDownload = () => {
       userId: filter.selectedUserId ?? undefined,
       routingFormId: filter.selectedRoutingFormId ?? undefined,
       bookingStatus: filter.selectedBookingStatus ?? undefined,
-      fieldFilter: filter.selectedFieldFilter ?? undefined,
+      fieldFilter: filter.selectedRoutingFormFilter ?? undefined,
       isAll: !!filter.isAll,
       cursor: cursor ?? undefined,
     });

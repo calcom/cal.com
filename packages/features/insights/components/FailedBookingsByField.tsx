@@ -78,11 +78,7 @@ export function FailedBookingsByField() {
         <h2 className="text-emphasis text-md font-semibold">Failed Bookings By Field</h2>
       </div>
       <div className="">
-        <div
-          className={classNames(
-            "grid grid-cols-1 gap-6",
-            data.length === 1 ? "lg:grid-cols-1" : "lg:grid-cols-2"
-          )}>
+        <div className={classNames("grid grid-cols-1 gap-6 lg:grid-cols-2")}>
           {Object.entries(data).map(([formName, fields]) => (
             <FormCard key={formName} formName={formName} fields={fields} />
           ))}

@@ -68,7 +68,7 @@ function BookedByCell({
   attendees,
   rowId,
 }: {
-  attendees: RoutingFormResponse["routedToBooking"]["attendees"];
+  attendees: NonNullable<RoutingFormResponse["routedToBooking"]>["attendees"];
   rowId: number;
 }) {
   const cellId = useId();
@@ -210,9 +210,8 @@ export function RoutingFormResponsesTable() {
 
   const { data: headers } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
     {
-      teamId: selectedTeamId,
+      teamId: selectedTeamId ?? undefined,
       isAll: isAll ?? false,
-      organizationId: initialConfig?.organizationId,
       routingFormId: selectedRoutingFormId ?? undefined,
     },
     {
@@ -301,7 +300,7 @@ export function RoutingFormResponsesTable() {
       }),
       ...(headers?.map((header) => {
         return columnHelper.accessor(header.id, {
-          id: `${header.formId}-${header.id}`,
+          id: header.id,
           header: header.label,
           size: 200,
           cell: (info) => {

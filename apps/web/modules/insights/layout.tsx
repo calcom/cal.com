@@ -61,7 +61,7 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
               </ButtonGroup>
             </div>
           }>
-          {!user ? null : children}
+          {!user ? <></> : children}
         </UpgradeTip>
       </Shell>
     </div>

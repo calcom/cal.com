@@ -89,6 +89,7 @@ export const RoutingKPICards = () => {
           <CardInsights key={item.title}>
             <Text className="text-default">{item.title}</Text>
             <Flex className="items-baseline justify-start space-x-3 truncate">
+              {/* @ts-expect-error - theyre actually dynamic fields that we know the index of - but TS doesnt know that */}
               <Metric className="text-emphasis">{valueFormatter(data[item.index])}</Metric>
             </Flex>
           </CardInsights>
