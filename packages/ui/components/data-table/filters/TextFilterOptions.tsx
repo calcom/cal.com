@@ -11,7 +11,7 @@ export type TextFilterOperatorOption = {
   requiresOperand: boolean;
 };
 
-const useTextFilterOperatorOptions = () => {
+const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
   const { t } = useLocale();
   return [
     { value: "equals", label: t("filter_operator_is"), requiresOperand: true },
