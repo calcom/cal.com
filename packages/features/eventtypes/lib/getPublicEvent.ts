@@ -74,6 +74,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   seatsShowAvailabilityCount: true,
   bookingFields: true,
+  teamId: true,
   team: {
     select: {
       parentId: true,
@@ -92,6 +93,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           logoUrl: true,
         },
       },
+      isPrivate: true,
     },
   },
   successRedirectUrl: true,
@@ -206,7 +208,8 @@ export const getPublicEvent = async (
   isTeamEvent: boolean | undefined,
   org: string | null,
   prisma: PrismaClient,
-  fromRedirectOfNonOrgLink: boolean
+  fromRedirectOfNonOrgLink: boolean,
+  currentUserId?: number
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -377,7 +380,7 @@ export const getPublicEvent = async (
     hosts: hosts,
   };
 
-  const users =
+  let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
     (await getOwnerFromUsersArray(prisma, event.id));
 
@@ -422,6 +425,27 @@ export const getPublicEvent = async (
       availabilityTimezone: timeZone ?? "Europe/London",
       length: eventWithUserProfiles.length,
     });
+  }
+  const isTeamAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.teamId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
+
+  const isOrgAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.team?.parentId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
+
+  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+    users = [];
   }
 
   return {

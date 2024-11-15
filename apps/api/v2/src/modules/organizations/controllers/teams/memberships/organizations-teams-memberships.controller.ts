@@ -31,6 +31,7 @@ import {
   HttpStatus,
   HttpCode,
   UnprocessableEntityException,
+  Logger,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
@@ -46,6 +47,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Memberships")
 export class OrganizationsTeamsMembershipsController {
+  private logger = new Logger("OrganizationsTeamsMembershipsController");
+
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
     private oganizationsEventTypesService: OrganizationsEventTypesService,
@@ -148,7 +151,11 @@ export class OrganizationsTeamsMembershipsController {
     );
 
     if (!currentMembership.accepted && updatedMembership.accepted) {
-      await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
+      try {
+        await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
+      } catch (err) {
+        this.logger.error("Could not update new team member eventTypes", err);
+      }
     }
 
     return {
@@ -175,7 +182,11 @@ export class OrganizationsTeamsMembershipsController {
 
     const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(teamId, data);
     if (membership.accepted) {
-      await updateNewTeamMemberEventTypes(user.id, teamId);
+      try {
+        await updateNewTeamMemberEventTypes(user.id, teamId);
+      } catch (err) {
+        this.logger.error("Could not update new team member eventTypes", err);
+      }
     }
     return {
       status: SUCCESS_STATUS,

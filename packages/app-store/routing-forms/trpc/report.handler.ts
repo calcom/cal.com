@@ -61,6 +61,9 @@ const getRows = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
         },
       },
     },
+    orderBy: {
+      createdAt: "desc",
+    },
     take,
     skip,
   });
@@ -120,13 +123,14 @@ function presenter(args: {
   const formatDate = makeFormatDate(ctx.user.locale, ctx.user.timeZone);
   return {
     nextCursor,
-    headers: [...headers, "Routed To", "Booked At"],
+    headers: [...headers, "Routed To", "Booked At", "Submitted At"],
     responses: responses.map((r, i) => {
       const currentRow = rows[i];
       return [
         ...r,
         currentRow.routedToBooking?.user?.email || "",
         currentRow.routedToBooking?.createdAt ? formatDate(currentRow.routedToBooking.createdAt) : "",
+        formatDate(currentRow.createdAt),
       ];
     }),
   };

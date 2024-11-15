@@ -10,6 +10,7 @@ import {
   CreateSeatedBookingOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  ReassignBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
 } from "@calcom/platform-types";
@@ -51,6 +52,8 @@ type DatabaseBooking = Booking & {
   user: { id: number; name: string | null; email: string } | null;
   createdAt: Date;
 };
+
+type BookingWithUser = Booking & { user: { id: number; name: string | null; email: string } | null };
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
@@ -313,5 +316,18 @@ export class OutputBookingsService_2024_08_13 {
     });
 
     return parsed;
+  }
+
+  getOutputReassignedBooking(
+    databaseBooking: Pick<BookingWithUser, "uid" | "user">
+  ): ReassignBookingOutput_2024_08_13 {
+    return {
+      bookingUid: databaseBooking.uid,
+      reassignedTo: {
+        id: databaseBooking?.user?.id || 0,
+        name: databaseBooking?.user?.name || "unknown",
+        email: databaseBooking?.user?.email || "unknown",
+      },
+    };
   }
 }
