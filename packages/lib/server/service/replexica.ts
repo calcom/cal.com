@@ -103,7 +103,7 @@ export class ReplexicaService {
 
       return result.map((chat: { name: string; text: string }) => chat.text);
     } catch (error) {
-      return text;
+      return texts;
     }
   }
 }
