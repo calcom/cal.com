@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "계정의 조회 필드와 일치하는 사용자에게 라우팅합니다.",
   "salesforce_option": "Salesforce 옵션",
   "lookup_field_name": "조회 필드 이름",
+  "exclude_emails_that_contain": "다음이 포함된 이메일 제외 ...",
+  "exclude_emails_match_found_error_message": "유효한 업무용 이메일 주소를 입력해 주세요.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

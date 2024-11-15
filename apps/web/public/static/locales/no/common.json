@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Rute til en bruker som samsvarer med et oppslagsfelt på en konto",
   "salesforce_option": "Salesforce-alternativ",
   "lookup_field_name": "Oppslagsfeltnavn",
+  "exclude_emails_that_contain": "Ekskluder e-poster som inneholder ...",
+  "exclude_emails_match_found_error_message": "Vennligst skriv inn en gyldig arbeids-e-postadresse",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Маршрутизація до користувача, який відповідає полю пошуку в обліковому записі",
   "salesforce_option": "Опція Salesforce",
   "lookup_field_name": "Назва поля пошуку",
+  "exclude_emails_that_contain": "Виключити електронні адреси, які містять ...",
+  "exclude_emails_match_found_error_message": "Будь ласка, введіть дійсну робочу електронну адресу",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

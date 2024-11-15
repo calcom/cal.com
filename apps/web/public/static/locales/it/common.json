@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Instrada a un utente che corrisponde a un campo di ricerca su un account",
   "salesforce_option": "Opzione Salesforce",
   "lookup_field_name": "Nome del campo di ricerca",
+  "exclude_emails_that_contain": "Escludi le email che contengono ...",
+  "exclude_emails_match_found_error_message": "Inserisci un indirizzo email di lavoro valido",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

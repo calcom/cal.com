@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "取引先の参照項目に一致するユーザーに割り当てる",
   "salesforce_option": "Salesforceオプション",
   "lookup_field_name": "参照項目名",
+  "exclude_emails_that_contain": "...を含むメールアドレスを除外",
+  "exclude_emails_match_found_error_message": "有効な勤務用メールアドレスを入力してください",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

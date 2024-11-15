@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Rikta till en användare som matchar ett uppslagsfält på ett konto",
   "salesforce_option": "Salesforce-alternativ",
   "lookup_field_name": "Uppslagsfältsnamn",
+  "exclude_emails_that_contain": "Uteslut e-postmeddelanden som innehåller ...",
+  "exclude_emails_match_found_error_message": "Ange en giltig arbets-e-postadress",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

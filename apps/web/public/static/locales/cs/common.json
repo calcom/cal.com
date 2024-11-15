@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Přiřadit uživateli, který odpovídá vyhledávacímu poli na účtu",
   "salesforce_option": "Možnost Salesforce",
   "lookup_field_name": "Název vyhledávacího pole",
+  "exclude_emails_that_contain": "Vyloučit e-maily obsahující...",
+  "exclude_emails_match_found_error_message": "Zadejte prosím platnou pracovní e-mailovou adresu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

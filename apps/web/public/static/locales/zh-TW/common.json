@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "路由至符合帳戶查詢欄位的使用者",
   "salesforce_option": "Salesforce選項",
   "lookup_field_name": "查詢欄位名稱",
+  "exclude_emails_that_contain": "排除包含...的電子郵件",
+  "exclude_emails_match_found_error_message": "請輸入有效的工作電子郵件地址",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

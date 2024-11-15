@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "التوجيه إلى مستخدم يطابق حقل البحث في الحساب",
   "salesforce_option": "خيار Salesforce",
   "lookup_field_name": "اسم حقل البحث",
+  "exclude_emails_that_contain": "استبعاد رسائل البريد الإلكتروني التي تحتوي على ...",
+  "exclude_emails_match_found_error_message": "يرجى إدخال عنوان بريد إلكتروني صالح للعمل",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

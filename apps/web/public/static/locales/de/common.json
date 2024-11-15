@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Weiterleitung an einen Benutzer, der mit einem Lookup-Feld eines Accounts übereinstimmt",
   "salesforce_option": "Salesforce-Option",
   "lookup_field_name": "Name des Lookup-Felds",
+  "exclude_emails_that_contain": "E-Mails ausschließen, die ... enthalten",
+  "exclude_emails_match_found_error_message": "Bitte geben Sie eine gültige Geschäfts-E-Mail-Adresse ein",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

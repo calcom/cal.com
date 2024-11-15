@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "路由至与账户查找字段匹配的用户",
   "salesforce_option": "Salesforce选项",
   "lookup_field_name": "查找字段名称",
+  "exclude_emails_that_contain": "排除包含...的电子邮件",
+  "exclude_emails_match_found_error_message": "请输入有效的工作电子邮件地址",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

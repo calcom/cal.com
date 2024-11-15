@@ -2768,4 +2768,6 @@ checksums:
     salesforce_route_to_custom_lookup_field: 672a24e4de55eb073559e94b9266da7d
     salesforce_option: f09423b2785ee269db428163fc0a58d0
     lookup_field_name: 8d81d557128a52661d1ed9e9aae0575c
+    exclude_emails_that_contain: d43255c873c75c8fe1adcb8f8b7af914
+    exclude_emails_match_found_error_message: 4ca9429a41d63e53caffeceb0e4229f7
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

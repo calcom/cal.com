@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Átirányítás olyan felhasználóhoz, aki megfelel a fiók keresési mezőjének",
   "salesforce_option": "Salesforce beállítás",
   "lookup_field_name": "Keresési mező neve",
+  "exclude_emails_that_contain": "Zárja ki azokat az e-maileket, amelyek tartalmazzák ...",
+  "exclude_emails_match_found_error_message": "Kérjük, adjon meg egy érvényes munkahelyi e-mail címet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

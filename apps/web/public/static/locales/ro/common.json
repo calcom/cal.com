@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Redirecționează către un utilizator care se potrivește cu un câmp de căutare pe un cont",
   "salesforce_option": "Opțiune Salesforce",
   "lookup_field_name": "Nume câmp de căutare",
+  "exclude_emails_that_contain": "Excludează emailurile care conțin ...",
+  "exclude_emails_match_found_error_message": "Vă rugăm să introduceți o adresă de email de serviciu validă",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

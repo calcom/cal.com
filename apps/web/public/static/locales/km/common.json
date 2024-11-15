@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "ផ្លូវទៅកាន់អ្នកប្រើដែលត្រូវនឹងវាលស្វែងរកនៅលើគណនី។",
   "salesforce_option": "ជម្រើស Salesforce",
   "lookup_field_name": "ឈ្មោះវាលស្វែងរក",
+  "exclude_emails_that_contain": "ច្រានចោលអ៊ីមែលដែលមាន ...",
+  "exclude_emails_match_found_error_message": "សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលការងារដែលមានសុពលភាព",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

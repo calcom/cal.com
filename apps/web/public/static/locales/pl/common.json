@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Przekieruj do użytkownika, który odpowiada polu wyszukiwania w koncie",
   "salesforce_option": "Opcja Salesforce",
   "lookup_field_name": "Nazwa pola wyszukiwania",
+  "exclude_emails_that_contain": "Wyklucz e-maile, które zawierają ...",
+  "exclude_emails_match_found_error_message": "Proszę wprowadzić prawidłowy adres e-mail służbowy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

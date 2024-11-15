@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Smerovať na používateľa, ktorý zodpovedá poľu vyhľadávania na účte",
   "salesforce_option": "Možnosť Salesforce",
   "lookup_field_name": "Názov poľa vyhľadávania",
+  "exclude_emails_that_contain": "Vylúčiť e-maily, ktoré obsahujú...",
+  "exclude_emails_match_found_error_message": "Zadajte platnú pracovnú e-mailovú adresu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

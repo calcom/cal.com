@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Bir hesaptaki arama alanıyla eşleşen bir kullanıcıya yönlendir",
   "salesforce_option": "Salesforce seçeneği",
   "lookup_field_name": "Arama alanı adı",
+  "exclude_emails_that_contain": "... içeren e-postaları hariç tut",
+  "exclude_emails_match_found_error_message": "Lütfen geçerli bir iş e-posta adresi girin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

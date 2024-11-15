@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Suuna kasutajale, kes vastab konto otsinguväljale",
   "salesforce_option": "Salesforce'i valik",
   "lookup_field_name": "Otsinguvälja nimi",
+  "exclude_emails_that_contain": "Välista e-kirjad, mis sisaldavad ...",
+  "exclude_emails_match_found_error_message": "Palun sisestage kehtiv tööalane e-posti aadress",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2766,5 +2766,7 @@
   "salesforce_route_to_custom_lookup_field": "Chuyển đến người dùng phù hợp với trường tra cứu trên tài khoản",
   "salesforce_option": "Tùy chọn Salesforce",
   "lookup_field_name": "Tên trường tra cứu",
+  "exclude_emails_that_contain": "Loại trừ các email chứa ...",
+  "exclude_emails_match_found_error_message": "Vui lòng nhập địa chỉ email công việc hợp lệ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
