@@ -35,4 +35,13 @@ describe("Disallow undefined delete/update many", () => {
 
     checkUndefinedInValue(where);
   });
+
+  it("checkUndefinedInValue should not throw exception when the where object contain null values", async () => {
+    const where = {
+      teamId: null,
+      parentId: null,
+    };
+
+    checkUndefinedInValue(where);
+  });
 });
