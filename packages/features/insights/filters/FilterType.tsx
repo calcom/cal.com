@@ -98,17 +98,13 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
     return options;
   }, [t, showRoutingFilters, routingFormFieldOptions, selectedUserId]);
 
-  const filterValue = selectedFilter
-    ? filterOptions.find((option) => option.value === selectedFilter[0])
-    : null;
-
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
         <div className="hover:border-emphasis border-default text-default hover:text-emphasis focus:border-subtle mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
           <Icon name="plus" className="mr-2 h-4 w-4" />
           <Tooltip content={t("add_filter")}>
-            <div>{t("add_filter")}</div>
+            <div>{selectedFilter?.length ? `${selectedFilter.length} ${t("filters")}` : t("add_filter")}</div>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
@@ -119,15 +115,18 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
               type="button"
               StartIcon={option.StartIcon}
               onClick={() => {
-                // This can multiple values, but for now we only want to have one filter active at a time
                 setConfigFilters({
-                  selectedFilter: [option.value],
+                  selectedFilter: selectedFilter
+                    ? selectedFilter.includes(option.value)
+                      ? selectedFilter.filter((f) => f !== option.value)
+                      : [...selectedFilter, option.value]
+                    : [option.value],
                 });
               }}
               childrenClassName="w-full">
               <div className="flex w-full items-center justify-between">
                 {t(option.label)}
-                {filterValue?.value === option.value && <Icon name="check" className="h-4 w-4" />}
+                {selectedFilter?.includes(option.value) && <Icon name="check" className="h-4 w-4" />}
               </div>
             </DropdownItem>
           </DropdownMenuItem>
