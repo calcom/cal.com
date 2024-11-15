@@ -309,13 +309,13 @@ export class BookingsService_2024_08_13 {
     await handleCancelBooking(bookingRequest);
 
     if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
-      return this.getCanceledSubsequentBookings(bookingUid);
+      return this.getAllRecurringBookingsByIndividualUid(bookingUid);
     }
 
     return this.getBooking(bookingUid);
   }
 
-  private async getCanceledSubsequentBookings(bookingUid: string) {
+  private async getAllRecurringBookingsByIndividualUid(bookingUid: string) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     const recurringBookingUid = booking?.recurringEventId;
     if (!recurringBookingUid) {
@@ -324,8 +324,7 @@ export class BookingsService_2024_08_13 {
       );
     }
 
-    const bookings = (await this.getBooking(recurringBookingUid)) as any[];
-    return bookings.filter((booking) => booking.status === "cancelled");
+    return await this.getBooking(recurringBookingUid);
   }
 
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {

@@ -322,7 +322,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     return Array.isArray(data);
   }
 
-  describe("Recurring bookings cancel all remaining bookings (bookings with start time greater than this moment)", () => {
+  describe("Recurring bookings cancel all subsequent bookings", () => {
     let app: INestApplication;
     let organization: Team;
 
@@ -479,7 +479,16 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
           if (responseDataIsRecurringBooking(responseBody.data)) {
             const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
-            expect(data.length).toEqual(2);
+            expect(data.length).toEqual(4);
+
+            const firstRecurrence = data.find((booking) => booking.uid === recurringBooking[0].uid);
+            expect(firstRecurrence).toBeDefined();
+            expect(firstRecurrence?.status).toEqual("accepted");
+
+            const secondRecurrence = data.find((booking) => booking.uid === recurringBooking[1].uid);
+            expect(secondRecurrence).toBeDefined();
+            expect(secondRecurrence?.status).toEqual("accepted");
+
             const thirdRecurrence = data.find((booking) => booking.uid === thirdRecurrenceUid);
             expect(thirdRecurrence).toBeDefined();
             expect(thirdRecurrence?.status).toEqual("cancelled");
@@ -515,7 +524,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
   });
 
-  describe("Recurring bookings cancel all subsequent bookings", () => {
+  describe("Recurring bookings cancel all remaining bookings (bookings with start time greater than this moment)", () => {
     let app: INestApplication;
     let organization: Team;
 
