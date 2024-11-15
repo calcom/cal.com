@@ -1,5 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
 import type { FilterableColumn, TextFilterValue, TextFilterOperator } from "./types";
@@ -10,17 +11,19 @@ export type TextFilterOperatorOption = {
   requiresOperand: boolean;
 };
 
-export const textFilterOperatorOptions: Array<TextFilterOperatorOption> = [
-  // TODO: Translate
-  { value: "equals", label: "Is", requiresOperand: true },
-  { value: "notEquals", label: "Is not", requiresOperand: true },
-  { value: "contains", label: "Contains", requiresOperand: true },
-  { value: "notContains", label: "Does not contain", requiresOperand: true },
-  { value: "startsWith", label: "Starts with", requiresOperand: true },
-  { value: "endsWith", label: "Ends with", requiresOperand: true },
-  { value: "isEmpty", label: "Is empty", requiresOperand: false },
-  { value: "isNotEmpty", label: "Not empty", requiresOperand: false },
-];
+const useTextFilterOperatorOptions = () => {
+  const { t } = useLocale();
+  return [
+    { value: "equals", label: t("filter_operator_is"), requiresOperand: true },
+    { value: "notEquals", label: t("filter_operator_is_not"), requiresOperand: true },
+    { value: "contains", label: t("filter_operator_contains"), requiresOperand: true },
+    { value: "notContains", label: t("filter_operator_does_not_contain"), requiresOperand: true },
+    { value: "startsWith", label: t("filter_operator_starts_with"), requiresOperand: true },
+    { value: "endsWith", label: t("filter_operator_ends_with"), requiresOperand: true },
+    { value: "isEmpty", label: t("filter_operator_is_empty"), requiresOperand: false },
+    { value: "isNotEmpty", label: t("filter_operator_not_empty"), requiresOperand: false },
+  ];
+};
 
 export type TextFilterOptionsProps = {
   column: FilterableColumn;
@@ -35,6 +38,8 @@ export function TextFilterOptions({
   setFilterValue,
   removeFilter,
 }: TextFilterOptionsProps) {
+  const textFilterOperatorOptions = useTextFilterOperatorOptions();
+
   const form = useForm({
     defaultValues: {
       operatorOption: filterValue

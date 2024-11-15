@@ -2770,5 +2770,13 @@
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce Option",
   "lookup_field_name": "Lookup Field Name",
+  "filter_operator_is": "Is",
+  "filter_operator_is_not": "Is not",
+  "filter_operator_contains": "Contains",
+  "filter_operator_does_not_contain": "Does not contain",
+  "filter_operator_starts_with": "Starts with",
+  "filter_operator_ends_with": "Ends with",
+  "filter_operator_is_empty": "Is empty",
+  "filter_operator_not_empty": "Not empty",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
