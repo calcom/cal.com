@@ -4,7 +4,7 @@ import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 export type CreateEventTypeTranslation = Omit<
   EventTypeTranslation,
-  "id" | "createdAt" | "updatedAt" | "updatedBy" | "eventType" | "field"
+  "id" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy" | "eventType" | "field"
 > & { userId: number };
 
 export type UpdateEventTypeTranslation = Partial<
@@ -20,6 +20,16 @@ export class EventTypeTranslationRepository {
         field: EventTypeAutoTranslatedField.DESCRIPTION,
         createdBy: userId,
       },
+    });
+  }
+
+  static async createManyDescriptionTranslations(translations: Array<CreateEventTypeTranslation>) {
+    return await prisma.eventTypeTranslation.createMany({
+      data: translations.map(({ userId, ...translation }) => ({
+        ...translation,
+        field: EventTypeAutoTranslatedField.DESCRIPTION,
+        createdBy: userId,
+      })),
     });
   }
 }
