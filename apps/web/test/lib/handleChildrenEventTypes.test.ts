@@ -29,7 +29,7 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-describe("handleChildrenEventTypes @test", () => {
+describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {
       mockFindFirstEventType();
@@ -141,6 +141,7 @@ describe("handleChildrenEventTypes @test", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           userId: 4,
+          descriptionTranslations: [],
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -297,6 +298,7 @@ describe("handleChildrenEventTypes @test", () => {
           userId: 4,
           workflows: undefined,
           hashedLink: undefined,
+          descriptionTranslations: [],
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -426,6 +428,7 @@ describe("handleChildrenEventTypes @test", () => {
             create: [{ workflowId: 11 }],
           },
           hashedLink: undefined,
+          descriptionTranslations: [],
         },
       });
       const { profileId, ...rest } = evType;
