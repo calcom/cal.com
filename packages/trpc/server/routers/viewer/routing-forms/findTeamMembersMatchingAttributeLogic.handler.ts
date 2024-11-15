@@ -10,7 +10,7 @@ import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enr
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
-import { DistributionMethod, getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
+import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
@@ -256,7 +256,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     perUserData,
     isUsingAttributeWeights,
   } = matchingTeamMembers.length
-    ? await getOrderedListOfLuckyUsers(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+    ? await getOrderedListOfLuckyUsers({
         // Assuming all are available
         availableUsers: [
           {
