@@ -51,11 +51,6 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
   const filterOptions = useMemo(() => {
     let options: Option[] = [
       {
-        label: t("event_type"),
-        value: "event-type",
-        StartIcon: "link",
-      },
-      {
         label: t("user"),
         value: "user",
         StartIcon: "users" as IconName,
@@ -87,6 +82,12 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
           })),
         ];
       }
+    } else {
+      options.push({
+        label: t("event_type"),
+        value: "event-type",
+        StartIcon: "link",
+      });
     }
 
     if (selectedUserId) {
