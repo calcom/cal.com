@@ -19,7 +19,7 @@ const querySchema = z.object({
   memberUserId: z.coerce.number().nullable(),
   eventTypeId: z.coerce.number().nullable(),
   filter: z
-    .union([z.enum(["event-type", "user", "routing_form", "booking_status"]), z.string().regex(/^rf_.*$/)])
+    .union([z.enum(["event-type", "user", "routing_forms", "booking_status"]), z.string().regex(/^rf_.*$/)])
     .nullable(),
   routingFormId: z.string().nullable(),
   bookingStatus: z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).nullable(),
