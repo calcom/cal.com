@@ -407,7 +407,11 @@ class RoutingEventsInsights {
       return acc;
     }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
 
-    // Convert to array and sort by total count
+    // NOTE: totalCount represents the sum of all response counts across all fields and options for a form
+    // For example, if a form has 2 fields with 2 options each:
+    // Field1: Option1 (5 responses), Option2 (3 responses)
+    // Field2: Option1 (2 responses), Option2 (4 responses)
+    // Then totalCount = 5 + 3 + 2 + 4 = 14 total responses
     const sortedEntries = Object.entries(groupedByFormAndField)
       .map(([formName, fields]) => ({
         formName,
