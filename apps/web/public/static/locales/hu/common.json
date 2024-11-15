@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "Átirányítás olyan felhasználóhoz, aki megfelel a fiók keresési mezőjének",
   "salesforce_option": "Salesforce beállítás",
   "lookup_field_name": "Keresési mező neve",
+  "rr_distribution_method": "Elosztás",
+  "rr_distribution_method_description": "Lehetővé teszi az elosztás optimalizálását a maximális rendelkezésre állás érdekében, vagy a kiegyensúlyozottabb feladatkiosztás eléréséhez.",
+  "rr_distribution_method_availability_title": "Rendelkezésre állás maximalizálása",
+  "rr_distribution_method_availability_description": "Lehetővé teszi a foglalóknak, hogy találkozókat foglaljanak, amikor a házigazda elérhető. Használja ezt a lehetőséget a potenciális találkozók számának maximalizálására, amikor a találkozók egyenletes elosztása a házigazdák között kevésbé fontos.",
+  "rr_distribution_method_balanced_title": "Terheléselosztás",
+  "rr_distribution_method_balanced_description": "Figyelemmel kísérjük, hogy hány foglalás történt az egyes házigazdákkal, és összehasonlítjuk másokkal, letiltva azokat a házigazdákat, akik túl sok foglalással rendelkeznek, így a foglalások egyenletesen oszlanak el.",
+  "exclude_emails_that_contain": "Zárja ki azokat az e-maileket, amelyek tartalmazzák ...",
+  "exclude_emails_match_found_error_message": "Kérjük, adjon meg egy érvényes munkahelyi e-mail címet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
