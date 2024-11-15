@@ -150,7 +150,7 @@ model EventType {
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
-  descriptionTranslations                 EventTypeTranslation[]
+  fieldTranslations                       EventTypeTranslation[]
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?

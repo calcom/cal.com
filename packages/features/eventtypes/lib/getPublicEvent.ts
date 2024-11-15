@@ -68,7 +68,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
   autoTranslateDescriptionEnabled: true,
-  descriptionTranslations: {
+  fieldTranslations: {
     select: {
       translatedText: true,
       targetLang: true,
@@ -302,7 +302,7 @@ export const getPublicEvent = async (
       isInstantEvent: false,
       showInstantEventConnectNowModal: false,
       autoTranslateDescriptionEnabled: false,
-      descriptionTranslations: [],
+      fieldTranslations: [],
     };
   }
 
