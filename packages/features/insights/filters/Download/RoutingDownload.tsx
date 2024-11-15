@@ -1,41 +1,62 @@
+import { useState } from "react";
+
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
+
+type RawRoutingData = RouterOutputs["viewer"]["insights"]["rawRoutingData"] | undefined;
 
 const RoutingDownload = () => {
   const { filter } = useFilterContext();
   const { t } = useLocale();
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const { data, isPending } = trpc.viewer.insights.rawRoutingData.useQuery(
-    {
+  const utils = trpc.useContext();
+
+  const fetchBatch = async (cursor: number | null = null) => {
+    const result = await utils.viewer.insights.rawRoutingData.fetch({
       startDate: filter.dateRange[0].toISOString(),
       endDate: filter.dateRange[1].toISOString(),
-      teamId: filter.selectedTeamId,
-      userId: filter.selectedUserId,
-      routingFormId: filter.selectedRoutingFormId,
-      bookingStatus: filter.selectedBookingStatus,
-      fieldFilter: filter.selectedFieldFilter,
-      isAll: filter.isAll,
-    },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      retry: false,
-      staleTime: Infinity,
-      trpc: {
-        context: { skipBatch: true },
-      },
-    }
-  );
+      teamId: filter.selectedTeamId ?? undefined,
+      userId: filter.selectedUserId ?? undefined,
+      routingFormId: filter.selectedRoutingFormId ?? undefined,
+      bookingStatus: filter.selectedBookingStatus ?? undefined,
+      fieldFilter: filter.selectedFieldFilter ?? undefined,
+      isAll: !!filter.isAll,
+      cursor: cursor ?? undefined,
+    });
+    return result;
+  };
 
-  type RawRoutingData = RouterOutputs["viewer"]["insights"]["rawRoutingData"] | undefined;
-  const handleDownloadClick = async (data: RawRoutingData) => {
-    if (!data) return;
-    const { data: csvRaw, filename } = data;
-    downloadAsCsv(csvRaw, filename);
+  const handleDownloadClick = async () => {
+    try {
+      setIsDownloading(true);
+      let allData: RawRoutingData[] = [];
+      let hasMore = true;
+      let cursor: number | null = null;
+
+      // Fetch data in batches until there's no more data
+      while (hasMore) {
+        const result = await fetchBatch(cursor);
+        allData = [...allData, ...result.data];
+        hasMore = result.hasMore;
+        cursor = result.nextCursor;
+      }
+
+      if (allData.length > 0) {
+        const filename = `RoutingInsights-${filter.dateRange[0].format(
+          "YYYY-MM-DD"
+        )}-${filter.dateRange[1].format("YYYY-MM-DD")}.csv`;
+        downloadAsCsv(allData, filename);
+      }
+    } catch (error) {
+      showToast(t("error_downloading_data"), "error");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -44,13 +65,13 @@ const RoutingDownload = () => {
         <Button
           EndIcon="file-down"
           color="secondary"
-          {...(isPending && { loading: isPending })}
-          className="self-end sm:self-baseline">
+          className="self-end sm:self-baseline"
+          loading={isDownloading}>
           {t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownItem onClick={() => handleDownloadClick(data)}>{t("as_csv")}</DropdownItem>
+        <DropdownItem onClick={handleDownloadClick}>{t("as_csv")}</DropdownItem>
       </DropdownMenuContent>
     </Dropdown>
   );

@@ -255,6 +255,8 @@ export interface IResultTeamList {
   isOrg?: boolean;
 }
 
+const BATCH_SIZE = 1000; // Adjust based on your needs
+
 export const insightsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isAll } = input;
@@ -1652,13 +1654,15 @@ export const insightsRouter = router({
             optionId: z.string(),
           })
           .optional(),
+        cursor: z.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, userId, isAll, routingFormId, bookingStatus, fieldFilter } = input;
+      const { teamId, startDate, endDate, userId, isAll, routingFormId, bookingStatus, fieldFilter, cursor } =
+        input;
 
       if (!teamId && !userId) {
-        return { data: "", filename: "" };
+        return { data: [], hasMore: false, nextCursor: null };
       }
 
       try {
@@ -1672,14 +1676,18 @@ export const insightsRouter = router({
           routingFormId,
           bookingStatus,
           fieldFilter,
+          take: BATCH_SIZE,
+          skip: cursor || 0,
         });
 
-        const csvAsString = EventsInsights.objectToCsv(csvData);
-        const downloadAs = `RoutingInsights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
-          "YYYY-MM-DD"
-        )}-${randomString(10)}.csv`;
+        const hasMore = csvData.length === BATCH_SIZE;
+        const nextCursor = hasMore ? (cursor || 0) + BATCH_SIZE : null;
 
-        return { data: csvAsString, filename: downloadAs };
+        return {
+          data: csvData,
+          hasMore,
+          nextCursor,
+        };
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }

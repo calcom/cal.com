@@ -465,13 +465,51 @@ class RoutingEventsInsights {
     userId,
     bookingStatus,
     fieldFilter,
-  }: RoutingFormInsightsFilter) {
+    take,
+    skip,
+  }: RoutingFormInsightsFilter & { take?: number; skip?: number }) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
       isAll,
       organizationId,
       routingFormId,
     });
+
+    // First get all forms and their fields to build a mapping
+    const forms = await prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        name: true,
+        fields: true,
+      },
+    });
+
+    // Create a mapping of form ID to fields
+    type FormFieldOption = {
+      label: string;
+      type: string;
+      options: Record<string, string>;
+    };
+
+    type FormFieldsMap = Record<string, Record<string, FormFieldOption>>;
+
+    const formFieldsMap = forms.reduce((acc, form) => {
+      const fields = routingFormFieldsSchema.parse(form.fields);
+      acc[form.id] = fields.reduce((fieldMap, field) => {
+        fieldMap[field.id] = {
+          label: field.label,
+          type: field.type,
+          options:
+            field.options?.reduce((optMap, opt) => {
+              optMap[opt.id] = opt.label;
+              return optMap;
+            }, {} as Record<string, string>) ?? {},
+        };
+        return fieldMap;
+      }, {} as Record<string, FormFieldOption>);
+      return acc;
+    }, {} as FormFieldsMap);
 
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
       ...(startDate &&
@@ -503,7 +541,6 @@ class RoutingEventsInsights {
     };
 
     const responses = await prisma.app_RoutingForms_FormResponse.findMany({
-      where: responsesWhereCondition,
       select: {
         id: true,
         response: true,
@@ -537,34 +574,49 @@ class RoutingEventsInsights {
           },
         },
       },
+      where: responsesWhereCondition,
       orderBy: {
         createdAt: "desc",
       },
+      take: take,
+      skip: skip,
     });
 
     // Transform the data into a flat structure suitable for CSV
     return responses.map((response) => {
       const parsedResponse = routingFormResponseInDbSchema.parse(response.response);
-      const flatResponse: Record<string, any> = {
-        responseId: response.id,
-        formId: response.form.id,
-        formName: response.form.name,
-        submittedAt: response.createdAt.toISOString(),
-        hasBooking: !!response.routedToBooking,
-        bookingStatus: response.routedToBooking?.status || "NO_BOOKING",
-        bookingCreatedAt: response.routedToBooking?.createdAt?.toISOString() || "",
-        bookingStartTime: response.routedToBooking?.startTime?.toISOString() || "",
-        bookingEndTime: response.routedToBooking?.endTime?.toISOString() || "",
-        attendeeName: response.routedToBooking?.attendees[0]?.name || "",
-        attendeeEmail: response.routedToBooking?.attendees[0]?.timeZone || "",
-        attendeeTimezone: response.routedToBooking?.attendees[0]?.timeZone || "",
-        routedToName: response.routedToBooking?.user?.name || "",
-        routedToEmail: response.routedToBooking?.user?.email || "",
+      const formFields = formFieldsMap[response.form.id];
+
+      const flatResponse: Record<string, unknown> = {
+        "Response ID": response.id,
+        "Form Name": response.form.name,
+        "Submitted At": response.createdAt.toISOString(),
+        "Has Booking": !!response.routedToBooking,
+        "Booking Status": response.routedToBooking?.status || "NO_BOOKING",
+        "Booking Created At": response.routedToBooking?.createdAt?.toISOString() || "",
+        "Booking Start Time": response.routedToBooking?.startTime?.toISOString() || "",
+        "Booking End Time": response.routedToBooking?.endTime?.toISOString() || "",
+        "Attendee Name": response.routedToBooking?.attendees[0]?.name || "",
+        "Attendee Email": response.routedToBooking?.attendees[0]?.email || "",
+        "Attendee Timezone": response.routedToBooking?.attendees[0]?.timeZone || "",
+        "Routed To Name": response.routedToBooking?.user?.name || "",
+        "Routed To Email": response.routedToBooking?.user?.email || "",
       };
 
-      // Add form fields as columns
+      // Add form fields as columns with their labels
       Object.entries(parsedResponse).forEach(([fieldId, field]) => {
-        flatResponse[`field_${fieldId}`] = Array.isArray(field.value) ? field.value.join(", ") : field.value;
+        const fieldInfo = formFields[fieldId];
+        if (fieldInfo) {
+          const fieldLabel = fieldInfo.label;
+          if (Array.isArray(field.value)) {
+            // For multi-select fields, map the IDs to labels
+            const values = field.value.map((val) => fieldInfo.options[val] || val);
+            flatResponse[fieldLabel] = values.join(", ");
+          } else {
+            // For single-select fields, map the ID to label
+            flatResponse[fieldLabel] = fieldInfo.options[field.value] || field.value;
+          }
+        }
       });
 
       return flatResponse;
