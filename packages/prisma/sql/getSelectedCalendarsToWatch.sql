@@ -1,5 +1,5 @@
 SELECT
-  to_timestamp(sc."googleChannelExpiration"::bigint / 1000 - 86400)::date as "humanReadableExpireDate",
+  TO_TIMESTAMP(sc."googleChannelExpiration"::bigint / 1000 - 86400)::date as "humanReadableExpireDate",
   sc.*
 FROM
   "SelectedCalendar" sc
@@ -19,6 +19,6 @@ WHERE
       -- Or is a calendar that is about to expire
           sc."googleChannelExpiration" IS NOT NULL
           -- We substract one day in senconds to renew a day before expiration
-          AND to_timestamp(sc."googleChannelExpiration"::bigint / 1000 - 86400)::date < CURRENT_TIMESTAMP
+          AND TO_TIMESTAMP(sc."googleChannelExpiration"::bigint / 1000 - 86400)::date < CURRENT_TIMESTAMP
       )
     );
