@@ -74,13 +74,17 @@ function BookedByCell({
   const cellId = useId();
   if (!attendees || attendees.length === 0) return null;
 
-  return attendees.map((attendee) => (
-    <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
-      <Badge variant="gray" className="whitespace-nowrap">
-        {attendee.email}
-      </Badge>
-    </CellWithOverflowX>
-  ));
+  return (
+    <div className="flex w-[200px] flex-wrap gap-1">
+      {attendees.map((attendee) => (
+        <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
+          <Badge variant="gray" className="whitespace-nowrap">
+            {attendee.email}
+          </Badge>
+        </CellWithOverflowX>
+      ))}
+    </div>
+  );
 }
 
 function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number }) {
@@ -291,11 +295,7 @@ export function RoutingFormResponsesTable() {
         size: 200,
         cell: (info) => {
           const row = info.row.original;
-          return (
-            <div className="max-w-[200px]">
-              <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />
-            </div>
-          );
+          return <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />;
         },
       }),
       ...(headers?.map((header) => {
