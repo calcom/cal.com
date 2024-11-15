@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "Маршрутизація до користувача, який відповідає полю пошуку в обліковому записі",
   "salesforce_option": "Опція Salesforce",
   "lookup_field_name": "Назва поля пошуку",
+  "rr_distribution_method": "Розподіл",
+  "rr_distribution_method_description": "Дозволяє оптимізувати розподіл для максимальної доступності або для більш збалансованого розподілу завдань.",
+  "rr_distribution_method_availability_title": "Максимізувати доступність",
+  "rr_distribution_method_availability_description": "Дозволяє учасникам бронювати зустрічі, коли хост доступний. Використовуйте це для максимізації кількості потенційних зустрічей та коли рівномірний розподіл зустрічей між хостами менш важливий.",
+  "rr_distribution_method_balanced_title": "Балансування навантаження",
+  "rr_distribution_method_balanced_description": "Ми будемо відстежувати кількість бронювань для кожного хоста та порівнювати їх з іншими, деактивуючи тих хостів, які значно випереджають інших, щоб бронювання розподілялися рівномірно.",
   "exclude_emails_that_contain": "Виключити електронні адреси, які містять ...",
   "exclude_emails_match_found_error_message": "Будь ласка, введіть дійсну робочу електронну адресу",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

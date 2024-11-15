@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "Rute til en bruger, der matcher et opslagfelt på en konto",
   "salesforce_option": "Salesforce-indstilling",
   "lookup_field_name": "Opslagsfeltnavn",
+  "rr_distribution_method": "Distribution",
+  "rr_distribution_method_description": "Gør det muligt at optimere distributionen for maksimal tilgængelighed eller for at opnå en mere balanceret tildeling.",
+  "rr_distribution_method_availability_title": "Maksimer tilgængelighed",
+  "rr_distribution_method_availability_description": "Giver bookere mulighed for at booke møder, når en vært er tilgængelig. Brug dette for at maksimere antallet af potentielle møder, der kan bookes, når den jævne fordeling af møder på tværs af værter er mindre vigtig.",
+  "rr_distribution_method_balanced_title": "Load balancing",
+  "rr_distribution_method_balanced_description": "Vi vil overvåge, hvor mange bookinger der er foretaget med hver vært og sammenligne dette med andre, og deaktivere nogle værter, der er for langt foran, så bookinger fordeles jævnt.",
   "exclude_emails_that_contain": "Ekskluder e-mails, der indeholder ...",
   "exclude_emails_match_found_error_message": "Indtast venligst en gyldig arbejds-e-mailadresse",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

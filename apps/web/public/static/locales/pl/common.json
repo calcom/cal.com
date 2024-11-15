@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "Przekieruj do użytkownika, który odpowiada polu wyszukiwania w koncie",
   "salesforce_option": "Opcja Salesforce",
   "lookup_field_name": "Nazwa pola wyszukiwania",
+  "rr_distribution_method": "Dystrybucja",
+  "rr_distribution_method_description": "Pozwala zoptymalizować dystrybucję pod kątem maksymalnej dostępności lub bardziej zrównoważonego przydziału spotkań.",
+  "rr_distribution_method_availability_title": "Maksymalizuj dostępność",
+  "rr_distribution_method_availability_description": "Umożliwia rezerwację spotkań, gdy którykolwiek z gospodarzy jest dostępny. Używaj tej opcji, aby zmaksymalizować liczbę potencjalnych spotkań, gdy równomierne rozłożenie spotkań między gospodarzami jest mniej istotne.",
+  "rr_distribution_method_balanced_title": "Równoważenie obciążenia",
+  "rr_distribution_method_balanced_description": "System będzie monitorować liczbę rezerwacji przypisanych do każdego gospodarza i porównywać ją z innymi, dezaktywując tymczasowo gospodarzy z większą liczbą spotkań, aby zapewnić równomierną dystrybucję.",
   "exclude_emails_that_contain": "Wyklucz e-maile, które zawierają ...",
   "exclude_emails_match_found_error_message": "Proszę wprowadzić prawidłowy adres e-mail służbowy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

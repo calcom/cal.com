@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "Bir hesaptaki arama alanıyla eşleşen bir kullanıcıya yönlendir",
   "salesforce_option": "Salesforce seçeneği",
   "lookup_field_name": "Arama alanı adı",
+  "rr_distribution_method": "Dağıtım",
+  "rr_distribution_method_description": "Maksimum kullanılabilirlik için dağıtımı optimize etmeye veya daha dengeli bir atama sağlamaya olanak tanır.",
+  "rr_distribution_method_availability_title": "Kullanılabilirliği maksimize et",
+  "rr_distribution_method_availability_description": "Rezervasyon yapanların, bir ev sahibi müsait olduğunda toplantı ayarlamasına olanak tanır. Potansiyel toplantı rezervasyonlarının sayısını en üst düzeye çıkarmak ve ev sahipleri arasında toplantıların eşit dağılımının daha az önemli olduğu durumlarda bunu kullanın.",
+  "rr_distribution_method_balanced_title": "Yük dengeleme",
+  "rr_distribution_method_balanced_description": "Her ev sahibiyle yapılan rezervasyon sayısını takip edip diğerleriyle karşılaştıracağız ve rezervasyonların eşit dağılımını sağlamak için çok ileri giden bazı ev sahiplerini devre dışı bırakacağız.",
   "exclude_emails_that_contain": "... içeren e-postaları hariç tut",
   "exclude_emails_match_found_error_message": "Lütfen geçerli bir iş e-posta adresi girin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

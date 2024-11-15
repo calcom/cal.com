@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "Přiřadit uživateli, který odpovídá vyhledávacímu poli na účtu",
   "salesforce_option": "Možnost Salesforce",
   "lookup_field_name": "Název vyhledávacího pole",
+  "rr_distribution_method": "Distribuce",
+  "rr_distribution_method_description": "Umožňuje optimalizovat distribuci pro maximální dostupnost nebo pro vyváženější přidělování.",
+  "rr_distribution_method_availability_title": "Maximalizovat dostupnost",
+  "rr_distribution_method_availability_description": "Umožňuje rezervujícím sjednat schůzky kdykoliv, když je hostitel k dispozici. Použijte tuto možnost pro maximalizaci počtu potenciálních schůzek a v případech, kdy rovnoměrné rozdělení schůzek mezi hostitele není tak důležité.",
+  "rr_distribution_method_balanced_title": "Vyvažování zátěže",
+  "rr_distribution_method_balanced_description": "Budeme sledovat, kolik rezervací bylo provedeno u jednotlivých hostitelů a porovnávat je s ostatními. Některé hostitele, kteří jsou příliš napřed, dočasně deaktivujeme, aby byly rezervace rovnoměrně distribuovány.",
   "exclude_emails_that_contain": "Vyloučit e-maily obsahující...",
   "exclude_emails_match_found_error_message": "Zadejte prosím platnou pracovní e-mailovou adresu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

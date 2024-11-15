@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "נתב למשתמש התואם לשדה חיפוש בחשבון",
   "salesforce_option": "אפשרות Salesforce",
   "lookup_field_name": "שם שדה החיפוש",
+  "rr_distribution_method": "שיטת חלוקה",
+  "rr_distribution_method_description": "מאפשר אופטימיזציה של החלוקה למקסימום זמינות או לחלוקה מאוזנת יותר",
+  "rr_distribution_method_availability_title": "מקסום זמינות",
+  "rr_distribution_method_availability_description": "מאפשר לקובעי פגישות לקבוע פגישות בכל פעם שמארח זמין. השתמשו באפשרות זו כדי למקסם את מספר הפגישות הפוטנציאליות ובמקרים בהם חלוקה שווה של פגישות בין המארחים פחות חשובה",
+  "rr_distribution_method_balanced_title": "איזון עומסים",
+  "rr_distribution_method_balanced_description": "אנחנו נעקוב אחר מספר ההזמנות שנקבעו עם כל מארח ונשווה זאת לאחרים, תוך השבתה זמנית של מארחים שקיבלו יותר מדי הזמנות כדי להבטיח חלוקה שווה",
   "exclude_emails_that_contain": "הוצא כתובות דוא\"ל המכילות...",
   "exclude_emails_match_found_error_message": "אנא הזן כתובת דוא\"ל עבודה תקינה",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

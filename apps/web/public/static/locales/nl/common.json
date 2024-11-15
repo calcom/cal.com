@@ -2766,6 +2766,12 @@
   "salesforce_route_to_custom_lookup_field": "Routeer naar een gebruiker die overeenkomt met een zoekveld op een account",
   "salesforce_option": "Salesforce-optie",
   "lookup_field_name": "Zoekveldnaam",
+  "rr_distribution_method": "Distributie",
+  "rr_distribution_method_description": "Maakt het mogelijk om de distributie te optimaliseren voor maximale beschikbaarheid of voor een meer gebalanceerde toewijzing.",
+  "rr_distribution_method_availability_title": "Maximale beschikbaarheid",
+  "rr_distribution_method_availability_description": "Stelt boekers in staat om afspraken te maken wanneer een host beschikbaar is. Gebruik dit om het aantal potentiële afspraken te maximaliseren en wanneer de gelijke verdeling van afspraken over hosts minder belangrijk is.",
+  "rr_distribution_method_balanced_title": "Evenredige verdeling",
+  "rr_distribution_method_balanced_description": "We monitoren hoeveel boekingen er bij elke host zijn gemaakt en vergelijken dit met anderen. Hosts die te ver voorlopen worden tijdelijk uitgeschakeld zodat boekingen gelijkmatig worden verdeeld.",
   "exclude_emails_that_contain": "E-mailadressen uitsluiten die ... bevatten",
   "exclude_emails_match_found_error_message": "Voer een geldig zakelijk e-mailadres in",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
