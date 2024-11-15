@@ -9,6 +9,8 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 
 import CalendarService from "./CalendarService";
 
+vi.stubEnv("GOOGLE_WEBHOOK_TOKEN", "test-webhook-token");
+
 vi.mock("@calcom/features/flags/server/utils", () => ({
   getFeatureFlag: vi.fn().mockReturnValue(true),
 }));
@@ -109,7 +111,6 @@ test("Calendar Cache is being ignored on cache MISS", async () => {
 });
 
 test("Calendar can be watched and unwatched", async () => {
-  process.env.GOOGLE_WEBHOOK_TOKEN = "test-webhook-token";
   const credentialInDb1 = await createCredentialInDb();
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);

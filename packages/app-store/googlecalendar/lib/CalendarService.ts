@@ -52,7 +52,6 @@ const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
-const GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -632,7 +631,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async watchCalendar({ calendarId }: { calendarId: string }) {
-    if (!GOOGLE_WEBHOOK_TOKEN) {
+    if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
     }
@@ -645,7 +644,7 @@ export default class GoogleCalendarService implements Calendar {
         id: uuid(),
         type: "web_hook",
         address: GOOGLE_WEBHOOK_URL,
-        token: GOOGLE_WEBHOOK_TOKEN,
+        token: process.env.GOOGLE_WEBHOOK_TOKEN,
         params: {
           // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
           ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
