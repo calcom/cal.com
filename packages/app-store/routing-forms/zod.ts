@@ -200,6 +200,7 @@ export const appDataSchema = z.any();
 export const appKeysSchema = z.object({});
 
 // This is different from FormResponse in types.d.ts in that it has label optional. We don't seem to be using label at this point, so we might want to use this only while saving the response when Routing Form is submitted
+// Record key is formFieldId
 export const routingFormResponseInDbSchema = z.record(
   z.object({
     label: z.string().optional(),

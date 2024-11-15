@@ -129,6 +129,7 @@ export const roundRobinReassignment = async ({
     availableUsers,
     eventType,
     allRRHosts: eventType.hosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
+    routingFormResponse: null,
   });
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;

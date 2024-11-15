@@ -34,13 +34,13 @@ const buildWhereClauseForActiveBookings = ({
   startDate?: Date;
   endDate?: Date;
   users: { id: number; email: string }[];
-  virtualQueuesData?: {
+  virtualQueuesData: {
     chosenRouteId: string;
     fieldOptionData: {
       fieldId: string;
       selectedOptionIds: string | number | string[];
     };
-  };
+  } | null;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
@@ -155,6 +155,7 @@ export class BookingRepository {
         users,
         eventTypeId,
         startDate,
+        virtualQueuesData: null,
       }),
       _count: {
         _all: true,
@@ -173,13 +174,13 @@ export class BookingRepository {
     eventTypeId: number;
     startDate?: Date;
     endDate?: Date;
-    virtualQueuesData?: {
+    virtualQueuesData: {
       chosenRouteId: string;
       fieldOptionData: {
         fieldId: string;
         selectedOptionIds: string | number | string[];
       };
-    };
+    } | null;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -226,6 +227,7 @@ export class BookingRepository {
         }
       });
     }
+    console.log(`queueBookings ${JSON.stringify(queueBookings.map((booking) => booking.id))}`);
     return queueBookings;
   }
 
