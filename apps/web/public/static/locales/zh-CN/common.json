@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "路由至与账户查找字段匹配的用户",
   "salesforce_option": "Salesforce选项",
   "lookup_field_name": "查找字段名称",
+  "rr_distribution_method": "分配方式",
+  "rr_distribution_method_description": "可以优化分配方式以实现最大可用性或更均衡的任务分配。",
+  "rr_distribution_method_availability_title": "最大化可用性",
+  "rr_distribution_method_availability_description": "允许预订者在任何主持人可用时预订会议。当会议在主持人之间的均衡分配不太重要时，可使用此选项来最大化潜在会议预订数量。",
+  "rr_distribution_method_balanced_title": "负载均衡",
+  "rr_distribution_method_balanced_description": "系统会监控每位主持人已接受的预订数量并与其他人进行比较，如果某些主持人的预订数量远超他人，系统会暂时停用这些主持人，以确保预订均匀分配。",
+  "exclude_emails_that_contain": "排除包含...的电子邮件",
+  "exclude_emails_match_found_error_message": "请输入有效的工作电子邮件地址",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

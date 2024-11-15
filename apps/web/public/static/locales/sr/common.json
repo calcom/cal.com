@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "Usmeri ka korisniku koji odgovara polju za pretragu na nalogu",
   "salesforce_option": "Salesforce opcija",
   "lookup_field_name": "Naziv polja za pretragu",
+  "rr_distribution_method": "Distribucija",
+  "rr_distribution_method_description": "Omogućava optimizaciju distribucije za maksimalnu dostupnost ili za balansiranu raspodelu.",
+  "rr_distribution_method_availability_title": "Maksimalna dostupnost",
+  "rr_distribution_method_availability_description": "Omogućava zakazivanje sastanaka kad god je domaćin dostupan. Koristite ovo da maksimalno povećate broj potencijalnih sastanaka kada je ravnomerna distribucija sastanaka među domaćinima manje važna.",
+  "rr_distribution_method_balanced_title": "Balansiranje opterećenja",
+  "rr_distribution_method_balanced_description": "Pratićemo broj zakazanih sastanaka kod svakog domaćina i upoređivati ga sa ostalima, privremeno onemogućavajući domaćine koji imaju previše sastanaka kako bi distribucija bila ravnomerna.",
+  "exclude_emails_that_contain": "Isključi e-poruke koje sadrže ...",
+  "exclude_emails_match_found_error_message": "Molimo unesite važeću poslovnu e-mail adresu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
