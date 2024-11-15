@@ -1,12 +1,12 @@
 import { beforeEach, vi } from "vitest";
-import { mockClear, mockDeep } from "vitest-mock-extended";
+import { mockReset, mockDeep } from "vitest-mock-extended";
 
 import type * as OAuthManager from "../../_utils/oauth/OAuthManager";
 
 vi.mock("../../_utils/oauth/OAuthManager", () => oAuthManagerMock);
 
 beforeEach(() => {
-  mockClear(oAuthManagerMock);
+  mockReset(oAuthManagerMock);
 });
 
 const oAuthManagerMock = mockDeep<typeof OAuthManager>({
