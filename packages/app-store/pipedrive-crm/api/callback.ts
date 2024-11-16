@@ -47,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       Authorization: `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`,
     },
   });
+  pipedriveCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   pipedriveCrmTokenInfo.data.accountServer = `https://oauth.pipedrive.com`;
 
   await createOAuthAppCredential(

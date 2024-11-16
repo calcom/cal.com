@@ -214,8 +214,6 @@ type ContactCreateResult = {
   };
 };
 
-const baseUrl = "https://api.pipedrive.com";
-
 export default class PipedriveCrmService implements CRM {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
@@ -223,6 +221,7 @@ export default class PipedriveCrmService implements CRM {
   private client_id = "";
   private client_secret = "";
   private accessToken = "";
+  private apiDomain = "";
   constructor(credential: CredentialPayload) {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
     this.integrationName = "pipedrive-crm_crm";
@@ -249,6 +248,7 @@ export default class PipedriveCrmService implements CRM {
     const refreshAccessToken = async (credentialKey: PipedriveToken) => {
       try {
         const url = `${accountServer}/oauth/token`;
+        this.apiDomain = credentialKey.api_domain;
         const formData = {
           grant_type: "refresh_token",
           client_id: this.client_id,
@@ -279,12 +279,13 @@ export default class PipedriveCrmService implements CRM {
             data: {
               key: {
                 ...(pipedriveCrmTokenInfo.data as PipedriveToken),
-                refresh_token: credentialKey.refresh_token,
+                refresh_token: pipedriveCrmTokenInfo.data.refresh_token || credentialKey.refresh_token,
                 accountServer: accountServer,
               },
             },
           });
           this.accessToken = pipedriveCrmTokenInfo.data.access_token;
+          this.apiDomain = pipedriveCrmTokenInfo.data.api_domain;
           this.log.debug("Fetched token", this.accessToken);
         } else {
           this.log.error(pipedriveCrmTokenInfo.data);
@@ -370,14 +371,19 @@ export default class PipedriveCrmService implements CRM {
     const result = contactsToCreate.map(async (attendee) => {
       const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
       const body = {
-        firstName: firstname,
-        lastName: lastname || "-",
-        email: attendee.email,
+        name: `${firstname} ${lastname || ""}`,
+        emails: [
+          {
+            value: attendee.email,
+            primary: true,
+            label: "work",
+          },
+        ],
       };
 
       try {
         const contactCreated = await axios.post<{ data: Partial<PipedriveContact> }>(
-          `${baseUrl}/v1/persons`,
+          `${this.apiDomain}/api/v2/persons`,
           body,
           {
             headers: {
@@ -409,7 +415,7 @@ export default class PipedriveCrmService implements CRM {
       try {
         const result = await axios.get<
           { data: { items: { item: any; result_score: number }[] } } & PipedrivePagination
-        >(`${baseUrl}/v1/persons/search?term=${attendeeEmail}`, {
+        >(`${this.apiDomain}/api/v2/persons/search?term=${attendeeEmail}`, {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
           },
@@ -419,7 +425,7 @@ export default class PipedriveCrmService implements CRM {
 
         const contacts = result.data.data.items.map((item) => item.item);
         const personFields = (
-          await axios.get(`${baseUrl}/v1/personFields`, {
+          await axios.get(`${this.apiDomain}/api/v2/personFields`, {
             headers: {
               Authorization: `Bearer ${this.accessToken}`,
             },
@@ -431,7 +437,7 @@ export default class PipedriveCrmService implements CRM {
         const finalContacts = mappedContacts.map((c: any) => {
           return {
             id: String(c.id),
-            email: c.email,
+            email: c.emails?.[0]?.value || "",
             firstName: c.first_name,
             lastName: c.last_name,
             name: `${c.first_name} ${c.last_name}`,
@@ -473,7 +479,7 @@ export default class PipedriveCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     const eventCreated = await axios.post<{ data: Partial<PipedriveEvent> }>(
-      `${baseUrl}/v1/activities`,
+      `${this.apiDomain}/api/v2/activities`,
       eventPayload,
       {
         headers: {
@@ -503,7 +509,7 @@ export default class PipedriveCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     const eventUpdated = await axios.put<{ data: Partial<PipedriveEvent> }>(
-      `${baseUrl}/v1/activities/${uid}`,
+      `${this.apiDomain}/api/v2/activities/${uid}`,
       eventPayload,
       {
         headers: {
@@ -525,7 +531,7 @@ export default class PipedriveCrmService implements CRM {
       const auth = await this.auth;
       await auth.getToken();
       await axios.delete<{ data: Partial<PipedriveEvent> } & PipedrivePagination>(
-        `${baseUrl}/v1/activities/${uid}`,
+        `${this.apiDomain}/api/v2/activities/${uid}`,
         {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
