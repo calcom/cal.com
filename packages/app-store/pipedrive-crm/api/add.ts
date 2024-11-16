@@ -46,6 +46,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: unknown) {
     return res.status(500).json({ error });
   }
-
-  res.redirect(`/apps/pipedrive-crm/setup`);
+  return res.status(200).json({ url: "/apps/pipedrive-crm/setup" });
 }
