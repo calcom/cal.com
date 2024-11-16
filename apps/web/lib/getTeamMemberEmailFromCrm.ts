@@ -178,7 +178,7 @@ async function getTeamMemberEmailForResponseOrContact({
    * If provided, we won't go look for the route from DB.
    */
   chosenRoute?: LocalRoute;
-  crmAppSlug: string;
+  crmAppSlug?: string;
 }) {
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
 
@@ -231,7 +231,6 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
   log.debug("getTeamMemberEmailForResponseOrContactUsingUrlQuery", safeStringify({ query }));
 
   const crmAppSlug = getEnabledRoutingFormAppSlugFromQuery(query);
-  if (!crmAppSlug) return null;
 
   const routingFormResponseId = getRoutingFormResponseIdFromQuery(query);
 
