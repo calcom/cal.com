@@ -22,7 +22,7 @@ export default function InsightsPage() {
         <div className="mb-4 space-y-4">
           <RoutingKPICards />
 
-          <RoutingFormResponsesTable onTableReady={setRoutingTable} />
+          <RoutingFormResponsesTable />
 
           <FailedBookingsByField />
 
