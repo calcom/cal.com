@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   RoutingFormResponsesTable,
   RoutingKPICards,
   FailedBookingsByField,
+  type RoutingFormTableType,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
@@ -13,16 +16,17 @@ import InsightsLayout from "./layout";
 
 export default function InsightsPage() {
   const { t } = useLocale();
+  const [routingTable, setRoutingTable] = useState<RoutingFormTableType | null>(null);
 
   return (
     <InsightsLayout>
       <FiltersProvider>
-        <Filters showRoutingFilters />
+        <Filters showRoutingFilters routingTable={routingTable} />
 
         <div className="mb-4 space-y-4">
           <RoutingKPICards />
 
-          <RoutingFormResponsesTable />
+          <RoutingFormResponsesTable onTableReady={setRoutingTable} />
 
           <FailedBookingsByField />
 
