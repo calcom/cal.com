@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Заброньовано",
   "routing_form_insights_created_at": "Створено",
   "routing_form_insights_booking_status": "Статус бронювання",
+  "routing_form_insights_booking_at": "Час бронювання",
+  "routing_form_insights_submitted_at": "Час подання",
   "access_denied": "Доступ заборонено",
   "salesforce_route_to_owner": "Власник контакту буде ведучим Round Robin, якщо доступний",
   "salesforce_do_not_route_to_owner": "Власник контакту не буде примусово призначений (може бути ведучим, якщо відповідає атрибутам і критеріям Round Robin)",

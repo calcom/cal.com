@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Foglalva általa",
   "routing_form_insights_created_at": "Létrehozva",
   "routing_form_insights_booking_status": "Foglalás állapota",
+  "routing_form_insights_booking_at": "Foglalás időpontja",
+  "routing_form_insights_submitted_at": "Beküldés időpontja",
   "access_denied": "Hozzáférés megtagadva",
   "salesforce_route_to_owner": "A kapcsolattartó tulajdonosa lesz a round robin házigazda, ha elérhető",
   "salesforce_do_not_route_to_owner": "A kapcsolattartó tulajdonosa nem lesz kötelező (továbbra is lehet házigazda, ha megfelel a tulajdonságoknak és a round robin kritériumoknak)",

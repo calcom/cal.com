@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Rezervasiya edən",
   "routing_form_insights_created_at": "Yaradılma tarixi",
   "routing_form_insights_booking_status": "Rezervasiya statusu",
+  "routing_form_insights_booking_at": "Rezervasiya tarixi",
+  "routing_form_insights_submitted_at": "Göndərilmə tarixi",
   "access_denied": "Giriş qadağandır",
   "salesforce_route_to_owner": "Əlaqə sahibi mövcud olduqda Round Robin ev sahibi olacaq",
   "salesforce_do_not_route_to_owner": "Əlaqə sahibi məcbur edilməyəcək (əgər atributlara və Round Robin meyarlarına uyğun gəlirsə, yenə də ev sahibi ola bilər)",

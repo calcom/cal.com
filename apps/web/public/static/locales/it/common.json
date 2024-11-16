@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Prenotato da",
   "routing_form_insights_created_at": "Creato il",
   "routing_form_insights_booking_status": "Stato della prenotazione",
+  "routing_form_insights_booking_at": "Data prenotazione",
+  "routing_form_insights_submitted_at": "Data invio",
   "access_denied": "Accesso negato",
   "salesforce_route_to_owner": "Il proprietario del contatto sarà l'host del Round Robin se disponibile",
   "salesforce_do_not_route_to_owner": "Il proprietario del contatto non sarà obbligato (può comunque essere l'host se corrisponde agli attributi e ai criteri del Round Robin)",

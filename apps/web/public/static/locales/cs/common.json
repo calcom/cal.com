@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Rezervoval/a",
   "routing_form_insights_created_at": "Vytvořeno",
   "routing_form_insights_booking_status": "Stav rezervace",
+  "routing_form_insights_booking_at": "Čas rezervace",
+  "routing_form_insights_submitted_at": "Čas odeslání",
   "access_denied": "Přístup odepřen",
   "salesforce_route_to_owner": "Vlastník kontaktu bude hostem Round Robin, pokud je k dispozici",
   "salesforce_do_not_route_to_owner": "Vlastník kontaktu nebude nucen (stále může být hostem, pokud odpovídá atributům a kritériím Round Robin)",

@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "预订者",
   "routing_form_insights_created_at": "创建于",
   "routing_form_insights_booking_status": "预订状态",
+  "routing_form_insights_booking_at": "预约时间",
+  "routing_form_insights_submitted_at": "提交时间",
   "access_denied": "访问被拒绝",
   "salesforce_route_to_owner": "如果联系人所有者可用，将作为轮询主持人",
   "salesforce_do_not_route_to_owner": "不会强制指定联系人所有者（如果符合属性和轮询标准，仍可成为主持人）",
