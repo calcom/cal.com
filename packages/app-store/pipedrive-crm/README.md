@@ -2,8 +2,12 @@
 
 #### Obtaining Pipedrive Client ID and Secret
 
-1. Log into your Pipedrive account and in the Developer Hub select/create your app.
-2. Under the Basic Info Tab, change the Callback URL to: `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`
-3. In the OAuth & access scopes Tab, enable full access to Activities and Contacts.
-4. In the same OAuth & access scopes Tab, copy the Client ID and Client secret. Be sure to keep these secured, as you won't be able to see the secret again.
-5. Paste the Client ID and Secret Key in the required field above and save them. You should be redirected to a Pipedrive page after saving to confirm installation.
+- Open [Pipedrive Developers Corner](https://developers.pipedrive.com/) and sign in to your account, or create a new one
+- Go to Settings > (company name) Developer Hub
+- Create a Pipedrive app, using the steps mentioned [here](https://pipedrive.readme.io/docs/marketplace-creating-a-proper-app#create-an-app-in-5-simple-steps)
+  - You can skip this step and use the default revert Pipedrive app
+- Set `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback` as a callback url for your app
+- **Get your client_id and client_secret**:
+  - Go to the "OAuth & access scopes" tab of your app
+  - Copy your client_id and client_secret
+  - Paste the Client ID and Secret Key in the required fields at ${WEBAPP_URL}/apps/pipedrive-crm/setup and save them. You should be redirected to a Pipedrive page after saving to confirm installation.
