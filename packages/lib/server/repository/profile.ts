@@ -42,7 +42,6 @@ const organizationSelect = {
   name: true,
   metadata: true,
   logoUrl: true,
-  calVideoLogo: true,
   bannerUrl: true,
   isPlatform: true,
 };
@@ -363,7 +362,6 @@ export class ProfileRepository {
         },
         organization: {
           select: {
-            calVideoLogo: true,
             id: true,
             logoUrl: true,
             name: true,
@@ -376,9 +374,6 @@ export class ProfileRepository {
               select: {
                 lockEventTypeCreationForUsers: true,
               },
-            },
-            members: {
-              select: membershipSelect,
             },
           },
         },

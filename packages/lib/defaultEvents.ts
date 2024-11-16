@@ -112,6 +112,7 @@ const commons = {
   secondaryEmail: null,
   autoTranslateDescriptionEnabled: false,
   fieldTranslations: [],
+  maxLeadThreshold: null,
 };
 
 export const dynamicEvent = {
