@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "הוזמן על ידי",
   "routing_form_insights_created_at": "נוצר ב-",
   "routing_form_insights_booking_status": "סטטוס הזמנה",
+  "routing_form_insights_booking_at": "מועד ההזמנה",
+  "routing_form_insights_submitted_at": "מועד ההגשה",
   "access_denied": "הגישה נדחתה",
   "salesforce_route_to_owner": "בעל איש הקשר יהיה מארח ה-Round Robin אם זמין",
   "salesforce_do_not_route_to_owner": "בעל איש הקשר לא יהיה מאולץ (עדיין יכול להיות מארח אם תואם את המאפיינים וקריטריוני ה-Round Robin)",

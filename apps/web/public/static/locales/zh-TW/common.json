@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "預約者",
   "routing_form_insights_created_at": "建立時間",
   "routing_form_insights_booking_status": "預約狀態",
+  "routing_form_insights_booking_at": "預約時間",
+  "routing_form_insights_submitted_at": "提交時間",
   "access_denied": "拒絕存取",
   "salesforce_route_to_owner": "如果聯絡人負責人可用，將成為Round Robin主持人",
   "salesforce_do_not_route_to_owner": "不會強制指定聯絡人負責人（如果符合屬性和Round Robin條件，仍可成為主持人）",
