@@ -9,7 +9,7 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import Link from "next/link";
-import { useRef, useMemo, useId } from "react";
+import { useRef, useMemo, useId, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -208,7 +208,13 @@ function BookingStatusCell({
   );
 }
 
-export function RoutingFormResponsesTable() {
+export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
+
+export function RoutingFormResponsesTable({
+  onTableReady,
+}: {
+  onTableReady?: (table: RoutingFormTableType) => void;
+}) {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -359,6 +365,10 @@ export function RoutingFormResponsesTable() {
       size: 200,
     },
   });
+
+  useEffect(() => {
+    onTableReady?.(table);
+  }, [table, onTableReady]);
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
     tableContainerRef,
