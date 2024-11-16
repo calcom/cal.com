@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   req.session = await getServerSession({ req, res });
   const { teamId } = req.query;
   const user = req.session?.user;
-  if (user === undefined) {
+  if (!user) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
 

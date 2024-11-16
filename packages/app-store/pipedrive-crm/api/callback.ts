@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const credKeys = pipedriveAppKeysSchema.parse(credentials.key);
 
-  await prisma.credential.update({
+  const updateResult = await prisma.credential.update({
     where: {
       id: credentials.id,
     },
@@ -49,6 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+
+  if (!updateResult) {
+    console.error(`Updated failed, ${updateResult}`);
+    res.status(500).json({ message: `Updating the app credentials failed - App is likely not installed.` });
+  }
 
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
 }

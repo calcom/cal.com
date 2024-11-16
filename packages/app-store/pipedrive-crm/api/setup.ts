@@ -6,7 +6,7 @@ import { getOAuthClientFromSession } from "../lib/util";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
-  // Check that user is authenticated
+
   req.session = await getServerSession({ req, res });
   if (!req.session) {
     return res.status(401).json({ message: "Unauthorized" });

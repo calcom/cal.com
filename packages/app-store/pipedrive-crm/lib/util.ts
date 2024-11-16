@@ -64,7 +64,7 @@ export const getOAuthClientFromCredential = (credential: Pick<CredentialPayload,
   const oAuthConfig = new OAuth2Configuration({
     clientId: keys.client_id,
     clientSecret: keys.secret_key,
-    redirectUri: `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`, //`${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`,
+    redirectUri: `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`,
   });
   return oAuthConfig;
 };
