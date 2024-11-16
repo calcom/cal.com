@@ -1,4 +1,3 @@
-import { BarList } from "@tremor/react";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -6,6 +5,7 @@ import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
+import { BarList } from "./tremor/BarList";
 
 interface FormCardProps {
   formName: string;
