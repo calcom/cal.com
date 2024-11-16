@@ -163,6 +163,7 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([profileId])
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
