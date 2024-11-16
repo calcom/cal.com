@@ -336,7 +336,7 @@ export default async function main() {
   }
 
   if (process.env.PIPE_DRIVE_CLIENT_ID && process.env.PIPE_DRIVE_CLIENT_SECRET) {
-    await createApp("pipedrive-crm", "pipedrive-crm", ["crm"], "pipedrive-crm_other_calendar", {
+    await createApp("pipedrive-crm", "pipedrive-crm", ["crm"], "pipedrive-crm_crm", {
       client_id: process.env.PIPE_DRIVE_CLIENT_ID,
       client_secret: process.env.PIPE_DRIVE_CLIENT_SECRET,
     });

@@ -1,4 +1,4 @@
-## Pipedrive Integration via Revert
+## Pipedrive Integration
 
 #### Obtaining Pipedrive Client ID and Secret
 
