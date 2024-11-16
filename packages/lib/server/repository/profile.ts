@@ -375,9 +375,6 @@ export class ProfileRepository {
                 lockEventTypeCreationForUsers: true,
               },
             },
-            members: {
-              select: membershipSelect,
-            },
           },
         },
       },

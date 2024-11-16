@@ -114,7 +114,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       orgBannerUrl: team.parent?.bannerUrl ?? "",
       teamMemberEmail: await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
         query,
-        eventTypeId,
         eventData,
       }),
     },
