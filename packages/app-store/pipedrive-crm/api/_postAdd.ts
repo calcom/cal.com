@@ -15,8 +15,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (!session.user) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
-  //this need to be accessed by admin only. need to conform
-
+  //this need to be accessed by admin only. need to confirm
   const { client_id, client_secret }: { client_id: string; client_secret: string } = req.body;
   if (!client_id || !client_secret)
     throw new HttpError({ statusCode: 400, message: "client_id and client_secret are required" });
