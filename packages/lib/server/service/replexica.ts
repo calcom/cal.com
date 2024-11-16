@@ -1,6 +1,7 @@
 import { ReplexicaEngine } from "@replexica/sdk";
 
 import { REPLEXICA_API_KEY } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 
 export class ReplexicaService {
   private static engine = new ReplexicaEngine({
@@ -27,6 +28,7 @@ export class ReplexicaService {
 
       return result;
     } catch (error) {
+      logger.error(`ReplexicaService.localizeText() failed: ${error}`);
       return text;
     }
   }
@@ -54,6 +56,7 @@ export class ReplexicaService {
 
       return result.map((chat: { name: string; text: string }) => chat.text);
     } catch (error) {
+      logger.error(`ReplexicaService.localizeTexts() failed: ${error}`);
       return texts;
     }
   }
