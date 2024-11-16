@@ -1,11 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { stringify } from "querystring";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { WebAppURL } from "@calcom/lib/WebAppURL";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
 
 const formSchema = z.object({
@@ -16,15 +18,17 @@ const formSchema = z.object({
 export default function PipedriveComSetup() {
   const { t } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const query = useRouterQuery();
+
+  const { client_id, client_secret, ...rest } = query;
   const form = useForm<{
     client_id: string;
     client_secret: string;
   }>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      client_id: searchParams?.get("client_id") || "",
-      client_secret: searchParams?.get("client_secret") || "",
+      client_id: (client_id || "") as string,
+      client_secret: (client_secret || "") as string,
     },
   });
 
@@ -60,8 +64,12 @@ export default function PipedriveComSetup() {
                   console.log("entering the subit form", values);
                   const redirectUri = new WebAppURL(`/api/integrations/pipedrive-crm/callback`);
                   const returnTo = `https://oauth.pipedrive.com/oauth/authorize?client_id=${values.client_id}&redirect_uri=${redirectUri}`;
-                  const url = new WebAppURL("/api/integrations/pipedrive-crm/add");
-                  if (returnTo) url.searchParams.append("returnTo", `${returnTo}`);
+                  const newQuery = stringify({
+                    ...rest,
+                    returnTo: returnTo,
+                  });
+                  const url = new WebAppURL(`/api/integrations/pipedrive-crm/add/?${newQuery}`);
+
                   const res = await fetch(url.href, {
                     method: "POST",
                     body: JSON.stringify(values),

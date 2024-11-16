@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { stringify } from "querystring";
 
 import checkSession from "../../_utils/auth";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -13,7 +14,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const appKeys = await getAppKeysFromSlug(appConfig.slug, true);
   const session = checkSession(req);
   await checkInstalled("pipedrive-crm", session.user?.id);
+  const params = {
+    client_id: (appKeys.client_id || "") as string,
+    client_secret: (appKeys.client_secret || "") as string,
+    response_type: "code",
+    state: req.query.state,
+    tentId: req.query.tentId,
+  };
+  const query = stringify(params);
+
   return res.status(200).json({
-    url: `/apps/pipedrive-crm/setup?client_id=${appKeys.client_id}&client_secret=${appKeys.client_secret}`,
+    url: `/apps/pipedrive-crm/setup?${query}`,
   });
 }

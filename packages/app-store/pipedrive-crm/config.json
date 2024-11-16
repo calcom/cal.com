@@ -4,7 +4,7 @@
   "slug": "pipedrive-crm",
   "type": "pipedrive-crm_crm",
   "logo": "icon.svg",
-  "url": "https://www.pipedrive.com/",
+  "url": "https://www.pipedrive.com",
   "variant": "crm",
   "categories": ["crm"],
   "extendsFeature": "EventType",

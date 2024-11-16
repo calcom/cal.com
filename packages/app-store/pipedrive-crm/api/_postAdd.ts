@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { stringify } from "querystring";
 
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -49,10 +50,12 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Could not add Close.com app" });
   }
 
+  const { returnTo, ...newQeury } = req.query;
+
+  const query = stringify(newQeury);
+
   return res.status(200).json({
-    url: req.query.returnTo
-      ? req.query.returnTo
-      : getInstalledAppPath({ variant: "crm", slug: "pipedrive-crm" }),
+    url: returnTo ? `${returnTo}&${query}` : getInstalledAppPath({ variant: "crm", slug: "pipedrive-crm" }),
   });
 }
 

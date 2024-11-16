@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_secret) return res.status(400).json({ message: "pipedrive Crm consumer secret missing." });
   const url = `https://oauth.pipedrive.com/oauth/token`;
   const redirectUri = `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`;
+
   const formData = {
     grant_type: "authorization_code",
     redirect_uri: redirectUri,
@@ -57,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   const state = decodeOAuthState(req);
+  console.log("state===========>", state);
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
