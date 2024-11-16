@@ -15,7 +15,7 @@ import { ReplexicaService } from "@calcom/lib/server/service/replexica";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -88,9 +88,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       title: true,
       description: true,
-      descriptionTranslations: {
+      fieldTranslations: {
         select: {
-          id: true,
+          field: true,
         },
       },
       isRRWeightsEnabled: true,
@@ -488,9 +488,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  // Logic for updating `descriptionTranslations`
+  // Logic for updating `fieldTranslations`
   // user has no description translations OR user is changing the description
-  const descriptionTranslationsNeeded = eventType.descriptionTranslations.length === 0 || newDescription;
+  const descriptionTranslationsNeeded =
+    eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.DESCRIPTION)
+      .length === 0 || newDescription;
   const description = newDescription ?? eventType.description;
 
   if (
@@ -499,28 +501,37 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     descriptionTranslationsNeeded &&
     description
   ) {
-    // TODO: we want to support the other locales in Locales enum + turn this into a background job using Bull Queue
-    const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "zh", "ru"] as const).filter(
-      (locale) => locale !== ctx.user.locale
-    );
+    const userLocale = ctx.user.locale;
 
-    // First, get all translations in parallel
-    const translatedTexts = await Promise.all(
-      targetLocales.map((targetLocale) =>
-        ReplexicaService.localizeText(description, ctx.user.locale, targetLocale)
-      )
-    );
+    // Use process.nextTick to handle translations in the background
+    process.nextTick(async () => {
+      try {
+        // TODO: we want to support the other locales in Locales enum
+        const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "zh", "ru"] as const).filter(
+          (locale) => locale !== userLocale
+        );
 
-    // Then create all translations in a single DB call
-    await EventTypeTranslationRepository.createManyDescriptionTranslations(
-      targetLocales.map((targetLocale, index) => ({
-        eventTypeId: id,
-        sourceLang: ctx.user.locale,
-        targetLang: targetLocale,
-        translatedText: translatedTexts[index],
-        userId: ctx.user.id,
-      }))
-    );
+        // First, get all translations in parallel
+        const translatedTexts = await Promise.all(
+          targetLocales.map((targetLocale) =>
+            ReplexicaService.localizeText(description, userLocale, targetLocale)
+          )
+        );
+
+        // Then create all translations in a single DB call
+        await EventTypeTranslationRepository.createManyDescriptionTranslations(
+          targetLocales.map((targetLocale, index) => ({
+            eventTypeId: id,
+            sourceLang: userLocale,
+            targetLang: targetLocale,
+            translatedText: translatedTexts[index],
+            userId: ctx.user.id,
+          }))
+        );
+      } catch (error) {
+        logger.error(`Failed to translate event type ${id} description:`, error);
+      }
+    });
   }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
