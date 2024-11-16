@@ -214,6 +214,8 @@ type ContactCreateResult = {
   };
 };
 
+const VESRION = "v2";
+
 export default class PipedriveCrmService implements CRM {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
@@ -383,7 +385,7 @@ export default class PipedriveCrmService implements CRM {
 
       try {
         const contactCreated = await axios.post<{ data: Partial<PipedriveContact> }>(
-          `${this.apiDomain}/api/v2/persons`,
+          `${this.apiDomain}/api/${VESRION}/persons`,
           body,
           {
             headers: {
@@ -415,7 +417,7 @@ export default class PipedriveCrmService implements CRM {
       try {
         const result = await axios.get<
           { data: { items: { item: any; result_score: number }[] } } & PipedrivePagination
-        >(`${this.apiDomain}/api/v2/persons/search?term=${attendeeEmail}`, {
+        >(`${this.apiDomain}/api/${VESRION}/persons/search?term=${attendeeEmail}`, {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
           },
@@ -425,7 +427,7 @@ export default class PipedriveCrmService implements CRM {
 
         const contacts = result.data.data.items.map((item) => item.item);
         const personFields = (
-          await axios.get(`${this.apiDomain}/api/v2/personFields`, {
+          await axios.get(`${this.apiDomain}/api/v1/personFields`, {
             headers: {
               Authorization: `Bearer ${this.accessToken}`,
             },
@@ -479,7 +481,7 @@ export default class PipedriveCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     const eventCreated = await axios.post<{ data: Partial<PipedriveEvent> }>(
-      `${this.apiDomain}/api/v2/activities`,
+      `${this.apiDomain}/api/v1/activities`,
       eventPayload,
       {
         headers: {
@@ -509,7 +511,7 @@ export default class PipedriveCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     const eventUpdated = await axios.put<{ data: Partial<PipedriveEvent> }>(
-      `${this.apiDomain}/api/v2/activities/${uid}`,
+      `${this.apiDomain}/api/v1/activities/${uid}`,
       eventPayload,
       {
         headers: {
@@ -531,7 +533,7 @@ export default class PipedriveCrmService implements CRM {
       const auth = await this.auth;
       await auth.getToken();
       await axios.delete<{ data: Partial<PipedriveEvent> } & PipedrivePagination>(
-        `${this.apiDomain}/api/v2/activities/${uid}`,
+        `${this.apiDomain}/api/v1/activities/${uid}`,
         {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
