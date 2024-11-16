@@ -4,10 +4,10 @@ import { stringify } from "querystring";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 
-import { checkAdminAccessToTeam } from "../../_utils/adminAccessToTeamUtils";
 import checkSession from "../../_utils/auth";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { checkInstalled } from "../../_utils/installation";
+import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,14 +24,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!teamId) {
     teamId = JSON.parse(state)?.teamId || "";
   }
-  const hasAdminAccess = await checkAdminAccessToTeam({
+  await throwIfNotHaveAdminAccessToTeam({
     teamId: teamId ? Number(teamId) : null,
     userId: Number(user.id),
   });
 
-  if (!hasAdminAccess && teamId) {
-    throw new HttpError({ statusCode: 401, message: "Unauthorized. Need to be admin" });
-  }
   const appKeys = await getAppKeysFromSlug(appConfig.slug, true);
   const hasAppConfig = !!appKeys?.client_id && !!appKeys?.client_secret;
   await checkInstalled("pipedrive-crm", session.user?.id);
@@ -42,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     tentId: req.query.tentId,
     client_secret: "",
   };
-  if (hasAppConfig && user.role === "ADMIN" && !teamId) {
+  if (hasAppConfig && !teamId) {
     params.client_secret = (appKeys.client_secret || "") as string;
   }
   const query = stringify(params);

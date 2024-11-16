@@ -7,9 +7,9 @@ import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import { checkAdminAccessToTeam } from "../../_utils/adminAccessToTeamUtils";
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
 import appConfig from "../../pipedrive-crm/config.json";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -25,13 +25,10 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     if (!teamId) {
       teamId = JSON.parse(state)?.teamId || "";
     }
-    const hasAdminAccess = await checkAdminAccessToTeam({
+    await throwIfNotHaveAdminAccessToTeam({
       teamId: teamId ? Number(teamId) : null,
       userId: Number(user.id),
     });
-    if (!hasAdminAccess && teamId) {
-      throw new HttpError({ statusCode: 401, message: "Unauthorized. Need to be team admin" });
-    }
     const { client_id, client_secret }: { client_id: string; client_secret: string } = req.body;
     if (!client_id || !client_secret)
       throw new HttpError({ statusCode: 400, message: "client_id and client_secret are required" });
@@ -60,7 +57,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
   } catch (reason) {
     logger.error("Could not add Pipedrive.com app", reason);
-    return res.status(500).json({ message: "Could not add Close.com app" });
+    return res.status(500).json({ message: "Could not add Pipedrive.com app" });
   }
   const { returnTo, ...newQeury } = req.query;
   const query = stringify(newQeury || {});
