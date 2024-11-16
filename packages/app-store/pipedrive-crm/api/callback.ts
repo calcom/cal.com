@@ -39,28 +39,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     redirect_uri: redirectUri,
     code: code,
   };
-  const pipedriveCrmTokenInfo = await axios({
-    method: "post",
-    url: url,
-    data: qs.stringify(formData),
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-      Authorization: `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`,
-    },
-  });
-  pipedriveCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
-  pipedriveCrmTokenInfo.data.accountServer = `https://oauth.pipedrive.com`;
-
-  await createOAuthAppCredential(
-    { appId: appConfig.slug, type: appConfig.type },
-    pipedriveCrmTokenInfo.data,
-    req
-  );
-
   const state = decodeOAuthState(req);
-  console.log("state===========>", state);
-  res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ??
-      getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
-  );
+
+  try {
+    const pipedriveCrmTokenInfo = await axios({
+      method: "post",
+      url: url,
+      data: qs.stringify(formData),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+        Authorization: `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`,
+      },
+    });
+    pipedriveCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
+    pipedriveCrmTokenInfo.data.accountServer = `https://oauth.pipedrive.com`;
+
+    await createOAuthAppCredential(
+      { appId: appConfig.slug, type: appConfig.type },
+      pipedriveCrmTokenInfo.data,
+      req
+    );
+
+    res.redirect(
+      getSafeRedirectUrl(state?.returnTo) ??
+        getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
+    );
+  } catch (err) {
+    console.error("Error occurred while getting access token for pipedrive crm", err);
+    res.redirect(
+      getSafeRedirectUrl(state?.onErrorReturnTo) ??
+        getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
+    );
+  }
 }
