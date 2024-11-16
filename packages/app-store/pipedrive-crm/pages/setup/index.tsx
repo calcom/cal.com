@@ -62,11 +62,12 @@ export default function PipedriveComSetup() {
                 handleSubmit={async (values) => {
                   console.log("entering the subit form", values);
                   const redirectUri = new WebAppURL(`/api/integrations/pipedrive-crm/callback`);
+                  const returnTo = `https://oauth.pipedrive.com/oauth/authorize?client_id=${values.client_id}&redirect_uri=${redirectUri}`;
                   const newQuery = stringify({
                     ...rest,
+                    returnTo: returnTo,
                   });
-                  const returnTo = `https://oauth.pipedrive.com/oauth/authorize?client_id=${values.client_id}&redirect_uri=${redirectUri}&${newQuery}`;
-                  const url = new WebAppURL(`/api/integrations/pipedrive-crm/add?returnTo=${returnTo}`);
+                  const url = new WebAppURL(`/api/integrations/pipedrive-crm/add?${newQuery}`);
                   const res = await fetch(url.href, {
                     method: "POST",
                     body: JSON.stringify(values),

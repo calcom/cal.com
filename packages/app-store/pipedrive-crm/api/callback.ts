@@ -13,6 +13,8 @@ import appConfig from "../config.json";
 
 let client_id = "";
 let client_secret = "";
+const URL = "https://oauth.pipedrive.com/oauth/token";
+const OAUTH_URL = "https://oauth.pipedrive.com";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
@@ -31,8 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   if (!client_id) return res.status(400).json({ message: "pipedrive Crm consumer key missing." });
   if (!client_secret) return res.status(400).json({ message: "pipedrive Crm consumer secret missing." });
-  const URL = "https://oauth.pipedrive.com/oauth/token";
-  const OAUTH_URL = "https://oauth.pipedrive.com";
   const redirectUri = `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`;
 
   const formData = {

@@ -30,24 +30,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const appKeys = await getAppKeysFromSlug(appConfig.slug, true);
-  const hasAppConfig = !!appKeys?.client_id && !!appKeys?.client_secret;
   await checkInstalled("pipedrive-crm", session.user?.id);
   const params = {
     client_id: (appKeys.client_id || "") as string,
     response_type: "code",
     state: req.query.state,
     tentId: req.query.tentId,
-    client_secret: "",
+    client_secret: (appKeys.client_secret || "") as string,
   };
-  if (hasAppConfig && !teamId) {
-    params.client_secret = (appKeys.client_secret || "") as string;
-  }
   const query = stringify(params);
 
   return res.status(200).json({
-    url:
-      params.client_secret || !hasAppConfig
-        ? `${WEBAPP_URL}/apps/pipedrive-crm/setup?${query}`
-        : `https://oauth.pipedrive.com/oauth/authorize?${query}&redirect_uri=${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`,
+    url: `${WEBAPP_URL}/apps/pipedrive-crm/setup?${query}`,
   });
 }
