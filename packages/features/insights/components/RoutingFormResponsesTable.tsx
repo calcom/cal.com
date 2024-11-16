@@ -92,7 +92,7 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   if (value.length === 0) return <div className="h-6 w-[200px]" />;
 
   return (
-    <div className="flex w-[200px] flex-wrap gap-1">
+    <CellWithOverflowX className="flex w-[200px] gap-1">
       {value.length > 2 ? (
         <>
           {value.slice(0, 2).map((v: string, i: number) => (
@@ -120,7 +120,7 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
           </Badge>
         ))
       )}
-    </div>
+    </CellWithOverflowX>
   );
 }
 
