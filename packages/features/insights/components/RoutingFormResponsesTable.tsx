@@ -51,7 +51,7 @@ function CellWithOverflowX({ children, className }: { children: React.ReactNode;
         }}>
         {children}
       </div>
-      <div className="absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l from-white to-transparent group-hover:from-gray-100" />
+      <div className="from-default absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l to-transparent " />
     </div>
   );
 }
