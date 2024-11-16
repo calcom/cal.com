@@ -102,21 +102,16 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
   const locale = user?.locale ?? ctx.locale;
-
-  const isOrgAdmin = !!user.profile?.organization?.members.filter(
-    (member) => (member.role === "ADMIN" || member.role === "OWNER") && member.userId === user.id
-  ).length;
+  const isOrgAdmin = await UserRepository.isAdminOrOwnerOfTeam({
+    userId: user.id,
+    teamId: user.profile.organization?.id ?? -1,
+  });
 
   if (isOrgAdmin) {
     logger.debug("User is an org admin", safeStringify({ userId: user.id }));
   } else {
     logger.debug("User is not an org admin", safeStringify({ userId: user.id }));
   }
-  // Want to reduce the amount of data being sent
-  if (isOrgAdmin && user.profile?.organization?.members) {
-    user.profile.organization.members = [];
-  }
-
   const organization = {
     ...user.profile?.organization,
     id: user.profile?.organization?.id ?? null,

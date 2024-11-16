@@ -48,7 +48,7 @@ export const EventMeta = ({
     | "recurringEvent"
     | "price"
     | "isDynamic"
-    | "descriptionTranslations"
+    | "fieldTranslations"
     | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
@@ -104,7 +104,7 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
   const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
-  const translatedDescription = (event?.descriptionTranslations ?? []).find((translation) =>
+  const translatedDescription = (event?.fieldTranslations ?? []).find((translation) =>
     browserLocale.startsWith(translation.targetLang)
   )?.translatedText;
 

@@ -446,11 +446,11 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
-      descriptionTranslations: {
+      fieldTranslations: {
         select: {
           translatedText: true,
           targetLang: true,
-        }
+        },
       },
       recurringEvent: true,
       hideCalendarNotes: true,
@@ -617,6 +617,7 @@ export class EventTypeRepository {
         },
       },
       secondaryEmailId: true,
+      maxLeadThreshold: true,
     });
 
     return await prisma.eventType.findFirst({
@@ -651,6 +652,43 @@ export class EventTypeRepository {
         ],
       },
       select: CompleteEventTypeSelect,
+    });
+  }
+
+  static async findByIdMinimal({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        hosts: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            weight: true,
+            priority: true,
+            createdAt: true,
+          },
+        },
+        team: {
+          select: {
+            parentId: true,
+          },
+        },
+      },
     });
   }
 
