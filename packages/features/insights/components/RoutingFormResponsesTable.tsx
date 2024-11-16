@@ -9,7 +9,7 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import Link from "next/link";
-import { useRef, useMemo, useId } from "react";
+import { useRef, useMemo, useId, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -17,7 +17,16 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { DataTable, useFetchMoreOnBottomReached, Badge, Avatar, Icon } from "@calcom/ui";
+import {
+  DataTable,
+  useFetchMoreOnBottomReached,
+  Badge,
+  Avatar,
+  Icon,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
@@ -36,7 +45,7 @@ function CellWithOverflowX({ children, className }: { children: React.ReactNode;
   return (
     <div className={classNames("group relative max-w-[200px]", className)}>
       <div
-        className="no-scrollbar overflow-x-auto whitespace-nowrap"
+        className="no-scrollbar flex gap-1 overflow-x-auto whitespace-nowrap"
         ref={(el) => {
           // Only add shadow if the scroll width is greater than 200px
           if (!el) return;
@@ -51,7 +60,7 @@ function CellWithOverflowX({ children, className }: { children: React.ReactNode;
         }}>
         {children}
       </div>
-      <div className="absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l from-white to-transparent group-hover:from-gray-100" />
+      <div className="from-default absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l to-transparent " />
     </div>
   );
 }
@@ -92,7 +101,7 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   if (value.length === 0) return <div className="h-6 w-[200px]" />;
 
   return (
-    <div className="flex w-[200px] flex-wrap gap-1">
+    <CellWithOverflowX className="flex w-[200px] gap-1">
       {value.length > 2 ? (
         <>
           {value.slice(0, 2).map((v: string, i: number) => (
@@ -100,18 +109,20 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
               {v}
             </Badge>
           ))}
-          <div className="group/badge relative">
-            <Badge variant="gray">+{value.length - 2}</Badge>
-            <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
+          <HoverCard>
+            <HoverCardTrigger>
+              <Badge variant="gray">+{value.length - 2}</Badge>
+            </HoverCardTrigger>
+            <HoverCardContent side="bottom" align="start" className="w-fit">
               <div className="flex flex-col gap-1">
                 {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-sm text-gray-600">
+                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
                     {v}
                   </span>
                 ))}
               </div>
-            </div>
-          </div>
+            </HoverCardContent>
+          </HoverCard>
         </>
       ) : (
         value.map((v: string, i: number) => (
@@ -120,7 +131,7 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
           </Badge>
         ))
       )}
-    </div>
+    </CellWithOverflowX>
   );
 }
 
@@ -158,12 +169,16 @@ function BookingStatusCell({
   }
 
   return (
-    <div className="group/booking_status relative flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
-      <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-      <Link href={`/booking/${booking.uid}`}>
-        <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
-      </Link>
-      <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/booking_status:visible group-hover/booking_status:translate-y-0 group-hover/booking_status:opacity-100 ">
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <div className="flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
+          <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+          <Link href={`/booking/${booking.uid}`}>
+            <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
+          </Link>
+        </div>
+      </HoverCardTrigger>
+      <HoverCardContent>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
@@ -188,12 +203,18 @@ function BookingStatusCell({
             <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>
           </div>
         </div>
-      </div>
-    </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
-export function RoutingFormResponsesTable() {
+export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
+
+export function RoutingFormResponsesTable({
+  onTableReady,
+}: {
+  onTableReady?: (table: RoutingFormTableType) => void;
+}) {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -344,6 +365,10 @@ export function RoutingFormResponsesTable() {
       size: 200,
     },
   });
+
+  useEffect(() => {
+    onTableReady?.(table);
+  }, [table, onTableReady]);
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
     tableContainerRef,

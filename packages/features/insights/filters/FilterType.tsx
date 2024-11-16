@@ -108,9 +108,9 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="z-50 w-44">
+      <DropdownMenuContent className="z-50">
         {filterOptions?.map((option) => (
-          <DropdownMenuItem key={option.label} className="w-44">
+          <DropdownMenuItem key={option.label} className="w-full">
             <DropdownItem
               type="button"
               StartIcon={option.StartIcon}
@@ -124,9 +124,11 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
                 });
               }}
               childrenClassName="w-full">
-              <div className="flex w-full items-center justify-between">
-                {t(option.label)}
-                {selectedFilter?.includes(option.value) && <Icon name="check" className="h-4 w-4" />}
+              <div className="flex w-full items-center justify-between whitespace-normal">
+                <span className="mr-2">{t(option.label)}</span>
+                {selectedFilter?.includes(option.value) && (
+                  <Icon name="check" className="h-4 w-4 flex-shrink-0" />
+                )}
               </div>
             </DropdownItem>
           </DropdownMenuItem>
