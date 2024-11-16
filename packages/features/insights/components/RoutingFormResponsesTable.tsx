@@ -394,7 +394,7 @@ export function RoutingFormResponsesTable() {
         <div
           className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
           style={{ gridArea: "body" }}>
-          <Table className="border-0">
+          <Table>
             <TableHeader className="bg-subtle sticky top-0 z-10">
               <TableRow>
                 {[...Array(4)].map((_, index) => (
