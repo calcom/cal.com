@@ -29,7 +29,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     dirName: appConfig["dirName"],
   } as any;
   try {
-    //making sure only one record is maintianed
+    //making sure only one record is maintained
     const exisitngApp = await prisma.app.findUnique({
       where: {
         slug: appConfig.slug,
