@@ -21,6 +21,21 @@ interface EventData {
   length: number;
 }
 
+async function findUserByEmailWhoIsAHostOfEventType({
+  email,
+  eventTypeId,
+}: {
+  email: string;
+  eventTypeId: number;
+}) {
+  return prisma.user.findFirst({
+    where: {
+      email,
+      hosts: { some: { eventTypeId } },
+    },
+  });
+}
+
 function getRoutingFormResponseIdFromQuery(query: ParsedUrlQuery) {
   const routingFormResponseIdAsNumber = Number(query[ROUTING_FORM_RESPONSE_ID_QUERY_STRING]);
   const routingFormResponseId = isNaN(routingFormResponseIdAsNumber) ? null : routingFormResponseIdAsNumber;
@@ -99,16 +114,11 @@ function getEnabledRoutingFormAppSlugFromQuery(query: ParsedUrlQuery) {
 async function getOwnerEmailFromCrm(eventData: EventData, email: string): Promise<string | null> {
   const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
   if (!crmContactOwnerEmail) return null;
+
   // Determine if the contactOwner is a part of the event type
-  const contactOwnerQuery = await prisma.user.findFirst({
-    where: {
-      email: crmContactOwnerEmail,
-      hosts: {
-        some: {
-          eventTypeId: eventData.id,
-        },
-      },
-    },
+  const contactOwnerQuery = await findUserByEmailWhoIsAHostOfEventType({
+    email: crmContactOwnerEmail,
+    eventTypeId: eventData.id,
   });
   if (!contactOwnerQuery) return null;
   return crmContactOwnerEmail;
@@ -138,7 +148,6 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
     .default;
   const appHandler = appBookingFormHandler[crmAppSlug];
-
   if (!appHandler) return nullReturnValue;
 
   const { email: userEmail } = await appHandler(bookerEmail, attributeRoutingConfig, eventTypeId);
@@ -146,16 +155,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   if (!userEmail) return nullReturnValue;
 
   // Determine if the user is a part of the event type
-  const userQuery = await prisma.user.findFirst({
-    where: {
-      email: userEmail,
-      hosts: {
-        some: {
-          eventTypeId: eventTypeId,
-        },
-      },
-    },
-  });
+  const userQuery = await findUserByEmailWhoIsAHostOfEventType({ email: userEmail, eventTypeId });
 
   if (!userQuery) return nullReturnValue;
 
@@ -164,14 +164,12 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
 
 async function getTeamMemberEmailForResponseOrContact({
   bookerEmail,
-  eventTypeId,
   eventData,
   routingFormResponseId,
   chosenRoute,
   crmAppSlug,
 }: {
   bookerEmail: string;
-  eventTypeId: number;
   eventData: EventData;
   routingFormResponseId?: number | null;
   /**
@@ -180,6 +178,7 @@ async function getTeamMemberEmailForResponseOrContact({
   chosenRoute?: LocalRoute;
   crmAppSlug?: string;
 }) {
+  const eventTypeId = eventData.id;
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
 
   const attributeRoutingConfigGetterData = routingFormResponseId
@@ -214,12 +213,10 @@ async function getTeamMemberEmailForResponseOrContact({
 
 export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
   query,
-  eventTypeId,
   eventData,
   chosenRoute,
 }: {
   query: ParsedUrlQuery;
-  eventTypeId: number;
   eventData: EventData;
   chosenRoute?: LocalRoute;
 }) {
@@ -236,7 +233,6 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
 
   return await getTeamMemberEmailForResponseOrContact({
     bookerEmail: query.email,
-    eventTypeId,
     eventData,
     routingFormResponseId,
     chosenRoute,
