@@ -37,7 +37,6 @@ export default function PipedriveComSetup() {
       <div className="bg-default m-auto rounded p-5 md:w-[520px] md:p-10">
         <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
-            {/* eslint-disable @next/next/no-img-element */}
             <img
               src="/api/app-store/pipedrive-crm/icon.svg"
               alt="Pipe Drive"
@@ -63,13 +62,11 @@ export default function PipedriveComSetup() {
                 handleSubmit={async (values) => {
                   console.log("entering the subit form", values);
                   const redirectUri = new WebAppURL(`/api/integrations/pipedrive-crm/callback`);
-                  const returnTo = `https://oauth.pipedrive.com/oauth/authorize?client_id=${values.client_id}&redirect_uri=${redirectUri}`;
                   const newQuery = stringify({
                     ...rest,
-                    returnTo: returnTo,
                   });
-                  const url = new WebAppURL(`/api/integrations/pipedrive-crm/add/?${newQuery}`);
-
+                  const returnTo = `https://oauth.pipedrive.com/oauth/authorize?client_id=${values.client_id}&redirect_uri=${redirectUri}&${newQuery}`;
+                  const url = new WebAppURL(`/api/integrations/pipedrive-crm/add?returnTo=${returnTo}`);
                   const res = await fetch(url.href, {
                     method: "POST",
                     body: JSON.stringify(values),

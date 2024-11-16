@@ -31,7 +31,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   if (!client_id) return res.status(400).json({ message: "pipedrive Crm consumer key missing." });
   if (!client_secret) return res.status(400).json({ message: "pipedrive Crm consumer secret missing." });
-  const url = `https://oauth.pipedrive.com/oauth/token`;
+  const URL = "https://oauth.pipedrive.com/oauth/token";
+  const OAUTH_URL = "https://oauth.pipedrive.com";
   const redirectUri = `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`;
 
   const formData = {
@@ -44,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const pipedriveCrmTokenInfo = await axios({
       method: "post",
-      url: url,
+      url: URL,
       data: qs.stringify(formData),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
@@ -52,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     pipedriveCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
-    pipedriveCrmTokenInfo.data.accountServer = `https://oauth.pipedrive.com`;
+    pipedriveCrmTokenInfo.data.accountServer = OAUTH_URL;
 
     await createOAuthAppCredential(
       { appId: appConfig.slug, type: appConfig.type },
