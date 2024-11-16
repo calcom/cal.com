@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Rezervasyon yapan",
   "routing_form_insights_created_at": "Oluşturulma tarihi",
   "routing_form_insights_booking_status": "Rezervasyon durumu",
+  "routing_form_insights_booking_at": "Rezervasyon tarihi",
+  "routing_form_insights_submitted_at": "Gönderilme tarihi",
   "access_denied": "Erişim Reddedildi",
   "salesforce_route_to_owner": "Mümkünse kişi sahibi round robin ev sahibi olacak",
   "salesforce_do_not_route_to_owner": "Kişi sahibi zorlanmayacak (özellikler ve round robin kriterlerine uyuyorsa yine de ev sahibi olabilir)",

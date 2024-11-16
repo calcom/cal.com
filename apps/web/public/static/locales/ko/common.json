@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "예약자",
   "routing_form_insights_created_at": "생성 시간",
   "routing_form_insights_booking_status": "예약 상태",
+  "routing_form_insights_booking_at": "예약 시간",
+  "routing_form_insights_submitted_at": "제출 시간",
   "access_denied": "접근 거부됨",
   "salesforce_route_to_owner": "연락처 소유자가 가능하면 Round Robin 호스트가 됩니다.",
   "salesforce_do_not_route_to_owner": "연락처 소유자가 강제되지 않습니다 (속성과 Round Robin 기준이 일치하면 여전히 호스트가 될 수 있습니다).",

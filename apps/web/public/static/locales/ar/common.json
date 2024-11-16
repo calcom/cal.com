@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "تم الحجز بواسطة",
   "routing_form_insights_created_at": "تم الإنشاء في",
   "routing_form_insights_booking_status": "حالة الحجز",
+  "routing_form_insights_booking_at": "موعد الحجز",
+  "routing_form_insights_submitted_at": "تاريخ التقديم",
   "access_denied": "تم رفض الوصول",
   "salesforce_route_to_owner": "سيكون مالك جهة الاتصال هو مضيف Round Robin إذا كان متاحاً",
   "salesforce_do_not_route_to_owner": "لن يتم فرض مالك جهة الاتصال (يمكن أن يظل مضيفاً إذا تطابق مع السمات ومعايير Round Robin)",

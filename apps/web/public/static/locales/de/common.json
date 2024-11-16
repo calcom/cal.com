@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Gebucht von",
   "routing_form_insights_created_at": "Erstellt am",
   "routing_form_insights_booking_status": "Buchungsstatus",
+  "routing_form_insights_booking_at": "Gebucht am",
+  "routing_form_insights_submitted_at": "Eingereicht am",
   "access_denied": "Zugriff verweigert",
   "salesforce_route_to_owner": "Der Kontaktinhaber wird der Round Robin Host sein, falls verfügbar",
   "salesforce_do_not_route_to_owner": "Der Kontaktinhaber wird nicht erzwungen (kann trotzdem Host sein, wenn die Attribute und Round Robin Kriterien übereinstimmen)",
