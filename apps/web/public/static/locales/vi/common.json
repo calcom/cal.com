@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Được đặt bởi",
   "routing_form_insights_created_at": "Được tạo vào",
   "routing_form_insights_booking_status": "Trạng thái đặt chỗ",
+  "routing_form_insights_booking_at": "Thời gian đặt lịch",
+  "routing_form_insights_submitted_at": "Thời gian gửi",
   "access_denied": "Từ chối truy cập",
   "salesforce_route_to_owner": "Người sở hữu liên hệ sẽ là người chủ trì Round Robin nếu khả dụng",
   "salesforce_do_not_route_to_owner": "Người sở hữu liên hệ sẽ không bị bắt buộc (vẫn có thể là người chủ trì nếu phù hợp với các thuộc tính và tiêu chí Round Robin)",

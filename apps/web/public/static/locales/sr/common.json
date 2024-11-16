@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Rezervisao/la",
   "routing_form_insights_created_at": "Kreirano",
   "routing_form_insights_booking_status": "Status rezervacije",
+  "routing_form_insights_booking_at": "Vreme rezervacije",
+  "routing_form_insights_submitted_at": "Vreme podnošenja",
   "access_denied": "Pristup odbijen",
   "salesforce_route_to_owner": "Vlasnik kontakta će biti Round Robin domaćin ako je dostupan",
   "salesforce_do_not_route_to_owner": "Vlasnik kontakta neće biti primoran (može i dalje biti domaćin ako odgovara atributima i Round Robin kriterijumima)",

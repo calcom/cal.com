@@ -2779,6 +2779,8 @@
   "routing_form_insights_booked_by": "Broneeris",
   "routing_form_insights_created_at": "Loodud",
   "routing_form_insights_booking_status": "Broneeringu staatus",
+  "routing_form_insights_booking_at": "Broneeritud",
+  "routing_form_insights_submitted_at": "Esitatud",
   "access_denied": "Juurdepääs keelatud",
   "salesforce_route_to_owner": "Kontakti omanik on round robin host, kui saadaval",
   "salesforce_do_not_route_to_owner": "Kontakti omanikku ei sunnita (võib siiski olla host, kui vastab atribuutidele ja round robin kriteeriumitele)",
