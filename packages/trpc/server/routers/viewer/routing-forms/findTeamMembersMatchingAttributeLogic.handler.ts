@@ -214,7 +214,6 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   const timeBeforeCrm = performance.now();
   const contactOwnerEmail = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
     query: fromEntriesWithDuplicateKeys(urlSearchParamsToForward.entries()),
-    eventTypeId: eventType.id,
     eventData: eventType,
     chosenRoute: route,
   });
