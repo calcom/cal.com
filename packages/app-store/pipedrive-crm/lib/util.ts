@@ -3,6 +3,7 @@ import { OAuth2Configuration } from "pipedrive";
 import { z } from "zod";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -59,12 +60,11 @@ export const getOAuthClientFromSession = async (
 
 export const getOAuthClientFromCredential = (credential: Pick<CredentialPayload, "key">) => {
   const keys = credential.key as z.infer<typeof pipedriveAppKeysSchema>;
-  console.log(keys);
 
   const oAuthConfig = new OAuth2Configuration({
     clientId: keys.client_id,
     clientSecret: keys.secret_key,
-    redirectUri: "https://9ba4a35f0b7b.ngrok.app/api/integrations/pipedrive-crm/callback", //`${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`,
+    redirectUri: `${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`, //`${WEBAPP_URL}/api/integrations/pipedrive-crm/callback`,
   });
   return oAuthConfig;
 };
