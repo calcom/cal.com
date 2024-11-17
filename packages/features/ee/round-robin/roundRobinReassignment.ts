@@ -21,7 +21,6 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
-import { DistributionMethod } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -126,7 +125,7 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+  const reassignedRRHost = await getLuckyUser({
     availableUsers,
     eventType: {
       id: eventType.id,

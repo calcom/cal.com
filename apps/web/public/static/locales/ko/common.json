@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "계정의 조회 필드와 일치하는 사용자에게 라우팅합니다.",
   "salesforce_option": "Salesforce 옵션",
   "lookup_field_name": "조회 필드 이름",
+  "rr_distribution_method": "분배 방식",
+  "rr_distribution_method_description": "최대 가용성을 위한 분배 최적화 또는 균형 잡힌 할당을 위한 설정이 가능합니다.",
+  "rr_distribution_method_availability_title": "가용성 최대화",
+  "rr_distribution_method_availability_description": "호스트가 가능한 시간대에 예약자가 미팅을 예약할 수 있습니다. 호스트 간 미팅 분배의 균형보다 잠재적 미팅 예약 수를 최대화하고 싶을 때 사용하세요.",
+  "rr_distribution_method_balanced_title": "부하 분산",
+  "rr_distribution_method_balanced_description": "각 호스트의 예약 수를 모니터링하고 다른 호스트들과 비교하여, 예약이 균등하게 분배되도록 예약이 너무 많은 호스트를 일시적으로 비활성화합니다.",
+  "exclude_emails_that_contain": "다음이 포함된 이메일 제외 ...",
+  "exclude_emails_match_found_error_message": "유효한 업무용 이메일 주소를 입력해 주세요.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

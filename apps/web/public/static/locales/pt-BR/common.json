@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "Direcionar para um usuário que corresponda a um campo de pesquisa em uma conta",
   "salesforce_option": "Opção do Salesforce",
   "lookup_field_name": "Nome do campo de pesquisa",
+  "rr_distribution_method": "Distribuição",
+  "rr_distribution_method_description": "Permite otimizar a distribuição para máxima disponibilidade ou buscar uma atribuição mais equilibrada.",
+  "rr_distribution_method_availability_title": "Maximizar disponibilidade",
+  "rr_distribution_method_availability_description": "Permite que os agendadores marquem reuniões sempre que um anfitrião estiver disponível. Use isso para maximizar o número de reuniões potenciais agendadas quando a distribuição uniforme de reuniões entre os anfitriões for menos importante.",
+  "rr_distribution_method_balanced_title": "Balanceamento de carga",
+  "rr_distribution_method_balanced_description": "Monitoraremos quantas reservas foram feitas com cada anfitrião e compararemos com os outros, desativando alguns anfitriões que estão muito à frente para que as reservas sejam distribuídas uniformemente.",
+  "exclude_emails_that_contain": "Excluir e-mails que contêm ...",
+  "exclude_emails_match_found_error_message": "Por favor, insira um endereço de e-mail corporativo válido",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "Rikta till en användare som matchar ett uppslagsfält på ett konto",
   "salesforce_option": "Salesforce-alternativ",
   "lookup_field_name": "Uppslagsfältsnamn",
+  "rr_distribution_method": "Distribution",
+  "rr_distribution_method_description": "Möjliggör optimering av distributionen för maximal tillgänglighet eller för att uppnå en mer balanserad fördelning.",
+  "rr_distribution_method_availability_title": "Maximera tillgänglighet",
+  "rr_distribution_method_availability_description": "Låter bokare boka möten när en värd är tillgänglig. Använd detta för att maximera antalet potentiella möten som kan bokas och när jämn fördelning av möten mellan värdar är mindre viktigt.",
+  "rr_distribution_method_balanced_title": "Lastbalansering",
+  "rr_distribution_method_balanced_description": "Vi övervakar hur många bokningar som har gjorts med varje värd och jämför detta med andra, och inaktiverar vissa värdar som ligger för långt före så att bokningarna fördelas jämnt.",
+  "exclude_emails_that_contain": "Uteslut e-postmeddelanden som innehåller ...",
+  "exclude_emails_match_found_error_message": "Ange en giltig arbets-e-postadress",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

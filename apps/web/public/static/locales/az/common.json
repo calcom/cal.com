@@ -2766,5 +2766,13 @@
   "salesforce_route_to_custom_lookup_field": "Hesabda axtarış sahəsinə uyğun gələn istifadəçiyə yönləndir",
   "salesforce_option": "Salesforce Seçimi",
   "lookup_field_name": "Axtarış Sahəsinin Adı",
+  "rr_distribution_method": "Paylama",
+  "rr_distribution_method_description": "Maksimum əlçatanlıq üçün paylamanı optimallaşdırmağa və ya daha balanslı bir təyinat üçün çalışmağa imkan verir.",
+  "rr_distribution_method_availability_title": "Əlçatanlığı maksimuma çatdırmaq",
+  "rr_distribution_method_availability_description": "Görüş təşkilatçısı mövcud olduqda, görüşlərin bron edilməsinə imkan verir. Bu, potensial görüşlərin sayını maksimuma çatdırmaq və görüşlərin təşkilatçılar arasında bərabər paylanmasının daha az əhəmiyyətli olduğu hallarda istifadə olunur.",
+  "rr_distribution_method_balanced_title": "Yük balanslaşdırma",
+  "rr_distribution_method_balanced_description": "Hər bir təşkilatçı ilə neçə bron edildiyini izləyəcəyik və bunu digərləri ilə müqayisə edəcəyik, çox irəlidə olan bəzi təşkilatçıları deaktiv edərək bronların bərabər paylanmasını təmin edəcəyik.",
+  "exclude_emails_that_contain": "Tərkibində olan e-poçtları istisna et...",
+  "exclude_emails_match_found_error_message": "Zəhmət olmasa düzgün iş e-poçt ünvanı daxil edin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
