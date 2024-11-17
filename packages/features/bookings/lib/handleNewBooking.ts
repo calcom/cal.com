@@ -467,13 +467,38 @@ async function handler(
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
           eventType.rescheduleWithSameRoundRobinHost;
 
+        const userIdsSet = new Set(users.map((user) => user.id));
+
+        let routingFormResponse;
+
+        if (routedTeamMemberIds) {
+          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+            where: {
+              id: routingFormResponseId,
+            },
+            select: {
+              response: true,
+              form: {
+                select: {
+                  routes: true,
+                  fields: true,
+                },
+              },
+              chosenRouteId: true,
+            },
+          });
+        }
+
         const newLuckyUser = isSameRoundRobinHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+              allRRHosts: eventTypeWithUsers.hosts.filter(
+                (host) => !host.isFixed && userIdsSet.has(host.user.id)
+              ), // users part of virtual queue
               eventType,
+              routingFormResponse: routingFormResponse ?? null,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop

@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -27,11 +28,19 @@ const buildWhereClauseForActiveBookings = ({
   startDate,
   endDate,
   users,
+  virtualQueuesData,
 }: {
   eventTypeId: number;
   startDate?: Date;
   endDate?: Date;
   users: { id: number; email: string }[];
+  virtualQueuesData: {
+    chosenRouteId: string;
+    fieldOptionData: {
+      fieldId: string;
+      selectedOptionIds: string | number | string[];
+    };
+  } | null;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
@@ -67,6 +76,13 @@ const buildWhereClauseForActiveBookings = ({
         createdAt: {
           ...(startDate ? { gte: startDate } : {}),
           ...(endDate ? { lte: endDate } : {}),
+        },
+      }
+    : {}),
+  ...(virtualQueuesData
+    ? {
+        routedFromRoutingFormReponse: {
+          chosenRouteId: virtualQueuesData.chosenRouteId,
         },
       }
     : {}),
@@ -139,6 +155,7 @@ export class BookingRepository {
         users,
         eventTypeId,
         startDate,
+        virtualQueuesData: null,
       }),
       _count: {
         _all: true,
@@ -151,11 +168,19 @@ export class BookingRepository {
     eventTypeId,
     startDate,
     endDate,
+    virtualQueuesData,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
     startDate?: Date;
     endDate?: Date;
+    virtualQueuesData: {
+      chosenRouteId: string;
+      fieldOptionData: {
+        fieldId: string;
+        selectedOptionIds: string | number | string[];
+      };
+    } | null;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -163,6 +188,7 @@ export class BookingRepository {
         startDate,
         endDate,
         users,
+        virtualQueuesData,
       }),
       select: {
         id: true,
@@ -171,13 +197,38 @@ export class BookingRepository {
         createdAt: true,
         status: true,
         startTime: true,
+        routedFromRoutingFormReponse: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return allBookings;
+    let queueBookings = allBookings;
+
+    if (virtualQueuesData) {
+      queueBookings = allBookings.filter((booking) => {
+        const responses = booking.routedFromRoutingFormReponse;
+        const fieldId = virtualQueuesData.fieldOptionData.fieldId;
+        const selectedOptionIds = virtualQueuesData.fieldOptionData.selectedOptionIds;
+
+        const response = responses?.response as FormResponse;
+
+        const responseValue = response[fieldId].value;
+
+        if (Array.isArray(responseValue) && Array.isArray(selectedOptionIds)) {
+          //check if all values are the same (this only support 'all in' not 'any in')
+          return (
+            responseValue.length === selectedOptionIds.length &&
+            responseValue.every((value, index) => value === selectedOptionIds[index])
+          );
+        } else {
+          return responseValue === selectedOptionIds;
+        }
+      });
+    }
+    console.log(`queueBookings ${JSON.stringify(queueBookings.map((booking) => booking.id))}`);
+    return queueBookings;
   }
 
   static async findBookingByUid({ bookingUid }: { bookingUid: string }) {
