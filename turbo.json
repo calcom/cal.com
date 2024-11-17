@@ -119,7 +119,16 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**"],
+      "env": [
+        "NODE_ENV",
+        "API_PORT",
+        "DATABASE_READ_URL",
+        "DATABASE_WRITE_URL",
+        "LOG_LEVEL",
+        "NEXTAUTH_SECRET",
+        "RAZORPAY_WEBHOOK_SECRET"
+      ]
     },
     "db-deploy": {
       "cache": false,
@@ -459,6 +468,7 @@
     "NEXT_PUBLIC_POSTHOG_KEY",
     "NEXT_PUBLIC_POSTHOG_HOST",
     "VAPID_PRIVATE_KEY",
-    "HUDDLE01_API_TOKEN"
+    "HUDDLE01_API_TOKEN",
+    "RAZORPAY_WEBHOOK_SECRET"
   ]
 }
