@@ -47,24 +47,22 @@ export const getEventTypesFromGroup = async ({
   const eventTypes: EventType[] = [];
 
   if (shouldListUserEvents || !teamId) {
-    const userEventTypes =
-      (await EventTypeRepository.findAllByUpId(
+    const baseQueryConditions = {
+      teamId: null,
+      schedulingType: null,
+      ...(searchQuery ? { title: { contains: searchQuery, mode: "insensitive" } } : {}),
+    };
+
+    const [nonChildEventTypes, childEventTypes] = await Promise.all([
+      EventTypeRepository.findAllByUpId(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
         },
         {
           where: {
-            teamId: null,
-            schedulingType: null,
-            OR: [
-              { parentId: null },
-              {
-                parentId: { not: null },
-                userId: ctx.user.id,
-              },
-            ],
-            ...(searchQuery ? { title: { contains: searchQuery, mode: "insensitive" } } : {}),
+            ...baseQueryConditions,
+            parentId: null,
           },
           orderBy: [
             {
@@ -77,7 +75,40 @@ export const getEventTypesFromGroup = async ({
           limit,
           cursor,
         }
-      )) ?? [];
+      ),
+      EventTypeRepository.findAllByUpId(
+        {
+          upId: userProfile.upId,
+          userId: ctx.user.id,
+        },
+        {
+          where: {
+            ...baseQueryConditions,
+            parentId: { not: null },
+            userId: ctx.user.id,
+          },
+          orderBy: [
+            {
+              position: "desc",
+            },
+            {
+              id: "asc",
+            },
+          ],
+          limit,
+          cursor,
+        }
+      ),
+    ]);
+
+    const userEventTypes = [...(nonChildEventTypes ?? []), ...(childEventTypes ?? [])].sort((a, b) => {
+      // First sort by position in descending order
+      if (a.position !== b.position) {
+        return b.position - a.position;
+      }
+      // Then by id in ascending order
+      return a.id - b.id;
+    });
 
     eventTypes.push(...userEventTypes);
   }
