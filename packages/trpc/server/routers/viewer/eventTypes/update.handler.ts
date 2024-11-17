@@ -497,7 +497,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const description = newDescription ?? eventType.description;
 
   if (
-    // ctx.user.organizationId &&
+    ctx.user.organizationId &&
     autoTranslateDescriptionEnabled &&
     descriptionTranslationsNeeded &&
     description
