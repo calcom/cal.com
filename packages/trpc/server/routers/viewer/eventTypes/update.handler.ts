@@ -519,7 +519,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         );
 
         // Then create all translations in a single DB call
-        await EventTypeTranslationRepository.createManyDescriptionTranslations(
+        await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
           targetLocales.map((targetLocale, index) => ({
             eventTypeId: id,
             sourceLang: userLocale,

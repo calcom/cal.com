@@ -23,13 +23,28 @@ export class EventTypeTranslationRepository {
     });
   }
 
-  static async createManyDescriptionTranslations(translations: Array<CreateEventTypeTranslation>) {
-    return await prisma.eventTypeTranslation.createMany({
-      data: translations.map(({ userId, ...translation }) => ({
-        ...translation,
-        field: EventTypeAutoTranslatedField.DESCRIPTION,
-        createdBy: userId,
-      })),
-    });
+  static async upsertManyDescriptionTranslations(translations: Array<CreateEventTypeTranslation>) {
+    return await Promise.all(
+      translations.map(({ userId, ...translation }) =>
+        prisma.eventTypeTranslation.upsert({
+          where: {
+            eventTypeId_field_targetLang: {
+              eventTypeId: translation.eventTypeId,
+              field: EventTypeAutoTranslatedField.DESCRIPTION,
+              targetLang: translation.targetLang,
+            },
+          },
+          update: {
+            translatedText: translation.translatedText,
+            updatedBy: userId,
+          },
+          create: {
+            ...translation,
+            field: EventTypeAutoTranslatedField.DESCRIPTION,
+            createdBy: userId,
+          },
+        })
+      )
+    );
   }
 }
