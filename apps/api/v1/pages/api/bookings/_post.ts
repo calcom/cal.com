@@ -7,6 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
+import { sendAppointmentConfirmationEmail } from "@calcom/emails/email-manager"; // P2541
 
 /**
  * @swagger
@@ -225,7 +226,9 @@ async function handler(req: NextApiRequest) {
   }
 
   try {
-    return await handleNewBooking(req, getBookingDataSchemaForApi);
+    const booking = await handleNewBooking(req, getBookingDataSchemaForApi); // P8b51
+    await sendAppointmentConfirmationEmail(booking, booking.attendees[0]); // P8b51
+    return booking; // P8b51
   } catch (error: unknown) {
     const knownError = error as Error;
     if (knownError?.message === ErrorCode.NoAvailableUsersFound) {

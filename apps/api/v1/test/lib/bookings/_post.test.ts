@@ -1,4 +1,3 @@
-// TODO: Fix tests (These test were never running due to the vitest workspace config)
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
@@ -14,6 +13,7 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma";
 
 import handler from "../../../pages/api/bookings/_post";
+import { sendAppointmentConfirmationEmail } from "@calcom/emails/email-manager";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
@@ -21,6 +21,11 @@ vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => key,
+  };
+});
+vi.mock("@calcom/emails/email-manager", () => {
+  return {
+    sendAppointmentConfirmationEmail: vi.fn(),
   };
 });
 
@@ -185,6 +190,7 @@ describe.skipIf(true)("POST /api/bookings", () => {
         console.log({ statusCode: res._getStatusCode(), data: JSON.parse(res._getData()) });
         createdBooking = JSON.parse(res._getData());
         expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
+        expect(sendAppointmentConfirmationEmail).toHaveBeenCalledTimes(1);
       });
 
       test("Reschedule created booking", async () => {
@@ -219,6 +225,7 @@ describe.skipIf(true)("POST /api/bookings", () => {
           where: { uid: createdBooking.uid },
         });
         expect(previousBooking?.status).toBe("cancelled");
+        expect(sendAppointmentConfirmationEmail).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -253,6 +260,7 @@ describe.skipIf(true)("POST /api/bookings", () => {
         expect(res._getStatusCode()).toBe(201);
         expect(data.message).toEqual("Bookings created successfully.");
         expect(data.bookings.length).toEqual(12);
+        expect(sendAppointmentConfirmationEmail).toHaveBeenCalledTimes(12);
       });
     });
     test("Notifies multiple bookings", async () => {
@@ -299,6 +307,7 @@ describe.skipIf(true)("POST /api/bookings", () => {
       expect(sendPayload).toHaveBeenCalledTimes(24);
       expect(data.message).toEqual("Bookings created successfully.");
       expect(data.bookings.length).toEqual(12);
+      expect(sendAppointmentConfirmationEmail).toHaveBeenCalledTimes(12);
     });
   });
 });

@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { sendAppointmentConfirmationEmail } from "@calcom/emails/email-manager"; // P11ff
 
 import { sendSignupToOrganizationEmail, getTranslation } from "@calcom/platform-libraries";
 
@@ -28,4 +29,8 @@ export class EmailService {
       translation,
     });
   }
+
+  public async sendAppointmentConfirmationEmail(calEvent: any, attendee: any) { // P56a1
+    await sendAppointmentConfirmationEmail(calEvent, attendee); // P56a1
+  } // P56a1
 }

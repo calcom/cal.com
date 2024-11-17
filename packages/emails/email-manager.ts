@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import type { z } from "zod";
@@ -74,6 +73,7 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import AppointmentConfirmationEmail from "./templates/appointment-confirmation-email"; // P311d
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -713,3 +713,8 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
   await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };
+
+export const sendAppointmentConfirmationEmail = async (calEvent: CalendarEvent, attendee: Person) => { // P08ab
+  const calendarEvent = formatCalEvent(calEvent);
+  await sendEmail(() => new AppointmentConfirmationEmail(calendarEvent, attendee));
+}; // P08ab
