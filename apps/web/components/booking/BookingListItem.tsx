@@ -854,10 +854,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps & setAttendeeList) 
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setAttendeeList((old: AttendeeList[]) =>
-        old.map((attendee: AttendeeList) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
+      const newAttendee = data.attendees[0];
+      setAttendeeList((oldAttendeeList: AttendeeList[]) =>
+        oldAttendeeList.map((attendee: AttendeeList) =>
+          attendee.email === newAttendee.email ? { ...attendee, noShow: newAttendee.noShow } : attendee
         )
       );
       showToast(data.message, "success");
@@ -961,14 +961,15 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const { t } = useLocale();
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      const newValue = data.attendees;
-      setAttendeeList((old) =>
-        old.map((attendee) =>
-          newValue.some((newAttendee) => newAttendee.email === attendee.email)
-            ? { ...attendee, ...newValue.find((newAttendee) => newAttendee.email === attendee.email) }
-            : attendee
-        )
-      );
+      const oldAttendee = attendees[0];
+      const newAttendeeList = data.attendees;
+      newAttendeeList.sort((a, b) => a.id - b.id);
+
+      const updatedAttendeeList: AttendeeProps[] = newAttendeeList.map((newAttendee, index) => ({
+        ...attendees[index + 1],
+        ...newAttendee,
+      }));
+      setAttendeeList([oldAttendee, ...updatedAttendeeList]);
       showToast(t(data.message), "success");
     },
     onError: (err) => {
@@ -1070,10 +1071,10 @@ const NoShowAttendeesDialog = ({
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setAttendeeList((old: AttendeeList[]) =>
-        old.map((attendee: AttendeeList) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
+      const newAttendee = data.attendees[0];
+      setAttendeeList((oldAttendeeList: AttendeeList[]) =>
+        oldAttendeeList.map((attendee: AttendeeList) =>
+          attendee.email === newAttendee.email ? { ...attendee, noShow: newAttendee.noShow } : attendee
         )
       );
       showToast(t(data.message), "success");

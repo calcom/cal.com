@@ -12,7 +12,7 @@ import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInVie
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
-export type NoShowAttendees = { email: string; noShow: boolean }[];
+export type NoShowAttendees = { email: string; noShow: boolean; id: number }[];
 
 const buildResultPayload = async (
   bookingUid: string,
@@ -55,7 +55,7 @@ class ResponsePayload {
     this.message = "";
   }
 
-  setAttendees(attendees: { email: string; noShow: boolean }[]) {
+  setAttendees(attendees: { email: string; noShow: boolean; id: number }[]) {
     this.attendees = attendees;
   }
 
@@ -175,8 +175,8 @@ const updateAttendees = async (
 
   return results
     .filter((x) => x.status === "fulfilled")
-    .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string }>).value)
-    .map((x) => ({ email: x.email, noShow: x.noShow }));
+    .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string; id: number }>).value)
+    .map((x) => ({ email: x.email, noShow: x.noShow, id: x.id }));
 };
 
 const getWebhooksService = async (bookingUid: string) => {
