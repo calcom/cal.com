@@ -7,6 +7,7 @@ ALTER TABLE "EventType" ADD COLUMN     "autoTranslateDescriptionEnabled" BOOLEAN
 -- CreateTable
 CREATE TABLE "EventTypeTranslation" (
     "id" TEXT NOT NULL,
+    "eventTypeId" INTEGER NOT NULL,
     "field" "EventTypeAutoTranslatedField" NOT NULL,
     "sourceLang" TEXT NOT NULL,
     "targetLang" TEXT NOT NULL,
@@ -15,7 +16,6 @@ CREATE TABLE "EventTypeTranslation" (
     "createdBy" INTEGER NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "updatedBy" INTEGER,
-    "eventTypeId" INTEGER NOT NULL,
 
     CONSTRAINT "EventTypeTranslation_pkey" PRIMARY KEY ("id")
 );

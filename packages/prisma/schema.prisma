@@ -1598,6 +1598,8 @@ enum EventTypeAutoTranslatedField {
 
 model EventTypeTranslation {
   id             String                       @id @default(cuid())
+  eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId    Int
   field          EventTypeAutoTranslatedField
   sourceLang     String
   targetLang     String
@@ -1606,8 +1608,6 @@ model EventTypeTranslation {
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
   updatedBy      Int?
-  eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId    Int
 
   @@unique([eventTypeId, field, targetLang])
   @@index([eventTypeId, field, targetLang])
