@@ -167,6 +167,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest,
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    description: newDescription,
     bookingFields,
     isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
@@ -496,7 +497,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const description = newDescription ?? eventType.description;
 
   if (
-    ctx.user.organizationId &&
+    // ctx.user.organizationId &&
     autoTranslateDescriptionEnabled &&
     descriptionTranslationsNeeded &&
     description
