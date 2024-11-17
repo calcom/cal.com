@@ -106,7 +106,7 @@ const handleMarkNoShow = async ({
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);
 
-      await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
+      await handleSendingAttendeeNoShowDataToApps(bookingUid, payload.attendees);
     }
 
     if (noShowHost) {
