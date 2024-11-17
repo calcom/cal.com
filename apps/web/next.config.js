@@ -221,8 +221,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  productionBrowserSourceMaps: false,
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
+      config.devtool = "hidden-source-map";
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
@@ -667,6 +669,7 @@ if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
       hideSourceMaps: true,
       // disable source map generation for the server code
       disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+      silent: true,
     })
   );
 }
