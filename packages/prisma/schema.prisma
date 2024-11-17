@@ -163,6 +163,7 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([profileId])
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
@@ -965,6 +966,7 @@ model App_RoutingForms_FormResponse {
   routedToBookingUid String?               @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
   routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId      String?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1570,9 +1572,10 @@ model Attribute {
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  options   AttributeOption[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  options          AttributeOption[]
+  isWeightsEnabled Boolean           @default(false)
 }
 
 model AttributeToUser {
@@ -1583,6 +1586,7 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
+  weight            Int?
 
   @@unique([memberId, attributeOptionId])
 }

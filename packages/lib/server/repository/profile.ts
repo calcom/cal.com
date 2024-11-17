@@ -376,7 +376,13 @@ export class ProfileRepository {
               },
             },
             members: {
+              distinct: ["role"],
               select: membershipSelect,
+              where: {
+                accepted: true,
+                // Filter out memberships that are not owned by the user
+                user: { profiles: { some: { id } } },
+              },
             },
           },
         },
