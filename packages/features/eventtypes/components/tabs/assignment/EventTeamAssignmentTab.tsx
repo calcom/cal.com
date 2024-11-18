@@ -176,6 +176,7 @@ const FixedHosts = ({
           childrenClassName="lg:ml-0">
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              data-testid="fixed-hosts-select"
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
