@@ -51,6 +51,7 @@ export type BookerEvent = Pick<
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
+  | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
 > & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
