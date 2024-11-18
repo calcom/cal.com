@@ -66,7 +66,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         avatar: user.avatar,
       };
 
-      const appData = {
+      return {
         ...app,
         ...(teams.length && {
           credentialOwner,
@@ -78,8 +78,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         isSetupAlready,
         ...(app.dependencies && { dependencyData }),
       };
-
-      return appData;
     })
   );
 
