@@ -2796,6 +2796,5 @@
   "rr_distribution_method_balanced_description": "Monitoritzarem quantes reserves s'han fet amb cada amfitrió i ho compararem amb els altres, desactivant alguns amfitrions que estiguin massa avançats perquè les reserves es distribueixin uniformement",
   "exclude_emails_that_contain": "Excloure correus electrònics que continguin...",
   "exclude_emails_match_found_error_message": "Si us plau, introdueix una adreça de correu electrònic de treball vàlida",
-  "notifications": "Notificacions",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
