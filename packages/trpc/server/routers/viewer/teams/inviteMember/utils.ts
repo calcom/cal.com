@@ -311,7 +311,7 @@ export async function createNewUsersConnectToOrgIfExists({
         const isBecomingAnOrgMember = parentId || isOrg;
 
         const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-        const t = await getTranslation(language, "common");
+        const t = await getTranslation(language ?? "en", "common");
         const createdUser = await tx.user.create({
           data: {
             username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
