@@ -38,7 +38,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     ? [
         {
           name: "members",
-          href: `/orgs/${orgBranding.slug}/members`,
+          href: `/settings/organizations/${orgBranding.slug}/members`,
           icon: "building",
         } satisfies NavigationItemType,
       ]
