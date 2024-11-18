@@ -192,6 +192,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
           bookingFieldsResponses: {
             customField: "customValue",
           },
+          metadata: {
+            userId: "100",
+          },
         };
 
         return request(app.getHttpServer())
@@ -233,6 +236,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               });
+              expect(data.metadata).toEqual(body.metadata);
               createdBooking = data;
             } else {
               throw new Error(
@@ -253,6 +257,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             language: "it",
           },
           location: "https://meet.google.com/abc-def-ghi",
+          metadata: {
+            userId: "100",
+          },
         };
 
         return request(app.getHttpServer())
@@ -288,6 +295,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(firstBooking.location).toEqual(body.location);
               expect(firstBooking.recurringBookingUid).toBeDefined();
               expect(firstBooking.absentHost).toEqual(false);
+              expect(firstBooking.metadata).toEqual(body.metadata);
 
               const secondBooking = data[1];
               expect(secondBooking.id).toBeDefined();
@@ -307,6 +315,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(secondBooking.location).toEqual(body.location);
               expect(secondBooking.absentHost).toEqual(false);
+              expect(secondBooking.metadata).toEqual(body.metadata);
 
               const thirdBooking = data[2];
               expect(thirdBooking.id).toBeDefined();
@@ -326,6 +335,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(thirdBooking.location).toEqual(body.location);
               expect(thirdBooking.absentHost).toEqual(false);
+              expect(thirdBooking.metadata).toEqual(body.metadata);
 
               createdRecurringBooking = data;
             } else {
