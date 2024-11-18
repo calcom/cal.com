@@ -6,6 +6,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "../utils/isAdmin";
+import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
@@ -41,6 +42,10 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   // save the user id in the request for later use
   req.userId = apiKey.userId;
   const { isAdmin, scope } = await isAdminGuard(req);
+
+  const userIsLockedOrBlocked = await isLockedOrBlocked(req);
+
+  if (userIsLockedOrBlocked) return res.status(401).json({ error: "User is locked or blocked" });
 
   req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.SystemWide;
   req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;
