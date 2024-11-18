@@ -11,9 +11,9 @@ import { PaymentForm } from "@calcom/atoms";
 
 export default function StripePaymentForm(uid: string) {
   return (
-    <main>
+    <>
       <PaymentForm paymentUid={uid} />
-    </main>
+    </>
   );
 }
 ```
@@ -23,8 +23,8 @@ For a demonstration of the Payment form, please refer to the video below.
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/13cf66446b554d5c9405f9d4fef53f47?sid=d2994785-027e-4de7-937a-3b90fc357182"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -60,9 +60,9 @@ import { EventTypeSettings } from "@calcom/atoms";
 
 export default function EventType(id: number) {
       return (
-          <main>
-              <EventTypeSettings id={id} tabs={["setup", "availability", "payments"]} />
-          </main>
+          <>
+            <EventTypeSettings id={id} allowDelete={true} />
+          </>
       );
 }
 ```
@@ -92,7 +92,7 @@ export default function Booker( props : BookerProps ) {
           }           
          }}
       />
-    <>
+    </>
   )
 }
 ```
@@ -112,9 +112,9 @@ export default function StripePaymentForm() {
   const uid = pathname.split("/").pop();
 
   return (
-    <main>
+    <>
       <PaymentForm paymentUid={uid} />
-    </main>
+    </>
   );
 }
 ```         
@@ -126,8 +126,8 @@ Below video shows a demonstration of how we combined the event types atom and pa
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/0c1bc59da8c34d83b8dfcbd7557f7eaa?sid=058cf5df-1e3a-4fe3-b721-8c5a9eac4f24"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

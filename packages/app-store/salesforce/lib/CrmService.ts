@@ -42,6 +42,8 @@ type ContactRecord = {
   [key: string]: any;
 };
 
+type Attendee = { email: string; name: string };
+
 const salesforceTokenSchema = z.object({
   id: z.string(),
   issued_at: z.string(),
@@ -85,7 +87,6 @@ export default class SalesforceCRMService implements CRM {
       throw new HttpError({ statusCode: 400, message: "Salesforce consumer secret missing." });
 
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
-
     try {
       /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
               Needs further investigation ASAP */
@@ -137,10 +138,10 @@ export default class SalesforceCRMService implements CRM {
     }
   };
 
-  private getSalesforceUserFromOwnerId = async (ownerId: string) => {
+  private getSalesforceUserFromUserId = async (userId: string) => {
     const conn = await this.conn;
 
-    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${ownerId}' AND IsActive = true`);
+    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${userId}' AND IsActive = true`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -380,7 +381,7 @@ export default class SalesforceCRMService implements CRM {
 
       const ownersQuery = (await Promise.all(
         Array.from(ownerIds).map(async (ownerId) => {
-          return this.getSalesforceUserFromOwnerId(ownerId);
+          return this.getSalesforceUserFromUserId(ownerId);
         })
       )) as { records: ContactRecord[] }[];
       const contactsWithOwners = records.map((record) => {
@@ -399,32 +400,53 @@ export default class SalesforceCRMService implements CRM {
       : [];
   }
 
-  async createContacts(contactsToCreate: { email: string; name: string }[], organizerEmail?: string) {
+  async createContacts(contactsToCreate: Attendee[], organizerEmail?: string) {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
+    // See if the organizer exists in the CRM
     const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
     const createdContacts: { id: string; email: string }[] = [];
 
-    if (createEventOn === SalesforceRecordEnum.CONTACT || createEventOn === SalesforceRecordEnum.LEAD) {
-      // See if the organizer exists in the CRM
+    if (createEventOn === SalesforceRecordEnum.CONTACT) {
       await Promise.all(
         contactsToCreate.map(async (attendee) => {
-          return await conn
-            .sobject(createEventOn)
-            .create(
-              this.generateCreateRecordBody({
-                attendee,
-                recordType: createEventOn,
-                organizerId,
-              })
-            )
-            .then((result) => {
-              if (result.success) {
-                createdContacts.push({ id: result.id, email: attendee.email });
-              }
-            });
+          return await this.createAttendeeRecord({
+            attendee,
+            recordType: SalesforceRecordEnum.CONTACT,
+            organizerId,
+          }).then((result) => {
+            createdContacts.push(...result);
+          });
         })
+      );
+    }
+
+    if (createEventOn === SalesforceRecordEnum.LEAD) {
+      // Base this off of the first contact
+      const attendee = contactsToCreate[0];
+
+      if (appOptions.createNewContactUnderAccount) {
+        // Check for an account
+        const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
+
+        if (accountId) {
+          const createdAccountContacts = await this.createNewContactUnderAnAccount({
+            attendee,
+            accountId,
+            organizerId,
+          });
+
+          if (createdContacts.length > 0) {
+            createdContacts.push(...createdAccountContacts);
+          }
+        }
+      }
+
+      await this.createAttendeeRecord({ attendee, recordType: SalesforceRecordEnum.LEAD, organizerId }).then(
+        (result) => {
+          createdContacts.push(...result);
+        }
       );
     }
 
@@ -442,34 +464,16 @@ export default class SalesforceCRMService implements CRM {
       let contactCreated = false;
 
       if (accountId && appOptions.createNewContactUnderAccount) {
-        // First see if the contact already exists and connect it to the account
-        const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
-        if (userQuery.records.length) {
-          const contact = userQuery.records[0] as { Id: string; Email: string };
-          await conn.sobject(SalesforceRecordEnum.CONTACT).update({
-            // The first argument is the WHERE clause
-            Id: contact.Id,
-            AccountId: accountId,
-          });
-          return [{ id: contact.Id, email: contact.Email }];
-        }
+        const createdAccountContacts = await this.createNewContactUnderAnAccount({
+          attendee,
+          accountId,
+          organizerId,
+        });
 
-        await conn
-          .sobject(SalesforceRecordEnum.CONTACT)
-          .create({
-            ...this.generateCreateRecordBody({
-              attendee,
-              recordType: SalesforceRecordEnum.CONTACT,
-              organizerId,
-            }),
-            AccountId: accountId,
-          })
-          .then((result) => {
-            if (result.success) {
-              createdContacts.push({ id: result.id, email: attendee.email });
-              contactCreated = true;
-            }
-          });
+        if (createdContacts.length > 0) {
+          createdContacts.push(...createdAccountContacts);
+          contactCreated = true;
+        }
       }
 
       if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
@@ -630,6 +634,42 @@ export default class SalesforceCRMService implements CRM {
     return dominantAccountId;
   }
 
+  private async createAttendeeRecord({
+    attendee,
+    recordType,
+    organizerId,
+    accountId,
+  }: {
+    attendee: Attendee;
+    recordType: SalesforceRecordEnum;
+    organizerId?: string;
+    accountId?: string;
+  }) {
+    const conn = await this.conn;
+
+    return await conn
+      .sobject(recordType)
+      .create({
+        ...this.generateCreateRecordBody({
+          attendee,
+          recordType: recordType,
+          organizerId,
+        }),
+        AccountId: accountId,
+      })
+      .then((result) => {
+        if (result.success) {
+          return [{ id: result.id, email: attendee.email }];
+        } else {
+          return [];
+        }
+      })
+      .catch((error) => {
+        this.log.error(`Error creating Salesforce contact for ${attendee.email} with error ${error}`);
+        return [];
+      });
+  }
+
   private generateCreateRecordBody({
     attendee,
     recordType,
@@ -691,7 +731,7 @@ export default class SalesforceCRMService implements CRM {
 
     const ownerId = recordQuery.records[0].OwnerId;
 
-    const ownerQuery = await this.getSalesforceUserFromOwnerId(ownerId);
+    const ownerQuery = await this.getSalesforceUserFromUserId(ownerId);
 
     if (!ownerQuery || !ownerQuery.records.length) return;
 
@@ -863,5 +903,77 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return query.records[0] as Record<string, any>;
+  }
+
+  private async createNewContactUnderAnAccount({
+    attendee,
+    accountId,
+    organizerId,
+  }: {
+    attendee: Attendee;
+    accountId: string;
+    organizerId?: string;
+  }) {
+    const conn = await this.conn;
+
+    // First see if the contact already exists and connect it to the account
+    const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
+    if (userQuery.records.length) {
+      const contact = userQuery.records[0] as { Id: string; Email: string };
+      await conn.sobject(SalesforceRecordEnum.CONTACT).update({
+        // The first argument is the WHERE clause
+        Id: contact.Id,
+        AccountId: accountId,
+      });
+      return [{ id: contact.Id, email: contact.Email }];
+    }
+
+    return await this.createAttendeeRecord({
+      attendee,
+      recordType: SalesforceRecordEnum.CONTACT,
+      accountId,
+      organizerId,
+    });
+  }
+
+  async findUserEmailFromLookupField(
+    attendeeEmail: string,
+    fieldName: string,
+    salesforceObject: SalesforceRecordEnum
+  ) {
+    const conn = await this.conn;
+
+    // Ensure the field exists on the record
+    const existingFields = await this.ensureFieldsExistOnObject([fieldName], salesforceObject);
+
+    if (!existingFields.length) return;
+
+    const lookupField = existingFields[0];
+
+    if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
+      const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
+
+      if (!accountId) return;
+
+      const accountQuery = (await conn.query(
+        `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
+      )) as {
+        records: { [key: string]: any };
+      };
+
+      if (!accountQuery.records.length) return;
+
+      const lookupFieldUserId = accountQuery.records[0][lookupField.name];
+
+      if (!lookupFieldUserId) return;
+
+      const userQuery = await this.getSalesforceUserFromUserId(lookupFieldUserId);
+
+      if (!userQuery.records.length) return;
+
+      const user = userQuery.records[0] as { Email: string };
+
+      return user.Email;
+    }
   }
 }

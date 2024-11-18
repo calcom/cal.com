@@ -11,6 +11,7 @@ export const BookerEmbed = (
   return (
     <CalProvider
       clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
+      isEmbed={true}
       options={{
         apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
       }}>
