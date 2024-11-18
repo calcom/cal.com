@@ -1606,7 +1606,7 @@ enum AssignmentReasonEnum {
 }
 
 model AssignmentReason {
-  id           Int                  @id @unique
+  id           Int                  @id @unique @default(autoincrement())
   createdAt    DateTime             @default(now())
   bookingId    Int                  @unique
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
