@@ -44,7 +44,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
       id: true,
       name: true,
       slug: true,
-      calVideoLogo: true,
       bannerUrl: true,
     },
   },
@@ -67,6 +66,13 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   metadata: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
+  autoTranslateDescriptionEnabled: true,
+  fieldTranslations: {
+    select: {
+      translatedText: true,
+      targetLang: true,
+    },
+  },
   requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
@@ -294,6 +300,8 @@ export const getPublicEvent = async (
       },
       isInstantEvent: false,
       showInstantEventConnectNowModal: false,
+      autoTranslateDescriptionEnabled: false,
+      fieldTranslations: [],
     };
   }
 
