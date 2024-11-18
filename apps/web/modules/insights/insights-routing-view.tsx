@@ -1,6 +1,10 @@
 "use client";
 
-import { RoutingFormResponsesTable, RoutingKPICards } from "@calcom/features/insights/components";
+import {
+  FailedBookingsByField,
+  RoutingFormResponsesTable,
+  RoutingKPICards,
+} from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { RoutingInsightsFilters } from "@calcom/features/insights/filters/routing/FilterBar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,6 +29,8 @@ export default function InsightsPage() {
               </div>
             )}
           </RoutingFormResponsesTable>
+
+          <FailedBookingsByField />
 
           <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}
