@@ -12,10 +12,10 @@ import { AnimatedPopover, Avatar, Divider, Icon } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
-export const TeamAndSelfList = () => {
+export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
   const { t } = useLocale();
   const session = useSession();
-
+  const currentOrgId = session.data?.user.org?.id;
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedTeamId, selectedUserId, isAll } = filter;
   const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
@@ -101,41 +101,44 @@ export const TeamAndSelfList = () => {
         )}
 
         <Divider />
-        {data?.map((team) => (
-          <FilterCheckboxField
-            key={team.id}
-            id={team.name || ""}
-            label={team.name || ""}
-            checked={selectedTeamId === team.id && !isAll}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setConfigFilters({
-                  selectedTeamId: team.id,
-                  selectedUserId: null,
-                  selectedTeamName: team.name,
-                  isAll: false,
-                  // Setting these to null to reset the filters
-                  selectedEventTypeId: null,
-                  selectedMemberUserId: null,
-                  selectedFilter: null,
-                });
-              } else if (!e.target.checked) {
-                setConfigFilters({
-                  selectedTeamId: null,
-                  selectedTeamName: null,
-                  isAll: false,
-                });
+        {data?.map((team) => {
+          if (omitOrg && team.id === currentOrgId) return null;
+          return (
+            <FilterCheckboxField
+              key={team.id}
+              id={team.name || ""}
+              label={team.name || ""}
+              checked={selectedTeamId === team.id && !isAll}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setConfigFilters({
+                    selectedTeamId: team.id,
+                    selectedUserId: null,
+                    selectedTeamName: team.name,
+                    isAll: false,
+                    // Setting these to null to reset the filters
+                    selectedEventTypeId: null,
+                    selectedMemberUserId: null,
+                    selectedFilter: null,
+                  });
+                } else if (!e.target.checked) {
+                  setConfigFilters({
+                    selectedTeamId: null,
+                    selectedTeamName: null,
+                    isAll: true,
+                  });
+                }
+              }}
+              icon={
+                <Avatar
+                  alt={team.name || ""}
+                  imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
+                  size="xs"
+                />
               }
-            }}
-            icon={
-              <Avatar
-                alt={team.name || ""}
-                imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
-                size="xs"
-              />
-            }
-          />
-        ))}
+            />
+          );
+        })}
         <Divider />
 
         <FilterCheckboxField
