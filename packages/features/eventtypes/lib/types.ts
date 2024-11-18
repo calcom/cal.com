@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -26,7 +27,6 @@ export type Host = {
   userId: number;
   priority: number;
   weight: number;
-  weightAdjustment: number;
   scheduleId?: number | null;
 };
 export type TeamMember = {
@@ -35,6 +35,33 @@ export type TeamMember = {
   avatar: string;
   email: string;
   defaultScheduleId: number | null;
+};
+
+type EventLocation = {
+  type: EventLocationType["type"];
+  address?: string;
+  attendeeAddress?: string;
+  somewhereElse?: string;
+  link?: string;
+  hostPhoneNumber?: string;
+  displayLocationPublicly?: boolean;
+  phone?: string;
+  hostDefault?: string;
+  credentialId?: number;
+  teamName?: string;
+};
+
+type PhoneCallConfig = {
+  generalPrompt: string;
+  enabled: boolean;
+  beginMessage: string;
+  yourPhoneNumber: string;
+  numberToCall: string;
+  guestName?: string;
+  guestEmail?: string;
+  guestCompany?: string;
+  templateType: string;
+  schedulerName?: string;
 };
 
 export type FormValues = {
@@ -59,31 +86,8 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
-  locations: {
-    type: EventLocationType["type"];
-    address?: string;
-    attendeeAddress?: string;
-    somewhereElse?: string;
-    link?: string;
-    hostPhoneNumber?: string;
-    displayLocationPublicly?: boolean;
-    phone?: string;
-    hostDefault?: string;
-    credentialId?: number;
-    teamName?: string;
-  }[];
-  aiPhoneCallConfig: {
-    generalPrompt: string;
-    enabled: boolean;
-    beginMessage: string;
-    yourPhoneNumber: string;
-    numberToCall: string;
-    guestName?: string;
-    guestEmail?: string;
-    guestCompany?: string;
-    templateType: string;
-    schedulerName?: string;
-  };
+  locations: EventLocation[];
+  aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
 
@@ -106,6 +110,8 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
+  autoTranslateDescriptionEnabled: boolean;
+  fieldTranslations: EventTypeTranslation[];
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
@@ -134,6 +140,7 @@ export type FormValues = {
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
+  maxLeadThreshold?: number;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

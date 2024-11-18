@@ -8,9 +8,9 @@ import { v5 as uuidv5 } from "uuid";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
+  getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
-  getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -57,10 +57,9 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getLuckyUser } from "@calcom/lib/server";
+import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -91,11 +90,11 @@ import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type {
-  Invitee,
-  IEventTypePaymentCredentialType,
-  IsFixedAwareUser,
-  BookingType,
   Booking,
+  BookingType,
+  IEventTypePaymentCredentialType,
+  Invitee,
+  IsFixedAwareUser,
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
@@ -113,6 +112,12 @@ export const createLoggerWithEventDetails = (
     prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
   });
 };
+
+function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
+  if (arr.length === 0) {
+    throw new Error("Array should have at least one item, but it's empty");
+  }
+}
 
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
@@ -451,6 +456,10 @@ async function handler(
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
+        // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
+        if (freeUsers.length === 0) break;
+        assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too wih an assertion; the error will never be thrown.
+        // freeUsers is ensured
         const originalRescheduledBookingUserId =
           originalRescheduledBooking && originalRescheduledBooking.userId;
         const isSameRoundRobinHost =
@@ -458,16 +467,41 @@ async function handler(
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
           eventType.rescheduleWithSameRoundRobinHost;
 
+        const userIdsSet = new Set(users.map((user) => user.id));
+
+        let routingFormResponse;
+
+        if (routedTeamMemberIds) {
+          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+            where: {
+              id: routingFormResponseId,
+            },
+            select: {
+              response: true,
+              form: {
+                select: {
+                  routes: true,
+                  fields: true,
+                },
+              },
+              chosenRouteId: true,
+            },
+          });
+        }
+
         const newLuckyUser =
           // If it is rerouting, we should not force reschedule with same host.
           // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
           isSameRoundRobinHost && !isRerouting
             ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
-            : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+            : await getLuckyUser({
                 // find a lucky user that is not already in the luckyUsers array
                 availableUsers: freeUsers,
-                allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+                allRRHosts: eventTypeWithUsers.hosts.filter(
+                  (host) => !host.isFixed && userIdsSet.has(host.user.id)
+                ), // users part of virtual queue
                 eventType,
+                routingFormResponse: routingFormResponse ?? null,
               });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -955,14 +989,6 @@ async function handler(
       originalRescheduledBooking,
     });
 
-    // @NOTE: Add specific try catch for all subsequent async calls to avoid error
-    // Sync Services
-    await syncServicesUpdateWebUser(
-      await prisma.user.findFirst({
-        where: { id: userId },
-        select: { id: true, email: true, name: true, username: true, createdDate: true },
-      })
-    );
     evt.uid = booking?.uid ?? null;
     evt.oneTimePassword = booking?.oneTimePassword ?? null;
 

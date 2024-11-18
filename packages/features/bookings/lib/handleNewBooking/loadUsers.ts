@@ -46,14 +46,19 @@ export const loadUsers = async ({
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
   const hosts = eventType.hosts || [];
-  const users = hosts.map(({ user, isFixed, priority, weight, weightAdjustment }) => ({
+  const users = hosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
     ...user,
     isFixed,
     priority,
     weight,
-    weightAdjustment,
+    createdAt,
   }));
-  return users.length ? users : eventType.users;
+  return users.length
+    ? users
+    : eventType.users.map((user) => ({
+        ...user,
+        createdAt: null,
+      }));
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
