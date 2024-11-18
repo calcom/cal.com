@@ -120,6 +120,7 @@ export function UserListTable() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -209,6 +210,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         meta: {
           sticky: {
             position: "left",
@@ -235,6 +237,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        size: 170,
         header: () => {
           return `Members`;
         },
@@ -342,6 +345,7 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        size: 50,
         meta: {
           sticky: { position: "right" },
         },
@@ -385,12 +389,15 @@ export function UserListTable() {
     },
     state: {
       columnFilters,
+      rowSelection,
     },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onRowSelectionChange: setRowSelection,
+    getRowId: (row) => `${row.id}`,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
