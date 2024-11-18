@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "ផ្លូវទៅកាន់អ្នកប្រើដែលត្រូវនឹងវាលស្វែងរកនៅលើគណនី។",
   "salesforce_option": "ជម្រើស Salesforce",
   "lookup_field_name": "ឈ្មោះវាលស្វែងរក",
+  "translate_description_button": "បកប្រែការពិពណ៌នាទៅជាភាសាកម្មវិធីរុករករបស់ភ្ញៀវដោយប្រើ AI",
   "rr_distribution_method": "ការចែកចាយ",
   "rr_distribution_method_description": "អនុញ្ញាតឱ្យធ្វើការបែងចែកប្រសិទ្ធភាពដើម្បីបង្កើនភាពអាចរកបានអតិបរមា ឬដើម្បីសម្រេចបាននូវការចាត់តាំងដែលមានតុល្យភាពជាងមុន។",
   "rr_distribution_method_availability_title": "បង្កើនភាពអាចរកបាន",

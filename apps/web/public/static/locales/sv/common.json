@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Rikta till en användare som matchar ett uppslagsfält på ett konto",
   "salesforce_option": "Salesforce-alternativ",
   "lookup_field_name": "Uppslagsfältsnamn",
+  "translate_description_button": "Översätt beskrivningen till besökarens webbläsarspråk med hjälp av AI",
   "rr_distribution_method": "Distribution",
   "rr_distribution_method_description": "Möjliggör optimering av distributionen för maximal tillgänglighet eller för att uppnå en mer balanserad fördelning.",
   "rr_distribution_method_availability_title": "Maximera tillgänglighet",
