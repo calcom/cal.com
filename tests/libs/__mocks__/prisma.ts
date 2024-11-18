@@ -14,6 +14,7 @@ vi.mock("@calcom/prisma", () => ({
 const handlePrismockBugs = () => {
   const __updateBooking = prismock.booking.update;
   const __findFirstOrThrowBooking = prismock.booking.findFirstOrThrow;
+  const __findManyBooking = prismock.booking.findMany;
   const __findManyWebhook = prismock.webhook.findMany;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.booking.update = (...rest: any[]) => {
@@ -42,6 +43,16 @@ const handlePrismockBugs = () => {
     logger.silly("Fixed Prismock bug with using NOT in where clause");
 
     return __findFirstOrThrowBooking(...rest);
+  };
+
+  prismock.booking.findMany = (...rest: any[]) => {
+    const { where } = rest[0] ?? {};
+    if (where) {
+      delete where.NOT;
+      logger.silly("Fixed Prismock bug with using NOT in where clause");
+    }
+
+    return __findManyBooking(...rest);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

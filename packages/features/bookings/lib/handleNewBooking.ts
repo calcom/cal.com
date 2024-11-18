@@ -313,7 +313,6 @@ async function handler(
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
   const skipContactOwner = reqBody.skipContactOwner ?? false;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
-  const isRerouting = !!routedTeamMemberIds;
   let users = await loadAndValidateUsers({
     req,
     eventType,
@@ -462,10 +461,16 @@ async function handler(
         // freeUsers is ensured
         const originalRescheduledBookingUserId =
           originalRescheduledBooking && originalRescheduledBooking.userId;
-        const isSameRoundRobinHost =
+
+        const isRouting = !!routedTeamMemberIds;
+        const isRerouting = originalRescheduledBookingUserId && isRouting;
+        const shouldUseSameRRHost =
           !!originalRescheduledBookingUserId &&
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-          eventType.rescheduleWithSameRoundRobinHost;
+          eventType.rescheduleWithSameRoundRobinHost &&
+          // If it is rerouting, we should not force reschedule with same host.
+          // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
+          !isRerouting;
 
         const userIdsSet = new Set(users.map((user) => user.id));
 
@@ -489,20 +494,17 @@ async function handler(
           });
         }
 
-        const newLuckyUser =
-          // If it is rerouting, we should not force reschedule with same host.
-          // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
-          isSameRoundRobinHost && !isRerouting
-            ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
-            : await getLuckyUser({
-                // find a lucky user that is not already in the luckyUsers array
-                availableUsers: freeUsers,
-                allRRHosts: eventTypeWithUsers.hosts.filter(
-                  (host) => !host.isFixed && userIdsSet.has(host.user.id)
-                ), // users part of virtual queue
-                eventType,
-                routingFormResponse: routingFormResponse ?? null,
-              });
+        const newLuckyUser = shouldUseSameRRHost
+          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
+          : await getLuckyUser({
+              // find a lucky user that is not already in the luckyUsers array
+              availableUsers: freeUsers,
+              allRRHosts: eventTypeWithUsers.hosts.filter(
+                (host) => !host.isFixed && userIdsSet.has(host.user.id)
+              ), // users part of virtual queue
+              eventType,
+              routingFormResponse: routingFormResponse ?? null,
+            });
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }

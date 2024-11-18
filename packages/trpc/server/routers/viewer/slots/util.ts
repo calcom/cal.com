@@ -479,22 +479,23 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const skipContactOwner = input.skipContactOwner;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
-
-  const calculatedHostsAndAvailabilities = await calculateHostsAndAvailabilities({
-    input,
-    eventType,
-    eventHosts,
+  const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
+    hosts: eventHosts,
+    routedTeamMemberIds,
     contactOwnerEmail,
-    loggerWithEventDetails,
-    startTime,
-    endTime,
-    bypassBusyCalendarTimes,
   });
 
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-    calculatedHostsAndAvailabilities;
-
-  const { routedHostsWithContactOwnerAndFixedHosts } = calculatedHostsAndAvailabilities;
+    await calculateHostsAndAvailabilities({
+      input,
+      eventType,
+      hosts: routedHostsWithContactOwnerAndFixedHosts,
+      contactOwnerEmail,
+      loggerWithEventDetails,
+      startTime,
+      endTime,
+      bypassBusyCalendarTimes,
+    });
 
   // If contact skipping, determine if there's availability within two weeks
   if (contactOwnerEmail && aggregatedAvailability.length > 0) {
@@ -512,7 +513,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           await calculateHostsAndAvailabilities({
             input,
             eventType,
-            routedHostsWithContactOwnerAndFixedHosts: routedHostsAndFixedHosts,
+            hosts: routedHostsAndFixedHosts,
             contactOwnerEmail,
             loggerWithEventDetails,
             startTime,
@@ -997,7 +998,7 @@ export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
 const calculateHostsAndAvailabilities = async ({
   input,
   eventType,
-  eventHosts,
+  hosts,
   contactOwnerEmail,
   loggerWithEventDetails,
   startTime,
@@ -1006,18 +1007,19 @@ const calculateHostsAndAvailabilities = async ({
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
-  eventHosts: {
+  hosts: {
     isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
-  contactOwnerEmail?: string | null;
+  contactOwnerEmail: string | null;
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
 }) => {
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
-  const isRerouting = !!routedTeamMemberIds;
+  const isRouting = !!routedTeamMemberIds;
+  const isRerouting = input.rescheduleUid && isRouting;
   if (
     input.rescheduleUid &&
     eventType.rescheduleWithSameRoundRobinHost &&
@@ -1037,18 +1039,12 @@ const calculateHostsAndAvailabilities = async ({
         userId: true,
       },
     });
-    eventHosts = eventHosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
-
-  const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
-    hosts: eventHosts,
-    routedTeamMemberIds,
-    contactOwnerEmail,
-  });
 
   const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
     contactOwnerEmail,
-    hosts: routedHostsWithContactOwnerAndFixedHosts,
+    hosts,
   });
 
   loggerWithEventDetails.debug("Using users", {
@@ -1174,6 +1170,5 @@ const calculateHostsAndAvailabilities = async ({
     allUsersAvailability,
     usersWithCredentials,
     currentSeats,
-    routedHostsWithContactOwnerAndFixedHosts,
   };
 };
