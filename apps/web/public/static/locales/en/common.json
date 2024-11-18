@@ -2791,6 +2791,7 @@
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce Option",
   "lookup_field_name": "Lookup Field Name",
+  "translate_description_button": "Translate description to the visitor's browser language using AI",
   "rr_distribution_method": "Distribution",
   "rr_distribution_method_description": "Allows for optimising distribution for maximum availability or to aim for a more balanced assignment.",
   "rr_distribution_method_availability_title": "Maximize availability",

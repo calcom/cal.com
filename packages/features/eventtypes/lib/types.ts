@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -109,6 +110,8 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
+  autoTranslateDescriptionEnabled: boolean;
+  fieldTranslations: EventTypeTranslation[];
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;

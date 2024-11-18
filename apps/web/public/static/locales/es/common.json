@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Dirigir a un usuario que coincida con un campo de búsqueda en una cuenta",
   "salesforce_option": "Opción de Salesforce",
   "lookup_field_name": "Nombre del campo de búsqueda",
+  "translate_description_button": "Traducir descripción al idioma del navegador del visitante usando IA",
   "rr_distribution_method": "Distribución",
   "rr_distribution_method_description": "Permite optimizar la distribución para maximizar la disponibilidad o lograr una asignación más equilibrada.",
   "rr_distribution_method_availability_title": "Maximizar disponibilidad",

@@ -2789,6 +2789,7 @@ checksums:
     salesforce_route_to_custom_lookup_field: 672a24e4de55eb073559e94b9266da7d
     salesforce_option: f09423b2785ee269db428163fc0a58d0
     lookup_field_name: 8d81d557128a52661d1ed9e9aae0575c
+    translate_description_button: 65b94fd5bdb06c983ee3f4c1be74a1ac
     rr_distribution_method: c3d4633236c01f8314a38a9e9c2361f1
     rr_distribution_method_description: e9c1dda0299fbfc979a52a79b57e40c7
     rr_distribution_method_availability_title: 3a7c8afaf3ddb8d262e2a03d7fc8779d

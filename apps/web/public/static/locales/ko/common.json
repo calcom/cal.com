@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "계정의 조회 필드와 일치하는 사용자에게 라우팅합니다.",
   "salesforce_option": "Salesforce 옵션",
   "lookup_field_name": "조회 필드 이름",
+  "translate_description_button": "AI를 사용하여 방문자의 브라우저 언어로 설명 번역하기",
   "rr_distribution_method": "분배 방식",
   "rr_distribution_method_description": "최대 가용성을 위한 분배 최적화 또는 균형 잡힌 할당을 위한 설정이 가능합니다.",
   "rr_distribution_method_availability_title": "가용성 최대화",

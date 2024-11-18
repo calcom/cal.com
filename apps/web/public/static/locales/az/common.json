@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Hesabda axtarış sahəsinə uyğun gələn istifadəçiyə yönləndir",
   "salesforce_option": "Salesforce Seçimi",
   "lookup_field_name": "Axtarış Sahəsinin Adı",
+  "translate_description_button": "Təsviri ziyarətçinin brauzer dilinə süni intellekt vasitəsilə tərcümə et",
   "rr_distribution_method": "Paylama",
   "rr_distribution_method_description": "Maksimum əlçatanlıq üçün paylamanı optimallaşdırmağa və ya daha balanslı bir təyinat üçün çalışmağa imkan verir.",
   "rr_distribution_method_availability_title": "Əlçatanlığı maksimuma çatdırmaq",

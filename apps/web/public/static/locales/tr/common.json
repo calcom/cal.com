@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Bir hesaptaki arama alanıyla eşleşen bir kullanıcıya yönlendir",
   "salesforce_option": "Salesforce seçeneği",
   "lookup_field_name": "Arama alanı adı",
+  "translate_description_button": "Açıklamayı ziyaretçinin tarayıcı diline yapay zeka kullanarak çevir",
   "rr_distribution_method": "Dağıtım",
   "rr_distribution_method_description": "Maksimum kullanılabilirlik için dağıtımı optimize etmeye veya daha dengeli bir atama sağlamaya olanak tanır.",
   "rr_distribution_method_availability_title": "Kullanılabilirliği maksimize et",

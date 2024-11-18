@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Smerovať na používateľa, ktorý zodpovedá poľu vyhľadávania na účte",
   "salesforce_option": "Možnosť Salesforce",
   "lookup_field_name": "Názov poľa vyhľadávania",
+  "translate_description_button": "Preložiť popis do jazyka prehliadača návštevníka pomocou AI",
   "rr_distribution_method": "Distribúcia",
   "rr_distribution_method_description": "Umožňuje optimalizovať distribúciu pre maximálnu dostupnosť alebo pre vyváženejšie prideľovanie.",
   "rr_distribution_method_availability_title": "Maximalizovať dostupnosť",
