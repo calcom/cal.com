@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "בחר/י כמה מועדים פנויים והטבע/י אותם בדוא\"ל",
   "select_time": "בחירת שעה",
   "select_date": "בחירת תאריך",
+  "only_show_if_parameter_set": "הצג רק אם הוגדר פרמטר",
+  "add_parameter": "הוסף פרמטר",
   "connecting_you_to_someone": "אנו מחברים אותך למישהו מ-{{orgName}}.",
   "please_do_not_close_this_tab": "אנא אל תסגור או תרענן דף זה",
   "see_all_available_times": "לצפייה בכל המועדים הפנויים",

@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Hautatu eskuragarri dauden ordu batzuk eta txertatu zure posta elektronikoan",
   "select_time": "Hautatu ordua",
   "select_date": "Hautatu data",
+  "only_show_if_parameter_set": "Parametro bat ezarrita dagoenean soilik erakutsi",
+  "add_parameter": "Gehitu parametroa",
   "connecting_you_to_someone": "{{orgName}}-ko norbait zurekin konektatzen ari gara",
   "please_do_not_close_this_tab": "Mesedez, ez itxi edo berritu orri hau",
   "see_all_available_times": "Ikusi eskuragarri dauden ordu guztiak",
