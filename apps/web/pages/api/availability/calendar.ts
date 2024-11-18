@@ -51,6 +51,8 @@ async function postHandler(req: CustomNextApiRequest) {
     credentialId,
     defaultReminder: defaultReminder || 30,
   });
+
+  return { message: "Calendar Selection Saved" };
 }
 
 async function deleteHandler(req: CustomNextApiRequest) {

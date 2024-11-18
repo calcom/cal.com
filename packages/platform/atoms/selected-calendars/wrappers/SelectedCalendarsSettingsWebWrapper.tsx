@@ -233,5 +233,3 @@ const SelectedCalendarsSettingsHeading = (props: {
     </div>
   );
 };
-
-// test [{"externalId":"rajesh13004034@gmail.com","integration":"google_calendar","name":"rajesh13004034@gmail.com","primary":true,"readOnly":false,"email":"rajesh13004034@gmail.com","isSelected":true,"credentialId":63},{"externalId":"addressbook#contacts@group.v.calendar.google.com","integration":"google_calendar","name":"Birthdays","primary":null,"readOnly":true,"email":"addressbook#contacts@group.v.calendar.google.com","isSelected":false,"credentialId":63}]
