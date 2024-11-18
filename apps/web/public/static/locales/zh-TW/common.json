@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "路由至符合帳戶查詢欄位的使用者",
   "salesforce_option": "Salesforce選項",
   "lookup_field_name": "查詢欄位名稱",
+  "translate_description_button": "使用 AI 將描述翻譯成訪客瀏覽器的語言",
   "rr_distribution_method": "分配方式",
   "rr_distribution_method_description": "可以優化分配方式以達到最大可用性或更平衡的任務分配。",
   "rr_distribution_method_availability_title": "最大化可用性",

@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Átirányítás olyan felhasználóhoz, aki megfelel a fiók keresési mezőjének",
   "salesforce_option": "Salesforce beállítás",
   "lookup_field_name": "Keresési mező neve",
+  "translate_description_button": "A leírás lefordítása a látogató böngészőjének nyelvére MI segítségével",
   "rr_distribution_method": "Elosztás",
   "rr_distribution_method_description": "Lehetővé teszi az elosztás optimalizálását a maximális rendelkezésre állás érdekében, vagy a kiegyensúlyozottabb feladatkiosztás eléréséhez.",
   "rr_distribution_method_availability_title": "Rendelkezésre állás maximalizálása",

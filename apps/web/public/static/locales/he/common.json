@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "נתב למשתמש התואם לשדה חיפוש בחשבון",
   "salesforce_option": "אפשרות Salesforce",
   "lookup_field_name": "שם שדה החיפוש",
+  "translate_description_button": "תרגם את התיאור לשפת הדפדפן של המבקר באמצעות בינה מלאכותית",
   "rr_distribution_method": "שיטת חלוקה",
   "rr_distribution_method_description": "מאפשר אופטימיזציה של החלוקה למקסימום זמינות או לחלוקה מאוזנת יותר",
   "rr_distribution_method_availability_title": "מקסום זמינות",

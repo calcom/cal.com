@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Chuyển đến người dùng phù hợp với trường tra cứu trên tài khoản",
   "salesforce_option": "Tùy chọn Salesforce",
   "lookup_field_name": "Tên trường tra cứu",
+  "translate_description_button": "Dịch mô tả sang ngôn ngữ trình duyệt của khách bằng AI",
   "rr_distribution_method": "Phân phối",
   "rr_distribution_method_description": "Cho phép tối ưu hóa việc phân phối để đạt khả năng sẵn sàng tối đa hoặc hướng đến việc phân công cân bằng hơn.",
   "rr_distribution_method_availability_title": "Tối đa hóa khả năng sẵn sàng",

@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "取引先の参照項目に一致するユーザーに割り当てる",
   "salesforce_option": "Salesforceオプション",
   "lookup_field_name": "参照項目名",
+  "translate_description_button": "AIを使用して説明文を訪問者のブラウザ言語に翻訳",
   "rr_distribution_method": "配分方式",
   "rr_distribution_method_description": "最大限の予約可能性を確保するため、または均等な配分を目指すための最適化が可能です。",
   "rr_distribution_method_availability_title": "予約可能性を最大化",

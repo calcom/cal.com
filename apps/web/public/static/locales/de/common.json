@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Weiterleitung an einen Benutzer, der mit einem Lookup-Feld eines Accounts übereinstimmt",
   "salesforce_option": "Salesforce-Option",
   "lookup_field_name": "Name des Lookup-Felds",
+  "translate_description_button": "Beschreibung mit KI in die Browsersprache des Besuchers übersetzen",
   "rr_distribution_method": "Verteilung",
   "rr_distribution_method_description": "Ermöglicht die Optimierung der Verteilung für maximale Verfügbarkeit oder eine ausgewogenere Zuweisung.",
   "rr_distribution_method_availability_title": "Verfügbarkeit maximieren",
