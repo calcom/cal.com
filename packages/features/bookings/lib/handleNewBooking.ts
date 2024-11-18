@@ -981,6 +981,7 @@ async function handler(
             description: additionalNotes,
             responses,
           },
+          metadata: reqBody.metadata,
           booking: {
             connect: {
               id: booking.id,
