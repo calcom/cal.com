@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "路由至与账户查找字段匹配的用户",
   "salesforce_option": "Salesforce选项",
   "lookup_field_name": "查找字段名称",
+  "translate_description_button": "使用AI将描述翻译成访问者浏览器的语言",
   "rr_distribution_method": "分配方式",
   "rr_distribution_method_description": "可以优化分配方式以实现最大可用性或更均衡的任务分配。",
   "rr_distribution_method_availability_title": "最大化可用性",

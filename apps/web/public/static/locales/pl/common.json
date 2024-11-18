@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Przekieruj do użytkownika, który odpowiada polu wyszukiwania w koncie",
   "salesforce_option": "Opcja Salesforce",
   "lookup_field_name": "Nazwa pola wyszukiwania",
+  "translate_description_button": "Przetłumacz opis na język przeglądarki użytkownika za pomocą AI",
   "rr_distribution_method": "Dystrybucja",
   "rr_distribution_method_description": "Pozwala zoptymalizować dystrybucję pod kątem maksymalnej dostępności lub bardziej zrównoważonego przydziału spotkań.",
   "rr_distribution_method_availability_title": "Maksymalizuj dostępność",
