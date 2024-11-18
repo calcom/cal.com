@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Изберете няколко свободни часа и ги вградете във вашия имейл",
   "select_time": "Изберете час",
   "select_date": "Изберете дата",
+  "only_show_if_parameter_set": "Показване само ако е зададен параметър",
+  "add_parameter": "Добави параметър",
   "connecting_you_to_someone": "Свързваме ви с някой от {{orgName}}.",
   "please_do_not_close_this_tab": "Моля, не затваряйте и не опреснявайте тази страница",
   "see_all_available_times": "Вижте всички свободни часове",

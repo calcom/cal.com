@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Seleccioneu alguns horaris disponibles i incrusteu-los al vostre correu",
   "select_time": "Seleccionar hora",
   "select_date": "Seleccionar data",
+  "only_show_if_parameter_set": "Mostra només si s'ha establert un paràmetre",
+  "add_parameter": "Afegeix un paràmetre",
   "connecting_you_to_someone": "Us estem connectant amb algú de {{orgName}}.",
   "please_do_not_close_this_tab": "Si us plau, no tanqueu ni actualitzeu aquesta pàgina",
   "see_all_available_times": "Veure tots els horaris disponibles",

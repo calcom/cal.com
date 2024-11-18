@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Επιλέξτε μερικές διαθέσιμες ώρες και ενσωματώστε τις στο email σας",
   "select_time": "Επιλογή ώρας",
   "select_date": "Επιλογή ημερομηνίας",
+  "only_show_if_parameter_set": "Εμφάνιση μόνο εάν έχει οριστεί παράμετρος",
+  "add_parameter": "Προσθήκη παραμέτρου",
   "connecting_you_to_someone": "Σας συνδέουμε με κάποιον από {{orgName}}.",
   "please_do_not_close_this_tab": "Παρακαλώ μην κλείσετε ή ανανεώσετε αυτή τη σελίδα",
   "see_all_available_times": "Δείτε όλες τις διαθέσιμες ώρες",

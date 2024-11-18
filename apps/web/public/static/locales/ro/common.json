@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Selectați câteva date disponibile și încorporați-le în e-mailul dvs.",
   "select_time": "Selectați ora",
   "select_date": "Selectați data",
+  "only_show_if_parameter_set": "Afișează doar dacă este setat un parametru",
+  "add_parameter": "Adaugă parametru",
   "connecting_you_to_someone": "Vă conectăm cu cineva de la {{orgName}}.",
   "please_do_not_close_this_tab": "Vă rugăm să nu închideți sau să reîmprospătați această pagină",
   "see_all_available_times": "Vedeți toate orele disponibile",
