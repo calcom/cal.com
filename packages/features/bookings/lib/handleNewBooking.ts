@@ -390,8 +390,8 @@ async function handler(
 
     if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
       const isTeamEvent =
-        eventType.schedulingType &&
-        [SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN].includes(eventType.schedulingType);
+        eventType.schedulingType === SchedulingType.COLLECTIVE ||
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
       const fixedUsers = isTeamEvent
         ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
