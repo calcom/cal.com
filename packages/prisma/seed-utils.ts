@@ -633,6 +633,20 @@ export async function seedRoutingFormResponses(
         routedFromRoutingFormReponse: { connect: { id: response.id } },
       },
     });
+
+    // Create some responses without a booking
+    await prisma.app_RoutingForms_FormResponse.create({
+      data: {
+        formId: seededForm.id,
+        formFillerId: randomUUID(),
+        response: {
+          [seededForm.formFieldFilled.id]: {
+            label: "skills",
+            value: selectedSkills.map((opt) => opt.id),
+          },
+        },
+      },
+    });
   }
 
   console.log(`Created ${bookings.length} routing form responses`);

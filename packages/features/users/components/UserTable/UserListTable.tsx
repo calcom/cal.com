@@ -15,7 +15,11 @@ import { useMemo, useReducer, useRef, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { downloadAsCsv, generateCsvRaw, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
+import {
+  downloadAsCsv,
+  generateCsvRawForMembersTable,
+  generateHeaderFromReactTable,
+} from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -116,6 +120,7 @@ export function UserListTable() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -205,6 +210,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         meta: {
           sticky: {
             position: "left",
@@ -231,6 +237,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        size: 170,
         header: () => {
           return `Members`;
         },
@@ -338,6 +345,7 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        size: 50,
         meta: {
           sticky: { position: "right" },
         },
@@ -381,12 +389,15 @@ export function UserListTable() {
     },
     state: {
       columnFilters,
+      rowSelection,
     },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onRowSelectionChange: setRowSelection,
+    getRowId: (row) => `${row.id}`,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
@@ -418,9 +429,11 @@ export function UserListTable() {
 
   const handleDownload = async () => {
     try {
+      if (!org?.slug || !org?.name) {
+        throw new Error("Org slug or name is missing.");
+      }
       setIsDownloading(true);
-      const HEADER_IDS_TO_EXCLUDE = ["select", "actions"];
-      const headers = generateHeaderFromReactTable(table, HEADER_IDS_TO_EXCLUDE);
+      const headers = generateHeaderFromReactTable(table);
       if (!headers || !headers.length) {
         throw new Error("Header is missing.");
       }
@@ -443,12 +456,17 @@ export function UserListTable() {
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRaw(headers, allMembers as UserTableUser[], ATTRIBUTE_IDS);
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allMembers as UserTableUser[],
+        ATTRIBUTE_IDS,
+        domain
+      );
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
 
-      const filename = `${org?.name ?? "Org"}_${new Date().toISOString().split("T")[0]}.csv`;
+      const filename = `${org.name}_${new Date().toISOString().split("T")[0]}.csv`;
       downloadAsCsv(csvRaw, filename);
     } catch (error) {
       showToast(`Error: ${error}`, "error");
@@ -475,7 +493,7 @@ export function UserListTable() {
                 className="sm:max-w-64 max-w-full"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <DataTableToolbar.CTA
                 type="button"
                 color="secondary"
