@@ -241,7 +241,6 @@ export class InputBookingsService_2024_08_13 {
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
-        // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests: inputBooking.guests,
@@ -324,7 +323,7 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
     }
 
-    const { responses: bookingResponses } = seatedBookingResponsesSchema.parse(seat.data);
+    const { responses: bookingResponses, metadata } = seatedBookingResponsesSchema.parse(seat.data);
     const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
@@ -342,9 +341,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: metadata || {},
       hasHashedBookingLink: false,
       guests: [],
       responses: { ...bookingResponses },
@@ -383,9 +380,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: booking.metadata || {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
