@@ -110,6 +110,7 @@ model EventType {
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
+  autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
@@ -149,6 +150,7 @@ model EventType {
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
+  fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
 
   /// @zod.custom(imports.eventTypeColor)
@@ -1589,4 +1591,25 @@ model AttributeToUser {
   weight            Int?
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum EventTypeAutoTranslatedField {
+  DESCRIPTION // Currently the only field we translate
+}
+
+model EventTypeTranslation {
+  id             String                       @id @default(cuid())
+  eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId    Int
+  field          EventTypeAutoTranslatedField
+  sourceLang     String
+  targetLang     String
+  translatedText String                       @db.Text
+  createdAt      DateTime                     @default(now())
+  createdBy      Int
+  updatedAt      DateTime                     @updatedAt
+  updatedBy      Int?
+
+  @@unique([eventTypeId, field, targetLang])
+  @@index([eventTypeId, field, targetLang])
 }

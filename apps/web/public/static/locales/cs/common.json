@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Přiřadit uživateli, který odpovídá vyhledávacímu poli na účtu",
   "salesforce_option": "Možnost Salesforce",
   "lookup_field_name": "Název vyhledávacího pole",
+  "translate_description_button": "Přeložit popis do jazyka prohlížeče návštěvníka pomocí AI",
   "rr_distribution_method": "Distribuce",
   "rr_distribution_method_description": "Umožňuje optimalizovat distribuci pro maximální dostupnost nebo pro vyváženější přidělování.",
   "rr_distribution_method_availability_title": "Maximalizovat dostupnost",

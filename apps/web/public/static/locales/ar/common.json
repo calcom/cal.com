@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "التوجيه إلى مستخدم يطابق حقل البحث في الحساب",
   "salesforce_option": "خيار Salesforce",
   "lookup_field_name": "اسم حقل البحث",
+  "translate_description_button": "ترجمة الوصف إلى لغة متصفح الزائر باستخدام الذكاء الاصطناعي",
   "rr_distribution_method": "التوزيع",
   "rr_distribution_method_description": "يتيح تحسين التوزيع لتحقيق أقصى قدر من التوفر أو لتحقيق توزيع أكثر توازناً.",
   "rr_distribution_method_availability_title": "تعظيم التوفر",

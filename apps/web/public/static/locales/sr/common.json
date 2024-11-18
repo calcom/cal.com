@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Usmeri ka korisniku koji odgovara polju za pretragu na nalogu",
   "salesforce_option": "Salesforce opcija",
   "lookup_field_name": "Naziv polja za pretragu",
+  "translate_description_button": "Prevedi opis na jezik posetiočevog pretraživača koristeći AI",
   "rr_distribution_method": "Distribucija",
   "rr_distribution_method_description": "Omogućava optimizaciju distribucije za maksimalnu dostupnost ili za balansiranu raspodelu.",
   "rr_distribution_method_availability_title": "Maksimalna dostupnost",

@@ -2787,6 +2787,7 @@
   "salesforce_route_to_custom_lookup_field": "Routeer naar een gebruiker die overeenkomt met een zoekveld op een account",
   "salesforce_option": "Salesforce-optie",
   "lookup_field_name": "Zoekveldnaam",
+  "translate_description_button": "Vertaal beschrijving naar de browsertaal van de bezoeker met behulp van AI",
   "rr_distribution_method": "Distributie",
   "rr_distribution_method_description": "Maakt het mogelijk om de distributie te optimaliseren voor maximale beschikbaarheid of voor een meer gebalanceerde toewijzing.",
   "rr_distribution_method_availability_title": "Maximale beschikbaarheid",
