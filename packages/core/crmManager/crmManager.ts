@@ -29,7 +29,7 @@ export default class CrmManager {
 
   public async createEvent(event: CalendarEvent, appOptions?: any) {
     const crmService = await this.getCrmService(this.credential);
-    const { skipContactCreation } = crmService?.getAppOptions();
+    const { skipContactCreation } = crmService?.getAppOptions() || {};
     // First see if the attendees already exist in the crm
     let contacts = (await this.getContacts({ emails: event.attendees.map((a) => a.email) })) || [];
     // Ensure that all attendees are in the crm
@@ -71,5 +71,12 @@ export default class CrmManager {
     const crmService = await this.getCrmService(this.credential);
     const createdContacts = (await crmService?.createContacts(contactsToCreate, organizerEmail)) || [];
     return createdContacts;
+  }
+
+  public async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+    const crmService = await this.getCrmService(this.credential);
+    if (crmService?.handleAttendeeNoShow) {
+      await crmService.handleAttendeeNoShow(bookingUid, attendees);
+    }
   }
 }

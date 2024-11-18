@@ -26,3 +26,5 @@ export { CalendarSettingsPlatformWrapper as CalendarSettings } from "./calendar-
 export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
 export { EventTypePlatformWrapper as EventTypeSettings } from "./event-types/wrappers/EventTypePlatformWrapper";
 export { StripeConnect } from "./connect/stripe/StripeConnect";
+export { CreateEventTypePlatformWrapper as CreateEventType } from "./event-types/wrappers/CreateEventTypePlatformWrapper";
+export { PaymentForm } from "./event-types/payments/PaymentForm";

@@ -206,7 +206,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         type="creation"
         title={t("invite_team_member")}
         description={
-          IS_TEAM_BILLING_ENABLED_CLIENT ? (
+          IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
@@ -215,12 +215,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </span>
           ) : null
         }>
-        <div className="max-h-9">
+        <div className="sm:max-h-9">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}
           </Label>
           <ToggleGroup
             isFullWidth={true}
+            className="flex-col sm:flex-row"
             onValueChange={(val) => {
               setModalInputMode(val as ModalMode);
               newMemberFormMethods.clearErrors();

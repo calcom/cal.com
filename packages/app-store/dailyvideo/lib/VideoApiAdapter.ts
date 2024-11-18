@@ -98,6 +98,46 @@ async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   return allTranscriptsAccessLinks;
 }
 
+export const updateMeetingTokenIfExpired = async ({
+  bookingReferenceId,
+  meetingToken,
+  roomName,
+  exp,
+}: {
+  bookingReferenceId: number;
+  meetingToken: string | null;
+  roomName: string;
+  exp: number;
+}) => {
+  if (!meetingToken) return null;
+
+  try {
+    await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
+  } catch (err) {
+    const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
+      properties: {
+        room_name: roomName,
+        exp: exp,
+        enable_recording_ui: false,
+        is_owner: true,
+      },
+    }).then(meetingTokenSchema.parse);
+
+    await prisma.bookingReference.update({
+      where: {
+        id: bookingReferenceId,
+      },
+      data: {
+        meetingPassword: organizerMeetingToken.token,
+      },
+    });
+
+    return organizerMeetingToken.token;
+  }
+
+  return meetingToken;
+};
+
 export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
   meetingToken: string | null,
   userId?: number

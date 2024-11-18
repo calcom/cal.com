@@ -50,12 +50,16 @@ model Host {
   isFixed          Boolean   @default(false)
   priority         Int?
   weight           Int?
-  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
+  schedule         Schedule? @relation(fields: [scheduleId], references: [id])
+  scheduleId       Int?
+  createdAt        DateTime  @default(now())
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model EventType {
@@ -106,6 +110,7 @@ model EventType {
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
+  autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
@@ -145,6 +150,8 @@ model EventType {
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
+  fieldTranslations                       EventTypeTranslation[]
+  maxLeadThreshold                        Int?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -158,6 +165,7 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([profileId])
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
@@ -190,6 +198,7 @@ model Credential {
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
+  @@index([invalid])
 }
 
 enum IdentityProvider {
@@ -202,7 +211,7 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
-  /// @zod.email()
+  /// @zod.custom(imports.emailSchema)
   primaryEmail String?
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
@@ -247,7 +256,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
   name                String?
-  /// @zod.email()
+  /// @zod.custom(imports.emailSchema)
   email               String
   emailVerified       DateTime?
   password            UserPassword?
@@ -339,6 +348,7 @@ model User {
   NotificationsSubscriptions NotificationsSubscriptions[]
   referralLinkId             String?
   features                   UserFeatures[]
+  reassignedBookings         Booking[]                    @relation("reassignByUser")
 
   @@unique([email])
   @@unique([email, username])
@@ -487,6 +497,8 @@ model Membership {
   @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
+  @@index([accepted])
+  @@index([role])
 }
 
 model VerificationToken {
@@ -578,7 +590,7 @@ model Booking {
   user                         User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking
-  /// @zod.email()
+  /// @zod.custom(imports.emailSchema)
   userPrimaryEmail             String?
   references                   BookingReference[]
   eventType                    EventType?                     @relation(fields: [eventTypeId], references: [id])
@@ -601,6 +613,9 @@ model Booking {
   destinationCalendarId        Int?
   cancellationReason           String?
   rejectionReason              String?
+  reassignReason               String?
+  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById                 Int?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?
@@ -625,6 +640,7 @@ model Booking {
   cancelledBy                  String?
   /// @zod.email()
   rescheduledBy                String?
+  // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
 
   @@index([eventTypeId])
@@ -645,6 +661,7 @@ model Schedule {
   name                 String
   timeZone             String?
   availability         Availability[]
+  Host                 Host[]
 
   @@index([userId])
 }
@@ -770,6 +787,7 @@ enum WebhookTriggerEvents {
   OOO_CREATED
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  FORM_SUBMITTED_NO_EVENT
 }
 
 model Webhook {
@@ -950,6 +968,7 @@ model App_RoutingForms_FormResponse {
   routedToBookingUid String?               @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
   routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId      String?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1555,9 +1574,10 @@ model Attribute {
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  options   AttributeOption[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  options          AttributeOption[]
+  isWeightsEnabled Boolean           @default(false)
 }
 
 model AttributeToUser {
@@ -1568,6 +1588,28 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
+  weight            Int?
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum EventTypeAutoTranslatedField {
+  DESCRIPTION // Currently the only field we translate
+}
+
+model EventTypeTranslation {
+  id             String                       @id @default(cuid())
+  eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId    Int
+  field          EventTypeAutoTranslatedField
+  sourceLang     String
+  targetLang     String
+  translatedText String                       @db.Text
+  createdAt      DateTime                     @default(now())
+  createdBy      Int
+  updatedAt      DateTime                     @updatedAt
+  updatedBy      Int?
+
+  @@unique([eventTypeId, field, targetLang])
+  @@index([eventTypeId, field, targetLang])
 }

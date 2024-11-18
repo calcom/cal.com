@@ -116,6 +116,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
 
       if (res.locale) {
         window.calNewLocale = res.locale;
+        document.cookie = `calNewLocale=${res.locale}; path=/`;
       }
       await revalidatePage();
     },
@@ -235,7 +236,11 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
             )}
           />
           {!watchedTzSchedules.length ? (
-            <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
+            <Button
+              color="secondary"
+              className="mt-2"
+              StartIcon="calendar"
+              onClick={() => setIsTZScheduleOpen(true)}>
               {t("schedule_timezone_change")}
             </Button>
           ) : (
@@ -310,7 +315,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
               </>
             )}
           />
-          <div className="text-gray text-default mt-2 flex items-center text-sm">
+          <div className="text-gray text-subtle mt-2 flex items-center text-xs">
             {t("timeformat_profile_hint")}
           </div>
           <Controller

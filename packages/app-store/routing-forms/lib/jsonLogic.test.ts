@@ -67,7 +67,45 @@ describe("jsonLogic", () => {
     });
   });
 
-  describe("all-in", () => {
+  describe("all-in -> used by multiselect_equals", () => {
+    it("should return true if all elements of the array in 'data' is in the jsonLogic 'in' array using case insensitivity", () => {
+      expect(
+        jsonLogic.apply(
+          {
+            and: [
+              {
+                all: [{ var: "location" }, { in: [{ var: "" }, ["nevada", "abc"]] }],
+              },
+            ],
+          },
+          // Data
+          {
+            there: "no",
+            location: ["nevada"],
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("should return false if even one element of the array in 'data' is not in the jsonLogic 'in' array using case insensitivity", () => {
+      expect(
+        jsonLogic.apply(
+          {
+            and: [
+              {
+                all: [{ var: "location" }, { in: [{ var: "" }, ["India", "Canada"]] }],
+              },
+            ],
+          },
+          // Data
+          {
+            there: "no",
+            location: ["India", "Australia"],
+          }
+        )
+      ).toBe(false);
+    });
+
     it("should return true if the variable value is an array and contains the string", () => {
       expect(
         jsonLogic.apply(
@@ -78,17 +116,18 @@ describe("jsonLogic", () => {
               },
             ],
           },
+          // Data
           {
             there: "no",
-            location: ["nevada"],
+            location: "nevada",
           }
         )
-      ).toBe(true);
+      ).toBe(false);
     });
   });
 
-  describe("some-in", () => {
-    it("should return true if the variable value is an array and contains the string", () => {
+  describe("some-in -> used by multiselect_some_in", () => {
+    it("should return true if the only element of the array in 'data' is in the jsonLogic 'in' array using case insensitivity", () => {
       expect(
         jsonLogic.apply(
           {
@@ -99,17 +138,68 @@ describe("jsonLogic", () => {
                   {
                     var: "",
                   },
-                  ["nevada", "ABC"],
+                  ["India", "USA"],
                 ],
               },
             ],
           },
+          // data
           {
             there: "no",
-            location: ["nevada"],
+            location: ["india"],
           }
         )
       ).toBe(true);
+    });
+
+    it("should return true if at least one element of the array in 'data' is in the jsonLogic 'in' array using case insensitivity", () => {
+      expect(
+        jsonLogic.apply(
+          {
+            some: [
+              { var: "location" },
+              {
+                in: [
+                  {
+                    var: "",
+                  },
+                  ["India", "USA"],
+                ],
+              },
+            ],
+          },
+          // Data
+          {
+            there: "no",
+            location: ["india", "Australia"],
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("should return false if none of the elements of the array in 'data' is in the jsonLogic 'in' array using case insensitivity", () => {
+      expect(
+        jsonLogic.apply(
+          {
+            some: [
+              { var: "location" },
+              {
+                in: [
+                  {
+                    var: "",
+                  },
+                  ["India", "Canada"],
+                ],
+              },
+            ],
+          },
+          // Data
+          {
+            there: "no",
+            location: ["Australia", "Iceland"],
+          }
+        )
+      ).toBe(false);
     });
   });
 });

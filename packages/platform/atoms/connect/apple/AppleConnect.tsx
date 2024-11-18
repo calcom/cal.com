@@ -93,6 +93,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance="apple" />}
                 tooltipSide={tooltipSide}
                 tooltipOffset={10}
+                tooltipClassName="p-0 text-inherit bg-inherit"
                 className={cn("", !isDisabled && "cursor-pointer", className)}
                 onClick={() => setIsDialogOpen(true)}>
                 {displayedLabel}
