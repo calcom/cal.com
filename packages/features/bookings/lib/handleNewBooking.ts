@@ -136,7 +136,7 @@ const checkIsFirstSeat = async ({
   eventTypeId,
 }: {
   eventTypeId: number;
-  seatsPerTimeSlot?: number;
+  seatsPerTimeSlot: number | null;
   reqBodyStart: string;
 }) => {
   if (!seatsPerTimeSlot) return true;
@@ -389,9 +389,9 @@ async function handler(
     };
 
     if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
-      const isTeamEvent = [SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN].includes(
-        eventType.schedulingType
-      );
+      const isTeamEvent =
+        eventType.schedulingType &&
+        [SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN].includes(eventType.schedulingType);
 
       const fixedUsers = isTeamEvent
         ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
