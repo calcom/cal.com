@@ -36,7 +36,7 @@ function ReminderSelection({
 }: {
   credentialId: number;
   type: string;
-  value?: number;
+  value?: number | null;
   externalId: string;
 }) {
   const [defaultReminder, setDefaultReminder] = useState<number>(value || 30);
@@ -73,7 +73,7 @@ function ReminderSelection({
   });
 
   return (
-    <>
+    <div>
       <Label className="text-emphasis">
         <>Reminder</>
       </Label>
@@ -88,7 +88,7 @@ function ReminderSelection({
           setDefaultReminder(event?.value || 30);
         }}
       />
-    </>
+    </div>
   );
 }
 export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSettingsWebWrapperProps) => {
@@ -127,7 +127,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                         description={
                           connectedCalendar.primary?.email ?? connectedCalendar.integration.description
                         }
-                        className="border-subtle mt-4 rounded-lg border"
+                        className="border-subtle relative mt-4 rounded-lg border"
                         actions={
                           <div className="flex w-32 justify-end">
                             <DisconnectIntegration
@@ -158,12 +158,12 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                   />
                                 ))}
                                 {connectedCalendar.integration.type === "google_calendar" &&
-                                  connectedCalendar.selectedCalendar && (
+                                  connectedCalendar?.selectedCalendar?.externalId && (
                                     <ReminderSelection
                                       credentialId={connectedCalendar.credentialId}
                                       type={connectedCalendar.integration.type}
                                       externalId={connectedCalendar.selectedCalendar.externalId}
-                                      value={connectedCalendar.selectedCalendar.defaultReminder}
+                                      value={connectedCalendar.selectedCalendar.defaultReminder || null}
                                     />
                                   )}
                               </ul>
