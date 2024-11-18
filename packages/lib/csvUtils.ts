@@ -62,19 +62,15 @@ export const sanitizeValue = (value: string) => {
   return value;
 };
 
-export const generateHeaderFromReactTable = (
-  table: Table<UserTableUser>,
-  HEADER_IDS_TO_EXCLUDE?: string[]
-): string[] | null => {
+export const generateHeaderFromReactTable = (table: Table<UserTableUser>): string[] | null => {
   const headerGroups = table.getHeaderGroups();
   if (!headerGroups.length) {
     return null;
   }
 
   const { headers } = headerGroups[0];
-  const filteredHeaders = HEADER_IDS_TO_EXCLUDE
-    ? headers.filter((header) => !HEADER_IDS_TO_EXCLUDE.includes(header.id))
-    : headers;
+  const HEADER_IDS_TO_EXCLUDE = ["select", "actions"]; // these columns only make sense in web page
+  const filteredHeaders = headers.filter((header) => !HEADER_IDS_TO_EXCLUDE.includes(header.id));
   const headerNames = filteredHeaders.map((header) => {
     const h = header.column.columnDef.header;
     if (typeof h === "string") {
@@ -86,20 +82,38 @@ export const generateHeaderFromReactTable = (
     return "Unknown";
   });
 
+  // Add "Link" column (member's public page)
+  const MEMBERS_COLUMN = "Members";
+  const LINK_COLUMN = "Link";
+  const memberIndex = headerNames.findIndex((name) => name === MEMBERS_COLUMN);
+  if (memberIndex > -1) {
+    headerNames.splice(memberIndex + 1, 0, LINK_COLUMN);
+  }
+
   return headerNames;
 };
 
-export const generateCsvRaw = (
+export const generateCsvRawForMembersTable = (
   headers: string[],
   rows: UserTableUser[],
   ATTRIBUTE_IDS: string[]
-): string | null => {
+): string => {
   if (!headers.length) {
-    return null;
+    throw new Error("The header is empty.");
   }
+
+  const REQUIRED_HEADERS = ["Members", "Link", "Role", "Teams"] as const;
+  // Validate required headers are present and in correct order
+  const firstFourHeaders = headers.slice(0, REQUIRED_HEADERS.length);
+  if (!REQUIRED_HEADERS.every((header, index) => header === firstFourHeaders[index])) {
+    throw new Error(
+      `Invalid headers structure. Expected headers to start with: ${JSON.stringify(REQUIRED_HEADERS)}`
+    );
+  }
+
   // Body formation
   const csvRows = rows.map((row) => {
-    const { email, role, teams, attributes } = row;
+    const { email, role, teams, username, attributes } = row;
 
     // Create a map of attributeId to array of values
     const attributeMap = attributes.reduce((acc, attr) => {
@@ -110,14 +124,19 @@ export const generateCsvRaw = (
       return acc;
     }, {} as Record<string, string[]>);
 
-    return [
-      email,
-      role,
-      sanitizeValue(teams.map((team) => team.name).join(",")),
-      ...ATTRIBUTE_IDS.map((attrId) => {
-        return attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(",")) : "";
-      }),
+    const requiredColumns = [
+      email, // Members column
+      `${window.location.origin}/${username}`, // Link column
+      role, // Role column
+      sanitizeValue(teams.map((team) => team.name).join(",")), // Teams column
     ];
+
+    // Add attribute columns
+    const attributeColumns = ATTRIBUTE_IDS.map((attrId) =>
+      attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(",")) : ""
+    );
+
+    return [...requiredColumns, ...attributeColumns];
   });
 
   return [headers.join(","), ...csvRows.map((row) => row.join(","))].join("\n");

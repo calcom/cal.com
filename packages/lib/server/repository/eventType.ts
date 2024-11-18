@@ -428,6 +428,7 @@ export class EventTypeRepository {
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
+      instantMeetingParameters: true,
       aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
@@ -445,6 +446,13 @@ export class EventTypeRepository {
       requiresConfirmation: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
+      autoTranslateDescriptionEnabled: true,
+      fieldTranslations: {
+        select: {
+          translatedText: true,
+          targetLang: true,
+        },
+      },
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,

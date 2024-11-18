@@ -665,25 +665,18 @@ export class UserRepository {
     return !!teams.length;
   }
   static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
-    const team = await prisma.team.findUnique({
+    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
       where: {
-        id: teamId,
-        AND: [
-          {
-            members: {
-              some: {
-                userId,
-                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-              },
-            },
-          },
-        ],
+        userId,
+        teamId,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        accepted: true,
       },
       select: {
         id: true,
       },
     });
-    return !!team;
+    return !!isAdminOrOwnerOfTeam;
   }
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({

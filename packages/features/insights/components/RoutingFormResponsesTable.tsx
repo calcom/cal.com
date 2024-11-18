@@ -17,7 +17,22 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { DataTable, useFetchMoreOnBottomReached, Badge, Avatar, Icon } from "@calcom/ui";
+import {
+  DataTable,
+  useFetchMoreOnBottomReached,
+  Badge,
+  Avatar,
+  Icon,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
@@ -36,7 +51,7 @@ function CellWithOverflowX({ children, className }: { children: React.ReactNode;
   return (
     <div className={classNames("group relative max-w-[200px]", className)}>
       <div
-        className="no-scrollbar overflow-x-auto whitespace-nowrap"
+        className="no-scrollbar flex gap-1 overflow-x-auto whitespace-nowrap"
         ref={(el) => {
           // Only add shadow if the scroll width is greater than 200px
           if (!el) return;
@@ -51,7 +66,7 @@ function CellWithOverflowX({ children, className }: { children: React.ReactNode;
         }}>
         {children}
       </div>
-      <div className="absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l from-white to-transparent group-hover:from-gray-100" />
+      <div className="from-default absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l to-transparent " />
     </div>
   );
 }
@@ -92,7 +107,7 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   if (value.length === 0) return <div className="h-6 w-[200px]" />;
 
   return (
-    <div className="flex w-[200px] flex-wrap gap-1">
+    <CellWithOverflowX className="flex w-[200px] gap-1">
       {value.length > 2 ? (
         <>
           {value.slice(0, 2).map((v: string, i: number) => (
@@ -100,18 +115,20 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
               {v}
             </Badge>
           ))}
-          <div className="group/badge relative">
-            <Badge variant="gray">+{value.length - 2}</Badge>
-            <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/badge:visible group-hover/badge:translate-y-0 group-hover/badge:opacity-100">
+          <HoverCard>
+            <HoverCardTrigger>
+              <Badge variant="gray">+{value.length - 2}</Badge>
+            </HoverCardTrigger>
+            <HoverCardContent side="bottom" align="start" className="w-fit">
               <div className="flex flex-col gap-1">
                 {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-sm text-gray-600">
+                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
                     {v}
                   </span>
                 ))}
               </div>
-            </div>
-          </div>
+            </HoverCardContent>
+          </HoverCard>
         </>
       ) : (
         value.map((v: string, i: number) => (
@@ -120,7 +137,7 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
           </Badge>
         ))
       )}
-    </div>
+    </CellWithOverflowX>
   );
 }
 
@@ -158,12 +175,16 @@ function BookingStatusCell({
   }
 
   return (
-    <div className="group/booking_status relative flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
-      <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-      <Link href={`/booking/${booking.uid}`}>
-        <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
-      </Link>
-      <div className="bg-default invisible absolute left-0 top-full z-20 translate-y-[-8px] rounded-md p-2 opacity-0 shadow-md transition-all duration-200 group-hover/booking_status:visible group-hover/booking_status:translate-y-0 group-hover/booking_status:opacity-100 ">
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <div className="flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
+          <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+          <Link href={`/booking/${booking.uid}`}>
+            <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
+          </Link>
+        </div>
+      </HoverCardTrigger>
+      <HoverCardContent>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
@@ -188,12 +209,18 @@ function BookingStatusCell({
             <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>
           </div>
         </div>
-      </div>
-    </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
-export function RoutingFormResponsesTable() {
+export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
+
+export function RoutingFormResponsesTable({
+  children,
+}: {
+  children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
+}) {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -212,16 +239,17 @@ export function RoutingFormResponsesTable() {
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
-  const { data: headers } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
-    {
-      teamId: selectedTeamId ?? undefined,
-      isAll: isAll ?? false,
-      routingFormId: selectedRoutingFormId ?? undefined,
-    },
-    {
-      enabled: initialConfigIsReady,
-    }
-  );
+  const { data: headers, isLoading: isHeadersLoading } =
+    trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
+      {
+        teamId: selectedTeamId ?? undefined,
+        isAll: isAll ?? false,
+        routingFormId: selectedRoutingFormId ?? undefined,
+      },
+      {
+        enabled: initialConfigIsReady,
+      }
+    );
 
   const { data, fetchNextPage, isFetching, hasNextPage } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
@@ -251,6 +279,7 @@ export function RoutingFormResponsesTable() {
   const totalFetched = flatData.length;
 
   const processedData = useMemo(() => {
+    if (isHeadersLoading) return [];
     return flatData.map((response) => {
       const row: RoutingFormTableRow = {
         id: response.id,
@@ -283,7 +312,7 @@ export function RoutingFormResponsesTable() {
 
       return row;
     });
-  }, [flatData, headers]);
+  }, [flatData, headers, isHeadersLoading]);
 
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
@@ -298,6 +327,7 @@ export function RoutingFormResponsesTable() {
           return <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />;
         },
       }),
+
       ...(headers?.map((header) => {
         return columnHelper.accessor(header.id, {
           id: header.id,
@@ -314,10 +344,9 @@ export function RoutingFormResponsesTable() {
           },
         });
       }) ?? []),
-
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
-        header: t("routing_form_insights_booking_status"),
+        header: t("routing_form_insights_booking_at"),
         size: 250,
         cell: (info) => (
           <div className="max-w-[250px]">
@@ -328,6 +357,14 @@ export function RoutingFormResponsesTable() {
               t={t}
             />
           </div>
+        ),
+      }),
+      columnHelper.accessor("createdAt", {
+        id: "submittedAt",
+        header: t("routing_form_insights_submitted_at"),
+        size: 250,
+        cell: (info) => (
+          <div className="max-w-[250px]">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</div>
         ),
       }),
     ],
@@ -353,6 +390,52 @@ export function RoutingFormResponsesTable() {
     totalDBRowCount
   );
 
+  if (isHeadersLoading || (isFetching && !data)) {
+    return (
+      <div
+        className="grid h-[75dvh]"
+        style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
+        <div
+          className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
+          style={{ gridArea: "body" }}>
+          <Table>
+            <TableHeader className="bg-subtle sticky top-0 z-10">
+              <TableRow>
+                {[...Array(4)].map((_, index) => (
+                  <TableHead key={`skeleton-header-${index}`}>
+                    <div className="bg-subtle h-4 w-[200px] animate-pulse rounded-md" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[...Array(10)].map((_, rowIndex) => (
+                <TableRow key={`skeleton-row-${rowIndex}`}>
+                  {[...Array(4)].map((_, colIndex) => (
+                    <TableCell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
+                      <div
+                        className={classNames(
+                          "bg-subtle h-6 animate-pulse rounded-md",
+                          colIndex === 0
+                            ? "w-[200px]"
+                            : colIndex === 2
+                            ? "w-[250px]"
+                            : colIndex === 3
+                            ? "w-[250px]"
+                            : "w-[200px]"
+                        )}
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1">
       <DataTable
@@ -363,8 +446,9 @@ export function RoutingFormResponsesTable() {
             fetchMoreOnBottomReached(e.target as HTMLDivElement);
           }
         }}
-        isPending={isFetching && !data}
-      />
+        isPending={isFetching && !data}>
+        {typeof children === "function" ? children(table) : children}
+      </DataTable>
     </div>
   );
 }

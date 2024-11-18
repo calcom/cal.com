@@ -51,17 +51,8 @@ export const RoutingKPICards = () => {
 
   const categories: {
     title: string;
-    index:
-      | "created"
-      | "active"
-      | "total_responses"
-      | "total_responses_without_booking"
-      | "total_responses_with_booking";
+    index: "active" | "total_responses" | "total_responses_without_booking" | "total_responses_with_booking";
   }[] = [
-    {
-      title: t("routing_forms_created"),
-      index: "created",
-    },
     {
       title: t("routing_forms_total_responses"),
       index: "total_responses",
@@ -84,7 +75,7 @@ export const RoutingKPICards = () => {
 
   return (
     <>
-      <Grid numColsSm={2} numColsLg={4} className="mt-4 gap-x-4 gap-y-4">
+      <Grid numColsSm={1} numColsLg={3} className="mt-4 gap-x-4 gap-y-4">
         {categories.map((item) => (
           <CardInsights key={item.title}>
             <Text className="text-default">{item.title}</Text>

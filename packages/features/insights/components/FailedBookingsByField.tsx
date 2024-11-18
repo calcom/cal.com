@@ -1,4 +1,3 @@
-import { BarList } from "@tremor/react";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -6,6 +5,7 @@ import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
+import { BarList } from "./tremor/BarList";
 
 interface FormCardProps {
   formName: string;
@@ -27,7 +27,7 @@ function FormCard({ formName, fields }: FormCardProps) {
   }));
 
   return (
-    <div className="border-subtle h-[400px] w-full rounded-md border">
+    <div className="border-subtle w-full rounded-md border">
       <div className="flex flex-col">
         <div className="bg-subtle border-subtle flex h-12 items-center border-b">
           <h3 className="text-default px-2 text-left align-middle font-medium">{formName}</h3>
@@ -40,7 +40,7 @@ function FormCard({ formName, fields }: FormCardProps) {
             onValueChange={(value) => value && setSelectedField(value)}
           />
           {selectedFieldData && (
-            <div className="scrollbar-thin mt-4 h-full overflow-y-auto">
+            <div className="scrollbar-thin mt-4 h-[400px] overflow-y-auto">
               <BarList
                 data={selectedFieldData}
                 valueFormatter={(value: number) => value.toString()}
