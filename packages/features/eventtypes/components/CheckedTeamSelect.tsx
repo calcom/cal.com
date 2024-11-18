@@ -48,6 +48,7 @@ export const CheckedTeamSelect = ({
         options={options}
         value={value}
         isMulti
+        data-testid="fixed-hosts-select"
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate

@@ -144,7 +144,6 @@ const AddMembersWithSwitch = ({
         )}
         {!assignAllTeamMembers || !automaticAddAllEnabled ? (
           <CheckedHostField
-            data-testid="fixed-hosts-select"
             value={value}
             onChange={onChange}
             isFixed={isFixed}
