@@ -1,9 +1,9 @@
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 
-import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
+import { getEventTypesFromDB } from "./getEventTypesFromDB";
 
-export default getEventType = async ({
+export const getEventType = async ({
   eventTypeId,
   eventTypeSlug,
 }: {
