@@ -4,14 +4,17 @@
     "source": "en",
     "targets": [
       "ar",
+      "az",
+      "bg",
+      "ca",
       "cs",
       "da",
-      "az",
-      "cs",
       "de",
+      "el",
       "es",
       "es-419",
       "et",
+      "eu",
       "fr",
       "he",
       "hu",
@@ -25,14 +28,15 @@
       "pt-BR",
       "pt",
       "ro",
+      "ru",
+      "sk-SK",
       "sr",
       "sv",
       "tr",
       "uk",
       "vi",
       "zh-CN",
-      "zh-TW",
-      "sk-SK"
+      "zh-TW"
     ]
   },
   "buckets": {
