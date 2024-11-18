@@ -2,7 +2,7 @@
 import { cloneDeep } from "lodash";
 
 import type EventManager from "@calcom/core/EventManager";
-import { sendRescheduledSeatEmail } from "@calcom/emails";
+import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -18,7 +18,7 @@ const attendeeRescheduleSeatedBooking = async (
   originalBookingEvt: CalendarEvent,
   eventManager: EventManager
 ) => {
-  const { tAttendees, bookingSeat, bookerEmail, evt } = rescheduleSeatedBookingObject;
+  const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
@@ -76,14 +76,14 @@ const attendeeRescheduleSeatedBooking = async (
       }),
     ]);
   }
-
   // Add the new attendees to the new time slot booking attendees
   for (const attendee of newTimeSlotBooking.attendees) {
-    const language = await getTranslation(attendee.locale ?? "en", "common");
+    const translate = await getTranslation(attendee.locale ?? "en", "common");
     evt.attendees.push({
       email: attendee.email,
       name: attendee.name,
-      language,
+      timeZone: attendee.timeZone,
+      language: { translate, locale: attendee.locale ?? "en" },
     });
   }
 
@@ -91,7 +91,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+  await sendRescheduledSeatEmailAndSMS(copyEvent, seatAttendee as Person, eventType.metadata);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

@@ -1,21 +1,19 @@
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
-import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType, WorkflowActions } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TActivateEventTypeInputSchema } from "./activateEventType.schema";
-import {
-  deleteAllWorkflowReminders,
-  removeSmsReminderFieldForEventTypes,
-  upsertSmsReminderFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, upsertSmsReminderFieldForEventTypes } from "./util";
 
 type ActivateEventTypeOptions = {
   ctx: {
@@ -120,7 +118,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
     });
 
-    await deleteAllWorkflowReminders(remindersToDelete);
+    await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
@@ -200,15 +198,37 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
       include: {
         attendees: true,
-        eventType: true,
+        eventType: {
+          select: {
+            schedulingType: true,
+            slug: true,
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         user: true,
       },
     });
+
+    const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
     for (const booking of bookingsForReminders) {
       const defaultLocale = "en";
       const bookingInfo = {
         uid: booking.uid,
+        bookerUrl,
         attendees: booking.attendees.map((attendee) => {
           return {
             name: attendee.name,
@@ -231,8 +251,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         title: booking.title,
         language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
-          slug: booking.eventType?.slug,
+          slug: booking.eventType?.slug || "",
+          schedulingType: booking.eventType?.schedulingType,
+          hosts: booking.eventType?.hosts,
         },
+        metadata: booking.metadata,
       };
       for (const step of eventTypeWorkflow.steps) {
         if (
@@ -245,9 +268,24 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           switch (step.action) {
             case WorkflowActions.EMAIL_HOST:
               sendTo = [bookingInfo.organizer?.email];
+              const schedulingType = bookingInfo.eventType?.schedulingType;
+              const hosts = bookingInfo.eventType.hosts
+                ?.filter((host) =>
+                  bookingInfo.attendees.some((attendee) => host.user.email === attendee.email)
+                )
+                .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+              if (
+                (schedulingType === SchedulingType.ROUND_ROBIN ||
+                  schedulingType === SchedulingType.COLLECTIVE) &&
+                hosts
+              ) {
+                sendTo = sendTo.concat(hosts);
+              }
               break;
             case WorkflowActions.EMAIL_ATTENDEE:
-              sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
+              sendTo = bookingInfo.attendees
+                .map((attendee) => attendee.email)
+                .filter((email): email is string => !!email);
               break;
             case WorkflowActions.EMAIL_ADDRESS:
               sendTo = step.sendTo ? [step.sendTo] : [];

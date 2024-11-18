@@ -33,6 +33,7 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
       currency: "usd",
       successRedirectUrl: null,
       customInputs: [],
+      teamId: null,
       team: null,
       workflows: [],
       hosts: [],
@@ -76,6 +77,8 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
       responses: {
         name: "John",
       },
+      rescheduled: false,
+      fromReschedule: null,
     },
     orgSlug: null,
     userTimeFormat: 12,
@@ -89,6 +92,7 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
     },
     dynamicEventName: "Event Title",
     paymentStatus: null,
+    rescheduledToUid: null,
     ...props,
   } satisfies React.ComponentProps<typeof Success>;
 }

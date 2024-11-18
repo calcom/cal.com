@@ -1,13 +1,10 @@
-import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import PageWrapper from "@components/PageWrapper";
 
-import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
+import MeetingNotStarted, { type PageProps } from "~/videos/views/videos-meeting-not-started-single-view";
 
-export {
-  getServerSideProps,
-  type PageProps,
-} from "~/videos/views/videos-meeting-not-started-single-view.getServerSideProps";
+export { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
-const MeetingNotStartedPage = MeetingNotStarted as unknown as CalPageWrapper;
+const MeetingNotStartedPage = (props: PageProps) => <MeetingNotStarted {...props} />;
 
 MeetingNotStartedPage.PageWrapper = PageWrapper;
 

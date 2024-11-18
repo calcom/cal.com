@@ -23,6 +23,7 @@ export type EventNameObjectType = {
   teamName?: string | null;
   host: string;
   location?: string;
+  eventDuration: number;
   bookingFields?: Prisma.JsonObject;
   t: TFunction;
 };
@@ -61,14 +62,15 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{USER}", attendeeName)
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
-    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
+    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
+    .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
+    .replaceAll(
+      "{Scheduler first name}",
+      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeName.split(" ")[0]
+    );
 
   const { bookingFields } = eventNameObj || {};
   const { name } = bookingFields || {};
-
-  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.firstName === "string") {
-    dynamicEventName = dynamicEventName.replaceAll("{Scheduler first name}", name.firstName.toString());
-  }
 
   if (name && typeof name === "object" && !Array.isArray(name) && typeof name.lastName === "string") {
     dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());
@@ -100,11 +102,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   return dynamicEventName;
 }
 
-export const validateCustomEventName = (
-  value: string,
-  message: string,
-  bookingFields?: Prisma.JsonObject
-) => {
+export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject) => {
   let customInputVariables: string[] = [];
   if (bookingFields) {
     customInputVariables = Object.keys(bookingFields).map((customInput) => {
@@ -120,6 +118,7 @@ export const validateCustomEventName = (
     "{Organiser first name}",
     "{Scheduler first name}",
     "{Scheduler last name}",
+    "{Event duration}",
     //allowed for fallback reasons
     "{LOCATION}",
     "{HOST/ATTENDEE}",
@@ -131,7 +130,7 @@ export const validateCustomEventName = (
   if (matches?.length) {
     for (const item of matches) {
       if (!validVariables.includes(item)) {
-        return message;
+        return item;
       }
     }
   }

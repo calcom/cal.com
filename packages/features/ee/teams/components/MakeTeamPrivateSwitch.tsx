@@ -43,7 +43,7 @@ const MakeTeamPrivateSwitch = ({
           setTeamPrivate(checked);
           mutation.mutate({ id: teamId, isPrivate: checked });
         }}
-        switchContainerClassName="mt-6"
+        switchContainerClassName="my-6"
         data-testid="make-team-private-check"
       />
     </>

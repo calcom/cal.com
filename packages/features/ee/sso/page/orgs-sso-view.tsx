@@ -6,10 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { AppSkeletonLoader as SkeletonLoader, Meta } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import SSOConfiguration from "../components/SSOConfiguration";
 
-const SAMLSSO = () => {
+const SAMLSSO = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
 
   const { data, status } = useSession();
@@ -26,7 +25,9 @@ const SAMLSSO = () => {
 
   return !!isAdminOrOwner ? (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
-      <Meta title={t("sso_configuration")} description={t("sso_configuration_description_orgs")} />
+      {!isAppDir ? (
+        <Meta title={t("sso_configuration")} description={t("sso_configuration_description_orgs")} />
+      ) : null}
       <SSOConfiguration teamId={org.id} />
     </div>
   ) : (
@@ -35,7 +36,5 @@ const SAMLSSO = () => {
     </div>
   );
 };
-
-SAMLSSO.getLayout = getLayout;
 
 export default SAMLSSO;

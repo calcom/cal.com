@@ -1,19 +1,19 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
+import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 
+import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
+
+import type { PageProps } from "~/videos/views/videos-meeting-not-started-single-view";
 import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
-import { getServerSideProps } from "~/videos/views/videos-meeting-not-started-single-view.getServerSideProps";
 
-export const generateMetadata = async ({ params }: PageProps) => {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: typeof params?.uid === "string" ? params.uid : "",
-    },
-    select: bookingMinimalSelect,
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+  const p = { ...params, ...searchParams };
+  const booking = await BookingRepository.findBookingByUid({
+    bookingUid: typeof p?.uid === "string" ? p.uid : "",
   });
 
   return await _generateMetadata(
@@ -22,6 +22,6 @@ export const generateMetadata = async ({ params }: PageProps) => {
   );
 };
 
-const getData = withAppDirSsr(getServerSideProps);
+const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
 export default WithLayout({ getData, Page: MeetingNotStarted, getLayout: null })<"P">;

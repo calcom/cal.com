@@ -23,8 +23,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
@@ -36,7 +35,7 @@ import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input"
   version: VERSION_2024_04_15_VALUE,
 })
 @UseGuards(ApiAuthGuard, PermissionsGuard)
-@DocsTags("Schedules")
+@DocsExcludeController(true)
 export class SchedulesController_2024_04_15 {
   constructor(private readonly schedulesService: SchedulesService_2024_04_15) {}
 
@@ -57,11 +56,6 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
-  @ApiResponse({
-    status: 200,
-    description: "Returns the default schedule",
-    type: GetDefaultScheduleOutput_2024_04_15,
-  })
   async getDefaultSchedule(
     @GetUser() user: UserWithProfile
   ): Promise<GetDefaultScheduleOutput_2024_04_15 | null> {
@@ -78,7 +72,6 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number

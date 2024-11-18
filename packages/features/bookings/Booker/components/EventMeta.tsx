@@ -48,6 +48,8 @@ export const EventMeta = ({
     | "recurringEvent"
     | "price"
     | "isDynamic"
+    | "fieldTranslations"
+    | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
   isPlatform?: boolean;
@@ -101,6 +103,10 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
+  const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
+  const translatedDescription = (event?.fieldTranslations ?? []).find((translation) =>
+    browserLocale.startsWith(translation.targetLang)
+  )?.translatedText;
 
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
@@ -120,9 +126,9 @@ export const EventMeta = ({
             />
           )}
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
-          {event.description && (
+          {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
@@ -165,11 +171,11 @@ export const EventMeta = ({
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}>
                   <TimezoneSelect
-                    menuPosition="fixed"
+                    menuPosition="absolute"
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
                       control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
-                      menu: () => "!w-64 max-w-[90vw]",
+                      menu: () => "!w-64 max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",

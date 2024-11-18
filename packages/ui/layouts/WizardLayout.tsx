@@ -1,3 +1,5 @@
+"use client";
+
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { usePathname } from "next/navigation";
@@ -61,7 +63,7 @@ export function WizardLayout({
         </div>
         {isOptionalCallback && (
           <div className="mt-4 flex justify-center">
-            <Button color="minimal" onClick={isOptionalCallback}>
+            <Button data-testid="handle-later-button" color="minimal" onClick={isOptionalCallback}>
               {t("ill_do_this_later")}
             </Button>
           </div>

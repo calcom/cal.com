@@ -424,6 +424,10 @@ async function expectValidHtmlEmbedSnippet(
     expect(embedCode).toContain(orgSlug);
   }
 
+  // Html/VanillaJS embed needs namespace to call an instruction
+  // Verify Cal.ns.abc("ui") or Cal.ns["abc"]("ui")
+  expect(embedCode).toMatch(/.*Cal\.ns[^(]+\("ui/);
+
   const dom = parse(embedCode);
   const scripts = dom.getElementsByTagName("script");
   assertThatCodeIsValidVanillaJsCode(scripts[0].innerText);
@@ -492,6 +496,8 @@ async function expectValidReactEmbedSnippet(
   expect(embedCode).toContain(
     embedType === "floating-popup" ? "floatingButton" : embedType === "inline" ? `<Cal` : "data-cal-link"
   );
+  // React embed doesn't need to access .ns to call an instruction
+  expect(embedCode).toContain('cal("ui"');
   if (orgSlug) {
     expect(embedCode).toContain(orgSlug);
   }

@@ -1,8 +1,17 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CreateIcsFeedInputDto } from "@/ee/calendars/input/create-ics.input";
+import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
+import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
+import {
+  DeletedCalendarCredentialsOutputResponseDto,
+  DeletedCalendarCredentialsOutputDto,
+} from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
+import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -25,8 +34,9 @@ import {
   Post,
   Body,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
+import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
 
@@ -37,6 +47,7 @@ import {
   GOOGLE_CALENDAR,
   OFFICE_365_CALENDAR,
   APPLE_CALENDAR,
+  CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 
@@ -50,11 +61,32 @@ export class CalendarsController {
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
-    private readonly appleCalendarService: AppleCalendarService
+    private readonly appleCalendarService: AppleCalendarService,
+    private readonly icsFeedService: IcsFeedService,
+    private readonly calendarsRepository: CalendarsRepository
   ) {}
+
+  @Post("/ics-feed/save")
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Save an ICS feed" })
+  async createIcsFeed(
+    @GetUser("id") userId: number,
+    @GetUser("email") userEmail: string,
+    @Body() body: CreateIcsFeedInputDto
+  ): Promise<CreateIcsFeedOutputResponseDto> {
+    return await this.icsFeedService.save(userId, userEmail, body.urls, body.readOnly);
+  }
+
+  @Get("/ics-feed/check")
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Check an ICS feed" })
+  async checkIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
+    return await this.icsFeedService.check(userId);
+  }
 
   @UseGuards(ApiAuthGuard)
   @Get("/busy-times")
+  @ApiOperation({ summary: "Get busy times" })
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: UserWithProfile
@@ -83,6 +115,7 @@ export class CalendarsController {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Get all calendars" })
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
@@ -95,6 +128,7 @@ export class CalendarsController {
   @UseGuards(ApiAuthGuard)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get connect URL" })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -117,6 +151,7 @@ export class CalendarsController {
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
+  @ApiOperation({ summary: "Save a calendar" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -146,6 +181,7 @@ export class CalendarsController {
 
   @UseGuards(ApiAuthGuard)
   @Post("/:calendar/credentials")
+  @ApiOperation({ summary: "Sync credentials" })
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
@@ -159,7 +195,7 @@ export class CalendarsController {
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
-          CALENDARS.join(", ")
+          CREDENTIAL_CALENDARS.join(", ")
         );
     }
   }
@@ -168,6 +204,7 @@ export class CalendarsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @Permissions([APPS_READ])
+  @ApiOperation({ summary: "Check a calendar connection" })
   async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
@@ -182,5 +219,31 @@ export class CalendarsController {
           CALENDARS.join(", ")
         );
     }
+  }
+
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/disconnect")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Disconnect a calendar" })
+  async deleteCalendarCredentials(
+    @Param("calendar") calendar: string,
+    @Body() body: DeleteCalendarCredentialsInputBodyDto,
+    @GetUser() user: UserWithProfile
+  ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
+    const { id: credentialId } = body;
+    await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
+
+    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
+      credentialId
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(
+        DeletedCalendarCredentialsOutputDto,
+        { id, type, userId, teamId, appId, invalid },
+        { strategy: "excludeAll" }
+      ),
+    };
   }
 }

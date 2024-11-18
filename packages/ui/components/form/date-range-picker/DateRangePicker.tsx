@@ -1,5 +1,6 @@
 "use client";
 
+import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
 import type { DateRange } from "react-day-picker";
@@ -7,18 +8,21 @@ import type { DateRange } from "react-day-picker";
 import { classNames as cn } from "@calcom/lib";
 
 import { Button } from "../../button";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { Calendar } from "./Calendar";
 
 type DatePickerWithRangeProps = {
   dates: { startDate: Date; endDate?: Date };
   onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
   disabled?: boolean;
+  minDate?: Date;
+  maxDate?: Date;
 };
 
 export function DatePickerWithRange({
   className,
   dates,
+  minDate,
+  maxDate,
   onDatesChange,
   disabled,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
@@ -33,8 +37,8 @@ export function DatePickerWithRange({
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
-        <PopoverTrigger asChild>
+      <Popover.Root>
+        <Popover.Trigger asChild>
           <Button
             id="date"
             color="secondary"
@@ -52,10 +56,15 @@ export function DatePickerWithRange({
               <span>Pick a date</span>
             )}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        </Popover.Trigger>
+        <Popover.Content
+          className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
+          align="start"
+          sideOffset={4}>
           <Calendar
             initialFocus
+            fromDate={minDate}
+            toDate={maxDate}
             mode="range"
             defaultMonth={dates?.startDate}
             selected={{ from: dates?.startDate, to: dates?.endDate }}
@@ -63,8 +72,8 @@ export function DatePickerWithRange({
             numberOfMonths={1}
             disabled={disabled}
           />
-        </PopoverContent>
-      </Popover>
+        </Popover.Content>
+      </Popover.Root>
     </div>
   );
 }

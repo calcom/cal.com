@@ -1,11 +1,12 @@
+import { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
-import { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 
 import authedProcedure, {
   authedAdminProcedure,
   authedOrgAdminProcedure,
 } from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
+import { eventOwnerProcedure } from "../eventTypes/util";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZAddMembersToTeams } from "./addMembersToTeams.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
@@ -161,10 +162,17 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("adminDelete"), () => import("./adminDelete.handler"));
     return handler(opts);
   }),
-  createPhoneCall: authedProcedure.input(AIPhoneSettingSchema).mutation(async (opts) => {
+  createPhoneCall: eventOwnerProcedure.input(createPhoneCallSchema).mutation(async (opts) => {
     const handler = await importHandler(
       namespaced("createPhoneCall"),
       () => import("./createPhoneCall.handler")
+    );
+    return handler(opts);
+  }),
+  getFacetedValues: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getFacetedValues"),
+      () => import("./getFacetedValues.handler")
     );
     return handler(opts);
   }),

@@ -10,7 +10,7 @@ const title = (name: string) => `${name} is unpublished`;
 const description = (entity: string) =>
   `This ${entity} link is currently not available. Please contact the ${entity} owner or ask them to publish it.`;
 
-test.afterAll(async ({ users }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
@@ -20,9 +20,9 @@ test.describe("Unpublished", () => {
     const { team } = await owner.getFirstTeamMembership();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     await page.goto(`/team/${requestedSlug}`);
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(team.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("team")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(team.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("team")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -36,9 +36,9 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
     await page.goto(`/team/${requestedSlug}/${teamEventSlug}`);
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(team.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("team")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(team.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("team")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -47,10 +47,9 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     await page.goto(`/org/${requestedSlug}`);
-    await page.waitForLoadState("networkidle");
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -65,10 +64,9 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug }] = org.children as { slug: string }[];
     await page.goto(`/org/${requestedSlug}/team/${subteamSlug}`);
-    await page.waitForLoadState("networkidle");
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -84,11 +82,10 @@ test.describe("Unpublished", () => {
     const [{ slug: subteamSlug, id: subteamId }] = org.children as { slug: string; id: number }[];
     const { slug: subteamEventSlug } = await owner.getFirstTeamEvent(subteamId);
     await page.goto(`/org/${requestedSlug}/team/${subteamSlug}/${subteamEventSlug}`);
-    await page.waitForLoadState("networkidle");
 
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -97,10 +94,9 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     await page.goto(`/org/${requestedSlug}/${owner.username}`);
-    await page.waitForLoadState("networkidle");
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -110,10 +106,9 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: ownerEventType }] = owner.eventTypes;
     await page.goto(`/org/${requestedSlug}/${owner.username}/${ownerEventType}`);
-    await page.waitForLoadState("networkidle");
-    expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
-    expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
-    expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
+    await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+    await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 });

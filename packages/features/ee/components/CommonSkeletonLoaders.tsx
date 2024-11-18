@@ -1,10 +1,18 @@
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { Meta, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
-export const AppearanceSkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+export const AppearanceSkeletonLoader = ({
+  title,
+  description,
+  isAppDir,
+}: {
+  title: string;
+  description: string;
+  isAppDir?: boolean;
+}) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={false} />
+      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={false} /> : null}
       <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
         <SkeletonText className="h-8 w-1/3" />
       </div>

@@ -1,8 +1,11 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
@@ -28,7 +31,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -39,14 +42,16 @@ import { Team } from "@calcom/prisma/client";
   version: API_VERSIONS_VALUES,
 })
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @UseGuards(IsOrgGuard)
-@DocsTags("Organizations Users")
+@DocsTags("Orgs / Users")
 export class OrganizationsUsersController {
   constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
 
   @Get()
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @ApiOperation({ summary: "Get all users" })
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetOrganizationsUsersInput
@@ -66,6 +71,8 @@ export class OrganizationsUsersController {
 
   @Post()
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @ApiOperation({ summary: "Create a user" })
   async createOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() org: Team,
@@ -85,7 +92,9 @@ export class OrganizationsUsersController {
 
   @Patch("/:userId")
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
+  @ApiOperation({ summary: "Update a user" })
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
@@ -101,7 +110,9 @@ export class OrganizationsUsersController {
 
   @Delete("/:userId")
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
+  @ApiOperation({ summary: "Delete a user" })
   async deleteOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number

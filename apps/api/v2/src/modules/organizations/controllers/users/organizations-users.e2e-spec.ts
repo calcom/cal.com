@@ -8,28 +8,29 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, Membership } from "@calcom/prisma/client";
+import { User, Team, EventType } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   describe("Member role", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const userEmail = "member1@org.com";
     let user: User;
     let org: Team;
-    let membership: Membership;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -40,7 +41,7 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
@@ -70,7 +71,7 @@ describe("Organizations Users Endpoints", () => {
         },
       });
 
-      membership = await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
+      await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -113,7 +114,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = "admin1@org.com";
@@ -148,7 +149,7 @@ describe("Organizations Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
@@ -341,6 +342,149 @@ describe("Organizations Users Endpoints", () => {
         ...orgMembersData.map((member) => userRepositoryFixture.deleteByEmail(member.email)),
       ]);
       await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+    });
+  });
+
+  describe("Member event-types", () => {
+    let app: INestApplication;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let teamsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let membershipFixtures: MembershipRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+
+    const authEmail = "auth@org.com";
+    let user: User;
+    let org: Team;
+    let team: Team;
+    let managedEventType: EventType;
+    let createdUser: User;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        authEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+        })
+      ).compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      org = await organizationsRepositoryFixture.create({
+        name: "Test org 4",
+        isOrganization: true,
+      });
+
+      team = await teamsRepositoryFixture.create({
+        name: "Test org 4 team",
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+
+      user = await userRepositoryFixture.create({
+        email: authEmail,
+        username: authEmail,
+        organization: { connect: { id: org.id } },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${user.id}`,
+        username: authEmail,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      });
+
+      await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+
+      await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Collective Event Type",
+        slug: "collective-event-type",
+        length: 30,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "MANAGED",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Managed Event Type",
+        slug: "managed-event-type",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    it("should be defined", () => {
+      expect(userRepositoryFixture).toBeDefined();
+      expect(organizationsRepositoryFixture).toBeDefined();
+      expect(user).toBeDefined();
+      expect(org).toBeDefined();
+    });
+
+    it("should create a new org user with team event-types", async () => {
+      const newOrgUser = {
+        email: "new-org-member-d@org.com",
+        organizationRole: "MEMBER",
+        autoAccept: true,
+      };
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send({
+          email: newOrgUser.email,
+        })
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+      expect(body.status).toBe(SUCCESS_STATUS);
+      createdUser = userData;
+      teamHasCorrectEventTypes(team.id);
+    });
+
+    async function teamHasCorrectEventTypes(teamId: number) {
+      const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
+      expect(eventTypes?.length).toEqual(2);
+    }
+
+    afterAll(async () => {
+      // await membershipFixtures.delete(membership.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(createdUser.email);
+      await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+
       await app.close();
     });
   });

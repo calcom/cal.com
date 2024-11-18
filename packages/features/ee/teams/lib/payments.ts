@@ -3,7 +3,13 @@ import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { IS_PRODUCTION, MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  IS_PRODUCTION,
+  MINIMUM_NUMBER_OF_ORG_SEATS,
+  ORGANIZATION_SELF_SERVE_MIN_SEATS,
+  ORGANIZATION_SELF_SERVE_PRICE,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -69,16 +75,21 @@ export const generateTeamCheckoutSession = async ({
     automatic_tax: {
       enabled: IS_PRODUCTION,
     },
+    subscription_data: {
+      trial_period_days: 30, // Add a 30-day trial
+    },
     metadata: {
       teamName,
       teamSlug,
       userId,
+      dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
     },
   });
   return session;
 };
 
 /**
+ * @deprecated Move over to internal-team-billing
  * Used to generate a checkout session when creating a new org (parent team) or backwards compatibility for old teams
  */
 export const purchaseTeamOrOrgSubscription = async (input: {
@@ -121,15 +132,23 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    const customPriceObj = await getPriceObject(fixedPrice);
-    priceId = await createPrice({
-      isOrg: !!isOrg,
-      teamId,
-      pricePerSeat,
-      billingPeriod,
-      product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
-      currency: customPriceObj.currency,
-    });
+    if (
+      isOrg &&
+      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE &&
+      seats === ORGANIZATION_SELF_SERVE_MIN_SEATS
+    ) {
+      priceId = fixedPrice as string;
+    } else {
+      const customPriceObj = await getPriceObject(fixedPrice);
+      priceId = await createPrice({
+        isOrg: !!isOrg,
+        teamId,
+        pricePerSeat,
+        billingPeriod,
+        product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
+        currency: customPriceObj.currency,
+      });
+    }
   } else {
     priceId = fixedPrice as string;
   }
@@ -159,6 +178,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     subscription_data: {
       metadata: {
         teamId,
+        dubCustomerId: userId,
       },
     },
   });
@@ -241,18 +261,6 @@ export const getTeamWithPaymentMetadata = async (teamId: number) => {
 
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
   return { ...team, metadata };
-};
-
-export const cancelTeamSubscriptionFromStripe = async (teamId: number) => {
-  try {
-    const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId } = team.metadata;
-    return await stripe.subscriptions.cancel(subscriptionId);
-  } catch (error) {
-    let message = "Unknown error on cancelTeamSubscriptionFromStripe";
-    if (error instanceof Error) message = error.message;
-    console.error(message);
-  }
 };
 
 export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {

@@ -3,11 +3,11 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 
 export class PlatformBillingRepositoryFixture {
-  private primaReadClient: PrismaReadService["prisma"];
+  private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.primaReadClient = module.get(PrismaReadService).prisma;
+    this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
@@ -21,5 +21,26 @@ export class PlatformBillingRepositoryFixture {
         plan: "STARTER",
       },
     });
+  }
+
+  async get(orgId: number) {
+    return this.prismaWriteClient.platformBilling.findFirst({
+      where: {
+        id: orgId,
+      },
+    });
+  }
+
+  async deleteSubscriptionForTeam(teamId: number) {
+    // silently try to delete the subscription
+    try {
+      await this.prismaWriteClient.platformBilling.delete({
+        where: {
+          id: teamId,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 }

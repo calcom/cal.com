@@ -36,7 +36,7 @@ async function handler(req: NextApiRequest) {
     scope: "read_user write_call_room",
   };
   const query = stringify(params);
-  const url = `https://auth.campsite.co/oauth/authorize?${query}`;
+  const url = `https://auth.campsite.com/oauth/authorize?${query}`;
   return { url };
 }
 

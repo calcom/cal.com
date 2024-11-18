@@ -6,12 +6,15 @@ const config = {
     defaultLocale: "en",
     locales: [
       "ar",
+      "az",
+      "ca",
       "cs",
       "da",
       "de",
       "en",
-      // "es-419", // Disabled until Crowdin reaches at least 80% completion
+      "es-419",
       "es",
+      "et",
       "fr",
       "he",
       "hu",

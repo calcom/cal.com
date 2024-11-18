@@ -1,15 +1,12 @@
-"use client";
-
-import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
+import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout } from "@calcom/ui";
-import { WizardLayoutAppDir } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+import AddNewTeamsForm, { LayoutWrapper } from "~/settings/organizations/[id]/add-teams-view";
 
-const AddNewTeamsPage = () => {
+const Page = () => {
   const { t } = useLocale();
   return (
     <>
@@ -19,22 +16,9 @@ const AddNewTeamsPage = () => {
   );
 };
 
-AddNewTeamsPage.getLayout = (page: React.ReactElement) => {
-  return (
-    <WizardLayout currentStep={5} maxSteps={5}>
-      {page}
-    </WizardLayout>
-  );
-};
+Page.getLayout = LayoutWrapper;
+Page.PageWrapper = PageWrapper;
 
-AddNewTeamsPage.PageWrapper = PageWrapper;
+export default Page;
 
-export const WrapperAddNewTeamsPage = (page: React.ReactElement) => {
-  return (
-    <WizardLayoutAppDir currentStep={5} maxSteps={5}>
-      {page}
-    </WizardLayoutAppDir>
-  );
-};
-
-export default AddNewTeamsPage;
+export { getServerSideProps };

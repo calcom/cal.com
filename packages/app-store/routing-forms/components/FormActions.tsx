@@ -465,7 +465,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           <div
             {...restProps}
             className={classNames(
-              "sm:hover:bg-subtle self-center rounded-md p-2 hover:bg-gray-200",
+              "sm:hover:bg-subtle self-center rounded-md p-2 transition hover:bg-gray-200",
               extraClassNames
             )}>
             <Switch

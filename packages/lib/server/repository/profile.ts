@@ -23,6 +23,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   startTime: true,
   endTime: true,
   bufferTime: true,
+  isPlatformManaged: true,
 });
 
 const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
@@ -41,8 +42,8 @@ const organizationSelect = {
   name: true,
   metadata: true,
   logoUrl: true,
-  calVideoLogo: true,
   bannerUrl: true,
+  isPlatform: true,
 };
 
 export enum LookupTarget {
@@ -329,6 +330,12 @@ export class ProfileRepository {
       return null;
     }
     const user = profile.user;
+    if (profile.organization?.isPlatform && !user.isPlatformManaged) {
+      return {
+        ...this.buildPersonalProfileFromUser({ user }),
+        ...ProfileRepository.getInheritedDataFromUser({ user }),
+      };
+    }
     return {
       ...profile,
       ...ProfileRepository.getInheritedDataFromUser({ user }),
@@ -355,7 +362,6 @@ export class ProfileRepository {
         },
         organization: {
           select: {
-            calVideoLogo: true,
             id: true,
             logoUrl: true,
             name: true,
@@ -370,7 +376,13 @@ export class ProfileRepository {
               },
             },
             members: {
+              distinct: ["role"],
               select: membershipSelect,
+              where: {
+                accepted: true,
+                // Filter out memberships that are not owned by the user
+                user: { profiles: { some: { id } } },
+              },
             },
           },
         },
@@ -427,6 +439,39 @@ export class ProfileRepository {
     }
 
     return profiles;
+  }
+
+  static async findManyForUsers(userIds: number[]) {
+    const profiles = await prisma.profile.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+      },
+    });
+
+    return profiles.map((profile) => {
+      const parsedOrganization = getParsedTeam(profile.organization);
+
+      return normalizeProfile({
+        username: profile.username,
+        id: profile.id,
+        userId: profile.userId,
+        uid: profile.uid,
+        name: parsedOrganization.name,
+        organizationId: profile.organizationId,
+        organization: {
+          ...parsedOrganization,
+          requestedSlug: parsedOrganization.metadata?.requestedSlug ?? null,
+          metadata: parsedOrganization.metadata,
+        },
+      });
+    });
   }
 
   static async findManyForUser(user: { id: number }) {
