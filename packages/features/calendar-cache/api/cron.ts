@@ -1,14 +1,13 @@
-import type { NextRequest } from "next/server";
+import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder.appDir";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { CalendarCache } from "../calendar-cache";
 
-const validateRequest = (req: NextRequest) => {
-  const searchParams = req.nextUrl.searchParams;
-  const apiKey = searchParams.get("apiKey") || req.headers.get("authorization");
+const validateRequest = (req: NextApiRequest) => {
+  const apiKey = String(req.query.apiKey) || req.headers.authorization;
   if (!apiKey || ![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(apiKey)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -40,7 +39,7 @@ const handleCalendarsToWatch = async () => {
 };
 
 // This cron is used to activate and renew calendar subcriptions
-export const GET = defaultResponder(async (request: NextRequest) => {
+const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
   const [watchedResult, unwatchedResult] = await Promise.all([
     handleCalendarsToWatch(),
@@ -59,4 +58,8 @@ export const GET = defaultResponder(async (request: NextRequest) => {
       failed: unwatchedResult.filter((x) => x.status === "rejected").length,
     },
   };
+});
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(handler) }),
 });
