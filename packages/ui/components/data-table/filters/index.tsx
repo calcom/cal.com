@@ -41,6 +41,9 @@ function ColumnVisibilityButtonComponent<TData>(
   const { t } = useLocale();
   const allColumns = table.getAllLeafColumns();
   const [open, setOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState(
+    () => new Set(allColumns.filter((col) => col.getIsVisible()).map((col) => col.id))
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -59,15 +62,28 @@ function ColumnVisibilityButtonComponent<TData>(
                 const canHide = column.getCanHide();
                 if (!column.columnDef.header || typeof column.columnDef.header !== "string" || !canHide)
                   return null;
-                const isVisible = column.getIsVisible();
+                const isVisible = visibleColumns.has(column.id);
                 return (
-                  <CommandItem key={column.id} onSelect={() => column.toggleVisibility(!isVisible)}>
+                  <CommandItem
+                    key={column.id}
+                    onSelect={() => {
+                      column.toggleVisibility(!isVisible);
+                      setVisibleColumns((prev) => {
+                        const next = new Set(prev);
+                        if (isVisible) {
+                          next.delete(column.id);
+                        } else {
+                          next.add(column.id);
+                        }
+                        return next;
+                      });
+                    }}>
                     <div
                       className={classNames(
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isVisible ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                       )}>
-                      <Icon name="check" className={classNames("h-4 w-4")} />
+                      <Icon name="check" className={classNames("h-4 w-4", !isVisible && "invisible")} />
                     </div>
                     {column.columnDef.header}
                   </CommandItem>
@@ -78,7 +94,10 @@ function ColumnVisibilityButtonComponent<TData>(
           <CommandSeparator />
           <CommandGroup>
             <CommandItem
-              onSelect={() => allColumns.forEach((column) => column.toggleVisibility(true))}
+              onSelect={() => {
+                allColumns.forEach((column) => column.toggleVisibility(true));
+                setVisibleColumns(new Set(allColumns.map((col) => col.id)));
+              }}
               className={classNames(
                 "w-full justify-center text-center",
                 buttonClasses({ color: "secondary" })
