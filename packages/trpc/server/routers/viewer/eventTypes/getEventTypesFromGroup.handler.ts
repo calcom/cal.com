@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -50,7 +52,7 @@ export const getEventTypesFromGroup = async ({
     const baseQueryConditions = {
       teamId: null,
       schedulingType: null,
-      ...(searchQuery ? { title: { contains: searchQuery, mode: "insensitive" } } : {}),
+      ...(searchQuery ? { title: { contains: searchQuery, mode: "insensitive" as Prisma.QueryMode } } : {}),
     };
 
     const [nonChildEventTypes, childEventTypes] = await Promise.all([
