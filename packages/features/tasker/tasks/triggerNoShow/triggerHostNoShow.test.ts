@@ -7,6 +7,7 @@ import {
   getScenarioData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, vi, test } from "vitest";
 
@@ -40,6 +41,8 @@ const EMPTY_MEETING_SESSIONS = {
 };
 
 describe("Trigger Host No Show:", () => {
+  setupAndTeardown();
+
   test(
     `Should trigger host no show webhook when no one joined the call`,
     async () => {
@@ -364,7 +367,7 @@ describe("Trigger Host No Show:", () => {
         getScenarioData({
           webhooks: [
             {
-              id: "22",
+              id: "23",
               userId: organizer.id,
               eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
               subscriberUrl,
@@ -389,7 +392,7 @@ describe("Trigger Host No Show:", () => {
           ],
           bookings: [
             {
-              id: 222,
+              id: 223,
               uid: uidOfBooking,
               eventTypeId: 1,
               status: BookingStatus.CANCELLED,
@@ -423,7 +426,7 @@ describe("Trigger Host No Show:", () => {
               iCalUID,
             },
             {
-              id: 223,
+              id: 224,
               uid: newUidOfBooking,
               eventTypeId: 1,
               status: BookingStatus.ACCEPTED,
@@ -487,7 +490,7 @@ describe("Trigger Host No Show:", () => {
       vi.mocked(getMeetingSessionsFromRoomName).mockResolvedValue(MOCKED_MEETING_SESSIONS);
 
       const TEST_WEBHOOK = {
-        id: "22",
+        id: "23",
         eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
         subscriberUrl,
         active: true,
@@ -501,7 +504,7 @@ describe("Trigger Host No Show:", () => {
 
       const payload = JSON.stringify({
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-        bookingId: 223,
+        bookingId: 224,
         webhook: TEST_WEBHOOK,
       } satisfies TSendNoShowWebhookPayloadSchema);
 
@@ -515,7 +518,7 @@ describe("Trigger Host No Show:", () => {
         payload: {
           title: "Test Booking Title",
           attendees: [],
-          bookingId: 223,
+          bookingId: 224,
           bookingUid: newUidOfBooking,
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:15:00.000Z`,
