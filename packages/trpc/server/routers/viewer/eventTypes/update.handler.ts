@@ -508,7 +508,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     process.nextTick(async () => {
       try {
         // TODO: we want to support the other locales in Locales enum
-        const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "zh", "ru"] as const).filter(
+        const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const).filter(
           (locale) => locale !== userLocale
         );
 
