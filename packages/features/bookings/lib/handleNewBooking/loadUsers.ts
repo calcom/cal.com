@@ -4,7 +4,8 @@ import type { IncomingMessage } from "http";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
-  findMatchingHosts,
+  findMatchingHostsWithEventSegment,
+  getNormalizedHosts,
 } from "@calcom/lib/bookings/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -59,12 +60,19 @@ export const loadUsers = async ({
 };
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
-  const matchingHosts = await findMatchingHosts({ eventType });
-  return matchingHosts.map((host) => ({
-    ...host.user,
-    isFixed: host.isFixed,
-    priority: host.priority,
-    weight: host.weight,
+  const { hosts, fallbackHosts } = getNormalizedHosts({
+    eventType: { ...eventType, hosts: eventType.hosts.filter(Boolean) },
+  });
+  const matchingHosts = await findMatchingHostsWithEventSegment({
+    eventType,
+    normalizedHosts: hosts ?? fallbackHosts,
+  });
+  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
+    ...user,
+    isFixed,
+    priority,
+    weight,
+    createdAt,
   }));
 };
 

@@ -84,7 +84,7 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
     const valueError = rule.properties.valueError;
     if (valueError) {
       // Sometimes there are null values in it.
-      errors.push(valueError.filter((value) => !!value));
+      errors.push(valueError.filter(Boolean));
     }
   });
   return errors;
@@ -94,12 +94,12 @@ function getJsonLogic({
   attributesQueryValue,
   attributesQueryBuilderConfig,
 }: {
-  attributesQueryValue: JsonTree;
+  attributesQueryValue: AttributesQueryValue;
   attributesQueryBuilderConfig: Config;
 }) {
   const state = {
     tree: QbUtils.checkTree(
-      QbUtils.loadTree(attributesQueryValue),
+      QbUtils.loadTree(attributesQueryValue as JsonTree),
       // We know that attributesQueryBuilderConfig is a Config because getAttributesQueryBuilderConfigHavingListofLabels returns a Config. So, asserting it.
       attributesQueryBuilderConfig as unknown as Config
     ),
@@ -190,7 +190,8 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     dynamicFieldValueOperands,
   });
 
-  if (raqbQueryValueUtils.isQueryValueEmpty(attributesQueryValue)) {
+  // TODO: Do we really need to do !attributesQueryValue  check separately?
+  if (!attributesQueryValue || raqbQueryValueUtils.isQueryValueEmpty(attributesQueryValue as JsonTree)) {
     return {
       logicBuildingWarnings: null,
       teamMembersMatchingAttributeLogic: null,
@@ -210,7 +211,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
   );
 
   const { logic, warnings: logicBuildingWarnings } = getJsonLogic({
-    attributesQueryValue: attributesQueryValue as JsonTree,
+    attributesQueryValue,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
   });
 

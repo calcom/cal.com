@@ -13,9 +13,10 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
+import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import {
   getRoutedHostsWithContactOwnerAndFixedHosts,
-  findMatchingHosts,
+  findMatchingHostsWithEventSegment,
 } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
@@ -185,6 +186,7 @@ export async function getEventType(
       metadata: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
+      maxLeadThreshold: true,
       team: {
         select: {
           id: true,
@@ -228,6 +230,7 @@ export async function getEventType(
       hosts: {
         select: {
           isFixed: true,
+          createdAt: true,
           user: {
             select: {
               credentials: { select: credentialForCalendarServiceSelect },
@@ -396,12 +399,15 @@ export function getUsersWithCredentialsConsideringContactOwner({
     return allHosts;
   }
 
-  const contactOwnerAndFixedHosts = hosts.reduce((usersArray, host) => {
-    if (host.isFixed || host.user.email === contactOwnerEmail)
-      usersArray.push({ ...host.user, isFixed: host.isFixed });
+  const contactOwnerAndFixedHosts = hosts.reduce(
+    (usersArray: (GetAvailabilityUser & { isFixed?: boolean })[], host) => {
+      if (host.isFixed || host.user.email === contactOwnerEmail)
+        usersArray.push({ ...host.user, isFixed: host.isFixed });
 
-    return usersArray;
-  }, [] as (GetAvailabilityUser & { isFixed?: boolean })[]);
+      return usersArray;
+    },
+    []
+  );
 
   return contactOwnerAndFixedHosts;
 }
@@ -473,17 +479,18 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
 
-  const hosts = await findMatchingHosts({
+  const eventHosts = await monitorCallbackAsync(findQualifiedHosts<GetAvailabilityUser>, eventType);
+  const hostsAfterSegmentMatching = await findMatchingHostsWithEventSegment({
     eventType,
+    normalizedHosts: eventHosts,
   });
-
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
   const skipContactOwner = input.skipContactOwner;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
-
+  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
-    hosts,
-    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    hosts: hostsAfterSegmentMatching,
+    routedTeamMemberIds,
     contactOwnerEmail,
   });
 
@@ -758,6 +765,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const troubleshooterData = enableTroubleshooter
     ? {
         troubleshooter: {
+          routedTeamMemberIds: routedTeamMemberIds,
           // One that Salesforce asked for
           askedContactOwner: contactOwnerEmailFromInput,
           // One that we used as per Routing skipContactOwner flag
@@ -768,7 +776,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
               userId: user.id,
             };
           }),
-          hosts: hosts.map((host) => ({
+          hostsAfterSegmentMatching: hostsAfterSegmentMatching.map((host) => ({
             userId: host.user.id,
           })),
         },

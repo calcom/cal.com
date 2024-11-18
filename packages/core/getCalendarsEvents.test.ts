@@ -9,6 +9,15 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getCalendarsEvents from "./getCalendarsEvents";
 
+// We don't need to test it. Also, it causes Formbricks error when imported
+vi.mock("@calcom/ui", () => ({
+  default: {},
+}));
+
+vi.mock("@calcom/routing-forms/components/react-awesome-query-builder/widgets", () => ({
+  default: {},
+}));
+
 describe("getCalendarsEvents", () => {
   let credential: CredentialPayload;
 

@@ -5,7 +5,6 @@ import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
-import { ZFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
@@ -94,16 +93,6 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "getAttributesForTeam",
         () => import("./getAttributesForTeam.handler")
-      );
-      return handler({ ctx, input });
-    }),
-
-  findTeamMembersMatchingAttributeLogicOfRoute: authedProcedure
-    .input(ZFindTeamMembersMatchingAttributeLogicInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const handler = await getHandler(
-        "findTeamMembersMatchingAttributeLogicOfRoute",
-        () => import("./findTeamMembersMatchingAttributeLogicOfRoute.handler")
       );
       return handler({ ctx, input });
     }),

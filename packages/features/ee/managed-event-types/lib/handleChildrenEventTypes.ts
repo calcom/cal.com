@@ -231,7 +231,6 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    console.log({ eventType, unlockedFieldProps, updatePayloadFiltered });
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {

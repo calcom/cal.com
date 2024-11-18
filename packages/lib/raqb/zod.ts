@@ -1,9 +1,36 @@
 import { z } from "zod";
 
+export const raqbChildSchema = z.object({
+  type: z.union([z.literal("rule"), z.literal("rule_group")]),
+  properties: z.object({
+    // This is RAQB field that is used in the rules. The aluealue we provide here is used as a lookup key in RAQB_CONFIG.fields
+    field: z.string(),
+    // It could be any of the operators. There are many custom operators.
+    operator: z.string(),
+    // It is the value of the 'field' chosen for comparison in the rule
+    // It might not be set if the operator needs nothing to compare with e.g. is_empty, is_not_empty\
+    // It could be a 2D array for MultiSelect field
+    value: z.array(z.union([z.string(), z.array(z.string()), z.null()])).optional(),
+    // It is the source of the value. It might not be set if the value is coming from the field itself.
+    valueSrc: z
+      .union([z.literal("value"), z.literal("field"), z.literal("func"), z.literal("const")])
+      .array()
+      .optional(),
+    // It is the error message that is shown when the value is not valid.
+    valueError: z.array(z.union([z.string(), z.null()])).optional(),
+    // Type of the value - can be text, number, boolean, date, time, datetime, select, multiselect, treeselect, treemultiselect and maybe more
+    // We only use a few of them in our app
+    valueType: z.array(z.string()).optional(),
+  }),
+});
+
 // The actual schema of children1 is quite complex, we don't want to worry about that at the moment.
-const children1Schema = z
-  .any()
-  // Be very careful and lenient here. Just ensure that the rule isn't invalid without breaking anything
+const raqbChildren1Schema = z
+  .record(raqbChildSchema)
+  // .catch((ctx) => {
+  //   console.error("Failed to parse raqbChildren1Schema:", ctx.error);
+  //   return ctx.input;
+  // })
   .superRefine((children1, ctx) => {
     if (!children1) return;
     const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -42,22 +69,16 @@ const children1Schema = z
       }
     });
   });
-
-// TODO: We could make it stricter
-const propertiesSchema = z.any();
-
 export const raqbQueryValueSchema = z.union([
   z.object({
     id: z.string().optional(),
     type: z.literal("group"),
-    children1: children1Schema,
-    properties: propertiesSchema,
+    children1: raqbChildren1Schema.optional(),
   }),
   z.object({
     id: z.string().optional(),
     type: z.literal("switch_group"),
-    children1: children1Schema,
-    properties: propertiesSchema,
+    children1: raqbChildren1Schema.optional(),
   }),
 ]);
 

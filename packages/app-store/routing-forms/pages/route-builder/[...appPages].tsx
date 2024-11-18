@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
+import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -600,7 +601,7 @@ const buildState = <
   queryValue,
   config,
 }: T) => ({
-  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config as unknown as Config),
+  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue as JsonTree), config as unknown as Config),
   config,
 });
 

@@ -59,13 +59,7 @@ export const getRoutedUsersWithContactOwnerAndFixedUsers = <
   );
 };
 
-async function findMatchingTeamMembersIdsForEventRRSegment(eventType: {
-  assignAllTeamMembers: boolean;
-  assignRRMembersUsingSegment: boolean;
-  rrSegmentQueryValue: AttributesQueryValue | null | undefined;
-  schedulingType: SchedulingType | null;
-  team: { id: number } | null;
-}) {
+async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType) {
   if (!eventType) {
     return null;
   }
@@ -97,59 +91,77 @@ type BaseUser = {
 
 type BaseHost<User extends BaseUser> = {
   isFixed: boolean;
+  createdAt: Date;
   priority?: number | null;
   weight?: number | null;
   weightAdjustment?: number | null;
   user: User;
 };
 
-type EventType<Host extends BaseHost<User>, User extends BaseUser> = {
+type EventType = {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null | undefined;
-  schedulingType: SchedulingType | null;
   team: { id: number } | null;
-  users: User[];
-  hosts: Host[];
 };
 
-export async function findMatchingHosts<User extends BaseUser, Host extends BaseHost<User>>({
+export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<User>>({
   eventType,
 }: {
-  eventType: EventType<Host, User>;
+  eventType: {
+    schedulingType: SchedulingType | null;
+    hosts?: Host[];
+    users: User[];
+  };
+}) {
+  if (eventType.hosts?.length && eventType.schedulingType) {
+    return {
+      hosts: eventType.hosts.map((host) => ({
+        isFixed: host.isFixed,
+        email: host.user.email,
+        user: host.user,
+        priority: host.priority,
+        weight: host.weight,
+        createdAt: host.createdAt,
+      })),
+      fallbackHosts: null,
+    };
+  } else {
+    return {
+      hosts: null,
+      fallbackHosts: eventType.users.map((user) => {
+        return {
+          isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+          email: user.email,
+          user: user,
+          createdAt: null,
+        };
+      }),
+    };
+  }
+}
+
+export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
+  eventType,
+  normalizedHosts,
+}: {
+  eventType: EventType;
+  normalizedHosts: {
+    isFixed: boolean;
+    email: string;
+    user: User;
+    priority?: number | null;
+    weight?: number | null;
+    createdAt: Date | null;
+  }[];
 }) {
   const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({
     ...eventType,
     rrSegmentQueryValue: eventType.rrSegmentQueryValue ?? null,
   });
 
-  const eventHosts: {
-    isFixed: boolean;
-    email: string;
-    user: Host["user"];
-    priority?: Host["priority"];
-    weight?: Host["weight"];
-    weightAdjustment?: Host["weightAdjustment"];
-  }[] =
-    eventType.hosts?.length && eventType.schedulingType
-      ? eventType.hosts.map((host) => ({
-          isFixed: host.isFixed,
-          email: host.user.email,
-          user: host.user,
-          priority: host.priority,
-          weight: host.weight,
-          weightAdjustment: host.weightAdjustment,
-        }))
-      : eventType.users.map((user) => {
-          return {
-            isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-            email: user.email,
-            user: user,
-          };
-        });
-
-  const fixedHosts = eventHosts.filter((host) => host.isFixed);
-  const unsegmentedRoundRobinHosts = eventHosts.filter((host) => !host.isFixed);
+  const fixedHosts = normalizedHosts.filter((host) => host.isFixed);
+  const unsegmentedRoundRobinHosts = normalizedHosts.filter((host) => !host.isFixed);
 
   const segmentedRoundRobinHosts = unsegmentedRoundRobinHosts.filter((host) => {
     if (!matchingRRTeamMembers) return true;

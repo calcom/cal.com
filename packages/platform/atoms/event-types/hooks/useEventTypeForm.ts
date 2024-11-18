@@ -109,6 +109,7 @@ export const useEventTypeForm = ({
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
@@ -126,6 +127,7 @@ export const useEventTypeForm = ({
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+      maxLeadThreshold: eventType.maxLeadThreshold,
     };
   }, [eventType, periodDates]);
 

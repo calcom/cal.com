@@ -112,6 +112,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -184,7 +185,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -269,6 +270,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -343,7 +345,7 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -386,6 +388,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },

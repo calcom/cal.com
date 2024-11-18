@@ -119,6 +119,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
     seatsShowAvailabilityCount: null,
+    maxLeadThreshold: null,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
@@ -139,6 +140,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     eventTypeColor: null,
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,
+    autoTranslateDescriptionEnabled: false,
     ...eventType,
   };
 };

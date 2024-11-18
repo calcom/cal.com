@@ -1,17 +1,14 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
+import type { Config } from "react-awesome-query-builder";
+import { Utils as QbUtils } from "react-awesome-query-builder";
 
-import type { AttributesQueryBuilderConfigWithRaqbFields } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
-import { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
+import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
+import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
-
-import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
-import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 
@@ -131,7 +128,7 @@ export const buildStateFromQueryValue = ({
   queryValue: JsonTree | null;
   config: Config;
 }) => {
-  let queryValueToUse = queryValue || buildEmptyQueryValue();
+  const queryValueToUse = queryValue || buildEmptyQueryValue();
   const immutableTree = QbUtils.checkTree(QbUtils.loadTree(queryValueToUse), config);
   return {
     state: {
@@ -197,67 +194,8 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
   });
 };
 
-/**
- * Utilities to handle compatiblity when attribute's type changes
- */
-const attributeChangeCompatibility = {
-  /**
-   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
-   * So, don't use it till that is fixed.
-   */
-  getRaqbFieldTypeCompatibleWithQueryValue: function getRaqbFieldTypeCompatibleWithQueryValue({
-    attributesQueryValue,
-    raqbField,
-    raqbFieldId,
-  }: {
-    attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
-    raqbField: AttributesQueryBuilderConfigWithRaqbFields["fields"][string];
-    raqbFieldId: string;
-  }) {
-    const fieldTypeFromAttributesQueryValue =
-      raqbQueryValueUtils.getValueTypeFromAttributesQueryValueForRaqbField({
-        attributesQueryValue,
-        raqbFieldId,
-      });
-    if (raqbField.type === "select" && fieldTypeFromAttributesQueryValue === "multiselect") {
-      // One could argue why not use fieldTypeFromAttributesQueryValue directly. This could potentially cause issues, so we do this only when we think it makes sense.
-      moduleLogger.warn(
-        `Switching field type from ${raqbField.type} to multiselect as the queryValue expects it to be so`
-      );
-      return "multiselect";
-    }
-    return raqbField.type;
-  },
-  /**
-   * Ensure the attribute value if of type same as the valueType in queryValue
-   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
-   * So, don't use it till that is fixed.
-   */
-  ensureAttributeValueToBeOfRaqbFieldValueType: function ensureAttributeValueToBeOfRaqbFieldValueType({
-    attributeValue,
-    attributesQueryValue,
-    attributeId,
-  }: {
-    attributeValue: string | string[];
-    attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
-    attributeId: string;
-  }) {
-    const fieldTypeFromAttributesQueryValue =
-      raqbQueryValueUtils.getValueTypeFromAttributesQueryValueForRaqbField({
-        attributesQueryValue,
-        raqbFieldId: attributeId,
-      });
-
-    if (fieldTypeFromAttributesQueryValue === "multiselect") {
-      return ensureArray(attributeValue);
-    }
-    return attributeValue;
-  },
-};
-
 function getAttributesData({
   attributesData,
-  attributesQueryValue,
 }: {
   attributesData: Record<
     string,
@@ -270,13 +208,6 @@ function getAttributesData({
 }) {
   return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
     const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(value);
-
-    // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
-    // acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
-    //   attributeValue: compatibleValueForAttributeAndFormFieldMatching,
-    //   attributesQueryValue,
-    //   attributeId,
-    // });
 
     // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
     acc[attributeId] =

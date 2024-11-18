@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import type { JsonTree } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { classNames as cn } from "@calcom/lib";
@@ -40,7 +41,7 @@ function SegmentWithAttributes({
 
   const [queryValue, setQueryValue] = useState(initialQueryValue);
   const queryBuilderData = buildStateFromQueryValue({
-    queryValue,
+    queryValue: queryValue as JsonTree,
     config: attributesQueryBuilderConfig,
   });
 

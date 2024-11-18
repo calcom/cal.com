@@ -38,7 +38,7 @@ describe("queryValueValidationSchema", () => {
             operator: "equal",
             value: ["John"],
             valueSrc: ["value"],
-            valueType: "select",
+            valueType: ["select"],
           },
         },
       },
@@ -49,7 +49,7 @@ describe("queryValueValidationSchema", () => {
     if (!result.success) {
       throw new Error("Failed to parse query value");
     }
-    expect(result.data?.children1.rule1.properties.valueType).toBe("select");
+    expect(result.data?.children1?.rule1?.properties.valueType).toEqual(["select"]);
   });
 
   it("should allow a query value with switch_group type for queryValue", () => {
@@ -58,28 +58,6 @@ describe("queryValueValidationSchema", () => {
       type: "switch_group",
       properties: {},
       children1: {},
-    };
-
-    const result = raqbQueryValueSchema.safeParse(switchGroupQueryValue);
-    expect(result.success).toBe(true);
-  });
-
-  it('should allow a possibly invalid query value if the rule type is not "rule" - Goal is to ensure that rule type children1 is correct', () => {
-    const switchGroupQueryValue = {
-      id: "2",
-      type: "switch_group",
-      properties: {},
-      children1: {
-        rule1: {
-          type: "abc",
-          properties: {
-            field: "name",
-            operator: "equal",
-            value: [],
-            valueSrc: ["value"],
-          },
-        },
-      },
     };
 
     const result = raqbQueryValueSchema.safeParse(switchGroupQueryValue);
@@ -176,11 +154,6 @@ describe("queryValueValidationSchema", () => {
 
     const result = raqbQueryValueSchema.safeParse(emptyValueQueryValue);
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toEqual(
-        "Looks like you are trying to create a rule with no value"
-      );
-    }
   });
 
   it("should allow a rule with null values", () => {
