@@ -92,6 +92,7 @@ import type {
   Invitee,
   IsFixedAwareUser,
 } from "./handleNewBooking/types";
+import { assertNonEmptyArray } from "./handleNewBooking/utils";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -108,12 +109,6 @@ export const createLoggerWithEventDetails = (
     prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
   });
 };
-
-function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
-  if (arr.length === 0) {
-    throw new Error("Array should have at least one item, but it's empty");
-  }
-}
 
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
