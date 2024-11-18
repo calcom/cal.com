@@ -639,6 +639,7 @@ model Booking {
   rescheduledBy                String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
+  assignmentReason             AssignmentReason[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1594,4 +1595,21 @@ model AttributeToUser {
   weight            Int?
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum AssignmentReasonEnum {
+  ROUTING_FORM_ROUTING
+  ROUTING_FORM_ROUTING_FALLBACK
+  REASSIGNED
+  REROUTED
+  SALESFORCE_ASSIGNMENT
+}
+
+model AssignmentReason {
+  id           Int                  @id @unique
+  createdAt    DateTime             @default(now())
+  bookingId    Int                  @unique
+  booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reasonEnum   AssignmentReasonEnum
+  reasonString String
 }
