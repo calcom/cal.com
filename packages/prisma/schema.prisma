@@ -683,12 +683,13 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  integration  String
-  externalId   String
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId Int?
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  integration     String
+  externalId      String
+  credential      Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId    Int?
+  defaultReminder Int         @default(30)
 
   @@id([userId, integration, externalId])
   @@index([userId])

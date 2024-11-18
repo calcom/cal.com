@@ -237,6 +237,9 @@ export default class GoogleCalendarService implements Calendar {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
+    const selectCalendar = (this.credential.selectedCalendars || []).find(
+      (cred) => cred.credentialId == credentialId
+    );
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,
       description: getRichDescription(formattedCalEvent),
@@ -257,6 +260,18 @@ export default class GoogleCalendarService implements Calendar {
         : true,
       iCalUID: formattedCalEvent.iCalUID,
     };
+    if (selectCalendar && selectCalendar?.defaultReminder) {
+      payload.reminders = {
+        ...payload.reminders,
+        useDefault: false,
+        overrides: [
+          {
+            method: "popup",
+            minutes: selectCalendar.defaultReminder || 30, //by default google calendar use 30 minutes
+          },
+        ],
+      };
+    }
     if (calEventRaw.hideCalendarEventDetails) {
       payload.visibility = "private";
     }
@@ -284,7 +299,6 @@ export default class GoogleCalendarService implements Calendar {
     const selectedCalendar =
       formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
       "primary";
-
     try {
       let event;
       let recurringEventId = null;
