@@ -89,14 +89,14 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     child: [
       {
-        name: "bookings",
+        name: "summary",
         href: "/insights",
         isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
       },
       {
-        name: "routing",
-        href: "/insights/routing",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+        name: "bookings",
+        href: "/insights/bookings",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/bookings") ?? false,
       },
     ],
   },

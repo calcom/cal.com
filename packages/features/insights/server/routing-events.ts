@@ -238,6 +238,7 @@ class RoutingEventsInsights {
             uid: true,
             status: true,
             createdAt: true,
+            reassignReason: true,
             attendees: {
               select: {
                 timeZone: true,
@@ -571,6 +572,12 @@ class RoutingEventsInsights {
             createdAt: true,
             startTime: true,
             endTime: true,
+            reassignBy: {
+              select: {
+                name: true,
+              },
+            },
+            reassignReason: true,
             attendees: {
               select: {
                 email: true,
@@ -614,6 +621,8 @@ class RoutingEventsInsights {
         "Attendee Timezone": response.routedToBooking?.attendees[0]?.timeZone || "",
         "Routed To Name": response.routedToBooking?.user?.name || "",
         "Routed To Email": response.routedToBooking?.user?.email || "",
+        "Reassigned By": response.routedToBooking?.reassignBy?.name || "",
+        "Reassigned Reason": response.routedToBooking?.reassignReason || "",
       };
 
       // Add form fields as columns with their labels

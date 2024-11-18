@@ -355,6 +355,12 @@ export function RoutingFormResponsesTable() {
           </div>
         ),
       }),
+      columnHelper.accessor("reassignReason", {
+        id: "reassignReason",
+        header: t("routing_form_insights_reassign_reason"),
+        size: 250,
+        cell: (info) => <div className="max-w-[250px]">{info.getValue()}</div>,
+      }),
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
         header: t("routing_form_insights_submitted_at"),
