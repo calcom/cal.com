@@ -85,12 +85,11 @@ import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import { scheduleWebhookTriggerEvents } from "./handleNewBooking/scheduleWebhookTriggerEvents";
 import type {
-  Booking,
   BookingType,
   BookingTypeWithAppsStatus,
   IEventTypePaymentCredentialType,
   Invitee,
-  IsFixedAwareUser
+  IsFixedAwareUser,
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
