@@ -83,13 +83,6 @@ export const createBookingAndFetchGCalEvent = async (
           email: true,
         },
       },
-      selectedCalendars: {
-        select: {
-          externalId: true,
-          defaultReminder: true,
-          credentialId: true,
-        },
-      },
     },
   });
 

@@ -55,13 +55,6 @@ test.describe("Google Calendar", async () => {
                 email: true,
               },
             },
-            selectedCalendars: {
-              select: {
-                externalId: true,
-                defaultReminder: true,
-                credentialId: true,
-              },
-            },
           },
         });
         test.skip(!qaGCalCredential, "Google QA credential not found");

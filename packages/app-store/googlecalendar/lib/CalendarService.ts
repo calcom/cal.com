@@ -175,7 +175,6 @@ export default class GoogleCalendarService implements Calendar {
         if (!token) {
           throw new Error("Invalid grant for Google Calendar app");
         }
-
         const myGoogleAuth = await this.getMyGoogleAuthSingleton();
         return myGoogleAuth;
       },
@@ -233,13 +232,34 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
+  private getRemindersConfig = async () => {
+    const selectedCalendar = await prisma.selectedCalendar.findFirst({
+      where: {
+        credentialId: this.credential.id,
+      },
+      select: {
+        externalId: true,
+        integration: true,
+        defaultReminder: true,
+      },
+    });
+
+    if (selectedCalendar && selectedCalendar?.defaultReminder) {
+      return {
+        useDefault: false,
+        overrides: [
+          {
+            method: "popup",
+            minutes: selectedCalendar.defaultReminder || 30, //by default google calendar use 30 minutes
+          },
+        ],
+      };
+    }
+  };
+
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
-
-    const selectCalendar = (this.credential.selectedCalendars || []).find(
-      (cred) => cred.credentialId == credentialId
-    );
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,
       description: getRichDescription(formattedCalEvent),
@@ -260,18 +280,6 @@ export default class GoogleCalendarService implements Calendar {
         : true,
       iCalUID: formattedCalEvent.iCalUID,
     };
-    if (selectCalendar && selectCalendar?.defaultReminder) {
-      payload.reminders = {
-        ...payload.reminders,
-        useDefault: false,
-        overrides: [
-          {
-            method: "popup",
-            minutes: selectCalendar.defaultReminder || 30, //by default google calendar use 30 minutes
-          },
-        ],
-      };
-    }
     if (calEventRaw.hideCalendarEventDetails) {
       payload.visibility = "private";
     }
@@ -292,6 +300,10 @@ export default class GoogleCalendarService implements Calendar {
 
     if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
       payload["conferenceData"] = formattedCalEvent.conferenceData;
+    }
+    const reminders = await this.getRemindersConfig();
+    if (reminders) {
+      payload.reminders = { ...payload.reminders, ...reminders };
     }
     const calendar = await this.authedCalendar();
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
@@ -439,6 +451,11 @@ export default class GoogleCalendarService implements Calendar {
 
     if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
       payload["conferenceData"] = formattedCalEvent.conferenceData;
+    }
+
+    const reminders = await this.getRemindersConfig();
+    if (reminders) {
+      payload.reminders = { ...payload.reminders, ...reminders };
     }
 
     const calendar = await this.authedCalendar();

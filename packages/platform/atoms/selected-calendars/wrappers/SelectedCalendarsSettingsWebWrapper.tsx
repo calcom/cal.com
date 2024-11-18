@@ -63,7 +63,7 @@ function ReminderSelection({
       }
     },
     async onSettled() {
-      showToast(t("reminder_has_been_saved"));
+      showToast(t("reminder_has_been_saved"), "success");
       await utils.viewer.integrations.invalidate();
       await utils.viewer.connectedCalendars.invalidate();
     },
@@ -71,13 +71,6 @@ function ReminderSelection({
       showToast(`Something went wrong when updating reminder${e}`, "error");
     },
   });
-
-  const handleChange = async (event: { label: string; value: number }) => {
-    mutation.mutate({
-      reminderValue: event.value || 30,
-    });
-    setDefaultReminder(event.value || 30);
-  };
 
   return (
     <>
@@ -88,7 +81,12 @@ function ReminderSelection({
         options={mappedReminders}
         className="w-32"
         value={mappedReminders.find((option) => option.value === defaultReminder)}
-        onChange={handleChange}
+        onChange={(event) => {
+          mutation.mutate({
+            reminderValue: event?.value || 30,
+          });
+          setDefaultReminder(event?.value || 30);
+        }}
       />
     </>
   );
