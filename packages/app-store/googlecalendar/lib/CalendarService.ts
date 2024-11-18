@@ -213,10 +213,34 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
+  private getRemindersConfig = async () => {
+    const selectedCalendar = await prisma.selectedCalendar.findFirst({
+      where: {
+        credentialId: this.credential.id,
+      },
+      select: {
+        externalId: true,
+        integration: true,
+        defaultReminder: true,
+      },
+    });
+
+    if (selectedCalendar && selectedCalendar?.defaultReminder) {
+      return {
+        useDefault: false,
+        overrides: [
+          {
+            method: "popup",
+            minutes: selectedCalendar.defaultReminder || 30, //by default google calendar use 30 minutes
+          },
+        ],
+      };
+    }
+  };
+
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
-
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,
       description: getRichDescription(formattedCalEvent),
@@ -237,6 +261,14 @@ export default class GoogleCalendarService implements Calendar {
         : true,
       iCalUID: formattedCalEvent.iCalUID,
     };
+
+    const reminders = await this.getRemindersConfig();
+    if (reminders) {
+      payload.reminders = {
+        ...payload.reminders,
+        ...reminders,
+      };
+    }
     if (calEventRaw.hideCalendarEventDetails) {
       payload.visibility = "private";
     }
@@ -264,7 +296,6 @@ export default class GoogleCalendarService implements Calendar {
     const selectedCalendar =
       formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
       "primary";
-
     try {
       let event;
       let recurringEventId = null;
@@ -405,6 +436,14 @@ export default class GoogleCalendarService implements Calendar {
 
     if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
       payload["conferenceData"] = formattedCalEvent.conferenceData;
+    }
+
+    const reminders = await this.getRemindersConfig();
+    if (reminders) {
+      payload.reminders = {
+        ...payload.reminders,
+        ...reminders,
+      };
     }
 
     const calendar = await this.authedCalendar();

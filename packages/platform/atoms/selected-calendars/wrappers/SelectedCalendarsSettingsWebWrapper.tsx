@@ -1,12 +1,13 @@
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import React from "react";
+import { useState } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui";
+import { Alert, Select, Label, showToast } from "@calcom/ui";
 import { List } from "@calcom/ui";
 import AppListCard from "@calcom/web/components/AppListCard";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
@@ -21,6 +22,75 @@ type SelectedCalendarsSettingsWebWrapperProps = {
   classNames?: string;
 };
 
+const mappedReminders = [
+  { value: 30, label: "30 mins" },
+  { value: 15, label: "15 mins" },
+  { value: 10, label: "10 mins" },
+];
+
+function ReminderSelection({
+  credentialId,
+  value,
+  type,
+  externalId,
+}: {
+  credentialId: number;
+  type: string;
+  value?: number;
+  externalId: string;
+}) {
+  const [defaultReminder, setDefaultReminder] = useState<number>(value || 30);
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const mutation = useMutation({
+    mutationFn: async ({ reminderValue }: { reminderValue: number }) => {
+      const body = {
+        integration: type,
+        externalId: externalId,
+        defaultReminder: reminderValue,
+      };
+
+      const res = await fetch("/api/availability/calendar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...body, credentialId }),
+      });
+      if (!res.ok) {
+        throw new Error("Something went wrong");
+      }
+    },
+    async onSettled() {
+      showToast(t("reminder_has_been_saved"), "success");
+      await utils.viewer.integrations.invalidate();
+      await utils.viewer.connectedCalendars.invalidate();
+    },
+    onError(e) {
+      showToast(`Something went wrong when updating reminder${e}`, "error");
+    },
+  });
+
+  return (
+    <>
+      <Label className="text-emphasis">
+        <>Reminder</>
+      </Label>
+      <Select<{ label: string; value: number }>
+        options={mappedReminders}
+        className="w-32"
+        value={mappedReminders.find((option) => option.value === defaultReminder)}
+        onChange={(event) => {
+          mutation.mutate({
+            reminderValue: event?.value || 30,
+          });
+          setDefaultReminder(event?.value || 30);
+        }}
+      />
+    </>
+  );
+}
 export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSettingsWebWrapperProps) => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
@@ -87,6 +157,15 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                     credentialId={cal.credentialId}
                                   />
                                 ))}
+                                {connectedCalendar.integration.type === "google_calendar" &&
+                                  connectedCalendar.selectedCalendar && (
+                                    <ReminderSelection
+                                      credentialId={connectedCalendar.credentialId}
+                                      type={connectedCalendar.integration.type}
+                                      externalId={connectedCalendar.selectedCalendar.externalId}
+                                      value={connectedCalendar.selectedCalendar.defaultReminder}
+                                    />
+                                  )}
                               </ul>
                             </>
                           )}
@@ -154,3 +233,5 @@ const SelectedCalendarsSettingsHeading = (props: {
     </div>
   );
 };
+
+// test [{"externalId":"rajesh13004034@gmail.com","integration":"google_calendar","name":"rajesh13004034@gmail.com","primary":true,"readOnly":false,"email":"rajesh13004034@gmail.com","isSelected":true,"credentialId":63},{"externalId":"addressbook#contacts@group.v.calendar.google.com","integration":"google_calendar","name":"Birthdays","primary":null,"readOnly":true,"email":"addressbook#contacts@group.v.calendar.google.com","isSelected":false,"credentialId":63}]

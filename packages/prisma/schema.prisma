@@ -692,6 +692,7 @@ model SelectedCalendar {
   externalId               String
   credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId             Int?
+  defaultReminder          Int         @default(30)
   // Used to identify a watched calendar channel in Google Calendar
   googleChannelId          String?     @unique
   googleChannelKind        String?
