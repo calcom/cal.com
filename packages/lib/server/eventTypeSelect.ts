@@ -13,6 +13,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   title: true,
   requiresConfirmation: true,
   requiresConfirmationWillBlockSlot: true,
+  autoTranslateDescriptionEnabled: true,
   position: true,
   offsetStart: true,
   profileId: true,
@@ -56,4 +57,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   durationLimits: true,
   eventTypeColor: true,
   hideCalendarEventDetails: true,
+  maxLeadThreshold: true,
 });

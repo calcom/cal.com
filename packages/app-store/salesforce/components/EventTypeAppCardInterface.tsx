@@ -93,6 +93,20 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     value: "",
   });
 
+  // Used when creating events under leads or contacts under account
+  const CreateContactUnderAccount = () => {
+    return (
+      <Switch
+        label={t("salesforce_create_new_contact_under_account")}
+        labelOnLeading
+        checked={createNewContactUnderAccount}
+        onCheckedChange={(checked) => {
+          setAppData("createNewContactUnderAccount", checked);
+        }}
+      />
+    );
+  };
+
   return (
     <AppCard
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
@@ -142,19 +156,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 setAppData("createEventOnLeadCheckForContact", checked);
               }}
             />
+            <div className="mt-4">
+              <CreateContactUnderAccount />
+            </div>
           </div>
         ) : null}
         {createEventOnSelectedOption.value === SalesforceRecordEnum.ACCOUNT ? (
           <>
             <div className="mb-4">
-              <Switch
-                label={t("salesforce_create_new_contact_under_account")}
-                labelOnLeading
-                checked={createNewContactUnderAccount}
-                onCheckedChange={(checked) => {
-                  setAppData("createNewContactUnderAccount", checked);
-                }}
-              />
+              <CreateContactUnderAccount />
             </div>
             <div>
               <Switch
