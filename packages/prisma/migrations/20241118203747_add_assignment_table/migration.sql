@@ -3,7 +3,7 @@ CREATE TYPE "AssignmentReasonEnum" AS ENUM ('ROUTING_FORM_ROUTING', 'ROUTING_FOR
 
 -- CreateTable
 CREATE TABLE "AssignmentReason" (
-    "id" INTEGER NOT NULL,
+    "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "bookingId" INTEGER NOT NULL,
     "reasonEnum" "AssignmentReasonEnum" NOT NULL,
