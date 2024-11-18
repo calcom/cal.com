@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "选择几个可预约时间并将它们嵌入到您的电子邮件",
   "select_time": "选择时间",
   "select_date": "选择日期",
+  "only_show_if_parameter_set": "仅在设置参数时显示",
+  "add_parameter": "添加参数",
   "connecting_you_to_someone": "我们正在为您接通{{orgName}}的工作人员。",
   "please_do_not_close_this_tab": "请不要关闭或刷新此页面",
   "see_all_available_times": "查看所有可预约时间",

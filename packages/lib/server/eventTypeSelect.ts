@@ -44,6 +44,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   successRedirectUrl: true,
   isInstantEvent: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
+  instantMeetingParameters: true,
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,

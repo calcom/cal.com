@@ -216,7 +216,11 @@ function BookingStatusCell({
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-export function RoutingFormResponsesTable() {
+export function RoutingFormResponsesTable({
+  children,
+}: {
+  children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
+}) {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -442,8 +446,9 @@ export function RoutingFormResponsesTable() {
             fetchMoreOnBottomReached(e.target as HTMLDivElement);
           }
         }}
-        isPending={isFetching && !data}
-      />
+        isPending={isFetching && !data}>
+        {typeof children === "function" ? children(table) : children}
+      </DataTable>
     </div>
   );
 }

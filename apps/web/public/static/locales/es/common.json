@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Seleccione algunos horarios disponibles e incrústelos en su correo electrónico",
   "select_time": "Seleccione la hora",
   "select_date": "Seleccione la fecha",
+  "only_show_if_parameter_set": "Mostrar solo si se establece un parámetro",
+  "add_parameter": "Agregar parámetro",
   "connecting_you_to_someone": "Te estamos conectando con alguien de {{orgName}}.",
   "please_do_not_close_this_tab": "Por favor, no cierres ni actualices esta página",
   "see_all_available_times": "Ver todas las horas disponibles",

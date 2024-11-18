@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Vyberte niekoľko dostupných časov a vložte ich do svojho e-mailu",
   "select_time": "Vybrať čas",
   "select_date": "Vybrať dátum",
+  "only_show_if_parameter_set": "Zobraziť iba ak je parameter nastavený",
+  "add_parameter": "Pridať parameter",
   "connecting_you_to_someone": "Pripájame vás k niekomu z {{orgName}}.",
   "please_do_not_close_this_tab": "Prosím, nezatvárajte ani neobnovujte túto stránku",
   "see_all_available_times": "Zobraziť všetky dostupné časy",
