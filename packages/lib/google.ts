@@ -23,11 +23,6 @@ export async function getAllCalendars(
 
       allCalendars = [...allCalendars, ...(response.data.items ?? [])];
       pageToken = response.data.nextPageToken;
-
-      logger.error("Google Calendar pagination failed in the middle", {
-        totalSoFar: allCalendars.length,
-        hasMorePages: !!pageToken,
-      });
     } while (pageToken);
 
     return allCalendars;

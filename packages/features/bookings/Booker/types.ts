@@ -153,5 +153,5 @@ export type CustomClassNames = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
-  atomsWrapper: string;
+  atomsWrapper?: string;
 };
