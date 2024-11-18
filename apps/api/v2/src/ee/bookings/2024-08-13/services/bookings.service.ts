@@ -307,7 +307,24 @@ export class BookingsService_2024_08_13 {
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
+
+    if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
+      return this.getAllRecurringBookingsByIndividualUid(bookingUid);
+    }
+
     return this.getBooking(bookingUid);
+  }
+
+  private async getAllRecurringBookingsByIndividualUid(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    const recurringBookingUid = booking?.recurringEventId;
+    if (!recurringBookingUid) {
+      throw new BadRequestException(
+        `Booking with bookingUid=${bookingUid} is not part of a recurring booking.`
+      );
+    }
+
+    return await this.getBooking(recurringBookingUid);
   }
 
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
