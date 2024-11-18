@@ -25,6 +25,16 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
+const isEmailInBlacklist = (email: string) => {
+  const blacklistedDomains = (process.env.BLACKLIST_EMAIL_DOMAINS || "")
+    .split(",")
+    .map((domain) => domain.trim());
+  if (!blacklistedDomains.length) return false;
+  const emailDomain = email.split("@")[1]?.toLowerCase();
+  console.log("emailDomain", emailDomain);
+  return blacklistedDomains.includes(emailDomain);
+};
+
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const {
     email: _email,
@@ -37,6 +47,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
+
+  const shouldLockByDefault = isEmailInBlacklist(_email);
 
   log.debug("handler", { email: _email });
 
@@ -191,6 +203,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       data: {
         username,
         email,
+        locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
           stripeCustomerId: customer.id,
