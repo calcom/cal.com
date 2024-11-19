@@ -1026,7 +1026,7 @@ const calculateHostsAndAvailabilities = async ({
       where: {
         uid: input.rescheduleUid,
         status: {
-          in: [BookingStatus.ACCEPTED],
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
       },
       select: {
