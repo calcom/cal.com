@@ -281,6 +281,7 @@ export class InputBookingsService_2024_08_13 {
     const bodyTransformed = this.isRescheduleSeatedBody(body)
       ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
       : await this.transformInputRescheduleBooking(bookingUid, body);
+
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -323,7 +324,7 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
     }
 
-    const { responses: bookingResponses, metadata } = seatedBookingResponsesSchema.parse(seat.data);
+    const { responses: bookingResponses } = seatedBookingResponsesSchema.parse(seat.data);
     const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
@@ -341,7 +342,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      metadata: metadata || {},
+      metadata: seat.metadata || {},
       hasHashedBookingLink: false,
       guests: [],
       responses: { ...bookingResponses },

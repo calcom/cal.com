@@ -22,7 +22,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { AttendeeCancelledSeatEmail } from "@calcom/platform-libraries";
+import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries";
 import {
   CancelSeatedBookingInput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
@@ -39,7 +39,7 @@ import {
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
-jest.spyOn(AttendeeCancelledSeatEmail.prototype as any, "getHtml").mockImplementation(async function () {
+jest.spyOn(AttendeeCancelledEmail.prototype as any, "getHtml").mockImplementation(async function () {
   return "<html><body>Mocked Email Content</body></html>";
 });
 
@@ -793,6 +793,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
+        metadata: {
+          userId: "1000",
+        },
         recurrenceCount,
       };
 
@@ -839,6 +842,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
               },
+              metadata: body.metadata,
             });
             expect(firstBooking.location).toEqual(body.location);
             expect(firstBooking.absentHost).toEqual(false);
@@ -872,6 +876,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
               },
+              metadata: body.metadata,
             });
             expect(secondBooking.location).toEqual(body.location);
             expect(secondBooking.absentHost).toEqual(false);
@@ -898,6 +903,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
         location: "https://meet.google.com/abc-def-ghi",
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
+        },
+        metadata: {
+          userId: "2000",
         },
         recurrenceCount,
       };
@@ -945,6 +953,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: nameAttendeeOne,
                 ...body.bookingFieldsResponses,
               },
+              metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
             expect(firstBooking.attendees[1]).toEqual({
               name: nameAttendeeTwo,
@@ -956,6 +965,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: nameAttendeeTwo,
                 ...body.bookingFieldsResponses,
               },
+              metadata: body.metadata,
             });
             expect(firstBooking.location).toEqual(body.location);
             expect(firstBooking.absentHost).toEqual(false);
@@ -989,6 +999,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: nameAttendeeOne,
                 ...body.bookingFieldsResponses,
               },
+              metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
             expect(secondBooking.attendees[1]).toEqual({
               name: nameAttendeeTwo,
@@ -1000,6 +1011,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: nameAttendeeTwo,
                 ...body.bookingFieldsResponses,
               },
+              metadata: body.metadata,
             });
             expect(secondBooking.location).toEqual(body.location);
             expect(secondBooking.absentHost).toEqual(false);

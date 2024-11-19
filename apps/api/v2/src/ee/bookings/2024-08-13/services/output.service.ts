@@ -25,6 +25,8 @@ export const bookingResponsesSchema = z
   })
   .passthrough();
 
+const metadataSchema = z.object({}).catchall(z.string());
+
 export const seatedBookingResponsesSchema = z
   .object({
     responses: z
@@ -230,7 +232,7 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = attendee.bookingSeat?.data;
+      attendeeParsed.metadata = metadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
 
@@ -326,10 +328,9 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = attendee.bookingSeat?.data;
+      attendeeParsed.metadata = metadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
-
       return attendeeParsed;
     });
 
