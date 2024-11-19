@@ -428,6 +428,7 @@ export class EventTypeRepository {
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
+      instantMeetingParameters: true,
       aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,

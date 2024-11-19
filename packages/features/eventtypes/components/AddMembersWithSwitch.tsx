@@ -162,6 +162,7 @@ type AddMembersWithSwitchProps = {
   isRRWeightsEnabled?: boolean;
   teamId: number;
   isSegmentApplicable?: boolean;
+  "data-testid"?: string;
 };
 
 const enum AssignmentState {
@@ -226,6 +227,7 @@ function AddMembersWithSwitch({
   isRRWeightsEnabled,
   teamId,
   isSegmentApplicable,
+  ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -297,6 +299,7 @@ function AddMembersWithSwitch({
           </div>
           <div className="mb-2">
             <CheckedHostField
+              data-testid={rest["data-testid"]}
               value={value}
               onChange={onChange}
               isFixed={isFixed}

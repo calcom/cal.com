@@ -146,6 +146,7 @@ model EventType {
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
   instantMeetingScheduleId                Int?
   instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
+  instantMeetingParameters                String[]
   assignAllTeamMembers                    Boolean                   @default(false)
   // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
   assignRRMembersUsingSegment             Boolean                   @default(false)
@@ -689,12 +690,18 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  integration  String
-  externalId   String
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId Int?
+  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  integration              String
+  externalId               String
+  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId             Int?
+  // Used to identify a watched calendar channel in Google Calendar
+  googleChannelId          String?     @unique
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
 
   @@id([userId, integration, externalId])
   @@index([userId])

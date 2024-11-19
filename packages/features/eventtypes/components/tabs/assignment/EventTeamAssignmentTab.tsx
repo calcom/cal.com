@@ -160,6 +160,7 @@ const FixedHosts = ({
         </>
       ) : (
         <SettingsToggle
+          data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
           description={FixedHostHelper}
@@ -178,6 +179,7 @@ const FixedHosts = ({
           childrenClassName="lg:ml-0">
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              data-testid="fixed-hosts-select"
               teamId={teamId}
               teamMembers={teamMembers}
               value={value}
@@ -248,6 +250,7 @@ const RoundRobinHosts = ({
             name="isRRWeightsEnabled"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
+                data-testid="fixed-hosts-switch"
                 title={t("enable_weights")}
                 description={weightDescription}
                 checked={value}
