@@ -72,6 +72,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     select: {
       translatedText: true,
       targetLang: true,
+      field: true,
     },
   },
   requiresBookerEmailVerification: true,

@@ -11,6 +11,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -104,8 +105,10 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
   const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
-  const translatedDescription = (event?.fieldTranslations ?? []).find((translation) =>
-    browserLocale.startsWith(translation.targetLang)
+  const translatedDescription = (event?.fieldTranslations ?? []).find(
+    (translation) =>
+      translation.field === EventTypeAutoTranslatedField.DESCRIPTION &&
+      browserLocale.startsWith(translation.targetLang)
   )?.translatedText;
 
   return (

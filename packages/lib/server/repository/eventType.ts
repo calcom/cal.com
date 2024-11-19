@@ -451,6 +451,7 @@ export class EventTypeRepository {
         select: {
           translatedText: true,
           targetLang: true,
+          field: true,
         },
       },
       recurringEvent: true,
