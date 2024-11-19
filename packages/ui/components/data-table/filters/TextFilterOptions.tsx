@@ -38,6 +38,7 @@ export function TextFilterOptions({
   setFilterValue,
   removeFilter,
 }: TextFilterOptionsProps) {
+  const { t } = useLocale();
   const textFilterOperatorOptions = useTextFilterOperatorOptions();
 
   const form = useForm({
@@ -93,14 +94,14 @@ export function TextFilterOptions({
               color="secondary"
               disabled={form.formState.isSubmitting}
               onClick={() => removeFilter(column.id)}>
-              Clear
+              {t("clear")}
             </Button>
             <Button
               type="submit"
               color="primary"
               loading={form.formState.isSubmitting}
               disabled={form.formState.isSubmitting}>
-              Apply
+              {t("apply")}
             </Button>
           </div>
         </div>
