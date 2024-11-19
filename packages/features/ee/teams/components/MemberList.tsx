@@ -22,6 +22,7 @@ import {
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
+  useFetchMoreOnBottomReached,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -50,7 +51,6 @@ import {
   DropdownMenuTrigger,
   showToast,
   Tooltip,
-  useFetchMoreOnBottomReached,
 } from "@calcom/ui";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
