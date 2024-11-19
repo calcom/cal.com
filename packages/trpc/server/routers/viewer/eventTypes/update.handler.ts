@@ -7,11 +7,10 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
-import { EventTypeTranslationRepository } from "@calcom/lib/server/repository/eventTypeTranslation";
-import { ReplexicaService } from "@calcom/lib/server/service/replexica";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
@@ -502,36 +501,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     descriptionTranslationsNeeded &&
     description
   ) {
-    const userLocale = ctx.user.locale;
-
-    // Use process.nextTick to handle translations in the background
-    process.nextTick(async () => {
-      try {
-        // TODO: we want to support the other locales in Locales enum
-        const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const).filter(
-          (locale) => locale !== userLocale
-        );
-
-        // First, get all translations in parallel
-        const translatedTexts = await Promise.all(
-          targetLocales.map((targetLocale) =>
-            ReplexicaService.localizeText(description, userLocale, targetLocale)
-          )
-        );
-
-        // Then create all translations in a single DB call
-        await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
-          targetLocales.map((targetLocale, index) => ({
-            eventTypeId: id,
-            sourceLang: userLocale,
-            targetLang: targetLocale,
-            translatedText: translatedTexts[index],
-            userId: ctx.user.id,
-          }))
-        );
-      } catch (error) {
-        logger.error(`Failed to translate event type ${id} description:`, error);
-      }
+    await tasker.create("translateEventTypeDescription", {
+      eventTypeId: id,
+      description,
+      userLocale: ctx.user.locale,
+      userId: ctx.user.id,
     });
   }
 
