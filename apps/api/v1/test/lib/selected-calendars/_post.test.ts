@@ -40,6 +40,7 @@ describe("POST /api/selected-calendars", () => {
         method: "POST",
         body: {
           integration: "google",
+          defaultReminder: 30,
         },
       });
 

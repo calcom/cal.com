@@ -9,6 +9,9 @@ export class SelectedCalendarsInputDto {
 
   @IsInt()
   readonly credentialId!: number;
+
+  @IsInt()
+  readonly defaultReminder!: number;
 }
 
 export class SelectedCalendarsQueryParamsInputDto {

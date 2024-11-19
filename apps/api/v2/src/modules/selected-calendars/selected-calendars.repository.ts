@@ -6,20 +6,27 @@ import { Injectable } from "@nestjs/common";
 export class SelectedCalendarsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  upsertSelectedCalendar(externalId: string, credentialId: number, userId: number, integration: string) {
+  upsertSelectedCalendar(
+    externalId: string,
+    credentialId: number,
+    userId: number,
+    integration: string,
+    defaultReminder?: number
+  ) {
+    const data = {
+      userId,
+      externalId,
+      credentialId,
+      integration,
+    };
+
+    if (!defaultReminder) {
+      data.defaultReminder = defaultReminder;
+    }
+
     return this.dbWrite.prisma.selectedCalendar.upsert({
-      create: {
-        userId,
-        externalId,
-        credentialId,
-        integration,
-      },
-      update: {
-        userId,
-        externalId,
-        credentialId,
-        integration,
-      },
+      create: data,
+      update: data,
       where: {
         userId_integration_externalId: {
           userId,
@@ -54,8 +61,13 @@ export class SelectedCalendarsRepository {
     userId: number,
     integration: string,
     externalId: string,
-    credentialId: number
+    credentialId: number,
+    defaultReminder?: number
   ) {
+    const updatedData = {};
+    if (defaultReminder) {
+      updatedData.defaultReminder = defaultReminder;
+    }
     return await this.dbWrite.prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
@@ -69,9 +81,10 @@ export class SelectedCalendarsRepository {
         integration,
         externalId,
         credentialId,
+        defaultReminder: defaultReminder || 30,
       },
       // already exists
-      update: {},
+      update: updatedData,
     });
   }
 
