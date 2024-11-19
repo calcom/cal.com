@@ -136,7 +136,6 @@ const AddMembersWithSwitch = ({
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               onActive={onActive}
-              onInactive={() => setValue("hosts", [], { shouldDirty: true })}
             />
           </div>
         ) : (
