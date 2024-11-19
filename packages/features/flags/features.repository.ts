@@ -17,9 +17,15 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
   async checkIfUserHasFeature(userId: number, slug: string) {
     try {
-      const userHasFeature = await db.userFeatures.findUnique({
+      /**
+       * findUnique was failing in prismock tests, so I'm using findFirst instead
+       * FIXME refactor when upgrading prismock
+       * https://github.com/morintd/prismock/issues/592
+       */
+      const userHasFeature = await db.userFeatures.findFirst({
         where: {
-          userId_featureId: { userId, featureId: slug },
+          userId,
+          featureId: slug,
         },
       });
       if (userHasFeature) return true;
