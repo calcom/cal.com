@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import type { ClassNamesState } from "react-select";
 
 import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
@@ -22,6 +23,12 @@ export type DestinationCalendarProps = {
   hideAdvancedText?: boolean;
 };
 
+interface SelectedOption {
+  value: string;
+  label: string;
+  subtitle: string;
+}
+
 export const DestinationCalendarSelector = ({
   connectedCalendars,
   destinationCalendar,
@@ -33,11 +40,7 @@ export const DestinationCalendarSelector = ({
   maxWidth,
 }: DestinationCalendarProps): JSX.Element | null => {
   const { t } = useLocale();
-  const [selectedOption, setSelectedOption] = useState<{
-    value: string;
-    label: string;
-    subtitle: string;
-  } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<SelectedOption | null>(null);
 
   useEffect(() => {
     const selected = connectedCalendars
@@ -101,15 +104,15 @@ export const DestinationCalendarSelector = ({
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({
+          placeholder: (styles: ClassNamesState) => ({
             ...styles,
             ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
           }),
-          singleValue: (styles) => ({
+          singleValue: (styles: ClassNamesState) => ({
             ...styles,
             ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
           }),
-          control: (defaultStyles) => {
+          control: (defaultStyles: ClassNamesState) => {
             return {
               ...defaultStyles,
               "@media only screen and (min-width: 640px)": {
@@ -123,7 +126,7 @@ export const DestinationCalendarSelector = ({
         className={classNames(
           "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
-        onChange={(newValue) => {
+        onChange={(newValue: SelectedOption) => {
           setSelectedOption(newValue);
           if (!newValue) {
             return;

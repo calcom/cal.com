@@ -65,7 +65,9 @@ const CheckedHostField = ({
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          isOptionDisabled={(option: { value: string }) =>
+            !!value.find((host) => host.userId.toString() === option.value)
+          }
           onChange={(options) => {
             onChange &&
               onChange(

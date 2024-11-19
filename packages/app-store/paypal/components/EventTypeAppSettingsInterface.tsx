@@ -94,7 +94,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           value={selectedCurrency}
           className="text-black"
           defaultValue={selectedCurrency}
-          onChange={(e) => {
+          onChange={(e?: { value: string }) => {
             if (e) {
               setSelectedCurrency(e);
               setCurrencySymbol(currencySymbols[e.value]);
@@ -118,7 +118,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           options={paymentOptions.map((option) => {
             return { ...option, label: t(option.label) || option.label };
           })}
-          onChange={(input) => {
+          onChange={(input?: { value: string }) => {
             if (input) setAppData("paymentOption", input.value);
           }}
           className="mb-1 h-[38px] w-full"

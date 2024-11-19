@@ -68,7 +68,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
       id="location-select"
       data-testid="location-select"
       components={{
-        Option: (props) => {
+        Option: (props: { data: { value: string } }) => {
           return (
             <components.Option {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>
@@ -77,7 +77,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
             </components.Option>
           );
         },
-        SingleValue: (props) => {
+        SingleValue: (props: { data: { value: string } }) => {
           return (
             <components.SingleValue {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>
@@ -87,7 +87,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
           );
         },
       }}
-      formatOptionLabel={(e, d) => (
+      formatOptionLabel={(e: { icon: string }, _d: unknown) => (
         <div className="flex items-center gap-3">
           {e.icon && !isPlatform && (
             <img
@@ -99,7 +99,9 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
           <span>{e.label}</span>
         </div>
       )}
-      formatGroupLabel={(e) => <p className="text-default text-xs font-medium">{e.label}</p>}
+      formatGroupLabel={(e: { label: string }) => (
+        <p className="text-default text-xs font-medium">{e.label}</p>
+      )}
       {...props}
     />
   );

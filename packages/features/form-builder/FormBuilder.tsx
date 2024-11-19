@@ -502,7 +502,7 @@ function FieldEditDialog({
                 fieldForm.getValues("editable") === "system" ||
                 fieldForm.getValues("editable") === "system-but-optional"
               }
-              onChange={(e) => {
+              onChange={(e?: { value: string }) => {
                 const value = e?.value;
                 if (!value) {
                   return;

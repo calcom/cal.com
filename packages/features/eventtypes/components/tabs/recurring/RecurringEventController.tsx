@@ -102,7 +102,7 @@ export default function RecurringEventController({
                         isSearchable={false}
                         className="w-18 ml-2 block min-w-0 rounded-md text-sm"
                         isDisabled={recurringLocked.disabled}
-                        onChange={(event) => {
+                        onChange={(event?: { value: string }) => {
                           const newVal = {
                             ...recurringEventState,
                             freq: parseInt(event?.value || `${Frequency.WEEKLY}`),

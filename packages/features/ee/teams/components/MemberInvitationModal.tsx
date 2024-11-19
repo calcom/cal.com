@@ -370,7 +370,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     id="role"
                     defaultValue={options[0]}
                     options={options}
-                    onChange={(val) => {
+                    onChange={(val?: { value: string }) => {
                       if (val) onChange(val.value);
                     }}
                   />

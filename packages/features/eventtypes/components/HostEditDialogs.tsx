@@ -70,7 +70,9 @@ export const PriorityDialog = (props: IDialog) => {
           <Select
             defaultValue={priorityOptions[option.priority ?? 2]}
             value={newPriority}
-            onChange={(value) => setNewPriority(value ?? priorityOptions[2])}
+            onChange={(value?: { label: string; value: number }) =>
+              setNewPriority(value ?? priorityOptions[2])
+            }
             options={priorityOptions}
           />
         </div>

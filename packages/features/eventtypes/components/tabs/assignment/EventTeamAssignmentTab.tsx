@@ -489,7 +489,7 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
                     options={schedulingTypeOptions}
                     value={schedulingTypeOptions.find((opt) => opt.value === value)}
                     className="w-full"
-                    onChange={(val) => {
+                    onChange={(val?: { value: string }) => {
                       onChange(val?.value);
                       setValue("assignAllTeamMembers", false, { shouldDirty: true });
                       setAssignAllTeamMembers(false);

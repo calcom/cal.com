@@ -126,7 +126,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             className="mt-2 w-60"
             options={recordOptions}
             value={createEventOnSelectedOption}
-            onChange={(e) => {
+            onChange={(e?: { value: string }) => {
               if (e) {
                 setCreateEventOnSelectedOption(e);
                 setAppData("createEventOn", e.value);
@@ -352,7 +352,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     <Select
                       options={fieldTypeOptions}
                       value={writeToPersonObjectFieldType}
-                      onChange={(e) => {
+                      onChange={(e?: { value: string }) => {
                         if (e) {
                           setWriteToPersonObjectFieldType(e);
                           setNewOnBookingWriteToPersonObjectField({
@@ -369,7 +369,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       <Select
                         options={dateFieldValueOptions}
                         value={dateFieldValue}
-                        onChange={(e) => {
+                        onChange={(e?: { value: string }) => {
                           if (e) {
                             setDateValue(e);
                             setNewOnBookingWriteToPersonObjectField({
@@ -395,7 +395,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     <Select
                       options={whenToWriteToRecordOptions}
                       value={whenToWriteToPersonRecord}
-                      onChange={(e) => {
+                      onChange={(e?: { value: string }) => {
                         if (e) {
                           setWhenToWriteToPersonRecord(e);
                           setNewOnBookingWriteToPersonObjectField({
@@ -493,7 +493,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   className="mt-2 w-60"
                   options={checkOwnerOptions}
                   value={checkOwnerSelectedOption}
-                  onChange={(e) => {
+                  onChange={(e?: { value: string }) => {
                     if (e) {
                       setCheckOwnerSelectedOption(e);
                       setAppData("roundRobinSkipCheckRecordOn", e.value);

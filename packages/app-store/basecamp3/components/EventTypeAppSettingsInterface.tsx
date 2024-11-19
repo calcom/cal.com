@@ -41,7 +41,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({}) => {
           options={projects}
           isLoading={!projects}
           className="md:min-w-[120px]"
-          onChange={(project) => {
+          onChange={(project?: { value: string }) => {
             if (project) {
               setProject.mutate({ projectId: project?.value.toString() });
               setSelectedProject(project);

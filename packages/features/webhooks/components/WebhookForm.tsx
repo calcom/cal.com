@@ -200,7 +200,7 @@ const WebhookForm = (props: {
                   options={translatedTriggerOptions}
                   isMulti
                   value={selectValue}
-                  onChange={(event) => {
+                  onChange={(event: (typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)["core"]) => {
                     onChange(event.map((selection) => selection.value));
                     const noShowWebhookTriggerExists = !!event.find(
                       (trigger) =>

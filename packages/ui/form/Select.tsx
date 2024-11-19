@@ -1,4 +1,4 @@
-import type { GroupBase, InputProps, Props } from "react-select";
+import type { CommonProps, GroupBase, InputProps, Props, ClassNamesState, Theme } from "react-select";
 import ReactSelect, { components } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
@@ -29,7 +29,7 @@ function Select<
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
   return (
     <ReactSelect
-      theme={(theme) => ({
+      theme={(theme: Theme) => ({
         ...theme,
         borderRadius: 2,
         colors: {
@@ -41,7 +41,7 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
+        option: (provided: CommonProps<Option, IsMulti, Group>, state: ClassNamesState) => ({
           ...provided,
           color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {
@@ -72,23 +72,23 @@ export function UnstyledSelect<
     <ReactSelect
       {...props}
       isSearchable={false}
-      theme={(theme) => ({ ...theme, borderRadius: 0, border: "none" })}
+      theme={(theme: Theme) => ({ ...theme, borderRadius: 0, border: "none" })}
       components={{
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
       styles={{
-        container: (provided) => ({
+        container: (provided: CommonProps<Option, IsMulti, Group>) => ({
           ...provided,
           width: "100%",
         }),
-        control: (provided) => ({
+        control: (provided: CommonProps<Option, IsMulti, Group>) => ({
           ...provided,
           backgroundColor: " transparent",
           border: "none",
           boxShadow: "none",
         }),
-        option: (provided, state) => ({
+        option: (provided: CommonProps<Option, IsMulti, Group>, state: ClassNamesState) => ({
           ...provided,
           color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {

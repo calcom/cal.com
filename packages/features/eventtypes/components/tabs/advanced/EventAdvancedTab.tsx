@@ -283,7 +283,7 @@ export const EventAdvancedTab = ({
                     </span>
                   )
                 }
-                onChange={(option) =>
+                onChange={(option?: { value: number }) =>
                   formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
                 }
                 value={verifiedSecondaryEmails.find(

@@ -175,7 +175,7 @@ const MultiSelectWidget = ({
     <Select
       aria-label="multi-select-dropdown"
       className="mb-2"
-      onChange={(items) => {
+      onChange={(items?: { value: string }[]) => {
         setValue(items?.map((item) => item.value));
       }}
       value={optionsFromList}
@@ -210,7 +210,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
     <Select
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
-      onChange={(item) => {
+      onChange={(item?: { value: string }) => {
         if (!item) {
           return;
         }
@@ -309,7 +309,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
           className="flex px-2"
           defaultValue={selectValue}
           options={options}
-          onChange={(option) => {
+          onChange={(option?: { value: string }) => {
             if (!option) return;
             if (option.value === "all") {
               setConjunction("AND");
@@ -348,7 +348,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
     <Select
       className="data-testid-field-select  mb-2"
       menuPosition="fixed"
-      onChange={(item) => {
+      onChange={(item?: { value: string }) => {
         if (!item) {
           return;
         }
