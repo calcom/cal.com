@@ -24,7 +24,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
-  const { meetingUrl, meetingPassword, booking, hasTeamPlan } = props;
+  const { meetingUrl, meetingPassword, booking, hasTeamPlan, calVideoLogo } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
@@ -103,10 +103,10 @@ export default function JoinCall(props: PageProps) {
           <CalAiTranscribe />
         </div>
         <div style={{ zIndex: 2, position: "relative" }}>
-          {booking?.user?.organization?.calVideoLogo ? (
+          {calVideoLogo ? (
             <img
               className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
-              src={booking.user.organization.calVideoLogo}
+              src={calVideoLogo}
               alt="My Org Logo"
               style={{
                 top: 32,
