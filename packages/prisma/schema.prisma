@@ -350,8 +350,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
-  createdTranslations        EventTypeTranslation[]       @relation("CreatedTranslations")
-  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedTranslations")
+  createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
+  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
 
   @@unique([email])
   @@unique([email, username])
@@ -1621,8 +1621,8 @@ model EventTypeTranslation {
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
   updatedBy      Int?
-  creator        User                         @relation("CreatedTranslations", fields: [createdBy], references: [id])
-  updater        User?                        @relation("UpdatedTranslations", fields: [updatedBy], references: [id])
+  creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
+  updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id])
 
   @@unique([eventTypeId, field, targetLang])
   @@index([eventTypeId, field, targetLang])
