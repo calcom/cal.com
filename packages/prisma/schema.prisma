@@ -1623,6 +1623,8 @@ model EventTypeTranslation {
   creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
   updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id])
 
-  @@unique([eventTypeId, field, targetLang])
-  @@index([eventTypeId, field, targetLang])
+  @@unique([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@unique([eventTypeId, field, targetLocale])
+  @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@index([eventTypeId, field, targetLocale])
 }

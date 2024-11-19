@@ -33,8 +33,11 @@ export async function translateEventTypeDescription(payload: string): Promise<vo
     await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
       targetLocales.map((targetLocale, index) => ({
         eventTypeId,
-        sourceLang: userLocale,
-        targetLang: targetLocale,
+        sourceLocale: userLocale,
+        targetLocale: targetLocale,
+        // Keep old fields during transition
+        sourceLang: userLocale, // TODO: remove after migration
+        targetLang: targetLocale, // TODO: remove after migration
         translatedText: translatedTexts[index],
         userId,
       }))
