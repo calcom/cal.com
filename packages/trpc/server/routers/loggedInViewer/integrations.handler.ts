@@ -7,6 +7,7 @@ import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCr
 import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
 import mergeUserAndTeamAppCredentials from "@calcom/lib/apps/mergeUserAndTeamAppCredentials";
 import transformAppsBasedOnInput from "@calcom/lib/apps/transformAppsBasedOnInput";
+import type { EnabledAppType } from "@calcom/lib/apps/transformAppsBasedOnInput";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -77,7 +78,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
         isSetupAlready,
         ...(app.dependencies && { dependencyData }),
-      };
+      } as EnabledAppType;
     })
   );
 

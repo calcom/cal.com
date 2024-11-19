@@ -4,7 +4,7 @@ import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import type { TIntegrationsInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/integrations.schema";
 import type { App } from "@calcom/types/App";
 
-type EnabledAppType = App & {
+export type EnabledAppType = App & {
   enabled: boolean;
   userCredentialIds: number[];
   invalidCredentialIds: number[];
