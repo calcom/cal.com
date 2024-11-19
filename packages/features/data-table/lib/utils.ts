@@ -4,7 +4,7 @@ import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
 import { useMemo } from "react";
 import { z } from "zod";
 
-import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
+import type { SelectFilterValue, TextFilterValue } from "./types";
 import { ZSelectFilterValue, ZTextFilterValue } from "./types";
 
 const filterSchema = z.object({
@@ -80,75 +80,3 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
 export const isSelectFilterValue = (filterValue: unknown): filterValue is SelectFilterValue => {
   return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
 };
-
-export function makeWhereClause(columnName: string, filterValue: FilterValue) {
-  if (isSelectFilterValue(filterValue)) {
-    return {
-      [columnName]: {
-        in: filterValue,
-      },
-    };
-  } else if (isTextFilterValue(filterValue)) {
-    const { operator, operand } = filterValue.data;
-
-    switch (operator) {
-      case "equals":
-        return {
-          [columnName]: {
-            equals: operand,
-          },
-        };
-      case "notEquals":
-        return {
-          [columnName]: {
-            not: operand,
-          },
-        };
-      case "contains":
-        return {
-          [columnName]: {
-            contains: operand,
-            mode: "insensitive",
-          },
-        };
-      case "notContains":
-        return {
-          NOT: {
-            [columnName]: {
-              contains: operand,
-              mode: "insensitive",
-            },
-          },
-        };
-      case "startsWith":
-        return {
-          [columnName]: {
-            startsWith: operand,
-            mode: "insensitive",
-          },
-        };
-      case "endsWith":
-        return {
-          [columnName]: {
-            endsWith: operand,
-            mode: "insensitive",
-          },
-        };
-      case "isEmpty":
-        return {
-          [columnName]: {
-            equals: "",
-          },
-        };
-      case "isNotEmpty":
-        return {
-          NOT: {
-            [columnName]: {
-              equals: "",
-            },
-          },
-        };
-    }
-  }
-  return {};
-}

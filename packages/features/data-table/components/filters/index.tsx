@@ -22,9 +22,9 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import type { FilterableColumn } from "../../lib/types";
+import { useFiltersSearchState } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
-import type { FilterableColumn } from "./types";
-import { useFiltersSearchState } from "./utils";
 
 interface ColumnVisiblityProps<TData> {
   table: Table<TData>;

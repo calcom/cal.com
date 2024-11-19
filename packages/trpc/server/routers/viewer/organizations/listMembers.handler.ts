@@ -1,8 +1,8 @@
+import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
-import { makeWhereClause } from "@calcom/ui";
 
 import { TRPCError } from "@trpc/server";
 

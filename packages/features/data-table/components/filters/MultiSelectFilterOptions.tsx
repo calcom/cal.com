@@ -12,7 +12,7 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { FilterableColumn, SelectFilterValue } from "./types";
+import type { FilterableColumn, SelectFilterValue } from "../../lib/types";
 
 export type MultiSelectFilterOptionsProps = {
   column: FilterableColumn;
