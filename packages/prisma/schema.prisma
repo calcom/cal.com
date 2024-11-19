@@ -1607,8 +1607,7 @@ enum EventTypeAutoTranslatedField {
 }
 
 model EventTypeTranslation {
-  id             String                       @id @default(cuid())
-  uid            String                       @unique
+  uid            String                       @id @default(cuid())
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
