@@ -33,7 +33,6 @@
     "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "declarationMap": false,
     "resolveJsonModule": true,
