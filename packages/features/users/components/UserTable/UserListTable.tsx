@@ -214,6 +214,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         meta: {
           sticky: {
             position: "left",
@@ -240,6 +241,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        size: 170,
         header: () => {
           return `Members`;
         },
@@ -347,6 +349,7 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        size: 50,
         meta: {
           sticky: { position: "right" },
         },
@@ -456,7 +459,12 @@ export function UserListTable() {
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(headers, allMembers as UserTableUser[], ATTRIBUTE_IDS);
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allMembers as UserTableUser[],
+        ATTRIBUTE_IDS,
+        domain
+      );
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }

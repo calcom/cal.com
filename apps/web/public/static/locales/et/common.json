@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Valige mõned vabad ajad ja manustage need oma e-kirja",
   "select_time": "Vali aeg",
   "select_date": "Vali kuupäev",
+  "only_show_if_parameter_set": "Kuva ainult siis, kui parameeter on määratud",
+  "add_parameter": "Lisa parameeter",
   "connecting_you_to_someone": "Me ühendame teid kellegagi {{orgName}}-st.",
   "please_do_not_close_this_tab": "Palun ärge sulgege ega värskendage seda lehte",
   "see_all_available_times": "Vaata kõiki saadaolevaid aegu",
