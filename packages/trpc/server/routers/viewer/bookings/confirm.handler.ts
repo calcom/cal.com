@@ -17,6 +17,7 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/client";
 import {
   BookingStatus,
   MembershipRole,
@@ -445,6 +446,7 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
       prisma.eventType.findUnique({
         where: {
           id: eventTypeId,
+          schedulingType: SchedulingType.COLLECTIVE,
           users: { some: { id: loggedInUserId } },
         },
         select: { id: true },
