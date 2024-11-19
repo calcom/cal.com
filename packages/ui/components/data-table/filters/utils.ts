@@ -108,6 +108,7 @@ export function makeWhereClause(columnName: string, filterValue: FilterValue) {
         return {
           [columnName]: {
             contains: operand,
+            mode: "insensitive",
           },
         };
       case "notContains":
@@ -115,6 +116,7 @@ export function makeWhereClause(columnName: string, filterValue: FilterValue) {
           NOT: {
             [columnName]: {
               contains: operand,
+              mode: "insensitive",
             },
           },
         };
@@ -122,12 +124,14 @@ export function makeWhereClause(columnName: string, filterValue: FilterValue) {
         return {
           [columnName]: {
             startsWith: operand,
+            mode: "insensitive",
           },
         };
       case "endsWith":
         return {
           [columnName]: {
             endsWith: operand,
+            mode: "insensitive",
           },
         };
       case "isEmpty":
