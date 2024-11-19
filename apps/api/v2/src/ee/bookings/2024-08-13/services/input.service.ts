@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -32,6 +33,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -123,10 +125,13 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
       inputBooking.attendee.timeZone
     );
-    const endTime = startTime.plus({ minutes: eventType.length });
+    const endTime = startTime.plus({ minutes: lengthInMinutes });
 
     return {
       start: startTime.toISO(),
@@ -148,6 +153,25 @@ export class InputBookingsService_2024_08_13 {
           }
         : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
     };
+  }
+
+  validateBookingLengthInMinutes(inputBooking: CreateBookingInput_2024_08_13, eventType: EventType) {
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+    if (inputBooking.lengthInMinutes && !eventTypeMetadata?.multipleDuration) {
+      throw new BadRequestException(
+        "Can't specify 'lengthInMinutes' because event type does not have multiple possible lengths. Please, remove the 'lengthInMinutes' field from the request."
+      );
+    }
+    if (
+      inputBooking.lengthInMinutes &&
+      !eventTypeMetadata?.multipleDuration?.includes(inputBooking.lengthInMinutes)
+    ) {
+      throw new BadRequestException(
+        `Provided 'lengthInMinutes' is not one of the possible lengths for the event type. The possible lengths are: ${eventTypeMetadata?.multipleDuration?.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   async createRecurringBookingRequest(
@@ -469,23 +493,38 @@ export class InputBookingsService_2024_08_13 {
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
+    const recurringBooking = await this.bookingsRepository.getRecurringByUid(bookingUid);
+    // note(Lauris): isRecurring means that recurringEventId was passed as uid. isRecurring does not refer to the uid of 1 individual booking within a recurring booking consisting of many bookings.
+    // That is what recurringEventId refers to.
+    const isRecurringUid = !!recurringBooking.length;
 
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
+    if (isRecurringUid && inputBooking.cancelSubsequentBookings) {
+      throw new BadRequestException(
+        "Cannot cancel subsequent bookings for recurring event - you have to provide uid of one of the individual bookings of a recurring booking."
+      );
+    }
+
+    if (isRecurringUid) {
+      return {
+        // note(Lauris): set uid as one of the oldest individual recurring ids
+        uid: recurringBooking[0].uid,
+        cancellationReason: inputBooking.cancellationReason,
+        allRemainingBookings: true,
+      };
+    }
+
+    if (inputBooking.cancelSubsequentBookings) {
+      return {
+        uid: bookingUid,
+        cancellationReason: inputBooking.cancellationReason,
+        cancelSubsequentBookings: true,
+      };
     }
 
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: inputBooking.cancellationReason,
-      allRemainingBookings,
+      allRemainingBookings: false,
     };
   }
 
@@ -493,23 +532,12 @@ export class InputBookingsService_2024_08_13 {
     bookingUid: string,
     inputBooking: CancelSeatedBookingInput_2024_08_13
   ) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
-
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
-    }
-
+    // note(Lauris): for recurring seated booking it is not possible to cancel all remaining bookings
+    // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: "",
-      allRemainingBookings,
+      allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };
   }

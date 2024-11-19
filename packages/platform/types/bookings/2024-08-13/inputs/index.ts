@@ -7,3 +7,4 @@ export * from "./mark-absent.input";
 export * from "./reassign-to-user.input";
 export * from "./reschedule-booking-input.pipe";
 export * from "./cancel-booking-input.pipe";
+export * from "./decline-booking.input";

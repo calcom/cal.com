@@ -35,6 +35,7 @@ type User = {
     id: SessionUser["profile"]["id"] | null;
   };
   selectedCalendars: SessionUser["selectedCalendars"];
+  organizationId: number | null;
 };
 
 type UpdateOptions = {
@@ -74,6 +75,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     secondaryEmailId,
     aiPhoneCallConfig,
     isRRWeightsEnabled,
+    autoTranslateDescriptionEnabled,
     ...rest
   } = input;
 
@@ -153,6 +155,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
+    // autoTranslate feature is allowed for org users only
+    autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
     bookingFields,
     isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
@@ -316,6 +320,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          scheduleId: host.scheduleId ?? null,
         },
       })),
     };
