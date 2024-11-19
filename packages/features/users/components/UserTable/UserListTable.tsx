@@ -456,7 +456,12 @@ export function UserListTable() {
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(headers, allMembers as UserTableUser[], ATTRIBUTE_IDS);
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allMembers as UserTableUser[],
+        ATTRIBUTE_IDS,
+        domain
+      );
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
