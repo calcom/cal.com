@@ -1,11 +1,9 @@
 import { captureException } from "@sentry/nextjs";
-import { injectable } from "inversify";
 
 import db from "@calcom/prisma";
 
 import type { IFeaturesRepository } from "./features.repository.interface";
 
-@injectable()
 export class FeaturesRepository implements IFeaturesRepository {
   async checkIfUserHasFeature(userId: number, slug: string) {
     try {
