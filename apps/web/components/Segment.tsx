@@ -3,6 +3,10 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { classNames as cn } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -40,9 +44,14 @@ function SegmentWithAttributes({
   });
 
   const [queryValue, setQueryValue] = useState(initialQueryValue);
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = withRaqbSettingsAndWidgets({
+    config: attributesQueryBuilderConfig,
+    configFor: ConfigFor.Attributes,
+  });
+
   const queryBuilderData = buildStateFromQueryValue({
     queryValue: queryValue as JsonTree,
-    config: attributesQueryBuilderConfig,
+    config: attributesQueryBuilderConfigWithRaqbSettingsAndWidgets,
   });
 
   const renderBuilder = useCallback(
@@ -73,7 +82,7 @@ function SegmentWithAttributes({
     <div>
       <div className={cn("cal-query-builder", className)}>
         <Query
-          {...attributesQueryBuilderConfig}
+          {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
           value={queryBuilderData.state.tree}
           onChange={onChange}
           renderBuilder={renderBuilder}

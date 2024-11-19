@@ -443,10 +443,12 @@ const settings: Settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 
-export default {
+const basicConfig = {
   conjunctions,
   operators,
   widgets,
   types,
   settings,
 };
+
+export default basicConfig;

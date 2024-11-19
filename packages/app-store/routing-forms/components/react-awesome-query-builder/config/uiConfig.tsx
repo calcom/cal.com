@@ -1,7 +1,6 @@
 import type { ChangeEvent } from "react";
 import type {
   Settings,
-  Widgets,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
 } from "react-awesome-query-builder";
@@ -9,35 +8,11 @@ import type {
 import { EmailField as EmailWidget } from "@calcom/ui";
 
 import widgetsComponents from "../widgets";
-// Figure out why routing-forms/env.d.ts doesn't work
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import type { Operators, Types } from "./BasicConfig";
 import BasicConfig from "./BasicConfig";
+import type { Widgets, WidgetsWithoutFactory } from "./types";
+import type { ConfigFor } from "./types";
 
-const enum ConfigFor {
-  FormFields = "FormFields",
-  Attributes = "Attributes",
-}
-const {
-  TextWidget,
-  TextAreaWidget,
-  MultiSelectWidget,
-  SelectWidget,
-  NumberWidget,
-  FieldSelect,
-  Conjs,
-  Button,
-  ButtonGroup,
-  Provider,
-} = widgetsComponents;
-
-const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
-  if (!props) {
-    return <div />;
-  }
-  return <Component {...props} />;
-};
+export { ConfigFor } from "./types";
 
 function getSettings(_configFor: ConfigFor) {
   const settings: Settings = {
@@ -61,26 +36,45 @@ function getSettings(_configFor: ConfigFor) {
   return settings;
 }
 
+const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
+  if (!props) {
+    return <div />;
+  }
+  return <Component {...props} />;
+};
+
+const {
+  TextWidget,
+  TextAreaWidget,
+  MultiSelectWidget,
+  SelectWidget,
+  NumberWidget,
+  FieldSelect,
+  Conjs,
+  Button,
+  ButtonGroup,
+  Provider,
+} = widgetsComponents;
 // react-query-builder types have missing type property on Widget
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
 // So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
-function getWidgets(_configFor: ConfigFor) {
-  const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
-    ...BasicConfig.widgets,
+function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
+  const widgetsWithFactory: Widgets = {
+    ...widgets,
     text: {
-      ...BasicConfig.widgets.text,
+      ...widgets.text,
       factory: (props) => renderComponent(props, TextWidget),
     },
     textarea: {
-      ...BasicConfig.widgets.textarea,
+      ...widgets.textarea,
       factory: (props) => renderComponent(props, TextAreaWidget),
     },
     number: {
-      ...BasicConfig.widgets.number,
+      ...widgets.number,
       factory: (props) => renderComponent(props, NumberWidget),
     },
     multiselect: {
-      ...BasicConfig.widgets.multiselect,
+      ...widgets.multiselect,
       factory: (
         props?: SelectWidgetProps & {
           listValues: { title: string; value: string }[];
@@ -88,7 +82,7 @@ function getWidgets(_configFor: ConfigFor) {
       ) => renderComponent(props, MultiSelectWidget),
     } as SelectWidgetType,
     select: {
-      ...BasicConfig.widgets.select,
+      ...widgets.select,
       factory: (
         props: SelectWidgetProps & {
           listValues: { title: string; value: string }[];
@@ -96,7 +90,7 @@ function getWidgets(_configFor: ConfigFor) {
       ) => renderComponent(props, SelectWidget),
     } as SelectWidgetType,
     phone: {
-      ...BasicConfig.widgets.text,
+      ...widgets.text,
       factory: (props) => {
         if (!props) {
           return <div />;
@@ -106,7 +100,7 @@ function getWidgets(_configFor: ConfigFor) {
       valuePlaceholder: "Enter Phone Number",
     },
     email: {
-      ...BasicConfig.widgets.text,
+      ...widgets.text,
       factory: (props) => {
         if (!props) {
           return <div />;
@@ -126,73 +120,19 @@ function getWidgets(_configFor: ConfigFor) {
       },
     },
   };
-  return widgets;
+  return widgetsWithFactory;
 }
 
-function getTypes(configFor: ConfigFor) {
-  const multiSelectOperators = BasicConfig.types.multiselect.widgets.multiselect.operators || [];
-
-  if (configFor === ConfigFor.Attributes) {
-    // Attributes don't need reporting at the moment. So, we can support multiselect_some_in and multiselect_not_some_in operators for attributes.
-    // We could probably use them in FormFields later once they are supported through Prisma query as well
-    multiSelectOperators.push("multiselect_some_in", "multiselect_not_some_in");
-  }
-
-  const types: Types = {
-    ...BasicConfig.types,
-    phone: {
-      ...BasicConfig.types.text,
-      widgets: {
-        ...BasicConfig.types.text.widgets,
-      },
-    },
-    email: {
-      ...BasicConfig.types.text,
-      widgets: {
-        ...BasicConfig.types.text.widgets,
-      },
-    },
-    multiselect: {
-      ...BasicConfig.types.multiselect,
-      widgets: {
-        ...BasicConfig.types.multiselect.widgets,
-        multiselect: {
-          ...BasicConfig.types.multiselect.widgets.multiselect,
-          operators: [...multiSelectOperators],
-        },
-      },
-    },
-  };
-  return types;
-}
-
-function getOperators(configFor: ConfigFor) {
-  // Clone to avoid mutating the original object
-  const operators: Operators = {
-    ...BasicConfig.operators,
-  };
-
-  return operators;
-}
-
-function getConjunctions(_configFor: ConfigFor) {
+export function withRaqbSettingsAndWidgets<T extends { widgets: WidgetsWithoutFactory }>({
+  config,
+  configFor,
+}: {
+  config: T;
+  configFor: ConfigFor;
+}) {
   return {
-    ...BasicConfig.conjunctions,
+    ...config,
+    settings: getSettings(configFor),
+    widgets: withFactoryWidgets(config.widgets),
   };
 }
-
-export const FormFieldsBaseConfig = {
-  conjunctions: getConjunctions(ConfigFor.FormFields),
-  operators: getOperators(ConfigFor.FormFields),
-  types: getTypes(ConfigFor.FormFields),
-  widgets: getWidgets(ConfigFor.FormFields),
-  settings: getSettings(ConfigFor.FormFields),
-};
-
-export const AttributesBaseConfig = {
-  conjunctions: getConjunctions(ConfigFor.Attributes),
-  operators: getOperators(ConfigFor.Attributes),
-  types: getTypes(ConfigFor.Attributes),
-  widgets: getWidgets(ConfigFor.Attributes),
-  settings: getSettings(ConfigFor.Attributes),
-};

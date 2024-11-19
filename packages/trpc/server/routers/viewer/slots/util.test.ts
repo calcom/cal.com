@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { vi } from "vitest";
 
 import type { GetAvailabilityUser } from "@calcom/core/getUserAvailability";
 
 import { getUsersWithCredentialsConsideringContactOwner } from "./util";
-
-// We don't need to test it. Also, it causes Formbricks error when imported
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
-  default: {},
-}));
 
 describe("getUsersWithCredentialsConsideringContactOwner", () => {
   const createMockUser = (email: string): GetAvailabilityUser => ({

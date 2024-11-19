@@ -17,12 +17,6 @@ import handler from "../../../pages/api/bookings/_post";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
-
-// We don't need to test it. Also, it causes Formbricks error when imported
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
-  default: {},
-}));
-
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/lib/server/i18n", () => {
   return {

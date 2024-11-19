@@ -13,7 +13,7 @@ import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/client";
+import type { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -33,6 +33,10 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "../../components/react-awesome-query-builder/config/uiConfig";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
@@ -342,20 +346,16 @@ const Route = ({
         }
       : undefined;
 
-  const chosenEventTypeForRedirect = eventTypeRedirectUrlSelectedOption?.eventTypeId
-    ? eventTypesMap.get(eventTypeRedirectUrlSelectedOption.eventTypeId)
-    : null;
-
-  const isRoundRobinEventSelectedForRedirect =
-    chosenEventTypeForRedirect?.schedulingType === SchedulingType.ROUND_ROBIN;
-
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
     <div>
       <span className="text-emphasis flex w-full items-center text-sm">
         For responses matching the following criteria (matches all by default)
       </span>
       <Query
-        {...(formFieldsQueryBuilderConfig as unknown as Config)}
+        {...withRaqbSettingsAndWidgets({
+          config: formFieldsQueryBuilderConfig,
+          configFor: ConfigFor.FormFields,
+        })}
         value={route.formFieldsQueryBuilderState.tree}
         onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
           onChangeFormFieldsQuery(
@@ -370,6 +370,13 @@ const Route = ({
       <Divider className="mb-6 " />
     </div>
   ) : null;
+
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
+    ? withRaqbSettingsAndWidgets({
+        config: attributesQueryBuilderConfig,
+        configFor: ConfigFor.Attributes,
+      })
+    : null;
 
   const attributesQueryBuilder =
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
@@ -392,9 +399,9 @@ const Route = ({
         ) : null}
 
         <div className="mt-2">
-          {route.attributesQueryBuilderState && attributesQueryBuilderConfig && (
+          {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <Query
-              {...(attributesQueryBuilderConfig as unknown as Config)}
+              {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
               value={route.attributesQueryBuilderState.tree}
               onChange={(immutableTree, attributesQueryBuilderConfig) => {
                 onChangeTeamMembersQuery(
@@ -417,20 +424,21 @@ const Route = ({
           {t("fallback_attribute_logic_description")}
         </span>
         <div className="mt-2">
-          {route.fallbackAttributesQueryBuilderState && attributesQueryBuilderConfig && (
-            <Query
-              {...(attributesQueryBuilderConfig as unknown as Config)}
-              value={route.fallbackAttributesQueryBuilderState.tree}
-              onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                onChangeFallbackTeamMembersQuery(
-                  route,
-                  immutableTree,
-                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                );
-              }}
-              renderBuilder={renderBuilder}
-            />
-          )}
+          {route.fallbackAttributesQueryBuilderState &&
+            attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+              <Query
+                {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+                value={route.fallbackAttributesQueryBuilderState.tree}
+                onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                  onChangeFallbackTeamMembersQuery(
+                    route,
+                    immutableTree,
+                    attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                  );
+                }}
+                renderBuilder={renderBuilder}
+              />
+            )}
         </div>
       </div>
     ) : null;
