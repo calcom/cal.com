@@ -35,15 +35,25 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
   private async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string) {
     try {
-      const memberships = await db.membership.findMany({ where: { userId }, select: { teamId: true } });
-      if (!memberships.length) return false;
-      const teamFeature = await db.teamFeatures.findMany({
+      const user = await db.user.findUnique({
         where: {
-          teamId: { in: memberships.map((m) => m.teamId) },
-          featureId: slug,
+          id: userId,
+          teams: {
+            some: {
+              team: {
+                features: {
+                  some: {
+                    featureId: slug,
+                  },
+                },
+              },
+            },
+          },
         },
+        select: { id: true },
       });
-      return teamFeature.length > 0;
+      if (user) return true;
+      return false;
     } catch (err) {
       captureException(err);
       throw err;

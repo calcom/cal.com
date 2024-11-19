@@ -1,6 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getInjection } from "@calcom/di";
+import { FeaturesRepository } from "../features.repository";
 
 /**
  * Use Cases represent individual operations, like "Create Feature" or "Sign In" or "Toggle Feature".
@@ -11,7 +11,7 @@ import { getInjection } from "@calcom/di";
  */
 export function checkIfUserHasFeatureUseCase(userId: number, slug: string): Promise<boolean> {
   return startSpan({ name: "checkIfUserHasFeature UseCase", op: "function" }, async () => {
-    const featuresRepository = getInjection("FeaturesRepository");
+    const featuresRepository = new FeaturesRepository();
 
     return await featuresRepository.checkIfUserHasFeature(userId, slug);
   });
