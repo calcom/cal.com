@@ -78,11 +78,15 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   // Check if OOO entry already exists
   const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
     where: {
-      userId: ctx.user.id,
-      uuid: {
-        not: input.uuid ?? "",
-      },
-      OR: [{ start: inputStartDateUtc.toDate() }, { end: inputEndDateUtc.toDate() }],
+      AND: [
+        { userId: ctx.user.id },
+        {
+          uuid: {
+            not: input.uuid ?? "",
+          },
+        },
+        { OR: [{ start: inputStartDateUtc.toDate() }, { end: inputEndDateUtc.toDate() }] },
+      ],
     },
   });
 
