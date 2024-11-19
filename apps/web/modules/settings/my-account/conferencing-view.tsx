@@ -46,7 +46,6 @@ const ConferencingView = ({
   handleUpdateDefaultConferencingApp,
   handleBulkUpdateDefaultLocation,
   isBulkUpdateDefaultLocationPending,
-  ...rest
 }: ConferencingViewProps) => {
   const { t } = useLocale();
 

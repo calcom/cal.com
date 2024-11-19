@@ -30,6 +30,7 @@ export const ConferencingAppsViewWebWrapper = ({
   });
 
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+
   const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
@@ -72,6 +73,7 @@ export const ConferencingAppsViewWebWrapper = ({
       }
     );
   };
+
   const handleBulkUpdateDefaultLocation = ({
     eventTypeIds,
     callback,
