@@ -347,7 +347,7 @@ export function RoutingFormResponsesTable({
       }) ?? []),
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
-        header: t("routing_form_insights_booking_at"),
+        header: t("routing_form_insights_booking_status"),
         size: 250,
         cell: (info) => (
           <div className="max-w-[250px]">
