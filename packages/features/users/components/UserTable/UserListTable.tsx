@@ -343,6 +343,11 @@ export function UserListTable() {
       },
       ...generateAttributeColumns(),
       {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
         id: "actions",
         enableHiding: false,
         size: 50,
