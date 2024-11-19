@@ -1,16 +1,18 @@
 import { withValidation } from "next-validations";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
+
 import { baseApiParams } from "./baseApiParams";
 
 // Extracted out as utility function so can be reused
 // at different endpoints that require this validation.
 export const schemaQueryUserEmail = baseApiParams.extend({
-  email: z.string().email(),
+  email: emailSchema,
 });
 
 export const schemaQuerySingleOrMultipleUserEmails = z.object({
-  email: z.union([z.string().email(), z.array(z.string().email())]),
+  email: z.union([emailSchema, z.array(emailSchema)]),
 });
 
 export const withValidQueryUserEmail = withValidation({

@@ -13,6 +13,7 @@ import {
   IsUrl,
   IsObject,
   IsBoolean,
+  Min,
 } from "class-validator";
 
 import type { BookingLanguageType } from "./language";
@@ -62,6 +63,16 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsDateString()
   start!: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @ApiProperty({
+    example: 30,
+    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
+    If not provided then event type default length will be used for the booking.`,
+  })
+  lengthInMinutes?: number;
 
   @ApiProperty({
     type: Number,
@@ -144,70 +155,16 @@ export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_202
   instant!: boolean;
 }
 
-export class CreateRecurringBookingInput_2024_08_13 {
-  @ApiProperty({
-    type: String,
-    description: "The start time of the booking in ISO 8601 format in UTC timezone.",
-    example: "2024-08-13T09:00:00Z",
-  })
-  @IsDateString()
-  start!: string;
-
-  @ApiProperty({
+export class CreateRecurringBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
+  @ApiPropertyOptional({
     type: Number,
-    description: "The ID of the event type that is booked.",
-    example: 123,
+    description: `The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than
+    event type recurrence count`,
+    example: 5,
+    required: false,
   })
+  @IsOptional()
   @IsInt()
-  eventTypeId!: number;
-
-  @ApiProperty({
-    type: Attendee,
-    description: "The attendee's details.",
-  })
-  @ValidateNested()
-  @Type(() => Attendee)
-  attendee!: Attendee;
-
-  @ApiProperty({
-    type: [String],
-    description: "An optional list of guest emails attending the event.",
-    example: ["guest1@example.com", "guest2@example.com"],
-    required: false,
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  guests?: string[];
-
-  @ApiProperty({
-    type: String,
-    description: "Location for this booking. Displayed in email and calendar event.",
-    example: "https://example.com/meeting",
-    required: false,
-  })
-  @IsUrl()
-  @IsOptional()
-  location?: string;
-
-  // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-  // @ApiProperty({
-  //   type: Object,
-  //   description: "Optional metadata for the booking.",
-  //   example: { key: "value" },
-  //   required: false,
-  // })
-  // @IsObject()
-  // @IsOptional()
-  // metadata!: Record<string, unknown>;
-
-  @ApiProperty({
-    type: Object,
-    description: "Booking field responses.",
-    example: { customField: "customValue" },
-    required: false,
-  })
-  @IsObject()
-  @IsOptional()
-  bookingFieldsResponses?: Record<string, unknown>;
+  @Min(1)
+  recurrenceCount?: number;
 }

@@ -15,6 +15,7 @@ import {
   OrgTeamMembershipsOutputResponseDto,
   OrgTeamMembershipOutputResponseDto,
 } from "@/modules/organizations/outputs/organization-teams-memberships.output";
+import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/services/organizations-teams-memberships.service";
 import {
   Controller,
@@ -30,11 +31,13 @@ import {
   HttpStatus,
   HttpCode,
   UnprocessableEntityException,
+  Logger,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
@@ -44,8 +47,11 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Memberships")
 export class OrganizationsTeamsMembershipsController {
+  private logger = new Logger("OrganizationsTeamsMembershipsController");
+
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
+    private oganizationsEventTypesService: OrganizationsEventTypesService,
     private readonly organizationsRepository: OrganizationsRepository
   ) {}
 
@@ -112,6 +118,9 @@ export class OrganizationsTeamsMembershipsController {
       teamId,
       membershipId
     );
+
+    await this.oganizationsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
+
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
@@ -129,15 +138,29 @@ export class OrganizationsTeamsMembershipsController {
     @Param("membershipId", ParseIntPipe) membershipId: number,
     @Body() data: UpdateOrgTeamMembershipDto
   ): Promise<OrgTeamMembershipOutputResponseDto> {
-    const membership = await this.organizationsTeamsMembershipsService.updateOrgTeamMembership(
+    const currentMembership = await this.organizationsTeamsMembershipsService.getOrgTeamMembership(
+      orgId,
+      teamId,
+      membershipId
+    );
+    const updatedMembership = await this.organizationsTeamsMembershipsService.updateOrgTeamMembership(
       orgId,
       teamId,
       membershipId,
       data
     );
+
+    if (!currentMembership.accepted && updatedMembership.accepted) {
+      try {
+        await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
+      } catch (err) {
+        this.logger.error("Could not update new team member eventTypes", err);
+      }
+    }
+
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(OrgTeamMembershipOutputDto, updatedMembership, { strategy: "excludeAll" }),
     };
   }
 
@@ -158,6 +181,13 @@ export class OrganizationsTeamsMembershipsController {
     }
 
     const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(teamId, data);
+    if (membership.accepted) {
+      try {
+        await updateNewTeamMemberEventTypes(user.id, teamId);
+      } catch (err) {
+        this.logger.error("Could not update new team member eventTypes", err);
+      }
+    }
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),

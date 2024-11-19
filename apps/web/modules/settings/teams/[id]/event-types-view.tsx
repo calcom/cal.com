@@ -2,9 +2,12 @@
 
 import { useRouter } from "next/navigation";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { WizardLayout } from "@calcom/ui";
 import { Button, showToast } from "@calcom/ui";
 
@@ -35,13 +38,29 @@ export const CreateTeamEventType = () => {
     );
   };
 
+  const { data: team } = trpc.viewer.teams.get.useQuery(
+    { teamId: teamId ?? -1, isOrg: false },
+    { enabled: !!teamId }
+  );
+
+  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
+
+  const orgBranding = useOrgBranding();
+  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
+
   return (
     <TeamEventTypeForm
-      isTeamAdminOrOwner={true}
+      teamSlug={team?.slug}
       teamId={teamId}
+      isTeamAdminOrOwner={true}
+      urlPrefix={urlPrefix}
+      isPending={createMutation.isPending}
+      form={form}
+      isManagedEventType={isManagedEventType}
+      handleSubmit={(values) => {
+        createMutation.mutate(values);
+      }}
       SubmitButton={SubmitButton}
-      onSuccessMutation={onSuccessMutation}
-      onErrorMutation={onErrorMutation}
     />
   );
 };

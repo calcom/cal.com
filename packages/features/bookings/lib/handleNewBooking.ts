@@ -8,10 +8,11 @@ import { v5 as uuidv5 } from "uuid";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
+  getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
-  getLocationValueForDB,
 } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -56,10 +57,9 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getLuckyUser } from "@calcom/lib/server";
+import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -88,12 +88,13 @@ import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type {
-  Invitee,
-  IEventTypePaymentCredentialType,
-  IsFixedAwareUser,
-  BookingType,
   Booking,
+  BookingType,
+  IEventTypePaymentCredentialType,
+  Invitee,
+  IsFixedAwareUser,
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
@@ -111,6 +112,12 @@ export const createLoggerWithEventDetails = (
     prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
   });
 };
+
+function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
+  if (arr.length === 0) {
+    throw new Error("Array should have at least one item, but it's empty");
+  }
+}
 
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
@@ -149,6 +156,36 @@ const getEventType = async ({
 type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
+
+/**
+ * Adds the contact owner to be the only lucky user
+ * @returns
+ */
+function buildLuckyUsersWithJustContactOwner({
+  contactOwnerEmail,
+  availableUsers,
+  fixedUserPool,
+}: {
+  contactOwnerEmail: string | null;
+  availableUsers: IsFixedAwareUser[];
+  fixedUserPool: IsFixedAwareUser[];
+}) {
+  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
+  if (!contactOwnerEmail) {
+    return luckyUsers;
+  }
+
+  const isContactOwnerAFixedHostAlready = fixedUserPool.some((user) => user.email === contactOwnerEmail);
+  if (isContactOwnerAFixedHostAlready) {
+    return luckyUsers;
+  }
+
+  const teamMember = availableUsers.find((user) => user.email === contactOwnerEmail);
+  if (teamMember) {
+    luckyUsers.push(teamMember);
+  }
+  return luckyUsers;
+}
 
 async function handler(
   req: NextApiRequest & {
@@ -203,6 +240,8 @@ async function handler(
     rescheduleReason,
     luckyUsers,
     routedTeamMemberIds,
+    reroutingFormResponses,
+    routingFormResponseId,
     ...reqBody
   } = bookingData;
 
@@ -271,6 +310,10 @@ async function handler(
     logger: loggerWithEventDetails,
   });
 
+  const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
+  const skipContactOwner = reqBody.skipContactOwner ?? false;
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+
   let users = await loadAndValidateUsers({
     req,
     eventType,
@@ -278,6 +321,7 @@ async function handler(
     dynamicUserList,
     logger: loggerWithEventDetails,
     routedTeamMemberIds: routedTeamMemberIds ?? null,
+    contactOwnerEmail,
   });
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
@@ -384,7 +428,6 @@ async function handler(
         },
         loggerWithEventDetails
       );
-      const luckyUsers: typeof users = [];
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
       availableUsers.forEach((user) => {
@@ -401,21 +444,22 @@ async function handler(
         })
       );
 
-      if (reqBody.teamMemberEmail) {
-        // If requested user is not a fixed host, assign the lucky user as the team member
-        if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
-          const teamMember = availableUsers.find((user) => user.email === reqBody.teamMemberEmail);
-          if (teamMember) {
-            luckyUsers.push(teamMember);
-          }
-        }
-      }
+      const luckyUsers: typeof users = buildLuckyUsersWithJustContactOwner({
+        contactOwnerEmail: contactOwnerEmail,
+        availableUsers,
+        fixedUserPool,
+      });
 
       // loop through all non-fixed hosts and get the lucky users
+      // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
+        // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
+        if (freeUsers.length === 0) break;
+        assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too wih an assertion; the error will never be thrown.
+        // freeUsers is ensured
         const originalRescheduledBookingUserId =
           originalRescheduledBooking && originalRescheduledBooking.userId;
         const isSameRoundRobinHost =
@@ -423,13 +467,38 @@ async function handler(
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
           eventType.rescheduleWithSameRoundRobinHost;
 
+        const userIdsSet = new Set(users.map((user) => user.id));
+
+        let routingFormResponse;
+
+        if (routedTeamMemberIds) {
+          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+            where: {
+              id: routingFormResponseId,
+            },
+            select: {
+              response: true,
+              form: {
+                select: {
+                  routes: true,
+                  fields: true,
+                },
+              },
+              chosenRouteId: true,
+            },
+          });
+        }
+
         const newLuckyUser = isSameRoundRobinHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
-          : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+          : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+              allRRHosts: eventTypeWithUsers.hosts.filter(
+                (host) => !host.isFixed && userIdsSet.has(host.user.id)
+              ), // users part of virtual queue
               eventType,
+              routingFormResponse: routingFormResponse ?? null,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -632,7 +701,6 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
-
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
@@ -776,6 +844,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -784,6 +853,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
@@ -886,24 +956,12 @@ async function handler(
     })
   );
 
-  // update original rescheduled booking (no seats event)
-  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
-    await prisma.booking.update({
-      where: {
-        id: originalRescheduledBooking.id,
-      },
-      data: {
-        rescheduled: true,
-        status: BookingStatus.CANCELLED,
-        rescheduledBy: reqBody.rescheduledBy,
-      },
-    });
-  }
-
   try {
     booking = await createBooking({
       uid,
-      routedFromRoutingFormResponseId: reqBody.routingFormResponseId,
+      rescheduledBy: reqBody.rescheduledBy,
+      routingFormResponseId: routingFormResponseId,
+      reroutingFormResponses: reroutingFormResponses ?? null,
       reqBody: {
         user: reqBody.user,
         metadata: reqBody.metadata,
@@ -928,14 +986,6 @@ async function handler(
       originalRescheduledBooking,
     });
 
-    // @NOTE: Add specific try catch for all subsequent async calls to avoid error
-    // Sync Services
-    await syncServicesUpdateWebUser(
-      await prisma.user.findFirst({
-        where: { id: userId },
-        select: { id: true, email: true, name: true, username: true, createdDate: true },
-      })
-    );
     evt.uid = booking?.uid ?? null;
     evt.oneTimePassword = booking?.oneTimePassword ?? null;
 
@@ -1207,7 +1257,11 @@ async function handler(
           rescheduledMembers,
           eventType.metadata
         );
-        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
+        sendRoundRobinScheduledEmailsAndSMS({
+          calEvent: copyEventAdditionalInfo,
+          members: newBookedMembers,
+          eventTypeMetadata: eventType.metadata,
+        });
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
@@ -1622,6 +1676,21 @@ async function handler(
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+  }
+
+  try {
+    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
+      await scheduleNoShowTriggers({
+        booking: { startTime: booking.startTime, id: booking.id },
+        triggerForUser,
+        organizerUser: { id: organizerUser.id },
+        eventTypeId,
+        teamId,
+        orgId,
+      });
+    }
+  } catch (error) {
+    loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
   // booking successful

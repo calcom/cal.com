@@ -1,5 +1,3 @@
-"use client";
-
 import PageWrapper from "@components/PageWrapper";
 
 import type { PageProps as TeamTypePageProps } from "~/team/type-view";

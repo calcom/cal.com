@@ -66,6 +66,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -99,6 +100,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -149,6 +151,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -199,6 +202,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -224,7 +228,96 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
-      formResponseId: 1
+      formResponseId: 1,
+      attributeRoutingConfig: null,
+    });
+    expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+  });
+
+  it("should add cal.skipContactOwner when attributeRoutingConfig.skipContactOwner is true", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
+    const formResponse = {
+      [field1Id]: { value: "value1", label: "Field 1" },
+      [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
+    };
+
+    const fields = [
+      { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
+      {
+        id: field2Id,
+        identifier: "f2",
+        label: "Field 2",
+        type: "multiselect",
+        options: [
+          { id: "option1", label: "Option 1" },
+          { id: "option2", label: "Option 2" },
+        ],
+      },
+    ];
+
+    const searchParams = new URLSearchParams("?query1=value1&query2=value2");
+    const expectedParams = {
+      f1: "value1",
+      f2: ["Option 1", "Option 2"],
+      query1: "value1",
+      query2: "value2",
+      "cal.routingFormResponseId": "1",
+      "cal.skipContactOwner": "true",
+    };
+
+    const result = getUrlSearchParamsToForward({
+      formResponse,
+      fields,
+      searchParams,
+      teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1,
+      attributeRoutingConfig: {
+        skipContactOwner: true,
+      },
+    });
+    expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+  });
+
+  it("should add cal.routedTeamMemberIds to query params", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
+    const formResponse = {
+      [field1Id]: { value: "value1", label: "Field 1" },
+      [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
+    };
+
+    const fields = [
+      { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
+      {
+        id: field2Id,
+        identifier: "f2",
+        label: "Field 2",
+        type: "multiselect",
+        options: [
+          { id: "option1", label: "Option 1" },
+          { id: "option2", label: "Option 2" },
+        ],
+      },
+    ];
+
+    const searchParams = new URLSearchParams("?query1=value1&query2=value2");
+    const expectedParams = {
+      f1: "value1",
+      f2: ["Option 1", "Option 2"],
+      query1: "value1",
+      query2: "value2",
+      "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "1,2",
+    };
+
+    const result = getUrlSearchParamsToForward({
+      formResponse,
+      fields,
+      searchParams,
+      teamMembersMatchingAttributeLogic: [1, 2],
+      formResponseId: 1,
+      attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });

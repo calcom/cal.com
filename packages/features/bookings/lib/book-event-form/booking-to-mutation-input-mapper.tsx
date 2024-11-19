@@ -46,6 +46,8 @@ export const mapBookingToMutationInput = ({
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
+  const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
+  const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
   return {
     ...values,
     user: username,
@@ -68,7 +70,10 @@ export const mapBookingToMutationInput = ({
     teamMemberEmail,
     orgSlug,
     routedTeamMemberIds,
-    routingFormResponseId
+    routingFormResponseId,
+    skipContactOwner,
+    // In case of rerouting, the form responses are actually the responses that we need to update.
+    reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
   };
 };
 

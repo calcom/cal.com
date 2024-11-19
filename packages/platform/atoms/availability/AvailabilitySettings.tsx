@@ -66,6 +66,11 @@ export type CustomClassNames = {
     labelAndSwitchContainer?: string;
   };
   overridesModalClassNames?: string;
+  hiddenSwitchClassname?: {
+    container?: string;
+    thumb?: string;
+  };
+  deleteButtonClassname?: string;
 };
 
 export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
@@ -85,6 +90,8 @@ type AvailabilitySettingsProps = {
   };
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
+  allowDelete?: boolean;
+  allowSetToDefault?: boolean;
   isDeleting: boolean;
   isSaving: boolean;
   isLoading: boolean;
@@ -252,6 +259,8 @@ export function AvailabilitySettings({
   disableEditableHeading = false,
   enableOverrides = false,
   bulkUpdateModalProps,
+  allowSetToDefault = true,
+  allowDelete = true,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -314,7 +323,7 @@ export function AvailabilitySettings({
       CTA={
         <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
           <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
-            {!openSidebar ? (
+            {!openSidebar && allowSetToDefault ? (
               <>
                 <Skeleton
                   as={Label}
@@ -330,6 +339,10 @@ export function AvailabilitySettings({
                   render={({ field: { value, onChange } }) => (
                     <Switch
                       id="hiddenSwitch"
+                      classNames={{
+                        container: cn(customClassNames?.hiddenSwitchClassname?.container),
+                        thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
+                      }}
                       disabled={isSaving || schedule.isDefault}
                       checked={value}
                       onCheckedChange={(checked) => {
@@ -339,6 +352,7 @@ export function AvailabilitySettings({
                     />
                   )}
                 />
+                <VerticalDivider className="hidden sm:inline" />
               </>
             ) : null}
           </div>
@@ -353,14 +367,17 @@ export function AvailabilitySettings({
             />
           )}
 
-          <VerticalDivider className="hidden sm:inline" />
-          <DeleteDialogButton
-            buttonClassName="hidden sm:inline"
-            disabled={schedule.isLastSchedule}
-            isPending={isDeleting}
-            handleDelete={handleDelete}
-          />
-          <VerticalDivider className="hidden sm:inline" />
+          {allowDelete && (
+            <>
+              <DeleteDialogButton
+                buttonClassName={cn("hidden sm:inline", customClassNames?.deleteButtonClassname)}
+                disabled={schedule.isLastSchedule}
+                isPending={isDeleting}
+                handleDelete={handleDelete}
+              />
+              <VerticalDivider className="hidden sm:inline" />
+            </>
+          )}
           <SmallScreenSideBar open={openSidebar}>
             <>
               <div
@@ -377,15 +394,17 @@ export function AvailabilitySettings({
                   <div className="flex flex-row items-center pt-5">
                     <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
-                    <DeleteDialogButton
-                      buttonClassName="ml-16 inline"
-                      disabled={schedule.isLastSchedule}
-                      isPending={isDeleting}
-                      handleDelete={handleDelete}
-                      onDeleteConfirmed={() => {
-                        setOpenSidebar(false);
-                      }}
-                    />
+                    {allowDelete && (
+                      <DeleteDialogButton
+                        buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
+                        disabled={schedule.isLastSchedule}
+                        isPending={isDeleting}
+                        handleDelete={handleDelete}
+                        onDeleteConfirmed={() => {
+                          setOpenSidebar(false);
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="flex flex-col px-2 py-2">
                     <Skeleton as={Label} waitForTranslation={!isPlatform}>
@@ -403,25 +422,33 @@ export function AvailabilitySettings({
                     />
                   </div>
                   <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
-                    <Skeleton
-                      as={Label}
-                      htmlFor="hiddenSwitch"
-                      className="mt-2 cursor-pointer self-center pr-2 sm:inline"
-                      waitForTranslation={!isPlatform}>
-                      {t("set_to_default")}
-                    </Skeleton>
-                    <Controller
-                      control={form.control}
-                      name="isDefault"
-                      render={({ field: { value, onChange } }) => (
-                        <Switch
-                          id="hiddenSwitch"
-                          disabled={isSaving || value}
-                          checked={value}
-                          onCheckedChange={onChange}
+                    {allowSetToDefault && (
+                      <>
+                        <Skeleton
+                          as={Label}
+                          htmlFor="hiddenSwitch"
+                          className="mt-2 cursor-pointer self-center pr-2 sm:inline"
+                          waitForTranslation={!isPlatform}>
+                          {t("set_to_default")}
+                        </Skeleton>
+                        <Controller
+                          control={form.control}
+                          name="isDefault"
+                          render={({ field: { value, onChange } }) => (
+                            <Switch
+                              classNames={{
+                                container: cn(customClassNames?.hiddenSwitchClassname?.container),
+                                thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
+                              }}
+                              id="hiddenSwitch"
+                              disabled={isSaving || value}
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          )}
                         />
-                      )}
-                    />
+                      </>
+                    )}
                   </div>
 
                   <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">

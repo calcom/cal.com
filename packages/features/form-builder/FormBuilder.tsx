@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
@@ -7,7 +8,7 @@ import type { z } from "zod";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
 import {
   Badge,
@@ -32,7 +33,7 @@ import {
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "./schema";
+import { fieldSchema, type fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -153,7 +154,7 @@ export const FormBuilder = function FormBuilder({
             }
 
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
-              field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label ?? "") };
             }
             const numOptions = options?.length ?? 0;
             const firstOptionInput =
@@ -459,7 +460,7 @@ function FieldEditDialog({
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
-    // resolver: zodResolver(fieldSchema),
+    resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
 
@@ -572,6 +573,15 @@ function FieldEditDialog({
                     {!!fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
+
+                    {fieldType.value === "email" && fieldForm.getValues("name") === "email" && (
+                      <InputField
+                        {...fieldForm.register("excludeEmails")}
+                        containerClassName="mt-6"
+                        label={t("exclude_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
 
                     <Controller
                       name="required"
@@ -692,7 +702,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
         <span
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTML(field.label || "") || t(field.defaultLabel || ""),
+            __html: markdownToSafeHTMLClient(field.label || "") || t(field.defaultLabel || ""),
           }}
         />
       );

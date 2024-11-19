@@ -78,6 +78,7 @@ type InputWorkflowReminder = {
 type InputHost = {
   userId: number;
   isFixed?: boolean;
+  scheduleId?: number | null;
 };
 /**
  * Data to be mocked
@@ -165,7 +166,7 @@ export type InputEventType = {
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-  schedule?: InputUser["schedules"][number];
+  schedule?: InputUser["schedules"][number] | null;
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
@@ -193,6 +194,7 @@ type WhiteListedBookingProps = {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  user?: { id: number };
   bookingSeat?: Prisma.BookingSeatCreateInput[];
   createdAt?: string;
 };
@@ -221,6 +223,13 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
             id: host.userId,
           },
         },
+        schedule: host.scheduleId
+          ? {
+              connect: {
+                id: host.scheduleId,
+              },
+            }
+          : undefined,
       };
 
       await prismock.host.create({
@@ -400,6 +409,7 @@ async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
+    user?: { id: number };
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
@@ -486,6 +496,16 @@ export async function addBookings(bookings: InputBooking[]) {
                 return attendee;
               }
             }),
+          },
+        };
+      }
+
+      if (booking?.user?.id) {
+        bookingCreate.user = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          connect: {
+            id: booking.user.id,
           },
         };
       }
@@ -1071,6 +1091,11 @@ export const TestData = {
           date: null,
         },
       ],
+      timeZone: Timezones["+5:30"],
+    },
+    EmptyAvailability: {
+      name: "Empty Availability",
+      availability: [],
       timeZone: Timezones["+5:30"],
     },
     IstWorkHoursWithDateOverride: (dateString: string) => ({

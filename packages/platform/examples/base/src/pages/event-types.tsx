@@ -4,7 +4,13 @@ import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { useEventTypes, useTeamEventTypes, useTeams, EventTypeSettings } from "@calcom/atoms";
+import {
+  useEventTypes,
+  useTeamEventTypes,
+  useTeams,
+  EventTypeSettings,
+  CreateEventType,
+} from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,7 +20,11 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const router = useRouter();
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
   const { data: teams } = useTeams();
-  const { isLoading: isLoadingTeamEvents, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
+  const {
+    isLoading: isLoadingTeamEvents,
+    data: teamEventTypes,
+    refetch: refetchTeamEvents,
+  } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
 
   return (
@@ -85,10 +95,11 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {eventTypeId && (
           <div>
             <EventTypeSettings
+              customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
+              allowDelete={true}
               id={eventTypeId}
-              tabs={["setup"]}
+              tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
               onSuccess={(eventType) => {
-                console.log(eventType);
                 setEventTypeId(null);
                 refetch();
               }}
@@ -96,7 +107,53 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 console.log(eventType);
                 console.error(error);
               }}
+              onDeleteSuccess={() => {
+                refetch();
+                refetchTeamEvents();
+                setEventTypeId(null);
+              }}
+              onDeleteError={console.error}
             />
+          </div>
+        )}
+
+        {!eventTypeId && (
+          <div className="mt-8 flex flex-row items-center justify-center gap-24">
+            <div className="flex w-[30vw] flex-col gap-2">
+              <h1 className="font-semibold">Create Event Type</h1>
+              <CreateEventType
+                customClassNames={{
+                  atomsWrapper: "border p-4 shadow-md rounded-md",
+                  buttons: { container: "justify-center", submit: "bg-red-500", cancel: "bg-gray-300" },
+                }}
+                onSuccess={() => {
+                  refetch();
+                }}
+              />
+            </div>
+
+            <div className="flex w-[30vw] flex-col gap-2">
+              <h1 className="font-semibold">Create Team Event Type</h1>
+              {teams?.[0]?.id && (
+                <CreateEventType
+                  customClassNames={{
+                    atomsWrapper: "border shadow-md p-4 rounded-md ",
+                    buttons: {
+                      container: "justify-center flex-row-reverse",
+                      submit: "bg-green-500",
+                      cancel: "bg-stone-300",
+                    },
+                  }}
+                  teamId={teams?.[0]?.id}
+                  onCancel={() => {
+                    console.log("cancel team event type creation");
+                  }}
+                  onSuccess={() => {
+                    refetchTeamEvents();
+                  }}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
