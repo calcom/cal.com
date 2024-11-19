@@ -322,6 +322,34 @@ test.describe("Out of office", () => {
     await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
     await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
   });
+
+  test("User cannot create duplicate out of office entries, .i.e. for same start and/or end dates", async ({
+    page,
+    users,
+  }) => {
+    const t = await localize("en");
+    const user = await users.create({ name: "userOne" });
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState();
+
+    const addOOOButton = await page.getByTestId("add_entry_ooo");
+    const dateButton = await page.locator('[id="date"]');
+
+    //Creates 2 OOO entries:
+    //First OOO is created on Next month 1st - 5th
+    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "1", "5");
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+
+    //Expect Error while Second OOO is created on Next month 1st - 5th, i.e. for same start and end dates
+    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "1", "5", undefined, 409);
+    await expect(page.locator(`text=${t("out_of_office_entry_already_exists")}`)).toBeTruthy();
+  });
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
