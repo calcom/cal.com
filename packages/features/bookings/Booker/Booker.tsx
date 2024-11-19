@@ -1,5 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
@@ -68,6 +69,13 @@ const BookerComponent = ({
   customClassNames,
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+
+  const areInstantMeetingParametersSet = !!event.data?.instantMeetingParameters
+    ? searchParams &&
+      event.data.instantMeetingParameters.every((param) => Array.from(searchParams.values()).includes(param))
+    : true;
+
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -441,21 +449,23 @@ const BookerComponent = ({
           }}
         />
 
-        {bookerState !== "booking" && event.data?.showInstantEventConnectNowModal && (
-          <div
-            className={classNames(
-              "animate-fade-in-up  z-40 my-2 opacity-0",
-              layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
-            )}
-            style={{ animationDelay: "1s" }}>
-            <InstantBooking
-              event={event.data}
-              onConnectNow={() => {
-                onConnectNowInstantMeeting();
-              }}
-            />
-          </div>
-        )}
+        {bookerState !== "booking" &&
+          event.data?.showInstantEventConnectNowModal &&
+          areInstantMeetingParametersSet && (
+            <div
+              className={classNames(
+                "animate-fade-in-up  z-40 my-2 opacity-0",
+                layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+              )}
+              style={{ animationDelay: "1s" }}>
+              <InstantBooking
+                event={event.data}
+                onConnectNow={() => {
+                  onConnectNowInstantMeeting();
+                }}
+              />
+            </div>
+          )}
         {!hideBranding && !isPlatform && (
           <m.span
             key="logo"

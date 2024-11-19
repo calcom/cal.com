@@ -48,6 +48,7 @@
     "./toast": "./components/toast/index.ts",
     "./tooltip": "./components/tooltip/index.ts",
     "./top-banner": "./components/top-banner/index.ts",
+    "./filter-select": "./components/filter-select/index.ts",
     "./unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
     "./components/icon": "./components/icon/index.ts",
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",

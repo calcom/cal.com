@@ -3,6 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
@@ -272,6 +273,7 @@ export async function createNewUsersConnectToOrgIfExists({
   timeFormat,
   weekStart,
   timeZone,
+  language,
 }: {
   invitations: Invitation[];
   isOrg: boolean;
@@ -283,6 +285,7 @@ export async function createNewUsersConnectToOrgIfExists({
   timeFormat?: number;
   weekStart?: string;
   timeZone?: string;
+  language: string;
 }) {
   // fail if we have invalid emails
   invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
@@ -307,6 +310,8 @@ export async function createNewUsersConnectToOrgIfExists({
 
         const isBecomingAnOrgMember = parentId || isOrg;
 
+        const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+        const t = await getTranslation(language ?? "en", "common");
         const createdUser = await tx.user.create({
           data: {
             username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
@@ -338,6 +343,20 @@ export async function createNewUsersConnectToOrgIfExists({
                 teamId: teamId,
                 role: invitation.role,
                 accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+              },
+            },
+            schedules: {
+              create: {
+                name: t("default_schedule_name"),
+                availability: {
+                  createMany: {
+                    data: defaultAvailability.map((schedule) => ({
+                      days: schedule.days,
+                      startTime: schedule.startTime,
+                      endTime: schedule.endTime,
+                    })),
+                  },
+                },
               },
             },
           },
@@ -908,6 +927,7 @@ export async function handleNewUsersInvites({
     orgConnectInfoByUsernameOrEmail,
     autoAcceptEmailDomain: autoAcceptEmailDomain,
     parentId: team.parentId,
+    language,
   });
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {

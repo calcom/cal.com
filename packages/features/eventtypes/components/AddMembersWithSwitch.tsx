@@ -111,6 +111,7 @@ const AddMembersWithSwitch = ({
   placeholder = "",
   containerClassName = "",
   isRRWeightsEnabled,
+  ...rest
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -123,6 +124,7 @@ const AddMembersWithSwitch = ({
   placeholder?: string;
   containerClassName?: string;
   isRRWeightsEnabled?: boolean;
+  "data-testid"?: string;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -144,6 +146,7 @@ const AddMembersWithSwitch = ({
         )}
         {!assignAllTeamMembers || !automaticAddAllEnabled ? (
           <CheckedHostField
+            data-testid={rest["data-testid"]}
             value={value}
             onChange={onChange}
             isFixed={isFixed}
