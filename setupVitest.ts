@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
 import { vi, expect } from "vitest";
