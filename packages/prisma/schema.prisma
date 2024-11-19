@@ -1611,6 +1611,8 @@ model EventTypeTranslation {
   field          EventTypeAutoTranslatedField
   sourceLang     String
   targetLang     String
+  sourceLocale   String
+  targetLocale   String
   translatedText String                       @db.Text
   createdAt      DateTime                     @default(now())
   createdBy      Int
