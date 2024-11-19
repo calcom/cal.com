@@ -194,12 +194,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
           },
         };
 
+        const beforeCreate = new Date();
         return request(app.getHttpServer())
           .post("/v2/bookings")
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(201)
           .then(async (response) => {
+            const afterCreate = new Date();
             const responseBody: CreateBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
@@ -233,6 +235,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               });
+
+              // Check createdAt date is between the time of the request and after the request
+              const createdAtDate = new Date(data.createdAt);
+              expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
               createdBooking = data;
             } else {
               throw new Error(
@@ -362,6 +369,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
               expect(data.location).toEqual(createdBooking.location);
               expect(data.absentHost).toEqual(createdBooking.absentHost);
+              expect(data.createdAt).toEqual(createdBooking.createdAt);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"
