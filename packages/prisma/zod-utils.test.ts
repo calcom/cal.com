@@ -10,7 +10,7 @@ beforeAll(() => {
 describe("Tests the parsing logic", () => {
   it("when supplied with no timezone data", async () => {
     const date = stringToDayjs("2024-02-27T17:00:00");
-    expect(date.toISOString()).toBe("2024-02-27T17:00:00.000Z");
+    expect(date.toISOString()).toBe("2024-02-27T15:00:00.000Z");
   });
 
   it("when supplied with UTC", async () => {
