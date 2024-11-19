@@ -42,6 +42,7 @@ const childSchema = z.object({
 const BaseEventTypeUpdateInput = _EventTypeModel
   .extend({
     isInstantEvent: z.boolean(),
+    instantMeetingParameters: z.array(z.string()),
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
     aiPhoneCallConfig,
     calAiPhoneScript: z.string(),
