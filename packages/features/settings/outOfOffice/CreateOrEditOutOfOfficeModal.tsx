@@ -105,7 +105,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       : {
           dateRange: {
             startDate: dayjs().utc().startOf("d").toDate(),
-            endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
+            endDate: dayjs().utc().add(2, "d").toDate(),
           },
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
