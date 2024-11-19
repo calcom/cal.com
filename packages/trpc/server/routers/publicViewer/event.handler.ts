@@ -4,10 +4,11 @@ import type { TEventInputSchema } from "./event.schema";
 
 interface EventHandlerOptions {
   input: TEventInputSchema;
+  userId?: number;
 }
 
-export const eventHandler = async ({ input }: EventHandlerOptions) => {
-  return await EventRepository.getPublicEvent(input);
+export const eventHandler = async ({ input, userId }: EventHandlerOptions) => {
+  return await EventRepository.getPublicEvent(input, userId);
 };
 
 export default eventHandler;

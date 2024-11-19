@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
@@ -20,6 +21,7 @@ export type EventSetupTabProps = Pick<
 >;
 export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean }) => {
   const { t } = useLocale();
+  const session = useSession();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding } = props;
@@ -29,6 +31,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
   const [firstRender, setFirstRender] = useState(true);
 
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
 
   const multipleDurationOptions = [
     5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
@@ -94,6 +97,17 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 />
               </>
             )}
+          </div>
+          <div className="[&_label]:my-1 [&_label]:font-normal">
+            <SettingsToggle
+              title={t("translate_description_button")}
+              checked={!!autoTranslateDescriptionEnabled}
+              onCheckedChange={(value) => {
+                formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
+              }}
+              disabled={!session.data?.user.org?.id}
+              tooltip={!session.data?.user.org?.id ? t("orgs_upgrade_to_enable_feature") : undefined}
+            />
           </div>
           <TextField
             required
