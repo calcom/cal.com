@@ -1257,19 +1257,20 @@ async function handler(
             matchOriginalMemberWithNewMember(orignalMember, member)
           )
         );
-
-        sendRoundRobinRescheduledEmailsAndSMS(
-          copyEventAdditionalInfo,
-          rescheduledMembers,
-          eventType.metadata
-        );
+        if (!reqBody.isRerouteToSameTimeslot) {
+          sendRoundRobinRescheduledEmailsAndSMS(
+            copyEventAdditionalInfo,
+            rescheduledMembers,
+            eventType.metadata
+          );
+        }
         sendRoundRobinScheduledEmailsAndSMS({
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
           eventTypeMetadata: eventType.metadata,
         });
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
-      } else {
+      } else if (!reqBody.isRerouteToSameTimeslot) {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
         await sendRescheduledEmailsAndSMS(
           {
