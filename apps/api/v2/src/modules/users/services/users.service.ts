@@ -1,7 +1,11 @@
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
-
 import { User } from "@calcom/prisma/client";
+import Ajv from "ajv";
+import userResponseSchema from "../schemas/userResponseSchema.json";
+
+const ajv = new Ajv();
+const validateUserResponse = ajv.compile(userResponseSchema);
 
 @Injectable()
 export class UsersService {
@@ -19,7 +23,14 @@ export class UsersService {
       }
     }
 
-    return users;
+    // Validate each user response
+    usersFiltered.forEach((user) => {
+      if (!validateUserResponse(user)) {
+        throw new Error("Invalid user response schema");
+      }
+    });
+
+    return usersFiltered;
   }
 
   getUserMainProfile(user: UserWithProfile) {
