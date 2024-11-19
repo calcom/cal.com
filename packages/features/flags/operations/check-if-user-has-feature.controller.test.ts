@@ -1,3 +1,5 @@
+import prismock from "../../../../tests/libs/__mocks__/prisma";
+
 import { expect, it } from "vitest";
 
 import { checkIfUserHasFeatureController } from "./check-if-user-has-feature.controller";
@@ -8,6 +10,14 @@ import { checkIfUserHasFeatureController } from "./check-if-user-has-feature.con
  */
 it("checks if user has access to feature", async () => {
   const userId = 1;
+  await prismock.userFeatures.create({
+    data: {
+      userId,
+      featureId: "mock-feature",
+      assignedBy: "1",
+      updatedAt: new Date(),
+    },
+  });
   await expect(checkIfUserHasFeatureController(userId, "nonexistent-feature")).resolves.toBe(false);
   await expect(checkIfUserHasFeatureController(userId, "mock-feature")).resolves.toBe(true);
 });
