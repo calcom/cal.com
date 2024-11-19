@@ -1236,6 +1236,7 @@ model UserFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([userId, featureId])
+  @@index([userId, featureId])
 }
 
 model TeamFeatures {
@@ -1248,6 +1249,7 @@ model TeamFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([teamId, featureId])
+  @@index([teamId, featureId])
 }
 
 enum FeatureType {
