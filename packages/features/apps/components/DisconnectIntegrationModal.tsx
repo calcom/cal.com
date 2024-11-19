@@ -18,18 +18,6 @@ export default function DisconnectIntegrationModal({
   handleRemoveApp,
 }: DisconnectIntegrationModalProps) {
   const { t } = useLocale();
-  //   onSuccess: () => {
-  //     showToast(t("app_removed_successfully"), "success");
-  //     handleModelClose();
-  //     utils.viewer.integrations.invalidate();
-  //     utils.viewer.connectedCalendars.invalidate();
-  //   },
-  //   onError: () => {
-  //     showToast(t("error_removing_app"), "error");
-  //     handleModelClose();
-  //   },
-  // });
-
   return (
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
       <ConfirmationDialogContent
