@@ -65,6 +65,11 @@ describe("confirmHandler", () => {
                 id: 101,
               },
             ],
+            hosts: [
+              {
+                userId: 101,
+              },
+            ],
           },
         ],
         bookings: [
