@@ -104,8 +104,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       ? currentlyEditingOutOfOfficeEntry
       : {
           dateRange: {
-            startDate: dayjs().utc().startOf("d").toDate(),
-            endDate: dayjs().utc().add(2, "d").toDate(),
+            startDate: dayjs().startOf("d").toDate(),
+            endDate: dayjs().startOf("d").add(2, "d").toDate(),
           },
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
