@@ -20,6 +20,10 @@ export class SelectedCalendarOutputDto {
   @IsInt()
   @Expose()
   readonly credentialId!: number | null;
+
+  @IsInt()
+  @Expose()
+  readonly defaultReminder!: number;
 }
 
 export class SelectedCalendarOutputResponseDto {
