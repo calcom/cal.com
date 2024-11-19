@@ -350,6 +350,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
+  createdTranslations        EventTypeTranslation[]       @relation("CreatedTranslations")
+  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedTranslations")
 
   @@unique([email])
   @@unique([email, username])
@@ -1606,6 +1608,7 @@ enum EventTypeAutoTranslatedField {
 
 model EventTypeTranslation {
   id             String                       @id @default(cuid())
+  uid            String                       @unique
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
@@ -1618,6 +1621,8 @@ model EventTypeTranslation {
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
   updatedBy      Int?
+  creator        User                         @relation("CreatedTranslations", fields: [createdBy], references: [id])
+  updater        User?                        @relation("UpdatedTranslations", fields: [updatedBy], references: [id])
 
   @@unique([eventTypeId, field, targetLang])
   @@index([eventTypeId, field, targetLang])
