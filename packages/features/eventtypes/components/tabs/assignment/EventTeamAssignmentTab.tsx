@@ -19,7 +19,7 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select, SettingsToggle } from "@calcom/ui";
+import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 
 export type EventTeamAssignmentTabBaseProps = Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">;
 
@@ -145,7 +145,6 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: 2,
                       weight: 100,
-                      weightAdjustment: 0,
                       // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
@@ -158,6 +157,7 @@ const FixedHosts = ({
         </>
       ) : (
         <SettingsToggle
+          data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
           description={FixedHostHelper}
@@ -176,6 +176,7 @@ const FixedHosts = ({
           childrenClassName="lg:ml-0">
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              data-testid="fixed-hosts-select"
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -194,7 +195,6 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: 2,
                       weight: 100,
-                      weightAdjustment: 0,
                       // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
@@ -279,7 +279,6 @@ const RoundRobinHosts = ({
                   userId: parseInt(teamMember.value, 10),
                   priority: 2,
                   weight: 100,
-                  weightAdjustment: 0,
                   // if host was already added, retain scheduleId
                   scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                 };
@@ -336,7 +335,6 @@ const Hosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const { t } = useLocale();
   const {
     control,
     setValue,
@@ -497,6 +495,44 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
                       setAssignAllTeamMembers(false);
                     }}
                   />
+                )}
+              />
+            </div>
+          </div>
+          <div className="border-subtle mt-4 flex flex-col rounded-md">
+            <div className="border-subtle rounded-t-md border p-6 pb-5">
+              <Label className="mb-1 text-sm font-semibold">{t("rr_distribution_method")}</Label>
+              <p className="text-subtle max-w-full break-words text-sm leading-tight">
+                {t("rr_distribution_method_description")}
+              </p>
+            </div>
+            <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <Controller
+                name="maxLeadThreshold"
+                render={({ field: { value, onChange } }) => (
+                  <RadioArea.Group
+                    onValueChange={(val) => {
+                      if (val === "loadBalancing") onChange(3);
+                      else onChange(null);
+                    }}
+                    className="mt-1 flex flex-col gap-4">
+                    <RadioArea.Item
+                      value="maximizeAvailability"
+                      checked={value === null}
+                      className="w-full text-sm"
+                      classNames={{ container: "w-full" }}>
+                      <strong className="mb-1 block">{t("rr_distribution_method_availability_title")}</strong>
+                      <p>{t("rr_distribution_method_availability_description")}</p>
+                    </RadioArea.Item>
+                    <RadioArea.Item
+                      value="loadBalancing"
+                      checked={value !== null}
+                      className="text-sm"
+                      classNames={{ container: "w-full" }}>
+                      <strong className="mb-1 block">{t("rr_distribution_method_balanced_title")}</strong>
+                      <p>{t("rr_distribution_method_balanced_description")}</p>
+                    </RadioArea.Item>
+                  </RadioArea.Group>
                 )}
               />
             </div>

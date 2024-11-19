@@ -1,7 +1,5 @@
-import { z } from "zod";
-
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
-import { router, importHandler } from "../../../trpc";
+import { importHandler, router } from "../../../trpc";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
@@ -14,6 +12,9 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
+
+import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
+
 
 const NAMESPACE = "admin";
 
@@ -38,16 +39,7 @@ export const adminRouter = router({
     );
     return handler(opts);
   }),
-  toggleFeatureFlag: authedAdminProcedure
-    .input(z.object({ slug: z.string(), enabled: z.boolean() }))
-    .mutation(({ ctx, input }) => {
-      const { prisma, user } = ctx;
-      const { slug, enabled } = input;
-      return prisma.feature.update({
-        where: { slug },
-        data: { enabled, updatedBy: user.id },
-      });
-    }),
+  toggleFeatureFlag,
   removeTwoFactor: authedAdminProcedure.input(ZAdminRemoveTwoFactor).mutation(async (opts) => {
     const handler = await importHandler(
       namespaced("removeTwoFactor"),

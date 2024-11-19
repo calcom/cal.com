@@ -111,6 +111,9 @@ const commons = {
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,
   secondaryEmail: null,
+  autoTranslateDescriptionEnabled: false,
+  fieldTranslations: [],
+  maxLeadThreshold: null,
 };
 
 export const dynamicEvent = {

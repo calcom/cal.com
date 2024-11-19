@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
@@ -32,7 +33,7 @@ import {
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "./schema";
+import { fieldSchema, type fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -459,7 +460,7 @@ function FieldEditDialog({
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
-    // resolver: zodResolver(fieldSchema),
+    resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
 
@@ -572,6 +573,15 @@ function FieldEditDialog({
                     {!!fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
+
+                    {fieldType.value === "email" && fieldForm.getValues("name") === "email" && (
+                      <InputField
+                        {...fieldForm.register("excludeEmails")}
+                        containerClassName="mt-6"
+                        label={t("exclude_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
 
                     <Controller
                       name="required"
