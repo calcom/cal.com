@@ -9,7 +9,6 @@ export default defineConfig({
     },
     passWithNoTests: true,
     testTimeout: 500000,
-    setupFiles: ["setupVitest.ts"],
   },
 });
 
