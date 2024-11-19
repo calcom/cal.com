@@ -4,7 +4,7 @@ import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 export type CreateEventTypeDescriptionTranslation = Omit<
   EventTypeTranslation,
-  "id" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy" | "eventType" | "field"
+  "uid" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy" | "eventType" | "field"
 > & { userId: number };
 
 export class EventTypeTranslationRepository {
