@@ -393,7 +393,7 @@ export function RoutingFormResponsesTable({
   if (isHeadersLoading || (isFetching && !data)) {
     return (
       <div
-        className="grid h-[75dvh]"
+        className="grid h-[85dvh]"
         style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
         <div
           className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
