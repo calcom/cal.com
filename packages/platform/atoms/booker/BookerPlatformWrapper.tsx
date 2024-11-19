@@ -361,9 +361,9 @@ export const BookerPlatformWrapper = (
     (state: boolean) => {
       setIsOverlayCalendarEnabled(state);
       if (state) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
+        localStorage?.removeItem("overlayCalendarSwitchDefault");
       }
     },
     [setIsOverlayCalendarEnabled]
@@ -394,7 +394,7 @@ export const BookerPlatformWrapper = (
 
   useEffect(() => {
     if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
-      localStorage.removeItem("overlayCalendarSwitchDefault");
+      localStorage?.removeItem("overlayCalendarSwitchDefault");
     }
     setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
   }, [view, isOverlayCalendarEnabled]);
