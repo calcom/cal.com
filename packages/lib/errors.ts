@@ -1,3 +1,14 @@
+export class NotFoundError extends Error {
+  // specify a generic message.
+  constructor(message = "Resource not found") {
+    super(message);
+    this.name = "NOT_FOUND";
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, Error);
+    }
+  }
+}
+
 export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: number; code?: string } {
   if (cause instanceof Error) {
     return cause;

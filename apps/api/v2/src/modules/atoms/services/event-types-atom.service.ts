@@ -10,6 +10,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 
+import { NotFoundError } from "@calcom/lib/errors";
 import {
   updateEventType,
   TUpdateEventTypeInputSchema,
@@ -21,6 +22,7 @@ import {
   EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries";
 import type {
+  EventType,
   App,
   CredentialDataWithTeamName,
   LocationOption,
@@ -59,19 +61,21 @@ export class EventTypesAtomService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
-    const eventType = await getEventTypeById({
-      currentOrganizationId: this.usersService.getUserMainOrgId(user),
-      eventTypeId,
-      userId: user.id,
-      prisma: this.dbRead.prisma as unknown as PrismaClient,
-      isUserOrganizationAdmin,
-      isTrpcCall: true,
-    });
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    let eventType: EventType;
+    try {
+      eventType = await getEventTypeById({
+        currentOrganizationId: this.usersService.getUserMainOrgId(user),
+        eventTypeId,
+        userId: user.id,
+        prisma: this.dbRead.prisma as unknown as PrismaClient,
+        isUserOrganizationAdmin,
+      });
+    } catch (e: unknown) {
+      if (e instanceof NotFoundError) {
+        throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+      }
+      throw e;
     }
-
     if (eventType?.team?.id) {
       await this.checkTeamOwnsEventType(user.id, eventType.eventType.id, eventType.team.id);
     } else {

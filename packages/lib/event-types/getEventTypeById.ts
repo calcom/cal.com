@@ -13,16 +13,14 @@ import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
-
 import { WEBSITE_URL } from "../constants";
+import { NotFoundError } from "../errors";
 import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
   prisma: PrismaClient;
-  isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
 }
@@ -34,7 +32,6 @@ export const getEventTypeById = async ({
   eventTypeId,
   userId,
   prisma,
-  isTrpcCall = false,
   isUserOrganizationAdmin,
 }: getEventTypeByIdProps) => {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -48,13 +45,8 @@ export const getEventTypeById = async ({
   });
 
   const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
-
   if (!rawEventType) {
-    if (isTrpcCall) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    } else {
-      throw new Error("Event type not found");
-    }
+    throw new NotFoundError();
   }
 
   const { locations, metadata, ...restEventType } = rawEventType;
@@ -148,14 +140,7 @@ export const getEventTypeById = async ({
       select: userSelect,
     });
     if (!fallbackUser) {
-      if (isTrpcCall) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "The event type doesn't have user and no fallback user was found",
-        });
-      } else {
-        throw Error("The event type doesn't have user and no fallback user was found");
-      }
+      throw new NotFoundError("The event type doesn't have user and no fallback user was found");
     }
     eventType.users.push(fallbackUser);
   }
@@ -171,10 +156,7 @@ export const getEventTypeById = async ({
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
   if (!currentUser?.id && !eventType.teamId) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Could not find user or team",
-    });
+    throw new NotFoundError("Could not find user or team");
   }
 
   const locationOptions = await getLocationGroupedOptions(
