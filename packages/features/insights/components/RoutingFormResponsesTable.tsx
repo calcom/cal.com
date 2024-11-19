@@ -375,7 +375,9 @@ export function RoutingFormResponsesTable({
         header: t("routing_form_insights_submitted_at"),
         size: 250,
         cell: (info) => (
-          <div className="w-[100px] text-center">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</div>
+          <div className="whitespace-nowrap">
+            <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
+          </div>
         ),
       }),
     ],
