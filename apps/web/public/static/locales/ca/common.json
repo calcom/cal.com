@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Seleccioneu alguns horaris disponibles i incrusteu-los al vostre correu",
   "select_time": "Seleccionar hora",
   "select_date": "Seleccionar data",
+  "only_show_if_parameter_set": "Mostra només si s'ha establert un paràmetre",
+  "add_parameter": "Afegeix un paràmetre",
   "connecting_you_to_someone": "Us estem connectant amb algú de {{orgName}}.",
   "please_do_not_close_this_tab": "Si us plau, no tanqueu ni actualitzeu aquesta pàgina",
   "see_all_available_times": "Veure tots els horaris disponibles",
@@ -2796,6 +2798,5 @@
   "rr_distribution_method_balanced_description": "Monitoritzarem quantes reserves s'han fet amb cada amfitrió i ho compararem amb els altres, desactivant alguns amfitrions que estiguin massa avançats perquè les reserves es distribueixin uniformement",
   "exclude_emails_that_contain": "Excloure correus electrònics que continguin...",
   "exclude_emails_match_found_error_message": "Si us plau, introdueix una adreça de correu electrònic de treball vàlida",
-  "notifications": "Notificacions",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

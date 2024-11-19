@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Uygun zamanlardan bazılarını seçin ve bunları E-postanıza ekleyin",
   "select_time": "Saati Seçin",
   "select_date": "Tarihi Seçin",
+  "only_show_if_parameter_set": "Yalnızca parametre ayarlandığında göster",
+  "add_parameter": "Parametre ekle",
   "connecting_you_to_someone": "Sizi {{orgName}}'den birisiyle bağlıyoruz.",
   "please_do_not_close_this_tab": "Lütfen bu sayfayı kapatmayın veya yenilemeyin",
   "see_all_available_times": "Tüm müsait saatleri görün",
