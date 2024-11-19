@@ -12,7 +12,6 @@ const nextConfig = {
     "@calcom/app-store",
     "@calcom/core",
     "@calcom/dayjs",
-    "@calcom/di",
     "@calcom/emails",
     "@calcom/features",
     "@calcom/lib",
