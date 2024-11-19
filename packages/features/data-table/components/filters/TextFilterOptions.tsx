@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
-import type { FilterableColumn, TextFilterValue, TextFilterOperator } from "./types";
+import type { FilterableColumn, TextFilterValue, TextFilterOperator } from "../../lib/types";
 
 export type TextFilterOperatorOption = {
   label: string;

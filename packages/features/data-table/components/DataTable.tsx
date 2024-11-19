@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
-import { Icon, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
+import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
@@ -72,7 +72,7 @@ export function DataTable<TData, TValue>({
         onScroll={onScroll}
         className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
         style={{ gridArea: "body" }}>
-        <Table className="border-0">
+        <TableNew className="border-0">
           <TableHeader className="bg-subtle sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -166,7 +166,7 @@ export function DataTable<TData, TValue>({
               </tr>
             )}
           </TableBody>
-        </Table>
+        </TableNew>
       </div>
       {children}
     </div>
