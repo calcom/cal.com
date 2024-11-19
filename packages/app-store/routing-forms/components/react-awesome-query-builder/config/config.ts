@@ -6,7 +6,7 @@ import BasicConfig from "./BasicConfig";
 import { ConfigFor } from "./types";
 import type { WidgetsWithoutFactory } from "./types";
 
-function getWidgets(_configFor: ConfigFor) {
+function getWidgetsWithoutFactory(_configFor: ConfigFor) {
   const widgetsWithoutFactory: WidgetsWithoutFactory = {
     ...BasicConfig.widgets,
     phone: {
@@ -71,16 +71,30 @@ function getConjunctions(_configFor: ConfigFor) {
   };
 }
 
+function getSettingsWithoutRenderFns() {
+  return {
+    ...BasicConfig.settings,
+    groupActionsPosition: "bottomCenter" as const,
+    // TODO: Test it and then enable it. It might allow us to show better error messages.
+    // But it doesn't detect every kind of error like an operator gone missing e.g. what happened in https://github.com/calcom/cal.com/pull/17102
+    showErrorMessage: true,
+    // Disable groups
+    maxNesting: 1,
+  };
+}
+
 export const FormFieldsBaseConfig = {
   conjunctions: getConjunctions(ConfigFor.FormFields),
   operators: getOperators(ConfigFor.FormFields),
   types: getTypes(ConfigFor.FormFields),
-  widgets: getWidgets(ConfigFor.FormFields),
+  widgets: getWidgetsWithoutFactory(ConfigFor.FormFields),
+  settings: getSettingsWithoutRenderFns(),
 };
 
 export const AttributesBaseConfig = {
   conjunctions: getConjunctions(ConfigFor.Attributes),
   operators: getOperators(ConfigFor.Attributes),
   types: getTypes(ConfigFor.Attributes),
-  widgets: getWidgets(ConfigFor.Attributes),
+  widgets: getWidgetsWithoutFactory(ConfigFor.Attributes),
+  settings: getSettingsWithoutRenderFns(),
 };

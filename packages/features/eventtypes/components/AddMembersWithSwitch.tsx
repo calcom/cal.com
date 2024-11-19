@@ -123,7 +123,6 @@ function MembersSegmentWithToggle({
     setRrSegmentQueryValue(queryValue);
   };
 
-  console.log({ assignRRMembersUsingSegment });
   return (
     <Controller<FormValues>
       name="assignRRMembersUsingSegment"

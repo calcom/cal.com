@@ -21,7 +21,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 
-export type EventTeamAssignmentTabBaseProps = Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">;
+export type EventTeamAssignmentTabBaseProps = Pick<
+  EventTypeSetupProps,
+  "teamMembers" | "team" | "eventType"
+> & {
+  orgId: number | null;
+};
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
@@ -215,6 +220,7 @@ const FixedHosts = ({
 };
 
 const RoundRobinHosts = ({
+  orgId,
   teamMembers,
   value,
   onChange,
@@ -222,6 +228,7 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers,
   teamId,
 }: {
+  orgId: number | null;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
@@ -250,7 +257,6 @@ const RoundRobinHosts = ({
             name="isRRWeightsEnabled"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                data-testid="fixed-hosts-switch"
                 title={t("enable_weights")}
                 description={weightDescription}
                 checked={value}
@@ -272,7 +278,7 @@ const RoundRobinHosts = ({
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          isSegmentApplicable={true}
+          isSegmentApplicable={!!orgId}
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
@@ -336,11 +342,13 @@ const ChildrenEventTypes = ({
 };
 
 const Hosts = ({
+  orgId,
   teamId,
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
 }: {
+  orgId: number | null;
   teamId: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
@@ -421,6 +429,7 @@ const Hosts = ({
                 isRoundRobinEvent={true}
               />
               <RoundRobinHosts
+                orgId={orgId}
                 teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
@@ -441,7 +450,12 @@ const Hosts = ({
   );
 };
 
-export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTeamAssignmentTabBaseProps) => {
+export const EventTeamAssignmentTab = ({
+  team,
+  teamMembers,
+  eventType,
+  orgId,
+}: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -557,6 +571,7 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
             </div>
           </div>
           <Hosts
+            orgId={orgId}
             teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}

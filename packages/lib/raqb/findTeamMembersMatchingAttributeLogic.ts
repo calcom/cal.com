@@ -105,7 +105,6 @@ function getJsonLogic({
     ),
     config: attributesQueryBuilderConfig as unknown as Config,
   };
-
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   // Considering errors as warnings as we want to continue with the flow without throwing actual errors
