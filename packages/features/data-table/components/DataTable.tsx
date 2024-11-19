@@ -7,9 +7,7 @@ import { useMemo } from "react";
 import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
-
-import { Icon } from "../icon";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
+import { Icon, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;

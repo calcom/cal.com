@@ -1,3 +1,6 @@
+import type { FilterValue } from "./types";
+import { isSelectFilterValue, isTextFilterValue } from "./utils";
+
 export function makeWhereClause(columnName: string, filterValue: FilterValue) {
   if (isSelectFilterValue(filterValue)) {
     return {

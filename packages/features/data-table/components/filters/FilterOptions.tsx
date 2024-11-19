@@ -1,9 +1,9 @@
 import { type Table } from "@tanstack/react-table";
 
+import type { FilterableColumn, FilterValue, SelectFilterValue, TextFilterValue } from "../../lib/types";
+import type { ActiveFilter, FiltersSearchState, SetFiltersSearchState } from "../../lib/utils";
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
 import { TextFilterOptions } from "./TextFilterOptions";
-import type { FilterableColumn, FilterValue, SelectFilterValue, TextFilterValue } from "./types";
-import type { ActiveFilter, FiltersSearchState, SetFiltersSearchState } from "./utils";
 
 export type FilterOptionsProps<TData> = {
   column: FilterableColumn;
