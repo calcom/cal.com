@@ -2,12 +2,15 @@
 
 import { useReducer } from "react";
 
+import type {
+  HandleBulkUpdateDefaultLocationParams,
+  HandleRemoveAppParams,
+  HandleUpdateDefaultConferencingAppParams,
+} from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { type RouterOutputs } from "@calcom/trpc";
 import { Button, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
-
-import { QueryCell } from "@lib/QueryCell";
 
 import { AppList } from "@components/apps/AppList";
 
@@ -26,8 +29,25 @@ type ModalState = {
   isOpen: boolean;
   credentialId: null | number;
 };
-
-const ConferencingView = () => {
+type ConferencingViewProps = {
+  installedIntegrationsQueryData?: RouterOutputs["viewer"]["integrations"];
+  isInstalledIntegrationsQueryPending: boolean;
+  handleRemoveApp: (params: HandleRemoveAppParams) => void;
+  defaultConferencingApp?: RouterOutputs["viewer"]["updateUserDefaultConferencingApp"];
+  handleUpdateDefaultConferencingApp: (params: HandleUpdateDefaultConferencingAppParams) => void;
+  handleBulkUpdateDefaultLocation: (params: HandleBulkUpdateDefaultLocationParams) => void;
+  isBulkUpdateDefaultLocationPending: boolean;
+};
+const ConferencingView = ({
+  installedIntegrationsQueryData,
+  isInstalledIntegrationsQueryPending,
+  handleRemoveApp,
+  defaultConferencingApp,
+  handleUpdateDefaultConferencingApp,
+  handleBulkUpdateDefaultLocation,
+  isBulkUpdateDefaultLocationPending,
+  ...rest
+}: ConferencingViewProps) => {
   const { t } = useLocale();
 
   const [modal, updateModal] = useReducer(
@@ -37,11 +57,6 @@ const ConferencingView = () => {
       credentialId: null,
     }
   );
-
-  const query = trpc.viewer.integrations.useQuery({
-    variant: "conferencing",
-    onlyInstalled: true,
-  });
 
   const handleModelClose = () => {
     updateModal({ isOpen: false, credentialId: null });
@@ -54,44 +69,42 @@ const ConferencingView = () => {
   return (
     <>
       <div className="bg-default w-full sm:mx-0 xl:mt-0">
-        <QueryCell
-          query={query}
-          customLoader={<SkeletonLoader />}
-          success={({ data }) => {
-            if (!data.items.length) {
-              return (
-                <EmptyScreen
-                  Icon="calendar"
-                  headline={t("no_category_apps", {
-                    category: t("conferencing").toLowerCase(),
-                  })}
-                  description={t("no_category_apps_description_conferencing")}
-                  buttonRaw={
-                    <Button
-                      color="secondary"
-                      data-testid="connect-conferencing-apps"
-                      href="/apps/categories/conferencing">
-                      {t("connect_conference_apps")}
-                    </Button>
-                  }
-                />
-              );
+        {isInstalledIntegrationsQueryPending ? (
+          <SkeletonLoader />
+        ) : installedIntegrationsQueryData?.items?.length ? (
+          <AppList
+            listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
+            handleDisconnect={handleDisconnect}
+            data={installedIntegrationsQueryData}
+            variant="conferencing"
+            defaultConferencingApp={defaultConferencingApp}
+            handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+            handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+            isBulkUpdateDefaultLocationPending={isBulkUpdateDefaultLocationPending}
+          />
+        ) : (
+          <EmptyScreen
+            Icon="calendar"
+            headline={t("no_category_apps", {
+              category: t("conferencing").toLowerCase(),
+            })}
+            description={t("no_category_apps_description_conferencing")}
+            buttonRaw={
+              <Button
+                color="secondary"
+                data-testid="connect-conferencing-apps"
+                href="/apps/categories/conferencing">
+                {t("connect_conference_apps")}
+              </Button>
             }
-            return (
-              <AppList
-                listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
-                handleDisconnect={handleDisconnect}
-                data={data}
-                variant="conferencing"
-              />
-            );
-          }}
-        />
+          />
+        )}
       </div>
       <DisconnectIntegrationModal
         handleModelClose={handleModelClose}
         isOpen={modal.isOpen}
         credentialId={modal.credentialId}
+        handleRemoveApp={handleRemoveApp}
       />
     </>
   );

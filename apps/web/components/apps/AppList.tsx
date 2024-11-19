@@ -4,6 +4,10 @@ import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
+import type {
+  HandleBulkUpdateDefaultLocationParams,
+  HandleUpdateDefaultConferencingAppParams,
+} from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,11 +33,22 @@ interface AppListProps {
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
   listClassName?: string;
+  defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
+  handleUpdateDefaultConferencingApp: (params: HandleUpdateDefaultConferencingAppParams) => void;
+  handleBulkUpdateDefaultLocation: (params: HandleBulkUpdateDefaultLocationParams) => void;
+  isBulkUpdateDefaultLocationPending: boolean;
 }
 
-export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
-  const utils = trpc.useUtils();
+export const AppList = ({
+  data,
+  handleDisconnect,
+  variant,
+  listClassName,
+  defaultConferencingApp,
+  handleUpdateDefaultConferencingApp,
+  handleBulkUpdateDefaultLocation,
+  isBulkUpdateDefaultLocationPending,
+}: AppListProps) => {
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
@@ -43,17 +58,6 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
     setBulkUpdateModal(true);
     showToast("Default app updated successfully", "success");
   }, []);
-
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
-    onSuccess: () => {
-      showToast("Default app updated successfully", "success");
-      utils.viewer.getUsersDefaultConferencingApp.invalidate();
-      setBulkUpdateModal(true);
-    },
-    onError: (error) => {
-      showToast(`Error: ${error.message}`, "error");
-    },
-  });
 
   const ChildAppCard = ({
     item,
@@ -96,8 +100,9 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                           if (locationType?.linkType === "static") {
                             setLocationType({ ...locationType, slug: appSlug });
                           } else {
-                            updateDefaultAppMutation.mutate({
+                            handleUpdateDefaultConferencingApp({
                               appSlug,
+                              callback: () => setBulkUpdateModal(true),
                             });
                           }
                         }}>
@@ -153,12 +158,6 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
   });
 
   const { t } = useLocale();
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation({
-    onSuccess: () => {
-      utils.viewer.getUsersDefaultConferencingApp.invalidate();
-      setBulkUpdateModal(false);
-    },
-  });
   return (
     <>
       <List className={listClassName}>
@@ -179,10 +178,10 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
 
       {bulkUpdateModal && (
         <BulkEditDefaultForEventsModal
-          bulkUpdateFunction={updateLocationsMutation.mutate}
+          handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
           open={bulkUpdateModal}
           setOpen={setBulkUpdateModal}
-          isPending={updateLocationsMutation.isPending}
+          isPending={isBulkUpdateDefaultLocationPending}
           description={t("default_conferencing_bulk_description")}
         />
       )}
