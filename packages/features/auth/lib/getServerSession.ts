@@ -61,7 +61,7 @@ export async function getServerSession(options: {
       data: { lastActiveAt: new Date() },
     })
     .catch(() => {
-      log.error("No user found for email: ", email);
+      log.debug("No user found for email: ", email);
       return null;
     });
 
