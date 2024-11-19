@@ -59,7 +59,7 @@ export function DataTable<TData, TValue>({
   return (
     <div
       className={classNames(
-        "grid h-[75dvh]", // Set a fixed height for the container
+        "grid h-[85dvh]", // Set a fixed height for the container
         rest.className
       )}
       style={{
