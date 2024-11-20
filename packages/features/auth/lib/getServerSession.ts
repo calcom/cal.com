@@ -54,11 +54,16 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const userFromDb = await prisma.user.findUnique({
-    where: {
-      email: token.email.toLowerCase(),
-    },
-  });
+  const email = token.email.toLowerCase();
+  const userFromDb = await prisma.user
+    .update({
+      where: { email },
+      data: { lastActiveAt: new Date() },
+    })
+    .catch(() => {
+      log.debug("No user found for email: ", email);
+      return null;
+    });
 
   if (!userFromDb) {
     log.debug("No user found");

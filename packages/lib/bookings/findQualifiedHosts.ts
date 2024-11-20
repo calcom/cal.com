@@ -1,4 +1,5 @@
-import { SchedulingType } from "@calcom/prisma/enums";
+import { getNormalizedHosts } from "@calcom/lib/bookings/getRoutedUsers";
+import type { SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
@@ -7,36 +8,28 @@ export const findQualifiedHosts = async <
 >(eventType: {
   id: number;
   maxLeadThreshold: number | null;
-  hosts?: ({ isFixed: boolean; createdAt: Date } & {
+  hosts?: ({ isFixed: boolean; createdAt: Date; priority?: number | null; weight?: number | null } & {
     user: T;
   })[];
-  users?: T[];
+  users: T[];
   schedulingType: SchedulingType | null;
 }): Promise<
   {
     isFixed: boolean;
     email: string;
+    createdAt: Date | null;
+    priority?: number | null;
+    weight?: number | null;
     user: T;
   }[]
 > => {
-  const hosts =
-    eventType.hosts?.length && eventType.schedulingType
-      ? await filterHostsByLeadThreshold({
-          eventTypeId: eventType.id,
-          hosts: eventType.hosts.map((host) => ({
-            isFixed: host.isFixed,
-            createdAt: host.createdAt,
-            email: host.user.email,
-            user: host.user,
-          })),
-          maxLeadThreshold: eventType.maxLeadThreshold,
-        })
-      : (eventType.users || []).map((user) => {
-          return {
-            isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-            email: user.email,
-            user: user,
-          };
-        });
-  return hosts;
+  const { hosts, fallbackHosts } = getNormalizedHosts({ eventType });
+  const qualifiedHosts = hosts
+    ? await filterHostsByLeadThreshold({
+        eventTypeId: eventType.id,
+        hosts,
+        maxLeadThreshold: eventType.maxLeadThreshold,
+      })
+    : fallbackHosts;
+  return qualifiedHosts;
 };

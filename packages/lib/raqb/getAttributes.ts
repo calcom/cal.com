@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
-import type { Attribute } from "../types/types";
+import type { Attribute } from "./types";
 
 async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: { teamId: number }) {
   const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });

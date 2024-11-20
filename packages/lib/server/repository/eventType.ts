@@ -467,6 +467,8 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,

@@ -10,27 +10,27 @@ import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enr
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "@calcom/routing-forms/lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
+import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
-interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
+interface FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions {
   ctx: {
     prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
     res: ServerResponse | NextApiResponse | undefined;
   };
-  input: TFindTeamMembersMatchingAttributeLogicInputSchema;
+  input: TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema;
 }
 
 async function getEnrichedSerializableForm<
@@ -60,10 +60,10 @@ async function getEnrichedSerializableForm<
   return serializableForm;
 }
 
-export const findTeamMembersMatchingAttributeLogicHandler = async ({
+export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   ctx,
   input,
-}: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
+}: FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions) => {
   const { prisma, user } = ctx;
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
     "@calcom/web/lib/getTeamMemberEmailFromCrm"
@@ -180,11 +180,14 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     checkedFallback,
     mainAttributeLogicBuildingWarnings: mainWarnings,
     fallbackAttributeLogicBuildingWarnings: fallbackWarnings,
-  } = await findTeamMembersMatchingAttributeLogicOfRoute(
+  } = await findTeamMembersMatchingAttributeLogic(
     {
-      response,
-      route,
-      form: serializableForm,
+      dynamicFieldValueOperands: {
+        response,
+        fields: serializableForm.fields || [],
+      },
+      attributesQueryValue: route.attributesQueryValue ?? null,
+      fallbackAttributesQueryValue: route.fallbackAttributesQueryValue ?? null,
       teamId: form.teamId,
       isPreview: !!isPreview,
     },
@@ -320,4 +323,4 @@ function getServerTimingHeader(timeTaken: Record<string, number | null | undefin
   return headerParts.join(", ");
 }
 
-export default findTeamMembersMatchingAttributeLogicHandler;
+export default findTeamMembersMatchingAttributeLogicOfRouteHandler;
