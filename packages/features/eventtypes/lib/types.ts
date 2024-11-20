@@ -10,7 +10,7 @@ import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
-
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -71,6 +71,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
   length: number;
   offsetStart: number;
@@ -135,6 +136,8 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;

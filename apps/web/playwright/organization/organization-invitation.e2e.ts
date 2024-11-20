@@ -3,11 +3,12 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { moveUserToOrg } from "@lib/orgMigration";
 
 import { test } from "../lib/fixtures";
-import { getInviteLink } from "../lib/testUtils";
+import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -416,6 +417,51 @@ test.describe("Organization", () => {
           email: email,
         });
       });
+    });
+
+    test("can book an event with auto accepted invitee (not completed on-boarding) added as fixed host.", async ({
+      page,
+      users,
+    }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        hasSubteam: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+        orgRequestedSlug: "example",
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+      const { team } = await orgOwner.getFirstTeamMembership();
+
+      await orgOwner.apiLogin();
+      await page.goto(`/settings/teams/${team.id}/members`);
+      const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
+      await inviteAnEmail(page, invitedUserEmail, true);
+
+      //add invitee as fixed host to team event
+      const teamEvent = await orgOwner.getFirstTeamEvent(team.id);
+      await page.goto(`/event-types/${teamEvent.id}?tabName=team`);
+      await page.locator('[data-testid="fixed-hosts-switch"]').click();
+      await page.locator('[data-testid="fixed-hosts-select"]').click();
+      await page.locator(`text="${invitedUserEmail}"`).click();
+      await page.locator('[data-testid="update-eventtype"]').click();
+      await page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
+
+      await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async ({ page, goToUrlWithErrorHandling }) => {
+          const result = await goToUrlWithErrorHandling(`/team/${team.slug}/${teamEvent.slug}`);
+          await bookTeamEvent({ page, team, event: teamEvent });
+          await expect(page.getByText(invitedUserEmail, { exact: true })).toBeVisible();
+          return { url: result.url };
+        }
+      );
     });
   });
 });

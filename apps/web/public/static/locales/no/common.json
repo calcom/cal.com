@@ -2218,6 +2218,8 @@
   "add_times_to_your_email": "Velg noen tilgjengelige tider og legg dem inn i e-posten din",
   "select_time": "Velg tid",
   "select_date": "Velg dato",
+  "only_show_if_parameter_set": "Vis kun hvis en parameter er satt",
+  "add_parameter": "Legg til parameter",
   "connecting_you_to_someone": "Vi kobler deg til noen fra {{orgName}}.",
   "please_do_not_close_this_tab": "Vennligst ikke lukk eller oppdater denne siden",
   "see_all_available_times": "Se alle tilgjengelige tider",

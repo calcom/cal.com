@@ -180,6 +180,9 @@ export default defineConfig({
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
       "@prisma/client": resolve("../../../node_modules/@prisma/client"),
       "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
+      "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
+      "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
+      "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
     },
   },
 });
