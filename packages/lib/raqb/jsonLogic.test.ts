@@ -202,4 +202,27 @@ describe("jsonLogic", () => {
       ).toBe(false);
     });
   });
+
+  describe("not-in operation -> Used by select_not_any_in", () => {
+    it("should return true if the string is not in the array using case insensitivity", () => {
+      expect(
+        jsonLogic.apply(
+          {
+            "!": {
+              in: [
+                {
+                  var: "8e2233c9-d108-4473-918f-ae16345af817",
+                },
+                ["immigration"],
+              ],
+            },
+          },
+          // Data
+          {
+            "8e2233c9-d108-4473-918f-ae16345af817": "immigration",
+          }
+        )
+      ).toBe(false);
+    });
+  });
 });

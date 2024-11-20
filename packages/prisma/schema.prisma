@@ -148,6 +148,10 @@ model EventType {
   instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   instantMeetingParameters                String[]
   assignAllTeamMembers                    Boolean                   @default(false)
+  // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
+  assignRRMembersUsingSegment             Boolean                   @default(false)
+  /// @zod.custom(imports.rrSegmentQueryValueSchema)
+  rrSegmentQueryValue                     Json?
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)

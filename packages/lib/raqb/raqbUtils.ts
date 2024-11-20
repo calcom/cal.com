@@ -1,33 +1,61 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
+import type { Config } from "react-awesome-query-builder";
+import { Utils as QbUtils } from "react-awesome-query-builder";
 
+import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
+import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
+import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import type { Attribute, AttributesQueryValue } from "../types/types";
-import type { LocalRoute } from "../types/types";
-import type { FormResponse, SerializableForm } from "../types/types";
-import type { SerializableField } from "../types/types";
-import type { AttributesQueryBuilderConfigWithRaqbFields } from "./getQueryBuilderConfig";
-import { getQueryBuilderConfigForAttributes } from "./getQueryBuilderConfig";
-
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 
-type GetFieldResponse = ({
+function getFieldResponseValueAsLabel({
   field,
   fieldResponseValue,
 }: {
-  fieldResponseValue: FormResponse[keyof FormResponse]["value"];
-  field: Pick<SerializableField, "type" | "options">;
-}) => { value: string | number | string[] };
+  fieldResponseValue: dynamicFieldValueOperandsResponse[keyof dynamicFieldValueOperandsResponse]["value"];
+  field: {
+    type: string;
+    options?: {
+      id: string | null;
+      label: string;
+    }[];
+  };
+}) {
+  if (!field.options) {
+    return fieldResponseValue;
+  }
+
+  const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
+
+  const chosenOptions = valueArray.map((idOrLabel) => {
+    const foundOptionById = field.options?.find((option) => {
+      return option.id === idOrLabel;
+    });
+    if (foundOptionById) {
+      return {
+        label: foundOptionById.label,
+        id: foundOptionById.id,
+      };
+    } else {
+      return {
+        label: idOrLabel.toString(),
+        id: null,
+      };
+    }
+  });
+
+  return chosenOptions.map((option) => option.label);
+}
 
 function ensureArray(value: string | string[]) {
   return typeof value === "string" ? [value] : value;
 }
 
-// We connect Form Field value and Attribute value using the labels lowercased
-function compatibleForAttributeAndFormFieldMatch<T extends string | string[]>(
+function caseInsensitive<T extends string | string[]>(
   stringOrStringArray: T
 ): T extends string[] ? string[] : string {
   return (
@@ -86,6 +114,31 @@ export const raqbQueryValueUtils = {
   },
 };
 
+export function buildEmptyQueryValue() {
+  return { id: QbUtils.uuid(), type: "group" as const };
+}
+
+export const buildStateFromQueryValue = ({
+  queryValue,
+  config,
+}: {
+  /**
+   * Allow null as the queryValue as initially there could be no queryValue and without that we can't build the state and can't show the UI
+   */
+  queryValue: JsonTree | null;
+  config: Config;
+}) => {
+  const queryValueToUse = queryValue || buildEmptyQueryValue();
+  const immutableTree = QbUtils.checkTree(QbUtils.loadTree(queryValueToUse), config);
+  return {
+    state: {
+      tree: immutableTree,
+      config,
+    },
+    queryValue: QbUtils.getTree(immutableTree),
+  };
+};
+
 /**
  * Replace attribute option Ids with the attribute option label(compatible to be matched with form field value)
  */
@@ -102,7 +155,7 @@ const replaceAttributeOptionIdsWithOptionLabel = ({
     const attributeOptionId = attributeOption.id;
     queryValueString = queryValueString.replace(
       new RegExp(`${attributeOptionId}`, "g"),
-      compatibleForAttributeAndFormFieldMatch(attributeOption.value)
+      caseInsensitive(attributeOption.value)
     );
   });
   return queryValueString;
@@ -113,15 +166,15 @@ const replaceAttributeOptionIdsWithOptionLabel = ({
  */
 const replaceFieldTemplateVariableWithOptionLabel = ({
   queryValueString,
-  fields,
-  response,
-  getFieldResponse,
+  dynamicFieldValueOperands,
 }: {
   queryValueString: string;
-  fields: SerializableField[] | undefined;
-  response: FormResponse;
-  getFieldResponse: GetFieldResponse;
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
 }) => {
+  if (!dynamicFieldValueOperands) {
+    return queryValueString;
+  }
+  const { fields, response } = dynamicFieldValueOperands;
   return queryValueString.replace(/{field:([\w-]+)}/g, (match, fieldId: string) => {
     const field = fields?.find((f) => f.id === fieldId);
     if (!field) {
@@ -132,76 +185,17 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
     if (!fieldResponseValue) {
       return match;
     }
-    const { value: fieldValue } = getFieldResponse({ field, fieldResponseValue });
-    moduleLogger.debug("matchingOptionLabel", safeStringify({ fieldValue, response, fieldId }));
-    if (fieldValue instanceof Array && fieldValue.length > 1) {
+    const responseValueAsLabel = getFieldResponseValueAsLabel({ field, fieldResponseValue });
+    moduleLogger.debug("matchingOptionLabel", safeStringify({ responseValueAsLabel, response, fieldId }));
+    if (responseValueAsLabel instanceof Array && responseValueAsLabel.length > 1) {
       throw new Error("Array value not supported with 'Value of field'");
     }
-    return fieldValue ? compatibleForAttributeAndFormFieldMatch(fieldValue.toString()) : match;
+    return responseValueAsLabel ? caseInsensitive(responseValueAsLabel.toString()) : match;
   });
-};
-
-/**
- * Utilities to handle compatiblity when attribute's type changes
- */
-const attributeChangeCompatibility = {
-  /**
-   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
-   * So, don't use it till that is fixed.
-   */
-  getRaqbFieldTypeCompatibleWithQueryValue: function getRaqbFieldTypeCompatibleWithQueryValue({
-    attributesQueryValue,
-    raqbField,
-    raqbFieldId,
-  }: {
-    attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
-    raqbField: AttributesQueryBuilderConfigWithRaqbFields["fields"][string];
-    raqbFieldId: string;
-  }) {
-    const fieldTypeFromAttributesQueryValue =
-      raqbQueryValueUtils.getValueTypeFromAttributesQueryValueForRaqbField({
-        attributesQueryValue,
-        raqbFieldId,
-      });
-    if (raqbField.type === "select" && fieldTypeFromAttributesQueryValue === "multiselect") {
-      // One could argue why not use fieldTypeFromAttributesQueryValue directly. This could potentially cause issues, so we do this only when we think it makes sense.
-      moduleLogger.warn(
-        `Switching field type from ${raqbField.type} to multiselect as the queryValue expects it to be so`
-      );
-      return "multiselect";
-    }
-    return raqbField.type;
-  },
-  /**
-   * Ensure the attribute value if of type same as the valueType in queryValue
-   * FIXME: It isn't able to handle a case where for SINGLE_SELECT attribute, the queryValue->valueType is ["multiselect"]. It happens for select_any_in operator
-   * So, don't use it till that is fixed.
-   */
-  ensureAttributeValueToBeOfRaqbFieldValueType: function ensureAttributeValueToBeOfRaqbFieldValueType({
-    attributeValue,
-    attributesQueryValue,
-    attributeId,
-  }: {
-    attributeValue: string | string[];
-    attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
-    attributeId: string;
-  }) {
-    const fieldTypeFromAttributesQueryValue =
-      raqbQueryValueUtils.getValueTypeFromAttributesQueryValueForRaqbField({
-        attributesQueryValue,
-        raqbFieldId: attributeId,
-      });
-
-    if (fieldTypeFromAttributesQueryValue === "multiselect") {
-      return ensureArray(attributeValue);
-    }
-    return attributeValue;
-  },
 };
 
 function getAttributesData({
   attributesData,
-  attributesQueryValue,
 }: {
   attributesData: Record<
     string,
@@ -213,14 +207,7 @@ function getAttributesData({
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
   return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
-    const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
-
-    // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
-    // acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
-    //   attributeValue: compatibleValueForAttributeAndFormFieldMatching,
-    //   attributesQueryValue,
-    //   attributeId,
-    // });
+    const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(value);
 
     // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
     acc[attributeId] =
@@ -237,24 +224,15 @@ function getAttributesData({
 function getAttributesQueryValue({
   attributesQueryValue,
   attributes,
-  response,
-  fields,
-  getFieldResponse,
+  dynamicFieldValueOperands,
 }: {
-  attributesQueryValue: LocalRoute["attributesQueryValue"];
+  attributesQueryValue: LocalRoute["attributesQueryValue"] | null;
   attributes: Attribute[];
-  response: FormResponse;
-  fields: SerializableField[] | undefined;
-  getFieldResponse: GetFieldResponse;
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
 }) {
   if (!attributesQueryValue) {
     return null;
   }
-
-  const attributesMap = attributes.reduce((acc, attribute) => {
-    acc[attribute.id] = attribute;
-    return acc;
-  }, {} as Record<string, Attribute>);
 
   const attributesQueryValueCompatibleForMatchingWithFormField: AttributesQueryValue = JSON.parse(
     replaceFieldTemplateVariableWithOptionLabel({
@@ -262,38 +240,30 @@ function getAttributesQueryValue({
         queryValueString: JSON.stringify(attributesQueryValue),
         attributes,
       }),
-      fields,
-      response,
-      getFieldResponse,
+      dynamicFieldValueOperands,
     })
   );
 
   return attributesQueryValueCompatibleForMatchingWithFormField;
 }
 
-function getAttributesQueryBuilderConfig({
-  form,
+/**
+ * Returns attributesQueryBuilderConfig with the list of labels instead of list of ids.
+ */
+export function getAttributesQueryBuilderConfigHavingListofLabels({
+  dynamicFieldValueOperands,
   attributes,
-  attributesQueryValue,
 }: {
-  form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
   attributes: Attribute[];
-  attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
-    form,
+    dynamicOperandFields: dynamicFieldValueOperands?.fields,
   });
 
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
-      // const raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
-      //   attributesQueryValue,
-      //   raqbField,
-      //   raqbFieldId,
-      // });
-
-      // Right now we can't trust getRaqbFieldTypeCompatibleWithQueryValue to give us the correct type
       const raqbFieldType = raqbField.type;
 
       return [
@@ -307,7 +277,7 @@ function getAttributesQueryBuilderConfig({
               return {
                 ...option,
                 // Use the title(which is the attributeOption.value) as the value of the raqb field so that it can be compatible for matching with the form field value
-                value: compatibleForAttributeAndFormFieldMatch(option.title),
+                value: caseInsensitive(option.title),
               };
             }),
           },
@@ -328,7 +298,7 @@ function getAttributesQueryBuilderConfig({
  * Utilities to establish compatibility between formFieldQueryValue and attributeQueryValue
  */
 export const acrossQueryValueCompatiblity = {
-  getAttributesQueryBuilderConfig,
+  getAttributesQueryBuilderConfigHavingListofLabels,
   getAttributesQueryValue,
   getAttributesData,
 };
