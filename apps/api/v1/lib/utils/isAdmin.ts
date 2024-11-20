@@ -6,8 +6,7 @@ import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 import { ScopeOfAdmin } from "./scopeOfAdmin";
 
 export const isAdminGuard = async (req: NextApiRequest) => {
-  const { userId } = req;
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  const { user } = req;
   if (!user) return { isAdmin: false, scope: null };
 
   const { role: userRole } = user;

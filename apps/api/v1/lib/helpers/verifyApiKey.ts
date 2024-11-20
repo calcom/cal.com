@@ -25,27 +25,32 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!hasValidLicense && IS_PRODUCTION) {
     return res.status(401).json({ error: "Invalid or missing CALCOM_LICENSE_KEY environment variable" });
   }
-  // Check if the apiKey query param is provided.
+
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
-  // remove the prefix from the user provided api_key. If no env set default to "cal_"
+
   const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
-  // Hash the key again before matching against the database records.
   const hashedKey = hashAPIKey(strippedApiKey);
-  // Check if the hashed api key exists in database.
   const apiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
-  // If cannot find any api key. Throw a 401 Unauthorized.
-  if (!apiKey) return res.status(401).json({ error: "Your apiKey is not valid" });
+  if (!apiKey) return res.status(401).json({ error: "Your API key is not valid." });
   if (apiKey.expiresAt && dateNotInPast(apiKey.expiresAt)) {
-    return res.status(401).json({ error: "This apiKey is expired" });
+    return res.status(401).json({ error: "This API key is expired." });
   }
-  if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
+  if (!apiKey.userId) return res.status(404).json({ error: "No user found for this API key." });
+
   // save the user id in the request for later use
   req.userId = apiKey.userId;
-  const { isAdmin, scope } = await isAdminGuard(req);
 
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true, locked: true, email: true },
+  });
+  req.user = user;
+
+  const { isAdmin, scope } = await isAdminGuard(req);
   const userIsLockedOrBlocked = await isLockedOrBlocked(req);
 
-  if (userIsLockedOrBlocked) return res.status(401).json({ error: "User is locked or blocked" });
+  if (userIsLockedOrBlocked)
+    return res.status(403).json({ error: "You are not authorized to perform this request." });
 
   req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.SystemWide;
   req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;
