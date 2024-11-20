@@ -4,6 +4,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
+import type { Reassigned } from "./organizer-scheduled-email";
 
 export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -21,15 +22,16 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await this.getHtml(this.calEvent, this.calEvent.organizer),
+      html: await this.getHtml(this.calEvent, this.calEvent.organizer, this.reassigned),
       text: this.getTextBody("event_request_cancelled"),
     };
   }
 
-  protected async getHtml(calEvent: CalendarEvent, organizer: Person) {
+  protected async getHtml(calEvent: CalendarEvent, organizer: Person, reassigned?: Reassigned) {
     return await renderEmail("OrganizerCancelledEmail", {
       calEvent,
       attendee: organizer,
+      reassigned,
     });
   }
 }

@@ -6,6 +6,7 @@ export const OrganizerCancelledEmail = (props: React.ComponentProps<typeof Organ
     headerType="xCircle"
     subject="event_cancelled_subject"
     callToAction={null}
+    reassigned={props.reassigned}
     {...props}
   />
 );

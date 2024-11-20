@@ -4,7 +4,7 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
+import { sendRoundRobinReassignedEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -365,7 +365,7 @@ export const roundRobinReassignment = async ({
       });
     }
 
-    await sendRoundRobinCancelledEmailsAndSMS(
+    await sendRoundRobinReassignedEmailsAndSMS(
       cancelledRRHostEvt,
       [
         {
@@ -376,8 +376,8 @@ export const roundRobinReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      eventType?.metadata as EventTypeMetadata,
-      { name: reassignedRRHost.name, email: reassignedRRHost.email }
+      { name: reassignedRRHost.name, email: reassignedRRHost.email },
+      eventType?.metadata as EventTypeMetadata
     );
   }
 

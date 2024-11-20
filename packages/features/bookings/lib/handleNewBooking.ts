@@ -1461,7 +1461,19 @@ async function handler(
             members: newBookedMembers,
             eventTypeMetadata: eventType.metadata,
           });
-          sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
+          const reassignedTo = users.find(
+            (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+          );
+          sendRoundRobinCancelledEmailsAndSMS(
+            {
+              ...copyEventAdditionalInfo,
+              startTime: dayjs(originalRescheduledBooking.startTime).toString(),
+              endTime: dayjs(originalRescheduledBooking.endTime).toString(),
+            },
+            cancelledMembers,
+            eventType.metadata,
+            !!reassignedTo ? { name: reassignedTo.name, email: reassignedTo.email } : undefined
+          );
         }
       } else {
         if (!isDryRun) {
