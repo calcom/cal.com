@@ -2795,6 +2795,14 @@ checksums:
     salesforce_route_to_custom_lookup_field: 672a24e4de55eb073559e94b9266da7d
     salesforce_option: f09423b2785ee269db428163fc0a58d0
     lookup_field_name: 8d81d557128a52661d1ed9e9aae0575c
+    filter_operator_is: 1940eeb4f6f0189788fde5403c6e9e9a
+    filter_operator_is_not: 8c7817ecdb08e6fa92fdf3487e0c8c9d
+    filter_operator_contains: 41c8c25407527a5336404313f4c8d650
+    filter_operator_does_not_contain: d618eb0f854f7efa0d7c644e6628fa42
+    filter_operator_starts_with: f6673c17475708313c6a0f245b561781
+    filter_operator_ends_with: c8a5f60f1bd1d8fa018dbbf49806fb5b
+    filter_operator_is_empty: dca87bc415341b1cdf9523f3b795a313
+    filter_operator_not_empty: 303caa93dcb79e54d47d4cd7d748a1df
     translate_description_button: 65b94fd5bdb06c983ee3f4c1be74a1ac
     rr_distribution_method: c3d4633236c01f8314a38a9e9c2361f1
     rr_distribution_method_description: e9c1dda0299fbfc979a52a79b57e40c7
