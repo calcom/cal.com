@@ -1,4 +1,5 @@
 import { m } from "framer-motion";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -61,6 +62,7 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
 }) => {
+  const session = useSession();
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -105,12 +107,13 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
+  const userLocale = session.data?.user.locale ?? navigator.language;
   const translatedDescription = (event?.fieldTranslations ?? []).find(
     (trans) =>
       trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
       i18nLocales.includes(trans.targetLocale) &&
-      (browserLocale === trans.targetLocale || browserLocale.split("-")[0] === trans.targetLocale)
+      // browser language looks like "en-US", "es-ES", "fr-FR", etc
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
   )?.translatedText;
 
   return (
