@@ -14,6 +14,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
+import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -870,6 +871,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
             expect(data.location).toEqual(createdBooking.location);
             expect(data.absentHost).toEqual(createdBooking.absentHost);
+            expect(data.metadata).toEqual(createdBooking.metadata);
 
             rescheduledBooking = data;
           });
@@ -923,6 +925,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
             expect(data.location).toEqual(createdRecurringBooking[0].location);
             expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
+            expect(data.metadata).toEqual(createdRecurringBooking[0].metadata);
 
             const oldBooking = await bookingsRepositoryFixture.getByUid(createdRecurringBooking[0].uid);
             expect(oldBooking).toBeDefined();
@@ -962,6 +965,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("mark absent", () => {
+      beforeAll(() => {
+        advanceTo(new Date(2035, 0, 9, 15, 0, 0));
+      });
+
+      afterAll(() => {
+        clear();
+      });
+
       it("should mark host absent", async () => {
         const body: MarkAbsentBookingInput_2024_08_13 = {
           host: true,
@@ -1028,6 +1039,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
     });
+
     describe("cancel bookings", () => {
       it("should cancel booking", async () => {
         const body: CancelBookingInput_2024_08_13 = {
