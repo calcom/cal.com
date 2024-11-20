@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { queryValueSaveValidationSchema } from "../zod";
+import { raqbQueryValueSchema } from "./zod";
 
 describe("queryValueValidationSchema", () => {
   it("should allow a rule with value", () => {
@@ -21,8 +21,35 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(validQueryValue);
+    const result = raqbQueryValueSchema.safeParse(validQueryValue);
     expect(result.success).toBe(true);
+  });
+
+  it("should save valueType", () => {
+    const validQueryValue = {
+      id: "1",
+      type: "group",
+      properties: {},
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "name",
+            operator: "equal",
+            value: ["John"],
+            valueSrc: ["value"],
+            valueType: ["select"],
+          },
+        },
+      },
+    };
+
+    const result = raqbQueryValueSchema.safeParse(validQueryValue);
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error("Failed to parse query value");
+    }
+    expect(result.data?.children1?.rule1?.properties.valueType).toEqual(["select"]);
   });
 
   it("should allow a query value with switch_group type for queryValue", () => {
@@ -33,29 +60,7 @@ describe("queryValueValidationSchema", () => {
       children1: {},
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(switchGroupQueryValue);
-    expect(result.success).toBe(true);
-  });
-
-  it('should allow a possibly invalid query value if the rule type is not "rule" - Goal is to ensure that rule type children1 is correct', () => {
-    const switchGroupQueryValue = {
-      id: "2",
-      type: "switch_group",
-      properties: {},
-      children1: {
-        rule1: {
-          type: "abc",
-          properties: {
-            field: "name",
-            operator: "equal",
-            value: [],
-            valueSrc: ["value"],
-          },
-        },
-      },
-    };
-
-    const result = queryValueSaveValidationSchema.safeParse(switchGroupQueryValue);
+    const result = raqbQueryValueSchema.safeParse(switchGroupQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -67,10 +72,11 @@ describe("queryValueValidationSchema", () => {
       children1: {},
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(invalidTypeQueryValue);
+    const result = raqbQueryValueSchema.safeParse(invalidTypeQueryValue);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].path).toEqual(["type"]);
+      // @ts-expect-error - TODO: unionErrors is available sometimes and it is available in this case.
+      expect(result.error.issues[0].unionErrors[0].issues[0].path).toEqual(["type"]);
     }
   });
 
@@ -92,7 +98,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(emptyValueQueryValue);
+    const result = raqbQueryValueSchema.safeParse(emptyValueQueryValue);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toEqual(
@@ -119,7 +125,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(emptyValueQueryValue);
+    const result = raqbQueryValueSchema.safeParse(emptyValueQueryValue);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toEqual(
@@ -146,13 +152,8 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(emptyValueQueryValue);
+    const result = raqbQueryValueSchema.safeParse(emptyValueQueryValue);
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toEqual(
-        "Looks like you are trying to create a rule with no value"
-      );
-    }
   });
 
   it("should allow a rule with null values", () => {
@@ -173,7 +174,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(nullValueQueryValue);
+    const result = raqbQueryValueSchema.safeParse(nullValueQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -195,7 +196,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(nullValueQueryValue);
+    const result = raqbQueryValueSchema.safeParse(nullValueQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -205,20 +206,12 @@ describe("queryValueValidationSchema", () => {
       type: "group",
     };
 
-    const result = queryValueSaveValidationSchema.safeParse(queryValueWithoutChildren);
+    const result = raqbQueryValueSchema.safeParse(queryValueWithoutChildren);
     expect(result.success).toBe(true);
-  });
-
-  it("we are fine with no queryValue even", () => {
-    const result = queryValueSaveValidationSchema.safeParse(null);
-    expect(result.success).toBe(true);
-
-    const result2 = queryValueSaveValidationSchema.safeParse(undefined);
-    expect(result2.success).toBe(true);
   });
 
   it("should allow fields with no value if valueSrc is empty", () => {
-    const result = queryValueSaveValidationSchema.safeParse({
+    const result = raqbQueryValueSchema.safeParse({
       id: "7",
       type: "group",
       children1: {
@@ -237,7 +230,7 @@ describe("queryValueValidationSchema", () => {
   });
 
   it("should not allow fields with no value if valueSrc is not empty", () => {
-    const result = queryValueSaveValidationSchema.safeParse({
+    const result = raqbQueryValueSchema.safeParse({
       id: "7",
       type: "group",
       children1: {

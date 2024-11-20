@@ -431,7 +431,7 @@ export const TestFormDialog = ({
     setMembersMatchResult(null);
   };
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogic.useMutation({
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
         setMembersMatchResult({
           isUsingAttributeWeights: data.isUsingAttributeWeights,
@@ -708,6 +708,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
+                          teamId={form.teamId}
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
                             label: member.name || member.email,

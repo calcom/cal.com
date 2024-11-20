@@ -251,7 +251,7 @@ export function RoutingFormResponsesTable({
       }
     );
 
-  const { data, fetchNextPage, isFetching, hasNextPage } =
+  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId: selectedTeamId,
@@ -402,10 +402,10 @@ export function RoutingFormResponsesTable({
     totalDBRowCount
   );
 
-  if (isHeadersLoading || (isFetching && !data)) {
+  if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
     return (
       <div
-        className="grid h-[75dvh]"
+        className="grid h-[85dvh]"
         style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
         <div
           className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"

@@ -85,6 +85,7 @@ describe("findQualifiedHosts", async () => {
         user: user,
         isFixed: true,
         email: user.email,
+        createdAt: null,
       }))
     );
 

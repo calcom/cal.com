@@ -381,6 +381,11 @@ export default function MemberList(props: Props) {
         },
       },
       {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
         id: "actions",
         cell: ({ row }) => {
           const user = row.original;
