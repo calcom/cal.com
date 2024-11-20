@@ -14,7 +14,7 @@ export const BulkUpdateEventSchema = z.object({
 export function BulkEditDefaultForEventsModal(props: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  handleBulkUpdateDefaultLocation: (params: HandleBulkUpdateDefaultLocationParams) => void;
+  bulkUpdateFunction: (params: HandleBulkUpdateDefaultLocationParams) => void;
   isPending: boolean;
   description: string;
 }) {
@@ -43,7 +43,7 @@ export function BulkEditDefaultForEventsModal(props: {
         <Form
           form={form}
           handleSubmit={(values) => {
-            props.handleBulkUpdateDefaultLocation({
+            props.bulkUpdateFunction({
               eventTypeIds: values.eventTypeIds,
               callback: () => props.setOpen(false),
             });

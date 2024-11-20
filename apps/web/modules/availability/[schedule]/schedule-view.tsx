@@ -47,13 +47,22 @@ export const AvailabilitySettingsWebWrapper = ({
 
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
-    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
-      onSuccess: () => {
-        utils.viewer.availability.list.invalidate();
-        setIsBulkUpdateModalOpen(false);
-        showToast(t("success"), "success");
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
+
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: HandleBulkUpdateDefaultLocationParams) => {
+    bulkUpdateDefaultAvailabilityMutation.mutate(
+      {
+        eventTypeIds,
       },
-    });
+      {
+        onSuccess: () => {
+          utils.viewer.availability.list.invalidate();
+          callback();
+          showToast(t("success"), "success");
+        },
+      }
+    );
+  };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
 
@@ -130,7 +139,7 @@ export const AvailabilitySettingsWebWrapper = ({
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,
         setIsOpen: setIsBulkUpdateModalOpen,
-        save: bulkUpdateDefaultAvailabilityMutation.mutate,
+        save: bulkUpdateFunction,
         isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
       }}
     />

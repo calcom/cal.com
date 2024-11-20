@@ -80,13 +80,22 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   });
 
   const bulkUpdateDefaultAvailabilityMutation =
-    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
-      onSuccess: () => {
-        utils.viewer.availability.list.invalidate();
-        setBulkUpdateModal(false);
-        showToast(t("success"), "success");
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
+
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: HandleBulkUpdateDefaultLocationParams) => {
+    bulkUpdateDefaultAvailabilityMutation.mutate(
+      {
+        eventTypeIds,
       },
-    });
+      {
+        onSuccess: () => {
+          utils.viewer.availability.list.invalidate();
+          showToast(t("success"), "success");
+          callback();
+        },
+      }
+    );
+  };
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
@@ -149,7 +158,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
               open={bulkUpdateModal}
               setOpen={setBulkUpdateModal}
-              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
+              bulkUpdateFunction={bulkUpdateFunction}
               description={t("default_schedules_bulk_description")}
             />
           )}

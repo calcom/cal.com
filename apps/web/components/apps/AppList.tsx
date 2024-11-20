@@ -178,7 +178,7 @@ export const AppList = ({
 
       {bulkUpdateModal && (
         <BulkEditDefaultForEventsModal
-          handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+          bulkUpdateFunction={handleBulkUpdateDefaultLocation}
           open={bulkUpdateModal}
           setOpen={setBulkUpdateModal}
           isPending={isBulkUpdateDefaultLocationPending}
