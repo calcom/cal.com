@@ -3,6 +3,7 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
+import type { HandleRemoveAppParams } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -136,6 +137,26 @@ export default function InstalledApps(props: PageProps) {
     updateData({ isOpen: true, credentialId, teamId });
   };
 
+  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+
+  const handleRemoveApp = ({ credentialId, teamId, callback }: HandleRemoveAppParams) => {
+    deleteCredentialMutation.mutate(
+      { id: credentialId, teamId },
+      {
+        onSuccess: () => {
+          showToast(t("app_removed_successfully"), "success");
+          callback();
+          utils.viewer.integrations.invalidate();
+          utils.viewer.connectedCalendars.invalidate();
+        },
+        onError: () => {
+          showToast(t("error_removing_app"), "error");
+          callback();
+        },
+      }
+    );
+  };
+
   return (
     <>
       <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
@@ -156,6 +177,7 @@ export default function InstalledApps(props: PageProps) {
         isOpen={data.isOpen}
         credentialId={data.credentialId}
         teamId={data.teamId}
+        handleRemoveApp={handleRemoveApp}
       />
     </>
   );
