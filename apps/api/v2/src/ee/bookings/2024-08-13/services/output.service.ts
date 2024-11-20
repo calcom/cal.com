@@ -4,6 +4,7 @@ import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { bookingMetadataSchema } from "@calcom/platform-libraries";
 import {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
@@ -24,8 +25,6 @@ export const bookingResponsesSchema = z
     rescheduleReason: z.string().optional(),
   })
   .passthrough();
-
-const metadataSchema = z.object({}).catchall(z.string());
 
 export const seatedBookingResponsesSchema = z
   .object({
@@ -55,18 +54,14 @@ type DatabaseBooking = Booking & {
 
 type BookingWithUser = Booking & { user: { id: number; name: string | null; email: string } | null };
 
-const bookingUserMetadataSchema = z
-  .object({
-    videoCallUrl: z.string().optional(),
-  })
-  .and(z.record(z.string()))
-  .nullable()
-  .transform((data) => {
-    if (data === null) return {};
-    // note(Lauris): return only user defined metadata
-    const { videoCallUrl, ...rest } = data;
-    return rest;
-  });
+const bookingUserMetadataSchema = bookingMetadataSchema.transform((data) => {
+  if (data === null) return {};
+  // note(Lauris): return only user defined metadata
+  const { videoCallUrl, ...rest } = data;
+  return rest;
+});
+
+const seatedBookingMetadataSchema = z.object({}).catchall(z.string());
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
@@ -232,7 +227,7 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = metadataSchema.parse(attendee.bookingSeat?.metadata);
+      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
 
@@ -328,7 +323,7 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = metadataSchema.parse(attendee.bookingSeat?.metadata);
+      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
       return attendeeParsed;

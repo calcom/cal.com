@@ -110,7 +110,7 @@ export { handleCancelBooking };
 
 export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
 
-export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export {
   // note(Lauris): Api to internal
