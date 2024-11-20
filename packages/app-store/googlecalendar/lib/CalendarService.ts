@@ -651,7 +651,7 @@ export default class GoogleCalendarService implements Calendar {
       },
     });
     const response = res.data;
-    await GoogleRepository.upsertSelectedCalendar({
+    await GoogleService.upsertSelectedCalendar({
       userId: this.credential.userId!,
       externalId: calendarId,
       credentialId: this.credential.id,
