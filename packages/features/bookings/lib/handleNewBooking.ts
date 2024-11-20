@@ -31,6 +31,7 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -988,6 +989,15 @@ async function handler(
 
     evt.uid = booking?.uid ?? null;
     evt.oneTimePassword = booking?.oneTimePassword ?? null;
+
+    if (routingFormResponseId && teamId) {
+      await AssignmentReasonRecorder.routingFormRoute({
+        bookingId: booking.id,
+        routingFormResponseId,
+        organizerId: organizerUser.id,
+        teamId,
+      });
+    }
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
