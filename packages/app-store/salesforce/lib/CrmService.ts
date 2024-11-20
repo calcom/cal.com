@@ -16,7 +16,13 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
-import { SalesforceRecordEnum, SalesforceFieldType, WhenToWriteToRecord, DateFieldTypeData } from "./enums";
+import {
+  SalesforceRecordEnum,
+  SalesforceFieldType,
+  WhenToWriteToRecord,
+  DateFieldTypeData,
+  RoutingReasons,
+} from "./enums";
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -387,7 +393,13 @@ export default class SalesforceCRMService implements CRM {
       const contactsWithOwners = records.map((record) => {
         const ownerEmail = ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]
           .Email;
-        return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
+        return {
+          id: record.Id,
+          email: record.Email,
+          ownerId: record.OwnerId,
+          ownerEmail,
+          recordType: record.attributes.type,
+        };
       });
       return contactsWithOwners;
     }
@@ -396,6 +408,7 @@ export default class SalesforceCRMService implements CRM {
       ? records.map((record) => ({
           id: record.Id,
           email: record.Email,
+          recordType: record.attributes.type,
         }))
       : [];
   }
@@ -973,7 +986,7 @@ export default class SalesforceCRMService implements CRM {
 
       const user = userQuery.records[0] as { Email: string };
 
-      return user.Email;
+      return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
   }
 }
