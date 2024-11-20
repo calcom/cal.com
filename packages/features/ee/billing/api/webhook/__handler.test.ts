@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/stripepayment/lib/server";
 
 import { stripeWebhookHandler, HttpCode } from "./__handler";
 
@@ -11,7 +11,7 @@ vi.mock("micro", () => ({
   buffer: vi.fn(),
 }));
 
-vi.mock("@calcom/app-store/stripepayment/lib/server", () => ({
+vi.mock("@calcom/stripepayment/lib/server", () => ({
   default: {
     webhooks: {
       constructEvent: vi.fn(),

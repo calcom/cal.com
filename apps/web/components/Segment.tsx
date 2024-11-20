@@ -3,16 +3,16 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 
-import {
-  withRaqbSettingsAndWidgets,
-  ConfigFor,
-} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
-import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { classNames as cn } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
 import { buildStateFromQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "@calcom/routing-forms/components/react-awesome-query-builder/config/uiConfig";
+import { getQueryBuilderConfigForAttributes } from "@calcom/routing-forms/lib/getQueryBuilderConfig";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 
 export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];

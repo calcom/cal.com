@@ -1,12 +1,12 @@
 import { Prisma } from "@prisma/client";
 
-import {
-  zodFields as routingFormFieldsSchema,
-  routingFormResponseInDbSchema,
-} from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import {
+  zodFields as routingFormFieldsSchema,
+  routingFormResponseInDbSchema,
+} from "@calcom/routing-forms/zod";
 
 type RoutingFormInsightsTeamFilter = {
   teamId?: number | null;
@@ -341,7 +341,7 @@ class RoutingEventsInsights {
       }[]
     >`
       WITH form_fields AS (
-        SELECT 
+        SELECT
           f.id as form_id,
           f.name as form_name,
           field->>'id' as field_id,
@@ -355,10 +355,10 @@ class RoutingEventsInsights {
         ${whereClause}
       ),
       response_stats AS (
-        SELECT 
+        SELECT
           r."formId",
           key as field_id,
-          CASE 
+          CASE
             WHEN jsonb_typeof(value->'value') = 'array' THEN
               v.value_item
             ELSE
@@ -368,8 +368,8 @@ class RoutingEventsInsights {
         FROM "App_RoutingForms_FormResponse" r
         CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
         LEFT JOIN LATERAL jsonb_array_elements_text(
-          CASE 
-            WHEN jsonb_typeof(value->'value') = 'array' 
+          CASE
+            WHEN jsonb_typeof(value->'value') = 'array'
             THEN value->'value'
             ELSE NULL
           END
@@ -377,7 +377,7 @@ class RoutingEventsInsights {
         WHERE r."routedToBookingUid" IS NULL
         GROUP BY r."formId", key, selected_option
       )
-      SELECT 
+      SELECT
         ff.form_id as "formId",
         ff.form_name as "formName",
         ff.field_id as "fieldId",
@@ -386,9 +386,9 @@ class RoutingEventsInsights {
         ff.option_label as "optionLabel",
         COALESCE(rs.response_count, 0)::integer as count
       FROM form_fields ff
-      LEFT JOIN response_stats rs ON 
-        rs."formId" = ff.form_id AND 
-        rs.field_id = ff.field_id AND 
+      LEFT JOIN response_stats rs ON
+        rs."formId" = ff.form_id AND
+        rs.field_id = ff.field_id AND
         rs.selected_option = ff.option_id
       WHERE ff.option_id IS NOT NULL
       ORDER BY count DESC`;

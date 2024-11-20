@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -10,6 +9,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { getRequestedSlugError } from "@calcom/stripepayment/lib/team-billing";
 
 const querySchema = z.object({
   team: z.string().transform((val) => parseInt(val)),

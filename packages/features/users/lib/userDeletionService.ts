@@ -1,7 +1,7 @@
 import type { User } from "@prisma/client";
 
-import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import prisma from "@calcom/prisma";
+import { deleteStripeCustomer } from "@calcom/stripepayment/lib/customer";
 
 export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) {
   // If 2FA is disabled or totpCode is valid then delete the user from stripe and database

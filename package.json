@@ -10,6 +10,7 @@
     "packages/features/*",
     "packages/app-store/*",
     "packages/app-store/ee/*",
+    "packages/apps/*",
     "packages/platform/*",
     "packages/platform/examples/base",
     "example-apps/*"

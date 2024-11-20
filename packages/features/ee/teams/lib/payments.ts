@@ -1,8 +1,6 @@
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
@@ -15,6 +13,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { getStripeCustomerIdFromUserId } from "@calcom/stripepayment/lib/customer";
+import stripe from "@calcom/stripepayment/lib/server";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({

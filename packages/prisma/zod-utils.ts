@@ -13,7 +13,6 @@ import type {
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
@@ -23,6 +22,7 @@ import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSc
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+import { routingFormResponseInDbSchema } from "@calcom/routing-forms/zod";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {

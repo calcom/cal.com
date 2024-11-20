@@ -3,8 +3,8 @@ import { buffer } from "micro";
 import type { NextApiRequest } from "next";
 import type Stripe from "stripe";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { HttpError } from "@calcom/lib/http-error";
+import stripe from "@calcom/stripepayment/lib/server";
 
 /** Stripe Webhook Handler Mappings */
 export type SWHMap = {

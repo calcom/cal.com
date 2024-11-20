@@ -2,11 +2,11 @@ import { Prisma } from "@prisma/client";
 import type short from "short-uuid";
 import type { z } from "zod";
 
-import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { routingFormResponseInDbSchema } from "@calcom/routing-forms/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";

@@ -3,8 +3,6 @@ import { Prisma } from "@prisma/client";
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -19,6 +17,8 @@ import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import stripe from "@calcom/stripepayment/lib/server";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/stripepayment/lib/utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";

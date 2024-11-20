@@ -6,12 +6,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
-import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getPremiumPlanPriceValue } from "@calcom/stripepayment/lib/utils";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

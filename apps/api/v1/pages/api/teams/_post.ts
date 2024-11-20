@@ -1,13 +1,13 @@
 import type { NextApiRequest } from "next";
 
-import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { getStripeCustomerIdFromUserId } from "@calcom/stripepayment/lib/customer";
+import stripe from "@calcom/stripepayment/lib/server";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";

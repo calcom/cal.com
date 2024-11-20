@@ -1,7 +1,6 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import {
   findTeamMembersMatchingAttributeLogic,
@@ -10,6 +9,7 @@ import {
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
+import { RouteActionType } from "@calcom/routing-forms/zod";
 
 // import { EmailField } from "@calcom/ui";
 import * as getAttributesModule from "./getAttributes";

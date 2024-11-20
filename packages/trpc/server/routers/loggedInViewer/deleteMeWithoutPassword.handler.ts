@@ -1,7 +1,7 @@
-import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { deleteStripeCustomer } from "@calcom/stripepayment/lib/customer";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type DeleteMeWithoutPasswordOptions = {

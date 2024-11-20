@@ -1,7 +1,5 @@
 import type { Prisma, User } from "@prisma/client";
 
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
-import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
@@ -11,6 +9,8 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { FormResponse, Fields } from "@calcom/routing-forms/types/types";
+import { zodRoutes } from "@calcom/routing-forms/zod";
 
 const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
 const { getAttributesQueryValue } = acrossQueryValueCompatiblity;

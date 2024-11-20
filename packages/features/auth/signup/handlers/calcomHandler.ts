@@ -1,7 +1,5 @@
 import type { NextApiResponse } from "next";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
@@ -15,6 +13,8 @@ import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUse
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import stripe from "@calcom/stripepayment/lib/server";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/stripepayment/lib/utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {

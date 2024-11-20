@@ -5,15 +5,6 @@ import { useState } from "react";
 import { useEffect, useCallback } from "react";
 import type { z } from "zod";
 
-import FormInputFields, {
-  FormInputFieldsSkeleton,
-} from "@calcom/app-store/routing-forms/components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
-import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForwardForReroute } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
-import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -21,6 +12,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import FormInputFields, { FormInputFieldsSkeleton } from "@calcom/routing-forms/components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
+import { findMatchingRoute } from "@calcom/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/routing-forms/lib/substituteVariables";
+import { getUrlSearchParamsToForwardForReroute } from "@calcom/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import type { FormResponse, LocalRoute } from "@calcom/routing-forms/types/types";
+import { RouteActionType } from "@calcom/routing-forms/zod";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";

@@ -1,6 +1,6 @@
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
+import stripe from "@calcom/stripepayment/lib/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";

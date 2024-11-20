@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
-import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
@@ -9,6 +8,7 @@ import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { getRequestedSlugError } from "@calcom/stripepayment/lib/team-billing";
 
 import billing from "..";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";

@@ -1,4 +1,4 @@
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/stripepayment/lib/server";
 import {
   ZStripeCheckoutSessionInputSchema,
   type TStripeCheckoutSessionInputSchema,

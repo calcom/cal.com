@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
-import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PaymentOption } from "@calcom/prisma/enums";
+import getStripe from "@calcom/stripepayment/lib/client";
 import { Button, CheckboxField } from "@calcom/ui";
 
 import type { PaymentPageProps } from "../pages/payment";

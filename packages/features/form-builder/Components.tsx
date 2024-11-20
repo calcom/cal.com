@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type {
   SelectLikeComponentProps,
   TextLikeComponentProps,
-} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+} from "@calcom/routing-forms/components/react-awesome-query-builder/widgets";
+import Widgets from "@calcom/routing-forms/components/react-awesome-query-builder/widgets";
 import {
   AddressInput,
   Button,

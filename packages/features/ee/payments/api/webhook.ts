@@ -3,7 +3,6 @@ import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
@@ -17,6 +16,7 @@ import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import stripe from "@calcom/stripepayment/lib/server";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 

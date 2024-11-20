@@ -2,7 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
-import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
@@ -16,6 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { createPaymentLink } from "@calcom/stripepayment/lib/client";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
@@ -309,7 +309,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     mutationFn: createRecurringBooking,
     onSuccess: async (bookings) => {
       const booking = bookings[0] || {};
-      
+
       if (booking.isDryRun) {
         showToast(t("booking_dry_run_successful"), "success");
         return;
