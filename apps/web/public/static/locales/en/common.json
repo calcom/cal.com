@@ -1942,6 +1942,7 @@
   "under_maintenance": "Down for maintenance",
   "under_maintenance_description": "The {{appName}} team are performing scheduled maintenance. If you have any questions, please contact support.",
   "event_type_seats": "{{numberOfSeats}} seats",
+  "event_type_insights": "{{numberOfBookings}} bookings",
   "booking_questions_title": "Booking questions",
   "booking_questions_description": "Customize the questions asked on the booking page",
   "add_a_booking_question": "Add a question",

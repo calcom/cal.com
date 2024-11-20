@@ -133,7 +133,7 @@ export const EventTypeDescription = ({
           <li>
             <Link href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}>
               <Badge variant="gray" startIcon="chart-bar">
-                {t("insights")} {/* TODO: Instead of "Insights" lets show the number of bookings */}
+                <p>{t("event_type_insights", { numberOfBookings: 42 })} </p>
               </Badge>
             </Link>
           </li>
