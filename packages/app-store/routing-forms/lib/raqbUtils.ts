@@ -233,7 +233,7 @@ function getAttributesData({
     return acc;
   }, {} as Record<string, string | string[]>);
 }
-
+/** Gets the attributes that were used to generate the chosen route and their values */
 function getAttributesQueryValue({
   attributesQueryValue,
   attributes,
