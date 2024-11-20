@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import Link from "next/link";
 import { useMemo } from "react";
 import type { z } from "zod";
 
@@ -70,6 +71,7 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
+
           {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
               <Badge variant="gray" startIcon="users">
@@ -128,6 +130,13 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           ) : null}
+          <li>
+            <Link href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}>
+              <Badge variant="gray" startIcon="chart-bar">
+                {t("insights")}
+              </Badge>
+            </Link>
+          </li>
         </ul>
       </div>
     </>
