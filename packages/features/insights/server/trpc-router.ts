@@ -1692,4 +1692,34 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  routedToPerPeriod: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        period: z.enum(["perDay", "perWeek", "perMonth"]),
+        cursor: z
+          .object({
+            userCursor: z.number().optional(),
+            periodCursor: z.string().optional(),
+          })
+          .optional(),
+        routingFormId: z.string().optional(),
+        limit: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate, period, cursor, limit, isAll, routingFormId } = input;
+
+      return await RoutingEventsInsights.routedToPerPeriod({
+        teamId: teamId ?? null,
+        startDate,
+        endDate,
+        period,
+        cursor: cursor?.periodCursor,
+        userCursor: cursor?.userCursor,
+        limit,
+        isAll: isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: routingFormId ?? null,
+      });
+    }),
 });

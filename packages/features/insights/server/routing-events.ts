@@ -635,6 +635,173 @@ class RoutingEventsInsights {
       return flatResponse;
     });
   }
+
+  static async routedToPerPeriod({
+    teamId,
+    isAll,
+    organizationId,
+    routingFormId,
+    startDate: _startDate,
+    endDate: _endDate,
+    period,
+    cursor,
+    userCursor,
+    limit = 10,
+  }: RoutingFormInsightsTeamFilter & {
+    period: "perDay" | "perWeek" | "perMonth";
+    startDate: string;
+    endDate: string;
+    cursor?: string;
+    userCursor?: number;
+    limit?: number;
+  }) {
+    const dayJsPeriodMap = {
+      perDay: "day",
+      perWeek: "week",
+      perMonth: "month",
+    } as const;
+
+    const dayjsPeriod = dayJsPeriodMap[period];
+    const startDate = dayjs(_startDate).startOf(dayjsPeriod).toDate();
+    const endDate = dayjs(_endDate).endOf(dayjsPeriod).toDate();
+
+    // Build the team conditions for the WHERE clause
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+
+    const teamConditions = [];
+
+    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    if (formsWhereCondition.teamId?.in) {
+      // @ts-expect-error same as above
+      teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    if (routingFormId) {
+      teamConditions.push(`f.id = '${routingFormId}'`);
+    }
+
+    const whereClause = teamConditions.length
+      ? Prisma.sql`AND ${Prisma.raw(teamConditions.join(" AND "))}`
+      : Prisma.empty;
+
+    // Get users who have been routed to during the period
+    const usersQuery = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        name: string | null;
+        email: string;
+        avatarUrl: string | null;
+      }>
+    >`
+      WITH routed_responses AS (
+        SELECT DISTINCT ON (b."userId") 
+          b."userId",
+          u.id,
+          u.name,
+          u.email,
+          u."avatarUrl"
+        FROM "App_RoutingForms_FormResponse" r
+        JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
+        JOIN "Booking" b ON r."routedToBookingUid" = b.uid
+        JOIN "users" u ON b."userId" = u.id
+        WHERE r."routedToBookingUid" IS NOT NULL
+        AND r."createdAt" >= ${startDate}
+        AND r."createdAt" <= ${endDate}
+        ${whereClause}
+        ${userCursor ? Prisma.sql`AND b."userId" > ${userCursor}` : Prisma.empty}
+        ORDER BY b."userId", r."createdAt" DESC
+      )
+      SELECT *
+      FROM routed_responses
+      ORDER BY id ASC
+      LIMIT ${limit + 1}
+    `;
+
+    const users = usersQuery;
+    const hasMoreUsers = users.length > limit;
+    if (hasMoreUsers) users.pop();
+
+    // Get bookings per period for these users
+    const periodStats = await prisma.$queryRaw<
+      Array<{
+        userId: number;
+        period_start: Date;
+        total: number;
+      }>
+    >`
+      WITH RECURSIVE periods AS (
+        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as period_start
+        UNION ALL
+        SELECT period_start + (CASE 
+          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+        END)
+        FROM periods
+        WHERE period_start < ${endDate}::timestamp
+      ),
+      bookings_by_period AS (
+        SELECT 
+          b."userId",
+          date_trunc(${dayjsPeriod}, r."createdAt") as period_start,
+          COUNT(*) as total
+        FROM "App_RoutingForms_FormResponse" r
+        JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
+        JOIN "Booking" b ON r."routedToBookingUid" = b.uid
+        WHERE b."userId" IN (${Prisma.join(users.map((u) => u.id))})
+        AND r."createdAt" >= ${startDate}
+        AND r."createdAt" <= ${endDate}
+        ${whereClause}
+        GROUP BY 1, 2
+      )
+      SELECT 
+        COALESCE(u."userId", bp."userId") as "userId",
+        p.period_start,
+        COALESCE(bp.total, 0) as total
+      FROM periods p
+      CROSS JOIN (SELECT DISTINCT "userId" FROM bookings_by_period) u
+      LEFT JOIN bookings_by_period bp 
+        ON bp.period_start = p.period_start 
+        AND bp."userId" = u."userId"
+      ORDER BY p.period_start ASC, "userId" ASC
+      ${cursor ? Prisma.sql`OFFSET ${parseInt(cursor, 10)}` : Prisma.empty}
+      LIMIT ${limit + 1}
+    `;
+
+    const hasMorePeriods = periodStats.length > limit;
+    if (hasMorePeriods) periodStats.pop();
+
+    console.log(periodStats);
+    console.log(users);
+
+    // Add total count query for users
+    const totalUsersCount = await prisma.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(DISTINCT b."userId") as count
+      FROM "App_RoutingForms_FormResponse" r
+      JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
+      JOIN "Booking" b ON r."routedToBookingUid" = b.uid
+      WHERE r."routedToBookingUid" IS NOT NULL
+      AND r."createdAt" >= ${startDate}
+      AND r."createdAt" <= ${endDate}
+      ${whereClause}
+    `;
+
+    return {
+      users: {
+        data: users,
+        nextCursor: hasMoreUsers ? users[users.length - 1].id : undefined,
+        totalCount: totalUsersCount[0].count,
+      },
+      periodStats: {
+        data: periodStats,
+        nextCursor: hasMorePeriods ? (parseInt(cursor || "0", 10) + limit).toString() : undefined,
+      },
+    };
+  }
 }
 
 export { RoutingEventsInsights };
