@@ -6,8 +6,15 @@
 
 */
 -- AlterTable
-ALTER TABLE "EventTypeTranslation" ADD COLUMN     "sourceLocale" TEXT NOT NULL,
-ADD COLUMN     "targetLocale" TEXT NOT NULL;
+ALTER TABLE "EventTypeTranslation" ADD COLUMN "sourceLocale" TEXT,
+ADD COLUMN "targetLocale" TEXT;
 
--- Then update data
-UPDATE "EventTypeTranslation" SET "sourceLocale" = "sourceLang", "targetLocale" = "targetLang";
+-- Update data
+UPDATE "EventTypeTranslation" SET 
+  "sourceLocale" = "sourceLang",
+  "targetLocale" = "targetLang";
+
+-- Then make NOT NULL after data is copied
+ALTER TABLE "EventTypeTranslation" 
+  ALTER COLUMN "sourceLocale" SET NOT NULL,
+  ALTER COLUMN "targetLocale" SET NOT NULL;
