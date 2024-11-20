@@ -2,9 +2,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
 import { useRef, useState } from "react";
 
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DataTable, DataTableToolbar } from "@calcom/ui";
 
 import CreateTeamDialog from "./CreateTeamDialog";
 import GroupNameCell from "./GroupNameCell";

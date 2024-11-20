@@ -49,6 +49,7 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
           },
           team: {
             select: {
+              id: true,
               members: true,
               slug: true,
               parent: {
@@ -74,7 +75,7 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
 
   // TODO: To make the check stricter, we could check if the user is admin/owner of the team or a member that is the organizer.
   // But the exact criteria of showing a booking to the user could be trickier. Maybe we allow hosts as well to access the booking and thus should allow them as well to reroute
-  if (!canAccessEntity(form, user.id)) {
+  if (!(await canAccessEntity(form, user.id))) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: translate("you_dont_have_access_to_reroute_this_booking"),

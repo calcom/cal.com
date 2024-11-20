@@ -45,6 +45,7 @@ export type Event = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
   aiPhoneCallConfig: {
     eventTypeId: number;
