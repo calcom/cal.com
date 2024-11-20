@@ -52,7 +52,7 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
   return attributesToUser;
 }
 
-async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number }) {
+async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId: number; userId?: number }) {
   const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
 
   const whereClauseForAttributesAssignedToMembersOfTeam = {
@@ -61,6 +61,7 @@ async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number
         assignedUsers: {
           some: {
             member: {
+              userId,
               user: {
                 teams: {
                   some: {
@@ -147,4 +148,8 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
   }, {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>);
 
   return Object.values(teamMembers);
+}
+
+export async function getUsersAttributes({ userId, teamId }: { userId: number; teamId: number }) {
+  return await getAttributesAssignedToMembersOfTeam({ teamId, userId });
 }
