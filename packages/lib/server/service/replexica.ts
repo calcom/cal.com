@@ -42,13 +42,13 @@ export class ReplexicaService {
    */
   static async batchLocalizeText(
     text: string,
-    sourceLocale: string,
-    targetLocales: string[]
+    sourceLocale: string, // TODO: set type to LocaleCode once Replexica team exports it
+    targetLocales: string[] // TODO: set type to LocaleCode[] once Replexica team exports it
   ): Promise<string[]> {
     try {
       const result = await this.engine.batchLocalizeText(text, {
-        sourceLocale: sourceLocale as any,
-        targetLocales: targetLocales as any,
+        sourceLocale: sourceLocale as any, // TODO: remove casting once TODO above is done
+        targetLocales: targetLocales as any, // TODO: remove casting once TODO above is done
       });
 
       return result;
