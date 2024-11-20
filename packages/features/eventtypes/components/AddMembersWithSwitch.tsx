@@ -250,7 +250,6 @@ function AddMembersWithSwitch({
   });
 
   const onAssignAllTeamMembersInactive = () => {
-    setValue("hosts", [], { shouldDirty: true });
     setAssignRRMembersUsingSegment(false);
   };
 
