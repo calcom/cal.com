@@ -87,8 +87,6 @@ async function createRoutingFormWithResponse({
         queryValue: {
           id: v4(),
           type: "group",
-          children1: [],
-          properties: {},
         },
         id: v4(),
         ...route,
