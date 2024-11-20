@@ -2,16 +2,19 @@ import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
+import {
+  findTeamMembersMatchingAttributeLogic,
+  TroubleshooterCase,
+} from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import type { AttributeType } from "@calcom/prisma/enums";
+import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
 
-import { RoutingFormFieldType } from "../../lib/FieldTypes";
-import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
 // import { EmailField } from "@calcom/ui";
-import * as getAttributesModule from "../../lib/getAttributes";
-import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "../findTeamMembersMatchingAttributeLogicOfRoute";
+import * as getAttributesModule from "./getAttributes";
 
-vi.mock("../../lib/getAttributes");
+vi.mock("./getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
@@ -223,26 +226,37 @@ function buildScenarioWhereMainAttributeLogicFails() {
   return { failingAttributesQueryValue, matchingAttributesQueryValue };
 }
 
-describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
+describe("findTeamMembersMatchingAttributeLogic", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
   it("should return null if the route does not have an attributesQueryValue set", async () => {
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: {
-        fields: [],
-      },
-      response: {},
-      route: {
-        id: "test-route",
-        queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
-        action: { type: RouteActionType.CustomPageMessage, value: "test" },
-      },
-      teamId: 1,
+    mockAttributesScenario({
+      attributes: [],
+      teamMembersWithAttributeOptionValuePerAttribute: [],
     });
 
-    expect(result).toBeNull();
+    const { teamMembersMatchingAttributeLogic, troubleshooter } = await findTeamMembersMatchingAttributeLogic(
+      {
+        dynamicFieldValueOperands: {
+          fields: [],
+          response: {},
+        },
+        attributesQueryValue: { type: "group" } as unknown as AttributesQueryValue,
+        teamId: 1,
+      },
+      {
+        enableTroubleshooter: true,
+      }
+    );
+
+    expect(teamMembersMatchingAttributeLogic).toBeNull();
+    expect(troubleshooter).toEqual(
+      expect.objectContaining({
+        type: TroubleshooterCase.MATCHES_ALL_MEMBERS_BECAUSE_OF_EMPTY_QUERY_VALUE,
+      })
+    );
   });
 
   it("should return matching team members with a SINGLE_SELECT attribute when a static option is selected and troubleshooter should be null by default", async () => {
@@ -273,19 +287,12 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
     }) as AttributesQueryValue;
 
     const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
-      await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: {
+      await findTeamMembersMatchingAttributeLogic({
+        dynamicFieldValueOperands: {
           fields: [],
+          response: {},
         },
-        response: {},
-        route: {
-          id: "test-route",
-          action: { type: RouteActionType.CustomPageMessage, value: "test" },
-          queryValue: {
-            type: "group",
-          } as unknown as FormFieldsQueryValue,
-          attributesQueryValue: attributesQueryValue,
-        },
+        attributesQueryValue,
         teamId: 1,
       });
 
@@ -340,8 +347,8 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: {
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
         fields: [
           {
             id: Field1Id,
@@ -350,17 +357,14 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
             options: [Option1OfField1],
           },
         ],
-      },
-      response: {
-        [Field1Id]: {
-          value: Option1OfAttribute1HumanReadableValue,
-          label: Option1OfAttribute1HumanReadableValue,
+        response: {
+          [Field1Id]: {
+            value: Option1OfAttribute1HumanReadableValue,
+            label: Option1OfAttribute1HumanReadableValue,
+          },
         },
       },
-      route: buildDefaultCustomPageRoute({
-        id: "test-route",
-        attributesQueryValue: attributesQueryValue,
-      }),
+      attributesQueryValue: attributesQueryValue,
       teamId: 1,
     });
 
@@ -419,15 +423,12 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: {
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
         fields: [],
+        response: {},
       },
-      response: {},
-      route: buildDefaultCustomPageRoute({
-        id: "test-route",
-        attributesQueryValue: attributesQueryValue,
-      }),
+      attributesQueryValue,
       teamId: 1,
     });
 
@@ -487,15 +488,12 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: {
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
         fields: [],
+        response: {},
       },
-      response: {},
-      route: buildDefaultCustomPageRoute({
-        id: "test-route",
-        attributesQueryValue: attributesQueryValue,
-      }),
+      attributesQueryValue,
       teamId: 1,
     });
 
@@ -558,15 +556,12 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       ],
     }) as AttributesQueryValue;
 
-    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogicOfRoute({
-      form: {
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
         fields: [],
+        response: {},
       },
-      response: {},
-      route: buildDefaultCustomPageRoute({
-        id: "test-route",
-        attributesQueryValue: attributesQueryValue,
-      }),
+      attributesQueryValue,
       teamId: 1,
     });
 
@@ -585,19 +580,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
         troubleshooter,
-      } = await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: {
+      } = await findTeamMembersMatchingAttributeLogic({
+        dynamicFieldValueOperands: {
           fields: [],
+          response: {},
         },
-        response: {},
-        route: {
-          id: "test-route",
-          action: { type: RouteActionType.CustomPageMessage, value: "test" },
-          queryValue: {
-            type: "group",
-          } as unknown as FormFieldsQueryValue,
-          attributesQueryValue: failingAttributesQueryValue,
-        },
+        attributesQueryValue: failingAttributesQueryValue,
+        fallbackAttributesQueryValue: null,
         teamId: 1,
       });
 
@@ -614,20 +603,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
         troubleshooter,
-      } = await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: {
+      } = await findTeamMembersMatchingAttributeLogic({
+        dynamicFieldValueOperands: {
           fields: [],
+          response: {},
         },
-        response: {},
-        route: {
-          id: "test-route",
-          action: { type: RouteActionType.CustomPageMessage, value: "test" },
-          queryValue: {
-            type: "group",
-          } as unknown as FormFieldsQueryValue,
-          attributesQueryValue: failingAttributesQueryValue,
-          fallbackAttributesQueryValue: matchingAttributesQueryValue,
-        },
+        attributesQueryValue: failingAttributesQueryValue,
+        fallbackAttributesQueryValue: matchingAttributesQueryValue,
         teamId: 1,
       });
 
@@ -649,21 +631,16 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
         troubleshooter,
-      } = await findTeamMembersMatchingAttributeLogicOfRoute({
-        form: {
+      } = await findTeamMembersMatchingAttributeLogic({
+        dynamicFieldValueOperands: {
           fields: [],
+          response: {},
         },
-        response: {},
-        route: {
-          id: "test-route",
-          action: { type: RouteActionType.CustomPageMessage, value: "test" },
-          queryValue: {
-            type: "group",
-          } as unknown as FormFieldsQueryValue,
-          attributesQueryValue: failingAttributesQueryValue,
-          fallbackAttributesQueryValue: failingAttributesQueryValue,
-        },
+        attributesQueryValue: failingAttributesQueryValue,
+        fallbackAttributesQueryValue: failingAttributesQueryValue,
         teamId: 1,
+        attributesQueryValue: failingAttributesQueryValue,
+        fallbackAttributesQueryValue: failingAttributesQueryValue,
       });
 
       expect(checkedFallback).toEqual(true);
@@ -693,22 +670,19 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       });
 
       await expect(
-        findTeamMembersMatchingAttributeLogicOfRoute({
-          form: {
+        findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: {
             fields: [],
+            response: {},
           },
-          response: {},
-          route: buildDefaultCustomPageRoute({
-            id: "test-route",
-            attributesQueryValue: buildSelectTypeFieldQueryValue({
-              rules: [
-                {
-                  raqbFieldId: Attribute1.id,
-                  value: [Option1OfAttribute1.id],
-                  operator: "select_equals",
-                },
-              ],
-            }) as AttributesQueryValue,
+          attributesQueryValue: buildSelectTypeFieldQueryValue({
+            rules: [
+              {
+                raqbFieldId: Attribute1.id,
+                value: [Option1OfAttribute1.id],
+                operator: "select_equals",
+              },
+            ],
           }),
           teamId: 1,
         })
@@ -763,17 +737,15 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       }) as AttributesQueryValue;
 
       async function runInMode({ mode }: { mode: "preview" | "live" }) {
-        const result = await findTeamMembersMatchingAttributeLogicOfRoute({
-          form: {
+        const result = await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: {
             fields: [],
+            response: {},
           },
-          response: {},
-          route: buildDefaultCustomPageRoute({
-            id: "test-route",
-            attributesQueryValue: attributesQueryValue,
-          }),
+          attributesQueryValue,
           teamId: 1,
           isPreview: mode === "preview" ? true : false,
+          fallbackAttributesQueryValue: null,
         });
         return result;
       }
@@ -840,19 +812,15 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       expect(attributesQueryValue.children1).toEqual({});
 
       async function runInMode({ mode }: { mode: "preview" | "live" }) {
-        const { teamMembersMatchingAttributeLogic: result } =
-          await findTeamMembersMatchingAttributeLogicOfRoute({
-            form: {
-              fields: [],
-            },
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: {
+            fields: [],
             response: {},
-            route: buildDefaultCustomPageRoute({
-              id: "test-route",
-              attributesQueryValue: attributesQueryValue,
-            }),
-            teamId: 1,
-            isPreview: mode === "preview" ? true : false,
-          });
+          },
+          attributesQueryValue,
+          teamId: 1,
+          isPreview: mode === "preview" ? true : false,
+        });
         return result;
       }
 
@@ -889,16 +857,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
         }) as AttributesQueryValue;
 
         const { teamMembersMatchingAttributeLogic: result, timeTaken } =
-          await findTeamMembersMatchingAttributeLogicOfRoute(
+          await findTeamMembersMatchingAttributeLogic(
             {
-              form: {
+              dynamicFieldValueOperands: {
                 fields: [],
+                response: {},
               },
-              response: {},
-              route: buildDefaultCustomPageRoute({
-                id: "test-route",
-                attributesQueryValue: attributesQueryValue,
-              }),
+              attributesQueryValue,
               teamId: 1,
             },
             {
@@ -996,16 +961,13 @@ describe("findTeamMembersMatchingAttributeLogicOfRoute", () => {
       }) as AttributesQueryValue;
 
       const { teamMembersMatchingAttributeLogic: result, troubleshooter } =
-        await findTeamMembersMatchingAttributeLogicOfRoute(
+        await findTeamMembersMatchingAttributeLogic(
           {
-            form: {
+            dynamicFieldValueOperands: {
               fields: [],
+              response: {},
             },
-            response: {},
-            route: buildDefaultCustomPageRoute({
-              id: "test-route",
-              attributesQueryValue: attributesQueryValue,
-            }),
+            attributesQueryValue,
             teamId: 1,
           },
           {

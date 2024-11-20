@@ -14,7 +14,10 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
-import { getRoutedHostsWithContactOwnerAndFixedHosts } from "@calcom/lib/bookings/getRoutedUsers";
+import {
+  getRoutedHostsWithContactOwnerAndFixedHosts,
+  findMatchingHostsWithEventSegment,
+} from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -32,7 +35,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -181,6 +184,8 @@ export async function getEventType(
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
       maxLeadThreshold: true,
       team: {
         select: {
@@ -264,6 +269,7 @@ export async function getEventType(
   return {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
   };
 }
 
@@ -474,13 +480,16 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const eventHosts = await monitorCallbackAsync(findQualifiedHosts<GetAvailabilityUser>, eventType);
-
+  const hostsAfterSegmentMatching = await findMatchingHostsWithEventSegment({
+    eventType,
+    normalizedHosts: eventHosts,
+  });
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
   const skipContactOwner = input.skipContactOwner;
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
-    hosts: eventHosts,
+    hosts: hostsAfterSegmentMatching,
     routedTeamMemberIds,
     contactOwnerEmail,
   });
@@ -767,7 +776,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
               userId: user.id,
             };
           }),
-          hosts: eventHosts.map((host) => ({
+          hostsAfterSegmentMatching: hostsAfterSegmentMatching.map((host) => ({
             userId: host.user.id,
           })),
         },
