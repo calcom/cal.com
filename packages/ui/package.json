@@ -20,7 +20,6 @@
     "./command": "./components/command/index.ts",
     "./createButton": "./components/createButton/index.ts",
     "./credits": "./components/credits/index.ts",
-    "./data-table": "./components/data-table/index.ts",
     "./dialog": "./components/dialog/index.ts",
     "./disconnect-calendar-integration": "./components/disconnect-calendar-integration/index.ts",
     "./divider": "./components/divider/index.ts",
