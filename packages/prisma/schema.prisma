@@ -281,6 +281,7 @@ model User {
   appTheme            String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
+  lastActiveAt        DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
@@ -1239,6 +1240,7 @@ model UserFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([userId, featureId])
+  @@index([userId, featureId])
 }
 
 model TeamFeatures {
@@ -1251,6 +1253,7 @@ model TeamFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([teamId, featureId])
+  @@index([teamId, featureId])
 }
 
 enum FeatureType {
