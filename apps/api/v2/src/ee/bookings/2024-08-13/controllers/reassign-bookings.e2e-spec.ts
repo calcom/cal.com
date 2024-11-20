@@ -26,13 +26,24 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
+  AttendeeScheduledEmail,
+  OrganizerScheduledEmail,
+  OrganizerReassignedEmail,
+} from "@calcom/platform-libraries";
+import { CreateBookingInput_2024_08_13, BookingOutput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+
+jest.spyOn(AttendeeScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
+  return "<html><body>Mocked Email Content</body></html>";
+});
+
+jest.spyOn(OrganizerScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
+  return "<html><body>Mocked Email Content</body></html>";
+});
+
+jest.spyOn(OrganizerReassignedEmail.prototype as any, "getHtml").mockImplementation(async function () {
+  return "<html><body>Mocked Email Content</body></html>";
+});
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Reassign bookings", () => {

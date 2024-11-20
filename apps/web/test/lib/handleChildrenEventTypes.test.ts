@@ -112,6 +112,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -141,6 +142,8 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           userId: 4,
+          rrSegmentQueryValue: undefined,
+          assignRRMembersUsingSegment: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -182,10 +185,12 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          assignRRMembersUsingSegment: undefined,
+          rrSegmentQueryValue: undefined,
           locations: [],
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
@@ -265,6 +270,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -297,6 +303,8 @@ describe("handleChildrenEventTypes", () => {
           userId: 4,
           workflows: undefined,
           hashedLink: undefined,
+          rrSegmentQueryValue: undefined,
+          assignRRMembersUsingSegment: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -337,10 +345,12 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          assignRRMembersUsingSegment: undefined,
+          rrSegmentQueryValue: undefined,
           locations: [],
           hashedLink: {
             deleteMany: {},
@@ -378,6 +388,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -402,6 +413,7 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
+
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
@@ -426,6 +438,8 @@ describe("handleChildrenEventTypes", () => {
             create: [{ workflowId: 11 }],
           },
           hashedLink: undefined,
+          rrSegmentQueryValue: undefined,
+          assignRRMembersUsingSegment: false,
         },
       });
       const { profileId, ...rest } = evType;
@@ -434,6 +448,8 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           locations: [],
+          assignRRMembersUsingSegment: undefined,
+          rrSegmentQueryValue: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           hashedLink: {

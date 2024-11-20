@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -465,7 +466,7 @@ export class UserRepository {
             organization?: {
               id: number;
               name: string;
-              calVideoLogo: string | null;
+              calVideoLogo?: string | null;
               bannerUrl: string | null;
               slug: string | null;
               metadata: Prisma.JsonValue;
@@ -664,25 +665,18 @@ export class UserRepository {
     return !!teams.length;
   }
   static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
-    const team = await prisma.team.findUnique({
+    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
       where: {
-        id: teamId,
-        AND: [
-          {
-            members: {
-              some: {
-                userId,
-                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-              },
-            },
-          },
-        ],
+        userId,
+        teamId,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        accepted: true,
       },
       select: {
         id: true,
       },
     });
-    return !!team;
+    return !!isAdminOrOwnerOfTeam;
   }
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({
@@ -744,6 +738,21 @@ export class UserRepository {
       },
       data: {
         avatarUrl,
+      },
+    });
+  }
+  static async findUserWithCredentials({ id }: { id: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        timeZone: true,
+        id: true,
+        selectedCalendars: true,
       },
     });
   }
