@@ -5,7 +5,7 @@ import { formatPrice } from "@calcom/lib/price";
 import type { EventPrice } from "../../types";
 
 const AlbyPriceComponent = dynamic(
-  () => import("@calcom/app-store/alby/components/AlbyPriceComponent").then((m) => m.AlbyPriceComponent),
+  () => import("@calcom/alby/components/AlbyPriceComponent").then((m) => m.AlbyPriceComponent),
   {
     ssr: false,
   }

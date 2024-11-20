@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
+
 import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
 
 const writeToRecordEntry = z.object({

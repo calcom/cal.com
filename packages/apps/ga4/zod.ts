@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 
 export const ConfigAppMap = {
-  vital: dynamic(() => import("../vital/components/AppConfiguration")),
+  vital: dynamic(() => import("../../apps/vital/components/AppConfiguration")),
 };
 
 export const AppConfiguration = (props: { type: string } & { credentialIds: number[] }) => {

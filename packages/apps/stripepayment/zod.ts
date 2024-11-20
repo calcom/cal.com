@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
+
 import { paymentOptions } from "./lib/constants";
 
 // Extract the payment options enum from paymentOptions
