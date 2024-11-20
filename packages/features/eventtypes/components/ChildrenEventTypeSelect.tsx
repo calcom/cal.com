@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
-import type { SelectClassNames, SwitchClassNames } from "@calcom/features/eventtypes/lib/types";
+import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,7 +41,6 @@ export type ChildrenEventTypeSelectCustomClassNames = {
       badgeContainer?: string;
       eventLink?: string;
       showOnProfileTooltip?: string;
-      showOnProfileSwitch?: SwitchClassNames;
       previewEventTypeTooltip?: string;
       previewEventTypeButton?: string;
       deleteEventTypeTooltip?: string;
@@ -154,7 +153,6 @@ export const ChildrenEventTypeSelect = ({
                       <Switch
                         name="Hidden"
                         checked={!children.hidden}
-                        classNames={customClassNames?.selectedChildrenList?.listItem?.showOnProfileSwitch}
                         onCheckedChange={(checked) => {
                           const newData = value.map((item) =>
                             item.owner.id === children.owner.id ? { ...item, hidden: !checked } : item

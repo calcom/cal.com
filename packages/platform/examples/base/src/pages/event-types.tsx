@@ -120,10 +120,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
                       label: "text-purple-700 font-semibold",
                       description: "text-purple-600 text-sm",
-                      switchContainer: "flex items-center justify-between",
+                      container: "flex items-center justify-between",
                       addMembersSwitch: {
                         assingAllTeamMembersToggle: {
-                          switchContainer: "border border-purple-200 bg-white rounded-md",
+                          container: "border border-purple-200 bg-white rounded-md",
                           label: "text-purple-700",
                           description: "text-gray-600",
                         },
@@ -173,15 +173,15 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
                       label: "text-purple-700 font-semibold",
                       description: "text-purple-600 text-sm",
-                      switchContainer: "flex items-center justify-between",
+                      container: "flex items-center justify-between",
                       enableWeightsToggle: {
-                        switchContainer: "border border-purple-200 bg-white rounded-md",
+                        container: "border border-purple-200 bg-white rounded-md",
                         label: "text-purple-700",
                         description: "text-gray-600",
                       },
                       addMembersSwitch: {
                         assingAllTeamMembersToggle: {
-                          switchContainer: "border border-purple-200 bg-white rounded-md",
+                          container: "border border-purple-200 bg-white rounded-md",
                           label: "text-purple-700",
                           description: "text-gray-600",
                         },
@@ -215,7 +215,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   childrenEventTypes: {
                     container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
                     assignAllTeamMembersToggle: {
-                      switchContainer: "border border-purple-200 bg-white rounded-md",
+                      container: "border border-purple-200 bg-white rounded-md",
                       label: "text-purple-700",
                       description: "text-gray-600",
                     },
@@ -243,10 +243,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                           badgeContainer: "flex gap-1",
                           eventLink: "text-purple-700",
                           showOnProfileTooltip: "text-purple-600",
-                          showOnProfileSwitch: {
-                            container: "flex items-center",
-                            thumb: "bg-purple-600",
-                          },
                           previewEventTypeTooltip: "text-purple-600",
                           previewEventTypeButton: "text-purple-700 hover:bg-purple-100",
                           deleteEventTypeTooltip: "text-red-500",
