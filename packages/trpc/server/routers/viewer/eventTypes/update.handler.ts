@@ -162,6 +162,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
+  if (autoTranslateDescriptionEnabled && !ctx.user.organizationId) {
+    logger.error(
+      "Auto-translating description requires an organization. This should not happen - UI controls should prevent this state."
+    );
+  }
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
