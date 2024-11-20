@@ -297,11 +297,11 @@ const RoundRobinHosts = ({
   });
 
   return (
-    <div className={classNames("rounded-lg", customClassNames?.container)}>
+    <div className={classNames("rounded-lg")}>
       <div
         className={classNames(
           "border-subtle mt-5 rounded-t-md border p-6 pb-5",
-          customClassNames?.switchContainer
+          customClassNames?.container
         )}>
         <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
           {t("round_robin_hosts")}
