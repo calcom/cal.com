@@ -450,7 +450,7 @@ export class EventTypeRepository {
       fieldTranslations: {
         select: {
           translatedText: true,
-          targetLang: true,
+          targetLocale: true,
           field: true,
         },
       },
