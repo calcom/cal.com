@@ -154,9 +154,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: inputBooking.eventTypeId,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: inputBooking.metadata || {},
-      metadata: {},
+      metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests: inputBooking.guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
@@ -260,9 +258,7 @@ export class InputBookingsService_2024_08_13 {
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
-        // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-        // metadata: inputBooking.metadata || {},
-        metadata: {},
+        metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests: inputBooking.guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
@@ -364,9 +360,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: seat.metadata || {},
       hasHashedBookingLink: false,
       guests: [],
       responses: { ...bookingResponses },
@@ -405,9 +399,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: booking.metadata || {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
