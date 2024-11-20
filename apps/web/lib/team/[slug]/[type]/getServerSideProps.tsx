@@ -1,8 +1,6 @@
-import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
@@ -10,7 +8,6 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/org
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -79,6 +76,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -88,11 +86,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
-
+  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+    "@calcom/web/lib/getTeamMemberEmailFromCrm"
+  );
   return {
     props: {
       eventData: {
-        eventTypeId: eventData.id,
+        eventTypeId,
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
@@ -112,36 +112,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
+      teamMemberEmail: await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+        query,
+        eventData,
+      }),
     },
   };
 };
-
-async function getTeamMemberEmail(
-  eventData: {
-    id: number;
-    isInstantEvent: boolean;
-    schedulingType: SchedulingType | null;
-    metadata: Prisma.JsonValue | null;
-    length: number;
-  },
-  email?: string
-): Promise<string | null> {
-  // Pre-requisites
-  if (!eventData || !email || eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
-  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
-  if (!crmContactOwnerEmail) return null;
-  // Determine if the contactOwner is a part of the event type
-  const contactOwnerQuery = await prisma.user.findFirst({
-    where: {
-      email: crmContactOwnerEmail,
-      hosts: {
-        some: {
-          eventTypeId: eventData.id,
-        },
-      },
-    },
-  });
-  if (!contactOwnerQuery) return null;
-  return crmContactOwnerEmail;
-}
