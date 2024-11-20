@@ -1,5 +1,6 @@
-import type { TranslateEventTypeDescriptionPayload } from "tasker/tasks/translateEventTypeDescription";
 import type { z } from "zod";
+
+import type { TranslateEventTypeDescriptionPayload } from "./tasks/translateEventTypeDescription";
 
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
