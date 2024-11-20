@@ -35,6 +35,15 @@ export class GoogleService {
     });
   }
 
+  static async upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration">
+  ) {
+    return await SelectedCalendarRepository.upsert({
+      ...data,
+      integration: "google_calendar",
+    });
+  }
+
   static async findGoogleMeetCredential({ userId }: { userId: number }) {
     return await CredentialRepository.findFirstByUserIdAndType({
       userId,

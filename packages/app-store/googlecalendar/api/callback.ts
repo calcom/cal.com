@@ -106,7 +106,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await GoogleService.createSelectedCalendar({
+      await GoogleService.upsertSelectedCalendar({
         credentialId: gcalCredential.id,
         externalId: selectedCalendarWhereUnique.externalId,
         userId: selectedCalendarWhereUnique.userId,
