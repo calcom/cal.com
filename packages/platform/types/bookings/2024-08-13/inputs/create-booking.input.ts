@@ -126,7 +126,7 @@ export class CreateBookingInput_2024_08_13 {
   @ApiProperty({
     type: Object,
     description:
-      "Not available for seated bookings - only for normal and recurring ones. You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+      "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
     example: { key: "value" },
     required: false,
   })
