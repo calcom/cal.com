@@ -14,6 +14,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
+import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -178,6 +179,136 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("create bookings", () => {
+      describe("invalid metadata", () => {
+        it("should not be able to create a booking with metadata with more than 50 keys", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: "https://meet.google.com/abc-def-ghi",
+            bookingFieldsResponses: {
+              customField: "customValue",
+            },
+            metadata: {
+              key1: "1",
+              key2: "2",
+              key3: "3",
+              key4: "4",
+              key5: "5",
+              key6: "6",
+              key7: "7",
+              key8: "8",
+              key9: "9",
+              key10: "10",
+              key11: "11",
+              key12: "12",
+              key13: "13",
+              key14: "14",
+              key15: "15",
+              key16: "16",
+              key17: "17",
+              key18: "18",
+              key19: "19",
+              key20: "20",
+              key21: "21",
+              key22: "22",
+              key23: "23",
+              key24: "24",
+              key25: "25",
+              key26: "26",
+              key27: "27",
+              key28: "28",
+              key29: "29",
+              key30: "30",
+              key31: "31",
+              key32: "32",
+              key33: "33",
+              key34: "34",
+              key35: "35",
+              key36: "36",
+              key37: "37",
+              key38: "38",
+              key39: "39",
+              key40: "40",
+              key41: "41",
+              key42: "42",
+              key43: "43",
+              key44: "44",
+              key45: "45",
+              key46: "46",
+              key47: "47",
+              key48: "48",
+              key49: "49",
+              key50: "50",
+              key51: "51",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+
+        it("should not be able to create a booking with metadata with a key longer than 40 characters", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: "https://meet.google.com/abc-def-ghi",
+            bookingFieldsResponses: {
+              customField: "customValue",
+            },
+            metadata: {
+              aaaaaaaaaabbbbbbbbbbccccccccccdddddddddde: "1",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+
+        it("should not be able to create a booking with metadata with a value longer than 500 characters", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: "https://meet.google.com/abc-def-ghi",
+            bookingFieldsResponses: {
+              customField: "customValue",
+            },
+            metadata: {
+              key: `${"a".repeat(501)}`,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+      });
+
       it("should create a booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
@@ -191,6 +322,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
           location: "https://meet.google.com/abc-def-ghi",
           bookingFieldsResponses: {
             customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
           },
         };
 
@@ -233,6 +367,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               });
+              expect(data.metadata).toEqual(body.metadata);
               createdBooking = data;
             } else {
               throw new Error(
@@ -253,6 +388,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             language: "it",
           },
           location: "https://meet.google.com/abc-def-ghi",
+          metadata: {
+            userId: "1000",
+          },
         };
 
         return request(app.getHttpServer())
@@ -288,6 +426,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(firstBooking.location).toEqual(body.location);
               expect(firstBooking.recurringBookingUid).toBeDefined();
               expect(firstBooking.absentHost).toEqual(false);
+              expect(firstBooking.metadata).toEqual(body.metadata);
 
               const secondBooking = data[1];
               expect(secondBooking.id).toBeDefined();
@@ -307,6 +446,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(secondBooking.location).toEqual(body.location);
               expect(secondBooking.absentHost).toEqual(false);
+              expect(secondBooking.metadata).toEqual(body.metadata);
 
               const thirdBooking = data[2];
               expect(thirdBooking.id).toBeDefined();
@@ -326,6 +466,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(thirdBooking.location).toEqual(body.location);
               expect(thirdBooking.absentHost).toEqual(false);
+              expect(thirdBooking.metadata).toEqual(body.metadata);
 
               createdRecurringBooking = data;
             } else {
@@ -860,6 +1001,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
             expect(data.location).toEqual(createdBooking.location);
             expect(data.absentHost).toEqual(createdBooking.absentHost);
+            expect(data.metadata).toEqual(createdBooking.metadata);
 
             rescheduledBooking = data;
           });
@@ -913,6 +1055,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
             expect(data.location).toEqual(createdRecurringBooking[0].location);
             expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
+            expect(data.metadata).toEqual(createdRecurringBooking[0].metadata);
 
             const oldBooking = await bookingsRepositoryFixture.getByUid(createdRecurringBooking[0].uid);
             expect(oldBooking).toBeDefined();
@@ -952,6 +1095,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("mark absent", () => {
+      beforeAll(() => {
+        advanceTo(new Date(2035, 0, 9, 15, 0, 0));
+      });
+
+      afterAll(() => {
+        clear();
+      });
+
       it("should mark host absent", async () => {
         const body: MarkAbsentBookingInput_2024_08_13 = {
           host: true,
@@ -1018,6 +1169,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
     });
+
     describe("cancel bookings", () => {
       it("should cancel booking", async () => {
         const body: CancelBookingInput_2024_08_13 = {
