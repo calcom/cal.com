@@ -9,10 +9,12 @@ const AssignAllTeamMembers = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   onActive,
+  onInactive,
 }: {
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   onActive: () => void;
+  onInactive?: () => void;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -31,6 +33,8 @@ const AssignAllTeamMembers = ({
             setAssignAllTeamMembers(active);
             if (active) {
               onActive();
+            } else if (!!onInactive) {
+              onInactive();
             }
           }}
         />
