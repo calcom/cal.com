@@ -24,7 +24,11 @@ export async function translateEventTypeDescription(payload: string): Promise<vo
       (locale) => locale !== userLocale && i18nLocales.includes(locale)
     );
     const { ReplexicaService } = await import("@calcom/lib/server/service/replexica");
-    const translatedTexts = await ReplexicaService.batchLocalizeText(description, userLocale, targetLocales);
+    const translatedTexts = await Promise.all(
+      targetLocales.map((targetLocale) =>
+        ReplexicaService.localizeText(description, userLocale, targetLocale)
+      )
+    );
 
     await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
       targetLocales.map((targetLocale, index) => ({
