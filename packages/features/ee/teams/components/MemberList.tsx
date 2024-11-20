@@ -17,6 +17,13 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import {
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
+  useFetchMoreOnBottomReached,
+} from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -31,10 +38,6 @@ import {
   Button,
   ButtonGroup,
   Checkbox,
-  DataTable,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSelectionBar,
   ConfirmationDialogContent,
   Dialog,
   DialogClose,
@@ -49,7 +52,6 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { useFetchMoreOnBottomReached } from "@calcom/ui/data-table";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -377,6 +379,11 @@ export default function MemberList(props: Props) {
           // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
+      },
+      {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "actions",

@@ -22,7 +22,16 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
 
 type EventType = Pick<
   NewBookingEventType,
-  "hosts" | "users" | "id" | "userId" | "schedulingType" | "maxLeadThreshold"
+  | "hosts"
+  | "users"
+  | "id"
+  | "userId"
+  | "schedulingType"
+  | "maxLeadThreshold"
+  | "team"
+  | "assignAllTeamMembers"
+  | "assignRRMembersUsingSegment"
+  | "rrSegmentQueryValue"
 >;
 
 type InputProps = {
