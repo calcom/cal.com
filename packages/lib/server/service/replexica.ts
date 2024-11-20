@@ -1,4 +1,5 @@
 import { ReplexicaEngine } from "@replexica/sdk";
+import type { LocaleCode } from "@replexica/spec";
 
 import { REPLEXICA_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -42,13 +43,13 @@ export class ReplexicaService {
    */
   static async batchLocalizeText(
     text: string,
-    sourceLocale: string, // TODO: set type to LocaleCode once Replexica team exports it
-    targetLocales: string[] // TODO: set type to LocaleCode[] once Replexica team exports it
+    sourceLocale: LocaleCode,
+    targetLocales: LocaleCode[]
   ): Promise<string[]> {
     try {
       const result = await this.engine.batchLocalizeText(text, {
-        sourceLocale: sourceLocale as any, // TODO: remove casting once TODO above is done
-        targetLocales: targetLocales as any, // TODO: remove casting once TODO above is done
+        sourceLocale,
+        targetLocales,
       });
 
       return result;
