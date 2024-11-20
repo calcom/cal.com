@@ -34,6 +34,31 @@ export class ReplexicaService {
   }
 
   /**
+   * Localize a text string to multiple target locales
+   * @param text The text to localize
+   * @param sourceLocale The source language locale
+   * @param targetLocales Array of the target language locales
+   * @returns The localized texts
+   */
+  static async batchLocalizeText(
+    text: string,
+    sourceLocale: string,
+    targetLocales: string[]
+  ): Promise<string[]> {
+    try {
+      const result = await this.engine.batchLocalizeText(text, {
+        sourceLocale: sourceLocale as any,
+        targetLocales: targetLocales as any,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error(`ReplexicaService.batchLocalizeText() failed: ${error}`);
+      return [];
+    }
+  }
+
+  /**
    * Localizes an array of texts from one language to another
    * @param texts Array of texts to localize
    * @param sourceLocale The source language locale

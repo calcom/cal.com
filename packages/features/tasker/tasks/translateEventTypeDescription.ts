@@ -25,11 +25,7 @@ export async function translateEventTypeDescription(payload: string): Promise<vo
       (locale) => locale !== userLocale && i18nLocales.includes(locale)
     );
 
-    const translatedTexts = await Promise.all(
-      targetLocales.map((targetLocale) =>
-        ReplexicaService.localizeText(description, userLocale, targetLocale)
-      )
-    );
+    const translatedTexts = await ReplexicaService.batchLocalizeText(description, userLocale, targetLocales);
 
     await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
       targetLocales.map((targetLocale, index) => ({
