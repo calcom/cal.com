@@ -3,6 +3,7 @@
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
+import { useMemo } from "react";
 import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
@@ -43,16 +44,29 @@ export function DataTable<TData, TValue>({
   const paddingBottom =
     virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
   return (
     <div
       className={classNames(
-        "grid h-[75dvh]", // Set a fixed height for the container
+        "grid h-[85dvh]", // Set a fixed height for the container
         rest.className
       )}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
         ...rest.style,
+        ...columnSizeVars,
       }}
       data-testid={rest["data-testid"] ?? "data-table"}>
       <div
@@ -65,16 +79,18 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
+                  const meta = header.column.columnDef.meta;
                   return (
                     <TableHead
                       key={header.id}
                       style={{
-                        left: meta?.stickyLeft ? `${meta.stickyLeft}px` : undefined,
+                        ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                        ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
                       }}
                       className={classNames(
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky left-0 top-0 z-20"
+                        meta?.sticky && "bg-subtle sticky top-0 z-20"
                       )}>
                       <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
@@ -119,16 +135,18 @@ export function DataTable<TData, TValue>({
                     )}>
                     {row.getVisibleCells().map((cell) => {
                       const column = table.getColumn(cell.column.id);
-                      const meta = column?.columnDef.meta as { sticky?: boolean; stickyLeft?: number };
+                      const meta = column?.columnDef.meta;
                       return (
                         <TableCell
                           key={cell.id}
                           style={{
-                            left: meta?.stickyLeft ? `${meta.stickyLeft}px` : undefined,
+                            ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                            ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                           }}
                           className={classNames(
                             variant === "compact" && "p-1.5",
-                            meta?.sticky && "group-hover:bg-muted bg-default sticky left-0"
+                            meta?.sticky && "group-hover:bg-muted bg-default sticky"
                           )}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>

@@ -24,7 +24,7 @@ import type {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select, SettingsToggle } from "@calcom/ui";
+import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
@@ -42,6 +42,7 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   "teamMembers" | "team" | "eventType"
 > & {
   customClassNames?: EventTeamAssignmentTabCustomClassNames;
+  orgId: number | null;
 };
 
 export const mapMemberToChildrenOption = (
@@ -124,6 +125,7 @@ type FixedHostsCustomClassNames = SettingsToggleClassNames & {
   addMembersSwitch?: AddMembersWithSwitchCustomClassNames;
 };
 const FixedHosts = ({
+  teamId,
   teamMembers,
   value,
   onChange,
@@ -132,6 +134,7 @@ const FixedHosts = ({
   isRoundRobinEvent = false,
   customClassNames,
 }: {
+  teamId: number;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
@@ -169,6 +172,7 @@ const FixedHosts = ({
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -200,6 +204,7 @@ const FixedHosts = ({
         </>
       ) : (
         <SettingsToggle
+          data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
           description={FixedHostHelper}
@@ -219,6 +224,8 @@ const FixedHosts = ({
           childrenClassName={classNames("lg:ml-0", customClassNames?.children)}>
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              data-testid="fixed-hosts-select"
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -259,24 +266,28 @@ type RoundRobinHostsCustomClassNames = SettingsToggleClassNames & {
 };
 
 const RoundRobinHosts = ({
+  orgId,
   teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
+  teamId,
 }: {
+  orgId: number | null;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: RoundRobinHostsCustomClassNames;
+  teamId: number;
 }) => {
   const { t } = useLocale();
 
   const { setValue, getValues, control } = useFormContext<FormValues>();
-
+  const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
     name: "isRRWeightsEnabled",
@@ -301,7 +312,7 @@ const RoundRobinHosts = ({
         </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && (
+        {!assignAllTeamMembers && !assignRRMembersUsingSegment && (
           <Controller<FormValues>
             name="isRRWeightsEnabled"
             render={({ field: { value, onChange } }) => (
@@ -323,11 +334,13 @@ const RoundRobinHosts = ({
           />
         )}
         <AddMembersWithSwitch
+          teamId={teamId}
           teamMembers={teamMembers}
           value={value}
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
+          isSegmentApplicable={!!orgId}
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
@@ -414,17 +427,20 @@ type HostsCustomClassNames = {
   roundRobinHosts?: RoundRobinHostsCustomClassNames;
 };
 const Hosts = ({
+  orgId,
+  teamId,
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
 }: {
+  orgId: number | null;
+  teamId: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
 }) => {
-  const { t } = useLocale();
   const {
     control,
     setValue,
@@ -476,6 +492,7 @@ const Hosts = ({
         const schedulingTypeRender = {
           COLLECTIVE: (
             <FixedHosts
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={(changeValue) => {
@@ -489,6 +506,7 @@ const Hosts = ({
           ROUND_ROBIN: (
             <>
               <FixedHosts
+                teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -500,6 +518,8 @@ const Hosts = ({
                 customClassNames={customClassNames?.fixedHosts}
               />
               <RoundRobinHosts
+                orgId={orgId}
+                teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -525,6 +545,7 @@ export const EventTeamAssignmentTab = ({
   teamMembers,
   eventType,
   customClassNames,
+  orgId,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -566,6 +587,12 @@ export const EventTeamAssignmentTab = ({
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
+
+  const resetRROptions = () => {
+    setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
+    setValue("assignAllTeamMembers", false, { shouldDirty: true });
+    setAssignAllTeamMembers(false);
+  };
 
   return (
     <div>
@@ -610,15 +637,54 @@ export const EventTeamAssignmentTab = ({
                     innerClassNames={customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames}
                     onChange={(val) => {
                       onChange(val?.value);
-                      setValue("assignAllTeamMembers", false, { shouldDirty: true });
-                      setAssignAllTeamMembers(false);
+                      resetRROptions();
                     }}
                   />
                 )}
               />
             </div>
           </div>
+          <div className="border-subtle mt-4 flex flex-col rounded-md">
+            <div className="border-subtle rounded-t-md border p-6 pb-5">
+              <Label className="mb-1 text-sm font-semibold">{t("rr_distribution_method")}</Label>
+              <p className="text-subtle max-w-full break-words text-sm leading-tight">
+                {t("rr_distribution_method_description")}
+              </p>
+            </div>
+            <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <Controller
+                name="maxLeadThreshold"
+                render={({ field: { value, onChange } }) => (
+                  <RadioArea.Group
+                    onValueChange={(val) => {
+                      if (val === "loadBalancing") onChange(3);
+                      else onChange(null);
+                    }}
+                    className="mt-1 flex flex-col gap-4">
+                    <RadioArea.Item
+                      value="maximizeAvailability"
+                      checked={value === null}
+                      className="w-full text-sm"
+                      classNames={{ container: "w-full" }}>
+                      <strong className="mb-1 block">{t("rr_distribution_method_availability_title")}</strong>
+                      <p>{t("rr_distribution_method_availability_description")}</p>
+                    </RadioArea.Item>
+                    <RadioArea.Item
+                      value="loadBalancing"
+                      checked={value !== null}
+                      className="text-sm"
+                      classNames={{ container: "w-full" }}>
+                      <strong className="mb-1 block">{t("rr_distribution_method_balanced_title")}</strong>
+                      <p>{t("rr_distribution_method_balanced_description")}</p>
+                    </RadioArea.Item>
+                  </RadioArea.Group>
+                )}
+              />
+            </div>
+          </div>
           <Hosts
+            orgId={orgId}
+            teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}

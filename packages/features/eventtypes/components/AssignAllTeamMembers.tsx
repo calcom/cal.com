@@ -27,6 +27,7 @@ const AssignAllTeamMembers = ({
       name="assignAllTeamMembers"
       render={() => (
         <SettingsToggle
+          data-testid="assign-all-team-members-toggle"
           title={t("automatically_add_all_team_members")}
           labelClassName={classNames("mt-0.5 font-normal", customClassNames?.label)}
           switchContainerClassName={customClassNames?.switchContainer}

@@ -132,6 +132,7 @@ function BookingListItem(booking: BookingItemProps) {
   });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
@@ -269,7 +270,7 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
-  if (isBookingInPast) {
+  if (isBookingInPast || isOngoing) {
     editBookingActions.push({
       id: "no_show",
       label: t("mark_as_no_show"),

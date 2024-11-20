@@ -25,9 +25,9 @@ import {
 import {
   ApiTags as DocsTags,
   ApiExcludeController as DocsExcludeController,
-  ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiOperation as DocsOperation,
   ApiOkResponse as DocsOkResponse,
+  ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiBadRequestResponse as DocsBadRequestResponse,
   ApiHeader as DocsHeader,
 } from "@nestjs/swagger";
@@ -50,20 +50,7 @@ export class OAuthFlowController {
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
   @UseGuards(NextAuthGuard)
-  @DocsOperation({
-    summary: "Authorize an OAuth client",
-    description:
-      "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
-  })
-  @DocsOkResponse({
-    description:
-      "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`",
-  })
-  @DocsBadRequestResponse({
-    description:
-      "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client.",
-  })
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
+  @DocsExcludeEndpoint()
   async authorize(
     @Param("clientId") clientId: string,
     @Body() body: OAuthAuthorizeInput,
@@ -97,20 +84,7 @@ export class OAuthFlowController {
 
   @Post("/exchange")
   @HttpCode(HttpStatus.OK)
-  @DocsOperation({
-    summary: "Exchange authorization code for access tokens",
-    description:
-      "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
-  })
-  @DocsOkResponse({
-    type: KeysResponseDto,
-    description: "Successfully exchanged authorization code for access and refresh tokens.",
-  })
-  @DocsBadRequestResponse({
-    description:
-      "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match.",
-  })
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
+  @DocsExcludeEndpoint()
   async exchange(
     @Headers("Authorization") authorization: string,
     @Param("clientId") clientId: string,

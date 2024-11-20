@@ -177,6 +177,7 @@ export default function MemberList(props: Props) {
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState({});
 
   const removeMemberFromCache = ({
     utils,
@@ -376,6 +377,11 @@ export default function MemberList(props: Props) {
           // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
+      },
+      {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "actions",
@@ -602,12 +608,15 @@ export default function MemberList(props: Props) {
     },
     state: {
       columnFilters,
+      rowSelection,
     },
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getRowId: (row) => `${row.id}`,
   });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
