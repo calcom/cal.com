@@ -22,6 +22,8 @@ export type BookingOptions = {
   seatReferenceUid?: string;
   hashedLink?: string | null;
   teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
   orgSlug?: string;
 };
 
@@ -40,6 +42,8 @@ export const mapBookingToMutationInput = ({
   seatReferenceUid,
   hashedLink,
   teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
   orgSlug,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(window.location.search);
@@ -68,6 +72,8 @@ export const mapBookingToMutationInput = ({
     seatReferenceUid,
     hashedLink,
     teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
     orgSlug,
     routedTeamMemberIds,
     routingFormResponseId,
