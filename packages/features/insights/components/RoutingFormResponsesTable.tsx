@@ -12,14 +12,13 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
-  DataTable,
-  useFetchMoreOnBottomReached,
   Badge,
   Avatar,
   Icon,
@@ -252,7 +251,7 @@ export function RoutingFormResponsesTable({
       }
     );
 
-  const { data, fetchNextPage, isFetching, hasNextPage } =
+  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId: selectedTeamId,
@@ -403,10 +402,10 @@ export function RoutingFormResponsesTable({
     totalDBRowCount
   );
 
-  if (isHeadersLoading || (isFetching && !data)) {
+  if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
     return (
       <div
-        className="grid h-[75dvh]"
+        className="grid h-[85dvh]"
         style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
         <div
           className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
