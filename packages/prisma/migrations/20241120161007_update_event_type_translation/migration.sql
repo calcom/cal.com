@@ -1,5 +1,17 @@
+/*
+  Warnings:
+
+  - A unique constraint covering the columns `[eventTypeId,field,targetLocale]` on the table `EventTypeTranslation` will be added. If there are existing duplicate values, this will fail.
+
+*/
 -- AlterTable
-ALTER TABLE "EventTypeTranslation" RENAME COLUMN "id" TO "uid";
+ALTER TABLE "EventTypeTranslation" ADD COLUMN     "uid" TEXT;
+
+-- Copy data
+UPDATE "EventTypeTranslation" SET "uid" = "id";
+
+-- Make uid required
+ALTER TABLE "EventTypeTranslation" ALTER COLUMN "uid" SET NOT NULL;
 
 -- CreateIndex
 CREATE INDEX "EventTypeTranslation_eventTypeId_field_targetLocale_idx" ON "EventTypeTranslation"("eventTypeId", "field", "targetLocale");
