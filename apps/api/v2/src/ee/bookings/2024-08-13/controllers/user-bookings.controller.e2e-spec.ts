@@ -258,7 +258,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           },
           location: "https://meet.google.com/abc-def-ghi",
           metadata: {
-            userId: "100",
+            userId: "1000",
           },
         };
 
