@@ -179,6 +179,136 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("create bookings", () => {
+      describe("invalid metadata", () => {
+        it("should not be able to create a booking with metadata with more than 50 keys", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: "https://meet.google.com/abc-def-ghi",
+            bookingFieldsResponses: {
+              customField: "customValue",
+            },
+            metadata: {
+              key1: "1",
+              key2: "2",
+              key3: "3",
+              key4: "4",
+              key5: "5",
+              key6: "6",
+              key7: "7",
+              key8: "8",
+              key9: "9",
+              key10: "10",
+              key11: "11",
+              key12: "12",
+              key13: "13",
+              key14: "14",
+              key15: "15",
+              key16: "16",
+              key17: "17",
+              key18: "18",
+              key19: "19",
+              key20: "20",
+              key21: "21",
+              key22: "22",
+              key23: "23",
+              key24: "24",
+              key25: "25",
+              key26: "26",
+              key27: "27",
+              key28: "28",
+              key29: "29",
+              key30: "30",
+              key31: "31",
+              key32: "32",
+              key33: "33",
+              key34: "34",
+              key35: "35",
+              key36: "36",
+              key37: "37",
+              key38: "38",
+              key39: "39",
+              key40: "40",
+              key41: "41",
+              key42: "42",
+              key43: "43",
+              key44: "44",
+              key45: "45",
+              key46: "46",
+              key47: "47",
+              key48: "48",
+              key49: "49",
+              key50: "50",
+              key51: "51",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+
+        it("should not be able to create a booking with metadata with a key longer than 40 characters", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: "https://meet.google.com/abc-def-ghi",
+            bookingFieldsResponses: {
+              customField: "customValue",
+            },
+            metadata: {
+              aaaaaaaaaabbbbbbbbbbccccccccccdddddddddde: "1",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+
+        it("should not be able to create a booking with metadata with a value longer than 500 characters", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: "https://meet.google.com/abc-def-ghi",
+            bookingFieldsResponses: {
+              customField: "customValue",
+            },
+            metadata: {
+              key: `${"a".repeat(501)}`,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+      });
+
       it("should create a booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
