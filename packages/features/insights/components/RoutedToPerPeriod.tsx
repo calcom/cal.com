@@ -3,6 +3,7 @@ import { useQueryState } from "nuqs";
 import { useEffect, useMemo, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Avatar, ToggleGroup, Button, DataTable, DataTableSkeleton } from "@calcom/ui";
@@ -42,6 +43,8 @@ type RoutedToTableRow = {
   name: string;
   avatarUrl: string | null;
   stats: { [key: string]: number };
+  performance: "above_average" | "at_average" | "below_average" | "median" | "no_data";
+  totalBookings: number;
 };
 
 export function RoutedToPerPeriod() {
@@ -121,9 +124,41 @@ export function RoutedToPerPeriod() {
         name: user.name || "",
         avatarUrl: user.avatarUrl,
         stats,
+        performance: user.performance,
+        totalBookings: user.totalBookings,
       };
     });
   }, [flattenedUsers, flattenedStats, data?.pages]);
+
+  const getPerformanceColor = (performance: RoutedToTableRow["performance"]) => {
+    switch (performance) {
+      case "above_average":
+        return "text-green-700";
+      case "below_average":
+        return "text-red-700";
+      case "median":
+        return "text-orange-700";
+      case "at_average":
+        return "text-blue-700";
+      default:
+        return "text-gray-700";
+    }
+  };
+
+  const getPerformanceLabel = (performance: RoutedToTableRow["performance"]) => {
+    switch (performance) {
+      case "above_average":
+        return t("above_average");
+      case "below_average":
+        return t("below_average");
+      case "median":
+        return t("median");
+      case "at_average":
+        return t("at_average");
+      default:
+        return t("no_data");
+    }
+  };
 
   const columnHelper = createColumnHelper<RoutedToTableRow>();
 
@@ -139,10 +174,19 @@ export function RoutedToPerPeriod() {
               alt={info.getValue() || ""}
               className="mr-2"
             />
-            <span>{info.getValue()}</span>
+            <div className="flex flex-col">
+              <span>{info.getValue()}</span>
+              <span
+                className={classNames(
+                  "text-xs font-medium",
+                  getPerformanceColor(info.row.original.performance)
+                )}>
+                {getPerformanceLabel(info.row.original.performance)}
+              </span>
+            </div>
           </div>
         ),
-        size: 200,
+        size: 250,
         meta: {
           sticky: {
             position: "left",
@@ -154,11 +198,12 @@ export function RoutedToPerPeriod() {
         columnHelper.accessor((row) => row.stats[period.period_start.toString()], {
           id: period.period_start.toString(),
           header: new Date(period.period_start).toLocaleDateString(),
+          cell: (info) => <div className={classNames("font-medium")}>{info.getValue()}</div>,
           size: 120,
         })
       ),
     ],
-    [columnHelper, flattenedStats, t]
+    [columnHelper, flattenedStats, t, data?.pages]
   );
 
   const table = useReactTable({

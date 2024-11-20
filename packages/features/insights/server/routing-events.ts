@@ -748,7 +748,7 @@ class RoutingEventsInsights {
         SELECT 
           b."userId",
           date_trunc(${dayjsPeriod}, r."createdAt") as period_start,
-          COUNT(*) as total
+          COUNT(*)::integer as total
         FROM "App_RoutingForms_FormResponse" r
         JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
         JOIN "Booking" b ON r."routedToBookingUid" = b.uid
@@ -761,7 +761,7 @@ class RoutingEventsInsights {
       SELECT 
         COALESCE(u."userId", bp."userId") as "userId",
         p.period_start,
-        COALESCE(bp.total, 0) as total
+        COALESCE(bp.total, 0)::integer as total
       FROM periods p
       CROSS JOIN (SELECT DISTINCT "userId" FROM bookings_by_period) u
       LEFT JOIN bookings_by_period bp 
@@ -775,12 +775,9 @@ class RoutingEventsInsights {
     const hasMorePeriods = periodStats.length > limit;
     if (hasMorePeriods) periodStats.pop();
 
-    console.log(periodStats);
-    console.log(users);
-
     // Add total count query for users
     const totalUsersCount = await prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(DISTINCT b."userId") as count
+      SELECT COUNT(DISTINCT b."userId")::integer as count
       FROM "App_RoutingForms_FormResponse" r
       JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
       JOIN "Booking" b ON r."routedToBookingUid" = b.uid
@@ -790,15 +787,65 @@ class RoutingEventsInsights {
       ${whereClause}
     `;
 
+    // Get statistics for the entire period for comparison
+    const statsQuery = await prisma.$queryRaw<
+      Array<{
+        userId: number;
+        total_bookings: number;
+      }>
+    >`
+      SELECT 
+        b."userId",
+        COUNT(*)::integer as total_bookings
+      FROM "App_RoutingForms_FormResponse" r
+      JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
+      JOIN "Booking" b ON r."routedToBookingUid" = b.uid
+      WHERE r."routedToBookingUid" IS NOT NULL
+      AND r."createdAt" >= ${startDate}
+      AND r."createdAt" <= ${endDate}
+      ${whereClause}
+      GROUP BY b."userId"
+      ORDER BY total_bookings ASC
+    `;
+
+    // Calculate average and median
+    const average =
+      statsQuery.reduce((sum, stat) => sum + Number(stat.total_bookings), 0) / statsQuery.length;
+    const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
+
+    // Create a map of user performance indicators
+    const userPerformance = statsQuery.reduce((acc, stat) => {
+      acc[stat.userId] = {
+        total: stat.total_bookings,
+        performance:
+          stat.total_bookings > average
+            ? "above_average"
+            : stat.total_bookings === median
+            ? "median"
+            : stat.total_bookings < average
+            ? "below_average"
+            : "at_average",
+      };
+      return acc;
+    }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
+
     return {
       users: {
-        data: users,
+        data: users.map((user) => ({
+          ...user,
+          performance: userPerformance[user.id]?.performance || "no_data",
+          totalBookings: userPerformance[user.id]?.total || 0,
+        })),
         nextCursor: hasMoreUsers ? users[users.length - 1].id : undefined,
         totalCount: totalUsersCount[0].count,
       },
       periodStats: {
         data: periodStats,
         nextCursor: hasMorePeriods ? (parseInt(cursor || "0", 10) + limit).toString() : undefined,
+      },
+      statistics: {
+        average,
+        median,
       },
     };
   }
