@@ -3,18 +3,19 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
-export const findQualifiedHosts = async <
-  T extends { email: string; id: number } & Record<string, unknown>
->(eventType: {
-  id: number;
-  maxLeadThreshold: number | null;
-  hosts?: ({ isFixed: boolean; createdAt: Date; priority?: number | null; weight?: number | null } & {
-    user: T;
-  })[];
-  users: T[];
-  schedulingType: SchedulingType | null;
-  rescheduleWithSameRoundRobinHost: boolean;
-}): Promise<
+export const findQualifiedHosts = async <T extends { email: string; id: number } & Record<string, unknown>>(
+  eventType: {
+    id: number;
+    maxLeadThreshold: number | null;
+    hosts?: ({ isFixed: boolean; createdAt: Date; priority?: number | null; weight?: number | null } & {
+      user: T;
+    })[];
+    users: T[];
+    schedulingType: SchedulingType | null;
+    rescheduleWithSameRoundRobinHost: boolean;
+  },
+  isReschedule: boolean
+): Promise<
   {
     isFixed: boolean;
     email: string;
@@ -29,7 +30,8 @@ export const findQualifiedHosts = async <
     ? await filterHostsByLeadThreshold({
         eventTypeId: eventType.id,
         hosts,
-        maxLeadThreshold: !eventType.rescheduleWithSameRoundRobinHost ? eventType.maxLeadThreshold : null,
+        maxLeadThreshold:
+          isReschedule && eventType.rescheduleWithSameRoundRobinHost ? null : eventType.maxLeadThreshold,
       })
     : fallbackHosts;
   return qualifiedHosts;
