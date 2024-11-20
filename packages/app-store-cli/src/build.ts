@@ -10,7 +10,7 @@ import prettier from "prettier";
 import prettierConfig from "@calcom/config/prettier-preset";
 import type { AppMeta } from "@calcom/types/App";
 
-import { APP_STORE_PATH } from "./constants";
+import { APP_STORE_PATH, APP_STORE_APPS_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
 const isInWatchMode = process.argv[2] === "--watch";
@@ -37,7 +37,7 @@ function generateFiles() {
   const schemasOutput = [];
   const appKeysSchemasOutput = [];
   const serverOutput = [];
-  const appDirs: { name: string; path: string }[] = [];
+  const appDirs: { name: string; path: string; isExternalApp: boolean }[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
     if (dir === "ee" || dir === "templates") {
@@ -47,27 +47,32 @@ function generateFiles() {
             appDirs.push({
               name: subDir,
               path: path.join(dir, subDir),
+              isExternalApp: false,
             });
           }
         }
       });
-    } else {
-      if (fs.statSync(path.join(APP_STORE_PATH, dir)).isDirectory()) {
-        if (!getAppName(dir)) {
-          return;
-        }
-        appDirs.push({
-          name: dir,
-          path: dir,
-        });
+    }
+  });
+
+  fs.readdirSync(`${APP_STORE_APPS_PATH}`).forEach(function (dir) {
+    if (fs.statSync(path.join(APP_STORE_APPS_PATH, dir)).isDirectory()) {
+      if (!getAppName(dir)) {
+        return;
       }
+      appDirs.push({
+        name: dir,
+        path: dir,
+        isExternalApp: true,
+      });
     }
   });
 
   function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
     for (let i = 0; i < appDirs.length; i++) {
-      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
-      const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
+      const pathToUse = appDirs[i].isExternalApp ? APP_STORE_APPS_PATH : APP_STORE_PATH;
+      const configPath = path.join(pathToUse, appDirs[i].path, "config.json");
+      const metadataPath = path.join(pathToUse, appDirs[i].path, "_metadata.ts");
       let app;
 
       if (fs.existsSync(configPath)) {
@@ -83,6 +88,7 @@ function generateFiles() {
         ...app,
         name: appDirs[i].name,
         path: appDirs[i].path,
+        isExternalApp: appDirs[i].isExternalApp,
       };
 
       if (filter(finalApp)) {
@@ -96,8 +102,9 @@ function generateFiles() {
    * .ts and .tsx files are imported without extensions
    * If a file has index.ts or index.tsx, it can be imported after removing the index.ts* part
    */
-  function getModulePath(path: string, moduleName: string) {
-    return `./${path.replace(/\\/g, "/")}/${moduleName
+  function getModulePath(path: string, moduleName: string, isExternalApp: boolean) {
+    const parentFolderPath = isExternalApp ? "../apps" : ".";
+    return `${parentFolderPath}/${path.replace(/\\/g, "/")}/${moduleName
       .replace(/\/index\.ts|\/index\.tsx/, "")
       .replace(/\.tsx$|\.ts$/, "")}`;
   }
@@ -142,9 +149,22 @@ function generateFiles() {
     ) => `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
 
     const fileToBeImportedExists = (
-      app: { path: string },
+      app: { path: string; isExternalApp: boolean },
       chosenConfig: ReturnType<typeof getChosenImportConfig>
-    ) => fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported));
+    ) => {
+      const filePath = path.join(
+        app.isExternalApp ? APP_STORE_APPS_PATH : APP_STORE_PATH,
+        app.path,
+        chosenConfig.fileToBeImported
+      );
+      const exists = fs.existsSync(filePath);
+
+      if (!exists) {
+        //console.log("FILE NOT FOUND", filePath);
+      }
+
+      return exists;
+    };
 
     addImportStatements();
     createExportObject();
@@ -154,6 +174,7 @@ function generateFiles() {
     function addImportStatements() {
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
+        console.log(app);
         if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
           const importName = chosenConfig.importName;
           if (!lazyImport) {
@@ -162,7 +183,8 @@ function generateFiles() {
               output.push(
                 `import { ${importName} as ${getLocalImportName(app, chosenConfig)} } from "${getModulePath(
                   app.path,
-                  chosenConfig.fileToBeImported
+                  chosenConfig.fileToBeImported,
+                  app.isExternalApp
                 )}"`
               );
             } else {
@@ -170,7 +192,8 @@ function generateFiles() {
               output.push(
                 `import ${getLocalImportName(app, chosenConfig)} from "${getModulePath(
                   app.path,
-                  chosenConfig.fileToBeImported
+                  chosenConfig.fileToBeImported,
+                  app.isExternalApp
                 )}"`
               );
             }
@@ -195,11 +218,18 @@ function generateFiles() {
               output.push(
                 `"${key}": dynamic(() => import("${getModulePath(
                   app.path,
-                  chosenConfig.fileToBeImported
+                  chosenConfig.fileToBeImported,
+                  app.isExternalApp
                 )}")),`
               );
             } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+              output.push(
+                `"${key}": import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported,
+                  app.isExternalApp
+                )}"),`
+              );
             }
           }
         }
@@ -208,15 +238,27 @@ function generateFiles() {
       output.push(`};`);
     }
 
-    function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
+    function getChosenImportConfig(
+      importConfig: ImportConfig,
+      app: { path: string; isExternalApp: boolean }
+    ) {
       let chosenConfig;
 
       if (!(importConfig instanceof Array)) {
         chosenConfig = importConfig;
       } else {
-        if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
+        if (
+          fs.existsSync(
+            path.join(
+              app.isExternalApp ? APP_STORE_APPS_PATH : APP_STORE_PATH,
+              app.path,
+              importConfig[0].fileToBeImported
+            )
+          )
+        ) {
           chosenConfig = importConfig[0];
         } else {
+          // FOUND - getChosenImportConfig");
           chosenConfig = importConfig[1];
         }
       }
