@@ -1180,6 +1180,7 @@ model BookingSeat {
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   /// @zod.custom(imports.bookingSeatDataSchema)
   data         Json?
+  metadata     Json?
 
   @@index([bookingId])
   @@index([attendeeId])
