@@ -7,8 +7,8 @@ import { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 import { CalendarCache } from "../calendar-cache";
 
 const validateRequest = (req: NextApiRequest) => {
-  const apiKey = String(req.query.apiKey) || req.headers.authorization;
-  if (!apiKey || ![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(apiKey)) {
+  const apiKey = req.headers.authorization || req.query.apiKey;
+  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
 };

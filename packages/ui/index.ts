@@ -152,7 +152,6 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable";
 export { WizardLayout } from "./layouts/WizardLayout";
-export * from "./components/data-table";
 export * from "./components/sheet";
 export * from "./components/table";
 export * from "./components/popover";
