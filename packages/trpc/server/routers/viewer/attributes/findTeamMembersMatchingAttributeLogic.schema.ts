@@ -1,16 +1,10 @@
 import { z } from "zod";
 
-import { zodNonRouterRoute } from "@calcom/routing-forms/zod";
+import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 
 export const ZFindTeamMembersMatchingAttributeLogicInputSchema = z.object({
-  formId: z.string(),
-  response: z.record(
-    z.object({
-      label: z.string(),
-      value: z.union([z.string(), z.number(), z.array(z.string())]),
-    })
-  ),
-  route: zodNonRouterRoute,
+  teamId: z.number(),
+  attributesQueryValue: zodAttributesQueryValue.nullable(),
   isPreview: z.boolean().optional(),
   _enablePerf: z.boolean().optional(),
   _concurrency: z.number().optional(),
