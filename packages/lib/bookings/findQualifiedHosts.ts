@@ -13,6 +13,7 @@ export const findQualifiedHosts = async <
   })[];
   users: T[];
   schedulingType: SchedulingType | null;
+  rescheduleWithSameRoundRobinHost: boolean;
 }): Promise<
   {
     isFixed: boolean;
@@ -28,7 +29,7 @@ export const findQualifiedHosts = async <
     ? await filterHostsByLeadThreshold({
         eventTypeId: eventType.id,
         hosts,
-        maxLeadThreshold: eventType.maxLeadThreshold,
+        maxLeadThreshold: !eventType.rescheduleWithSameRoundRobinHost ? eventType.maxLeadThreshold : null,
       })
     : fallbackHosts;
   return qualifiedHosts;
