@@ -184,8 +184,8 @@ describe("Verify API key", () => {
 
     expect(middlewareSpy).toBeCalled();
     expect(isLockedOrBlocked).toHaveBeenCalledWith(expect.objectContaining({ userId: 2 }));
-    expect(res.statusCode).toBe(401);
-    expect(JSON.parse(res._getData())).toEqual({ error: "User is locked or blocked" });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res._getData())).toEqual({ error: "You are not authorized to perform this request." });
     expect(serverNext).not.toHaveBeenCalled();
   });
 });

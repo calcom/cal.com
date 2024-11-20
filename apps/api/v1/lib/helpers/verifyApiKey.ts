@@ -41,7 +41,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   req.userId = apiKey.userId;
 
   const user = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { id: apiKey.userId },
     select: { role: true, locked: true, email: true },
   });
   req.user = user;
