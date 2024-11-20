@@ -68,7 +68,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 }));
 
 let findTeamMembersMatchingAttributeLogicResponse: {
-  result: { email: string }[] | null;
+  result: { users: { email: string }[] } | null;
   checkedFallback: boolean;
   mainWarnings?: string[] | null;
   fallbackWarnings?: string[] | null;
@@ -97,8 +97,8 @@ function mockFindTeamMembersMatchingAttributeLogicResponse(
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      appRoutingForms: {
-        findTeamMembersMatchingAttributeLogic: {
+      routingForms: {
+        findTeamMembersMatchingAttributeLogicOfRoute: {
           useMutation: vi.fn(({ onSuccess }) => {
             return {
               mutate: vi.fn(() => {
@@ -210,7 +210,9 @@ describe("TestFormDialog", () => {
     it("suggests to add fallback when matching members is empty and fallback is not checked", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       mockFindTeamMembersMatchingAttributeLogicResponse({
-        result: [],
+        result: {
+          users: [],
+        },
         checkedFallback: false,
       });
       render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
@@ -264,7 +266,9 @@ describe("TestFormDialog", () => {
     it("should show No in main and fallback matched", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       mockFindTeamMembersMatchingAttributeLogicResponse({
-        result: [],
+        result: {
+          users: [],
+        },
         checkedFallback: true,
         mainWarnings: null,
         fallbackWarnings: null,

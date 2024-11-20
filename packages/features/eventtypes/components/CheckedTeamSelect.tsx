@@ -15,7 +15,6 @@ export type CheckedSelectOption = {
   value: string;
   priority?: number;
   weight?: number;
-  weightAdjustment?: number;
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;

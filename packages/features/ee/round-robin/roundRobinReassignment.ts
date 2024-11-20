@@ -83,8 +83,8 @@ export const roundRobinReassignment = async ({
         isFixed: false,
         priority: 2,
         weight: 100,
-        weightAdjustment: 0,
         schedule: null,
+        createdAt: new Date(0), // use earliest possible date as fallback
       }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
@@ -125,13 +125,11 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+  const reassignedRRHost = await getLuckyUser({
     availableUsers,
-    eventType: {
-      id: eventType.id,
-      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
-    },
-    allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
+    eventType,
+    allRRHosts: eventType.hosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
+    routingFormResponse: null,
   });
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;

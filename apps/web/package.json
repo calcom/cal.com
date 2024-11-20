@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.6.18",
+  "version": "4.7.5",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -64,6 +64,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
+    "@replexica/sdk": "^0.6.0",
     "@sentry/nextjs": "^8.8.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
@@ -74,7 +75,7 @@
     "@upstash/redis": "^1.21.0",
     "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
-    "@vercel/og": "^0.5.0",
+    "@vercel/og": "^0.6.3",
     "accept-language-parser": "^1.5.0",
     "async": "^3.2.4",
     "bcp-47-match": "^2.0.3",

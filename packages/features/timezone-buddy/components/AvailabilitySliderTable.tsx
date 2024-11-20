@@ -1,16 +1,20 @@
+"use client";
+
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { Button, ButtonGroup, DataTable, DataTableToolbar, UserAvatar } from "@calcom/ui";
+import { Button, ButtonGroup, UserAvatar } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { createTimezoneBuddyStore, TBContext } from "../store";
@@ -64,6 +68,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
+  const [searchString, setSearchString] = useState("");
+  const debouncedSearchString = useDebounce(searchString, 500);
 
   const tbStore = createTimezoneBuddyStore({
     browsingDate: browsingDate.toDate(),
@@ -75,6 +81,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
+      searchString: debouncedSearchString,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -202,7 +209,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   });
 
   // This means they are not apart of any teams so we show the upgrade tip
-  if (!flatData.length) return <UpgradeTeamTip />;
+  if (!flatData.length && !data?.pages?.[0]?.meta?.isApartOfAnyTeam) return <UpgradeTeamTip />;
 
   return (
     <TBContext.Provider
@@ -223,7 +230,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
             <DataTableToolbar.Root>
-              <DataTableToolbar.SearchBar table={table} searchKey="member" />
+              <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchString(value)} />
             </DataTableToolbar.Root>
           </DataTable>
         </CellHighlightContainer>

@@ -58,7 +58,6 @@ export type IsFixedAwareUser = User & {
   organization?: { slug: string };
   priority?: number;
   weight?: number;
-  weightAdjustment?: number;
 };
 
 export type NewBookingEventType = DefaultEvent | getEventTypeResponse;
