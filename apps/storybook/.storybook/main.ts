@@ -13,6 +13,8 @@ const config: StorybookConfig = {
     "../../../packages/atoms/**/*.docs.mdx",
   ],
 
+
+  // yaha bhi hai. main.js
   addons: [
     getAbsolutePath("@storybook/addon-links"),
     getAbsolutePath("@storybook/addon-essentials"),

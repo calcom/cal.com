@@ -1,6 +1,10 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
+
+// for testing purposes. 
+
+
 const ns = ["common"];
 const supportedLngs = ["en", "fr"];
 const resources = ns.reduce((acc, n) => {
