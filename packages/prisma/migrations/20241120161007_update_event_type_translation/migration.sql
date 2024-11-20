@@ -10,9 +10,6 @@ ALTER TABLE "EventTypeTranslation" ADD COLUMN     "uid" TEXT;
 -- Copy data
 UPDATE "EventTypeTranslation" SET "uid" = "id";
 
--- Make uid required
-ALTER TABLE "EventTypeTranslation" ALTER COLUMN "uid" SET NOT NULL;
-
 -- CreateIndex
 CREATE INDEX "EventTypeTranslation_eventTypeId_field_targetLocale_idx" ON "EventTypeTranslation"("eventTypeId", "field", "targetLocale");
 
