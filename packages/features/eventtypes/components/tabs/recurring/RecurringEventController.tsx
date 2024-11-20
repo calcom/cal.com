@@ -80,7 +80,7 @@ export default function RecurringEventController({
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 recurringEventState !== null && "rounded-b-none",
-                customClassNames?.recurringToggle?.switchContainer
+                customClassNames?.recurringToggle?.container
               )}
               childrenClassName={classNames("lg:ml-0", customClassNames?.recurringToggle?.children)}
               descriptionClassName={customClassNames?.recurringToggle?.description}

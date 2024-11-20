@@ -100,7 +100,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 eventRecurringTab: {
                   container: "border border-purple-200 bg-purple-50 rounded-lg shadow-sm",
                   recurringToggle: {
-                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
                     children: "bg-purple-50 rounded-md",
