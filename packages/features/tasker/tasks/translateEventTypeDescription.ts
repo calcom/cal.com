@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { locales as i18nLocale } from "@calcom/lib/i18n";
 import logger from "@calcom/lib/logger";
 import { EventTypeTranslationRepository } from "@calcom/lib/server/repository/eventTypeTranslation";
 import { ReplexicaService } from "@calcom/lib/server/service/replexica";
@@ -21,7 +22,7 @@ export async function translateEventTypeDescription(payload: string): Promise<vo
       ZTranslateEventTypeDescriptionPayloadSchema.parse(JSON.parse(payload));
 
     const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const).filter(
-      (locale) => locale !== userLocale
+      (locale) => locale !== userLocale && i18nLocale.includes(locale)
     );
 
     const translatedTexts = await Promise.all(
