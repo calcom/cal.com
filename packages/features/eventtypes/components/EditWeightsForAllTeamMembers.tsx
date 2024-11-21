@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
-import type { AssignmentState } from "@calcom/features/eventtypes/lib/types";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import "@calcom/ui";
@@ -95,16 +94,17 @@ interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
-  assignmentState?: AssignmentState;
 }
 
-export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, assignmentState }: Props) => {
+export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [localWeights, setLocalWeights] = useState<Record<string, number>>(() =>
     teamMembers.reduce<Record<string, number>>((acc, member) => {
-      acc[member.value] = member.weight ?? 100;
+      // Find the member in the value array and use its weight if it exists
+      const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
+      acc[member.value] = memberInValue?.weight ?? 100;
       return acc;
     }, {})
   );
