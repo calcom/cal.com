@@ -230,7 +230,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
                 </Button>
               </div>
               <TextField
-                placeholder={t("search_team_members")}
+                placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
                 addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
