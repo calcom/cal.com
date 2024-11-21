@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form";
 
-import type { EventAvailabilityTabCustomClassnames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
@@ -17,7 +17,7 @@ type EventAvailabilityTabPlatformWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
   teamId?: number;
-  customClassnames?: EventAvailabilityTabCustomClassnames;
+  customClassNames?: EventAvailabilityTabCustomClassNames;
 };
 
 const EventAvailabilityTabPlatformWrapper = ({
