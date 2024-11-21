@@ -334,6 +334,7 @@ export default class SalesforceCRMService implements CRM {
       (forRoundRobinSkip ? appOptions?.roundRobinSkipCheckRecordOn : appOptions?.createEventOn) ??
       SalesforceRecordEnum.CONTACT;
     let soql: string;
+    let accountOwnerId = "";
     if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
       // For an account let's assume that the first email is the one we should be querying against
       const attendeeEmail = emailArray[0];
@@ -361,6 +362,12 @@ export default class SalesforceCRMService implements CRM {
     }
     const results = await conn.query(soql);
 
+    // If we're checking against the contact, the ownerId should take precedence
+    if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records.length) {
+      const account = results.records[0] as ContactRecord;
+      accountOwnerId = account.OwnerId;
+    }
+
     let records: ContactRecord[] = [];
 
     // If falling back to contacts, check for the contact before returning the leads or empty array
@@ -387,18 +394,23 @@ export default class SalesforceCRMService implements CRM {
 
     if (includeOwner || forRoundRobinSkip) {
       const ownerIds: Set<string> = new Set();
-      records.forEach((record) => {
-        ownerIds.add(record.OwnerId);
-      });
+      if (accountOwnerId) {
+        ownerIds.add(accountOwnerId);
+      } else {
+        records.forEach((record) => {
+          ownerIds.add(record.OwnerId);
+        });
+      }
 
       const ownersQuery = (await Promise.all(
         Array.from(ownerIds).map(async (ownerId) => {
-          return this.getSalesforceUserFromUserId(ownerId);
+          return await this.getSalesforceUserFromUserId(ownerId);
         })
       )) as { records: ContactRecord[] }[];
       const contactsWithOwners = records.map((record) => {
-        const ownerEmail = ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]
-          .Email;
+        const ownerEmail = accountOwnerId
+          ? ownersQuery[0].records[0].Email
+          : ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0].Email;
         return {
           id: record.Id,
           email: record.Email,
