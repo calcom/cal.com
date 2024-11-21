@@ -82,7 +82,7 @@ export type EventAdvancedTabCustomClassNames = {
     showAvalableSeatCountCheckbox?: CheckboxClassNames;
     seatsInput: InputClassNames;
   };
-  timezoneLockToggle?: SettingsToggleClassNames;
+  timezoneLock?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -710,12 +710,12 @@ export const EventAdvancedTab = ({
         name="lockTimeZoneToggleOnBookingPage"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.timezoneLockToggle?.label)}
-            descriptionClassName={customClassNames?.timezoneLockToggle?.description}
+            labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
+            descriptionClassName={customClassNames?.timezoneLock?.description}
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.timezoneLockToggle?.container
+              customClassNames?.timezoneLock?.container
             )}
             title={t("lock_timezone_toggle_on_booking_page")}
             {...lockTimeZoneToggleOnBookingPageLocked}

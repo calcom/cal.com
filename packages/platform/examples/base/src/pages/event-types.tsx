@@ -120,23 +120,21 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     addOn: "",
                   },
                   addToCalendarEmailOrganizer: {
-                    switch: {
-                      container: "bg-purple-50 border border-purple-200 shadow-inner",
-                      thumb: "bg-purple-300 border border-purple-400 shadow-sm",
-                    },
-                    select: {
+                    container: "bg-purple-50 border border-purple-200 shadow-inner",
+                    label: "",
+                    description: "",
+                    children: "",
+                    emailSelect: {
                       container: "",
                       select: "",
                       displayEmailLabel: "",
                     },
                   },
                   requiresConfirmation: {
-                    toggle: {
-                      container: "bg-purple-50 border border-purple-200 shadow-md",
-                      label: "",
-                      description: "",
-                      children: "",
-                    },
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
                     radioGroupContainer: "",
                     alwaysConfirmationRadio: "",
                     conditionalConfirmationRadio: {
@@ -170,13 +168,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     label: "",
                     description: "",
                     children: "",
-                    textFieldClassNames: {
+                    redirectUrlInput: {
                       container: "bg-purple-50 border border-purple-200 shadow-sm",
                       label: "",
                       input: "",
                       addOn: "",
                     },
-                    forwardParamsCheckboxClassNames: {
+                    forwardParamsCheckbox: {
                       checkbox: "",
                       description: "",
                       container: "bg-purple-50 border border-purple-300 shadow-sm",
@@ -188,24 +186,24 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     label: "",
                     description: "",
                     children: "",
-                    textInputClassNames: {
+                    seatsInput: {
                       container: "bg-purple-50 border border-purple-200 shadow-sm",
                       label: "",
                       input: "",
                       addOn: "",
                     },
-                    showAttendeesCheckboxClassNames: {
+                    showAttendeesCheckbox: {
                       checkbox: "",
                       description: "",
                       container: "",
                     },
-                    showAvalableSeatCountCheckboxClassNames: {
+                    showAvalableSeatCountCheckbox: {
                       checkbox: "",
                       description: "",
                       container: "",
                     },
                   },
-                  timezoneLockToggle: {
+                  timezoneLock: {
                     container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
@@ -225,12 +223,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     children: "",
                   },
                   emailNotifications: {
-                    settingsToggle: {
-                      container: "bg-purple-50 border border-purple-200 shadow-md",
-                      label: "",
-                      description: "",
-                      children: "",
-                    },
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
                     confirmationDialog: {
                       container: "bg-purple-50 border border-purple-300 shadow-lg",
                       dialogTitle: "",
