@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
@@ -212,7 +214,15 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
           <SheetContent>
             <SheetHeader>
               <SheetTitle>{t("edit_team_member_weights")}</SheetTitle>
-              <p className="text-subtle text-sm">{t("customize_weights_description")}</p>
+              <Trans i18nKey="weights_description">
+                Weights determine how meetings are distributed among hosts.
+                <Link
+                  className="underline underline-offset-2"
+                  target="_blank"
+                  href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+                  Learn more
+                </Link>
+              </Trans>
             </SheetHeader>
 
             <SheetBody className="mt-4 flex h-full flex-col space-y-6 p-1">

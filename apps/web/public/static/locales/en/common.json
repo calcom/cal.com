@@ -2815,6 +2815,5 @@
   "exclude_emails_that_contain" : "Exclude emails that contain ...",
   "exclude_emails_match_found_error_message" : "Please enter a valid work email address",
   "edit_team_member_weights": "Edit Weights",
-  "customize_weights_description": "You can customize the weights for each team member to control the distribution of bookings across hosts. The weights are based on the number of meetings booked and the number of meetings available for booking.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
