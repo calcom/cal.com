@@ -22,6 +22,8 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
+  isSelectFilterValue,
+  selectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -196,10 +198,13 @@ export function UserListTable() {
 
             if (isTextFilterValue(filterValue)) {
               return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+            } else if (isSelectFilterValue(filterValue)) {
+              return selectFilter(
+                attributeValues.map((attr) => attr.value),
+                filterValue
+              );
             }
-
-            if (attributeValues.length === 0) return false;
-            return attributeValues.some((attr) => filterValue.includes(attr.value));
+            return false;
           },
         })) as ColumnDef<UserTableUser>[]) ?? []
       );
@@ -508,7 +513,7 @@ export function UserListTable() {
                 {t("download")}
               </DataTableToolbar.CTA>
               {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.AddFilterButton table={table} omit={["member"]} />
               <DataTableFilters.ColumnVisibilityButton table={table} />
               {adminOrOwner && (
                 <DataTableToolbar.CTA

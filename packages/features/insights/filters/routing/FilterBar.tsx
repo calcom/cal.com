@@ -10,7 +10,6 @@ import { RoutingDownload } from "../Download";
 import { FilterType } from "../FilterType";
 import { RoutingFormFieldFilter } from "../RoutingFormFieldFilter";
 import { RoutingFormFilterList } from "../RoutingFormFilterList";
-import { TeamAndSelfList } from "../TeamAndSelfList";
 import { UserListInTeam } from "../UsersListInTeam";
 
 const ClearFilters = () => {
@@ -50,10 +49,8 @@ export const RoutingInsightsFilters = ({ table }: { table: RoutingFormTableType 
     : [];
 
   return (
-    <div className="mt-6 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
       <div className="flex flex-wrap gap-2 sm:flex-row sm:justify-start">
-        <TeamAndSelfList omitOrg={true} />
-
         <UserListInTeam />
 
         <RoutingFormFilterList />

@@ -35,5 +35,12 @@ export type FilterableColumn = {
   id: string;
   title: string;
   filterType: "text" | "select";
-  options: Map<string, number>;
+  options: Map<string | { label: string; value: string }, number>;
 };
+
+export const ZColumnFilter = z.object({
+  id: z.string(),
+  value: ZFilterValue,
+});
+
+export type ColumnFilter = z.infer<typeof ZColumnFilter>;

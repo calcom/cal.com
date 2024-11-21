@@ -3,6 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ZColumnFilter } from "@calcom/features/data-table";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -1582,6 +1583,7 @@ export const insightsRouter = router({
         cursor: z.number().optional(),
         limit: z.number().optional(),
         bookingStatus: bookingStatusSchema,
+        columnFilters: z.array(ZColumnFilter),
         fieldFilter: z
           .object({
             fieldId: z.string(),
@@ -1603,6 +1605,7 @@ export const insightsRouter = router({
         userId: input.userId ?? null,
         limit: input.limit,
         bookingStatus: input.bookingStatus ?? null,
+        columnFilters: input.columnFilters,
         fieldFilter: input.fieldFilter ?? null,
       });
     }),
@@ -1636,12 +1639,16 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormHeaders({
+      const fields = await RoutingEventsInsights.getRoutingFormHeaders({
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
       });
+
+      return {
+        fields: fields || [],
+      };
     }),
   rawRoutingData: userBelongsToTeamProcedure
     .input(

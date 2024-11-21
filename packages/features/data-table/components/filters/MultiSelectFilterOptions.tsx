@@ -36,27 +36,32 @@ export function MultiSelectFilterOptions({
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
         {Array.from(column.options.keys()).map((option) => {
           if (!option) return null;
+          const { label: optionLabel, value: optionValue } =
+            typeof option === "string" ? { label: option, value: option } : option;
+
+          console.log("💡 optionValue", optionValue);
           return (
             <CommandItem
-              key={option}
+              key={optionValue}
               onSelect={() => {
-                const newFilterValue = filterValue?.includes(option)
-                  ? filterValue?.filter((value) => value !== option)
-                  : [...(filterValue || []), option];
+                console.log("💡 TESTTTT", { optionLabel, optionValue, filterValue });
+                const newFilterValue = filterValue?.includes(optionValue)
+                  ? filterValue?.filter((value) => value !== optionValue)
+                  : [...(filterValue || []), optionValue];
                 setFilterValue(newFilterValue);
               }}>
               <div
                 className={classNames(
                   "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                  Array.isArray(filterValue) && (filterValue as string[])?.includes(option)
+                  Array.isArray(filterValue) && (filterValue as string[])?.includes(optionValue)
                     ? "bg-primary"
                     : "opacity-50"
                 )}>
-                {Array.isArray(filterValue) && (filterValue as string[])?.includes(option) && (
+                {Array.isArray(filterValue) && (filterValue as string[])?.includes(optionValue) && (
                   <Icon name="check" className="text-primary-foreground h-4 w-4" />
                 )}
               </div>
-              {option}
+              {optionLabel}
             </CommandItem>
           );
         })}

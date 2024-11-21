@@ -642,7 +642,7 @@ export default function MemberList(props: Props) {
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <DataTableFilters.FilterButton table={table} />
+            <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {isAdminOrOwner && (
               <DataTableToolbar.CTA

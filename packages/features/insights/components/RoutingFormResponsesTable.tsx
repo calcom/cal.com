@@ -12,7 +12,15 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
+import type { SelectFilterValue } from "@calcom/features/data-table";
+import {
+  DataTable,
+  DataTableFilters,
+  useFetchMoreOnBottomReached,
+  useColumnFilters,
+  dataTableFilterFn,
+  selectFilter,
+} from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,6 +43,9 @@ import {
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
+import { TeamAndSelfList } from "../filters/TeamAndSelfList";
+import { RoutingInsightsFilters } from "../filters/routing/FilterBar";
+import { RoutingKPICards } from "./RoutingKPICards";
 
 type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
@@ -101,28 +112,30 @@ function BookedByCell({
   );
 }
 
-function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number }) {
+type ResponseValue = { label: string; value: string };
+
+function ResponseValueCell({ values, rowId }: { values: ResponseValue[]; rowId: number }) {
   const cellId = useId();
-  if (value.length === 0) return <div className="h-6 w-[200px]" />;
+  if (values.length === 0) return <div className="h-6 w-[200px]" />;
 
   return (
     <CellWithOverflowX className="flex w-[200px] gap-1">
-      {value.length > 2 ? (
+      {values.length > 2 ? (
         <>
-          {value.slice(0, 2).map((v: string, i: number) => (
+          {values.slice(0, 2).map((value: ResponseValue, i: number) => (
             <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-              {v}
+              {value.label}
             </Badge>
           ))}
           <HoverCard>
             <HoverCardTrigger>
-              <Badge variant="gray">+{value.length - 2}</Badge>
+              <Badge variant="gray">+{values.length - 2}</Badge>
             </HoverCardTrigger>
             <HoverCardContent side="bottom" align="start" className="w-fit">
               <div className="flex flex-col gap-1">
-                {value.slice(2).map((v: string, i: number) => (
+                {values.slice(2).map((value: ResponseValue, i: number) => (
                   <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                    {v}
+                    {value.label}
                   </span>
                 ))}
               </div>
@@ -130,9 +143,9 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
           </HoverCard>
         </>
       ) : (
-        value.map((v: string, i: number) => (
+        values.map((value: ResponseValue, i: number) => (
           <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-            {v}
+            {value.label}
           </Badge>
         ))
       )}
@@ -239,6 +252,8 @@ export function RoutingFormResponsesTable({
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
+  const columnFilters = useColumnFilters();
+
   const { data: headers, isLoading: isHeadersLoading } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
       {
@@ -262,6 +277,7 @@ export function RoutingFormResponsesTable({
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
+        columnFilters,
         limit: 10,
       },
       {
@@ -290,20 +306,27 @@ export function RoutingFormResponsesTable({
       };
 
       Object.entries(response.response).forEach(([fieldId, field]) => {
-        const header = headers?.find((h) => h.id === fieldId);
+        const fieldHeader = headers?.fields.find((h) => h.id === fieldId);
 
-        if (header?.options) {
+        if (fieldHeader?.options) {
           if (Array.isArray(field.value)) {
             // Map the IDs to their corresponding labels for array values
-            const labels = field.value.map((id) => {
-              const option = header.options?.find((opt) => opt.id === id);
-              return option?.label ?? id;
-            });
+            const labels = field.value
+              .map((id) => {
+                const option = fieldHeader.options?.find((opt) => opt.id === id);
+                if (!option) {
+                  return undefined;
+                }
+                return { label: option.label, value: option.id };
+              })
+              .filter(Boolean);
             row[fieldId] = labels;
           } else {
             // Handle single value case
-            const option = header.options?.find((opt) => opt.id === field.value);
-            row[fieldId] = option?.label ?? field.value;
+            const option = fieldHeader.options?.find((opt) => opt.id === field.value);
+            if (option) {
+              row[fieldId] = { label: option.label, value: option.id };
+            }
           }
         } else {
           row[fieldId] = field.value;
@@ -314,6 +337,8 @@ export function RoutingFormResponsesTable({
     });
   }, [flatData, headers, isHeadersLoading]);
 
+  console.log("💡 data!", { data, processedData });
+
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
   const columns = useMemo(
@@ -322,25 +347,29 @@ export function RoutingFormResponsesTable({
         id: "bookedBy",
         header: t("routing_form_insights_booked_by"),
         size: 200,
+        enableColumnFilter: false,
         cell: (info) => {
           const row = info.row.original;
           return <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />;
         },
       }),
 
-      ...(headers?.map((header) => {
-        return columnHelper.accessor(header.id, {
-          id: header.id,
-          header: header.label,
+      ...((headers?.fields || []).map((fieldHeader) => {
+        return columnHelper.accessor(fieldHeader.id, {
+          id: fieldHeader.id,
+          header: fieldHeader.label,
           size: 200,
           cell: (info) => {
-            let value = info.getValue();
-            value = Array.isArray(value) ? value : [value];
+            let values = info.getValue();
+            values = Array.isArray(values) ? values : [values];
             return (
               <div className="max-w-[200px]">
-                <ResponseValueCell value={value} rowId={info.row.original.id} />
+                <ResponseValueCell values={values} rowId={info.row.original.id} />
               </div>
             );
+          },
+          filterFn: (row, id, filterValue: SelectFilterValue) => {
+            return filterValue.some((value) => row.original[id].some((field) => field.value === value));
           },
         });
       }) ?? []),
@@ -353,11 +382,15 @@ export function RoutingFormResponsesTable({
             <BookingStatusBadge booking={info.getValue()} />
           </div>
         ),
+        filterFn: (row, id, filterValue) => {
+          return selectFilter(row.original.routedToBooking?.status, filterValue);
+        },
       }),
       columnHelper.accessor("routedToBooking", {
         id: "bookingAt",
         header: t("routing_form_insights_booking_at"),
         size: 250,
+        enableColumnFilter: false,
         cell: (info) => (
           <div className="max-w-[250px]">
             <BookingAtCell
@@ -373,6 +406,7 @@ export function RoutingFormResponsesTable({
         id: "submittedAt",
         header: t("routing_form_insights_submitted_at"),
         size: 250,
+        enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
             <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
@@ -391,6 +425,30 @@ export function RoutingFormResponsesTable({
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
       size: 200,
+    },
+    state: {
+      columnFilters,
+    },
+    filterFns: {
+      dataTableFilterFn,
+    },
+    getFacetedUniqueValues: (_, columnId) => () => {
+      if (!headers) {
+        return new Map();
+      }
+
+      const fieldHeader = headers.fields.find((h) => h.id === columnId);
+      if (fieldHeader?.options) {
+        return new Map(fieldHeader.options.map((option) => [{ label: option.label, value: option.id }, 1]));
+      } else if (columnId === "bookingStatus") {
+        return new Map(
+          Object.keys(BookingStatus).map((status) => [
+            { value: status, label: bookingStatusToText(status as BookingStatus) },
+            1,
+          ])
+        );
+      }
+      return new Map();
     },
   });
 
@@ -459,7 +517,19 @@ export function RoutingFormResponsesTable({
           }
         }}
         isPending={isFetching && !data}>
-        {typeof children === "function" ? children(table) : children}
+        <div className="header mb-4">
+          <div className="flex items-center justify-between gap-2">
+            <TeamAndSelfList omitOrg={true} />
+            <div className="mb-4">
+              <DataTableFilters.AddFilterButton table={table} />
+            </div>
+            <div className="mb-4">
+              <DataTableFilters.ActiveFilters table={table} />
+            </div>
+            <RoutingInsightsFilters table={table} />
+          </div>
+          <RoutingKPICards />
+        </div>
       </DataTable>
     </div>
   );

@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  FailedBookingsByField,
-  RoutingFormResponsesTable,
-  RoutingKPICards,
-} from "@calcom/features/insights/components";
+import { FailedBookingsByField, RoutingFormResponsesTable } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { RoutingInsightsFilters } from "@calcom/features/insights/filters/routing/FilterBar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import InsightsLayout from "./layout";
@@ -18,17 +13,7 @@ export default function InsightsPage() {
     <InsightsLayout>
       <FiltersProvider>
         <div className="mb-4 space-y-4">
-          <RoutingFormResponsesTable>
-            {/* We now render the "filters and KPI as a children of the table but we still need to pass the table instance to it so we can access column status in the toolbar.*/}
-            {(table) => (
-              <div className="header mb-4">
-                <div className="flex items-center justify-between">
-                  <RoutingInsightsFilters table={table} />
-                </div>
-                <RoutingKPICards />
-              </div>
-            )}
-          </RoutingFormResponsesTable>
+          <RoutingFormResponsesTable />
 
           <FailedBookingsByField />
 
