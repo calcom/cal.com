@@ -2815,5 +2815,6 @@
   "exclude_emails_that_contain" : "Exclude emails that contain ...",
   "exclude_emails_match_found_error_message" : "Please enter a valid work email address",
   "edit_team_member_weights": "Edit Weights",
+  "weights_updated_successfully": "Weights updated successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
