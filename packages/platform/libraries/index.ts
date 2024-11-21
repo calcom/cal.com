@@ -7,9 +7,11 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
+import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
 import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
 import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
+import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -203,3 +205,7 @@ export { AttendeeCancelledEmail };
 export { OrganizerCancelledEmail };
 
 export { OrganizerReassignedEmail };
+
+export { OrganizerRescheduledEmail };
+
+export { AttendeeRescheduledEmail };
