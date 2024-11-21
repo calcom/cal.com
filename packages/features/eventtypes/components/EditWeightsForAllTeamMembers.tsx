@@ -203,7 +203,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
     <>
       <Button
         color="secondary"
-        className="ml-12 mt-4 w-fit"
+        className="ml-12 mt-2 w-fit"
         onClick={() => {
           setIsOpen(true);
         }}>
@@ -214,15 +214,17 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
           <SheetContent>
             <SheetHeader>
               <SheetTitle>{t("edit_team_member_weights")}</SheetTitle>
-              <Trans i18nKey="weights_description">
-                Weights determine how meetings are distributed among hosts.
-                <Link
-                  className="underline underline-offset-2"
-                  target="_blank"
-                  href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-                  Learn more
-                </Link>
-              </Trans>
+              <div className="text-subtle text-sm">
+                <Trans i18nKey="weights_description">
+                  Weights determine how meetings are distributed among hosts.
+                  <Link
+                    className="underline underline-offset-2"
+                    target="_blank"
+                    href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+                    Learn more
+                  </Link>
+                </Trans>
+              </div>
             </SheetHeader>
 
             <SheetBody className="mt-4 flex h-full flex-col space-y-6 p-1">
