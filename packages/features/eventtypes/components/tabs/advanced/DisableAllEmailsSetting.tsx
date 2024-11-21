@@ -14,8 +14,7 @@ import {
   Button,
 } from "@calcom/ui";
 
-export type EmailNotificationToggleCustomClassNames = {
-  settingsToggle?: SettingsToggleClassNames;
+export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {
     container?: string;
     dialogTitle?: string;
@@ -97,13 +96,13 @@ export const DisableAllEmailsSetting = ({
         </DialogContent>
       </Dialog>
       <SettingsToggle
-        labelClassName={classNames("text-sm", customClassNames?.settingsToggle?.label)}
+        labelClassName={classNames("text-sm", customClassNames?.label)}
         toggleSwitchAtTheEnd={true}
         switchContainerClassName={classNames(
           "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-          customClassNames?.settingsToggle?.switchContainer
+          customClassNames?.container
         )}
-        descriptionClassName={customClassNames?.settingsToggle?.description}
+        descriptionClassName={customClassNames?.description}
         title={title}
         description={t("disable_all_emails_description")}
         checked={!!checked}

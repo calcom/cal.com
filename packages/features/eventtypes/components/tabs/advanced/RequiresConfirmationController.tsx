@@ -14,8 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
 
-export type RequiresConfirmationCustomClassNames = {
-  toggle?: SettingsToggleClassNames;
+export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
   alwaysConfirmationRadio?: string;
   conditionalConfirmationRadio?: {
@@ -82,15 +81,15 @@ export default function RequiresConfirmationController({
           control={formMethods.control}
           render={() => (
             <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.toggle?.label)}
+              labelClassName={classNames("text-sm", customClassNames?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 requiresConfirmation && "rounded-b-none",
-                customClassNames?.toggle?.switchContainer
+                customClassNames?.container
               )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.toggle?.children)}
-              descriptionClassName={customClassNames?.toggle?.description}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.children)}
+              descriptionClassName={customClassNames?.description}
               title={t("requires_confirmation")}
               data-testid="requires-confirmation"
               disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}

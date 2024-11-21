@@ -132,7 +132,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   },
                   requiresConfirmation: {
                     toggle: {
-                      switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                      container: "bg-purple-50 border border-purple-200 shadow-md",
                       label: "",
                       description: "",
                       children: "",
@@ -148,25 +148,25 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
                   bookerEmailVerification: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
                   },
                   calendarNotes: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
                   },
                   eventDetailsVisibility: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
                   },
                   bookingRedirect: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
@@ -184,7 +184,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     error: "bg-purple-50 text-purple-700 border border-purple-300",
                   },
                   seatsOptions: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
@@ -206,27 +206,27 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
                   timezoneLockToggle: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
                   },
                   eventTypeColors: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
                     warningText: "",
                   },
                   roundRobinReschedule: {
-                    switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
                     label: "",
                     description: "",
                     children: "",
                   },
                   emailNotifications: {
                     settingsToggle: {
-                      switchContainer: "bg-purple-50 border border-purple-200 shadow-md",
+                      container: "bg-purple-50 border border-purple-200 shadow-md",
                       label: "",
                       description: "",
                       children: "",
