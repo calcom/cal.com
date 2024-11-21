@@ -77,14 +77,24 @@ export default class AssignmentReasonRecorder {
     for (const attribute of Object.keys(attributesUsedToRoute)) {
       const attributeToFilter = attributesUsedToRoute[attribute].properties;
 
+      if (!attributeToFilter) continue;
+
       const userAttribute = usersAttributes.find((attribute) => attributeToFilter.field === attribute.id);
 
       const attributeValue = attributeToFilter.value;
 
-      if (!attributeValue || typeof attributeValue[0] === null) continue;
+      if (!userAttribute || !attributeValue || typeof attributeValue[0] === null) continue;
 
       if (attributeValue && attributeValue[0]) {
-        attributeValues.push(`${userAttribute?.name}: ${attributeValue[0][0]}`);
+        const attributeValueString = (() => {
+          if (Array.isArray(attributeValue[0])) {
+            return attributeValue[0][0];
+          } else {
+            return attributeValue[0];
+          }
+        })();
+
+        attributeValues.push(`${userAttribute?.name}: ${attributeValueString}`);
       }
     }
 
