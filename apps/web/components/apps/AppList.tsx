@@ -1,3 +1,4 @@
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -31,18 +32,19 @@ interface AppListProps {
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
   listClassName?: string;
-  upgrade?: boolean;
 }
 
-export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrade }: AppListProps) => {
+export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useUtils();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+  const searchParams = useSearchParams();
+  const upgrade = searchParams?.get("upgrade");
 
-  const isUpgrade = upgrade == "true";
+  const isUpgrade = upgrade === "true";
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
@@ -54,9 +56,9 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
   });
 
   const handleUpgrade = async (
-    type: string,
-    slug: string,
-    variant: string,
+    type: App["type"],
+    slug: App["slug"],
+    variant: App["variant"],
     credentialId: number,
     teamId?: number
   ) => {
@@ -113,7 +115,6 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
         slug={item.slug}
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
         credentialOwner={item?.credentialOwner}
-        isUpgradable={item?.isUpgradable || false}
         actions={
           !item.credentialOwner?.readOnly ? (
             <div className="flex justify-end gap-2">

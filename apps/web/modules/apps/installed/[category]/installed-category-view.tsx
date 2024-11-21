@@ -98,7 +98,7 @@ const IntegrationsContainer = ({
               }
             />
 
-            <AppList handleDisconnect={handleDisconnect} data={data} variant={variant} upgrade={upgrade} />
+            <AppList handleDisconnect={handleDisconnect} data={data} variant={variant} />
           </div>
         );
       }}
