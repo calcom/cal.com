@@ -17,11 +17,11 @@ export async function assignmentReasonHandler({
 
   switch (recordType) {
     case SalesforceRecordEnum.CONTACT:
-      return { ...returnObject, assignmentReason: `Contact owner: ${teamMemberEmail}` };
+      return { ...returnObject, assignmentReason: `Salesforce contact owner: ${teamMemberEmail}` };
     case SalesforceRecordEnum.LEAD:
-      return { ...returnObject, assignmentReason: `Lead owner: ${teamMemberEmail}` };
+      return { ...returnObject, assignmentReason: `Salesforce lead owner: ${teamMemberEmail}` };
     case SalesforceRecordEnum.ACCOUNT:
-      return { ...returnObject, assignmentReason: `Account owner: ${teamMemberEmail}` };
+      return { ...returnObject, assignmentReason: `Salesforce account owner: ${teamMemberEmail}` };
     case RoutingReasons.ACCOUNT_LOOKUP_FIELD:
       const assignmentReason = await handleAccountLookupFieldReason(routingFormResponseId, teamMemberEmail);
       return { ...returnObject, assignmentReason };
@@ -67,6 +67,6 @@ async function handleAccountLookupFieldReason(routingFormResponseId: number, tea
   const accountLookupFieldName = salesforceConfig?.rrSKipToAccountLookupFieldName;
 
   return accountLookupFieldName
-    ? `Account lookup field: ${accountLookupFieldName} - ${teamMemberEmail}`
+    ? `Salesforce account lookup field: ${accountLookupFieldName} - ${teamMemberEmail}`
     : undefined;
 }
