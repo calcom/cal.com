@@ -477,6 +477,7 @@ async function handler(
     logger: loggerWithEventDetails,
     routedTeamMemberIds: routedTeamMemberIds ?? null,
     contactOwnerEmail,
+    isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -1183,6 +1184,7 @@ async function handler(
               description: additionalNotes,
               responses,
             },
+            metadata: reqBody.metadata,
             booking: {
               connect: {
                 id: booking.id,
