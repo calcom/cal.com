@@ -38,9 +38,10 @@ const createOAuthAppCredential = async (
     ...(state?.teamId ? { teamId: state.teamId } : { userId }),
   };
 
-  // Always use upsert
-  return await prisma.credential.upsert({
-    where: { id: state?.credentialId || "non-existent-id" }, // Use a dummy ID if not upgrading
+  const credentialId = (state?.credentialId || -1) as number;
+
+  await prisma.credential.upsert({
+    where: { id: credentialId }, // Use a dummy ID if not upgrading
     create: baseData,
     update: baseData,
   });

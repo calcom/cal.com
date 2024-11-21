@@ -138,9 +138,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     ...(appId ? { where: { slug: appId } } : {}),
   });
 
-  function canUpgrade(credential, app) {
-    const { last_updated_on: updatedOn } = credential.key || {};
-    const appUpdatedAt = app.updatedAt;
+  function canUpgrade(credential, app: Record<string, any>) {
+    const { last_updated_on: updatedOn } = credential?.key || {};
+    const appUpdatedAt = app?.updatedAt;
     const updatedOnDate = updatedOn ? new Date(updatedOn) : null;
     const appUpdatedAtDate = appUpdatedAt ? new Date(appUpdatedAt) : null;
 

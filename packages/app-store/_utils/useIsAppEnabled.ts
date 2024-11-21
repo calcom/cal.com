@@ -27,7 +27,7 @@ function useIsAppEnabled(app: EventTypeAppCardApp) {
     }
 
     if (newValue && (app.userCredentialIds?.length || app.credentialOwner?.credentialId)) {
-      setAppData("credentialId", app.credentialOwner?.credentialId || app.userCredentialIds[0]);
+      setAppData("credentialId", app.credentialOwner?.credentialId || app?.userCredentialIds?.[0]);
     }
     setEnabled(newValue);
   };

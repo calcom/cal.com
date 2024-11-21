@@ -95,6 +95,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
   }: {
     item: RouterOutputs["viewer"]["integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
+      isUpgradable?: boolean;
     };
   }) => {
     const appSlug = item?.slug;
