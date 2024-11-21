@@ -32,8 +32,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const inputStartTime = dayjs(startDate).startOf("day");
   const inputEndTime = dayjs(endDate).endOf("day");
-  const inputStartDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
-  const inputEndDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
+  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
+  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
 
   // If start date is after end date throw error
   if (inputStartTime.isAfter(inputEndTime)) {
@@ -85,7 +85,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
             not: input.uuid ?? "",
           },
         },
-        { OR: [{ start: inputStartDateUtc.toDate() }, { end: inputEndDateUtc.toDate() }] },
+        { OR: [{ start: startTimeUtc }, { end: endTimeUtc }] },
       ],
     },
   });
@@ -112,11 +112,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       OR: [
         // Outside of range
         {
-          AND: [{ start: { lte: inputEndDateUtc.toDate() } }, { end: { gte: inputStartDateUtc.toDate() } }],
+          AND: [{ start: { lte: endTimeUtc } }, { end: { gte: startTimeUtc } }],
         },
         // Inside of range
         {
-          AND: [{ start: { gte: inputStartDateUtc.toDate() } }, { end: { lte: inputEndDateUtc.toDate() } }],
+          AND: [{ start: { gte: startTimeUtc } }, { end: { lte: endTimeUtc } }],
         },
       ],
     },
@@ -126,8 +126,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
-  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
-  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
