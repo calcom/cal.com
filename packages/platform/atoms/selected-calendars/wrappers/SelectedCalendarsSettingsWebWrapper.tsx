@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React from "react";
 
-import AppListCard from "@calcom/features/apps/components/AppListCard";
+import { AppListCard } from "@calcom/features/apps/components/AppListCard";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
