@@ -4,7 +4,7 @@ import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
-export type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean; updatedAt?: Date };
+type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean; updatedAt?: Date };
 
 /**
  *
