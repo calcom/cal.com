@@ -159,20 +159,18 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
-      const userCredentialIds = credentials
+      const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
+      const credIdToUpgradableMap = credentials
         .filter((c) => c.appId === app.slug && !c.teamId)
-        .map((c) => {
+        .reduce((obj, c) => {
           const { last_updated_on: updatedOn } = (c?.key || {}) as Record<string, any>;
           const isUpgradable = canUpgrade({
             updatedOn: updatedOn,
             updatedAt: app.updatedAt,
             slug: app.slug,
           });
-          return {
-            ...c,
-            isUpgradable,
-          };
-        });
+          obj[c.id] = obj[c.id] || isUpgradable;
+        }, Record<number, boolean>);
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
@@ -242,6 +240,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
         isSetupAlready,
+        credIdToUpgradableMap,
         ...(app.dependencies && { dependencyData }),
       };
     })

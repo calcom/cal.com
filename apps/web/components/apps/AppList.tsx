@@ -178,9 +178,11 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
   const appsWithTeamCredentials = data.items.filter((app) => app.teams.length);
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
+    const credIdToUpgradableMap = app.credIdToUpgradableMap || {};
+    const credId = app?.userCredentialIds?.[0];
 
-    if (app.userCredentialIds.length && (!isUpgrade || (isUpgrade && team.isUpgradable))) {
-      appCards.push(<ChildAppCard item={app} />);
+    if (app.userCredentialIds.length && (!isUpgrade || (isUpgrade && credIdToUpgradableMap[credId]))) {
+      appCards.push(<ChildAppCard item={{ ...app, isUpgradable: !!credIdToUpgradableMap[credId] }} />);
     }
     for (const team of app.teams) {
       if (team && (!isUpgrade || (isUpgrade && team.isUpgradable))) {
