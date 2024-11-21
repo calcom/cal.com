@@ -75,7 +75,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 value={selectedCurrency}
                 className="text-black"
                 defaultValue={selectedCurrency}
-                onChange={(e?: { value: string }) => {
+                onChange={(e?: { label: string; value: string; unit: string }) => {
                   if (e) {
                     setSelectedCurrency(e);
                     setAppData("currency", e.value);

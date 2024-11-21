@@ -1,4 +1,9 @@
-export const currencyOptions = [
+export interface CurrencyOption {
+  label: string;
+  value: string;
+}
+
+export const currencyOptions: CurrencyOption[] = [
   { label: "United States dollar", value: "USD" },
   { label: "Australian dollar", value: "AUD" },
   { label: "Brazilian real 2", value: "BRL" },

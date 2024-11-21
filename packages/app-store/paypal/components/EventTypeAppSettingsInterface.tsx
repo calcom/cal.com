@@ -5,6 +5,7 @@ import {
   currencySymbols,
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
+import type { CurrencyOption } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
@@ -94,7 +95,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           value={selectedCurrency}
           className="text-black"
           defaultValue={selectedCurrency}
-          onChange={(e?: { value: string }) => {
+          onChange={(e?: CurrencyOption) => {
             if (e) {
               setSelectedCurrency(e);
               setCurrencySymbol(currencySymbols[e.value]);

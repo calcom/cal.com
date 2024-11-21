@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import type { ChangeEvent } from "react";
 
 import { Button, Select, showToast } from "@calcom/ui";
 
@@ -133,7 +134,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
             pattern="\d*"
             maxLength={2}
             value={sleepValue}
-            onChange={(e: ChangeEventHandler<HTMLInputElement>) => {
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
               setSleepValue(Number(e.currentTarget.value));
               setTouchedForm(true);
             }}

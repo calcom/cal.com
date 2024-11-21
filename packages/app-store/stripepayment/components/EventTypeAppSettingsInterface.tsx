@@ -10,6 +10,7 @@ import {
 } from "../../_utils/payments/currencyConversions";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
+import type { CurrencyOption } from "../lib/currencyOptions";
 
 type Option = { value: string; label: string };
 
@@ -99,7 +100,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               value={selectedCurrency}
               className="text-black"
               defaultValue={selectedCurrency}
-              onChange={(e?: { value: string }) => {
+              onChange={(e?: CurrencyOption) => {
                 if (e) {
                   setSelectedCurrency(e);
                   setAppData("currency", e.value);

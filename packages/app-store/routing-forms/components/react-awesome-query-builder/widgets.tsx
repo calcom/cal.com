@@ -176,7 +176,7 @@ const MultiSelectWidget = ({
       aria-label="multi-select-dropdown"
       className="mb-2"
       onChange={(items?: { value: string }[]) => {
-        setValue(items?.map((item) => item.value));
+        setValue(items?.map((item) => item.value) ?? []);
       }}
       value={optionsFromList}
       isMulti={true}
