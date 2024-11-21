@@ -282,7 +282,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
         eventData: mockEventData,
       });
 
-      expect(result).toBe(teamMemberEmail);
+      expect(result.email).toBe(teamMemberEmail);
     });
 
     it("should return null when skipContactOwner is true even when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
@@ -323,7 +323,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       });
 
       // Because skipContactOwner is true, the booking form handler should return null
-      expect(result).toBe(null);
+      expect(result.email).toBe(null);
     });
 
     it("should return null when when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided but the returned email isn't an event member", async () => {
@@ -364,7 +364,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
         eventData: mockEventData,
       });
 
-      expect(result).toBe(null);
+      expect(result.email).toBe(null);
     });
 
     it("should return null when cal.routingFormResponseId is provided but cal.salesforce.xxxx is not", async () => {
