@@ -160,11 +160,11 @@ export function Segment({
     console.log("Error fetching attributes");
     return <span>{t("something_went_wrong")}</span>;
   }
-
+  console.log("SegmentWithAttributes");
   return (
     <SegmentWithAttributes
       teamId={teamId}
-      attributes={attributes}
+      attributes={[]}
       queryValue={queryValue}
       onQueryValueChange={onQueryValueChange}
       className={className}
