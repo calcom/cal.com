@@ -174,11 +174,6 @@ export type SettingsToggleClassNames = {
   children?: string;
 };
 
-export type SwitchClassNames = {
-  container?: string;
-  thumb?: string;
-};
-
 export type InputClassNames = {
   container?: string;
   label?: string;
