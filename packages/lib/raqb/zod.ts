@@ -1,6 +1,19 @@
 import { z } from "zod";
 
 export const raqbChildSchema = z.object({
+  type: z.string().optional(),
+  properties: z
+    .object({
+      field: z.any().optional(),
+      operator: z.any().optional(),
+      value: z.any().optional(),
+      valueSrc: z.any().optional(),
+      valueType: z.any().optional(),
+    })
+    .optional(),
+  /*
+   * TODO: (emrysal) This schema is good, but our DB contains invalid entries-
+   *       instead of crashing on read we need to handle this on write first.
   type: z.union([z.literal("rule"), z.literal("rule_group")]),
   properties: z.object({
     // This is RAQB field that is used in the rules. The aluealue we provide here is used as a lookup key in RAQB_CONFIG.fields
@@ -21,7 +34,7 @@ export const raqbChildSchema = z.object({
     // Type of the value - can be text, number, boolean, date, time, datetime, select, multiselect, treeselect, treemultiselect and maybe more
     // We only use a few of them in our app
     valueType: z.array(z.string()).optional(),
-  }),
+  }),*/
 });
 
 // The actual schema of children1 is quite complex, we don't want to worry about that at the moment.
