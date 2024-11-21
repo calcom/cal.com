@@ -283,6 +283,7 @@ export default class PipedriveCrmService implements CRM {
                 ...(pipedriveCrmTokenInfo.data as PipedriveToken),
                 refresh_token: pipedriveCrmTokenInfo.data.refresh_token || credentialKey.refresh_token,
                 accountServer: accountServer,
+                last_updated_on: new Date().toISOString(),
               },
             },
           });

@@ -50,13 +50,13 @@ const getEnabledAppsFromCredentials = async (
 
   const enabledApps = await prisma.app.findMany({
     where,
-    select: { slug: true, enabled: true },
+    select: { slug: true, enabled: true, updatedAt: true },
   });
   const apps = getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
     if (appDbQuery?.enabled || app.isGlobal) {
-      reducedArray.push({ ...app, enabled: true });
+      reducedArray.push({ ...app, enabled: true, updatedAt: appDbQuery?.updatedAt });
     }
     return reducedArray;
   }, [] as EnabledApp[]);

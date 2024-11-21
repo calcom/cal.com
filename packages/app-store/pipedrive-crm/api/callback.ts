@@ -53,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     pipedriveCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
+    pipedriveCrmTokenInfo.data.last_updated_on = new Date().toISOString();
     pipedriveCrmTokenInfo.data.accountServer = OAUTH_URL;
 
     await createOAuthAppCredential(

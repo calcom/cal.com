@@ -52,6 +52,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         : variables && variables.returnTo
         ? variables.returnTo
         : undefined;
+      const upgrade = variables?.upgrade || false;
+
       if (variables === "") {
         type = _type;
       } else {
@@ -63,10 +65,11 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
 
       if (options?.installGoogleVideo && type !== "google_calendar")
         throw new Error("Could not install Google Meet");
-
       const state: IntegrationOAuthCallbackState = {
         onErrorReturnTo,
         fromApp: true,
+        upgrade: upgrade,
+        credentialId: variables?.credentialId,
         ...(teamId && { teamId }),
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(returnTo && { returnTo }),

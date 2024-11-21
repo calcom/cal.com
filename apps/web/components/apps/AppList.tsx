@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
@@ -20,6 +21,7 @@ import {
   DropdownMenuTrigger,
   List,
   showToast,
+  Icon,
 } from "@calcom/ui";
 
 import AppListCard from "@components/AppListCard";
@@ -29,15 +31,48 @@ interface AppListProps {
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
   listClassName?: string;
+  upgrade?: boolean;
 }
 
-export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
+export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrade }: AppListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useUtils();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+
+  const isUpgrade = upgrade == "true";
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  const handleUpgrade = async (
+    type: string,
+    slug: string,
+    variant: string,
+    credentialId: string,
+    teamId?: number
+  ) => {
+    mutation.mutate({
+      type: type,
+      variant: variant,
+      slug: slug,
+      upgrade: true,
+      credentialId: credentialId,
+      ...(teamId && { teamId }),
+      // for oAuth apps
+      ...{
+        returnTo: `/apps/installed/${variant}${isUpgrade ? "upgrade=true" : ""}`,
+      },
+    });
+  };
 
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
@@ -77,9 +112,24 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
         slug={item.slug}
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
         credentialOwner={item?.credentialOwner}
+        isUpgradable={item?.isUpgradable}
         actions={
           !item.credentialOwner?.readOnly ? (
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {item?.isUpgradable && (
+                <div
+                  onClick={() => {
+                    handleUpgrade(
+                      item.type,
+                      item.slug,
+                      item.variant,
+                      item.credentialOwner?.credentialId || item.userCredentialIds[0],
+                      item.credentialOwner?.teamId
+                    );
+                  }}>
+                  <Icon name="refresh-ccw" className="text-muted inline-block h-5 w-5 cursor-pointer" />
+                </div>
+              )}
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
@@ -128,11 +178,11 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
-    if (app.userCredentialIds.length) {
+    if (app.userCredentialIds.length && (!isUpgrade || (isUpgrade && team.isUpgradable))) {
       appCards.push(<ChildAppCard item={app} />);
     }
     for (const team of app.teams) {
-      if (team) {
+      if (team && (!isUpgrade || (isUpgrade && team.isUpgradable))) {
         appCards.push(
           <ChildAppCard
             item={{
@@ -144,6 +194,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
               },
+              isUpgradable: team.isUpgradable,
             }}
           />
         );

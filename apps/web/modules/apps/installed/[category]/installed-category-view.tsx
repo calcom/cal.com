@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
@@ -31,6 +32,8 @@ const IntegrationsContainer = ({
   handleDisconnect,
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+  const upgrade = searchParams?.get("upgrade");
   const query = trpc.viewer.integrations.useQuery({
     variant,
     exclude,
@@ -95,7 +98,7 @@ const IntegrationsContainer = ({
               }
             />
 
-            <AppList handleDisconnect={handleDisconnect} data={data} variant={variant} />
+            <AppList handleDisconnect={handleDisconnect} data={data} variant={variant} upgrade={upgrade} />
           </div>
         );
       }}

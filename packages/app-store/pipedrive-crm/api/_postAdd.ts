@@ -40,16 +40,20 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       dirName: appConfig["dirName"],
     } as Prisma.AppCreateInput;
     //making sure only one record is maintained
-    const exisitngApp = await prisma.app.findUnique({
+    const existingApp = await prisma.app.findUnique({
       where: {
         slug: appConfig.slug,
       },
     });
-    if (exisitngApp) {
-      await prisma.app.update({
-        where: { slug: exisitngApp.slug },
-        data,
-      });
+    if (existingApp) {
+      const appKeys = existingApp.keys || {};
+      //update only if the credentials changes
+      if (appKeys?.client_id !== client_id && appKeys?.client_secret !== client_secret) {
+        await prisma.app.update({
+          where: { slug: existingApp.slug },
+          data,
+        });
+      }
     } else {
       await prisma.app.create({
         data,

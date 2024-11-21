@@ -137,10 +137,31 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
+
+  function canUpgrade(credential, app) {
+    const { last_updated_on: updatedOn } = credential.key || {};
+    const appUpdatedAt = app.updatedAt;
+    const updatedOnDate = updatedOn ? new Date(updatedOn) : null;
+    const appUpdatedAtDate = appUpdatedAt ? new Date(appUpdatedAt) : null;
+
+    return (
+      ["pipedrive-crm"].includes(app.slug) &&
+      appUpdatedAtDate &&
+      (!updatedOnDate || (updatedOnDate && updatedOnDate < appUpdatedAtDate))
+    );
+  }
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
-      const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
+      const userCredentialIds = credentials
+        .filter((c) => c.appId === app.slug && !c.teamId)
+        .map((c) => {
+          const isUpgradable = canUpgrade(c, app);
+          return {
+            ...c,
+            isUpgradable,
+          };
+        });
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
@@ -151,7 +172,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
             const team = userTeams.find((team) => team.id === c.teamId);
             if (!team) {
               return null;
-            }
+            } // Debugging log for validation
+            const isUpgradable = canUpgrade(c, app);
             return {
               teamId: team.id,
               name: team.name,
@@ -160,6 +182,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
               isAdmin:
                 team.members[0].role === MembershipRole.ADMIN ||
                 team.members[0].role === MembershipRole.OWNER,
+              isUpgradable,
             };
           })
       );
