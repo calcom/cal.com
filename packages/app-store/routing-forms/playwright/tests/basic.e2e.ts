@@ -61,11 +61,10 @@ async function addAttributeRoutingRule(page: Page) {
   });
 
   const attributeValueSelector = attributeQueryBuilder.locator(".rule--value").nth(0);
-  const numOfOptionsInAttribute = 3;
   await selectFirstValueForAttributeValue({
     fromLocator: attributeValueSelector,
     // Select 'Value of Field Short Text' option
-    option: numOfOptionsInAttribute + 1,
+    option: 1,
   });
 }
 

@@ -12,6 +12,7 @@ export enum WhenToWriteToRecord {
 export enum SalesforceFieldType {
   DATE = "date",
   TEXT = "string",
+  PHONE = "phone",
 }
 
 export enum DateFieldTypeData {

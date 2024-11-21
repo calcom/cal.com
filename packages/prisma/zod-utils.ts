@@ -20,6 +20,7 @@ import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-bu
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -260,6 +261,10 @@ export const bookingCreateBodySchema = z.object({
    * Holds the corrected responses of the Form for a booking, provided during rerouting
    */
   reroutingFormResponses: routingFormResponseInDbSchema.optional(),
+  /**
+   * Used to identify if the booking is a dry run.
+   */
+  _isDryRun: z.boolean().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -759,3 +764,5 @@ export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
 });
+
+export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();

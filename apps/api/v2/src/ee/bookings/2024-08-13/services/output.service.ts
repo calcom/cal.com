@@ -4,6 +4,7 @@ import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { bookingMetadataSchema } from "@calcom/platform-libraries";
 import {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
@@ -53,6 +54,15 @@ type DatabaseBooking = Booking & {
 
 type BookingWithUser = Booking & { user: { id: number; name: string | null; email: string } | null };
 
+const bookingUserMetadataSchema = bookingMetadataSchema.transform((data) => {
+  if (data === null) return {};
+  // note(Lauris): return only user defined metadata
+  const { videoCallUrl, ...rest } = data;
+  return rest;
+});
+
+const seatedBookingMetadataSchema = z.object({}).catchall(z.string());
+
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
@@ -63,6 +73,7 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
 
     const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
+    const metadata = bookingUserMetadataSchema.parse(databaseBooking.metadata);
 
     const booking = {
       id: databaseBooking.id,
@@ -95,8 +106,9 @@ export class OutputBookingsService_2024_08_13 {
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
-    // note(Lauris): I don't know why plainToClass erases bookings responses so attaching manually
+    // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
     bookingTransformed.bookingFieldsResponses = bookingResponses;
+    bookingTransformed.metadata = metadata;
     return bookingTransformed;
   }
 
@@ -121,6 +133,7 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
 
     const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
+    const metadata = bookingUserMetadataSchema.parse(databaseBooking.metadata);
 
     const booking = {
       id: databaseBooking.id,
@@ -154,7 +167,13 @@ export class OutputBookingsService_2024_08_13 {
       bookingFieldsResponses: databaseBooking.responses,
     };
 
-    return plainToClass(RecurringBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+    const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
+      strategy: "excludeAll",
+    });
+    // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
+    bookingTransformed.bookingFieldsResponses = bookingResponses;
+    bookingTransformed.metadata = metadata;
+    return bookingTransformed;
   }
 
   getOutputCreateSeatedBooking(
@@ -208,6 +227,7 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
 
@@ -303,9 +323,9 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
-
       return attendeeParsed;
     });
 

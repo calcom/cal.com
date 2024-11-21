@@ -1,8 +1,7 @@
-import { getUsersAttributes } from "@calcom/app-store/routing-forms/lib/getAttributes";
-import { acrossQueryValueCompatiblity } from "@calcom/app-store/routing-forms/lib/raqbUtils";
-import { getFieldResponse } from "@calcom/app-store/routing-forms/trpc/utils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { getUsersAttributes } from "@calcom/lib/raqb/getAttributes";
+import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
@@ -38,7 +37,7 @@ export default class AssignmentReasonRecorder {
     if (!routingFormResponse) return;
     // Figure out which route was called
     const { form } = routingFormResponse;
-    if (!form.routes) return;
+    if (!form.routes || !form.fields) return;
 
     const parsedRoutes = zodRoutes.safeParse(form.routes);
 
@@ -61,26 +60,43 @@ export default class AssignmentReasonRecorder {
     const attributesQueryValue = getAttributesQueryValue({
       attributesQueryValue: formAttributesQuery,
       attributes: usersAttributes,
-      response: routingFormResponse.response as FormResponse,
-      fields: routingFormResponse.form.fields as Fields,
-      getFieldResponse,
+      dynamicFieldValueOperands: {
+        fields: (form.fields as Fields) || [],
+        response: routingFormResponse.response as FormResponse,
+      },
     });
 
     if (!attributesQueryValue) return;
 
     const attributesUsedToRoute = attributesQueryValue.children1;
 
+    if (!attributesUsedToRoute) return;
+
     const attributeValues: string[] = [];
 
-    Object.keys(attributesUsedToRoute).map((att) => {
-      const attributeToFilter = attributesUsedToRoute[att].properties;
+    for (const attribute of Object.keys(attributesUsedToRoute)) {
+      const attributeToFilter = attributesUsedToRoute[attribute].properties;
+
+      if (!attributeToFilter) continue;
 
       const userAttribute = usersAttributes.find((attribute) => attributeToFilter.field === attribute.id);
 
       const attributeValue = attributeToFilter.value;
 
-      attributeValues.push(`${userAttribute?.name}: ${attributeValue[0][0]}`);
-    });
+      if (!userAttribute || !attributeValue || typeof attributeValue[0] === null) continue;
+
+      if (attributeValue && attributeValue[0]) {
+        const attributeValueString = (() => {
+          if (Array.isArray(attributeValue[0])) {
+            return attributeValue[0][0];
+          } else {
+            return attributeValue[0];
+          }
+        })();
+
+        attributeValues.push(`${userAttribute?.name}: ${attributeValueString}`);
+      }
+    }
 
     await prisma.assignmentReason.create({
       data: {

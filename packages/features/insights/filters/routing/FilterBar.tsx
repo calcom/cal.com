@@ -1,7 +1,8 @@
+import { DataTableFilters } from "@calcom/features/data-table";
 import type { RoutingFormTableType } from "@calcom/features/insights/components/RoutingFormResponsesTable";
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Tooltip, DataTableFilters } from "@calcom/ui";
+import { Button, Icon, Tooltip } from "@calcom/ui";
 
 import { BookingStatusFilter } from "../BookingStatusFilter";
 import { DateSelect } from "../DateSelect";
