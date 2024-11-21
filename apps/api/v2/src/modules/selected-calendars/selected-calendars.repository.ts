@@ -13,7 +13,13 @@ export class SelectedCalendarsRepository {
     integration: string,
     defaultReminder?: number
   ) {
-    const data = {
+    const data: {
+      userId: number;
+      externalId: string;
+      credentialId: number;
+      integration: string;
+      defaultReminder?: number;
+    } = {
       userId,
       externalId,
       credentialId,
@@ -64,9 +70,20 @@ export class SelectedCalendarsRepository {
     credentialId: number,
     defaultReminder?: number
   ) {
-    const updatedData = {};
+    const data: {
+      userId: number;
+      externalId: string;
+      credentialId: number;
+      integration: string;
+      defaultReminder?: number;
+    } = {
+      userId,
+      integration,
+      externalId,
+      credentialId,
+    };
     if (defaultReminder) {
-      updatedData.defaultReminder = defaultReminder;
+      data.defaultReminder = defaultReminder;
     }
     return await this.dbWrite.prisma.selectedCalendar.upsert({
       where: {
@@ -76,15 +93,9 @@ export class SelectedCalendarsRepository {
           externalId,
         },
       },
-      create: {
-        userId,
-        integration,
-        externalId,
-        credentialId,
-        defaultReminder: defaultReminder || 30,
-      },
+      create: data,
       // already exists
-      update: updatedData,
+      update: data,
     });
   }
 
