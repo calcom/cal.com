@@ -242,7 +242,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       container: "flex items-center space-x-2",
                       label: "text-purple-700",
                       input: "border border-purple-300 rounded-md text-purple-900 bg-white",
-                      suffix: "text-purple-500",
+                      addOn: "text-purple-500",
                     },
                   },
                 },

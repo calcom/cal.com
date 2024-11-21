@@ -8,7 +8,7 @@ import type { SingleValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
-import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { classNames } from "@calcom/lib";
@@ -46,12 +46,7 @@ export type EventLimitsTabCustomClassNames = {
     rangeLimit: RangeLimitCustomClassNames;
   };
   offsetStartTimes?: SettingsToggleClassNames & {
-    offsetInput?: {
-      container?: string;
-      label?: string;
-      input?: string;
-      suffix?: string;
-    };
+    offsetInput?: InputClassNames;
   };
 };
 
@@ -774,7 +769,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               customClassNames?.offsetStartTimes?.offsetInput?.container
             )}
             labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
-            addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.suffix}
+            addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
             className={customClassNames?.offsetStartTimes?.offsetInput?.input}
             label={t("offset_start")}
             {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
