@@ -1,12 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
+
+import type { CredentialOwner } from "@calcom/app-store/types";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar } from "@calcom/ui/avatar";
-import { Badge } from "@calcom/ui/badge";
-import { Icon } from "@calcom/ui/icon";
-import { ListItemText } from "@calcom/ui/list";
+import { Avatar, Badge, Icon, ListItemText } from "@calcom/ui";
 
 type ShouldHighlight =
   | {
