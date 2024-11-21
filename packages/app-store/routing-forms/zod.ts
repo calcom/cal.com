@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
+
+import { routingFormAppDataSchemas } from "./appDataSchemas";
+
 export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
@@ -48,12 +52,6 @@ export const zodRouterFieldView = zodRouterField.extend({
 export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
-const queryValueSchema = z.object({
-  id: z.string().optional(),
-  type: z.union([z.literal("group"), z.literal("switch_group")]),
-  children1: z.any(),
-  properties: z.any(),
-});
 
 export enum RouteActionType {
   CustomPageMessage = "customPageMessage",
@@ -62,96 +60,35 @@ export enum RouteActionType {
 }
 
 export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
-/**
- * Stricter schema for validating before saving to DB
- * It doesn't decide what will be saved, it is just to validate the data before saving
- */
-export const queryValueSaveValidationSchema = queryValueSchema
-  .omit({ children1: true })
-  .merge(
-    z.object({
-      children1: z
-        .record(
-          z.object({
-            type: z.string().optional(),
-            properties: z
-              .object({
-                field: z.any().optional(),
-                operator: z.any().optional(),
-                value: z.any().optional(),
-                valueSrc: z.any().optional(),
-              })
-              .optional(),
-          })
-        )
-        .optional()
-        // Be very careful and lenient here. Just ensure that the rule isn't invalid without breaking anything
-        .superRefine((children1, ctx) => {
-          if (!children1) return;
-          const isObject = (value: unknown): value is Record<string, unknown> =>
-            typeof value === "object" && value !== null;
-          Object.entries(children1).forEach(([, _rule]) => {
-            const rule = _rule as unknown;
-            if (!isObject(rule) || rule.type !== "rule") return;
-            if (!isObject(rule.properties)) return;
 
-            const value = rule.properties.value || [];
-            const valueSrc = rule.properties.valueSrc;
-            if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
-              return;
-            }
-
-            if (!valueSrc.length) {
-              // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
-              return;
-            }
-
-            // MultiSelect array can be 2D array
-            const flattenedValues = value.flat();
-
-            const validValues = flattenedValues.filter((value: unknown) => {
-              // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
-              // Also, it is possible that RAQB has some requirements to support null or empty string values.
-              if (value === undefined) return false;
-              return true;
-            });
-
-            if (!validValues.length) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Looks like you are trying to create a rule with no value",
-              });
-            }
-          });
-        }),
-    })
-  )
+export const attributeRoutingConfigSchema = z
+  .object({
+    skipContactOwner: z.boolean().optional(),
+    salesforce: routingFormAppDataSchemas["salesforce"],
+  })
   .nullish();
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  attributeRoutingConfig: z
-    .object({
-      skipContactOwner: z.boolean().optional(),
-    })
-    .nullish(),
+  name: z.string().optional(),
+  attributeRoutingConfig: attributeRoutingConfigSchema,
 
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
    * RAQB query value for form fields
    * BRANDED to ensure we don't give it Attributes
    */
-  queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
+  queryValue: raqbQueryValueSchema.brand<"formFieldsQueryValue">(),
   /**
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
    * BRANDED to ensure we don't give it Form Fields
    */
-  attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  attributesQueryValue: raqbQueryValueSchema.optional(),
   /**
    * RAQB query value for fallback of `attributesQueryValue`
    * BRANDED to ensure we don't give it Form Fields, It needs Attributes
    */
-  fallbackAttributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
+  fallbackAttributesQueryValue: raqbQueryValueSchema.optional(),
   /**
    * Whether the route is a fallback if no other routes match
    */
@@ -168,6 +105,7 @@ export const zodNonRouterRouteView = zodNonRouterRoute;
 export const zodRouterRoute = z.object({
   // This is the id of the Form being used as router
   id: z.string(),
+  name: z.string().optional(),
   isRouter: z.literal(true),
 });
 
@@ -193,6 +131,7 @@ export const appDataSchema = z.any();
 export const appKeysSchema = z.object({});
 
 // This is different from FormResponse in types.d.ts in that it has label optional. We don't seem to be using label at this point, so we might want to use this only while saving the response when Routing Form is submitted
+// Record key is formFieldId
 export const routingFormResponseInDbSchema = z.record(
   z.object({
     label: z.string().optional(),

@@ -50,10 +50,11 @@ model Host {
   isFixed          Boolean   @default(false)
   priority         Int?
   weight           Int?
-  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
   schedule         Schedule? @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
+  createdAt        DateTime  @default(now())
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -109,6 +110,7 @@ model EventType {
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
+  autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
@@ -144,10 +146,17 @@ model EventType {
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
   instantMeetingScheduleId                Int?
   instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
+  instantMeetingParameters                String[]
   assignAllTeamMembers                    Boolean                   @default(false)
+  // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
+  assignRRMembersUsingSegment             Boolean                   @default(false)
+  /// @zod.custom(imports.rrSegmentQueryValueSchema)
+  rrSegmentQueryValue                     Json?
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
+  fieldTranslations                       EventTypeTranslation[]
+  maxLeadThreshold                        Int?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -161,6 +170,7 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([profileId])
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
@@ -271,6 +281,7 @@ model User {
   appTheme            String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
+  lastActiveAt        DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
@@ -680,12 +691,18 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  integration  String
-  externalId   String
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId Int?
+  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  integration              String
+  externalId               String
+  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId             Int?
+  // Used to identify a watched calendar channel in Google Calendar
+  googleChannelId          String?     @unique
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -963,6 +980,7 @@ model App_RoutingForms_FormResponse {
   routedToBookingUid String?               @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
   routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId      String?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1161,6 +1179,7 @@ model BookingSeat {
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   /// @zod.custom(imports.bookingSeatDataSchema)
   data         Json?
+  metadata     Json?
 
   @@index([bookingId])
   @@index([attendeeId])
@@ -1222,6 +1241,7 @@ model UserFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([userId, featureId])
+  @@index([userId, featureId])
 }
 
 model TeamFeatures {
@@ -1234,6 +1254,7 @@ model TeamFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([teamId, featureId])
+  @@index([teamId, featureId])
 }
 
 enum FeatureType {
@@ -1568,9 +1589,10 @@ model Attribute {
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  options   AttributeOption[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  options          AttributeOption[]
+  isWeightsEnabled Boolean           @default(false)
 }
 
 model AttributeToUser {
@@ -1581,6 +1603,28 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
+  weight            Int?
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum EventTypeAutoTranslatedField {
+  DESCRIPTION // Currently the only field we translate
+}
+
+model EventTypeTranslation {
+  id             String                       @id @default(cuid())
+  eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId    Int
+  field          EventTypeAutoTranslatedField
+  sourceLang     String
+  targetLang     String
+  translatedText String                       @db.Text
+  createdAt      DateTime                     @default(now())
+  createdBy      Int
+  updatedAt      DateTime                     @updatedAt
+  updatedBy      Int?
+
+  @@unique([eventTypeId, field, targetLang])
+  @@index([eventTypeId, field, targetLang])
 }

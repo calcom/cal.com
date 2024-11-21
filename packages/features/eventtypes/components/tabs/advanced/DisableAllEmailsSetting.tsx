@@ -37,13 +37,13 @@ export const DisableAllEmailsSetting = ({
         <DialogContent title={title} Icon="circle-alert">
           <p className="text-default text-sm">
             <Trans i18nKey="disable_attendees_emails_description">
-              This will disable all emails to {{ recipient }}. This includes booking confirmations, requests,
+              This will disable all emails to {recipient}. This includes booking confirmations, requests,
               reschedules and reschedule requests, cancellation emails, and any other emails related to
               booking updates.
               <br />
               <br />
-              It is your responsibility to ensure that your {{ recipient }} are aware of any bookings and
-              changes to their bookings.
+              It is your responsibility to ensure that your {recipient} are aware of any bookings and changes
+              to their bookings.
             </Trans>
           </p>
           <p className="text-default mb-1 mt-2 text-sm">{t("type_confirm_to_continue")}</p>

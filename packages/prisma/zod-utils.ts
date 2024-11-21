@@ -20,6 +20,7 @@ import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-bu
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -258,6 +259,10 @@ export const bookingCreateBodySchema = z.object({
    * Holds the corrected responses of the Form for a booking, provided during rerouting
    */
   reroutingFormResponses: routingFormResponseInDbSchema.optional(),
+  /**
+   * Used to identify if the booking is a dry run.
+   */
+  _isDryRun: z.boolean().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -327,7 +332,10 @@ export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
 export const bookingCancelSchema = z.object({
   id: z.number().optional(),
   uid: z.string().optional(),
+  // note(Lauris): allRemainingBookings will cancel all bookings that have start time greater than this moment.
   allRemainingBookings: z.boolean().optional(),
+  // note(Lauris): cancelSubsequentBookings will cancel all bookings after one specified by id or uid.
+  cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
@@ -646,6 +654,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   title: true,
   description: true,
   isInstantEvent: true,
+  instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   aiPhoneCallConfig: true,
   currency: true,
@@ -696,6 +705,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
@@ -752,3 +762,5 @@ export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
 });
+
+export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
