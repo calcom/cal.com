@@ -30,7 +30,7 @@ const Layout = (props: LayoutProps) => {
   const postHog = usePostHog();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-
+  const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
   useBootIntercom();
   useFormbricks();
 
@@ -42,7 +42,7 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      {!props.withoutSeo && (
+      {!withoutSeo && (
         <HeadSeo
           title={pageTitle ?? APP_NAME}
           description={props.description ?? props.subtitle?.toString() ?? ""}
