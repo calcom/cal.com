@@ -1,3 +1,5 @@
+import { noop } from "@tanstack/react-table";
+
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -20,7 +22,7 @@ const DateOverrideList = ({
   replace,
   fields,
   weekStart = 0,
-  handleAvailabilityUpdate,
+  handleAvailabilityUpdate = noop,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
