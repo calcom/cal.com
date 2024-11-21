@@ -2,7 +2,8 @@ import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
-import { Tooltip } from "@calcom/ui";
+
+import { Tooltip } from "../../tooltip";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
   options: {

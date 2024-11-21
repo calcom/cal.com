@@ -3,12 +3,12 @@ import React from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
+import AppListCard from "@calcom/features/components/AppListCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui";
 import { List } from "@calcom/ui";
-import AppListCard from "@calcom/web/components/AppListCard";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";

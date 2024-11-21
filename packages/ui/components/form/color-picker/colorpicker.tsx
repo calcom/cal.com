@@ -6,7 +6,8 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 
 import cx from "@calcom/lib/classNames";
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
-import { Button } from "@calcom/ui";
+
+import { Button } from "../../button";
 
 export type ColorPickerProps = {
   defaultValue: string;

@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label, Input } from "@calcom/ui";
+
+import { Label, Input } from "../form";
 
 type Digit = {
   value: number;

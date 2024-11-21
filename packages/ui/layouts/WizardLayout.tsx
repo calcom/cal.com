@@ -8,7 +8,11 @@ import { Toaster } from "react-hot-toast";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, SkeletonText, StepCard, Steps } from "@calcom/ui";
+
+import { Button } from "../components/button";
+import { StepCard } from "../components/card";
+import { Steps } from "../components/form";
+import { SkeletonText } from "../components/skeleton";
 
 export function WizardLayout({
   children,

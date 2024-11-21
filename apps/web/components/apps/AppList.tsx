@@ -5,6 +5,7 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import AppListCard from "@calcom/features/components/AppListCard";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -21,8 +22,6 @@ import {
   List,
   showToast,
 } from "@calcom/ui";
-
-import AppListCard from "@components/AppListCard";
 
 interface AppListProps {
   variant?: AppCategories;
