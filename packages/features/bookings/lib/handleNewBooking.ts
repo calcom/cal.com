@@ -1166,13 +1166,24 @@ async function handler(
         await usersRepository.updateLastActiveAt(booking.userId);
       }
 
-         if (routingFormResponseId && teamId) {
-      await AssignmentReasonRecorder.routingFormRoute({
-        bookingId: booking.id,
-        routingFormResponseId,
-        organizerId: organizerUser.id,
-        teamId,
-      });
+    // If it's a round robin event, record the reason for the host assignment
+    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
+        await AssignmentReasonRecorder.CRMOwnership({
+          bookingId: booking.id,
+          crmAppSlug: reqBody.crmAppSlug,
+          teamMemberEmail: contactOwnerEmail,
+          recordType: reqBody.crmOwnerRecordType,
+          routingFormResponseId,
+        });
+      } else if (routingFormResponseId && teamId) {
+        await AssignmentReasonRecorder.routingFormRoute({
+          bookingId: booking.id,
+          routingFormResponseId,
+          organizerId: organizerUser.id,
+          teamId,
+        });
+      }
     }
 
 
