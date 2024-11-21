@@ -72,7 +72,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
+
+      console.log("asap user", JSON.stringify(user, null, 2));
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: "working time",
@@ -375,6 +382,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
@@ -577,6 +589,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {

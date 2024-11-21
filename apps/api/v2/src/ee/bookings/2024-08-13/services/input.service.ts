@@ -112,9 +112,7 @@ export class InputBookingsService_2024_08_13 {
     let oAuthClient: PlatformOAuthClient | null = null;
     if (eventType?.userId) {
       oAuthClient = await this.oAuthClientRepository.getByUserId(eventType.userId);
-    }
-
-    if (eventType?.teamId) {
+    } else if (eventType?.teamId) {
       oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
     }
 
@@ -463,14 +461,14 @@ export class InputBookingsService_2024_08_13 {
     bookingUid: string,
     body: CancelBookingInput
   ): Promise<BookingRequest> {
-    const booking = await this.bookingsRepository.getByUid(bookingUid);
-    if (!booking) {
-      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
-    }
-
     const bodyTransformed = this.isCancelSeatedBody(body)
       ? await this.transformInputCancelSeatedBooking(bookingUid, body)
       : await this.transformInputCancelBooking(bookingUid, body);
+
+    const booking = await this.bookingsRepository.getByUid(bodyTransformed.uid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
+    }
 
     const oAuthClientParams = booking.eventTypeId
       ? await this.getOAuthClientParams(booking.eventTypeId)
