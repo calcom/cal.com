@@ -404,7 +404,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
         eventData: mockEventData,
       });
 
-      expect(result).toBe(null);
+      expect(result.email).toBe(null);
     });
   });
 });

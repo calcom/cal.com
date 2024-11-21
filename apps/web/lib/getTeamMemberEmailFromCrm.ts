@@ -118,7 +118,7 @@ async function getOwnerEmailFromCrm(
   email: string
 ): Promise<{ email: string | null; recordType: string | null; crmAppSlug: string | null }> {
   const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
-  if (!crmContactOwner.email) return returnNullValue;
+  if (!crmContactOwner?.email) return returnNullValue;
 
   // Determine if the contactOwner is a part of the event type
   const contactOwnerQuery = await findUserByEmailWhoIsAHostOfEventType({
