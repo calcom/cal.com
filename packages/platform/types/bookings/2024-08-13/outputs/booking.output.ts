@@ -57,6 +57,16 @@ export class SeatedAttendee extends Attendee {
   @IsObject()
   @Expose()
   bookingFieldsResponses!: Record<string, unknown>;
+
+  @ApiProperty({
+    type: Object,
+    example: { key: "value" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  metadata?: Record<string, string>;
 }
 
 class Host {
@@ -189,6 +199,16 @@ class BaseBookingOutput_2024_08_13 {
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({
+    type: Object,
+    example: { key: "value" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  metadata?: Record<string, string>;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
