@@ -270,6 +270,15 @@ function AddMembersWithSwitch({
             }}
             onInactive={onAssignAllTeamMembersInactive}
           />
+          {!assignRRMembersUsingSegment ? (
+            <EditWeightsForAllTeamMembers
+              teamMembers={teamMembers}
+              value={value}
+              onChange={onChange}
+              assignmentState={assignmentState}
+            />
+          ) : null}
+
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
               <MembersSegmentWithToggle
@@ -281,12 +290,6 @@ function AddMembersWithSwitch({
               />
             </div>
           )}
-          <EditWeightsForAllTeamMembers
-            teamMembers={teamMembers}
-            value={value}
-            onChange={onChange}
-            assignmentState={assignmentState}
-          />
         </>
       );
 
