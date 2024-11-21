@@ -245,7 +245,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
                 placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-                addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+                addOnLeading="search"
               />
 
               <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">
@@ -263,7 +263,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
                     className="flex w-full items-center justify-between rounded-md border bg-red-50 p-3 text-sm text-red-900"
                     onClick={() => setIsErrorsExpanded(!isErrorsExpanded)}>
                     <div className="flex items-center space-x-2">
-                      <Icon name="alert-triangle" className="h-4 w-4" />
+                      <Icon name="info" className="h-4 w-4" />
                       <span>{t("csv_upload_errors", { count: uploadErrors.length })}</span>
                     </div>
                     <Icon name="chevron-down" className="h-4 w-4" />
