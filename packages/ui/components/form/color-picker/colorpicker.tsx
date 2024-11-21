@@ -75,6 +75,7 @@ const ColorPicker = (props: ColorPickerProps) => {
             variant="icon"
             rel="noreferrer"
             StartIcon="rotate-ccw"
+            data-testid="reset-to-default"
             tooltip="Reset to default"
             onClick={() => {
               setColor(fallBackHex(resetDefaultValue, false));
