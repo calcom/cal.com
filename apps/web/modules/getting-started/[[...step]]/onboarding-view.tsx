@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -130,6 +130,11 @@ const OnboardingPage = (props: PageProps) => {
   };
   const currentStepIndex = steps.indexOf(currentStep);
 
+  const goToIndex = (index: number) => {
+    const newStep = steps[index];
+    router.push(`/getting-started/${stepTransform(newStep)}`);
+  };
+
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
@@ -166,7 +171,7 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
