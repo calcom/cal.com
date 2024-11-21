@@ -28,14 +28,12 @@ function mockGetCRMContactOwnerForRRLeadSkip({
   bookerEmail: string;
   teamMemberEmail: string;
 }) {
-  vi.mocked(getCRMContactOwnerForRRLeadSkip).mockImplementation(
-    (_bookerEmail, recordType: null, crmAppSlug: null, _eventMetadata) => {
-      if (_bookerEmail === bookerEmail) {
-        return Promise.resolve({ teamMemberEmail, recordType, crmAppSlug });
-      }
-      return Promise.resolve(undefined);
+  vi.mocked(getCRMContactOwnerForRRLeadSkip).mockImplementation((_bookerEmail, _eventMetadata) => {
+    if (_bookerEmail === bookerEmail) {
+      return Promise.resolve({ email: teamMemberEmail, recordType: null, crmAppSlug: null });
     }
-  );
+    return Promise.resolve({ email: null, recordType: null, crmAppSlug: null });
+  });
 }
 
 function mockBookingFormHandler({
@@ -46,11 +44,11 @@ function mockBookingFormHandler({
   teamMemberEmail: string;
 }) {
   vi.mocked(bookingFormHandlers.salesforce).mockImplementation(
-    (_bookerEmail, _attributeRoutingConfig, _eventTypeId, recordType: null, crmAppSlug: null) => {
+    (_bookerEmail, _attributeRoutingConfig, _eventTypeId) => {
       if (_bookerEmail === bookerEmail) {
-        return Promise.resolve({ email: teamMemberEmail, recordType });
+        return Promise.resolve({ email: teamMemberEmail, recordType: null });
       }
-      return Promise.resolve({ email: null });
+      return Promise.resolve({ email: null, recordType: null });
     }
   );
 }
