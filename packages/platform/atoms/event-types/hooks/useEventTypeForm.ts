@@ -113,6 +113,8 @@ export const useEventTypeForm = ({
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
+      rrSegmentQueryValue: eventType.rrSegmentQueryValue,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
         enabled: eventType.aiPhoneCallConfig?.enabled,
