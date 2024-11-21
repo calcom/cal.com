@@ -1620,7 +1620,7 @@ enum AssignmentReasonEnum {
 model AssignmentReason {
   id           Int                  @id @unique @default(autoincrement())
   createdAt    DateTime             @default(now())
-  bookingId    Int                  @unique
+  bookingId    Int
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String

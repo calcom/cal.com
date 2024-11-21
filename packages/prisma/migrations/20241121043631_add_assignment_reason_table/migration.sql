@@ -15,8 +15,5 @@ CREATE TABLE "AssignmentReason" (
 -- CreateIndex
 CREATE UNIQUE INDEX "AssignmentReason_id_key" ON "AssignmentReason"("id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "AssignmentReason_bookingId_key" ON "AssignmentReason"("bookingId");
-
 -- AddForeignKey
 ALTER TABLE "AssignmentReason" ADD CONSTRAINT "AssignmentReason_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
