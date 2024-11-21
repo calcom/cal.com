@@ -99,7 +99,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 atomsWrapper: "!w-[60vw] !m-auto",
                 eventSetupTab: {
                   wrapper: "rounded-lg shadow-sm",
-
                   titleSection: {
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     titleInput: {
@@ -114,8 +113,11 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       input: "border border-purple-300 rounded-md text-purple-900 bg-white",
                       addOn: "text-purple-500",
                     },
+                    descriptionInput: {
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    },
                   },
-
                   durationSection: {
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     singleDurationInput: {
@@ -148,17 +150,15 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       },
                     },
                     selectDurationToggle: {
-                      switchContainer: "",
+                      container: "",
                       label: "text-purple-700",
                       description: "text-purple-500",
                       children: "",
                     },
                   },
-
                   locationSection: {
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
-                    dropdownWrapper: "border border-purple-200 bg-white rounded-lg",
                     locationSelect: {
                       optionIcon: "text-purple-500",
                       optionLabel: "text-purple-800",

@@ -28,6 +28,7 @@ export type EventSetupTabCustomClassNames = {
     container?: string;
     titleInput?: InputClassNames;
     urlInput?: InputClassNames;
+    descriptionInput?: Pick<InputClassNames, "input" | "label">;
   };
   durationSection?: {
     container?: string;
@@ -116,6 +117,10 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   disabled: descriptionLockedProps.disabled,
                 })}
                 placeholder={t("quick_video_meeting")}
+                className={customClassNames?.titleSection?.descriptionInput?.input}
+                labelProps={{
+                  className: customClassNames?.titleSection?.descriptionInput?.label,
+                }}
               />
             ) : (
               <>
@@ -299,9 +304,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
                 labelClassName={customClassNames?.durationSection?.selectDurationToggle?.label}
                 descriptionClassName={customClassNames?.durationSection?.selectDurationToggle?.description}
-                switchContainerClassName={
-                  customClassNames?.durationSection?.selectDurationToggle?.switchContainer
-                }
+                switchContainerClassName={customClassNames?.durationSection?.selectDurationToggle?.container}
                 childrenClassName={customClassNames?.durationSection?.selectDurationToggle?.children}
                 onCheckedChange={() => {
                   if (multipleDuration !== undefined) {

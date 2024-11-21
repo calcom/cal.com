@@ -36,7 +36,7 @@ type LocationInputCustomClassNames = {
 };
 
 export type LocationCustomClassNames = {
-  dropdownWrapper?: string;
+  container?: string;
   locationSelect?: LocationSelectCustomClassNames;
   removeLocationButton?: string;
   removeLocationIcon?: string;
@@ -243,7 +243,7 @@ const Locations: React.FC<LocationsProps> = ({
   const isPlatorm = useIsPlatform();
 
   return (
-    <div className={classNames("w-full", customClassNames?.dropdownWrapper)}>
+    <div className={classNames("w-full", customClassNames?.container)}>
       <ul ref={animationRef} className={classNames("space-y-2")}>
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);

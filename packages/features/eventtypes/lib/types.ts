@@ -168,7 +168,7 @@ export type TabMap = {
 };
 
 export type SettingsToggleClassNames = {
-  switchContainer?: string;
+  container?: string;
   label?: string;
   description?: string;
   children?: string;
