@@ -21,16 +21,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let teamId = req?.query?.teamId;
   const state = (req?.query?.state || "{}") as string;
+  const parsedState = JSON.parse(state);
   if (!teamId) {
-    teamId = JSON.parse(state)?.teamId || "";
+    teamId = parsedState?.teamId || "";
   }
+  const upgrade = parsedState.upgrade || false;
   await throwIfNotHaveAdminAccessToTeam({
     teamId: teamId ? Number(teamId) : null,
     userId: Number(user.id),
   });
 
   const appKeys = await getAppKeysFromSlug(appConfig.slug, true);
-  await checkInstalled("pipedrive-crm", session.user?.id);
+  if (!upgrade) {
+    await checkInstalled("pipedrive-crm", session.user?.id);
+  }
   const params = {
     client_id: (appKeys.client_id || "") as string,
     response_type: "code",

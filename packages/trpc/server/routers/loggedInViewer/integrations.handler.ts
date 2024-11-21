@@ -162,15 +162,19 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
       const credIdToUpgradableMap = credentials
         .filter((c) => c.appId === app.slug && !c.teamId)
-        .reduce((obj, c) => {
-          const { last_updated_on: updatedOn } = (c?.key || {}) as Record<string, any>;
+        .reduce<Record<number, boolean>>((acc, credential) => {
+          const { last_updated_on: updatedOn } = (credential?.key || {}) as Record<string, any>;
           const isUpgradable = canUpgrade({
-            updatedOn: updatedOn,
+            updatedOn,
             updatedAt: app.updatedAt,
             slug: app.slug,
           });
-          obj[c.id] = obj[c.id] || isUpgradable;
-        }, Record<number, boolean>);
+          if (credential.id) {
+            acc[credential.id] = isUpgradable;
+          }
+          return acc;
+        }, {});
+
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);

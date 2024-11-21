@@ -57,7 +57,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
     type: string,
     slug: string,
     variant: string,
-    credentialId: string,
+    credentialId: number,
     teamId?: number
   ) => {
     mutation.mutate({
@@ -113,7 +113,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
         slug={item.slug}
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
         credentialOwner={item?.credentialOwner}
-        isUpgradable={item?.isUpgradable}
+        isUpgradable={item?.isUpgradable || false}
         actions={
           !item.credentialOwner?.readOnly ? (
             <div className="flex justify-end gap-2">
@@ -124,8 +124,8 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
                       item.type,
                       item.slug,
                       item.variant,
-                      item.credentialOwner?.credentialId || item.userCredentialIds[0],
-                      item.credentialOwner?.teamId
+                      item?.credentialOwner?.credentialId || item?.userCredentialIds?.[0],
+                      item?.credentialOwner?.teamId
                     );
                   }}>
                   <Icon name="refresh-ccw" className="text-muted inline-block h-5 w-5 cursor-pointer" />
@@ -182,7 +182,9 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
     const credId = app?.userCredentialIds?.[0];
 
     if (app.userCredentialIds.length && (!isUpgrade || (isUpgrade && credIdToUpgradableMap[credId]))) {
-      appCards.push(<ChildAppCard item={{ ...app, isUpgradable: !!credIdToUpgradableMap[credId] }} />);
+      appCards.push(
+        <ChildAppCard item={{ ...app, isUpgradable: !!(credId && credIdToUpgradableMap[credId]) }} />
+      );
     }
     for (const team of app.teams) {
       if (team && (!isUpgrade || (isUpgrade && team.isUpgradable))) {
@@ -220,7 +222,10 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName, upgrad
         {data.items
           .filter((item) => item.invalidCredentialIds)
           .map((item, i) => {
-            if (!item.teams.length) return <ChildAppCard key={i} item={item} />;
+            const credIdToUpgradableMap = item.credIdToUpgradableMap || {};
+            const credId = item?.userCredentialIds?.[0];
+            const isUpgradable = !!(credId && credIdToUpgradableMap[credId]);
+            if (!item.teams.length) return <ChildAppCard key={i} item={{ ...item, isUpgradable }} />;
           })}
       </List>
       {locationType && (

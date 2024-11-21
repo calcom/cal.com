@@ -65,6 +65,10 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         type = type.split("_other_calendar")[0];
       }
 
+      if (type?.endsWith("_crm")) {
+        type = type.split("_crm")[0];
+      }
+
       if (options?.installGoogleVideo && type !== "google_calendar")
         throw new Error("Could not install Google Meet");
       const state: IntegrationOAuthCallbackState = {
