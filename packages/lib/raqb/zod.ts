@@ -8,6 +8,7 @@ export const raqbChildSchema = z.object({
       operator: z.any().optional(),
       value: z.any().optional(),
       valueSrc: z.any().optional(),
+      valueError: z.array(z.union([z.string(), z.null()])).optional(),
       valueType: z.any().optional(),
     })
     .optional(),
