@@ -183,7 +183,7 @@ vi.mock("@calcom/trpc/react", () => ({
         },
       },
       routingForms: {
-        findTeamMembersMatchingAttributeLogic: {
+        findTeamMembersMatchingAttributeLogicOfRoute: {
           useMutation: vi.fn(({ onSuccess }) => {
             return {
               mutate: vi.fn(() => {

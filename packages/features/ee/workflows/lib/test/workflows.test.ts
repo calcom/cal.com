@@ -443,7 +443,7 @@ describe("scheduleBookingReminders", () => {
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
-      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.EMAIL);
       if (index < 2) {
         expect(reminder.scheduled).toBe(true);
@@ -527,7 +527,7 @@ describe("scheduleBookingReminders", () => {
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
-      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.EMAIL);
       if (index < 2) {
         expect(reminder.scheduled).toBe(true);
@@ -662,7 +662,7 @@ describe("scheduleBookingReminders", () => {
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
-      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.SMS);
       if (index < 2) {
         expect(reminder.scheduled).toBe(true);
