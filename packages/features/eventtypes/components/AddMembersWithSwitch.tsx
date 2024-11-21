@@ -205,8 +205,8 @@ function useSegmentState() {
 }
 
 export type AddMembersWithSwitchCustomClassNames = {
-  assingAllTeamMembersToggle: SettingsToggleClassNames;
-  teamMemberSelect: CheckedTeamSelectCustomClassNames;
+  assingAllTeamMembers?: SettingsToggleClassNames;
+  teamMemberSelect?: CheckedTeamSelectCustomClassNames;
 };
 
 type AddMembersWithSwitchProps = {
@@ -281,7 +281,7 @@ function AddMembersWithSwitch({
               onActive();
             }}
             onInactive={onAssignAllTeamMembersInactive}
-            customClassNames={customClassNames?.assingAllTeamMembersToggle}
+            customClassNames={customClassNames?.assingAllTeamMembers}
           />
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
@@ -308,7 +308,7 @@ function AddMembersWithSwitch({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 onActive={onActive}
                 onInactive={onAssignAllTeamMembersInactive}
-                customClassNames={customClassNames?.assingAllTeamMembersToggle}
+                customClassNames={customClassNames?.assingAllTeamMembers}
               />
             )}
           </div>

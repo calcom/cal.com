@@ -120,9 +120,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
                       label: "text-purple-700 font-semibold",
                       description: "text-purple-600 text-sm",
-                      container: "flex items-center justify-between",
-                      addMembersSwitch: {
-                        assingAllTeamMembersToggle: {
+                      addMembers: {
+                        assingAllTeamMembers: {
                           container: "border border-purple-200 bg-white rounded-md",
                           label: "text-purple-700",
                           description: "text-gray-600",
@@ -173,14 +172,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
                       label: "text-purple-700 font-semibold",
                       description: "text-purple-600 text-sm",
-                      container: "flex items-center justify-between",
-                      enableWeightsToggle: {
+                      enableWeights: {
                         container: "border border-purple-200 bg-white rounded-md",
                         label: "text-purple-700",
                         description: "text-gray-600",
                       },
-                      addMembersSwitch: {
-                        assingAllTeamMembersToggle: {
+                      addMembers: {
+                        assingAllTeamMembers: {
                           container: "border border-purple-200 bg-white rounded-md",
                           label: "text-purple-700",
                           description: "text-gray-600",
@@ -214,7 +212,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   },
                   childrenEventTypes: {
                     container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
-                    assignAllTeamMembersToggle: {
+                    assignAllTeamMembers: {
                       container: "border border-purple-200 bg-white rounded-md",
                       label: "text-purple-700",
                       description: "text-gray-600",

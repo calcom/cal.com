@@ -263,7 +263,7 @@ type RoundRobinHostsCustomClassNames = {
   container?: string;
   label?: string;
   description?: string;
-  enableWeightsToggle?: SettingsToggleClassNames;
+  enableWeights?: SettingsToggleClassNames;
   addMembers?: AddMembersWithSwitchCustomClassNames;
 };
 
@@ -322,9 +322,9 @@ const RoundRobinHosts = ({
                 title={t("enable_weights")}
                 description={weightDescription}
                 checked={value}
-                switchContainerClassName={customClassNames?.enableWeightsToggle?.container}
-                labelClassName={customClassNames?.enableWeightsToggle?.label}
-                descriptionClassName={customClassNames?.enableWeightsToggle?.description}
+                switchContainerClassName={customClassNames?.enableWeights?.container}
+                labelClassName={customClassNames?.enableWeights?.label}
+                descriptionClassName={customClassNames?.enableWeights?.description}
                 onCheckedChange={(active) => {
                   onChange(active);
                   const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
@@ -375,7 +375,7 @@ const RoundRobinHosts = ({
 
 type ChildrenEventTypesCustomClassNames = {
   container?: string;
-  assignAllTeamMembersToggle?: SettingsToggleClassNames;
+  assignAllTeamMembers?: SettingsToggleClassNames;
   childrenEventTypesList?: ChildrenEventTypeSelectCustomClassNames;
 };
 
@@ -401,7 +401,7 @@ const ChildrenEventTypes = ({
         <AssignAllTeamMembers
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          customClassNames={customClassNames?.assignAllTeamMembersToggle}
+          customClassNames={customClassNames?.assignAllTeamMembers}
           onActive={() => setValue("children", childrenEventTypeOptions, { shouldDirty: true })}
         />
         {!assignAllTeamMembers ? (
@@ -425,7 +425,7 @@ const ChildrenEventTypes = ({
 };
 
 type HostsCustomClassNames = {
-  fixedHostsToggle?: FixedHostsCustomClassNames;
+  fixedHosts?: FixedHostsCustomClassNames;
   roundRobinHosts?: RoundRobinHostsCustomClassNames;
 };
 const Hosts = ({
@@ -502,7 +502,7 @@ const Hosts = ({
               }}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
-              customClassNames={customClassNames?.fixedHostsToggle}
+              customClassNames={customClassNames?.fixedHosts}
             />
           ),
           ROUND_ROBIN: (
@@ -517,7 +517,7 @@ const Hosts = ({
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 isRoundRobinEvent={true}
-                customClassNames={customClassNames?.fixedHostsToggle}
+                customClassNames={customClassNames?.fixedHosts}
               />
               <RoundRobinHosts
                 orgId={orgId}
