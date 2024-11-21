@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
@@ -29,6 +27,15 @@ export class CredentialRepository {
     return await prisma.credential.findFirst({
       where: { id },
       select: { ...safeCredentialSelect, key: true },
+    });
+  }
+
+  static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
+    return await prisma.credential.findFirst({
+      where: {
+        appId,
+        userId,
+      },
     });
   }
 

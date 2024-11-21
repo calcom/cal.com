@@ -2,6 +2,8 @@ import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -26,7 +28,6 @@ export type Host = {
   userId: number;
   priority: number;
   weight: number;
-  weightAdjustment: number;
   scheduleId?: number | null;
 };
 export type TeamMember = {
@@ -71,6 +72,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
   length: number;
   offsetStart: number;
@@ -110,6 +112,8 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
+  autoTranslateDescriptionEnabled: boolean;
+  fieldTranslations: EventTypeTranslation[];
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
@@ -133,11 +137,14 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
+  maxLeadThreshold?: number;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
