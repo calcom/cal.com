@@ -32,7 +32,7 @@ import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatf
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
 export type eventTypeCustomClassNames = {
   atomsWrapper?: string;
-  eventAvailabilityTabClassNames?: EventAvailabilityTabCustomClassNames;
+  eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -157,7 +157,7 @@ const EventType = ({
         isTeamEvent={!!team}
         user={user?.data}
         teamId={team?.id}
-        customClassNames={customClassNames?.eventAvailabilityTabClassNames}
+        customClassNames={customClassNames?.eventAvailabilityTab}
       />
     ) : (
       <></>
