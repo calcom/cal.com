@@ -282,7 +282,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
                   {t("cancel")}
                 </Button>
               </SheetClose>
-              <Button onClick={handleSave}>{t("save_changes")}</Button>
+              <Button onClick={handleSave}>{t("done")}</Button>
             </SheetFooter>
           </SheetContent>
         </form>
