@@ -85,7 +85,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
             not: input.uuid ?? "",
           },
         },
-        { OR: [{ start: startTimeUtc }, { end: endTimeUtc }] },
+        { OR: [{ start: new Date(startTimeUtc) }, { end: new Date(endTimeUtc) }] },
       ],
     },
   });
@@ -112,11 +112,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       OR: [
         // Outside of range
         {
-          AND: [{ start: { lte: endTimeUtc } }, { end: { gte: startTimeUtc } }],
+          AND: [{ start: { lte: new Date(endTimeUtc) } }, { end: { gte: new Date(startTimeUtc) } }],
         },
         // Inside of range
         {
-          AND: [{ start: { gte: startTimeUtc } }, { end: { lte: endTimeUtc } }],
+          AND: [{ start: { gte: new Date(startTimeUtc) } }, { end: { lte: new Date(endTimeUtc) } }],
         },
       ],
     },
