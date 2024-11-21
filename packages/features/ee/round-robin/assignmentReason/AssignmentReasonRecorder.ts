@@ -109,7 +109,6 @@ export default class AssignmentReasonRecorder {
 
   // Separate method to handle rerouting
 
-  // Routing via CRM ownership, need to keep each specific CRM logic in it's own package
   static async CRMOwnership({
     bookingId,
     crmAppSlug,
