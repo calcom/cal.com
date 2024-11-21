@@ -452,8 +452,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
               eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
               rrSegmentQueryValue:
-                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ??
-                undefined,
+                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
               onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {
