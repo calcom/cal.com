@@ -298,4 +298,17 @@ export class OrganizationRepository {
     }
     return { ...org, metadata: parsedMetadata };
   }
+
+  static async findCalVideoLogoByOrgId({ id }: { id: number }) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        calVideoLogo: true,
+      },
+    });
+
+    return org?.calVideoLogo;
+  }
 }

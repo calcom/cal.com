@@ -5,7 +5,6 @@ import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -196,9 +195,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     return updatedOrganisation;
   });
-
-  // Sync Services: Close.com
-  if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
 
   return { update: true, userId: ctx.user.id, data: updatedOrganisation };
 };

@@ -1,6 +1,8 @@
 import { ApiProperty as DocsProperty, ApiExtraModels, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
+  ArrayNotEmpty,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -132,6 +134,19 @@ class BaseEventTypeOutput_2024_06_14 {
   @Min(1)
   @DocsProperty({ example: 60 })
   lengthInMinutes!: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions?: number[];
 
   @IsString()
   @DocsProperty({ example: "Learn the secrets of masterchief!" })
