@@ -114,9 +114,11 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
   };
 
   const handleSave = () => {
-    Object.entries(localWeights).forEach(([memberId, weight]) => {
-      onChange(value.map((host) => (host.userId.toString() === memberId ? { ...host, weight } : host)));
-    });
+    const updatedValue = value.map((host) => ({
+      ...host,
+      weight: localWeights[host.userId.toString()] ?? host.weight ?? 100,
+    }));
+    onChange(updatedValue);
     setIsOpen(false);
     showToast(t("weights_updated_successfully"), "success");
   };
@@ -131,58 +133,54 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange, ass
     downloadAsCsv(csvData, "team-members-weights.csv");
   };
 
-  const handleUploadCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleUploadCsv = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
 
+    const file = e.target.files[0];
     const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const csvContent = event.target?.result as string;
-        const lines = csvContent.split("\n");
-        const newWeights: Record<string, number> = {};
-        const newErrors: Array<{ email: string; error: string }> = [];
 
-        // Skip header row
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
+    reader.onload = async (event) => {
+      if (!event.target?.result) return;
 
-          const [, , email, weightStr] = line.split(",");
-          if (!email || !weightStr) continue;
+      const csvData = event.target.result as string;
+      const lines = csvData.split("\n");
+      const newWeights: Record<string, number> = { ...localWeights };
+      const newErrors: Array<{ email: string; error: string }> = [];
 
-          const member = teamMembers.find((m) => m.email === email);
-          if (!member) {
-            newErrors.push({ email, error: t("member_not_found") });
-            continue;
-          }
+      // Skip header row
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
 
-          const weight = parseInt(weightStr);
-          if (isNaN(weight) || weight <= 0) {
-            newErrors.push({ email, error: t("invalid_weight") });
-            continue;
-          }
+        const [, , email, weightStr] = line.split(",");
+        if (!email || !weightStr) continue;
 
-          newWeights[member.value] = weight;
+        const member = teamMembers.find((m) => m.email === email);
+        if (!member) {
+          newErrors.push({ email, error: t("member_not_found") });
+          continue;
         }
 
-        setLocalWeights((prev) => ({ ...prev, ...newWeights }));
-        setUploadErrors(newErrors);
-
-        if (newErrors.length > 0) {
-          showToast(t("weights_updated_with_errors", { count: newErrors.length }), "warning");
-        } else {
-          showToast(t("weights_updated_from_csv"), "success");
+        const weight = parseInt(weightStr);
+        if (isNaN(weight) || weight <= 0) {
+          newErrors.push({ email, error: t("invalid_weight") });
+          continue;
         }
-        e.target.value = ""; // Reset file input
 
-        // Force a re-render of the filtered members
-        setSearchQuery((prev) => prev);
-      } catch (error) {
-        console.error("Error parsing CSV:", error);
-        showToast(t("error_parsing_csv"), "error");
+        newWeights[member.value] = weight;
       }
+
+      setLocalWeights(newWeights);
+      setUploadErrors(newErrors);
+
+      if (newErrors.length > 0) {
+        showToast(t("weights_updated_with_errors", { count: newErrors.length }), "warning");
+      } else {
+        showToast(t("weights_updated_from_csv"), "success");
+      }
+      e.target.value = "";
     };
+
     reader.readAsText(file);
   };
 
