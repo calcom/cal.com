@@ -171,7 +171,9 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBeNull();
+    const ownerEmail = result.email;
+
+    expect(ownerEmail).toBeNull();
   });
 
   it("should return null when scheduling type is not ROUND_ROBIN", async () => {
@@ -192,7 +194,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: { ...mockEventData, schedulingType: SchedulingType.COLLECTIVE },
     });
 
-    expect(result).toBeNull();
+    expect(result.email).toBeNull();
   });
 
   it("should return CRM owner email when valid", async () => {
@@ -213,7 +215,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBe(ownerEmail);
+    expect(result.email).toBe(ownerEmail);
   });
 
   it("should return null when CRM owner is not found", async () => {
@@ -226,7 +228,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBeNull();
+    expect(result.email).toBeNull();
   });
 
   it("should return null when CRM owner is not part of event type", async () => {
@@ -239,7 +241,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBeNull();
+    expect(result.email).toBeNull();
   });
 
   describe("Booking form handler", () => {
