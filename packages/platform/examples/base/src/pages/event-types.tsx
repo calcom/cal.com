@@ -155,8 +155,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
 
-                  bookingFrequencyLimitSection: {
-                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                  bookingFrequencyLimit: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
                     children: "space-y-4",
@@ -179,14 +179,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   },
 
                   firstAvailableSlotOnly: {
-                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
                     children: "space-y-4",
                   },
 
-                  totalDurationLimitSection: {
-                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                  totalDurationLimit: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
                     children: "space-y-4",
@@ -207,8 +207,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
 
-                  futureBookingLimitSection: {
-                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                  futureBookingLimit: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
                     children: "space-y-4",
@@ -233,8 +233,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
 
-                  offsetStartTimesSection: {
-                    switchContainer: "border border-purple-200 bg-purple-100 rounded-lg",
+                  offsetStartTimes: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
                     children: "space-y-4",
