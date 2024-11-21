@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
-import logger from "@calcom/lib/logger";
+
 const log = logger.getSubLogger({ prefix: ["domainWideDelegation/utils"] });
 export class InvalidServiceAccountKeyError extends Error {
   constructor(message: string) {
@@ -53,7 +55,9 @@ export const handleDomainWideDelegationError = (error: unknown) => {
   });
 };
 
-export const ensureNoServiceAccountKey = <T extends {id:string; serviceAccountKey?: unknown }>(domainWideDelegation: T) => {
+export const ensureNoServiceAccountKey = <T extends { id: string; serviceAccountKey?: unknown }>(
+  domainWideDelegation: T
+) => {
   const { serviceAccountKey: _1, ...rest } = domainWideDelegation;
   return {
     ...rest,

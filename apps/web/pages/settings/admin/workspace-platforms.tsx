@@ -322,7 +322,7 @@ function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent title={t("add_workspace_platform")}>
+      <DialogContent enableOverflow title={t("add_workspace_platform")}>
         <Form form={form} handleSubmit={onSubmit}>
           <PlatformFormFields isCreate={true} />
           <DialogFooter>

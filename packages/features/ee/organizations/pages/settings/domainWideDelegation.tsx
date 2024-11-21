@@ -56,7 +56,7 @@ function DelegationListItemActions({
   onDelete,
 }: {
   delegation: DelegationItemProps["delegation"];
-  toggleDelegation: DelegationItemProps["toggleDelegation"]
+  toggleDelegation: DelegationItemProps["toggleDelegation"];
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
   onDelete: (id: string) => void;
 }) {
@@ -134,7 +134,7 @@ function CreateDelegationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent title={t("add_domain_wide_delegation")}>
+      <DialogContent enableOverflow title={t("add_domain_wide_delegation")}>
         <Form form={form} handleSubmit={onSubmit}>
           <DelegationFormFields workspacePlatforms={workspacePlatforms} />
           <DialogFooter>
@@ -304,6 +304,8 @@ function DomainWideDelegationList() {
 
   const { data: workspacePlatforms, isLoading: isLoadingWorkspacePlatforms } =
     trpc.viewer.domainWideDelegation.listWorkspacePlatforms.useQuery();
+
+  console.log("workspacePlatforms", workspacePlatforms);
 
   const onEditClick = (delegation: DelegationItemProps["delegation"]) => {
     setCreateEditDialog({ isOpen: true, delegation });

@@ -757,3 +757,12 @@ export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
 });
+
+export const serviceAccountKeySchema = z
+  .object({
+    type: z.string(),
+    client_id: z.string(),
+    client_email: z.string(),
+    private_key: z.string(),
+  })
+  .passthrough();
