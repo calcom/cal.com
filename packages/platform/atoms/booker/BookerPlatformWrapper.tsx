@@ -10,8 +10,8 @@ import { useBookingForm } from "@calcom/features/bookings/Booker/components/hook
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {

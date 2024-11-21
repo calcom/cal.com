@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -11,6 +10,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { selectOOOEntries } from "@calcom/zapier/api/subscriptions/listOOOEntries";
 
 import { TRPCError } from "@trpc/server";
 

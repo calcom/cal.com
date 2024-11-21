@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import createOAuthAppCredential from "@calcom/app-store-core/_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 let client_id = "";
 let client_secret = "";

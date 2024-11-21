@@ -4,11 +4,11 @@ import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/dailyvideo/lib/VideoApiAdapter";
+import { appKeysSchema as calVideoKeysSchema } from "@calcom/dailyvideo/zod";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {

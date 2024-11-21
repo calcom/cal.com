@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store-core/_utils/throwIfNotHaveAdminAccessToTeam";
 import prisma from "@calcom/prisma";
-
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
 
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`

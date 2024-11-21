@@ -5,6 +5,12 @@ import { google } from "googleapis";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
+import { invalidateCredential } from "@calcom/app-store-core/_utils/invalidateCredential";
+import { AxiosLikeResponseToFetchResponse } from "@calcom/app-store-core/_utils/oauth/AxiosLikeResponseToFetchResponse";
+import { OAuthManager } from "@calcom/app-store-core/_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "@calcom/app-store-core/_utils/oauth/getTokenObjectFromCredential";
+import { markTokenAsExpired } from "@calcom/app-store-core/_utils/oauth/markTokenAsExpired";
+import { OAuth2UniversalSchema } from "@calcom/app-store-core/_utils/oauth/universalSchema";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
@@ -32,12 +38,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
-import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
-import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 

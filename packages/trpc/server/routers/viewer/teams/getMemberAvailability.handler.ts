@@ -1,5 +1,5 @@
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import { isTeamMember } from "@calcom/lib/server/queries/teams";
+import { isTeamMember } from "@calcom/features/teams";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

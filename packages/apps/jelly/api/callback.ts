@@ -1,13 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import createOAuthAppCredential from "@calcom/app-store-core/_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
+import setDefaultConferencingApp from "@calcom/app-store-core/_utils/setDefaultConferencingApp";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const state = decodeOAuthState(req);

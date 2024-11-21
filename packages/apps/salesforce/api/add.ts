@@ -1,10 +1,9 @@
 import jsforce from "jsforce";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "@calcom/app-store-core/_utils/oauth/encodeOAuthState";
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 let consumer_key = "";
 

@@ -1,5 +1,5 @@
 import type { EventRecurringWebWrapperProps } from "@calcom/atoms/event-types/wrappers/EventRecurringWebWrapper";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 
 import RecurringEventController from "./RecurringEventController";
 

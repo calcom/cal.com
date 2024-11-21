@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { fetcher } from "@calcom/lib/dailyApiFetcher";
+import { getDailyAppKeys } from "@calcom/dailyvideo/lib/getDailyAppKeys";
+import { fetcher } from "@calcom/features/video/dailyApiFetcher";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {

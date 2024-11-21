@@ -7,10 +7,10 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -505,7 +505,7 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
-        <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+        <td className="hidden align-top sm:table-cell sm:min-w-[12rem] ltr:pl-3 rtl:pr-6">
           <div className="flex h-full items-center">
             {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
             <Link href={bookingLink} className="ml-3">
@@ -602,17 +602,17 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
 
               {isPending && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
                 </Badge>
               )}
               {booking.eventType?.team && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="gray">
                   {booking.eventType.team.name}
                 </Badge>
               )}
               {showPendingPayment && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}
@@ -632,7 +632,7 @@ function BookingListItem(booking: BookingItemProps) {
               <div
                 title={title}
                 className={classNames(
-                  "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
+                  "max-w-10/12 text-emphasis text-sm font-medium leading-6 sm:max-w-56 md:max-w-full",
                   isCancelled ? "line-through" : ""
                 )}>
                 {title}
@@ -646,7 +646,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
               {booking.description && (
                 <div
-                  className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                  className="max-w-10/12 text-default truncate text-sm sm:max-w-32 md:max-w-52 xl:max-w-80"
                   title={booking.description}>
                   &quot;{booking.description}&quot;
                 </div>
@@ -668,7 +668,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+        <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0 ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && <TableActions actions={pendingActions} />}

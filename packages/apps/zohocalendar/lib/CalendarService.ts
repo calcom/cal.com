@@ -1,5 +1,6 @@
 import { stringify } from "querystring";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -13,7 +14,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 

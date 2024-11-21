@@ -1,7 +1,7 @@
 import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";

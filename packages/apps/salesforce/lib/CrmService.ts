@@ -3,6 +3,9 @@ import jsforce from "jsforce";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import type { ParseRefreshTokenResponse } from "@calcom/app-store-core/_utils/oauth/parseRefreshTokenResponse";
+import parseRefreshTokenResponse from "@calcom/app-store-core/_utils/oauth/parseRefreshTokenResponse";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -12,9 +15,6 @@ import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
 import { SalesforceRecordEnum, SalesforceFieldType, WhenToWriteToRecord, DateFieldTypeData } from "./enums";
 

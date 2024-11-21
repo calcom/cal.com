@@ -21,8 +21,7 @@ import {
   List,
   showToast,
 } from "@calcom/ui";
-
-import AppListCard from "@components/AppListCard";
+import AppListCard from "@calcom/ui/AppListCard";
 
 interface AppListProps {
   variant?: AppCategories;

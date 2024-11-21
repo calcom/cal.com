@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import appStore from "..";
+import appStore from ".";
 
 interface CalendarApp {
   lib: {

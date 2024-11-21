@@ -1,4 +1,4 @@
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";

@@ -66,10 +66,12 @@
     "build:icons": "node ./scripts/build-icons.mjs"
   },
   "dependencies": {
+    "@calcom/app-store": "*",
+    "@calcom/app-store-core": "*",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
     "@formkit/auto-animate": "1.0.0-beta.5",
-    "@glidejs/glide": "^3.5.2",
+    "@glidejs/glide": "3.6.2",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-popover": "^1.0.2",

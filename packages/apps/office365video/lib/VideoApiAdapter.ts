@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import getParsedAppKeysFromSlug from "@calcom/app-store-core/_utils/getParsedAppKeysFromSlug";
+import { OAuthManager } from "@calcom/app-store-core/_utils/oauth/OAuthManager";
+import { oAuthManagerHelper } from "@calcom/app-store-core/_utils/oauth/oAuthManagerHelper";
 import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -7,9 +10,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import config from "../config.json";
 
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */

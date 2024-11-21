@@ -12,6 +12,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import {
@@ -20,7 +21,6 @@ import {
 } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import {
   isTimeOutOfBounds,
   calculatePeriodLimits,

@@ -1,6 +1,6 @@
+import { isTeamAdmin, isTeamOwner } from "@calcom/features/teams";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";

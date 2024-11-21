@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "@calcom/app-store-core/_utils/oauth/encodeOAuthState";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 let client_id = "";
 

@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { CalendarService } from "../lib";
 
 const bodySchema = z

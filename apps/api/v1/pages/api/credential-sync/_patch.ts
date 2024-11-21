@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
+import { OAuth2UniversalSchema } from "@calcom/app-store-core/_utils/oauth/universalSchema";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";

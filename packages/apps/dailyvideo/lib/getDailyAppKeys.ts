@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 
 const dailyAppKeysSchema = z.object({
   api_key: z.string(),

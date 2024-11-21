@@ -2808,6 +2808,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/alby@workspace:packages/apps/alby"
   dependencies:
+    "@calcom/app-store-core": "*"
     "@calcom/lib": "*"
     "@calcom/types": "*"
     "@getalby/lightning-tools": ^4.0.2
@@ -2963,20 +2964,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/app-store-core@*, @calcom/app-store-core@workspace:packages/app-store-core":
+  version: 0.0.0-use.local
+  resolution: "@calcom/app-store-core@workspace:packages/app-store-core"
+  dependencies:
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/app-store@*, @calcom/app-store@workspace:packages/app-store":
   version: 0.0.0-use.local
   resolution: "@calcom/app-store@workspace:packages/app-store"
   dependencies:
     "@calcom/dailyvideo": "*"
     "@calcom/dayjs": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
     "@calcom/office365video": "*"
     "@calcom/trpc": "*"
     "@calcom/types": "*"
-    "@calcom/ui": "*"
     "@calcom/zoomvideo": "*"
-    "@glidejs/glide": ^3.5.2
+    "@glidejs/glide": 3.6.2
     lodash: ^4.17.21
     qs-stringify: ^1.2.1
     react-i18next: ^12.2.0
@@ -3563,6 +3569,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/features@workspace:packages/features"
   dependencies:
+    "@calcom/app-store": "*"
+    "@calcom/app-store-core": "*"
+    "@calcom/dailyvideo": "*"
     "@calcom/dayjs": "*"
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
@@ -3810,6 +3819,7 @@ __metadata:
   resolution: "@calcom/mock-payment-app@workspace:packages/apps/mock-payment-app"
   dependencies:
     "@calcom/lib": "*"
+    "@calcom/paypal": "*"
     "@calcom/types": "*"
   languageName: unknown
   linkType: soft
@@ -3856,6 +3866,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/paypal@workspace:packages/apps/paypal"
   dependencies:
+    "@calcom/app-store-core": "*"
     "@calcom/lib": "*"
     "@calcom/types": "*"
   languageName: unknown
@@ -4200,7 +4211,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/stripepayment@workspace:packages/apps/stripepayment"
   dependencies:
-    "@calcom/app-store": "*"
+    "@calcom/app-store-core": "*"
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
     "@calcom/features": "*"
@@ -4332,12 +4343,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/ui@workspace:packages/ui"
   dependencies:
+    "@calcom/app-store": "*"
+    "@calcom/app-store-core": "*"
     "@calcom/config": "*"
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
     "@formkit/auto-animate": 1.0.0-beta.5
-    "@glidejs/glide": ^3.5.2
+    "@glidejs/glide": 3.6.2
     "@radix-ui/react-checkbox": ^1.0.4
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-popover": ^1.0.2
@@ -4422,6 +4435,7 @@ __metadata:
     "@calcom/amie": "*"
     "@calcom/app-store": "*"
     "@calcom/app-store-cli": "*"
+    "@calcom/app-store-core": "*"
     "@calcom/applecalendar": "*"
     "@calcom/around": "*"
     "@calcom/autocheckin": "*"
@@ -4528,7 +4542,7 @@ __metadata:
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
     "@formkit/auto-animate": 1.0.0-beta.5
-    "@glidejs/glide": ^3.5.2
+    "@glidejs/glide": 3.6.2
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
     "@microsoft/microsoft-graph-types-beta": 0.15.0-preview
@@ -6030,10 +6044,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@glidejs/glide@npm:^3.5.2":
-  version: 3.7.0
-  resolution: "@glidejs/glide@npm:3.7.0"
-  checksum: 73cb11e1c80f071ed82549db84e5395ca2b16189ddb525930359d92145ebc016324a56b7b9278ab6e6c035b74006b5670bf24184a8956d45af102d8dc41f531d
+"@glidejs/glide@npm:3.6.2":
+  version: 3.6.2
+  resolution: "@glidejs/glide@npm:3.6.2"
+  checksum: f871c8f399bb54f090188b008f84ec094469364d82e3a147ededf41ed193b28caacc2735ddf7c3d39ead65168eabb6dda90d6da959363444939ec31958b665c9
   languageName: node
   linkType: hard
 

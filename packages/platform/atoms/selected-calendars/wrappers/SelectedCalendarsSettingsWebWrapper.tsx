@@ -8,7 +8,7 @@ import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui";
 import { List } from "@calcom/ui";
-import AppListCard from "@calcom/web/components/AppListCard";
+import { AppListCard } from "@calcom/ui";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";

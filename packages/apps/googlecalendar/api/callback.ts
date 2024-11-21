@@ -1,6 +1,8 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -11,8 +13,6 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import { Prisma } from "@calcom/prisma/client";
 
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { REQUIRED_SCOPES, SCOPE_USERINFO_PROFILE } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 

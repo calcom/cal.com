@@ -1,14 +1,13 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-import type { CredentialOwner } from "@calcom/app-store/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { AppListCard as AppListCardComponent } from "@calcom/ui";
+import type { AppListCardProps } from "@calcom/ui/components/apps/app-list-card";
 
 type ShouldHighlight =
   | {
@@ -19,19 +18,6 @@ type ShouldHighlight =
       shouldHighlight?: never;
       slug?: never;
     };
-
-export type AppListCardProps = {
-  logo?: string;
-  title: string;
-  description: string;
-  actions?: ReactNode;
-  isDefault?: boolean;
-  isTemplate?: boolean;
-  invalidCredential?: boolean;
-  children?: ReactNode;
-  credentialOwner?: CredentialOwner;
-  className?: string;
-} & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });
 

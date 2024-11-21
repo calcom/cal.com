@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import { invalidateCredential } from "@calcom/app-store-core/_utils/invalidateCredential";
+import { OAuthManager } from "@calcom/app-store-core/_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "@calcom/app-store-core/_utils/oauth/getTokenObjectFromCredential";
+import { markTokenAsExpired } from "@calcom/app-store-core/_utils/oauth/markTokenAsExpired";
 import dayjs from "@calcom/dayjs";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -16,10 +20,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
-import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { metadata } from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 

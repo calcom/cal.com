@@ -2,8 +2,8 @@ import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store-core/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";

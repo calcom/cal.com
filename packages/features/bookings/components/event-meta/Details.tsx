@@ -1,10 +1,10 @@
 import React, { Fragment } from "react";
 
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import classNames from "@calcom/lib/classNames";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, type IconName } from "@calcom/ui";
 

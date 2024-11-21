@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import refreshOAuthTokens from "@calcom/app-store-core/_utils/oauth/refreshOAuthTokens";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
@@ -8,7 +9,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getWebexAppKeys } from "./getWebexAppKeys";
 
 /** @link https://developer.webex.com/docs/meetings **/

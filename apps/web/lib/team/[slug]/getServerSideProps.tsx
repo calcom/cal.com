@@ -2,11 +2,11 @@ import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { getTeamWithMembers } from "@calcom/features/teams";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";

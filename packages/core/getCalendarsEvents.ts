@@ -1,4 +1,4 @@
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";

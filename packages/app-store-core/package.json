@@ -1,0 +1,20 @@
+{
+  "name": "@calcom/app-store-core",
+  "private": true,
+  "sideEffects": false,
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "files": [
+    "components.ts"
+  ],
+  "scripts": {
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

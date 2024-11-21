@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Fragment, useState } from "react";
 import { z } from "zod";
 
-import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
+import { WipeMyCalActionButton } from "@calcom/WipeMyCal/components";
 import dayjs from "@calcom/dayjs";
 import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";

@@ -2,11 +2,11 @@ import React, { Suspense } from "react";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";

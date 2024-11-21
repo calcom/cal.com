@@ -144,7 +144,6 @@ export const getLocation = (
 };
 
 export const getProviderName = (calEvent: Pick<CalendarEvent, "location">): string => {
-  // TODO: use getAppName from @calcom/app-store
   if (calEvent.location && calEvent.location.includes("integrations:")) {
     let location = calEvent.location.split(":")[1];
     if (location === "daily") {

@@ -1,8 +1,8 @@
 import { useSearchParams } from "next/navigation";
 
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
 export type UseScheduleWithCacheArgs = {

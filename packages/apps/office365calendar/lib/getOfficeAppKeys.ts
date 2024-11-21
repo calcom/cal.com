@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
+import getParsedAppKeysFromSlug from "@calcom/app-store-core/_utils/getParsedAppKeysFromSlug";
 
 const officeAppKeysSchema = z.object({
   client_id: z.string(),

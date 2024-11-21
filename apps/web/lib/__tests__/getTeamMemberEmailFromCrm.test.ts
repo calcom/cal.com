@@ -3,7 +3,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import { v4 } from "uuid";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
+import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store-core/_utils/CRMRoundRobinSkip";
 import { SchedulingType } from "@calcom/prisma/enums";
 import bookingFormHandlers from "@calcom/routing-forms/appBookingFormHandler";
 import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/routing-forms/lib/constants";
@@ -17,7 +17,7 @@ vi.mock("@calcom/routing-forms/appBookingFormHandler", () => ({
   },
 }));
 
-vi.mock("@calcom/app-store/_utils/CRMRoundRobinSkip", () => ({
+vi.mock("@calcom/app-store-core/_utils/CRMRoundRobinSkip", () => ({
   getCRMContactOwnerForRRLeadSkip: vi.fn(),
 }));
 

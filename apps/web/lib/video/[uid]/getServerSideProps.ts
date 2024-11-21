@@ -5,7 +5,7 @@ import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
   setEnableRecordingUIAndUserIdForOrganizer,
   updateMeetingTokenIfExpired,
-} from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+} from "@calcom/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";

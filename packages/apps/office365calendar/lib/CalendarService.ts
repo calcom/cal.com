@@ -1,6 +1,9 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
+import { OAuthManager } from "@calcom/app-store-core/_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "@calcom/app-store-core/_utils/oauth/getTokenObjectFromCredential";
+import { oAuthManagerHelper } from "@calcom/app-store-core/_utils/oauth/oAuthManagerHelper";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
@@ -15,9 +18,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
-import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 

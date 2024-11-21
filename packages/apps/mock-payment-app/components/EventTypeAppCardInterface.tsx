@@ -3,16 +3,12 @@ import { useState, useMemo } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import {
-  currencyOptions,
-  currencySymbols,
-  isAcceptedCurrencyCode,
-} from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
+import { currencyOptions, currencySymbols, isAcceptedCurrencyCode } from "../lib/currencyOptions";
 import type { appDataSchema } from "../zod";
 import { paymentOptions } from "../zod";
 

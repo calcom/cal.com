@@ -1,12 +1,12 @@
 import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
 import {
   getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/core/videoClient";
 import { getAllTranscriptsAccessLinkFromMeetingId } from "@calcom/core/videoClient";
+import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/dailyvideo/lib";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";

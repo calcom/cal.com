@@ -1,4 +1,4 @@
-import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/app-store/_utils/payments/currencyConversions";
+import { convertFromSmallestToPresentableCurrencyUnit } from "./payment/currencyConversions";
 
 export const formatPrice = (price: number, currency: string | undefined, locale = "en") => {
   switch (currency) {

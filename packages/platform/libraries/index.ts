@@ -1,6 +1,6 @@
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarService } from "@calcom/app-store/applecalendar/lib";
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -11,6 +11,7 @@ import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-
 import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
 import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
+import getEnabledAppsFromCredentials from "@calcom/features/apps/getEnabledAppsFromCredentials";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
@@ -20,7 +21,6 @@ import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -45,7 +45,7 @@ export type UpdateScheduleOutputType = Awaited<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
   >
 >;
-export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
+export { getEventTypeById } from "@calcom/features/eventtypes/lib/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/create.handler";
@@ -53,14 +53,14 @@ export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/vi
 
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
-export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
+export type { EventType } from "@calcom/features/eventtypes/lib/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { getPublicEvent };
-export { getUsernameList } from "@calcom/lib/defaultEvents";
+export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;
 export { handleNewBooking };
@@ -156,7 +156,7 @@ export type {
 export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-export { dynamicEvent } from "@calcom/lib/defaultEvents";
+export { dynamicEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 export { symmetricEncrypt, symmetricDecrypt };
 export { CalendarService };

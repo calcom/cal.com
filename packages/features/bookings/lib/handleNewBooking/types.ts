@@ -3,8 +3,8 @@ import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { DefaultEvent } from "@calcom/lib/defaultEvents";
-import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
+import type { PaymentAppData } from "@calcom/features/apps/getPaymentAppData";
+import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { userSelect } from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 

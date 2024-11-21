@@ -1,13 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
+import { defaultLocations } from "@calcom/app-store/locations";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
+import getEnabledAppsFromCredentials from "@calcom/features/apps/getEnabledAppsFromCredentials";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
-import { defaultLocations } from "./locations";
 
 export async function getLocationGroupedOptions(
   userOrTeamId: { userId: number } | { teamId: number },

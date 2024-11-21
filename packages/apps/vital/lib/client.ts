@@ -1,7 +1,7 @@
 import { VitalClient } from "@tryvital/vital-node";
 import type { ClientConfig } from "@tryvital/vital-node/dist/lib/models";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 
 type VitalEnv = ClientConfig & {
   mode: string;

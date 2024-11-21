@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 
 const webexAppKeysSchema = z.object({
   client_id: z.string(),

@@ -2,10 +2,10 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import RoutingFormsRoutingConfig from "@calcom/routing-forms/pages/app-routing.config";
+import TypeformRoutingConfig from "@calcom/typeform/pages/app-routing.config";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";

@@ -1,6 +1,6 @@
 import type { GetStaticPropsContext } from "next";
 
-import getAppKeysFromSlug from "../../../_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "../../@calcom/app-store-core/_utils/getAppKeysFromSlug";
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;

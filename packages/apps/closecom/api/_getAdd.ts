@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import checkSession from "../../_utils/auth";
-import { checkInstalled } from "../../_utils/installation";
+import checkSession from "@calcom/app-store-core/_utils/auth";
+import { checkInstalled } from "@calcom/app-store-core/_utils/installation";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);

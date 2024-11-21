@@ -1,5 +1,6 @@
-import useAddAppMutation from "../../_utils/useAddAppMutation";
-import type { InstallAppButtonProps } from "../../types";
+import useAddAppMutation from "@calcom/app-store-core/_utils/useAddAppMutation";
+
+import type { InstallAppButtonProps } from "../../app-store/types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const mutation = useAddAppMutation("exchange2016_calendar");

@@ -5,6 +5,7 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
+    "@calcom/app-store-core": "*",
     "@calcom/lib": "*",
     "@getalby/lightning-tools": "^4.0.2",
     "@getalby/sdk": "^2.4.0",

@@ -2,9 +2,10 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import createOAuthAppCredential from "@calcom/app-store-core/_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
+
 import type { StripeData } from "../lib/server";
 import stripe from "../lib/server";
 

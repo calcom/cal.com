@@ -1,9 +1,9 @@
 import { beforeEach, vi } from "vitest";
 import { mockClear, mockDeep } from "vitest-mock-extended";
 
-import type * as OAuthManager from "../../_utils/oauth/OAuthManager";
+import type * as OAuthManager from "@calcom/app-store-core/_utils/oauth/OAuthManager";
 
-vi.mock("../../_utils/oauth/OAuthManager", () => oAuthManagerMock);
+vi.mock("@calcom/app-store-core/_utils/oauth/OAuthManager", () => oAuthManagerMock);
 
 beforeEach(() => {
   mockClear(oAuthManagerMock);

@@ -1,10 +1,10 @@
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "@calcom/app-store-core/_utils/oauth/encodeOAuthState";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

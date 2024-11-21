@@ -1,6 +1,7 @@
 import type { Booking, BookingReference, User } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
@@ -12,8 +13,6 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
-
-import { getCalendar } from "../../_utils/getCalendar";
 
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username"> & {
   phoneNumber?: string | null;

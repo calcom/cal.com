@@ -34,8 +34,7 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui";
-
-import AppListCard from "../../../apps/web/components/AppListCard";
+import AppListCard from "@calcom/ui/AppListCard";
 
 type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
 
@@ -159,7 +158,7 @@ const AdminAppsList = ({
     <form
       {...rest}
       className={
-        classNames?.form ?? "max-w-80 bg-default mb-4 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+        classNames?.form ?? "bg-default mb-4 max-w-80 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
       }
       onSubmit={(e) => {
         e.preventDefault();

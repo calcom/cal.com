@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/core/location";
-import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
+import { locationsResolver } from "@calcom/features/eventtypes/lib/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -89,7 +89,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
           onSubmit({ metadata, locations, bookingFields });
         }}>
         <div>
-          <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
+          <div className="sm:border-subtle bg-default relative border p-4 sm:rounded-md dark:bg-black">
             <div>
               <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{eventType.title}</span>{" "}
               <small className="text-subtle hidden font-normal sm:inline">

@@ -17,11 +17,11 @@ import {
   AppSkeletonLoader as SkeletonLoader,
   showToast,
 } from "@calcom/ui";
+import AppListCard from "@calcom/ui/AppListCard";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import AppListCard from "@components/AppListCard";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 
 type Props = {

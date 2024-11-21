@@ -1,5 +1,5 @@
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 
 import InstantEventController from "./InstantEventController";
 

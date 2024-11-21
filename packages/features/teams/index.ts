@@ -2,6 +2,9 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { parseBookingLimit } from "@calcom/lib";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getTeam, getOrg } from "@calcom/lib/server/repository/team";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -11,10 +14,6 @@ import {
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
-
-import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
-import { getTeam, getOrg } from "../../repository/team";
-import { UserRepository } from "../../repository/user";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -452,8 +451,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
               eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
               rrSegmentQueryValue:
-                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ??
-                undefined,
+                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
               onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {

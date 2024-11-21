@@ -5,8 +5,7 @@ import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
-import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+import processExternalId from "@calcom/app-store-core/_utils/calendars/processExternalId";
 import {
   getLocationValueForDB,
   MeetLocationType,
@@ -28,6 +27,7 @@ import {
   sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
@@ -36,6 +36,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -44,14 +45,13 @@ import {
   deleteWebhookScheduledTriggers,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { metadata as GoogleMeetMetadata } from "@calcom/googlevideo/_metadata";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";

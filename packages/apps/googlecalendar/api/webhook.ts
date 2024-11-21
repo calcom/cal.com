@@ -1,10 +1,9 @@
 import type { NextApiRequest } from "next";
 
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-
-import { getCalendar } from "../../_utils/getCalendar";
 
 async function postHandler(req: NextApiRequest) {
   if (req.headers["x-goog-channel-token"] !== process.env.GOOGLE_WEBHOOK_TOKEN) {

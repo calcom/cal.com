@@ -1,4 +1,4 @@
-import { defaultEvents } from "@calcom/lib/defaultEvents";
+import { defaultEvents } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,

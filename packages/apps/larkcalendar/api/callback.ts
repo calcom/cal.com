@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
 import type { LarkAuthCredentials } from "../types/LarkCalendar";

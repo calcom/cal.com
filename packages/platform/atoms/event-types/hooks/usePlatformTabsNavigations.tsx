@@ -6,9 +6,9 @@ import type { TFunction } from "next-i18next";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import getPaymentAppData from "@calcom/features/apps/getPaymentAppData";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui";
 

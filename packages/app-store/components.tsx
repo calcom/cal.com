@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import type { UseAddAppMutationOptions } from "@calcom/app-store-core/_utils/useAddAppMutation";
+import useAddAppMutation from "@calcom/app-store-core/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";

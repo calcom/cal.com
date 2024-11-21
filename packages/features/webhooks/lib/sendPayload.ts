@@ -2,8 +2,8 @@ import type { Payment, Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
-import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import type { TGetTranscriptAccessLink } from "@calcom/dailyvideo/zod";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 

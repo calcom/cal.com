@@ -1,1 +1,1 @@
-export { default, config } from "@calcom/app-store/paypal/api/webhook";
+export { default, config } from "@calcom/paypal/api/webhook";

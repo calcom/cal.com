@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { storeHuddle01Credential } from "../utils/storage";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

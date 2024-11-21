@@ -1,11 +1,11 @@
 import type { DestinationCalendar } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 
-import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import type { EventManagerInitParams } from "@calcom/core/EventManager";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
+import { metadata as GoogleMeetMetadata } from "@calcom/googlevideo/_metadata";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";

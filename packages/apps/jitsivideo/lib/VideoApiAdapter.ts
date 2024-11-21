@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { metadata } from "../_metadata";
 
 const JitsiVideoApiAdapter = (): VideoApiAdapter => {

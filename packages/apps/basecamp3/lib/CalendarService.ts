@@ -1,3 +1,4 @@
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -9,7 +10,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { refreshAccessToken as getNewTokens } from "./helpers";
 
 function hasFileExtension(url: string): boolean {

@@ -1,6 +1,6 @@
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import type logger from "@calcom/lib/logger";
 
-import getAppKeysFromSlug from "../_utils/getAppKeysFromSlug";
 import type { FeishuAppKeys } from "./types/FeishuCalendar";
 
 export const FEISHU_HOST = "open.feishu.cn";

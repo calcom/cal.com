@@ -1,14 +1,14 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getCalendar } from "@calcom/app-store/getCalendar";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { deletePayment } from "@calcom/features/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";

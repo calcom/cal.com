@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
 
-import {
-  currencyOptions,
-  currencySymbols,
-  isAcceptedCurrencyCode,
-} from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
-
 import {
   convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
-} from "../../_utils/payments/currencyConversions";
+} from "@calcom/lib/payment/currencyConversions";
+import { Alert, Select, TextField } from "@calcom/ui";
+
+import { currencyOptions, currencySymbols, isAcceptedCurrencyCode } from "../lib/currencyOptions";
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };

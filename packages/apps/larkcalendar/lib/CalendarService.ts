@@ -1,3 +1,4 @@
+import refreshOAuthTokens from "@calcom/app-store-core/_utils/oauth/refreshOAuthTokens";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -11,7 +12,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
   CreateAttendeesResp,

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import useAddAppMutation from "@calcom/app-store-core/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
@@ -203,7 +203,7 @@ export const AppPage = ({
           <header>
             <div className="mb-4 flex items-center">
               <img
-                className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
+                className={classNames(logo.includes("-dark") && "dark:invert", "h-16 min-h-16 w-16 min-w-16")}
                 src={logo}
                 alt={name}
               />

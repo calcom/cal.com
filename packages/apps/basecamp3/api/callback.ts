@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

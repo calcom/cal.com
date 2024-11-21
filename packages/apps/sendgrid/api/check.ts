@@ -1,10 +1,9 @@
 import type { NextApiRequest } from "next";
 
+import checkSession from "@calcom/app-store-core/_utils/auth";
 import Sendgrid from "@calcom/lib/Sendgrid";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-
-import checkSession from "../../_utils/auth";
 
 export async function getHandler(req: NextApiRequest) {
   const { api_key } = req.body;

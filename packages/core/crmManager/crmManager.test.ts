@@ -3,11 +3,11 @@ import { mockCrmApp } from "@calcom/web/test/utils/bookingScenario/bookingScenar
 import type { TFunction } from "next-i18next";
 import { describe, expect, test, vi } from "vitest";
 
-import { getCrm } from "@calcom/app-store/_utils/getCrm";
+import { getCrm } from "@calcom/app-store/getCrm";
 
 import CrmManager from "./crmManager";
 
-// vi.mock("@calcom/app-store/_utils/getCrm");
+// vi.mock("@calcom/app-store/getCrm");
 
 describe.skip("crmManager tests", () => {
   test("Set crmService if not set", async () => {

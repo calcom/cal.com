@@ -1,11 +1,10 @@
+import useAddAppMutation from "@calcom/app-store-core/_utils/useAddAppMutation";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { DialogProps } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
-
-import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export function AccountDialog(props: DialogProps) {
   const mutation = useAddAppMutation(null);

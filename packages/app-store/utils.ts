@@ -10,8 +10,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-export * from "./_utils/getEventTypeAppData";
-
 export type LocationOption = {
   label: string;
   value: EventLocationType["type"];

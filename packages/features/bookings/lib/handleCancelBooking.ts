@@ -1,9 +1,9 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/dailyvideo/lib/VideoApiAdapter";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";

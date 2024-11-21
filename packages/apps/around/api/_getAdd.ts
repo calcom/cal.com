@@ -1,10 +1,10 @@
 import type { NextApiRequest } from "next";
 
+import checkSession from "@calcom/app-store-core/_utils/auth";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import { checkInstalled, createDefaultInstallation } from "@calcom/app-store-core/_utils/installation";
 import { defaultResponder } from "@calcom/lib/server";
 
-import checkSession from "../../_utils/auth";
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
 import appConfig from "../config.json";
 
 export async function getHandler(req: NextApiRequest) {

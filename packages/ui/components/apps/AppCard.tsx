@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import useAddAppMutation from "@calcom/app-store-core/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
@@ -175,7 +175,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
               />
             )}
       </div>
-      <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
+      <div className="absolute right-0 mr-4 flex max-w-44 flex-wrap justify-end gap-1">
         {appAdded > 0 ? <Badge variant="green">{t("installed", { count: appAdded })}</Badge> : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>

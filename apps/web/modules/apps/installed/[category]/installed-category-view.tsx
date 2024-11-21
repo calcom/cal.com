@@ -2,7 +2,7 @@
 
 import { useReducer } from "react";
 
-import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
+import getAppCategoryTitle from "@calcom/app-store-core/_utils/getAppCategoryTitle";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

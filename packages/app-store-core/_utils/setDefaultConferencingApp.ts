@@ -1,6 +1,6 @@
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
+import getBulkEventTypes from "@calcom/features/eventtypes/lib/getBulkEventTypes";
 import prisma from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 

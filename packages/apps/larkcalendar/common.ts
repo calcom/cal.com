@@ -1,6 +1,6 @@
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import type logger from "@calcom/lib/logger";
 
-import getAppKeysFromSlug from "../_utils/getAppKeysFromSlug";
 import type { LarkAppKeys } from "./types/LarkCalendar";
 
 export const LARK_HOST = "open.larksuite.com";

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+
 import config from "../config.json";
 
 const shimmerAppKeysSchema = z.object({

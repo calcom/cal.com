@@ -1,13 +1,13 @@
 import jsforce from "jsforce";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
+import createOAuthAppCredential from "@calcom/app-store-core/_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "@calcom/app-store-core/_utils/oauth/decodeOAuthState";
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
-import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
 let consumer_key = "";

@@ -2,8 +2,9 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { expect, test, vi, describe } from "vitest";
 
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { internalServerErrorResponse, successResponse } from "../../_utils/testUtils";
+import { OAuthManager } from "@calcom/app-store-core/_utils/oauth/OAuthManager";
+import { internalServerErrorResponse, successResponse } from "@calcom/app-store-core/_utils/testUtils";
+
 import config from "../config.json";
 import VideoApiAdapter from "./VideoApiAdapter";
 
@@ -18,7 +19,7 @@ const URLS = {
   },
 };
 
-vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
+vi.mock("@calcom/app-store-core/_utils/getParsedAppKeysFromSlug", () => ({
   default: vi.fn().mockImplementation((slug) => {
     if (slug !== config.slug) {
       throw new Error(
@@ -33,7 +34,7 @@ vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
 }));
 
 const mockRequestRaw = vi.fn();
-vi.mock("../../_utils/oauth/OAuthManager", () => ({
+vi.mock("@calcom/app-store-core/_utils/oauth/OAuthManager", () => ({
   OAuthManager: vi.fn().mockImplementation(() => {
     return { requestRaw: mockRequestRaw };
   }),

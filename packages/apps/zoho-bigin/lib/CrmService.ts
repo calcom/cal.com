@@ -1,6 +1,8 @@
 import axios from "axios";
 import qs from "qs";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "@calcom/app-store-core/_utils/oauth/refreshOAuthTokens";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -13,8 +15,6 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Contact, ContactCreateInput, CRM } from "@calcom/types/CrmService";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { appKeysSchema } from "../zod";
 
 export type BiginToken = {

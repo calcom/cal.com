@@ -1,10 +1,10 @@
 import type { Prisma } from "@prisma/client";
 
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { isTeamAdmin } from "@calcom/features/teams";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 

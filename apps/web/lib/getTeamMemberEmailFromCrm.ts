@@ -1,6 +1,6 @@
 import type { ParsedUrlQuery } from "querystring";
 
-import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
+import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store-core/_utils/CRMRoundRobinSkip";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";

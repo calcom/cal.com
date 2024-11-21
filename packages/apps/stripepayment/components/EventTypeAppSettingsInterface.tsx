@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
-
 import {
   convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
-} from "../../_utils/payments/currencyConversions";
+} from "@calcom/lib/payment/currencyConversions";
+import { Alert, Select, TextField } from "@calcom/ui";
+
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
 

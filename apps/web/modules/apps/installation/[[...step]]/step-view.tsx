@@ -7,8 +7,8 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
-import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import checkForMultiplePaymentApps from "@calcom/app-store-core/_utils/payments/checkForMultiplePaymentApps";
+import useAddAppMutation from "@calcom/app-store-core/_utils/useAddAppMutation";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import type { LocationObject } from "@calcom/core/location";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";

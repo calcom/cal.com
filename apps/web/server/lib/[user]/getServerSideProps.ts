@@ -4,8 +4,8 @@ import { encode } from "querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";

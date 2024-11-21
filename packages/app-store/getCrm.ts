@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM } from "@calcom/types/CrmService";
 
-import appStore from "..";
+import appStore from ".";
 
 type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 

@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const scopes = [

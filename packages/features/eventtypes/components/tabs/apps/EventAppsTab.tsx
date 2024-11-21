@@ -7,7 +7,7 @@ import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import useAppsData from "@calcom/lib/hooks/useAppsData";
+import useAppsData from "@calcom/features/hooks/useAppsData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";

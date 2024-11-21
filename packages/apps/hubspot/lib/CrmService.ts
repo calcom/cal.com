@@ -7,6 +7,8 @@ import type {
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "@calcom/app-store-core/_utils/oauth/refreshOAuthTokens";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -16,8 +18,6 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();

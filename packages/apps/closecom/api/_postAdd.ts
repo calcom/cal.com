@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import checkSession from "@calcom/app-store-core/_utils/auth";
+import getInstalledAppPath from "@calcom/app-store-core/_utils/getInstalledAppPath";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import checkSession from "../../_utils/auth";
-import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {

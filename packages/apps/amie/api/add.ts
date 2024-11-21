@@ -1,6 +1,6 @@
+import { createDefaultInstallation } from "@calcom/app-store-core/_utils/installation";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
-import { createDefaultInstallation } from "../../_utils/installation";
 import appConfig from "../config.json";
 
 const handler: AppDeclarativeHandler = {

@@ -1,4 +1,4 @@
-import getCrm from "@calcom/app-store/_utils/getCrm";
+import getCrm from "@calcom/app-store/getCrm";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";

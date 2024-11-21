@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import checkSession from "@calcom/app-store-core/_utils/auth";
 import CloseCom from "@calcom/lib/CloseCom";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-
-import checkSession from "../../_utils/auth";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { api_key } = req.body;

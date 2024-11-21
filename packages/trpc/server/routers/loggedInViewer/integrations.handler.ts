@@ -4,7 +4,7 @@ import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
+import getEnabledAppsFromCredentials from "@calcom/features/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";

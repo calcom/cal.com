@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 let client_id = "";
 let base_url = "";

@@ -1,9 +1,8 @@
 import type { NextApiRequest } from "next";
 
+import checkSession from "@calcom/app-store-core/_utils/auth";
+import { checkInstalled } from "@calcom/app-store-core/_utils/installation";
 import { defaultResponder } from "@calcom/lib/server";
-
-import checkSession from "../../_utils/auth";
-import { checkInstalled } from "../../_utils/installation";
 
 export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);

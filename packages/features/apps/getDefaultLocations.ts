@@ -1,4 +1,4 @@
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";

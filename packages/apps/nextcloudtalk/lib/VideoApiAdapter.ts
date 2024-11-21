@@ -2,6 +2,12 @@ import { stringify } from "querystring";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
+import getParsedAppKeysFromSlug from "@calcom/app-store-core/_utils/getParsedAppKeysFromSlug";
+import { invalidateCredential } from "@calcom/app-store-core/_utils/invalidateCredential";
+import { OAuthManager } from "@calcom/app-store-core/_utils/oauth/OAuthManager";
+import { markTokenAsExpired } from "@calcom/app-store-core/_utils/oauth/markTokenAsExpired";
+import { oAuthManagerHelper } from "@calcom/app-store-core/_utils/oauth/oAuthManagerHelper";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -10,12 +16,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
-import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
-import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import config from "../config.json";
 import { appKeysSchema } from "../zod";
 

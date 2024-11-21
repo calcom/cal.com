@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
-import getAppKeysFromSlug from "../../../_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "../../@calcom/app-store-core/_utils/getAppKeysFromSlug";
 
 export interface IZapierSetupProps {
   inviteLink: string;

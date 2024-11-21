@@ -1,4 +1,4 @@
-import { fetcher } from "@calcom/lib/dailyApiFetcher";
+import { fetcher } from "@calcom/features/video/dailyApiFetcher";
 
 import { triggerNoShowPayloadSchema } from "./schema";
 

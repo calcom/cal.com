@@ -4,12 +4,12 @@ import type { UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
-import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
-import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
+import dailyMeta from "@calcom/dailyvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import googleMeetMeta from "@calcom/googlevideo/_metadata";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";

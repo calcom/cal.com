@@ -9,6 +9,7 @@
     "packages/embeds/*",
     "packages/features/*",
     "packages/app-store/*",
+    "packages/app-store-core/*",
     "packages/app-store/ee/*",
     "packages/apps/*",
     "packages/platform/*",

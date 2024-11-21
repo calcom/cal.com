@@ -1,8 +1,8 @@
 "use client";
 
-import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import RoutingFormsRoutingConfig from "@calcom/routing-forms/pages/app-routing.config";
+import TypeformRoutingConfig from "@calcom/typeform/pages/app-routing.config";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 

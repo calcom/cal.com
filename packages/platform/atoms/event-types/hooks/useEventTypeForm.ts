@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
+import checkForMultiplePaymentApps from "@calcom/app-store-core/_utils/payments/checkForMultiplePaymentApps";
 import { validateCustomEventName } from "@calcom/core/event";
 import {
   DEFAULT_PROMPT_VALUE,
@@ -11,13 +11,13 @@ import {
 } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
 import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { locationsResolver } from "@calcom/features/eventtypes/lib/locationsResolver";
 import type {
   FormValues,
   EventTypeSetupProps,
   EventTypeUpdateInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";

@@ -1,10 +1,10 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { encodeOAuthState } from "@calcom/app-store-core/_utils/oauth/encodeOAuthState";
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
-import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { SCOPES } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 

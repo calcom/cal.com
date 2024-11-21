@@ -1,6 +1,5 @@
+import getAppKeysFromSlug from "@calcom/app-store-core/_utils/getAppKeysFromSlug";
 import { HttpError } from "@calcom/lib/http-error";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 let api_key = "";
 
