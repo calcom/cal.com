@@ -40,11 +40,11 @@ jobs:
       - name: Commit changes
         run: |
           git add .
-          git commit -m "chore: release v${{ inputs.next_version }}"
+          git commit -m "chore: release ${{ inputs.next_version }}"
           git push
 
       - name: Draft release
-        run: gh release create v$VERSION --generate-notes --draft
+        run: gh release create $VERSION --generate-notes --draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.next_version }}
