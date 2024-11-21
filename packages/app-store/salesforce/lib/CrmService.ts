@@ -416,7 +416,7 @@ export default class SalesforceCRMService implements CRM {
           email: record.Email,
           ownerId: record.OwnerId,
           ownerEmail,
-          recordType: record.attributes.type,
+          recordType: accountOwnerId ? SalesforceRecordEnum.ACCOUNT : record.attributes.type,
         };
       });
       return contactsWithOwners;
