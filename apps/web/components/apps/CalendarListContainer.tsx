@@ -7,7 +7,7 @@ import {
   SelectedCalendarsSettingsWebWrapper,
   DestinationCalendarSettingsWebWrapper,
 } from "@calcom/atoms/monorepo";
-import AppListCard from "@calcom/features/components/AppListCard";
+import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
