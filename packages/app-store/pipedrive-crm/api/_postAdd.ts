@@ -8,6 +8,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
 import appConfig from "../../pipedrive-crm/config.json";
@@ -40,23 +41,14 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       dirName: appConfig["dirName"],
     } as Prisma.AppCreateInput;
     //making sure only one record is maintained
-    const existingApp = await prisma.app.findUnique({
-      where: {
-        slug: appConfig.slug,
-      },
-    });
-    if (existingApp) {
-      const appKeys = existingApp.keys || {};
-      //update only if the credentials changes
-      if (appKeys?.client_id !== client_id && appKeys?.client_secret !== client_secret) {
-        await prisma.app.update({
-          where: { slug: existingApp.slug },
-          data,
-        });
-      }
-    } else {
-      await prisma.app.create({
-        data,
+    const appKeys = await getAppKeysFromSlug(appConfig.slug, true);
+
+    //update only if the credentials changes
+    if (appKeys && appKeys?.client_id !== client_id && appKeys?.client_secret !== client_secret) {
+      await prisma.app.upsert({
+        where: { slug: appConfig.slug },
+        create: data,
+        update: data,
       });
     }
   } catch (reason) {

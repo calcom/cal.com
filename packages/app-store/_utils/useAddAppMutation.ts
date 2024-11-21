@@ -39,6 +39,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         teamId?: number;
         returnTo?: string;
         defaultInstall?: boolean;
+        upgrade?: boolean;
+        credentialId?: number;
       }
     | ""
   >({
@@ -52,7 +54,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         : variables && variables.returnTo
         ? variables.returnTo
         : undefined;
-      const upgrade = variables?.upgrade || false;
+      const upgrade = !!(variables && (variables?.upgrade || false));
 
       if (variables === "") {
         type = _type;
@@ -69,7 +71,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         onErrorReturnTo,
         fromApp: true,
         upgrade: upgrade,
-        credentialId: variables?.credentialId,
+        credentialId: variables ? variables?.credentialId : -1,
         ...(teamId && { teamId }),
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(returnTo && { returnTo }),

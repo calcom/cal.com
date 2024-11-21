@@ -138,14 +138,20 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     ...(appId ? { where: { slug: appId } } : {}),
   });
 
-  function canUpgrade(credential, app) {
-    const { last_updated_on: updatedOn } = credential.key || {};
-    const appUpdatedAt = app.updatedAt;
+  function canUpgrade({
+    updatedOn,
+    updatedAt,
+    slug,
+  }: {
+    updatedOn?: string;
+    updatedAt?: Date;
+    slug: string;
+  }) {
     const updatedOnDate = updatedOn ? new Date(updatedOn) : null;
-    const appUpdatedAtDate = appUpdatedAt ? new Date(appUpdatedAt) : null;
+    const appUpdatedAtDate = updatedAt ? new Date(updatedAt) : null;
 
-    return (
-      ["pipedrive-crm"].includes(app.slug) &&
+    return !!(
+      ["pipedrive-crm"].includes(slug) &&
       appUpdatedAtDate &&
       (!updatedOnDate || (updatedOnDate && updatedOnDate < appUpdatedAtDate))
     );
@@ -156,7 +162,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const userCredentialIds = credentials
         .filter((c) => c.appId === app.slug && !c.teamId)
         .map((c) => {
-          const isUpgradable = canUpgrade(c, app);
+          const { last_updated_on: updatedOn } = (c?.key || {}) as Record<string, any>;
+          const isUpgradable = canUpgrade({
+            updatedOn: updatedOn,
+            updatedAt: app.updatedAt,
+            slug: app.slug,
+          });
           return {
             ...c,
             isUpgradable,
@@ -173,7 +184,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
             if (!team) {
               return null;
             } // Debugging log for validation
-            const isUpgradable = canUpgrade(c, app);
+            const { last_updated_on: updatedOn } = (c?.key || {}) as Record<string, any>;
+            const isUpgradable = canUpgrade({
+              updatedOn: updatedOn,
+              updatedAt: app.updatedAt,
+              slug: app.slug,
+            });
             return {
               teamId: team.id,
               name: team.name,
