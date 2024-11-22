@@ -26,9 +26,9 @@ import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const baseSteps = ["user-settings", "setup-availability", "user-profile"] as const;
-const additionalSteps = ["connected-calendar", "connected-video"] as const;
-type StepType = (typeof baseSteps)[number] | (typeof additionalSteps)[number];
+const BASE_STEPS = ["user-settings", "setup-availability", "user-profile"] as const;
+const EXTRA_STEPS = ["connected-calendar", "connected-video"] as const;
+type StepType = (typeof BASE_STEPS)[number] | (typeof EXTRA_STEPS)[number];
 
 const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunction) => {
   const baseHeaders: {
@@ -72,13 +72,13 @@ const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunct
 
   if (identityProvider === IdentityProvider.GOOGLE) {
     return {
-      steps: [...baseSteps] as StepType[],
+      steps: [...BASE_STEPS] as StepType[],
       headers: [...baseHeaders],
     };
   }
 
   return {
-    steps: [...baseSteps.slice(0, 1), ...additionalSteps, ...baseSteps.slice(1)] as StepType[],
+    steps: [...BASE_STEPS.slice(0, 1), ...EXTRA_STEPS, ...BASE_STEPS.slice(1)] as StepType[],
     headers: [baseHeaders[0], ...additionalHeaders, ...baseHeaders.slice(1)],
   };
 };
