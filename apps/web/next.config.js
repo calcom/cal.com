@@ -186,7 +186,7 @@ const nextConfig = {
     locales: ["en"],
     localeDetection: false,
   },
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -221,10 +221,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  productionBrowserSourceMaps: false,
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
-      config.devtool = "hidden-source-map";
+      if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
+        config.devtool = "hidden-source-map";
+      }
+
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
