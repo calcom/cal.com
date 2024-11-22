@@ -309,7 +309,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     mutationFn: createRecurringBooking,
     onSuccess: async (bookings) => {
       const booking = bookings[0] || {};
-      
+
       if (booking.isDryRun) {
         showToast(t("booking_dry_run_successful"), "success");
         return;
