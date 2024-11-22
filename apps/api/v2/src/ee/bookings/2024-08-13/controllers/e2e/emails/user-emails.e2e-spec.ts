@@ -116,7 +116,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: "alice@gmail.com",
+      email: `alice-${Math.floor(Math.random() * 1000)}@gmail.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -160,7 +160,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: "bob@gmail.com",
+      email: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,

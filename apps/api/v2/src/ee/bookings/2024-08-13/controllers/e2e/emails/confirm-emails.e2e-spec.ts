@@ -92,7 +92,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = "admin@example.com";
+  const authEmail = `admin-${Math.floor(Math.random() * 1000)}@example.com`;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -139,7 +139,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: "alice@gmail.com",
+      email: `alice-${Math.floor(Math.random() * 1000)}@gmail.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -171,7 +171,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: "bob@gmail.com",
+      email: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
