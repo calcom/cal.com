@@ -325,6 +325,7 @@ test.describe("Routing Forms", () => {
         // TODO: Find a way to incorporate Routed To and Booked At into the report
         // @see https://github.com/calcom/cal.com/pull/17229
         "Routed To",
+        "Assignment Reason",
         "Booked At",
         "Submitted At",
       ]);
