@@ -9,23 +9,28 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import Link from "next/link";
-import { useRef, useMemo, useId, useEffect } from "react";
+import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
-  DataTable,
-  useFetchMoreOnBottomReached,
   Badge,
   Avatar,
   Icon,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
@@ -81,10 +86,10 @@ function BookedByCell({
   rowId: number;
 }) {
   const cellId = useId();
-  if (!attendees || attendees.length === 0) return null;
+  if (!attendees || attendees.length === 0) return <div className="min-w-[200px]" />;
 
   return (
-    <div className="flex w-[200px] flex-wrap gap-1">
+    <div className="flex min-w-[200px] flex-wrap gap-1">
       {attendees.map((attendee) => (
         <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
           <Badge variant="gray" className="whitespace-nowrap">
@@ -135,7 +140,24 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   );
 }
 
-function BookingStatusCell({
+function BookingStatusBadge({ booking }: { booking: RoutingFormResponse["routedToBooking"] }) {
+  let badgeVariant: BadgeProps["variant"] = "success";
+
+  if (!booking) return null;
+
+  switch (booking.status) {
+    case BookingStatus.REJECTED:
+    case BookingStatus.AWAITING_HOST:
+    case BookingStatus.PENDING:
+    case BookingStatus.CANCELLED:
+      badgeVariant = "warning";
+      break;
+  }
+
+  return <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>;
+}
+
+function BookingAtCell({
   booking,
   rowId,
   copyToClipboard,
@@ -149,23 +171,7 @@ function BookingStatusCell({
   const cellId = useId();
 
   if (!booking || !booking.user) {
-    return (
-      <div className="w-[250px]">
-        <Badge variant="error" className="ml-6" key={`${cellId}-no-booking-${rowId}`}>
-          {t("no_booking")}
-        </Badge>
-      </div>
-    );
-  }
-
-  let badgeVariant: BadgeProps["variant"] = "success";
-  switch (booking.status) {
-    case BookingStatus.REJECTED:
-    case BookingStatus.AWAITING_HOST:
-    case BookingStatus.PENDING:
-    case BookingStatus.CANCELLED:
-      badgeVariant = "warning";
-      break;
+    return <div className="w-[250px]" />;
   }
 
   return (
@@ -174,7 +180,7 @@ function BookingStatusCell({
         <div className="flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
           <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
           <Link href={`/booking/${booking.uid}`}>
-            <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
+            <Badge variant="gray">{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
           </Link>
         </div>
       </HoverCardTrigger>
@@ -200,7 +206,7 @@ function BookingStatusCell({
           </div>
           <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
             <span>Status:</span>
-            <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>
+            <BookingStatusBadge booking={booking} />
           </div>
         </div>
       </HoverCardContent>
@@ -211,9 +217,9 @@ function BookingStatusCell({
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
 export function RoutingFormResponsesTable({
-  onTableReady,
+  children,
 }: {
-  onTableReady?: (table: RoutingFormTableType) => void;
+  children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
 }) {
   const { t } = useLocale();
   const { filter } = useFilterContext();
@@ -233,18 +239,19 @@ export function RoutingFormResponsesTable({
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
-  const { data: headers } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
-    {
-      teamId: selectedTeamId ?? undefined,
-      isAll: isAll ?? false,
-      routingFormId: selectedRoutingFormId ?? undefined,
-    },
-    {
-      enabled: initialConfigIsReady,
-    }
-  );
+  const { data: headers, isLoading: isHeadersLoading } =
+    trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
+      {
+        teamId: selectedTeamId ?? undefined,
+        isAll: isAll ?? false,
+        routingFormId: selectedRoutingFormId ?? undefined,
+      },
+      {
+        enabled: initialConfigIsReady,
+      }
+    );
 
-  const { data, fetchNextPage, isFetching, hasNextPage } =
+  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId: selectedTeamId,
@@ -272,6 +279,7 @@ export function RoutingFormResponsesTable({
   const totalFetched = flatData.length;
 
   const processedData = useMemo(() => {
+    if (isHeadersLoading) return [];
     return flatData.map((response) => {
       const row: RoutingFormTableRow = {
         id: response.id,
@@ -304,7 +312,7 @@ export function RoutingFormResponsesTable({
 
       return row;
     });
-  }, [flatData, headers]);
+  }, [flatData, headers, isHeadersLoading]);
 
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
@@ -319,6 +327,7 @@ export function RoutingFormResponsesTable({
           return <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />;
         },
       }),
+
       ...(headers?.map((header) => {
         return columnHelper.accessor(header.id, {
           id: header.id,
@@ -335,19 +344,38 @@ export function RoutingFormResponsesTable({
           },
         });
       }) ?? []),
-
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
         header: t("routing_form_insights_booking_status"),
         size: 250,
         cell: (info) => (
           <div className="max-w-[250px]">
-            <BookingStatusCell
+            <BookingStatusBadge booking={info.getValue()} />
+          </div>
+        ),
+      }),
+      columnHelper.accessor("routedToBooking", {
+        id: "bookingAt",
+        header: t("routing_form_insights_booking_at"),
+        size: 250,
+        cell: (info) => (
+          <div className="max-w-[250px]">
+            <BookingAtCell
               booking={info.getValue()}
               rowId={info.row.original.id}
               copyToClipboard={copyToClipboard}
               t={t}
             />
+          </div>
+        ),
+      }),
+      columnHelper.accessor("createdAt", {
+        id: "submittedAt",
+        header: t("routing_form_insights_submitted_at"),
+        size: 250,
+        cell: (info) => (
+          <div className="whitespace-nowrap">
+            <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
           </div>
         ),
       }),
@@ -366,10 +394,6 @@ export function RoutingFormResponsesTable({
     },
   });
 
-  useEffect(() => {
-    onTableReady?.(table);
-  }, [table, onTableReady]);
-
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
     tableContainerRef,
     fetchNextPage,
@@ -377,6 +401,52 @@ export function RoutingFormResponsesTable({
     totalFetched,
     totalDBRowCount
   );
+
+  if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
+    return (
+      <div
+        className="grid h-[85dvh]"
+        style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
+        <div
+          className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
+          style={{ gridArea: "body" }}>
+          <Table>
+            <TableHeader className="bg-subtle sticky top-0 z-10">
+              <TableRow>
+                {[...Array(4)].map((_, index) => (
+                  <TableHead key={`skeleton-header-${index}`}>
+                    <div className="bg-subtle h-4 w-[200px] animate-pulse rounded-md" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[...Array(10)].map((_, rowIndex) => (
+                <TableRow key={`skeleton-row-${rowIndex}`}>
+                  {[...Array(4)].map((_, colIndex) => (
+                    <TableCell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
+                      <div
+                        className={classNames(
+                          "bg-subtle h-6 animate-pulse rounded-md",
+                          colIndex === 0
+                            ? "w-[200px]"
+                            : colIndex === 2
+                            ? "w-[250px]"
+                            : colIndex === 3
+                            ? "w-[250px]"
+                            : "w-[200px]"
+                        )}
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1">
@@ -388,8 +458,9 @@ export function RoutingFormResponsesTable({
             fetchMoreOnBottomReached(e.target as HTMLDivElement);
           }
         }}
-        isPending={isFetching && !data}
-      />
+        isPending={isFetching && !data}>
+        {typeof children === "function" ? children(table) : children}
+      </DataTable>
     </div>
   );
 }

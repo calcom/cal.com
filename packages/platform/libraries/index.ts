@@ -5,8 +5,11 @@ import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
 import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
+import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
+import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -107,7 +110,7 @@ export { handleCancelBooking };
 
 export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
 
-export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export {
   // note(Lauris): Api to internal
@@ -194,3 +197,9 @@ export { AttendeeScheduledEmail };
 export { OrganizerScheduledEmail };
 
 export { AttendeeDeclinedEmail };
+
+export { AttendeeCancelledEmail };
+
+export { OrganizerCancelledEmail };
+
+export { OrganizerReassignedEmail };

@@ -1,32 +1,34 @@
 "use client";
 
-import { useState } from "react";
-
 import {
+  FailedBookingsByField,
   RoutingFormResponsesTable,
   RoutingKPICards,
-  FailedBookingsByField,
-  type RoutingFormTableType,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { Filters } from "@calcom/features/insights/filters";
+import { RoutingInsightsFilters } from "@calcom/features/insights/filters/routing/FilterBar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import InsightsLayout from "./layout";
 
 export default function InsightsPage() {
   const { t } = useLocale();
-  const [routingTable, setRoutingTable] = useState<RoutingFormTableType | null>(null);
 
   return (
     <InsightsLayout>
       <FiltersProvider>
-        <Filters showRoutingFilters routingTable={routingTable} />
-
         <div className="mb-4 space-y-4">
-          <RoutingKPICards />
-
-          <RoutingFormResponsesTable onTableReady={setRoutingTable} />
+          <RoutingFormResponsesTable>
+            {/* We now render the "filters and KPI as a children of the table but we still need to pass the table instance to it so we can access column status in the toolbar.*/}
+            {(table) => (
+              <div className="header mb-4">
+                <div className="flex items-center justify-between">
+                  <RoutingInsightsFilters table={table} />
+                </div>
+                <RoutingKPICards />
+              </div>
+            )}
+          </RoutingFormResponsesTable>
 
           <FailedBookingsByField />
 

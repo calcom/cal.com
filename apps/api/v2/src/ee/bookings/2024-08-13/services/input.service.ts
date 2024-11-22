@@ -139,9 +139,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: inputBooking.eventTypeId,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: inputBooking.metadata || {},
-      metadata: {},
+      metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests: inputBooking.guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
@@ -243,9 +241,7 @@ export class InputBookingsService_2024_08_13 {
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
-        // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-        // metadata: inputBooking.metadata || {},
-        metadata: {},
+        metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests: inputBooking.guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
@@ -285,6 +281,7 @@ export class InputBookingsService_2024_08_13 {
     const bodyTransformed = this.isRescheduleSeatedBody(body)
       ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
       : await this.transformInputRescheduleBooking(bookingUid, body);
+
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -345,9 +342,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: seat.metadata || {},
       hasHashedBookingLink: false,
       guests: [],
       responses: { ...bookingResponses },
@@ -386,9 +381,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: booking.metadata || {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
@@ -493,23 +486,38 @@ export class InputBookingsService_2024_08_13 {
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
+    const recurringBooking = await this.bookingsRepository.getRecurringByUid(bookingUid);
+    // note(Lauris): isRecurring means that recurringEventId was passed as uid. isRecurring does not refer to the uid of 1 individual booking within a recurring booking consisting of many bookings.
+    // That is what recurringEventId refers to.
+    const isRecurringUid = !!recurringBooking.length;
 
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
+    if (isRecurringUid && inputBooking.cancelSubsequentBookings) {
+      throw new BadRequestException(
+        "Cannot cancel subsequent bookings for recurring event - you have to provide uid of one of the individual bookings of a recurring booking."
+      );
+    }
+
+    if (isRecurringUid) {
+      return {
+        // note(Lauris): set uid as one of the oldest individual recurring ids
+        uid: recurringBooking[0].uid,
+        cancellationReason: inputBooking.cancellationReason,
+        allRemainingBookings: true,
+      };
+    }
+
+    if (inputBooking.cancelSubsequentBookings) {
+      return {
+        uid: bookingUid,
+        cancellationReason: inputBooking.cancellationReason,
+        cancelSubsequentBookings: true,
+      };
     }
 
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: inputBooking.cancellationReason,
-      allRemainingBookings,
+      allRemainingBookings: false,
     };
   }
 
@@ -517,23 +525,12 @@ export class InputBookingsService_2024_08_13 {
     bookingUid: string,
     inputBooking: CancelSeatedBookingInput_2024_08_13
   ) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
-
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
-    }
-
+    // note(Lauris): for recurring seated booking it is not possible to cancel all remaining bookings
+    // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: "",
-      allRemainingBookings,
+      allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };
   }
