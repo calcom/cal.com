@@ -34,6 +34,7 @@ import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
@@ -60,6 +61,7 @@ jest
 type EmailSetup = {
   user: User;
   eventTypeId: number;
+  recurringEventTypeId: number;
   createdBookingUid: string;
   rescheduledBookingUid: string;
 };
@@ -134,9 +136,21 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
       user.id
     );
 
+    const recurringEvent = await eventTypesRepositoryFixture.create(
+      // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
+      {
+        title: "peer coding recurring",
+        slug: "peer-coding-recurring",
+        length: 60,
+        recurringEvent: { freq: 2, count: 3, interval: 1 },
+      },
+      user.id
+    );
+
     emailsEnabledSetup = {
       user,
       eventTypeId: event.id,
+      recurringEventTypeId: recurringEvent.id,
       createdBookingUid: "",
       rescheduledBookingUid: "",
     };
@@ -164,9 +178,21 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
       user.id
     );
 
+    const recurringEvent = await eventTypesRepositoryFixture.create(
+      // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
+      {
+        title: "peer coding recurring",
+        slug: "peer-coding-recurring",
+        length: 60,
+        recurringEvent: { freq: 2, count: 3, interval: 1 },
+      },
+      user.id
+    );
+
     emailsDisabledSetup = {
       user,
       eventTypeId: event.id,
+      recurringEventTypeId: recurringEvent.id,
       createdBookingUid: "",
       rescheduledBookingUid: "",
     };
@@ -226,6 +252,42 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
             throw new Error(
               "Invalid response data - expected booking but received array of possibily recurring bookings"
             );
+          }
+        });
+    });
+
+    it("should not send an email when creating a recurring booking", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
+        eventTypeId: emailsDisabledSetup.recurringEventTypeId,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        bookingFieldsResponses: {
+          customField: "customValue",
+        },
+        metadata: {
+          userId: "100",
+        },
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          if (responseDataIsRecurringBooking(responseBody.data)) {
+            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+          } else {
+            throw new Error("Invalid response data - expected booking array but received single booking");
           }
         });
     });
@@ -314,6 +376,42 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
         });
     });
 
+    it("should send an email when creating a recurring booking", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
+        eventTypeId: emailsEnabledSetup.recurringEventTypeId,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        bookingFieldsResponses: {
+          customField: "customValue",
+        },
+        metadata: {
+          userId: "100",
+        },
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          if (responseDataIsRecurringBooking(responseBody.data)) {
+            expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+          } else {
+            throw new Error("Invalid response data - expected booking array but received single booking");
+          }
+        });
+    });
+
     it("should send an email when rescheduling a booking", async () => {
       const body: RescheduleBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2035, 0, 8, 14, 0, 0)).toISOString(),
@@ -376,5 +474,9 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
 
   function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
     return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+  }
+
+  function responseDataIsRecurringBooking(data: any): data is RecurringBookingOutput_2024_08_13[] {
+    return Array.isArray(data);
   }
 });
