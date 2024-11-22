@@ -18,6 +18,7 @@ export const getBooking = async (bookingId: number) => {
       isRecorded: true,
       eventTypeId: true,
       references: true,
+      fromReschedule: true,
       eventType: {
         select: {
           id: true,
