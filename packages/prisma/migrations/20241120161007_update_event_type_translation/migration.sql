@@ -8,7 +8,8 @@
 ALTER TABLE "EventTypeTranslation" ADD COLUMN     "uid" TEXT;
 
 -- Copy data
-UPDATE "EventTypeTranslation" SET "uid" = "id";
+UPDATE "EventTypeTranslation" SET 
+  "uid" = "id";
 
 -- CreateIndex
 CREATE INDEX "EventTypeTranslation_eventTypeId_field_targetLocale_idx" ON "EventTypeTranslation"("eventTypeId", "field", "targetLocale");
