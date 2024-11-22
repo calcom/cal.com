@@ -60,7 +60,8 @@ export async function getServerSession(options: {
       where: { email },
       data: { lastActiveAt: new Date() },
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error(error);
       log.debug("No user found for email: ", email);
       return null;
     });

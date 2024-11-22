@@ -1,3 +1,4 @@
+import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -66,7 +67,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
             some: {
               team: {
                 name: {
-                  in: filter.value,
+                  in: filter.value as string[],
                 },
               },
             },
@@ -81,9 +82,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               attribute: {
                 id: filter.id,
               },
-              value: {
-                in: filter.value,
-              },
+              ...makeWhereClause("value", filter.value),
             },
           },
         };

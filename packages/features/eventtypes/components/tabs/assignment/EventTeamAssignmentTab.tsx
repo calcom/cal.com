@@ -189,8 +189,8 @@ const FixedHosts = ({
                     return {
                       isFixed: true,
                       userId: parseInt(teamMember.value, 10),
-                      priority: 2,
-                      weight: 100,
+                      priority: host?.priority ?? 2,
+                      weight: host?.weight ?? 100,
                       // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
@@ -242,8 +242,8 @@ const FixedHosts = ({
                     return {
                       isFixed: true,
                       userId: parseInt(teamMember.value, 10),
-                      priority: 2,
-                      weight: 100,
+                      priority: host?.priority ?? 2,
+                      weight: host?.weight ?? 100,
                       // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
@@ -356,8 +356,8 @@ const RoundRobinHosts = ({
                 return {
                   isFixed: false,
                   userId: parseInt(teamMember.value, 10),
-                  priority: 2,
-                  weight: 100,
+                  priority: host?.priority ?? 2,
+                  weight: host?.weight ?? 100,
                   // if host was already added, retain scheduleId
                   scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                 };

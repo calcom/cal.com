@@ -7,10 +7,8 @@ import type { ComponentPropsWithoutRef } from "react";
 import { classNames } from "@calcom/lib";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import type { ButtonProps } from "../button";
-import { Button } from "../button";
-import { Input } from "../form";
+import type { ButtonProps } from "@calcom/ui";
+import { Button, Input } from "@calcom/ui";
 
 interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;

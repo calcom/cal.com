@@ -94,8 +94,8 @@ export const PriorityDialog = (
         </div>
 
         <DialogFooter>
-          <DialogClose />
-          <Button className={customClassNames?.confirmButton} onClick={setPriority}>
+          <DialogClose onClick={() => setNewPriority(undefined)} />
+          <Button onClick={setPriority} className={customClassNames?.confirmButton}>
             {t("confirm")}
           </Button>
         </DialogFooter>
@@ -147,25 +147,26 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
-  const [newWeight, setNewWeight] = useState<number>(100);
+  const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    const hosts: Host[] = getValues("hosts");
-    const updatedHosts = hosts
-      .filter((host) => !host.isFixed)
-      .map((host) => {
-        return {
-          ...option,
-          value: host.userId.toString(),
-          priority: host.priority,
-          weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
-          isFixed: false,
-        };
-      });
+    if (!!newWeight) {
+      const hosts: Host[] = getValues("hosts");
+      const updatedHosts = hosts
+        .filter((host) => !host.isFixed)
+        .map((host) => {
+          return {
+            ...option,
+            value: host.userId.toString(),
+            priority: host.priority,
+            weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
+            isFixed: false,
+          };
+        });
 
-    const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
-
-    onChange(sortedHosts);
+      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
+      onChange(sortedHosts);
+    }
     setIsOpenDialog(false);
   };
 
@@ -185,6 +186,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
               addOnClassname={customClassNames?.weightInput?.addOn}
               label={t("Weight")}
               value={newWeight}
+              defaultValue={option.weight ?? 100}
               type="number"
               onChange={(e) => setNewWeight(parseInt(e.target.value))}
               addOnSuffix={<>%</>}
@@ -192,7 +194,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
           </div>
         </div>
         <DialogFooter>
-          <DialogClose />
+          <DialogClose onClick={() => setNewWeight(undefined)} />
           <Button onClick={setWeight} className={customClassNames?.confirmButton}>
             {t("confirm")}
           </Button>
