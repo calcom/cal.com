@@ -4,7 +4,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Host, TeamMember } from "../../lib/types";
-import AddMembersWithSwitch from "../AddMembersWithSwitch";
+import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
+import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
 // Mock matchMedia
 vi.mock("@formkit/auto-animate/react", () => ({
@@ -60,7 +61,7 @@ const renderComponent = ({
     hosts: [],
   },
 }: {
-  componentProps: Parameters<typeof AddMembersWithSwitch>[0];
+  componentProps: AddMembersWithSwitchProps;
   formDefaultValues?: Record<string, unknown>;
 }) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
