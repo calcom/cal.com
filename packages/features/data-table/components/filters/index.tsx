@@ -187,17 +187,16 @@ const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
 // Add the new ActiveFilters component
 interface ActiveFiltersProps<TData> {
   table: Table<TData>;
-  additionalFilters?: FilterableColumn[];
 }
 
-function ActiveFilters<TData>({ table, additionalFilters }: ActiveFiltersProps<TData>) {
+function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
   const [state, setState] = useFiltersFromSearchState();
 
   const columns = table.getAllColumns().filter((column) => column.getCanFilter());
 
-  const filterableColumns = useMemo<FilterableColumn[]>(() => {
-    return [
-      ...columns.map((column) => {
+  const filterableColumns = useMemo<FilterableColumn[]>(
+    () =>
+      columns.map((column) => {
         const filterType = column.columnDef.meta?.filterType || "select";
         return {
           id: column.id,
@@ -206,9 +205,8 @@ function ActiveFilters<TData>({ table, additionalFilters }: ActiveFiltersProps<T
           options: filterType === "select" ? column.getFacetedUniqueValues() : undefined,
         };
       }),
-      ...(additionalFilters || []),
-    ];
-  }, [columns, additionalFilters]);
+    [columns]
+  );
 
   return (
     <>
