@@ -288,7 +288,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     // Can only schedule at least 60 minutes and at most 72 hours in advance
     if (
       currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-      !scheduledDate.isAfter(currentDate.add(72, "hour"))
+      !scheduledDate.isAfter(currentDate.add(2, "hour"))
     ) {
       try {
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
