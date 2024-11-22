@@ -9,7 +9,7 @@ test.describe.configure({ mode: "serial" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("Onboarding @test", () => {
+test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     const testOnboarding = (identityProvider: IdentityProvider) => {
       test(`Onboarding Flow - ${identityProvider} user`, async ({ page, users }) => {
