@@ -83,7 +83,7 @@ type EmailSetup = {
   };
 };
 
-describe("Bookings Endpoints 2024-08-13", () => {
+describe("Bookings Endpoints 2024-08-13 team emails", () => {
   let app: INestApplication;
   let organization: Team;
 
@@ -100,7 +100,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  let authUser: User;
   const authEmail = "admin@example.com";
 
   beforeAll(async () => {
@@ -131,7 +130,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     await setupEnabledEmails();
     await setupDisabledEmails();
 
-    const authUser = await userRepositoryFixture.create({
+    await userRepositoryFixture.create({
       email: authEmail,
       organization: {
         connect: {

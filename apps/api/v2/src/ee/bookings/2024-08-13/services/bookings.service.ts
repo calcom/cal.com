@@ -451,6 +451,8 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    const emailsEnabled = booking.eventTypeId ? await this.getEmailsEnabled(booking.eventTypeId) : true;
+
     await confirmBookingHandler({
       ctx: {
         user: requestUser,
@@ -459,6 +461,7 @@ export class BookingsService_2024_08_13 {
         bookingId: booking.id,
         confirmed: true,
         recurringEventId: booking.recurringEventId,
+        emailsEnabled,
       },
     });
 
@@ -471,6 +474,8 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    const emailsEnabled = booking.eventTypeId ? await this.getEmailsEnabled(booking.eventTypeId) : true;
+
     await confirmBookingHandler({
       ctx: {
         user: requestUser,
@@ -480,6 +485,7 @@ export class BookingsService_2024_08_13 {
         confirmed: false,
         recurringEventId: booking.recurringEventId,
         reason,
+        emailsEnabled,
       },
     });
 
