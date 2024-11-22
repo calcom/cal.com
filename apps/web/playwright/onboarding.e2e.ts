@@ -40,15 +40,14 @@ test.describe("Onboarding", () => {
             .click();
           await page.locator("button[type=submit]").click();
 
-          const userComplete = await user.self();
-          expect(userComplete.name).toBe("new user 2");
-
-          // Check next step based on identity provider
           if (identityProvider === IdentityProvider.GOOGLE) {
             await expect(page).toHaveURL(/.*setup-availability/);
           } else {
             await expect(page).toHaveURL(/.*connected-calendar/);
           }
+
+          const userComplete = await user.self();
+          expect(userComplete.name).toBe("new user 2");
         });
 
         if (identityProvider !== IdentityProvider.GOOGLE) {
