@@ -1,3 +1,5 @@
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";

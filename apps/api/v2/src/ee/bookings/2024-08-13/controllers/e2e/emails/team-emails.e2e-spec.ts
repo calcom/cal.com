@@ -10,7 +10,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
+import { createParamDecorator, INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
@@ -23,6 +23,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -32,6 +33,7 @@ import {
   AttendeeRescheduledEmail,
   OrganizerCancelledEmail,
   AttendeeCancelledEmail,
+  OrganizerReassignedEmail,
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
@@ -60,6 +62,10 @@ jest
   .spyOn(OrganizerCancelledEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
+jest
+  .spyOn(OrganizerReassignedEmail.prototype, "getHtml")
+  .mockImplementation(() => Promise.resolve("<p>email</p>"));
+
 type EmailSetup = {
   team: Team;
   member1: User;
@@ -73,6 +79,7 @@ type EmailSetup = {
     id: number;
     createdBookingUid: string;
     rescheduledBookingUid: string;
+    currentHostId: number;
   };
 };
 
@@ -93,15 +100,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
+  let authUser: User;
+  const authEmail = "admin@example.com";
+
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-    })
-      .overrideGuard(PermissionsGuard)
-      .useValue({
-        canActivate: () => true,
+    const moduleRef = await withApiAuth(
+      authEmail,
+      Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
       })
-      .overrideGuard(ApiAuthGuard)
+    )
+      .overrideGuard(PermissionsGuard)
       .useValue({
         canActivate: () => true,
       })
@@ -121,6 +130,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     await setupEnabledEmails();
     await setupDisabledEmails();
+
+    const authUser = await userRepositoryFixture.create({
+      email: authEmail,
+      organization: {
+        connect: {
+          id: organization.id,
+        },
+      },
+    });
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
@@ -307,6 +325,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         id: roundRobinEvent.id,
         createdBookingUid: "",
         rescheduledBookingUid: "",
+        currentHostId: 0,
       },
     };
   }
@@ -490,6 +509,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         id: roundRobinEvent.id,
         createdBookingUid: "",
         rescheduledBookingUid: "",
+        currentHostId: 0,
       },
     };
   }
@@ -584,6 +604,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
               expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
               emailsDisabledSetup.roundRobinEventType.createdBookingUid = responseBody.data.uid;
+              emailsDisabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"
@@ -637,6 +658,46 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid = responseBody.data.uid;
+            emailsDisabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
+          });
+      });
+    });
+
+    describe("reassign", () => {
+      it("should not send an email when manually reassigning round robin booking", async () => {
+        const reassignToId =
+          emailsDisabledSetup.roundRobinEventType.currentHostId === emailsDisabledSetup.member1.id
+            ? emailsDisabledSetup.member2.id
+            : emailsDisabledSetup.member1.id;
+
+        return request(app.getHttpServer())
+          .post(
+            `/v2/bookings/${emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign/${reassignToId}`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
+          });
+      });
+
+      it("should not send an email when automatically reassigning round robin booking", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(OrganizerReassignedEmail.prototype.getHtml).not.toHaveBeenCalled();
           });
       });
     });
@@ -758,6 +819,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
               expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
               emailsEnabledSetup.roundRobinEventType.createdBookingUid = responseBody.data.uid;
+              emailsEnabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"
@@ -813,6 +875,46 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
             emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid = responseBody.data.uid;
+            emailsEnabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
+          });
+      });
+    });
+
+    describe("reassign", () => {
+      it("should send an email when manually reassigning round robin booking", async () => {
+        const reassignToId =
+          emailsEnabledSetup.roundRobinEventType.currentHostId === emailsEnabledSetup.member1.id
+            ? emailsEnabledSetup.member2.id
+            : emailsEnabledSetup.member1.id;
+
+        return request(app.getHttpServer())
+          .post(
+            `/v2/bookings/${emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign/${reassignToId}`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+            emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
+          });
+      });
+
+      it("should send an email when automatically reassigning round robin booking", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(OrganizerReassignedEmail.prototype.getHtml).toHaveBeenCalled();
           });
       });
     });
