@@ -95,7 +95,101 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {eventTypeId && (
           <div>
             <EventTypeSettings
-              customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
+              customClassNames={{
+                atomsWrapper: "!w-[50vw] !m-auto",
+                eventAvailabilityTab: {
+                  teamAvailability: {
+                    chooseHostSchedulesLabelContainer: "border border-purple-200 bg-purple-50 rounded-md p-4",
+                    chooseHostSchedulesLabel: "text-purple-700 font-semibold",
+                    chooseHostSchedulesLabelDescription: "text-gray-600",
+                    teamAvailibilityContainer: "mt-4 border border-purple-200 bg-white rounded-lg p-6",
+                    teamMemberSchedule: {
+                      labelAvatar: "rounded-full border border-purple-300",
+                      labelContainer: "flex items-center gap-2",
+                      innerClassNames: {
+                        input: "text-purple-900",
+                        option: "hover:bg-purple-100",
+                        control: "border-purple-300",
+                        singleValue: "text-purple-700",
+                        valueContainer: "",
+                        multiValue: "",
+                        menu: "border border-purple-200 rounded-md",
+                        menuList: "",
+                      },
+                      select: "border border-purple-300 rounded-md bg-white",
+                      label: "text-purple-700",
+                      container: "",
+                    },
+                  },
+                  userAvailability: {
+                    availabilitySectionContainer: "border border-purple-200 bg-white rounded-lg p-6",
+                    availabilitySelect: {
+                      innerClassNames: {
+                        input: "text-purple-900",
+                        option: "hover:bg-purple-100",
+                        control: "border-purple-300",
+                        singleValue: "text-purple-700",
+                        valueContainer: "",
+                        multiValue: "",
+                        menu: "border border-purple-200 rounded-md",
+                        menuList: "",
+                      },
+                      select: "border border-purple-300 rounded-md bg-white",
+                      label: "text-purple-700",
+                      container: "",
+                    },
+                    availabilityTable: {
+                      tableContainer: "border border-purple-200 rounded-md bg-white mt-4",
+                      table: "w-full table-auto",
+                      tableRow: "hover:bg-purple-50",
+                      day: "text-purple-800 font-semibold",
+                      dayUnavailable: "text-gray-400",
+                      dayAvailabilityContainer: "flex items-center gap-2",
+                      dayAvailabilityFrom: "text-purple-700",
+                      dayAvailabilityTo: "text-purple-700",
+                      dayAvailabilitySeperator: "text-purple-500",
+                    },
+                  },
+                },
+                eventRecurringTab: {
+                  container: "border border-purple-200 bg-purple-50 rounded-lg shadow-sm",
+                  recurringToggle: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "bg-purple-50 rounded-md",
+                  },
+                  frequencyInput: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    addOn: "text-purple-500",
+                  },
+                  frequencyUnitSelect: {
+                    select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                    label: "text-purple-700",
+                    container: "mb-4",
+                    innerClassNames: {
+                      input: "text-purple-900",
+                      option: "text-purple-700 hover:bg-purple-200",
+                      control: "border-purple-300",
+                      singleValue: "text-purple-900",
+                      valueContainer: "bg-purple-100",
+                      multiValue: "bg-purple-200 rounded-md text-purple-900",
+                      menu: "border border-purple-200 rounded-md",
+                      menuList: "",
+                    },
+                  },
+                  maxEventsInput: {
+                    countInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    labelText: "text-purple-700",
+                    suffixText: "text-purple-500",
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                  },
+                  experimentalAlert: "border border-red-300 bg-red-50 rounded-lg text-red-900 shadow-sm",
+                  paymentAlert: "border border-purple-300 bg-purple-100 rounded-lg text-purple-900 shadow-md",
+                },
+              }}
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
