@@ -79,8 +79,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      console.log("asap user", JSON.stringify(user, null, 2));
-
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: "working time",
         timeZone: "Europe/Rome",
