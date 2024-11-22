@@ -15,35 +15,47 @@ export type TranslateEventTypeDescriptionPayload = z.infer<
   typeof ZTranslateEventTypeDescriptionPayloadSchema
 >;
 
-export async function translateEventTypeDescription(payload: string): Promise<void> {
-  try {
-    const { eventTypeId, description, userLocale, userId } =
-      ZTranslateEventTypeDescriptionPayloadSchema.parse(JSON.parse(payload));
+const SUPPORTED_LOCALES = ["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const;
 
-    const targetLocales = (["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const).filter(
-      (locale) => locale !== userLocale && i18nLocales.includes(locale)
-    );
-    const { ReplexicaService } = await import("@calcom/lib/server/service/replexica");
-    const translatedTexts = await Promise.all(
+export async function translateEventTypeDescription(payload: string): Promise<void> {
+  const { eventTypeId, description, userLocale, userId } = ZTranslateEventTypeDescriptionPayloadSchema.parse(
+    JSON.parse(payload)
+  );
+
+  const targetLocales = SUPPORTED_LOCALES.filter(
+    (locale) => locale !== userLocale && i18nLocales.includes(locale)
+  );
+
+  const { ReplexicaService } = await import("@calcom/lib/server/service/replexica");
+  try {
+    const translatedDescriptions = await Promise.all(
       targetLocales.map((targetLocale) =>
         ReplexicaService.localizeText(description, userLocale, targetLocale)
       )
     );
 
-    await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
-      targetLocales.map((targetLocale, index) => ({
-        eventTypeId,
-        sourceLocale: userLocale,
-        targetLocale: targetLocale,
-        // Keep old fields during transition
-        sourceLang: userLocale, // TODO: remove after migration
-        targetLang: targetLocale, // TODO: remove after migration
-        translatedText: translatedTexts[index],
-        userId,
+    const validTranslations = translatedDescriptions
+      .map((translatedText, index) => ({
+        translatedText,
+        targetLocale: targetLocales[index],
       }))
-    );
+      .filter(
+        (item): item is { translatedText: string; targetLocale: (typeof SUPPORTED_LOCALES)[number] } =>
+          item.translatedText !== null
+      );
+
+    if (validTranslations.length > 0) {
+      await EventTypeTranslationRepository.upsertManyDescriptionTranslations(
+        validTranslations.map(({ translatedText, targetLocale }) => ({
+          eventTypeId,
+          sourceLocale: userLocale,
+          targetLocale,
+          translatedText,
+          userId,
+        }))
+      );
+    }
   } catch (error) {
-    logger.error(`Failed to translate event type description:`, error);
-    throw error;
+    logger.error("Failed to process event type description translations:", error);
   }
 }
