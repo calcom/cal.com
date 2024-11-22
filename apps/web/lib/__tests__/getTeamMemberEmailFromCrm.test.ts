@@ -30,9 +30,9 @@ function mockGetCRMContactOwnerForRRLeadSkip({
 }) {
   vi.mocked(getCRMContactOwnerForRRLeadSkip).mockImplementation((_bookerEmail, _eventMetadata) => {
     if (_bookerEmail === bookerEmail) {
-      return Promise.resolve(teamMemberEmail);
+      return Promise.resolve({ email: teamMemberEmail, recordType: null, crmAppSlug: null });
     }
-    return Promise.resolve(undefined);
+    return Promise.resolve({ email: null, recordType: null, crmAppSlug: null });
   });
 }
 
@@ -46,9 +46,9 @@ function mockBookingFormHandler({
   vi.mocked(bookingFormHandlers.salesforce).mockImplementation(
     (_bookerEmail, _attributeRoutingConfig, _eventTypeId) => {
       if (_bookerEmail === bookerEmail) {
-        return Promise.resolve({ email: teamMemberEmail });
+        return Promise.resolve({ email: teamMemberEmail, recordType: null });
       }
-      return Promise.resolve({ email: null });
+      return Promise.resolve({ email: null, recordType: null });
     }
   );
 }
@@ -171,7 +171,9 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBeNull();
+    const ownerEmail = result.email;
+
+    expect(ownerEmail).toBeNull();
   });
 
   it("should return null when scheduling type is not ROUND_ROBIN", async () => {
@@ -192,7 +194,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: { ...mockEventData, schedulingType: SchedulingType.COLLECTIVE },
     });
 
-    expect(result).toBeNull();
+    expect(result.email).toBeNull();
   });
 
   it("should return CRM owner email when valid", async () => {
@@ -213,7 +215,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBe(ownerEmail);
+    expect(result.email).toBe(ownerEmail);
   });
 
   it("should return null when CRM owner is not found", async () => {
@@ -226,7 +228,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBeNull();
+    expect(result.email).toBeNull();
   });
 
   it("should return null when CRM owner is not part of event type", async () => {
@@ -239,7 +241,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       eventData: mockEventData,
     });
 
-    expect(result).toBeNull();
+    expect(result.email).toBeNull();
   });
 
   describe("Booking form handler", () => {
@@ -280,7 +282,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
         eventData: mockEventData,
       });
 
-      expect(result).toBe(teamMemberEmail);
+      expect(result.email).toBe(teamMemberEmail);
     });
 
     it("should return null when skipContactOwner is true even when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
@@ -321,7 +323,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
       });
 
       // Because skipContactOwner is true, the booking form handler should return null
-      expect(result).toBe(null);
+      expect(result.email).toBe(null);
     });
 
     it("should return null when when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided but the returned email isn't an event member", async () => {
@@ -362,7 +364,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
         eventData: mockEventData,
       });
 
-      expect(result).toBe(null);
+      expect(result.email).toBe(null);
     });
 
     it("should return null when cal.routingFormResponseId is provided but cal.salesforce.xxxx is not", async () => {
@@ -402,7 +404,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
         eventData: mockEventData,
       });
 
-      expect(result).toBe(null);
+      expect(result.email).toBe(null);
     });
   });
 });
