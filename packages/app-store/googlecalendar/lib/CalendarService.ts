@@ -196,17 +196,16 @@ export default class GoogleCalendarService implements Calendar {
       );
     }
 
-    if (domainWideDelegation) {
+    if (domainWideDelegation?.serviceAccountKey) {
       const emailToImpersonate = this.credential.user?.email;
       if (!emailToImpersonate) {
         this.log.error("No email to impersonate found for domain wide delegation");
         return null;
       }
 
-      // TODO: parse service account key
       const authClient = new JWT({
-        email: domainWideDelegation?.serviceAccountKey?.client_email,
-        key: domainWideDelegation?.serviceAccountKey?.private_key,
+        email: domainWideDelegation.serviceAccountKey.client_email,
+        key: domainWideDelegation.serviceAccountKey.private_key,
         scopes: ["https://www.googleapis.com/auth/calendar"],
         subject: emailToImpersonate,
       });
