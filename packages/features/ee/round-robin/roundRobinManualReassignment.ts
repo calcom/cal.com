@@ -8,6 +8,7 @@ import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSM
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -171,6 +172,12 @@ export const roundRobinManualReassignment = async ({
         reassignById: reassignedById,
       },
       select: bookingSelect,
+    });
+
+    await AssignmentReasonRecorder.roundRobinReassignment({
+      bookingId,
+      reassignReason,
+      reassignById: reassignedById,
     });
   } else if (currentRRHost) {
     // Update the round-robin host attendee

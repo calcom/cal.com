@@ -166,3 +166,37 @@ export type TabMap = {
   workflows?: React.ReactNode;
   payments?: React.ReactNode;
 };
+
+export type SettingsToggleClassNames = {
+  container?: string;
+  label?: string;
+  description?: string;
+  children?: string;
+};
+
+export type InputClassNames = {
+  container?: string;
+  label?: string;
+  input?: string;
+  addOn?: string;
+};
+export type CheckboxClassNames = {
+  checkbox?: string;
+  description?: string;
+  container?: string;
+};
+export type SelectClassNames = {
+  innerClassNames?: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+  select?: string;
+  label?: string;
+  container?: string;
+};
