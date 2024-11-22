@@ -8,8 +8,8 @@ import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 export const ZTranslateEventDataPayloadSchema = z.object({
   eventTypeId: z.number(),
   userId: z.number(),
-  description: z.optional(z.string()),
-  title: z.optional(z.string()),
+  description: z.string().nullable().optional(),
+  title: z.string().optional(),
   userLocale: z.string(),
 });
 
@@ -42,7 +42,10 @@ async function processTranslations({
         translatedText,
         targetLocale: targetLocales[index],
       }))
-      .filter((item) => item.translatedText !== null);
+      .filter(
+        (item): item is { translatedText: string; targetLocale: (typeof SUPPORTED_LOCALES)[number] } =>
+          item.translatedText !== null
+      );
 
     if (validTranslations.length > 0) {
       const translationData = validTranslations.map(({ translatedText, targetLocale }) => ({

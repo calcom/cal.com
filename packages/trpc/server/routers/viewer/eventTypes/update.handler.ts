@@ -506,7 +506,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const hasNoTitleTranslations =
     eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.TITLE)
       .length === 0;
-  const title = newDescription ?? (hasNoTitleTranslations ? eventType.title : undefined);
+  const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
 
   if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
     await tasker.create("translateEventTypeData", {
