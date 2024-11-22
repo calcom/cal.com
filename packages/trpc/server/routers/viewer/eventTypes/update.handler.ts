@@ -174,6 +174,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
     description: newDescription,
+    title: newTitle,
     bookingFields,
     isRRWeightsEnabled,
     rrSegmentQueryValue:
