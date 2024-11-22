@@ -13,6 +13,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { locales as i18nLocales } from "@calcom/lib/i18n";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import { fadeInUp } from "../config";
@@ -25,6 +26,19 @@ const WebTimezoneSelect = dynamic(
     ssr: false,
   }
 );
+
+const getTranslatedField = (
+  translations: Array<Pick<EventTypeTranslation, "field" | "targetLocale" | "translatedText">>,
+  field: EventTypeAutoTranslatedField,
+  userLocale: string
+) => {
+  return translations?.find(
+    (trans) =>
+      trans.field === field &&
+      i18nLocales.includes(trans.targetLocale) &&
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
+  )?.translatedText;
+};
 
 export const EventMeta = ({
   event,
@@ -108,13 +122,16 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
   const userLocale = session.data?.user.locale ?? navigator.language;
-  const translatedDescription = (event?.fieldTranslations ?? []).find(
-    (trans) =>
-      trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
-      i18nLocales.includes(trans.targetLocale) &&
-      // browser language looks like "en-US", "es-ES", "fr-FR", etc
-      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
-  )?.translatedText;
+  const translatedDescription = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.DESCRIPTION,
+    userLocale
+  );
+  const translatedTitle = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.TITLE,
+    userLocale
+  );
 
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
@@ -133,7 +150,9 @@ export const EventMeta = ({
               entity={event.entity}
             />
           )}
-          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
+          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
+            {translatedTitle ?? event?.title}
+          </EventTitle>
           {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
