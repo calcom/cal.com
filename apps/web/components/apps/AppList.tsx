@@ -4,11 +4,8 @@ import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
-import type {
-  HandleBulkUpdateDefaultLocationParams,
-  HandleUpdateDefaultConferencingAppParams,
-} from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -28,14 +25,16 @@ import {
 
 import AppListCard from "@components/AppListCard";
 
+type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
+
 interface AppListProps {
   variant?: AppCategories;
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
-  handleUpdateDefaultConferencingApp: (params: HandleUpdateDefaultConferencingAppParams) => void;
-  handleBulkUpdateDefaultLocation: (params: HandleBulkUpdateDefaultLocationParams) => void;
+  handleUpdateDefaultConferencingApp: (params: UpdateDefaultConferencingAppParams) => void;
+  handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
 }
 

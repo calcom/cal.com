@@ -3,8 +3,8 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import type { HandleRemoveAppParams } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
@@ -146,7 +146,7 @@ export default function InstalledApps(props: PageProps) {
 
   const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
 
-  const handleRemoveApp = ({ credentialId, teamId, callback }: HandleRemoveAppParams) => {
+  const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
       { id: credentialId, teamId },
       {

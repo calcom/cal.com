@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { HandleBulkUpdateDefaultLocationParams } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogContent, Form, DialogFooter, DialogClose, Button, CheckboxField } from "@calcom/ui";
@@ -11,10 +10,12 @@ export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
 });
 
+export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+
 export function BulkEditDefaultForEventsModal(props: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  bulkUpdateFunction: (params: HandleBulkUpdateDefaultLocationParams) => void;
+  bulkUpdateFunction: (params: BulkUpdatParams) => void;
   isPending: boolean;
   description: string;
 }) {

@@ -1,13 +1,13 @@
-import type { HandleRemoveAppParams } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui";
 
+export type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 interface DisconnectIntegrationModalProps {
   credentialId: number | null;
   isOpen: boolean;
   handleModelClose: () => void;
   teamId?: number;
-  handleRemoveApp: (params: HandleRemoveAppParams) => void;
+  handleRemoveApp: (params: RemoveAppParams) => void;
 }
 
 export default function DisconnectIntegrationModal({

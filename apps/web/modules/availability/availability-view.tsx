@@ -19,6 +19,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
+import type { BulkUpdatParams } from "@calcom/web/components/apps/AppList";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -82,7 +83,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
-  const bulkUpdateFunction = ({ eventTypeIds, callback }: HandleBulkUpdateDefaultLocationParams) => {
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
         eventTypeIds,

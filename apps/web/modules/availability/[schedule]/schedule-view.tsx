@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/monorepo";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,7 +50,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
-  const bulkUpdateFunction = ({ eventTypeIds, callback }: HandleBulkUpdateDefaultLocationParams) => {
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
         eventTypeIds,
