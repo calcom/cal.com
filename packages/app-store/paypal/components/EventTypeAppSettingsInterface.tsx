@@ -119,7 +119,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           options={paymentOptions.map((option) => {
             return { ...option, label: t(option.label) || option.label };
           })}
-          onChange={(input?: { value: string }) => {
+          onChange={(input?: Option) => {
             if (input) setAppData("paymentOption", input.value);
           }}
           className="mb-1 h-[38px] w-full"

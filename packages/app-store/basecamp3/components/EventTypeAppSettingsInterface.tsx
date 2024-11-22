@@ -4,9 +4,14 @@ import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui";
 
+interface Project {
+  label: string;
+  value: string;
+}
+
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({}) => {
   const [projects, setProjects] = useState();
-  const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
+  const [selectedProject, setSelectedProject] = useState<Project | undefined>();
   const { data } = trpc.viewer.appBasecamp3.projects.useQuery();
   const setProject = trpc.viewer.appBasecamp3.projectMutation.useMutation();
 
@@ -41,7 +46,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({}) => {
           options={projects}
           isLoading={!projects}
           className="md:min-w-[120px]"
-          onChange={(project?: { value: string }) => {
+          onChange={(project?: Project) => {
             if (project) {
               setProject.mutate({ projectId: project?.value.toString() });
               setSelectedProject(project);

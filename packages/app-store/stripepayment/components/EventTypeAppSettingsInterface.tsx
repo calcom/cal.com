@@ -10,7 +10,6 @@ import {
 } from "../../_utils/payments/currencyConversions";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
-import type { CurrencyOption } from "../lib/currencyOptions";
 
 type Option = { value: string; label: string };
 
@@ -22,7 +21,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 }) => {
   const price = getAppData("price");
   const currency = getAppData("currency") || currencyOptions[0].value;
-  const [selectedCurrency, setSelectedCurrency] = useState(
+  const [selectedCurrency, setSelectedCurrency] = useState<Option>(
     currencyOptions.find((c) => c.value === currency) || {
       label: currencyOptions[0].label,
       value: currencyOptions[0].value,
@@ -100,7 +99,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               value={selectedCurrency}
               className="text-black"
               defaultValue={selectedCurrency}
-              onChange={(e?: CurrencyOption) => {
+              onChange={(e?: Option) => {
                 if (e) {
                   setSelectedCurrency(e);
                   setAppData("currency", e.value);

@@ -863,8 +863,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       )}>
                       <div className="mb-2">Position of button</div>
                       <Select
-                        onChange={(position?: { value: string }) => {
-                          setPreviewState((previewState: PreviewState) => {
+                        onChange={(position: (typeof FloatingPopupPositionOptions)[0]) => {
+                          setPreviewState((previewState) => {
                             return {
                               ...previewState,
                               floatingPopup: {

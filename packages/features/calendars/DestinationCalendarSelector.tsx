@@ -147,7 +147,7 @@ const DestinationCalendarSelector = ({
         styles={{
           placeholder: (styles: ClassNamesState) => ({ ...styles, ...content(hidePlaceholder) }),
           singleValue: (styles: ClassNamesState) => ({ ...styles, ...content(hidePlaceholder) }),
-          control: (defaultStyles: ClassNamesState) => {
+          control: (defaultStyles: Record<string, string | object>) => {
             return {
               ...defaultStyles,
               "@media only screen and (min-width: 640px)": {
@@ -161,7 +161,7 @@ const DestinationCalendarSelector = ({
         className={classNames(
           "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
-        onChange={(newValue?: SelectedOption) => {
+        onChange={(newValue: SelectedOption | null) => {
           setSelectedOption(newValue);
           if (!newValue) {
             return;

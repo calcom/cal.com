@@ -171,12 +171,12 @@ export default function RequiresConfirmationController({
                                           isSearchable={false}
                                           isDisabled={requiresConfirmationLockedProps.disabled}
                                           innerClassNames={{ control: "rounded-l-none bg-subtle" }}
-                                          onChange={(opt?: { value: UnitTypeLongPlural }) => {
+                                          onChange={(opt: (typeof options)[0]) => {
                                             setRequiresConfirmationSetup({
                                               time:
                                                 requiresConfirmationSetup?.time ??
                                                 defaultRequiresConfirmationSetup.time,
-                                              unit: opt?.value,
+                                              unit: opt?.value as UnitTypeLongPlural,
                                             });
                                             formMethods.setValue(
                                               "metadata.requiresConfirmationThreshold.unit",

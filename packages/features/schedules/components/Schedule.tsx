@@ -372,7 +372,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.start}
         menuPlacement="bottom"
-        onChange={(option?: { value: string }) => {
+        onChange={(option?: { value: number }) => {
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
             const newEnd = new Date(option?.value as number);
@@ -391,7 +391,7 @@ const TimeRangeField = ({
         value={value.end}
         min={value.start}
         menuPlacement="bottom"
-        onChange={(option?: { value: string }) => {
+        onChange={(option?: { value: number }) => {
           onChange({ ...value, end: new Date(option?.value as number) });
         }}
       />

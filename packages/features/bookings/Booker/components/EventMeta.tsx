@@ -104,8 +104,8 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
   const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
-  const translatedDescription = (event?.fieldTranslations ?? []).find(
-    (translation: BookerEvent["fieldTranslations"]) => browserLocale.startsWith(translation.targetLang)
+  const translatedDescription = (event?.fieldTranslations ?? []).find((translation) =>
+    browserLocale.startsWith(translation.targetLang)
   )?.translatedText;
 
   return (

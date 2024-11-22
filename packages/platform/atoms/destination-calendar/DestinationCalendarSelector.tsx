@@ -112,7 +112,7 @@ export const DestinationCalendarSelector = ({
             ...styles,
             ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
           }),
-          control: (defaultStyles: ClassNamesState) => {
+          control: (defaultStyles: Record<string, string | object>) => {
             return {
               ...defaultStyles,
               "@media only screen and (min-width: 640px)": {

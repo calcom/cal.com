@@ -1,4 +1,4 @@
-import type { GroupBase, Props, SingleValue } from "react-select";
+import type { GroupBase, Props, SingleValue, SingleValueProps, OptionProps } from "react-select";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -68,7 +68,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
       id="location-select"
       data-testid="location-select"
       components={{
-        Option: (props: { data: LocationOption }) => {
+        Option: (props: OptionProps<LocationOption>) => {
           return (
             <components.Option {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>
@@ -77,7 +77,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
             </components.Option>
           );
         },
-        SingleValue: (props: { data: LocationOption }) => {
+        SingleValue: (props: SingleValueProps<LocationOption>) => {
           return (
             <components.SingleValue {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>

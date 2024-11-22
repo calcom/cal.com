@@ -3,7 +3,7 @@ export interface CurrencyOption {
   value: string;
 }
 
-export const currencyOptions: CurrencyOption[] = [
+export const currencyOptions: Readonly<CurrencyOption[]> = [
   { label: "United States dollar", value: "USD" },
   { label: "Australian dollar", value: "AUD" },
   { label: "Brazilian real 2", value: "BRL" },

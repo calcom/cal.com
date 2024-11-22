@@ -149,7 +149,7 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                   className="h-auto !min-h-[36px] text-sm"
                   options={multipleDurationOptions}
                   value={selectedMultipleDuration}
-                  onChange={(options: { value: number }[]) => {
+                  onChange={(options: { value: number; label: string }[]) => {
                     let newOptions = [...options];
                     newOptions = newOptions.sort((a, b) => {
                       return a?.value - b?.value;

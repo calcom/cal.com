@@ -494,7 +494,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   className="mt-2 w-60"
                   options={checkOwnerOptions}
                   value={checkOwnerSelectedOption}
-                  onChange={(e?: { label: string; value?: SalesforceRecordEnum }) => {
+                  onChange={(e?: { label: string; value: SalesforceRecordEnum }) => {
                     if (e) {
                       setCheckOwnerSelectedOption(e);
                       setAppData("roundRobinSkipCheckRecordOn", e.value);

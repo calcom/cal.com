@@ -38,6 +38,7 @@ import {
   ConfigFor,
 } from "../../components/react-awesome-query-builder/config/uiConfig";
 import { RoutingPages } from "../../lib/RoutingPages";
+import type { RoutingPage } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
 import {
@@ -474,7 +475,7 @@ const Route = ({
                   className="data-testid-select-routing-action block w-full flex-grow"
                   required
                   value={RoutingPages.find((page) => page.value === route.action?.type)}
-                  onChange={(item) => {
+                  onChange={(item: RoutingPage) => {
                     if (!item) {
                       return;
                     }
@@ -528,7 +529,7 @@ const Route = ({
                       className="data-testid-eventTypeRedirectUrl-select"
                       isDisabled={disabled}
                       options={eventTypeRedirectUrlOptions}
-                      onChange={(option) => {
+                      onChange={(option: (typeof eventTypeRedirectUrlOptions)[0]) => {
                         if (!option) {
                           return;
                         }
@@ -938,11 +939,11 @@ const Routes = ({
         <SelectField
           placeholder={t("select_a_router")}
           containerClassName="mb-6 data-testid-select-router"
-          isOptionDisabled={(option) => !!option.isDisabled}
+          isOptionDisabled={(option: (typeof routerOptions)[0]) => !!option.isDisabled}
           label={t("add_a_new_route")}
           options={routerOptions}
           key={mainRoutes.length}
-          onChange={(option) => {
+          onChange={(option: (typeof routerOptions)[0]) => {
             if (!option) {
               return;
             }

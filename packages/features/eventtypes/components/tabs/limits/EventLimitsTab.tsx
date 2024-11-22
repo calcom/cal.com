@@ -274,7 +274,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
         defaultValue={durationTypeOptions.find(
           (option) => option.value === minimumBookingNoticeDisplayValues.type
         )}
-        onChange={(input?: { value: number }) => {
+        onChange={(input?: { value: DurationType }) => {
           if (input) {
             setMinimumBookingNoticeDisplayValues({
               ...minimumBookingNoticeDisplayValues,
