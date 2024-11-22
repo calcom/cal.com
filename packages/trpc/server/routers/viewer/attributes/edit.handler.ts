@@ -50,6 +50,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
       name: input.name,
       type: input.type,
       teamId: org.id,
+      isLocked: input.isLocked,
     },
     select: {
       id: true,
@@ -62,7 +63,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   await prisma.$transaction(async (tx) => {
     const updateOptions = options.filter((option) => option.id !== undefined && option.id !== "");
     const updatedOptionsIds = updateOptions.map((option) => option.id!);
-
     // We need to delete all options that are not present in this UpdateOptions.id (as they have been deleted)
     await tx.attributeOption.deleteMany({
       where: {
@@ -87,6 +87,9 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
         data: {
           value: option.value,
           slug: slugify(option.value),
+          isGroup: option.isGroup,
+          contains: option.contains,
+          containedIn: option.containedIn,
         },
       });
     });
@@ -97,6 +100,9 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
         data: {
           attributeId: attributes.id,
           value: option.value,
+          isGroup: option.isGroup,
+          contains: option.contains,
+          containedIn: option.containedIn,
           slug: slugify(option.value),
         },
       });
@@ -117,7 +123,6 @@ async function validateOptionsBelongToAttribute(
   const optionsWithId = options
     .filter((option) => option.id !== undefined && option.id !== "")
     .map((option) => option.id!);
-  console.log("optionsWithId", optionsWithId);
 
   // Check all ids of options passed in are owned by the attribute
   const optionsWithIdOwnedByAttribute = await prisma.attributeOption.findMany({

@@ -231,4 +231,13 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async findUniqueByUserIdAndTeamIdBulk({ userIds, teamId }: { userIds: number[]; teamId: number }) {
+    return await prisma.membership.findMany({
+      where: {
+        userId: { in: userIds },
+        teamId,
+      },
+    });
+  }
 }

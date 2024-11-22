@@ -10,6 +10,8 @@ import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
 
+import type { AttributeOptionValueWithType } from "./getAttributes";
+
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 
 function getFieldResponseValueAsLabel({
@@ -194,31 +196,42 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
   });
 };
 
+function getValueOfAnOption(attributeOption: {
+  value: string | string[];
+  contains: { value: string }[];
+  containedIn: { value: string }[];
+}) {
+  if (attributeOption.contains.length > 0) {
+    const subOptions = attributeOption.contains.map((option) => option.value);
+    console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
+    return subOptions;
+  }
+  return attributeOption.value;
+}
+
 function getAttributesData({
   attributesData,
 }: {
-  attributesData: Record<
-    string,
-    {
-      value: string | string[];
-      type: Attribute["type"];
-    }
-  >;
+  attributesData: Record<string, AttributeOptionValueWithType>;
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
-  return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
-    const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(value);
+  return Object.entries(attributesData).reduce(
+    (acc, [attributeId, { type: attributeType, attributeOption }]) => {
+      const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(
+        getValueOfAnOption(attributeOption)
+      );
 
-    // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
-    acc[attributeId] =
-      // multiselect attribute's value must be an array as all the operators multiselect_some_in, multiselect_all_in and their respective not operators expect an array
-      // If we add an operator that doesn't expect an array, we need to somehow make it operator based.
-      attributeType === AttributeType.MULTI_SELECT
-        ? ensureArray(compatibleValueForAttributeAndFormFieldMatching)
-        : compatibleValueForAttributeAndFormFieldMatching;
+      acc[attributeId] =
+        // multiselect attribute's value must be an array as all the operators multiselect_some_in, multiselect_all_in and their respective not operators expect an array
+        // If we add an operator that doesn't expect an array, we need to somehow make it operator based.
+        attributeType === AttributeType.MULTI_SELECT
+          ? ensureArray(compatibleValueForAttributeAndFormFieldMatching)
+          : compatibleValueForAttributeAndFormFieldMatching;
 
-    return acc;
-  }, {} as Record<string, string | string[]>);
+      return acc;
+    },
+    {} as Record<string, string | string[]>
+  );
 }
 
 function getAttributesQueryValue({

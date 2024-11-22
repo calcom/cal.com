@@ -5,20 +5,22 @@ import prisma from "@calcom/prisma";
 
 import type { Attribute } from "./types";
 
-async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: { teamId: number }) {
-  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
-
-  const whereClauseForAttributesAssignedToMembersOfTeam = {
-    member: {
-      user: {
-        teams: {
-          some: {
-            teamId,
-          },
+const whereClauseForAttributesAssignedToMembersOfTeam = (teamId: number) => ({
+  member: {
+    user: {
+      teams: {
+        some: {
+          teamId,
         },
       },
     },
-  };
+  },
+});
+/**
+ * It return and attributeOption multiple times depending on how many users it is assigned to
+ */
+async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
+  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
 
   log.debug(
     safeStringify({
@@ -27,8 +29,8 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
     })
   );
 
-  const attributesToUser = await prisma.attributeToUser.findMany({
-    where: whereClauseForAttributesAssignedToMembersOfTeam,
+  const assignedAttributeOptions = await prisma.attributeToUser.findMany({
+    where: whereClauseForAttributesAssignedToMembersOfTeam(teamId),
     select: {
       member: {
         select: {
@@ -40,6 +42,8 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
           id: true,
           value: true,
           slug: true,
+          contains: true,
+          containedIn: true,
           attribute: {
             select: { id: true, name: true, type: true, slug: true },
           },
@@ -48,8 +52,33 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
     },
   });
 
-  log.debug("Returned attributesToUser", safeStringify({ attributesToUser }));
-  return attributesToUser;
+  log.debug("Returned assignedAttributeOptions", safeStringify({ assignedAttributeOptions }));
+  return assignedAttributeOptions;
+}
+
+async function findAllAttributeOptions({ teamId }: { teamId: number }) {
+  return await prisma.attributeOption.findMany({
+    where: {
+      attribute: {
+        team: {
+          children: {
+            some: {
+              id: teamId,
+            },
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      value: true,
+      slug: true,
+      contains: true,
+      containedIn: true,
+      isGroup: true,
+      attribute: true,
+    },
+  });
 }
 
 async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number }) {
@@ -82,7 +111,7 @@ async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number
     })
   );
 
-  const attributesToUser = await prisma.attribute.findMany({
+  const assignedAttributeOptions = await prisma.attribute.findMany({
     where: whereClauseForAttributesAssignedToMembersOfTeam,
     select: {
       id: true,
@@ -98,7 +127,7 @@ async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number
       slug: true,
     },
   });
-  return attributesToUser;
+  return assignedAttributeOptions;
 }
 
 export async function getAttributesForTeam({ teamId }: { teamId: number }) {
@@ -107,40 +136,123 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
 }
 
 type AttributeId = string;
-type AttributeOptionValueWithType = {
+export type AttributeOptionValueWithType = {
   type: Attribute["type"];
-  value: string | string[];
+  attributeOption: {
+    value: string | string[];
+    contains: {
+      id: string;
+      value: string;
+    }[];
+    containedIn: {
+      id: string;
+      value: string;
+    }[];
+  };
 };
 
 type UserId = number;
 
-export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
-  const attributesToUser = await getAttributeToUserWithMembershipAndAttributesForTeam({ teamId });
+/**
+ * Ensures all attributes are their with all their options(only assigned options) mapped to them
+ * This is needed because we receive options in an unordered manner
+ */
+async function getAllAttributesWithTheirOptions({ teamId }: { teamId: number }) {
+  const allOptionsOfAllAttributes = await findAllAttributeOptions({ teamId });
+  const attributeOptionsMap = new Map<
+    AttributeId,
+    {
+      id: string;
+      value: string;
+      slug: string;
+      containedIn: string[];
+      contains: string[];
+      isGroup: boolean;
+    }[]
+  >();
+  allOptionsOfAllAttributes.forEach((_attributeOption) => {
+    const { attribute, ...attributeOption } = _attributeOption;
+    console.log({ attributeOptionSlug: attributeOption.slug });
+    const existingOptionsArray = attributeOptionsMap.get(attribute.id);
+    const enrichedAttributeOption = {
+      ...attributeOption,
+      isGroup: attributeOption.contains.length > 0,
+      isInAGroup: attributeOption.containedIn.length > 0,
+    };
+    if (!existingOptionsArray) {
+      console.log(`Setting attribute ${attribute.name} with id ${attribute.id}`);
+      attributeOptionsMap.set(attribute.id, [enrichedAttributeOption]);
+    } else {
+      console.log(`Pushing attribute ${attribute.name} with id ${attribute.id}`);
+      // We already have the options for this attribute
+      existingOptionsArray.push(enrichedAttributeOption);
+    }
+  });
+  return attributeOptionsMap;
+}
 
-  const teamMembers = attributesToUser.reduce((acc, attributeToUser) => {
+export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
+  const assignedAttributeOptions = await getAssignedAttributeOptions({ teamId });
+  const allAttributesWithTheirOptions = await getAllAttributesWithTheirOptions({
+    teamId,
+  });
+
+  console.log({
+    allAttributesWithTheirOptions: JSON.stringify(
+      Object.fromEntries(allAttributesWithTheirOptions.entries())
+    ),
+  });
+
+  const teamMembers = assignedAttributeOptions.reduce((acc, attributeToUser) => {
     const { userId } = attributeToUser.member;
-    const { attribute, value } = attributeToUser.attributeOption;
+    const { attribute, ...attributeOption } = attributeToUser.attributeOption;
 
     if (!acc[userId]) {
       acc[userId] = { userId, attributes: {} };
     }
 
     const attributes = acc[userId].attributes;
-    const attributeValue = attributes[attribute.id]?.value;
+    const attributeValue = attributes[attribute.id]?.attributeOption.value;
     if (attributeValue instanceof Array) {
       // Value already exists, so push to it
-      attributeValue.push(value);
+      attributeValue.push(attributeOption.value);
     } else if (attributeValue) {
       // Value already exists, so push to it and also make it an array before pushing
-      attributes[attribute.id] = {
-        type: attribute.type,
-        value: [attributeValue, value],
-      };
+      attributes[attribute.id].attributeOption.value = [attributeValue, attributeOption.value];
     } else {
       // Set the first value
       attributes[attribute.id] = {
         type: attribute.type,
-        value,
+        attributeOption: {
+          value: attributeOption.value,
+          contains: attributeOption.contains
+            .map((optionId) => {
+              const allOptions = allAttributesWithTheirOptions.get(attribute.id);
+              const option = allOptions?.find((option) => option.id === optionId);
+              if (!option) {
+                console.error(
+                  `Generating contains for attribute ${
+                    attribute.name
+                  }: Option with id ${optionId} not found. Looked up in ${JSON.stringify(allOptions)}`
+                );
+                return null;
+              }
+              return option;
+            })
+            .filter((option): option is NonNullable<typeof option> => option !== null),
+          containedIn: attributeOption.containedIn
+            .map((optionId) => {
+              const option = allAttributesWithTheirOptions
+                .get(attribute.id)
+                ?.find((option) => option.id === optionId);
+              if (!option) {
+                console.error(`Generating containedIn: Option with id ${optionId} not found`);
+                return null;
+              }
+              return option;
+            })
+            .filter((option): option is NonNullable<typeof option> => option !== null),
+        },
       };
     }
     return acc;

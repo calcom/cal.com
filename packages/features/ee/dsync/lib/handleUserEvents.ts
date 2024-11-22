@@ -1,6 +1,9 @@
 import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
+import { setAttributeOptions } from "@calcom/lib/entities/Attribute";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
@@ -10,11 +13,15 @@ import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/team
 import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+import getAttributesFromScimPayload from "./getAttributesFromScimPayload";
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 import dSyncUserSelect from "./users/dSyncUserSelect";
 import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 
+const log = logger.getSubLogger({ prefix: ["handleUserEvents"] });
+
 const handleUserEvents = async (event: DirectorySyncEvent, organizationId: number) => {
+  log.debug("handleUserEvents", safeStringify(event));
   const eventData = event.data as User;
   const userEmail = eventData.email;
   // Check if user exists in DB
@@ -89,6 +96,27 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
       isOrg: true,
     });
   }
+
+  const updatedUser = await prisma.user.findFirst({
+    where: {
+      email: userEmail,
+    },
+    select: dSyncUserSelect,
+  });
+
+  if (!updatedUser) {
+    log.error("handleUserEvents", `User still not created in DB ${userEmail}`);
+    return;
+  }
+
+  const customAttributes = getAttributesFromScimPayload(event);
+  const { numOfAttributeOptionsSet } = await setAttributeOptions({
+    orgId: org.id,
+    userId: updatedUser.id,
+    attributeLabelToOptionLabelMap: customAttributes,
+  });
+
+  log.debug("handleUserEvents", `Number of attribute options set: ${numOfAttributeOptionsSet}`);
 };
 
 export default handleUserEvents;

@@ -55,14 +55,15 @@ function CreateAttributesPage() {
               attrName: attribute.data.name,
               type: attribute.data.type,
               options: attribute.data.options,
+              isLocked: attribute.data.isLocked,
             }}
             header={<EditAttributeHeader isPending={mutation.isPending} />}
             onSubmit={(values) => {
+              const { attrName, ...rest } = values;
               mutation.mutate({
+                ...rest,
+                name: attrName,
                 attributeId: id,
-                name: values.attrName,
-                type: values.type,
-                options: values.options,
               });
             }}
           />
