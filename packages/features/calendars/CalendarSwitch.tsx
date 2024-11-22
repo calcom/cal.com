@@ -17,7 +17,7 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
-  domainWideDelegationCredentialId: string | null;
+  domainWideDelegationCredentialId?: string | null;
 };
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const {

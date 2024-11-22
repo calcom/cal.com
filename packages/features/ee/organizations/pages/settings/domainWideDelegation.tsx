@@ -25,7 +25,7 @@ interface DelegationItemProps {
     id: string;
     domain: string;
     enabled: boolean;
-    serviceAccountClientId: string;
+    serviceAccountClientId: string | null;
     workspacePlatform: {
       name: string;
       slug: string;
@@ -304,8 +304,6 @@ function DomainWideDelegationList() {
 
   const { data: workspacePlatforms, isLoading: isLoadingWorkspacePlatforms } =
     trpc.viewer.domainWideDelegation.listWorkspacePlatforms.useQuery();
-
-  console.log("workspacePlatforms", workspacePlatforms);
 
   const onEditClick = (delegation: DelegationItemProps["delegation"]) => {
     setCreateEditDialog({ isOpen: true, delegation });

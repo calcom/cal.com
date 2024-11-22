@@ -434,7 +434,7 @@ function CreateUpdatePlatformDialog({
   isOpen,
   onOpenChange,
   editingPlatform,
-}: Pick<Props, "isOpen" | "onOpenChange" | "editingPlatform">) {
+}: Pick<Props, "isOpen" | "onOpenChange"> & { editingPlatform?: Props["editingPlatform"] }) {
   if (editingPlatform) {
     return (
       <UpdatePlatformDialog isOpen={isOpen} onOpenChange={onOpenChange} editingPlatform={editingPlatform} />
