@@ -132,6 +132,7 @@ test("Calendar can be watched and unwatched", async () => {
     googleChannelResourceId: "mock-resource-id",
     googleChannelResourceUri: "mock-resource-uri",
     googleChannelExpiration: "1111111111",
+    domainWideDelegationCredentialId: null,
   });
   await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId });
   // There's a bug in prismock where upsert creates duplicate records so we need to acces the second element
