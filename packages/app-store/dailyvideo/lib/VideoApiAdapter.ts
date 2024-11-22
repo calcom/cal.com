@@ -52,6 +52,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   appId: "daily-video",
   invalid: false,
   teamId: null,
+  delegatedToId: null,
 };
 
 function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {

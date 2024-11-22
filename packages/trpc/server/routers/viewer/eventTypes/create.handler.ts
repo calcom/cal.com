@@ -24,6 +24,7 @@ type User = {
     id: SessionUser["id"] | null;
   };
   metadata: SessionUser["metadata"];
+  email: SessionUser["email"];
 };
 
 type CreateOptions = {

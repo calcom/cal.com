@@ -44,6 +44,7 @@ const buildDomainWideDelegationCalendarCredential = ({
     },
     invalid: false,
     teamId: null,
+    team: null,
   };
 };
 
@@ -71,6 +72,7 @@ const buildDomainWideDelegationConferencingCredential = ({
     },
     invalid: false,
     teamId: null,
+    team: null,
   };
 };
 export async function getAllDomainWideDelegationCredentialsForUser({
@@ -145,7 +147,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     if (!googleCalendar) {
       throw new Error("Google Calendar App not found");
     }
-    return await googleCalendar.testDomainWideDelegationSetup();
+    return await googleCalendar?.testDomainWideDelegationSetup?.();
   }
   return false;
 }

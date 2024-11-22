@@ -29,6 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teamId: null,
       appId: appConfig.slug,
       invalid: false,
+      delegatedToId: null,
     };
 
     try {

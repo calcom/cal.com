@@ -54,6 +54,7 @@ const testCredential = {
   userId: 1,
   user: { email: "example@cal.com" },
   teamId: 1,
+  delegatedToId: null,
 };
 
 describe("createMeeting", () => {

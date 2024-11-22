@@ -189,9 +189,7 @@ export default class GoogleCalendarService implements Calendar {
       this.log.error(
         "CalendarAppDomainWideDelegationNotSetupError",
         safeStringify({
-          domainWideDelegationExists: !!domainWideDelegation,
-          domainWideDelegationEnabled: domainWideDelegation?.enabled,
-          forceEnableDomainWideDelegation,
+          domainWideDelegation,
         })
       );
       throw new CalendarAppDomainWideDelegationNotSetupError(
@@ -251,10 +249,7 @@ export default class GoogleCalendarService implements Calendar {
     this.log.debug(
       "Not using domain wide delegation, using default OAuth2 client for Google Calendar",
       safeStringify({
-        domainWideDelegation: {
-          enabled: domainWideDelegation?.enabled,
-        },
-        serviceAccountKeyIsSet: !!domainWideDelegation?.serviceAccountKey,
+        domainWideDelegation,
         credential: {
           id: this.credential.id,
           userId: this.credential.userId,

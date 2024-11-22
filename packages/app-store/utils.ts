@@ -68,6 +68,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         team: {
           name: "Global",
         },
+        delegatedToId: null,
       };
       logger.debug(
         `${appMeta.type} is a global app, injecting credential`,

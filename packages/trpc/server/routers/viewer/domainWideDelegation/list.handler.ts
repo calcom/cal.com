@@ -1,5 +1,6 @@
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type { PrismaClient } from "@calcom/prisma";
+import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 
 import { ensureNoServiceAccountKey } from "./utils";
 
@@ -16,20 +17,17 @@ export default async function handler({
     throw new Error("You must be in an organization to list domain wide delegations");
   }
 
-  const domainWideDelegations =
-    await DomainWideDelegationRepository.findManyByOrganizationIdIncludeWorkspacePlatformAndSensitiveServiceAccountKey(
-      {
-        organizationId,
-      }
-    );
+  const domainWideDelegations = await DomainWideDelegationRepository.findDelegationsWithServiceAccount({
+    organizationId,
+  });
 
   return domainWideDelegations.map((delegation) => {
     // Let's not parse the service account key here, we should be able to fix the item with the problem, so we always try to return the complete list
-    const serviceAccountKey = delegation.serviceAccountKey;
+    const serviceAccountKey = serviceAccountKeySchema.safeParse(delegation.serviceAccountKey);
+
     return ensureNoServiceAccountKey({
       ...delegation,
-      // @ts-expect-error - serviceAccountKey is not typed
-      serviceAccountClientId: serviceAccountKey?.client_id || null,
+      serviceAccountClientId: serviceAccountKey.success ? serviceAccountKey.data?.client_id ?? null : null,
     });
   });
 }

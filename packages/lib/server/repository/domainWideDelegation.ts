@@ -84,10 +84,12 @@ export class DomainWideDelegationRepository {
   }
 
   static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
-    return await prisma.domainWideDelegation.findUnique({
+    const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSelectIncludesServiceAccountKey,
     });
+    if (!domainWideDelegation) return null;
+    return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
   static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
@@ -194,11 +196,7 @@ export class DomainWideDelegationRepository {
     });
   }
 
-  static async findManyByOrganizationIdIncludeWorkspacePlatformAndSensitiveServiceAccountKey({
-    organizationId,
-  }: {
-    organizationId: number;
-  }) {
+  static async findDelegationsWithServiceAccount({ organizationId }: { organizationId: number }) {
     return await prisma.domainWideDelegation.findMany({
       where: { organizationId },
       select: {

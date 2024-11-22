@@ -1,12 +1,12 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 
 export type TDependencyData = {
   name?: string;
@@ -81,7 +81,6 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     },
   });
 
-
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -93,8 +92,9 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     },
   });
 
-
-  const domainWideDelegationCredentials = user ? await getAllDomainWideDelegationCredentialsForUser({ user: {id:userId, email: user.email} }) : [];
+  const domainWideDelegationCredentials = user
+    ? await getAllDomainWideDelegationCredentialsForUser({ user: { id: userId, email: user.email } })
+    : [];
 
   const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {

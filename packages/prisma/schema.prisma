@@ -1614,6 +1614,7 @@ model DomainWideDelegation {
   workspacePlatformId Int
 
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
+  /// @zod.custom(imports.serviceAccountKeySchema)
   serviceAccountKey Json
 
   enabled        Boolean      @default(false)

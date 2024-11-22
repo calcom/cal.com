@@ -3,12 +3,13 @@ import type { TFunction } from "next-i18next";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
+import { getAllDomainWideDelegationConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { defaultLocations } from "./locations";
-import { getAllDomainWideDelegationConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+
 export async function getLocationGroupedOptions(
   userOrTeamId: { userId: number } | { teamId: number },
   t: TFunction
@@ -80,13 +81,13 @@ export async function getLocationGroupedOptions(
 
   if (user) {
     const domainWideDelegationCredentials = await getAllDomainWideDelegationConferencingCredentialsForUser({
-      user
-    })
+      user,
+    });
 
     credentials = [...credentials, ...domainWideDelegationCredentials];
   }
 
-  const integrations = await getEnabledAppsFromCredentials(credentials,  { filterOnCredentials: true });
+  const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
 
   integrations.forEach((app) => {
     // All apps that are labeled as a locationOption are video apps.

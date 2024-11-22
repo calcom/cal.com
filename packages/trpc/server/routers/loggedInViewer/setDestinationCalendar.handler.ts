@@ -1,16 +1,18 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+
 import type { TSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
   selectedCalendars: SessionUser["selectedCalendars"];
+  email: SessionUser["email"];
 };
 
 type SetDestinationCalendarOptions = {
@@ -30,7 +32,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
 
   const cal = allCals.find(
     (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
-  )
+  );
   const { credentialId, domainWideDelegationCredentialId } = cal || {};
 
   if (!credentialId) {
@@ -64,22 +66,26 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     update: {
       integration,
       externalId,
-      ...(!isDomainWideDelegationCredential({ credentialId }) ? {
-        credentialId,
-      } : {
-        domainWideDelegationCredentialId,
-      }),
+      ...(!isDomainWideDelegationCredential({ credentialId })
+        ? {
+            credentialId,
+          }
+        : {
+            domainWideDelegationCredentialId,
+          }),
       primaryEmail,
     },
     create: {
       ...where,
       integration,
       externalId,
-      ...(!isDomainWideDelegationCredential({ credentialId }) ? {
-        credentialId,
-      } : {
-        domainWideDelegationCredentialId,
-      }),
+      ...(!isDomainWideDelegationCredential({ credentialId })
+        ? {
+            credentialId,
+          }
+        : {
+            domainWideDelegationCredentialId,
+          }),
       primaryEmail,
     },
   });

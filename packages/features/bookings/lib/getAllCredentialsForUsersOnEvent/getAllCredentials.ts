@@ -121,6 +121,7 @@ export const getAllCredentials = async (
   const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
     user: {
       email: user.email,
+      id: user.id,
     },
   });
   return allCredentials.concat(domainWideDelegationCredentials);

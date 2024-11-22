@@ -36,6 +36,7 @@ type User = {
   };
   selectedCalendars: SessionUser["selectedCalendars"];
   organizationId: number | null;
+  email: SessionUser["email"];
 };
 
 type UpdateOptions = {

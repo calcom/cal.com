@@ -53,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teamId: null,
       appId: "apple-calendar",
       invalid: false,
+      delegatedToId: null,
     };
 
     try {

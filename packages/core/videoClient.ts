@@ -203,6 +203,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);
@@ -225,6 +226,7 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
   return videoAdapter?.createInstantCalVideoRoom?.(endTime);
@@ -250,6 +252,7 @@ const getRecordingsOfCalVideoByRoomName = async (
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
   return videoAdapter?.getRecordings?.(roomName);
@@ -273,6 +276,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
   return videoAdapter?.getRecordingDownloadLink?.(recordingId);
@@ -296,6 +300,7 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
   return videoAdapter?.getAllTranscriptsAccessLinkFromRoomName?.(roomName);
@@ -319,6 +324,7 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
   return videoAdapter?.getAllTranscriptsAccessLinkFromMeetingId?.(meetingId);
@@ -342,6 +348,7 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
 
@@ -377,6 +384,7 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
 
@@ -401,6 +409,7 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegatedToId: null,
     },
   ]);
 

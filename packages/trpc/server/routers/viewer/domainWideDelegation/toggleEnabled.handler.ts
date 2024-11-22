@@ -1,18 +1,17 @@
 import type { z } from "zod";
 
+import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
 import type { DomainWideDelegationToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
-
-import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
 
 const assertWorkspaceConfigured = async ({
   domainWideDelegationId,
   user,
 }: {
   domainWideDelegationId: string;
-  user: { id: number; email: string; };
+  user: { id: number; email: string };
 }) => {
   const domainWideDelegation = await DomainWideDelegationRepository.findById({ id: domainWideDelegationId });
   if (!domainWideDelegation) {
@@ -32,7 +31,7 @@ export default async function toggleEnabledHandler({
   ctx,
   input,
 }: {
-  ctx: { user: { id: number; email: string;} };
+  ctx: { user: { id: number; email: string } };
   input: z.infer<typeof DomainWideDelegationToggleEnabledSchema>;
 }) {
   const { user: loggedInUser } = ctx;
