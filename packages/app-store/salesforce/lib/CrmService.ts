@@ -8,7 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
@@ -16,7 +16,13 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
-import { SalesforceRecordEnum, SalesforceFieldType, WhenToWriteToRecord, DateFieldTypeData } from "./enums";
+import {
+  SalesforceRecordEnum,
+  SalesforceFieldType,
+  WhenToWriteToRecord,
+  DateFieldTypeData,
+  RoutingReasons,
+} from "./enums";
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -217,7 +223,13 @@ export default class SalesforceCRMService implements CRM {
       await this.checkRecordOwnerNameFromRecordId(contacts[0].id, ownerId);
     }
     if (appOptions.onBookingWriteToRecord && appOptions.onBookingWriteToRecordFields) {
-      await this.writeToPersonRecord(contacts[0].id, event.startTime, event.organizer.email, event?.uid);
+      await this.writeToPersonRecord(
+        contacts[0].id,
+        event.startTime,
+        event.organizer.email,
+        event.responses,
+        event?.uid
+      );
     }
     return createdEvent;
   };
@@ -322,6 +334,7 @@ export default class SalesforceCRMService implements CRM {
       (forRoundRobinSkip ? appOptions?.roundRobinSkipCheckRecordOn : appOptions?.createEventOn) ??
       SalesforceRecordEnum.CONTACT;
     let soql: string;
+    let accountOwnerId = "";
     if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
       // For an account let's assume that the first email is the one we should be querying against
       const attendeeEmail = emailArray[0];
@@ -349,6 +362,12 @@ export default class SalesforceCRMService implements CRM {
     }
     const results = await conn.query(soql);
 
+    // If we're checking against the contact, the ownerId should take precedence
+    if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records.length) {
+      const account = results.records[0] as ContactRecord;
+      accountOwnerId = account.OwnerId;
+    }
+
     let records: ContactRecord[] = [];
 
     // If falling back to contacts, check for the contact before returning the leads or empty array
@@ -375,19 +394,30 @@ export default class SalesforceCRMService implements CRM {
 
     if (includeOwner || forRoundRobinSkip) {
       const ownerIds: Set<string> = new Set();
-      records.forEach((record) => {
-        ownerIds.add(record.OwnerId);
-      });
+      if (accountOwnerId) {
+        ownerIds.add(accountOwnerId);
+      } else {
+        records.forEach((record) => {
+          ownerIds.add(record.OwnerId);
+        });
+      }
 
       const ownersQuery = (await Promise.all(
         Array.from(ownerIds).map(async (ownerId) => {
-          return this.getSalesforceUserFromUserId(ownerId);
+          return await this.getSalesforceUserFromUserId(ownerId);
         })
       )) as { records: ContactRecord[] }[];
       const contactsWithOwners = records.map((record) => {
-        const ownerEmail = ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]
-          .Email;
-        return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
+        const ownerEmail = accountOwnerId
+          ? ownersQuery[0].records[0].Email
+          : ownersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0].Email;
+        return {
+          id: record.Id,
+          email: record.Email,
+          ownerId: record.OwnerId,
+          ownerEmail,
+          recordType: accountOwnerId ? SalesforceRecordEnum.ACCOUNT : record.attributes.type,
+        };
       });
       return contactsWithOwners;
     }
@@ -396,6 +426,7 @@ export default class SalesforceCRMService implements CRM {
       ? records.map((record) => ({
           id: record.Id,
           email: record.Email,
+          recordType: record.attributes.type,
         }))
       : [];
   }
@@ -770,6 +801,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     startTime: string,
     organizerEmail: string,
+    calEventResponses?: CalEventResponses | null,
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
@@ -792,6 +824,7 @@ export default class SalesforceCRMService implements CRM {
       startTime,
       bookingUid,
       organizerEmail,
+      calEventResponses,
     });
 
     // Update the person record
@@ -808,6 +841,7 @@ export default class SalesforceCRMService implements CRM {
     startTime,
     bookingUid,
     organizerEmail,
+    calEventResponses,
   }: {
     existingFields: jsforce.Field[];
     personRecord: Record<string, any>;
@@ -815,6 +849,7 @@ export default class SalesforceCRMService implements CRM {
     startTime: string;
     bookingUid?: string | null;
     organizerEmail: string;
+    calEventResponses?: CalEventResponses | null;
   }): Promise<Record<string, any>> {
     const writeOnRecordBody: Record<string, any> = {};
 
@@ -828,8 +863,12 @@ export default class SalesforceCRMService implements CRM {
 
       // Handle different field types
       if (fieldConfig.fieldType === field.type) {
-        if (field.type === SalesforceFieldType.TEXT) {
-          writeOnRecordBody[field.name] = fieldConfig.value.substring(0, field.length);
+        if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
+          writeOnRecordBody[field.name] = this.getTextFieldValue({
+            fieldValue: fieldConfig.value,
+            fieldLength: field.length,
+            calEventResponses,
+          });
         } else if (field.type === SalesforceFieldType.DATE) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
@@ -845,6 +884,29 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return writeOnRecordBody;
+  }
+
+  private getTextFieldValue({
+    fieldValue,
+    fieldLength,
+    calEventResponses,
+  }: {
+    fieldValue: string;
+    fieldLength: number;
+    calEventResponses?: CalEventResponses | null;
+  }) {
+    let valueToWrite = fieldValue.substring(0, fieldLength);
+
+    if (!calEventResponses) return valueToWrite;
+
+    // Check if we need to replace any values with values from the booking questions
+    const regexValueToReplace = /\{(.*?)\}/g;
+    valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
+      return calEventResponses[captured]?.value.toString() ?? match;
+    });
+
+    // Trim incase the replacement values increased the length
+    return valueToWrite.substring(0, fieldLength);
   }
 
   private async getDateFieldValue(
@@ -973,7 +1035,7 @@ export default class SalesforceCRMService implements CRM {
 
       const user = userQuery.records[0] as { Email: string };
 
-      return user.Email;
+      return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
   }
 }

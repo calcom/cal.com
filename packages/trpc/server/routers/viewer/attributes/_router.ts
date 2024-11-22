@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
 import { assignUserToAttributeSchema } from "./assignUserToAttribute.schema";
@@ -5,6 +7,7 @@ import { bulkAssignAttributesSchema } from "./bulkAssignAttributes.schema";
 import { createAttributeSchema } from "./create.schema";
 import { deleteAttributeSchema } from "./delete.schema";
 import { editAttributeSchema } from "./edit.schema";
+import { ZFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 import { getAttributeSchema } from "./get.schema";
 import { getByUserIdSchema } from "./getByUserId.schema";
 import { toggleActiveSchema } from "./toggleActive.schema";
@@ -12,6 +15,10 @@ import { toggleActiveSchema } from "./toggleActive.schema";
 const NAMESPACE = "attributes";
 
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+
+export type TFindTeamMembersMatchingAttributeLogicInputSchema = z.infer<
+  typeof ZFindTeamMembersMatchingAttributeLogicInputSchema
+>;
 
 export const attributesRouter = router({
   list: authedProcedure.query(async (opts) => {
@@ -60,6 +67,16 @@ export const attributesRouter = router({
       const handler = await importHandler(
         namespaced("bulkAssignAttributes"),
         () => import("./bulkAssignAttributes.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  findTeamMembersMatchingAttributeLogic: authedProcedure
+    .input(ZFindTeamMembersMatchingAttributeLogicInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("findTeamMembersMatchingAttributeLogic"),
+        () => import("./findTeamMembersMatchingAttributeLogic.handler")
       );
       return handler({ ctx, input });
     }),

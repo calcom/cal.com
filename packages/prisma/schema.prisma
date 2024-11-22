@@ -148,6 +148,10 @@ model EventType {
   instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   instantMeetingParameters                String[]
   assignAllTeamMembers                    Boolean                   @default(false)
+  // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
+  assignRRMembersUsingSegment             Boolean                   @default(false)
+  /// @zod.custom(imports.rrSegmentQueryValueSchema)
+  rrSegmentQueryValue                     Json?
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   isRRWeightsEnabled                      Boolean                   @default(false)
@@ -277,6 +281,7 @@ model User {
   appTheme            String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
+  lastActiveAt        DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
@@ -643,6 +648,7 @@ model Booking {
   rescheduledBy                String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
+  assignmentReason             AssignmentReason[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1174,6 +1180,7 @@ model BookingSeat {
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   /// @zod.custom(imports.bookingSeatDataSchema)
   data         Json?
+  metadata     Json?
 
   @@index([bookingId])
   @@index([attendeeId])
@@ -1235,6 +1242,7 @@ model UserFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([userId, featureId])
+  @@index([userId, featureId])
 }
 
 model TeamFeatures {
@@ -1247,6 +1255,7 @@ model TeamFeatures {
   updatedAt  DateTime @updatedAt
 
   @@id([teamId, featureId])
+  @@index([teamId, featureId])
 }
 
 enum FeatureType {
@@ -1598,6 +1607,23 @@ model AttributeToUser {
   weight            Int?
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum AssignmentReasonEnum {
+  ROUTING_FORM_ROUTING
+  ROUTING_FORM_ROUTING_FALLBACK
+  REASSIGNED
+  REROUTED
+  SALESFORCE_ASSIGNMENT
+}
+
+model AssignmentReason {
+  id           Int                  @id @unique @default(autoincrement())
+  createdAt    DateTime             @default(now())
+  bookingId    Int
+  booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reasonEnum   AssignmentReasonEnum
+  reasonString String
 }
 
 enum EventTypeAutoTranslatedField {
