@@ -245,6 +245,44 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
                 },
+                eventRecurringTab: {
+                  container: "border border-purple-200 bg-purple-50 rounded-lg shadow-sm",
+                  recurringToggle: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    description: "text-purple-500",
+                    children: "bg-purple-50 rounded-md",
+                  },
+                  frequencyInput: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    addOn: "text-purple-500",
+                  },
+                  frequencyUnitSelect: {
+                    select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                    label: "text-purple-700",
+                    container: "mb-4",
+                    innerClassNames: {
+                      input: "text-purple-900",
+                      option: "text-purple-700 hover:bg-purple-200",
+                      control: "border-purple-300",
+                      singleValue: "text-purple-900",
+                      valueContainer: "bg-purple-100",
+                      multiValue: "bg-purple-200 rounded-md text-purple-900",
+                      menu: "border border-purple-200 rounded-md",
+                      menuList: "",
+                    },
+                  },
+                  maxEventsInput: {
+                    countInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    labelText: "text-purple-700",
+                    suffixText: "text-purple-500",
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                  },
+                  experimentalAlert: "border border-red-300 bg-red-50 rounded-lg text-red-900 shadow-sm",
+                  paymentAlert: "border border-purple-300 bg-purple-100 rounded-lg text-purple-900 shadow-md",
+                },
               }}
               allowDelete={true}
               id={eventTypeId}
