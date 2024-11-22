@@ -43,9 +43,11 @@ export class DomainWideDelegationRepository {
     if (!domainWideDelegation) {
       return null;
     }
+    const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(domainWideDelegation.serviceAccountKey);
+
     return {
       ...domainWideDelegation,
-      serviceAccountKey: serviceAccountKeySchema.parse(domainWideDelegation.serviceAccountKey),
+      serviceAccountKey: parsedServiceAccountKey.success ? parsedServiceAccountKey.data : null,
     };
   }
 
