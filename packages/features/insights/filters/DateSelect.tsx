@@ -67,7 +67,7 @@ export const DateSelect = () => {
   };
 
   return (
-    <div className="ml me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
+    <div className="ml inline-flex space-x-2 rtl:space-x-reverse">
       <DateRangePicker
         dates={{
           startDate: startValue,

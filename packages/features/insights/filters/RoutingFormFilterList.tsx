@@ -32,8 +32,6 @@ export const RoutingFormFilterList = memo(() => {
     }
   );
 
-  if (!selectedFilter?.includes("routing_forms")) return null;
-
   const filterOptions = buildFilterOptions(allForms || []);
 
   return (

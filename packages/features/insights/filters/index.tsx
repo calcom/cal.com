@@ -10,7 +10,6 @@ import { FilterType } from "./FilterType";
 import { RoutingFormFieldFilter } from "./RoutingFormFieldFilter";
 import { RoutingFormFilterList } from "./RoutingFormFilterList";
 import { TeamAndSelfList } from "./TeamAndSelfList";
-import { UserListInTeam } from "./UsersListInTeam";
 
 const ClearFilters = () => {
   const { t } = useLocale();
@@ -52,8 +51,6 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
     <div className="ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
         <TeamAndSelfList omitOrg={showRoutingFilters} />
-
-        <UserListInTeam />
 
         <EventTypeList />
 

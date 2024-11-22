@@ -49,13 +49,7 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
   );
 
   const filterOptions = useMemo(() => {
-    let options: Option[] = [
-      {
-        label: t("user"),
-        value: "user",
-        StartIcon: "users" as IconName,
-      },
-    ];
+    let options: Option[] = [];
 
     // Add routing forms filter options
     if (showRoutingFilters) {

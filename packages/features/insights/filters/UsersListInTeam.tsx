@@ -16,14 +16,14 @@ const mapUserToOption = (user: User) => ({
 export const UserListInTeam = () => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
-  const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
+  const { selectedTeamId, selectedMemberUserId, isAll } = filter;
 
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
     teamId: selectedTeamId ?? -1,
     isAll: !!isAll,
   });
 
-  if (!selectedFilter?.includes("user") || !selectedTeamId || !isSuccess || data?.length === 0) {
+  if (!selectedTeamId || !isSuccess || data?.length === 0) {
     return null;
   }
 

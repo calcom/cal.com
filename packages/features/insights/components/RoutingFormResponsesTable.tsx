@@ -43,8 +43,11 @@ import {
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
+import { DateSelect } from "../filters/DateSelect";
+import { RoutingDownload } from "../filters/Download";
+import { RoutingFormFilterList } from "../filters/RoutingFormFilterList";
 import { TeamAndSelfList } from "../filters/TeamAndSelfList";
-import { RoutingInsightsFilters } from "../filters/routing/FilterBar";
+import { UserListInTeam } from "../filters/UsersListInTeam";
 import { RoutingKPICards } from "./RoutingKPICards";
 
 type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
@@ -518,15 +521,24 @@ export function RoutingFormResponsesTable({
         }}
         isPending={isFetching && !data}>
         <div className="header mb-4">
-          <div className="flex items-center justify-between gap-2">
-            <TeamAndSelfList omitOrg={true} />
+          <div className="flex items-start justify-between gap-2">
             <div className="mb-4">
               <DataTableFilters.AddFilterButton table={table} />
             </div>
+            <TeamAndSelfList omitOrg={true} />
             <div className="mb-4">
+              <UserListInTeam />
+            </div>
+            <div className="mb-4">
+              <RoutingFormFilterList />
+            </div>
+            <div className="mb-4 flex gap-2">
               <DataTableFilters.ActiveFilters table={table} />
             </div>
-            <RoutingInsightsFilters table={table} />
+            <div className="grow" />
+            <RoutingDownload />
+            <DateSelect />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
           </div>
           <RoutingKPICards />
         </div>
