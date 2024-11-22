@@ -1,7 +1,5 @@
 import type { z } from "zod";
 
-import type { TranslateEventTypeDescriptionPayload } from "./tasks/translateEventTypeDescription";
-
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
   sendEmail: string;
@@ -16,7 +14,9 @@ type TaskPayloads = {
   triggerFormSubmittedNoEventWebhook: z.infer<
     typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").ZTriggerFormSubmittedNoEventWebhookPayloadSchema
   >;
-  translateEventTypeDescription: TranslateEventTypeDescriptionPayload;
+  translateEventTypeData: z.infer<
+    typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;

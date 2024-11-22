@@ -79,6 +79,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     description: newDescription,
+    title: newTitle,
     ...rest
   } = input;
 
@@ -497,21 +498,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // Logic for updating `fieldTranslations`
-  // user has no description translations OR user is changing the description
-  const descriptionTranslationsNeeded =
+  // user has no translations OR user is changing the field
+  const hasNoDescriptionTranslations =
     eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.DESCRIPTION)
-      .length === 0 || newDescription;
-  const description = newDescription ?? eventType.description;
+      .length === 0;
+  const description = newDescription ?? (hasNoDescriptionTranslations ? eventType.description : undefined);
+  const hasNoTitleTranslations =
+    eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.TITLE)
+      .length === 0;
+  const title = newDescription ?? (hasNoTitleTranslations ? eventType.title : undefined);
 
-  if (
-    ctx.user.organizationId &&
-    autoTranslateDescriptionEnabled &&
-    descriptionTranslationsNeeded &&
-    description
-  ) {
-    await tasker.create("translateEventTypeDescription", {
+  if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
+    await tasker.create("translateEventTypeData", {
       eventTypeId: id,
       description,
+      title,
       userLocale: ctx.user.locale,
       userId: ctx.user.id,
     });
