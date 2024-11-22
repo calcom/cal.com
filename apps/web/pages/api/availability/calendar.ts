@@ -4,15 +4,13 @@ import { z } from "zod";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
-import prisma from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
-
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
@@ -38,35 +36,6 @@ async function authMiddleware(req: CustomNextApiRequest) {
   return userWithCredentials;
 }
 
-  if (req.method === "POST") {
-    const { integration, externalId, credentialId, domainWideDelegationCredentialId } =
-      selectedCalendarSelectSchema.parse(req.body);
-    await prisma.selectedCalendar.upsert({
-      where: {
-        userId_integration_externalId: {
-          userId: user.id,
-          integration,
-          externalId,
-        },
-      },
-      create: {
-        userId: user.id,
-        integration,
-        externalId,
-        ...(!isDomainWideDelegationCredential({ credentialId })
-          ? {
-              credentialId,
-            }
-          : {
-              domainWideDelegationCredentialId,
-            }),
-      },
-      // already exists
-      update: {},
-    });
-    res.status(200).json({ message: "Calendar Selection Saved" });
-  }
-
 type CustomNextApiRequest = NextApiRequest & {
   userWithCredentials?: Awaited<ReturnType<typeof authMiddleware>>;
 };
@@ -74,12 +43,31 @@ type CustomNextApiRequest = NextApiRequest & {
 async function postHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
-  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
-  await SelectedCalendarRepository.upsert({
-    userId: user.id,
-    integration,
-    externalId,
-    credentialId,
+
+  const { integration, externalId, credentialId, domainWideDelegationCredentialId } =
+    selectedCalendarSelectSchema.parse(req.body);
+  await prisma.selectedCalendar.upsert({
+    where: {
+      userId_integration_externalId: {
+        userId: user.id,
+        integration,
+        externalId,
+      },
+    },
+    create: {
+      userId: user.id,
+      integration,
+      externalId,
+      ...(!isDomainWideDelegationCredential({ credentialId })
+        ? {
+            credentialId,
+          }
+        : {
+            domainWideDelegationCredentialId,
+          }),
+    },
+    // already exists
+    update: {},
   });
 
   return { message: "Calendar Selection Saved" };
