@@ -50,6 +50,9 @@ export async function translateEventTypeDescription(payload: string): Promise<vo
           eventTypeId,
           sourceLocale: userLocale,
           targetLocale,
+          // Keep old fields during transition
+          sourceLang: userLocale, // TODO: remove after migration
+          targetLang: targetLocale, // TODO: remove after migration
           translatedText,
           userId,
         }))
