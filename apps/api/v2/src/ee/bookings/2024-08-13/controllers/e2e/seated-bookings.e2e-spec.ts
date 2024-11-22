@@ -22,7 +22,6 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries";
 import {
   CancelSeatedBookingInput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
@@ -38,14 +37,6 @@ import {
   CreateRecurringBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
-
-jest.spyOn(AttendeeCancelledEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
-
-jest.spyOn(OrganizerCancelledEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Seated bookings", () => {
@@ -102,6 +93,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
@@ -721,6 +717,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {

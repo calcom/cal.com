@@ -1,6 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -20,25 +19,8 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
-  AttendeeScheduledEmail,
-  OrganizerScheduledEmail,
-  AttendeeDeclinedEmail,
-} from "@calcom/platform-libraries";
 import { BookingOutput_2024_08_13, GetBookingOutput_2024_08_13 } from "@calcom/platform-types";
 import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
-
-jest.spyOn(AttendeeScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
-
-jest.spyOn(OrganizerScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
-
-jest.spyOn(AttendeeDeclinedEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Bookings confirmation", () => {
@@ -87,6 +69,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
