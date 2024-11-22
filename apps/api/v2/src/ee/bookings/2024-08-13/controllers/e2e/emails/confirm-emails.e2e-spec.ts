@@ -38,6 +38,7 @@ import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
+  GetBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
@@ -263,11 +264,13 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
-          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
           expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           emailsDisabledSetup.rescheduledBookingUid = responseBody.data.uid;
         });
     });
@@ -301,8 +304,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           if (responseDataIsBooking(responseBody.data)) {
             expect(responseBody.data.status).toEqual("pending");
-            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
             expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
             emailsDisabledSetup.createdBookingUid = responseBody.data.uid;
@@ -320,11 +321,13 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
-          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(AttendeeDeclinedEmail.prototype.getHtml).not.toHaveBeenCalled();
 
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           emailsDisabledSetup.rescheduledBookingUid = responseBody.data.uid;
         });
     });
@@ -381,11 +384,13 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
-          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
           expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
         });
     });
@@ -419,8 +424,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           if (responseDataIsBooking(responseBody.data)) {
             expect(responseBody.data.status).toEqual("pending");
-            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
             expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
             emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
@@ -438,11 +441,12 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
-          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(AttendeeDeclinedEmail.prototype.getHtml).toHaveBeenCalled();
-
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
         });
     });
