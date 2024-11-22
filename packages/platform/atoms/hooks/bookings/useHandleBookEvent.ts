@@ -52,6 +52,8 @@ export const useHandleBookEvent = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const orgSlug = useBookerStore((state) => state.org);
   const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
+  const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
+  const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
 
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
@@ -91,6 +93,8 @@ export const useHandleBookEvent = ({
         metadata: metadata,
         hashedLink,
         teamMemberEmail,
+        crmOwnerRecordType,
+        crmAppSlug,
         orgSlug: orgSlug ? orgSlug : undefined,
       };
 
