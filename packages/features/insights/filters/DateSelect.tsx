@@ -92,6 +92,8 @@ export const DateSelect = () => {
         value={selectedPreset}
         className="w-40 capitalize text-black"
         defaultValue={selectedPreset}
+        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        menuPortalTarget={document.body}
         onChange={(e) => {
           if (e) {
             updateDateRange(e.value);
