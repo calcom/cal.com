@@ -1,11 +1,35 @@
 "use client";
 
+import type { ReactNode } from "react";
+
+import type { CredentialOwner } from "@calcom/app-store/types";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Badge, Icon, ListItemText } from "@calcom/ui";
 
-import type { AppListCardProps } from "../../../../apps/web/components/AppListCard";
+type ShouldHighlight =
+  | {
+      slug: string;
+      shouldHighlight: true;
+    }
+  | {
+      shouldHighlight?: never;
+      slug?: never;
+    };
+
+export type AppListCardProps = {
+  logo?: string;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+  isDefault?: boolean;
+  isTemplate?: boolean;
+  invalidCredential?: boolean;
+  children?: ReactNode;
+  credentialOwner?: CredentialOwner;
+  className?: string;
+} & ShouldHighlight;
 
 export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) => {
   const { t } = useLocale();

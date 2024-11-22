@@ -7,7 +7,6 @@
   "exports": {
     ".": "./index.ts",
     "./alert": "./components/alert/index.ts",
-    "./app-list-card": "./components/app-list-card/index.ts",
     "./apps": "./components/apps/index.ts",
     "./arrow-button": "./components/arrow-button/index.ts",
     "./avatar": "./components/avatar/index.ts",

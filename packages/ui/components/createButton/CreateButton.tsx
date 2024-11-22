@@ -2,17 +2,18 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonColor } from "@calcom/ui";
+
+import { Avatar } from "../avatar";
+import { Button } from "../button";
+import type { ButtonColor } from "../button";
 import {
-  Avatar,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@calcom/ui";
+} from "../dropdown";
 
 export interface Option {
   platform?: boolean;

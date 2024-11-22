@@ -35,7 +35,7 @@ import {
   TextField,
 } from "@calcom/ui";
 
-import AppListCard from "../../../apps/web/components/AppListCard";
+import AppListCard from "./components/AppListCard";
 
 type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
 

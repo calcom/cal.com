@@ -1,6 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui";
-import { Button, ConfirmationDialogContent, Dialog, DialogTrigger } from "@calcom/ui";
+
+import { Button } from "../button";
+import type { ButtonProps } from "../button";
+import { ConfirmationDialogContent, Dialog, DialogTrigger } from "../dialog";
 
 export const DisconnectIntegrationComponent = ({
   label,

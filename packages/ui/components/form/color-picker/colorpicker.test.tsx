@@ -1,3 +1,4 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react-dom/test-utils";
@@ -80,7 +81,9 @@ describe("Tests for ColorPicker component", () => {
     const onChange = vi.fn();
 
     render(
-      <ColorPicker defaultValue={defaultValue} resetDefaultValue={resetDefaultValue} onChange={onChange} />
+      <TooltipProvider>
+        <ColorPicker defaultValue={defaultValue} resetDefaultValue={resetDefaultValue} onChange={onChange} />
+      </TooltipProvider>
     );
 
     const colorPickerButton = screen.getByRole("button", { name: "pick colors" });
@@ -92,7 +95,7 @@ describe("Tests for ColorPicker component", () => {
       fireEvent.change(colorPickerInput, { target: { value: "#000000" } });
     });
 
-    const resetButton = screen.getByRole("button", { name: "Reset to default" });
+    const resetButton = screen.getByTestId("reset-to-default");
     await act(async () => {
       fireEvent.click(resetButton);
     });
@@ -108,7 +111,7 @@ describe("Tests for ColorPicker component", () => {
 
     render(<ColorPicker defaultValue={defaultValue} onChange={onChange} />);
 
-    const resetButton = screen.queryByRole("button", { name: "Reset to default" });
+    const resetButton = screen.queryByTestId("reset-to-default");
     expect(resetButton).not.toBeInTheDocument();
   });
 });

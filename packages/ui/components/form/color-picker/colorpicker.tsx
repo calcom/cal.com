@@ -6,7 +6,8 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 
 import cx from "@calcom/lib/classNames";
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
-import { Button } from "@calcom/ui";
+
+import { Button } from "../../button";
 
 export type ColorPickerProps = {
   defaultValue: string;
@@ -74,6 +75,7 @@ const ColorPicker = (props: ColorPickerProps) => {
             variant="icon"
             rel="noreferrer"
             StartIcon="rotate-ccw"
+            data-testid="reset-to-default"
             tooltip="Reset to default"
             onClick={() => {
               setColor(fallBackHex(resetDefaultValue, false));
