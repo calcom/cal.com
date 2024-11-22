@@ -4,6 +4,7 @@ import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
+import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -22,8 +23,6 @@ import {
   List,
   showToast,
 } from "@calcom/ui";
-
-import AppListCard from "@components/AppListCard";
 
 type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
 

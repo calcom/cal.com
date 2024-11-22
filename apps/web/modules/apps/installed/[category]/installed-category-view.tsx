@@ -3,6 +3,7 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
+import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -22,7 +23,6 @@ import {
 import { QueryCell } from "@lib/QueryCell";
 import type { querySchemaType, getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
-import { AppList } from "@components/apps/AppList";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 

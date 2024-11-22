@@ -7,6 +7,7 @@ import { useCallback, useState } from "react";
 
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
@@ -19,7 +20,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
-import type { BulkUpdatParams } from "@calcom/web/components/apps/AppList";
 
 import { QueryCell } from "@lib/QueryCell";
 

@@ -2,13 +2,13 @@
 
 import { useReducer } from "react";
 
+import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { AppList } from "@calcom/web/components/apps/AppList";
 
 type ConferencingAppsViewWebWrapperProps = {
   title: string;
