@@ -651,14 +651,7 @@ async function handler(
 
         const eventTypeHosts = eventType.hosts.length
           ? eventType.hosts
-          : eventType.users.map((user) => ({
-              user,
-              isFixed: false,
-              priority: 2,
-              weight: 100,
-              schedule: null,
-              createdAt: new Date(0), // use earliest possible date as fallback
-            }));
+          : eventType.users.map((user) => ({ user, isFixed: false }));
         const currentRRHostId = eventTypeHosts.find(
           (host) =>
             !host.isFixed &&
