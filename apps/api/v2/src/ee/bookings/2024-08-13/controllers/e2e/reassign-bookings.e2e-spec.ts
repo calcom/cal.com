@@ -1,6 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -25,25 +24,8 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
-  AttendeeScheduledEmail,
-  OrganizerScheduledEmail,
-  OrganizerReassignedEmail,
-} from "@calcom/platform-libraries";
 import { CreateBookingInput_2024_08_13, BookingOutput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
-
-jest.spyOn(AttendeeScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
-
-jest.spyOn(OrganizerScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
-
-jest.spyOn(OrganizerReassignedEmail.prototype as any, "getHtml").mockImplementation(async function () {
-  return "<html><body>Mocked Email Content</body></html>";
-});
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Reassign bookings", () => {
@@ -97,13 +79,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({ name: "organization team bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
+
       team = await teamRepositoryFixture.create({
         name: "team 1",
         isOrganization: false,
         parent: { connect: { id: organization.id } },
+        createdByOAuthClient: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
-
-      oAuthClient = await createOAuthClient(organization.id);
 
       teamUser1 = await userRepositoryFixture.create({
         email: teamUserEmail,

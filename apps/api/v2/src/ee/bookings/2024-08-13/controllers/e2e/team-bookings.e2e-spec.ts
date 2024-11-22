@@ -85,30 +85,50 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({ name: "organization team bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
+
       team1 = await teamRepositoryFixture.create({
         name: "team 1",
         isOrganization: false,
         parent: { connect: { id: organization.id } },
+        createdByOAuthClient: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       team2 = await teamRepositoryFixture.create({
         name: "team 2",
         isOrganization: false,
         parent: { connect: { id: organization.id } },
+        createdByOAuthClient: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
-
-      oAuthClient = await createOAuthClient(organization.id);
 
       teamUser = await userRepositoryFixture.create({
         email: teamUserEmail,
         locale: "it",
         name: "orgUser1team1",
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       teamUser2 = await userRepositoryFixture.create({
         email: teamUserEmail2,
         locale: "es",
         name: "orgUser2team1",
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {

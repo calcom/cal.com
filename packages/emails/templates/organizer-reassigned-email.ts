@@ -27,7 +27,7 @@ export default class OrganizerReassignedEmail extends OrganizerScheduledEmail {
     };
   }
 
-  protected async getHtml(calEvent: CalendarEvent, attendee: Person, reassigned: Reassigned | undefined) {
+  async getHtml(calEvent: CalendarEvent, attendee: Person, reassigned: Reassigned | undefined) {
     return await renderEmail("OrganizerReassignedEmail", {
       calEvent,
       attendee,
