@@ -106,6 +106,8 @@ const commons = {
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,
+  assignRRMembersUsingSegment: false,
+  rrSegmentQueryValue: null,
   isRRWeightsEnabled: false,
   rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,

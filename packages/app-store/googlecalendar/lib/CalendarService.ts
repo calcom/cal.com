@@ -25,11 +25,11 @@ import {
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
-import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
+import { GoogleService } from "@calcom/lib/server/service/google";
+
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -650,7 +650,7 @@ export default class GoogleCalendarService implements Calendar {
     }
     async function getCalIds() {
       if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
-      const cals = await getAllCalendars(calendar, ["id"]);
+      const cals = await GoogleService.getAllCalendars(calendar, ["id"]);
       if (!cals.length) return [];
       return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
     }
@@ -714,7 +714,7 @@ export default class GoogleCalendarService implements Calendar {
             status: 200,
             statusText: "OK",
             data: {
-              items: await getAllCalendars(calendar),
+              items: await GoogleService.getAllCalendars(calendar),
             },
           })
       );
@@ -766,7 +766,7 @@ export default class GoogleCalendarService implements Calendar {
       },
     });
     const response = res.data;
-    await GoogleRepository.upsertSelectedCalendar({
+    await GoogleService.upsertSelectedCalendar({
       userId: this.credential.userId!,
       externalId: calendarId,
       credentialId: this.credential.id,
@@ -801,7 +801,7 @@ export default class GoogleCalendarService implements Calendar {
       .catch((err) => {
         console.warn(JSON.stringify(err));
       });
-    await GoogleRepository.upsertSelectedCalendar({
+    await GoogleService.upsertSelectedCalendar({
       userId: this.credential.userId!,
       externalId: calendarId,
       credentialId: this.credential.id,

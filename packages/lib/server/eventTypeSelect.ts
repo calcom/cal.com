@@ -58,5 +58,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   durationLimits: true,
   eventTypeColor: true,
   hideCalendarEventDetails: true,
+  rrSegmentQueryValue: true,
+  assignRRMembersUsingSegment: true,
   maxLeadThreshold: true,
 });

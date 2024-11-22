@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -136,6 +137,8 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
@@ -162,4 +165,38 @@ export type TabMap = {
   webhooks?: React.ReactNode;
   workflows?: React.ReactNode;
   payments?: React.ReactNode;
+};
+
+export type SettingsToggleClassNames = {
+  container?: string;
+  label?: string;
+  description?: string;
+  children?: string;
+};
+
+export type InputClassNames = {
+  container?: string;
+  label?: string;
+  input?: string;
+  addOn?: string;
+};
+export type CheckboxClassNames = {
+  checkbox?: string;
+  description?: string;
+  container?: string;
+};
+export type SelectClassNames = {
+  innerClassNames?: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+  select?: string;
+  label?: string;
+  container?: string;
 };
