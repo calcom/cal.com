@@ -234,10 +234,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
                   <input type="file" accept=".csv" className="hidden" onChange={handleUploadCsv} />
                   {t("upload")}
                 </label>
-                <Button
-                  color="secondary"
-                  StartIcon={<Icon name="download" className="h-4 w-4" />}
-                  onClick={handleDownloadCsv}>
+                <Button color="secondary" StartIcon="download" onClick={handleDownloadCsv}>
                   {t("download")}
                 </Button>
               </div>
@@ -245,7 +242,9 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
                 placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-                addOnLeading="search"
+                addOnLeading={
+                  <Icon name="search" className="text-subtle h-4 w-4" aria-hidden="true" focusable="false" />
+                }
               />
 
               <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">
