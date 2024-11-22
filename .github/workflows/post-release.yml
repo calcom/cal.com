@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: 'main'
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Configure git
         run: |
