@@ -13,7 +13,6 @@ import { Segment } from "../../../../apps/web/components/Segment";
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import CheckedTeamSelect from "./CheckedTeamSelect";
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
-import { EditWeightsForAllTeamMembers } from "./EditWeightsForAllTeamMembers";
 
 interface IUserToValue {
   id: number | null;
@@ -254,8 +253,6 @@ function AddMembersWithSwitch({
     setAssignRRMembersUsingSegment(false);
   };
 
-  console.log("assignmentState", assignmentState);
-
   switch (assignmentState) {
     case AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE:
     case AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE:
@@ -270,14 +267,6 @@ function AddMembersWithSwitch({
             }}
             onInactive={onAssignAllTeamMembersInactive}
           />
-          {!assignRRMembersUsingSegment ? (
-            <EditWeightsForAllTeamMembers
-              teamMembers={teamMembers}
-              value={value}
-              onChange={onChange}
-              assignmentState={assignmentState}
-            />
-          ) : null}
 
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">

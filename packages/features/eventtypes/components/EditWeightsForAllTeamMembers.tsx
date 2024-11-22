@@ -130,7 +130,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
       id: member.value,
       name: member.label,
       email: member.email,
-      weight: member.weight ?? 100,
+      weight: localWeights[member.value] ?? 100,
     }));
     downloadAsCsv(csvData, "team-members-weights.csv");
   };
@@ -203,7 +203,7 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
     <>
       <Button
         color="secondary"
-        className="ml-12 mt-2 w-fit"
+        className="-ml-2 -mt-2 mb-2 w-fit"
         onClick={() => {
           setIsOpen(true);
         }}>

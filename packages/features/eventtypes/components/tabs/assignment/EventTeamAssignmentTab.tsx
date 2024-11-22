@@ -21,6 +21,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 
+import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
+
 export type EventTeamAssignmentTabBaseProps = Pick<
   EventTypeSetupProps,
   "teamMembers" | "team" | "eventType"
@@ -252,24 +254,33 @@ const RoundRobinHosts = ({
         <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && !assignRRMembersUsingSegment && (
-          <Controller<FormValues>
-            name="isRRWeightsEnabled"
-            render={({ field: { value, onChange } }) => (
-              <SettingsToggle
-                title={t("enable_weights")}
-                description={weightDescription}
-                checked={value}
-                onCheckedChange={(active) => {
-                  onChange(active);
+        {!assignRRMembersUsingSegment && (
+          <>
+            <Controller<FormValues>
+              name="isRRWeightsEnabled"
+              render={({ field: { value: isRRWeightsEnabledValue, onChange } }) => (
+                <SettingsToggle
+                  title={t("enable_weights")}
+                  description={weightDescription}
+                  checked={isRRWeightsEnabledValue}
+                  onCheckedChange={(active) => {
+                    onChange(active);
 
-                  const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
-                  const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-                  setValue("hosts", sortedRRHosts);
-                }}
-              />
-            )}
-          />
+                    const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+                    const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
+                    setValue("hosts", sortedRRHosts);
+                  }}>
+                  {!assignRRMembersUsingSegment ? (
+                    <EditWeightsForAllTeamMembers
+                      teamMembers={teamMembers}
+                      value={value}
+                      onChange={onChange}
+                    />
+                  ) : null}
+                </SettingsToggle>
+              )}
+            />
+          </>
         )}
         <AddMembersWithSwitch
           teamId={teamId}
