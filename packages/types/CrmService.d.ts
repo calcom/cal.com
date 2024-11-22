@@ -18,6 +18,7 @@ export interface Contact {
   email: string;
   ownerId?: string;
   ownerEmail?: string;
+  recordType?: string;
 }
 
 export interface CrmEvent {
