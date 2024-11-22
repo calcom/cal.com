@@ -27,9 +27,8 @@ import {
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { GoogleRepository } from "@calcom/lib/server/repository/google";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import { GoogleService } from "@calcom/lib/server/service/google";
-
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
