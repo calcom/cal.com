@@ -186,11 +186,11 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     return client;
   }
 
-  describe("OAuth client managed user bookings - emails disabled", () => {
-    beforeEach(async () => {
-      jest.clearAllMocks();
-    });
+  beforeEach(async () => {
+    jest.clearAllMocks();
+  });
 
+  describe("OAuth client managed user bookings - emails disabled", () => {
     it("should not send an email when creating a booking", async () => {
       const body: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
