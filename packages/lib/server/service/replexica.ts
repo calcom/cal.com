@@ -22,7 +22,7 @@ export class ReplexicaService {
     targetLocale: string
   ): Promise<string | null> {
     if (!text?.trim()) {
-      return text;
+      return null;
     }
 
     try {
@@ -33,7 +33,7 @@ export class ReplexicaService {
 
       return result;
     } catch (error) {
-      logger.error(`ReplexicaService.localizeText() failed: ${error}`);
+      logger.error(`ReplexicaService.localizeText() failed for targetLocale: ${targetLocale} - ${error}`);
       return null;
     }
   }
