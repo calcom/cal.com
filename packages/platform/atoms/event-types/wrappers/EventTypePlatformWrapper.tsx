@@ -7,6 +7,7 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/components/C
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
+import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -34,6 +35,7 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
   eventLimitsTab?: EventLimitsTabCustomClassNames;
+  eventRecurringTab?: EventRecurringTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -189,7 +191,10 @@ const EventType = ({
     ),
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
-      <EventRecurringTabPlatformWrapper eventType={eventType} />
+      <EventRecurringTabPlatformWrapper
+        eventType={eventType}
+        customClassNames={customClassNames?.eventRecurringTab}
+      />
     ) : (
       <></>
     ),
