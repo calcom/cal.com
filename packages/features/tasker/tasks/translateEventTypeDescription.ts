@@ -16,6 +16,7 @@ const SUPPORTED_LOCALES = [
   "es", // Spanish
   "de", // German
   "pt", // Portuguese
+  "pt-BR", // Portuguese Brazilian
   "fr", // French
   "it", // Italian
   "ar", // Arabic
