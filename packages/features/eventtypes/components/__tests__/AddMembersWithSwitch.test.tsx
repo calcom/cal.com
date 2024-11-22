@@ -3,9 +3,10 @@ import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
+import { AddMembersWithSwitchWebWrapper as AddMembersWithSwitch } from "@calcom/atoms/monorepo";
+
 import type { Host, TeamMember } from "../../lib/types";
 import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
-import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
 // Mock matchMedia
 vi.mock("@formkit/auto-animate/react", () => ({
