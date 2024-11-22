@@ -126,7 +126,7 @@ function MembersSegmentWithToggle({
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
     setRrSegmentQueryValue(queryValue);
   };
-
+  const isPlatform = useIsPlatform();
   return (
     <Controller<FormValues>
       name="assignRRMembersUsingSegment"
@@ -140,12 +140,14 @@ function MembersSegmentWithToggle({
           onCheckedChange={(active) => {
             setAssignRRMembersUsingSegment(active);
           }}>
-          <Segment
-            teamId={teamId}
-            queryValue={rrSegmentQueryValue}
-            onQueryValueChange={onQueryValueChange}
-            className={className}
-          />
+          {!isPlatform && (
+            <Segment
+              teamId={teamId}
+              queryValue={rrSegmentQueryValue}
+              onQueryValueChange={onQueryValueChange}
+              className={className}
+            />
+          )}
         </SettingsToggle>
       )}
     />
