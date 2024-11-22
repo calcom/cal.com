@@ -479,7 +479,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
 
-  const eventHosts = await monitorCallbackAsync(findQualifiedHosts<GetAvailabilityUser>, eventType);
+  const eventHosts = await monitorCallbackAsync(
+    findQualifiedHosts<GetAvailabilityUser>,
+    eventType,
+    !!input.rescheduleUid
+  );
   const hostsAfterSegmentMatching = await findMatchingHostsWithEventSegment({
     eventType,
     normalizedHosts: eventHosts,
