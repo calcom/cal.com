@@ -110,7 +110,7 @@ export class DomainWideDelegationRepository {
       select: domainWideDelegationSafeSelect,
     });
 
-    return domainWideDelegation
+    return domainWideDelegation;
   }
 
   static async findByUserIncludeSensitiveServiceAccountKey({
@@ -125,6 +125,7 @@ export class DomainWideDelegationRepository {
     const organization = await OrganizationRepository.findByMemberEmailId({
       email: user.email,
     });
+
     if (!organization) {
       log.debug("No organization found for user", safeStringify(user));
       return null;
@@ -163,7 +164,6 @@ export class DomainWideDelegationRepository {
       organizationId: number;
     }>;
   }) {
-
     const { workspacePlatformId, organizationId, ...rest } = data;
     return await prisma.domainWideDelegation.update({
       where: { id },

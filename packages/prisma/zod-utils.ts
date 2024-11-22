@@ -766,3 +766,5 @@ export const serviceAccountKeySchema = z
     private_key: z.string(),
   })
   .passthrough();
+
+export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;

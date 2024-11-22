@@ -1,10 +1,10 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 
 export type UserWithCalendars = Pick<User, "id" | "email"> & {
   selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration">[];
@@ -29,7 +29,9 @@ export async function getConnectedDestinationCalendars(
     select: credentialForCalendarServiceSelect,
   });
 
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({ user });
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
+    user,
+  });
   const allCredentials = [...userCredentials, ...domainWideDelegationCredentials];
 
   // get user's credentials + their connected integrations
@@ -88,11 +90,13 @@ export async function getConnectedDestinationCalendars(
         integration,
         externalId,
         primaryEmail,
-        ...(!isDomainWideDelegationCredential({ credentialId }) ? {
-          credentialId,
-        } : {
-          domainWideDelegationCredentialId,
-        }),
+        ...(!isDomainWideDelegationCredential({ credentialId })
+          ? {
+              credentialId,
+            }
+          : {
+              domainWideDelegationCredentialId,
+            }),
       },
     });
   } else {

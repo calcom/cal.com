@@ -1,10 +1,12 @@
 import { z } from "zod";
 
+import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
+
 export const workspacePlatformCreateSchema = z.object({
   slug: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
-  defaultServiceAccountKey: z.string(),
+  defaultServiceAccountKey: serviceAccountKeySchema,
   enabled: z.boolean().optional().default(true),
 });
 
@@ -16,7 +18,7 @@ export const workspacePlatformUpdateSchema = z.object({
 
 export const workspacePlatformUpdateServiceAccountSchema = z.object({
   id: z.number(),
-  defaultServiceAccountKey: z.string(),
+  defaultServiceAccountKey: serviceAccountKeySchema,
 });
 
 export const workspacePlatformToggleEnabledSchema = z.object({

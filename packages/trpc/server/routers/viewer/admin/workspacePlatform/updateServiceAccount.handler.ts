@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { workspacePlatformUpdateServiceAccountSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
+
 export default async function updateServiceAccountHandler({
   input,
 }: {

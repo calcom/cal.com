@@ -1,10 +1,13 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Button,
@@ -213,7 +216,12 @@ function UpdateServiceAccountFieldsDialog({
   const { t } = useLocale();
   const utils = trpc.useUtils();
   type FormValues = { defaultServiceAccountKey: string };
-  const form = useForm<FormValues>();
+  const form = useForm<FormValues>({
+    defaultValues: {
+      defaultServiceAccountKey: "",
+    },
+    resolver: zodResolver(z.object({ defaultServiceAccountKey: z.string() })),
+  });
 
   const updateServiceAccountMutation = trpc.viewer.admin.workspacePlatform.updateServiceAccount.useMutation({
     onSuccess: () => {
@@ -227,7 +235,17 @@ function UpdateServiceAccountFieldsDialog({
   });
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
-    updateServiceAccountMutation.mutate({ id: platformId, ...values });
+    const parsedKey = JSON.parse(values.defaultServiceAccountKey);
+    const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
+    if (!validatedKey.success) {
+      form.setError("defaultServiceAccountKey", { message: t("invalid_service_account_key") });
+      return;
+    }
+    updateServiceAccountMutation.mutate({
+      id: platformId,
+      ...values,
+      defaultServiceAccountKey: validatedKey.data,
+    });
   };
 
   return (
@@ -301,6 +319,14 @@ function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "
       slug: "",
       defaultServiceAccountKey: "",
     },
+    resolver: zodResolver(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        slug: z.string(),
+        defaultServiceAccountKey: z.string(),
+      })
+    ),
   });
 
   const utils = trpc.useUtils();
@@ -317,7 +343,16 @@ function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "
   });
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
-    addMutation.mutate(values);
+    const parsedKey = JSON.parse(values.defaultServiceAccountKey);
+    const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
+    if (!validatedKey.success) {
+      form.setError("defaultServiceAccountKey", { message: t("invalid_service_account_key") });
+      return;
+    }
+    addMutation.mutate({
+      ...values,
+      defaultServiceAccountKey: validatedKey.data,
+    });
   };
 
   return (
