@@ -11,10 +11,6 @@ export const ZTranslateEventTypeDescriptionPayloadSchema = z.object({
   userLocale: z.string(),
 });
 
-export type TranslateEventTypeDescriptionPayload = z.infer<
-  typeof ZTranslateEventTypeDescriptionPayloadSchema
->;
-
 const SUPPORTED_LOCALES = ["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const;
 
 export async function translateEventTypeDescription(payload: string): Promise<void> {
