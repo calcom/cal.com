@@ -135,7 +135,9 @@ function presenter(args: {
       return [
         ...r,
         currentRow.routedToBooking?.user?.email || "",
-        currentRow.routedToBooking?.assignmentReason[0].reasonString || "",
+        currentRow.routedToBooking?.assignmentReason.length
+          ? currentRow.routedToBooking.assignmentReason[0].reasonString
+          : "",
         currentRow.routedToBooking?.createdAt ? formatDate(currentRow.routedToBooking.createdAt) : "",
         formatDate(currentRow.createdAt),
       ];
