@@ -16,9 +16,13 @@ export class ReplexicaService {
    * @param targetLocale The target language locale
    * @returns The localized text
    */
-  static async localizeText(text: string, sourceLocale: string, targetLocale: string): Promise<string> {
+  static async localizeText(
+    text: string,
+    sourceLocale: string,
+    targetLocale: string
+  ): Promise<string | null> {
     if (!text?.trim()) {
-      return text;
+      return null;
     }
 
     try {
@@ -29,8 +33,8 @@ export class ReplexicaService {
 
       return result;
     } catch (error) {
-      logger.error(`ReplexicaService.localizeText() failed: ${error}`);
-      return text;
+      logger.error(`ReplexicaService.localizeText() failed for targetLocale: ${targetLocale} - ${error}`);
+      return null;
     }
   }
 
