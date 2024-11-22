@@ -649,8 +649,23 @@ async function handler(
           });
         }
 
+        const eventTypeHosts = eventType.hosts.length
+          ? eventType.hosts
+          : eventType.users.map((user) => ({
+              user,
+              isFixed: false,
+              priority: 2,
+              weight: 100,
+              schedule: null,
+              createdAt: new Date(0), // use earliest possible date as fallback
+            }));
+        const currentRRHostId = eventTypeHosts.find(
+          (host) =>
+            !host.isFixed &&
+            originalRescheduledBooking?.attendees.some((attendee) => attendee.email === host.user.email)
+        )?.user.id;
         const newLuckyUser = isSameRoundRobinHost
-          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
+          ? freeUsers.find((user) => user.id === (currentRRHostId ?? originalRescheduledBookingUserId))
           : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
