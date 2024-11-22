@@ -109,7 +109,35 @@ export default class AssignmentReasonRecorder {
 
   // Separate method to handle rerouting
 
-  // Routing via CRM ownership, need to keep each specific CRM logic in it's own package
+  static async CRMOwnership({
+    bookingId,
+    crmAppSlug,
+    teamMemberEmail,
+    recordType,
+    routingFormResponseId,
+  }: {
+    bookingId: number;
+    crmAppSlug: string;
+    teamMemberEmail: string;
+    recordType: string;
+    routingFormResponseId: number;
+  }) {
+    const appAssignmentReasonHandler = (await import("./appAssignmentReasonHandler")).default;
+    const appHandler = appAssignmentReasonHandler[crmAppSlug];
+    if (!appHandler) return;
+
+    const crmRoutingReason = await appHandler({ recordType, teamMemberEmail, routingFormResponseId });
+
+    if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
+
+    await prisma.assignmentReason.create({
+      data: {
+        bookingId,
+        reasonEnum: crmRoutingReason.reasonEnum,
+        reasonString: crmRoutingReason.assignmentReason,
+      },
+    });
+  }
 
   static async roundRobinReassignment({
     bookingId,
