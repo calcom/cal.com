@@ -197,12 +197,13 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
   const filterableColumns = useMemo<FilterableColumn[]>(
     () =>
       columns.map((column) => {
-        const filterType = column.columnDef.meta?.filterType || "select";
+        const type = column.columnDef.meta?.filter?.type || "select";
         return {
           id: column.id,
           title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
-          filterType,
-          options: filterType === "select" ? column.getFacetedUniqueValues() : undefined,
+          ...(column.columnDef.meta?.filter || {}),
+          type,
+          options: type === "select" ? column.getFacetedUniqueValues() : undefined,
         };
       }),
     [columns]
@@ -217,6 +218,7 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
           <Popover key={column.id}>
             <PopoverTrigger asChild>
               <Button color="secondary">
+                {column.icon && <Icon name={column.icon} className="mr-2 h-4 w-4" />}
                 {convertToTitleCase(column.title)}
                 <Icon name="chevron-down" className="ml-2 h-4 w-4" />
               </Button>

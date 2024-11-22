@@ -371,6 +371,9 @@ export function RoutingFormResponsesTable({
               </div>
             );
           },
+          meta: {
+            filter: { type: "select", icon: "layers" },
+          },
           filterFn: (row, id, filterValue: SelectFilterValue) => {
             return filterValue.some((value) => row.original[id].some((field) => field.value === value));
           },
@@ -385,6 +388,9 @@ export function RoutingFormResponsesTable({
             <BookingStatusBadge booking={info.getValue()} />
           </div>
         ),
+        meta: {
+          filter: { type: "select", icon: "circle" },
+        },
         filterFn: (row, id, filterValue) => {
           return selectFilter(row.original.routedToBooking?.status, filterValue);
         },

@@ -112,7 +112,10 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
   );
 };
 
-export const selectFilter = (cellValue: string | string[], filterValue: SelectFilterValue) => {
+export const selectFilter = (cellValue: string | string[] | undefined, filterValue: SelectFilterValue) => {
+  if (cellValue === undefined) {
+    return false;
+  }
   const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
 
   return filterValue.length === 0 ? true : cellValueArray.some((v) => filterValue.includes(v));

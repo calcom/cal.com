@@ -175,7 +175,7 @@ export function UserListTable() {
           id: attribute.id,
           header: attribute.name,
           meta: {
-            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
+            filter: { type: attribute.type.toLowerCase() === "text" ? "text" : "select" },
           },
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
