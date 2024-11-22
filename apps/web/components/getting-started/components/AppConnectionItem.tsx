@@ -29,9 +29,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
       await utils.viewer.me.invalidate();
     },
     onError: (error) => {
-      showToast(t("something_went_wrong"), {
-        type: "error",
-      });
+      showToast(t("something_went_wrong"), "error");
       console.error(error);
     },
   });
@@ -44,76 +42,77 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
         {isDefault && <Badge variant="green">{t("default")}</Badge>}
       </div>
       <div className="flex items-center space-x-2">
-      <InstallAppButtonWithoutPlanCheck
-        type={type}
-        options={{
-          onSuccess: () => {
-            if (defaultInstall && slug) {
-              setDefaultConferencingApp.mutate({ slug });
-            }
-          },
-        }}
-        render={(buttonProps) => (
-          <Button
-            {...buttonProps}
-            color="secondary"
-            disabled={installed || !!dependency}
-            type="button"
-            loading={buttonProps?.isPending}
-            tooltip={
-              dependency ? (
-                <div className="items-start space-x-2.5">
-                  <div className="flex items-start">
-                    <div>
-                      <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold">
-                        {t("this_app_requires_connected_account", {
-                          appName: title,
-                          dependencyName: dependency.name,
-                        })}
-                      </span>
-
+        <InstallAppButtonWithoutPlanCheck
+          type={type}
+          options={{
+            onSuccess: () => {
+              if (defaultInstall && slug) {
+                setDefaultConferencingApp.mutate({ slug });
+              }
+            },
+          }}
+          render={(buttonProps) => (
+            <Button
+              {...buttonProps}
+              color="secondary"
+              disabled={installed || !!dependency}
+              type="button"
+              loading={buttonProps?.isPending}
+              tooltip={
+                dependency ? (
+                  <div className="items-start space-x-2.5">
+                    <div className="flex items-start">
                       <div>
+                        <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-semibold">
+                          {t("this_app_requires_connected_account", {
+                            appName: title,
+                            dependencyName: dependency.name,
+                          })}
+                        </span>
+
                         <div>
-                          <>
-                            <Link
-                              href={`${WEBAPP_URL}/getting-started/connected-calendar`}
-                              className="flex items-center text-xs underline">
-                              <span className="mr-1">
-                                {t("connect_app", { dependencyName: dependency.name })}
-                              </span>
-                              <Icon name="arrow-right" className="inline-block h-3 w-3" />
-                            </Link>
-                          </>
+                          <div>
+                            <>
+                              <Link
+                                href={`${WEBAPP_URL}/getting-started/connected-calendar`}
+                                className="flex items-center text-xs underline">
+                                <span className="mr-1">
+                                  {t("connect_app", { dependencyName: dependency.name })}
+                                </span>
+                                <Icon name="arrow-right" className="inline-block h-3 w-3" />
+                              </Link>
+                            </>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : undefined
-            }
-            onClick={(event) => {
-              // Save cookie key to return url step
-              document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
-              buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
+                ) : undefined
+              }
+              onClick={(event) => {
+                // Save cookie key to return url step
+                document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
+                buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
+              }}>
+              {installed ? t("installed") : t("connect")}
+            </Button>
+          )}
+        />
+        {installed && !isDefault && (
+          <Button
+            color="secondary"
+            className="ml-2"
+            type="button"
+            loading={setDefaultConferencingApp.isPending}
+            onClick={() => {
+              if (slug) {
+                setDefaultConferencingApp.mutate({ slug });
+              }
             }}>
-            {installed ? t("installed") : t("connect")}
-          </Button>
-        )}
-      />
-      {installed && !isDefault && (
-        <Button
-          color="secondary"
-          className="ml-2"
-          type="button"
-          loading={setDefaultConferencingApp.isPending}
-          onClick={() => {
-            setDefaultConferencingApp.mutate({ slug });
-          }}
-        >
-          {t("set_as_default")}
+            {t("set_as_default")}
           </Button>
         )}
       </div>
