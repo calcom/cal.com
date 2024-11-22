@@ -21,7 +21,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 
-export type EventTeamAssignmentTabBaseProps = Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">;
+export type EventTeamAssignmentTabBaseProps = Pick<
+  EventTypeSetupProps,
+  "teamMembers" | "team" | "eventType"
+> & {
+  orgId: number | null;
+};
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
@@ -96,6 +101,7 @@ const FixedHostHelper = (
 );
 
 const FixedHosts = ({
+  teamId,
   teamMembers,
   value,
   onChange,
@@ -103,6 +109,7 @@ const FixedHosts = ({
   setAssignAllTeamMembers,
   isRoundRobinEvent = false,
 }: {
+  teamId: number;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
@@ -127,6 +134,7 @@ const FixedHosts = ({
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -143,8 +151,8 @@ const FixedHosts = ({
                     return {
                       isFixed: true,
                       userId: parseInt(teamMember.value, 10),
-                      priority: 2,
-                      weight: 100,
+                      priority: host?.priority ?? 2,
+                      weight: host?.weight ?? 100,
                       // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
@@ -157,6 +165,7 @@ const FixedHosts = ({
         </>
       ) : (
         <SettingsToggle
+          data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
           description={FixedHostHelper}
@@ -175,6 +184,8 @@ const FixedHosts = ({
           childrenClassName="lg:ml-0">
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
+              data-testid="fixed-hosts-select"
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -191,8 +202,8 @@ const FixedHosts = ({
                     return {
                       isFixed: true,
                       userId: parseInt(teamMember.value, 10),
-                      priority: 2,
-                      weight: 100,
+                      priority: host?.priority ?? 2,
+                      weight: host?.weight ?? 100,
                       // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
@@ -209,22 +220,26 @@ const FixedHosts = ({
 };
 
 const RoundRobinHosts = ({
+  orgId,
   teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  teamId,
 }: {
+  orgId: number | null;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  teamId: number;
 }) => {
   const { t } = useLocale();
 
   const { setValue, getValues, control } = useFormContext<FormValues>();
-
+  const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
     name: "isRRWeightsEnabled",
@@ -237,7 +252,7 @@ const RoundRobinHosts = ({
         <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && (
+        {!assignAllTeamMembers && !assignRRMembersUsingSegment && (
           <Controller<FormValues>
             name="isRRWeightsEnabled"
             render={({ field: { value, onChange } }) => (
@@ -257,11 +272,13 @@ const RoundRobinHosts = ({
           />
         )}
         <AddMembersWithSwitch
+          teamId={teamId}
           teamMembers={teamMembers}
           value={value}
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
+          isSegmentApplicable={!!orgId}
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
@@ -275,8 +292,8 @@ const RoundRobinHosts = ({
                 return {
                   isFixed: false,
                   userId: parseInt(teamMember.value, 10),
-                  priority: 2,
-                  weight: 100,
+                  priority: host?.priority ?? 2,
+                  weight: host?.weight ?? 100,
                   // if host was already added, retain scheduleId
                   scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                 };
@@ -325,10 +342,14 @@ const ChildrenEventTypes = ({
 };
 
 const Hosts = ({
+  orgId,
+  teamId,
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
 }: {
+  orgId: number | null;
+  teamId: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
@@ -384,6 +405,7 @@ const Hosts = ({
         const schedulingTypeRender = {
           COLLECTIVE: (
             <FixedHosts
+              teamId={teamId}
               teamMembers={teamMembers}
               value={value}
               onChange={(changeValue) => {
@@ -396,6 +418,7 @@ const Hosts = ({
           ROUND_ROBIN: (
             <>
               <FixedHosts
+                teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -406,6 +429,8 @@ const Hosts = ({
                 isRoundRobinEvent={true}
               />
               <RoundRobinHosts
+                orgId={orgId}
+                teamId={teamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -425,7 +450,12 @@ const Hosts = ({
   );
 };
 
-export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTeamAssignmentTabBaseProps) => {
+export const EventTeamAssignmentTab = ({
+  team,
+  teamMembers,
+  eventType,
+  orgId,
+}: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -467,6 +497,12 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
     getValues("assignAllTeamMembers") ?? false
   );
 
+  const resetRROptions = () => {
+    setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
+    setValue("assignAllTeamMembers", false, { shouldDirty: true });
+    setAssignAllTeamMembers(false);
+  };
+
   return (
     <div>
       {team && !isManagedEventType && (
@@ -489,8 +525,7 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
                     className="w-full"
                     onChange={(val) => {
                       onChange(val?.value);
-                      setValue("assignAllTeamMembers", false, { shouldDirty: true });
-                      setAssignAllTeamMembers(false);
+                      resetRROptions();
                     }}
                   />
                 )}
@@ -536,6 +571,8 @@ export const EventTeamAssignmentTab = ({ team, teamMembers, eventType }: EventTe
             </div>
           </div>
           <Hosts
+            orgId={orgId}
+            teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}

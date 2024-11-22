@@ -96,7 +96,8 @@ export const generateHeaderFromReactTable = (table: Table<UserTableUser>): strin
 export const generateCsvRawForMembersTable = (
   headers: string[],
   rows: UserTableUser[],
-  ATTRIBUTE_IDS: string[]
+  ATTRIBUTE_IDS: string[],
+  orgDomain: string
 ): string => {
   if (!headers.length) {
     throw new Error("The header is empty.");
@@ -126,7 +127,7 @@ export const generateCsvRawForMembersTable = (
 
     const requiredColumns = [
       email, // Members column
-      `${window.location.origin}/${username}`, // Link column
+      `${orgDomain}/${username}`, // Link column
       role, // Role column
       sanitizeValue(teams.map((team) => team.name).join(",")), // Teams column
     ];
