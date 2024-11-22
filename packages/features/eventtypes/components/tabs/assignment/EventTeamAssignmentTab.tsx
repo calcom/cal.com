@@ -311,7 +311,6 @@ const RoundRobinHosts = ({
               }),
               { shouldDirty: true }
             );
-            setValue("isRRWeightsEnabled", false);
           }}
         />
       </div>
