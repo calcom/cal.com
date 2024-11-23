@@ -63,6 +63,7 @@ export const useEventTypeForm = ({
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
+      instantMeetingParameters: eventType.instantMeetingParameters || [],
       instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
@@ -112,6 +113,8 @@ export const useEventTypeForm = ({
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
+      rrSegmentQueryValue: eventType.rrSegmentQueryValue,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
         enabled: eventType.aiPhoneCallConfig?.enabled,

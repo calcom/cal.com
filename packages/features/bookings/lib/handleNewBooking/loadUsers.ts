@@ -2,7 +2,11 @@ import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getRoutedUsersWithContactOwnerAndFixedUsers } from "@calcom/lib/bookings/getRoutedUsers";
+import {
+  getRoutedUsersWithContactOwnerAndFixedUsers,
+  findMatchingHostsWithEventSegment,
+  getNormalizedHosts,
+} from "@calcom/lib/bookings/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -14,7 +18,17 @@ import type { NewBookingEventType } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
-type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
+type EventType = Pick<
+  NewBookingEventType,
+  | "hosts"
+  | "users"
+  | "id"
+  | "schedulingType"
+  | "team"
+  | "assignAllTeamMembers"
+  | "assignRRMembersUsingSegment"
+  | "rrSegmentQueryValue"
+>;
 
 export const loadUsers = async ({
   eventType,
@@ -34,6 +48,7 @@ export const loadUsers = async ({
     const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
+
     return getRoutedUsersWithContactOwnerAndFixedUsers({ users, routedTeamMemberIds, contactOwnerEmail });
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
@@ -45,20 +60,20 @@ export const loadUsers = async ({
 };
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
-  const hosts = eventType.hosts || [];
-  const users = hosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
+  const { hosts, fallbackHosts } = getNormalizedHosts({
+    eventType: { ...eventType, hosts: eventType.hosts.filter(Boolean) },
+  });
+  const matchingHosts = await findMatchingHostsWithEventSegment({
+    eventType,
+    normalizedHosts: hosts ?? fallbackHosts,
+  });
+  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
     ...user,
     isFixed,
     priority,
     weight,
     createdAt,
   }));
-  return users.length
-    ? users
-    : eventType.users.map((user) => ({
-        ...user,
-        createdAt: null,
-      }));
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
