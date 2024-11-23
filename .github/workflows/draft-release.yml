@@ -23,14 +23,14 @@ jobs:
         with:
           fetch-depth: 0
           ref: 'main'
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Configure git
         run: |
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
 
-      - uses: threeal/setup-yarn-action@v2.0.0
+      - uses: ./.github/actions/yarn-install
 
       - name: Bump version
         run: |
