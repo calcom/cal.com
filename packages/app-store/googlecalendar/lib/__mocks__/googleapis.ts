@@ -1,5 +1,4 @@
 import { beforeEach, vi } from "vitest";
-import { mockReset } from "vitest-mock-extended";
 
 vi.mock("googleapis", () => googleapisMock);
 vi.mock("google-auth-library", () => ({
@@ -10,7 +9,10 @@ vi.mock("google-auth-library", () => ({
 vi.mock("@googleapis/admin", () => adminMock);
 
 beforeEach(() => {
-  mockReset(googleapisMock);
+  vi.clearAllMocks();
+  setCredentialsMock.mockClear();
+  googleapisMock.calendar_v3.Calendar.mockClear();
+  adminMock.admin_directory_v1.Admin.mockClear();
 });
 const setCredentialsMock = vi.fn();
 
