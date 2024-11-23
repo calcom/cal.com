@@ -286,9 +286,10 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   ) {
     // Sendgrid to schedule emails
     // Can only schedule at least 60 minutes and at most 72 hours in advance
+    // To limit the amount of canceled sends we schedule at most 2 hours in advance
     if (
       currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-      !scheduledDate.isAfter(currentDate.add(72, "hour"))
+      !scheduledDate.isAfter(currentDate.add(2, "hour"))
     ) {
       try {
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
@@ -327,8 +328,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       } catch (error) {
         log.error(`Error scheduling email with error ${error}`);
       }
-    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
-      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
+    } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
+      // Write to DB and send to CRON if scheduled reminder date is past 2 hours
       if (!isMandatoryReminder) {
         await prisma.workflowReminder.create({
           data: {

@@ -26,6 +26,7 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   "teamMembers" | "team" | "eventType"
 > & {
   orgId: number | null;
+  isSegmentApplicable: boolean;
 };
 
 export const mapMemberToChildrenOption = (
@@ -227,6 +228,7 @@ const RoundRobinHosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   teamId,
+  isSegmentApplicable,
 }: {
   orgId: number | null;
   value: Host[];
@@ -235,6 +237,7 @@ const RoundRobinHosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   teamId: number;
+  isSegmentApplicable: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -278,7 +281,7 @@ const RoundRobinHosts = ({
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          isSegmentApplicable={!!orgId}
+          isSegmentApplicable={isSegmentApplicable}
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
@@ -347,12 +350,14 @@ const Hosts = ({
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  isSegmentApplicable,
 }: {
   orgId: number | null;
   teamId: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  isSegmentApplicable: boolean;
 }) => {
   const {
     control,
@@ -439,6 +444,7 @@ const Hosts = ({
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
+                isSegmentApplicable={isSegmentApplicable}
               />
             </>
           ),
@@ -455,6 +461,7 @@ export const EventTeamAssignmentTab = ({
   teamMembers,
   eventType,
   orgId,
+  isSegmentApplicable,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -572,6 +579,7 @@ export const EventTeamAssignmentTab = ({
           </div>
           <Hosts
             orgId={orgId}
+            isSegmentApplicable={isSegmentApplicable}
             teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
