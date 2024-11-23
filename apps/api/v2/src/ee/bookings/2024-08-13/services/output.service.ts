@@ -4,12 +4,14 @@ import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { bookingMetadataSchema } from "@calcom/platform-libraries";
 import {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  ReassignBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
 } from "@calcom/platform-types";
@@ -48,7 +50,20 @@ type DatabaseBooking = Booking & {
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
   }[];
-} & { user: { id: number; name: string | null; email: string } | null };
+  user: { id: number; name: string | null; email: string } | null;
+  createdAt: Date;
+};
+
+type BookingWithUser = Booking & { user: { id: number; name: string | null; email: string } | null };
+
+const bookingUserMetadataSchema = bookingMetadataSchema.transform((data) => {
+  if (data === null) return {};
+  // note(Lauris): return only user defined metadata
+  const { videoCallUrl, ...rest } = data;
+  return rest;
+});
+
+const seatedBookingMetadataSchema = z.object({}).catchall(z.string());
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
@@ -60,6 +75,7 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
 
     const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
+    const metadata = bookingUserMetadataSchema.parse(databaseBooking.metadata);
 
     const booking = {
       id: databaseBooking.id,
@@ -89,11 +105,13 @@ export class OutputBookingsService_2024_08_13 {
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
+      createdAt: databaseBooking.createdAt,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
-    // note(Lauris): I don't know why plainToClass erases bookings responses so attaching manually
+    // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
     bookingTransformed.bookingFieldsResponses = bookingResponses;
+    bookingTransformed.metadata = metadata;
     return bookingTransformed;
   }
 
@@ -118,6 +136,7 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
 
     const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
+    const metadata = bookingUserMetadataSchema.parse(databaseBooking.metadata);
 
     const booking = {
       id: databaseBooking.id,
@@ -149,9 +168,16 @@ export class OutputBookingsService_2024_08_13 {
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
       bookingFieldsResponses: databaseBooking.responses,
+      createdAt: databaseBooking.createdAt,
     };
 
-    return plainToClass(RecurringBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+    const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
+      strategy: "excludeAll",
+    });
+    // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
+    bookingTransformed.bookingFieldsResponses = bookingResponses;
+    bookingTransformed.metadata = metadata;
+    return bookingTransformed;
   }
 
   getOutputCreateSeatedBooking(
@@ -186,6 +212,7 @@ export class OutputBookingsService_2024_08_13 {
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
+      createdAt: databaseBooking.createdAt,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -205,6 +232,7 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
 
@@ -230,14 +258,14 @@ export class OutputBookingsService_2024_08_13 {
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  async getOutputCreateRecurringSeatedBookings(bookings: { id: number; seatUid: string }[]) {
+  async getOutputCreateRecurringSeatedBookings(bookings: { uid: string; seatUid: string }[]) {
     const transformed = [];
 
     for (const booking of bookings) {
       const databaseBooking =
-        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(booking.id);
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
-        throw new Error(`Booking with id=${booking.id} was not found in the database`);
+        throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
       transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
     }
@@ -279,6 +307,7 @@ export class OutputBookingsService_2024_08_13 {
       meetingUrl: databaseBooking.location,
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
+      createdAt: databaseBooking.createdAt,
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {
@@ -300,12 +329,25 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
-
       return attendeeParsed;
     });
 
     return parsed;
+  }
+
+  getOutputReassignedBooking(
+    databaseBooking: Pick<BookingWithUser, "uid" | "user">
+  ): ReassignBookingOutput_2024_08_13 {
+    return {
+      bookingUid: databaseBooking.uid,
+      reassignedTo: {
+        id: databaseBooking?.user?.id || 0,
+        name: databaseBooking?.user?.name || "unknown",
+        email: databaseBooking?.user?.email || "unknown",
+      },
+    };
   }
 }
