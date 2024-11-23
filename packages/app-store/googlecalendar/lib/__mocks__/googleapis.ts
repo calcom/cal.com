@@ -1,50 +1,47 @@
-import type * as googleapis from "googleapis";
 import { beforeEach, vi } from "vitest";
-import { mockDeep, mockReset } from "vitest-mock-extended";
+import { mockReset } from "vitest-mock-extended";
 
 vi.mock("googleapis", () => googleapisMock);
 
 beforeEach(() => {
   mockReset(googleapisMock);
 });
-
-const googleapisMock = mockDeep<typeof googleapis>({
-  fallbackMockImplementation: (...args) => {
-    console.log(args);
-    throw new Error("Unimplemented");
-  },
-});
-
 const setCredentialsMock = vi.fn();
-googleapisMock.google = {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  calendar: vi.fn().mockReturnValue({
-    channels: {
-      stop: vi.fn().mockResolvedValue(undefined),
-    },
-    events: {
-      watch: vi.fn().mockResolvedValue({
-        data: {
-          kind: "api#channel",
-          id: "mock-channel-id",
-          resourceId: "mock-resource-id",
-          resourceUri: "mock-resource-uri",
-          expiration: "1111111111",
-        },
-      }),
-    },
-  }),
-  auth: {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    OAuth2: function MockGoogleOAuth2() {
-      return {
-        setCredentials: setCredentialsMock,
-      };
-    },
+
+const calendarMock = {
+  channels: {
+    stop: vi.fn().mockResolvedValue(undefined),
+  },
+  events: {
+    watch: vi.fn().mockResolvedValue({
+      data: {
+        kind: "api#channel",
+        id: "mock-channel-id",
+        resourceId: "mock-resource-id",
+        resourceUri: "mock-resource-uri",
+        expiration: "1111111111",
+      },
+    }),
   },
 };
+
+const googleapisMock = {
+  calendar_v3: {
+    Calendar: vi.fn().mockImplementation(() => calendarMock),
+  },
+  oauth2_v2: {
+    Oauth2: vi.fn(),
+  },
+  admin_directory_v1: {
+    Admin: vi.fn(),
+  },
+};
+
+vi.mock("google-auth-library", () => ({
+  OAuth2Client: vi.fn().mockImplementation(() => ({
+    setCredentials: setCredentialsMock,
+  })),
+}));
 
 export default googleapisMock;
 export { googleapisMock, setCredentialsMock };
