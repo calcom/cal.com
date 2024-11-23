@@ -12,3 +12,5 @@ export * from "./availability";
 export { EventTypeWebWrapper as EventType } from "./event-types/wrappers/EventTypeWebWrapper";
 export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
 export { Shell } from "./src/components/ui/shell";
+export { AddMembersWithSwitchWebWrapper } from "./add-members-switch/AddMembersWithSwitchWebWrapper";
+export { AddMembersWithSwitchPlatformWrapper } from "./add-members-switch/AddMembersWithSwitchPlatformWrapper";
