@@ -8,7 +8,7 @@ export default async function createOAuthUrl({
   redirectUri,
   credentialId,
 }: {
-  clientId: string;
+  clientId: string | null;
   redirectUri: string;
   credentialId: number;
 }) {

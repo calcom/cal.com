@@ -28,7 +28,13 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
-  const { client_id: clientId, client_secret: clientSecret } = await getAdyenKeys();
+  let clientId, clientSecret;
+  try {
+    ({ client_id: clientId, client_secret: clientSecret } = await getAdyenKeys());
+  } catch (err) {
+    clientId = null;
+    clientSecret = null;
+  }
 
   const props: IAdyenSetupProps = {
     merchantAccountId: null,

@@ -17,8 +17,8 @@ import { adyenCredentialKeysSchema } from "../../lib/types";
 
 export interface IAdyenSetupProps {
   merchantAccountId: string | null;
-  clientId: string;
-  clientSecret: string;
+  clientId: string | null;
+  clientSecret: string | null;
 }
 
 const isErrorWithMessage = (error: unknown): error is { message: string } => {
@@ -31,7 +31,12 @@ export default function AdyenSetup(props: IAdyenSetupProps) {
   const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "adyen" });
   const [adyenPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = adyenPaymentAppCredentials?.userCredentialIds || [-1];
-  const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
+  const showContent =
+    !!integrations.data &&
+    integrations.isSuccess &&
+    !!credentialId &&
+    !!props.clientId &&
+    !!props.clientSecret;
   const [error, setError] = useState<string | null>(null);
   const [newKeyGenerated, setNewKeyGenerated] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
