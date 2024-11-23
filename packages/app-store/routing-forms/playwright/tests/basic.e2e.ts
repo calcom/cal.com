@@ -325,14 +325,15 @@ test.describe("Routing Forms", () => {
         // TODO: Find a way to incorporate Routed To and Booked At into the report
         // @see https://github.com/calcom/cal.com/pull/17229
         "Routed To",
+        "Assignment Reason",
         "Booked At",
         "Submitted At",
       ]);
       /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
