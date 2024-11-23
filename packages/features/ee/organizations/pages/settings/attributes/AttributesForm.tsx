@@ -87,7 +87,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           <SelectField
             label="Type"
             options={AttributeTypeOptions}
-            onChange={(option) => {
+            onChange={(option: (typeof AttributeTypeOptions)[0]) => {
               if (!option) return;
               onChange(option.value);
             }}

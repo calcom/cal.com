@@ -1,4 +1,5 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
@@ -15,10 +16,7 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await renderEmail("AttendeeRequestEmail", {
-        calEvent: this.calEvent,
-        attendee: this.attendee,
-      }),
+      html: await this.getHtmlRequestEmail(this.calEvent, this.attendee),
       text: this.getTextBody(
         this.calEvent.attendees[0].language.translate("booking_submitted", {
           name: this.calEvent.attendees[0].name,
@@ -28,5 +26,12 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
         })
       ),
     };
+  }
+
+  async getHtmlRequestEmail(calEvent: CalendarEvent, attendee: Person) {
+    return await renderEmail("AttendeeRequestEmail", {
+      calEvent,
+      attendee,
+    });
   }
 }

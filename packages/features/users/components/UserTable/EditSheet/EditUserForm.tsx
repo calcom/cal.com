@@ -332,16 +332,26 @@ function AttributesList(props: { selectedUserId: number }) {
                       label={attr.name}
                       options={getOptionsByAttributeId(attr.id)}
                       value={attr.type === "MULTI_SELECT" ? field.value?.options : field.value?.options[0]}
-                      onChange={(value) => {
+                      onChange={(
+                        value: { value: string; label: string } | { value: string; label: string }[]
+                      ) => {
                         if (attr.type === "MULTI_SELECT") {
                           field.onChange({
                             id: attr.id,
-                            options: value.map((v: any) => ({ label: v.label, value: v.value })),
+                            options: (value as { value: string; label: string }[]).map((v: any) => ({
+                              label: v.label,
+                              value: v.value,
+                            })),
                           });
                         } else {
                           field.onChange({
                             id: attr.id,
-                            options: [{ label: value.label, value: value.value }],
+                            options: [
+                              {
+                                label: (value as { value: string; label: string }).label,
+                                value: (value as { value: string; label: string }).value,
+                              },
+                            ],
                           });
                         }
                       }}

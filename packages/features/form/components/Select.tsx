@@ -1,6 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
-import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
+import type {
+  CommonProps,
+  GroupBase,
+  OnChangeValue,
+  Props,
+  InputProps,
+  SingleValue,
+  MultiValue,
+} from "react-select";
 import ReactSelect, { components } from "react-select";
+import type { ClassNamesState, Theme } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -85,7 +94,7 @@ function Select<
 
   return (
     <ReactSelect
-      theme={(theme) => ({
+      theme={(theme: Theme) => ({
         ...theme,
         borderRadius: 6,
         colors: {
@@ -102,7 +111,7 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
+        option: (provided: CommonProps<Option, IsMulti, Group>, state: ClassNamesState) => ({
           ...provided,
           color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {
@@ -161,7 +170,7 @@ export function SelectWithValidation<
       <Select
         value={value}
         {...remainingProps}
-        onChange={(value, ...remainingArgs) => {
+        onChange={(value: OnChangeValue<Option, isMulti>, ...remainingArgs: unknown[]) => {
           setHiddenInputValue(value);
           if (onChange) {
             onChange(value, ...remainingArgs);

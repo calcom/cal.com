@@ -459,7 +459,10 @@ function FieldEditDialog({
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
-    defaultValues: dialog.data || {},
+    defaultValues: {
+      type: "text",
+      ...dialog.data,
+    },
     resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");

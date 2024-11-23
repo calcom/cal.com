@@ -187,7 +187,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       value={reasonList.find((reason) => reason.value === value)}
                       placeholder={t("ooo_select_reason")}
                       options={reasonList}
-                      onChange={(selectedOption) => {
+                      onChange={(selectedOption: (typeof reasonList)[0]) => {
                         if (selectedOption?.value) {
                           onChange(selectedOption.value);
                         }

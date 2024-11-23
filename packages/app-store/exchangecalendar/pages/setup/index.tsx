@@ -149,13 +149,10 @@ export default function ExchangeSetup() {
                               label={t("exchange_version")}
                               options={exchangeVersions}
                               defaultValue={exchangeVersion2016}
-                              onChange={(version: (typeof authenticationMethods)[0]) => {
+                              onChange={(version: { value: ExchangeVersion; label: string }) => {
                                 onChange(version?.value);
                                 if (version) {
-                                  form.setValue(
-                                    "exchangeVersion",
-                                    version.value as unknown as ExchangeVersion
-                                  );
+                                  form.setValue("exchangeVersion", version.value);
                                 }
                               }}
                             />

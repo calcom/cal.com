@@ -24,7 +24,7 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
     };
   }
 
-  protected async getHtml(calEvent: CalendarEvent, attendee: Person) {
+  async getHtml(calEvent: CalendarEvent, attendee: Person) {
     return await renderEmail("AttendeeCancelledEmail", {
       calEvent,
       attendee,

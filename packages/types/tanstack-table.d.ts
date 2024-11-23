@@ -6,5 +6,6 @@ declare module "@tanstack/table-core" {
       position: "left" | "right";
       gap?: number;
     };
+    filterType?: "select" | "text";
   }
 }

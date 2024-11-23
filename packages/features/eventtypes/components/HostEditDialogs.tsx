@@ -78,7 +78,7 @@ export const PriorityDialog = (props: IDialog) => {
         </div>
 
         <DialogFooter>
-          <DialogClose />
+          <DialogClose onClick={() => setNewPriority(undefined)} />
           <Button onClick={setPriority}>{t("confirm")}</Button>
         </DialogFooter>
       </DialogContent>
@@ -123,25 +123,26 @@ export const WeightDialog = (props: IDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
   const { getValues } = useFormContext<FormValues>();
-  const [newWeight, setNewWeight] = useState<number>(100);
+  const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    const hosts: Host[] = getValues("hosts");
-    const updatedHosts = hosts
-      .filter((host) => !host.isFixed)
-      .map((host) => {
-        return {
-          ...option,
-          value: host.userId.toString(),
-          priority: host.priority,
-          weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
-          isFixed: false,
-        };
-      });
+    if (!!newWeight) {
+      const hosts: Host[] = getValues("hosts");
+      const updatedHosts = hosts
+        .filter((host) => !host.isFixed)
+        .map((host) => {
+          return {
+            ...option,
+            value: host.userId.toString(),
+            priority: host.priority,
+            weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
+            isFixed: false,
+          };
+        });
 
-    const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
-
-    onChange(sortedHosts);
+      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
+      onChange(sortedHosts);
+    }
     setIsOpenDialog(false);
   };
 
@@ -156,6 +157,7 @@ export const WeightDialog = (props: IDialog) => {
               min={0}
               label={t("Weight")}
               value={newWeight}
+              defaultValue={option.weight ?? 100}
               type="number"
               onChange={(e) => setNewWeight(parseInt(e.target.value))}
               addOnSuffix={<>%</>}
@@ -163,7 +165,7 @@ export const WeightDialog = (props: IDialog) => {
           </div>
         </div>
         <DialogFooter>
-          <DialogClose />
+          <DialogClose onClick={() => setNewWeight(undefined)} />
           <Button onClick={setWeight}>{t("confirm")}</Button>
         </DialogFooter>
       </DialogContent>
