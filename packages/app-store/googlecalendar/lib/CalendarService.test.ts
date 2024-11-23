@@ -22,7 +22,7 @@ vi.mock("./getGoogleAppKeys", () => ({
     redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
   }),
 }));
-googleapisMock.google;
+googleapisMock;
 
 const googleTestCredentialKey = {
   scope: "https://www.googleapis.com/auth/calendar.events",

@@ -2,6 +2,12 @@ import { beforeEach, vi } from "vitest";
 import { mockReset } from "vitest-mock-extended";
 
 vi.mock("googleapis", () => googleapisMock);
+vi.mock("google-auth-library", () => ({
+  OAuth2Client: vi.fn().mockImplementation(() => ({
+    setCredentials: setCredentialsMock,
+  })),
+}));
+vi.mock("@googleapis/admin", () => adminMock);
 
 beforeEach(() => {
   mockReset(googleapisMock);
@@ -29,19 +35,12 @@ const googleapisMock = {
   calendar_v3: {
     Calendar: vi.fn().mockImplementation(() => calendarMock),
   },
-  oauth2_v2: {
-    Oauth2: vi.fn(),
-  },
+};
+const adminMock = {
   admin_directory_v1: {
     Admin: vi.fn(),
   },
 };
-
-vi.mock("google-auth-library", () => ({
-  OAuth2Client: vi.fn().mockImplementation(() => ({
-    setCredentials: setCredentialsMock,
-  })),
-}));
 
 export default googleapisMock;
 export { googleapisMock, setCredentialsMock };
