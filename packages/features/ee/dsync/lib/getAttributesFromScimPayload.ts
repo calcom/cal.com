@@ -5,12 +5,17 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 
 const log = logger.getSubLogger({ prefix: ["getAttributesFromScimPayload"] });
 
-function getAttributesFromScimPayload(event: DirectorySyncEvent) {
-  const customAttributes: Record<string, string> = {};
+type ScimUserAttributeName = string;
+type ScimUserAttributeValue = string;
+
+function getAttributesFromScimPayload(
+  event: DirectorySyncEvent
+): Record<ScimUserAttributeName, ScimUserAttributeValue> {
+  const scimUserAttributes: Record<ScimUserAttributeName, ScimUserAttributeValue> = {};
 
   if (event.event !== "user.created" && event.event !== "user.updated") {
-    log.error("getCustomAttributes", `Unsupported event: ${event.event}`);
-    return customAttributes;
+    log.error("getAttributesFromScimPayload", `Unsupported event: ${event.event}`);
+    return scimUserAttributes;
   }
 
   const raw = event.data.raw;
@@ -20,23 +25,29 @@ function getAttributesFromScimPayload(event: DirectorySyncEvent) {
     }
     const namespaceName = schema;
     if (typeof namespaceName !== "string") {
-      log.error("getCustomAttributes", `Namespace name is not a string ${safeStringify(namespaceName)}`);
+      log.error(
+        "getAttributesFromScimPayload",
+        `Namespace name is not a string ${safeStringify(namespaceName)}`
+      );
       return;
     }
     const namespaceData = raw[namespaceName];
     if (!namespaceData) {
-      log.warn("getCustomAttributes", `Namespace data for ${namespaceName} is null. Ignoring it.`);
+      log.warn("getAttributesFromScimPayload", `Namespace data for ${namespaceName} is null. Ignoring it.`);
       return;
     }
 
     Object.entries(namespaceData).forEach(([customAttributeName, value]) => {
       if (!value) {
-        log.warn("getCustomAttributes", `Custom attribute ${customAttributeName} is null. Ignoring it.`);
+        log.warn(
+          "getAttributesFromScimPayload",
+          `Custom attribute ${customAttributeName} is null. Ignoring it.`
+        );
         return;
       }
-      if (customAttributes[customAttributeName]) {
+      if (scimUserAttributes[customAttributeName]) {
         log.warn(
-          "getCustomAttributes",
+          "getAttributesFromScimPayload",
           `Custom attribute ${customAttributeName} already exists. Might be coming from different namespace. Ignoring it.`
         );
         return;
@@ -44,12 +55,12 @@ function getAttributesFromScimPayload(event: DirectorySyncEvent) {
 
       // FIXME: Support array of strings
       if (typeof value === "string") {
-        customAttributes[customAttributeName] = value;
+        scimUserAttributes[customAttributeName] = value;
       }
     });
   });
 
-  return customAttributes;
+  return scimUserAttributes;
 }
 
 export default getAttributesFromScimPayload;

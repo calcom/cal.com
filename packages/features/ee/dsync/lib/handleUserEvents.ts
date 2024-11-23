@@ -1,7 +1,7 @@
 import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
-import { setAttributeOptions } from "@calcom/lib/entities/Attribute";
+import { attribute } from "@calcom/lib/entity/attribute";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -110,10 +110,10 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   }
 
   const customAttributes = getAttributesFromScimPayload(event);
-  const { numOfAttributeOptionsSet } = await setAttributeOptions({
+  const { numOfAttributeOptionsSet } = await attribute.setValueForUser({
     orgId: org.id,
     userId: updatedUser.id,
-    attributeLabelToOptionLabelMap: customAttributes,
+    attributeLabelToValueMap: customAttributes,
   });
 
   log.debug("handleUserEvents", `Number of attribute options set: ${numOfAttributeOptionsSet}`);

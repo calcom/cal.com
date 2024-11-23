@@ -24,8 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { method, query, body } = req;
 
   const [directoryId, path, resourceId] = query.directory as string[];
-  const groups = await dsyncController.groups.getAll({ directoryId });
-  console.log("groups", JSON.stringify(groups, null, 2));
 
   let responseBody: object | undefined = undefined;
   if (body) {
@@ -53,12 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { status, data } = await dsyncController.requests.handle(request, handleEvents);
 
-  log.debug("handler", {
+  log.debug("SCIM Request Response", {
     status,
     data,
-    body,
-    responseBody,
-    reqQuery: req.query,
   });
 
   res.status(status).json(data);

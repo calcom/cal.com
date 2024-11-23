@@ -31,6 +31,7 @@ export const isSAMLAdmin = (email: string) => {
 export const canAccess = async (user: { id: number; email: string }, teamId: number | null) => {
   const { id: userId, email } = user;
 
+  console.log("isSAMLLoginEnabled", isSAMLLoginEnabled);
   if (!isSAMLLoginEnabled) {
     return {
       message: "To enable this feature, add value for `SAML_DATABASE_URL` and `SAML_ADMINS` to your `.env`",
