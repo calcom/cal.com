@@ -33,7 +33,7 @@ const DateOverrideList = ({
   hour12: boolean;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  handleAvailabilityUpdate: VoidFunction;
+  handleAvailabilityUpdate?: VoidFunction;
 }) => {
   const { t, i18n } = useLocale();
 
