@@ -10,7 +10,8 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
+import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
@@ -78,7 +79,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
 
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirectUri);
+    const oAuth2Client = new OAuth2Client(client_id, client_secret, redirectUri);
     return oAuth2Client;
   }
 
@@ -134,8 +135,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     oAuth2Client.setCredentials(key);
 
-    const calendar = google.calendar({
-      version: "v3",
+    const calendar = new calendar_v3.Calendar({
       auth: oAuth2Client,
     });
 

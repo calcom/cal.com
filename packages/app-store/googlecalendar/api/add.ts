@@ -1,4 +1,4 @@
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
@@ -12,7 +12,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Google Calendar API
   const { client_id, client_secret } = await getGoogleAppKeys();
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+  const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);
 
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: "offline",

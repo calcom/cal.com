@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
-import type { calendar_v3 } from "googleapis";
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
+import { calendar_v3 } from "googleapis";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
@@ -164,8 +164,7 @@ export default class GoogleCalendarService implements Calendar {
 
   public authedCalendar = async () => {
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
-    const calendar = google.calendar({
-      version: "v3",
+    const calendar = new calendar_v3.Calendar({
       auth: myGoogleAuth,
     });
     return calendar;
@@ -717,7 +716,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 }
 
-class MyGoogleAuth extends google.auth.OAuth2 {
+class MyGoogleAuth extends OAuth2Client {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
     super(client_id, client_secret, redirect_uri);
   }

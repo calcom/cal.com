@@ -1,4 +1,5 @@
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
+import { calendar_v3 } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
@@ -40,7 +41,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+  const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
@@ -67,8 +68,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     oAuth2Client.setCredentials(key);
 
-    const calendar = google.calendar({
-      version: "v3",
+    const calendar = new calendar_v3.Calendar({
       auth: oAuth2Client,
     });
 
