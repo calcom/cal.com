@@ -1,5 +1,5 @@
+import { admin_directory_v1 } from "@googleapis/admin";
 import { OAuth2Client } from "google-auth-library";
-import { admin_directory_v1 } from "googleapis";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -56,7 +56,7 @@ export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
 
   // Create a new instance of the Admin SDK directory API
   const directory = new admin_directory_v1.Admin({
-    auth: oAuth2Client,
+    auth: oAuth2Client as any,
   });
   const { data } = await directory.users.list({
     maxResults: 200, // Up this if we ever need to get more than 200 users
