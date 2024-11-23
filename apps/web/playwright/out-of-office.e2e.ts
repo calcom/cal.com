@@ -267,11 +267,40 @@ test.describe("Out of office", () => {
 
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toHaveCount(2);
   });
+
+  test("User cannot create duplicate entries", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    // add another entry
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page, 409);
+  });
 });
 
-async function saveAndWaitForResponse(page: Page) {
+async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
   await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
+    expectedStatusCode,
   });
 }
 
