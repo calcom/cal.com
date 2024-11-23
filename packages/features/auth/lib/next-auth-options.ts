@@ -1,6 +1,7 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
+import { calendar_v3 } from "googleapis";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -654,10 +655,9 @@ export const getOptions = ({
             });
           }
 
-          const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+          const oAuth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
           oAuth2Client.setCredentials(credentialkey);
-          const calendar = google.calendar({
-            version: "v3",
+          const calendar = new calendar_v3.Calendar({
             auth: oAuth2Client,
           });
           const primaryCal = await GoogleService.getPrimaryCalendar(calendar);
