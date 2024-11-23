@@ -202,7 +202,6 @@ export default function Success(props: PageProps) {
   };
 
   function setIsCancellationMode(value: boolean) {
-    // Convert ReadonlyURLSearchParams to URLSearchParams
     const _searchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
 
     if (value) {
