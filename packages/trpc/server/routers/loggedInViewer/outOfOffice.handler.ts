@@ -38,11 +38,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
   }
 
-  // If start date is before to today throw error
-  if (inputStartTime.isBefore(dayjs().startOf("day").subtract(1, "day"))) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
-  }
-
   let toUserId: number | null = null;
 
   if (input.toTeamUserId) {
@@ -71,51 +66,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       throw new TRPCError({ code: "NOT_FOUND", message: "user_not_found" });
     }
     toUserId = user?.id;
-  }
-
-  // Validate if OOO entry for these dates already exists
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          uuid: {
-            not: input.uuid ?? "",
-          },
-        },
-        {
-          OR: [
-            {
-              start: {
-                lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
-              },
-              end: {
-                gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
-              },
-            },
-            {
-              //existing start is within the new input range
-              start: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-            {
-              //existing end is within the new input range
-              end: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  // don't allow overlapping entries
-  if (outOfOfficeEntry) {
-    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
   }
 
   if (!input.reasonId) {
@@ -155,8 +105,21 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
+
   const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
   const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
+
+  const isDuplicateOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
+    where: {
+      userId: ctx.user.id,
+      start: startTimeUtc,
+      end: endTimeUtc,
+    },
+  });
+
+  if (isDuplicateOutOfOfficeEntry) {
+    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
+  }
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
