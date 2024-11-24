@@ -10,12 +10,13 @@ import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayl
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TOutOfOfficeDelete, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
-import { WebhookTriggerEvents } from ".prisma/client";
+import { isAdminForUser } from "./outOfOffice.utils";
+import { type TOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 
 type TBookingRedirect = {
   ctx: {
@@ -32,6 +33,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const inputStartTime = dayjs(startDate).startOf("day");
   const inputEndTime = dayjs(endDate).endOf("day");
+  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
+  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
 
   // If start date is after end date throw error
   if (inputStartTime.isAfter(inputEndTime)) {
@@ -43,19 +46,46 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 
+  let oooUserId = ctx.user.id;
+  let oooUserName = ctx.user.username;
+  let oooUserEmail = ctx.user.email;
+  let oooUserTimeZone = ctx.user.timeZone;
+  let oooUserOrgId = ctx.user.organizationId;
+  let oooUserFullName = ctx.user.name;
+
+  let isAdmin;
+  if (!!input.forUserId) {
+    isAdmin = await isAdminForUser(ctx.user.id, input.forUserId);
+    if (!isAdmin) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "only_admin_can_create_ooo" });
+    }
+    oooUserId = input.forUserId;
+    const oooForUser = await prisma.user.findUnique({
+      where: { id: input.forUserId },
+      select: { username: true, email: true, timeZone: true, organizationId: true, name: true },
+    });
+    if (oooForUser) {
+      oooUserEmail = oooForUser.email;
+      oooUserName = oooForUser.username;
+      oooUserFullName = oooForUser.name;
+      oooUserTimeZone = oooForUser.timeZone;
+      oooUserOrgId = oooForUser.organizationId;
+    }
+  }
+
   let toUserId: number | null = null;
 
   if (input.toTeamUserId) {
     const user = await prisma.user.findUnique({
       where: {
         id: input.toTeamUserId,
-        /** You can only create OOO for members of teams you belong to */
+        /** You can only redirect OOO for members of teams you belong to */
         teams: {
           some: {
             team: {
               members: {
                 some: {
-                  userId: ctx.user.id,
+                  userId: oooUserId,
                   accepted: true,
                 },
               },
@@ -68,7 +98,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       },
     });
     if (!user) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "user_not_found" });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: input.forUserId ? "forward_to_team_member_only" : "user_not_found",
+      });
     }
     toUserId = user?.id;
   }
@@ -77,7 +110,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
     where: {
       AND: [
-        { userId: ctx.user.id },
+        { userId: oooUserId },
         {
           uuid: {
             not: input.uuid ?? "",
@@ -87,24 +120,24 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           OR: [
             {
               start: {
-                lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
+                lte: new Date(endTimeUtc), //existing start is less than or equal to input end time
               },
               end: {
-                gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
+                gte: new Date(startTimeUtc), //existing end is greater than or equal to input start time
               },
             },
             {
               //existing start is within the new input range
               start: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
+                gt: new Date(startTimeUtc),
+                lt: new Date(endTimeUtc),
               },
             },
             {
               //existing end is within the new input range
               end: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
+                gt: new Date(startTimeUtc),
+                lt: new Date(endTimeUtc),
               },
             },
           ],
@@ -130,22 +163,16 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
     where: {
       ...(toUserId && { userId: toUserId }),
-      toUserId: ctx.user.id,
+      toUserId: oooUserId,
       // Check for time overlap or collision
       OR: [
         // Outside of range
         {
-          AND: [
-            { start: { lte: inputEndTime.toISOString() } },
-            { end: { gte: inputStartTime.toISOString() } },
-          ],
+          AND: [{ start: { lte: new Date(endTimeUtc) } }, { end: { gte: new Date(startTimeUtc) } }],
         },
         // Inside of range
         {
-          AND: [
-            { start: { gte: inputStartTime.toISOString() } },
-            { end: { lte: inputEndTime.toISOString() } },
-          ],
+          AND: [{ start: { gte: new Date(startTimeUtc) } }, { end: { lte: new Date(endTimeUtc) } }],
         },
       ],
     },
@@ -153,10 +180,13 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   // don't allow infinite redirects
   if (existingOutOfOfficeEntry) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: input.forUserId
+        ? "ooo_team_redirect_infinite_not_allowed"
+        : "booking_redirect_infinite_not_allowed",
+    });
   }
-  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
-  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
@@ -184,7 +214,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc,
       end: endTimeUtc,
       notes: input.notes,
-      userId: ctx.user.id,
+      userId: oooUserId,
       reasonId: input.reasonId,
       toUserId: toUserId,
       createdAt: new Date(),
@@ -194,7 +224,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc,
       end: endTimeUtc,
       notes: input.notes,
-      userId: ctx.user.id,
+      userId: oooUserId,
       reasonId: input.reasonId,
       toUserId: toUserId ? toUserId : null,
     },
@@ -248,14 +278,18 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       },
     });
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
-    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.start);
-    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.end);
+    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(
+      new Date(createdOrUpdatedOutOfOffice.start)
+    );
+    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(
+      new Date(createdOrUpdatedOutOfOffice.end)
+    );
 
     const existingFormattedStartDate = previousOutOfOfficeEntry
-      ? new Intl.DateTimeFormat("en-US").format(previousOutOfOfficeEntry.start)
+      ? new Intl.DateTimeFormat("en-US").format(new Date(previousOutOfOfficeEntry.start))
       : "";
     const existingFormattedEndDate = previousOutOfOfficeEntry
-      ? new Intl.DateTimeFormat("en-US").format(previousOutOfOfficeEntry.end)
+      ? new Intl.DateTimeFormat("en-US").format(new Date(previousOutOfOfficeEntry.end))
       : "";
 
     const existingRedirectedUser = previousOutOfOfficeEntry?.toUser
@@ -266,8 +300,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     if (existingRedirectedUser && existingRedirectedUser?.email !== userToNotify?.email) {
       await sendBookingRedirectNotification({
         language: t,
-        fromEmail: ctx.user.email,
-        eventOwner: ctx.user.username || ctx.user.email,
+        fromEmail: oooUserEmail,
+        eventOwner: oooUserName || oooUserEmail,
         toEmail: existingRedirectedUser.email,
         toName: existingRedirectedUser.username || "",
         dates: `${existingFormattedStartDate} - ${existingFormattedEndDate}`,
@@ -284,8 +318,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       ) {
         await sendBookingRedirectNotification({
           language: t,
-          fromEmail: ctx.user.email,
-          eventOwner: ctx.user.username || ctx.user.email,
+          fromEmail: oooUserEmail,
+          eventOwner: oooUserName || oooUserEmail,
           toEmail: userToNotify.email,
           toName: userToNotify.username || "",
           oldDates: `${existingFormattedStartDate} - ${existingFormattedEndDate}`,
@@ -299,8 +333,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       ) {
         await sendBookingRedirectNotification({
           language: t,
-          fromEmail: ctx.user.email,
-          eventOwner: ctx.user.username || ctx.user.email,
+          fromEmail: oooUserEmail,
+          eventOwner: oooUserName || oooUserEmail,
           toEmail: userToNotify.email,
           toName: userToNotify.username || "",
           dates: `${formattedStartDate} - ${formattedEndDate}`,
@@ -312,7 +346,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const memberships = await prisma.membership.findMany({
     where: {
-      userId: ctx.user.id,
+      userId: oooUserId,
       accepted: true,
     },
   });
@@ -321,9 +355,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   // Send webhook to notify other services
   const subscriberOptions: GetSubscriberOptions = {
-    userId: ctx.user.id,
+    userId: oooUserId,
     teamId: teamIds,
-    orgId: ctx.user.organizationId,
+    orgId: oooUserOrgId,
     triggerEvent: WebhookTriggerEvents.OOO_CREATED,
   };
 
@@ -333,9 +367,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     oooEntry: {
       id: createdOrUpdatedOutOfOffice.id,
       start: dayjs(createdOrUpdatedOutOfOffice.start)
-        .tz(ctx.user.timeZone, true)
+        .tz(oooUserTimeZone, true)
         .format("YYYY-MM-DDTHH:mm:ssZ"),
-      end: dayjs(createdOrUpdatedOutOfOffice.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      end: dayjs(createdOrUpdatedOutOfOffice.end).tz(oooUserTimeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
       createdAt: createdOrUpdatedOutOfOffice.createdAt.toISOString(),
       updatedAt: createdOrUpdatedOutOfOffice.updatedAt.toISOString(),
       notes: createdOrUpdatedOutOfOffice.notes,
@@ -345,11 +379,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       },
       reasonId: input.reasonId,
       user: {
-        id: ctx.user.id,
-        name: ctx.user.name,
-        username: ctx.user.username,
-        email: ctx.user.email,
-        timeZone: ctx.user.timeZone,
+        id: oooUserId,
+        name: oooUserFullName,
+        username: oooUserName,
+        email: oooUserEmail,
+        timeZone: oooUserTimeZone,
       },
       toUser: toUserId
         ? {
@@ -381,98 +415,4 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   );
 
   return {};
-};
-
-type TBookingRedirectDelete = {
-  ctx: {
-    user: NonNullable<TrpcSessionUser>;
-  };
-  input: TOutOfOfficeDelete;
-};
-
-export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDelete) => {
-  if (!input.outOfOfficeUid) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "out_of_office_id_required" });
-  }
-
-  const deletedOutOfOfficeEntry = await prisma.outOfOfficeEntry.delete({
-    where: {
-      uuid: input.outOfOfficeUid,
-      /** Validate outOfOfficeEntry belongs to the user deleting it */
-      userId: ctx.user.id,
-    },
-    select: {
-      start: true,
-      end: true,
-      toUser: {
-        select: {
-          email: true,
-          username: true,
-        },
-      },
-    },
-  });
-
-  if (!deletedOutOfOfficeEntry) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
-  }
-
-  // Return early if no redirect user is set, and no email needs to be send.
-  if (!deletedOutOfOfficeEntry.toUser) {
-    return {};
-  }
-
-  const t = await getTranslation(ctx.user.locale ?? "en", "common");
-
-  const formattedStartDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.start);
-  const formattedEndDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.end);
-
-  await sendBookingRedirectNotification({
-    language: t,
-    fromEmail: ctx.user.email,
-    eventOwner: ctx.user.username || ctx.user.email,
-    toEmail: deletedOutOfOfficeEntry.toUser.email,
-    toName: deletedOutOfOfficeEntry.toUser.username || "",
-    dates: `${formattedStartDate} - ${formattedEndDate}`,
-    action: "cancel",
-  });
-
-  return {};
-};
-
-export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable<TrpcSessionUser> } }) => {
-  const outOfOfficeEntries = await prisma.outOfOfficeEntry.findMany({
-    where: {
-      userId: ctx.user.id,
-      end: {
-        gte: new Date().toISOString(),
-      },
-    },
-    orderBy: {
-      start: "asc",
-    },
-    select: {
-      id: true,
-      uuid: true,
-      start: true,
-      end: true,
-      toUserId: true,
-      toUser: {
-        select: {
-          username: true,
-        },
-      },
-      reason: {
-        select: {
-          id: true,
-          emoji: true,
-          reason: true,
-          userId: true,
-        },
-      },
-      notes: true,
-    },
-  });
-
-  return outOfOfficeEntries;
 };

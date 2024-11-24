@@ -19,6 +19,7 @@ export interface DataTableProps<TData, TValue> {
   variant?: "default" | "compact";
   "data-testid"?: string;
   children?: React.ReactNode;
+  hideHeader?: boolean;
 }
 export function DataTable<TData, TValue>({
   table,
@@ -28,6 +29,7 @@ export function DataTable<TData, TValue>({
   onRowMouseclick,
   onScroll,
   children,
+  hideHeader,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
@@ -73,45 +75,47 @@ export function DataTable<TData, TValue>({
         className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
         style={{ gridArea: "body" }}>
         <TableNew className="border-0">
-          <TableHeader className="bg-subtle sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                        ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
-                      }}
-                      className={classNames(
-                        header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky top-0 z-20"
-                      )}>
-                      <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getIsSorted() && (
-                          <Icon
-                            name="arrow-up"
-                            className="ml-2 h-4 w-4"
-                            style={{
-                              transform:
-                                header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                              transition: "transform 0.2s ease-in-out",
-                            }}
-                          />
-                        )}
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
+          {!hideHeader && (
+            <TableHeader className="bg-subtle sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const meta = header.column.columnDef.meta;
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                          ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                          width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                        }}
+                        className={classNames(
+                          header.column.getCanSort() ? "cursor-pointer select-none" : "",
+                          meta?.sticky && "bg-subtle sticky top-0 z-20"
+                        )}>
+                        <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getIsSorted() && (
+                            <Icon
+                              name="arrow-up"
+                              className="ml-2 h-4 w-4"
+                              style={{
+                                transform:
+                                  header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                                transition: "transform 0.2s ease-in-out",
+                              }}
+                            />
+                          )}
+                        </div>
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+          )}
           <TableBody>
             {paddingTop > 0 && (
               <tr>

@@ -572,7 +572,7 @@ if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   Cal.ns.columnViewHideEventTypeDetails("ui", {
     hideEventTypeDetails: true,
   });
-  
+
   Cal.ns.columnViewHideEventTypeDetails("on", {
     action: "*",
     callback,
