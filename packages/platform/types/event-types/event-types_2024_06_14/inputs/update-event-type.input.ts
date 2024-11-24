@@ -5,7 +5,17 @@ import {
   ApiExtraModels,
 } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
-import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
+import {
+  IsString,
+  IsInt,
+  IsBoolean,
+  IsOptional,
+  Min,
+  ValidateNested,
+  IsArray,
+  ArrayNotEmpty,
+  ArrayUnique,
+} from "class-validator";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
@@ -98,6 +108,19 @@ export class UpdateEventTypeInput_2024_06_14 {
   @Min(1)
   @DocsPropertyOptional({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions?: number[];
 
   @IsOptional()
   @IsString()

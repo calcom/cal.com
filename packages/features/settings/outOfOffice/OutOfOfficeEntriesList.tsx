@@ -7,23 +7,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOfficeEntriesList.schema";
-import {
-  Avatar,
-  Button,
-  DataTable,
-  DataTableToolbar,
-  EmptyScreen,
-  Icon,
-  showToast,
-  SkeletonText,
-  ToggleGroup,
-  Tooltip,
-} from "@calcom/ui";
+import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, ToggleGroup, Tooltip } from "@calcom/ui";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
@@ -197,13 +187,14 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
+                        const offset = dayjs().utcOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: item.start,
-                            endDate: dayjs(item.end).subtract(1, "d").toDate(),
+                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
                           },
-                          offset: dayjs().utcOffset(),
+                          offset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,

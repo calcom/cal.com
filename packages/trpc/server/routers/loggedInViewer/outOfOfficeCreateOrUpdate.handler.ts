@@ -33,8 +33,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const inputStartTime = dayjs(startDate).startOf("day");
   const inputEndTime = dayjs(endDate).endOf("day");
-  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
-  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
+  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
+  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
 
   // If start date is after end date throw error
   if (inputStartTime.isAfter(inputEndTime)) {
@@ -120,24 +120,24 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           OR: [
             {
               start: {
-                lte: endDateUtc.toDate(), //existing start is less than or equal to input end time
+                lte: new Date(endTimeUtc), //existing start is less than or equal to input end time
               },
               end: {
-                gte: startDateUtc.toDate(), //existing end is greater than or equal to input start time
+                gte: new Date(startTimeUtc), //existing end is greater than or equal to input start time
               },
             },
             {
               //existing start is within the new input range
               start: {
-                gt: startDateUtc.toDate(),
-                lt: endDateUtc.toDate(),
+                gt: new Date(startTimeUtc),
+                lt: new Date(endTimeUtc),
               },
             },
             {
               //existing end is within the new input range
               end: {
-                gt: startDateUtc.toDate(),
-                lt: endDateUtc.toDate(),
+                gt: new Date(startTimeUtc),
+                lt: new Date(endTimeUtc),
               },
             },
           ],
@@ -168,11 +168,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       OR: [
         // Outside of range
         {
-          AND: [{ start: { lte: endDateUtc.toDate() } }, { end: { gte: startDateUtc.toDate() } }],
+          AND: [{ start: { lte: new Date(endTimeUtc) } }, { end: { gte: new Date(startTimeUtc) } }],
         },
         // Inside of range
         {
-          AND: [{ start: { gte: startDateUtc.toDate() } }, { end: { lte: endDateUtc.toDate() } }],
+          AND: [{ start: { gte: new Date(startTimeUtc) } }, { end: { lte: new Date(endTimeUtc) } }],
         },
       ],
     },
@@ -211,8 +211,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
     create: {
       uuid: uuidv4(),
-      start: startDateUtc.startOf("day").toISOString(),
-      end: endDateUtc.endOf("day").toISOString(),
+      start: startTimeUtc,
+      end: endTimeUtc,
       notes: input.notes,
       userId: oooUserId,
       reasonId: input.reasonId,
@@ -221,8 +221,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       updatedAt: new Date(),
     },
     update: {
-      start: startDateUtc.startOf("day").toISOString(),
-      end: endDateUtc.endOf("day").toISOString(),
+      start: startTimeUtc,
+      end: endTimeUtc,
       notes: input.notes,
       userId: oooUserId,
       reasonId: input.reasonId,

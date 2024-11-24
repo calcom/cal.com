@@ -18,17 +18,20 @@ export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 >;
-export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean }) => {
+export const EventSetupTab = (
+  props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean; orgId?: number }
+) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding, orgId } = props;
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
   const [firstRender, setFirstRender] = useState(true);
 
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
 
   const multipleDurationOptions = [
     5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
@@ -94,6 +97,17 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
                 />
               </>
             )}
+          </div>
+          <div className="[&_label]:my-1 [&_label]:font-normal">
+            <SettingsToggle
+              title={t("translate_description_button")}
+              checked={!!autoTranslateDescriptionEnabled}
+              onCheckedChange={(value) => {
+                formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
+              }}
+              disabled={!orgId}
+              tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+            />
           </div>
           <TextField
             required

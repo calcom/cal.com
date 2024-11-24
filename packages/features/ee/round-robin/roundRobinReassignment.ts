@@ -21,7 +21,6 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
-import { DistributionMethod } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -38,9 +37,11 @@ import { getTeamMembers } from "./utils/getTeamMembers";
 export const roundRobinReassignment = async ({
   bookingId,
   orgId,
+  emailsEnabled = true,
 }: {
   bookingId: number;
   orgId: number | null;
+  emailsEnabled?: boolean;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -126,13 +127,11 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+  const reassignedRRHost = await getLuckyUser({
     availableUsers,
-    eventType: {
-      id: eventType.id,
-      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
-    },
-    allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
+    eventType,
+    allRRHosts: eventType.hosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
+    routingFormResponse: null,
   });
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
@@ -324,18 +323,20 @@ export const roundRobinReassignment = async ({
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmailsAndSMS({
-    calEvent: evtWithoutCancellationReason,
-    members: [
-      {
-        ...reassignedRRHost,
-        name: reassignedRRHost.name || "",
-        username: reassignedRRHost.username || "",
-        timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
-        language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
-      },
-    ],
-  });
+  if (emailsEnabled) {
+    await sendRoundRobinScheduledEmailsAndSMS({
+      calEvent: evtWithoutCancellationReason,
+      members: [
+        {
+          ...reassignedRRHost,
+          name: reassignedRRHost.name || "",
+          username: reassignedRRHost.username || "",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
+          language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
+        },
+      ],
+    });
+  }
 
   if (previousRRHost) {
     // Send to cancelled RR host
@@ -368,20 +369,22 @@ export const roundRobinReassignment = async ({
       });
     }
 
-    await sendRoundRobinCancelledEmailsAndSMS(
-      cancelledRRHostEvt,
-      [
-        {
-          ...previousRRHost,
-          name: previousRRHost.name || "",
-          username: previousRRHost.username || "",
-          timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-          language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-        },
-      ],
-      eventType?.metadata as EventTypeMetadata,
-      { name: reassignedRRHost.name, email: reassignedRRHost.email }
-    );
+    if (emailsEnabled) {
+      await sendRoundRobinCancelledEmailsAndSMS(
+        cancelledRRHostEvt,
+        [
+          {
+            ...previousRRHost,
+            name: previousRRHost.name || "",
+            username: previousRRHost.username || "",
+            timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+            language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+          },
+        ],
+        eventType?.metadata as EventTypeMetadata,
+        { name: reassignedRRHost.name, email: reassignedRRHost.email }
+      );
+    }
   }
 
   // Handle changing workflows with organizer
