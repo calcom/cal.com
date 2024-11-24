@@ -202,16 +202,48 @@ export class SchedulesRepository_2024_06_11 {
   }
 
   async getSchedulesByUserId(userId: number) {
-    const schedules = await this.dbRead.prisma.schedule.findMany({
+    const user = await this.dbRead.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        organizationId: true,
+        locked: true,
+        profiles: {
+          select: {
+            organizationId: true,
+          },
+        },
+      },
+    });
+
+    if (!user || user.locked) {
+      return [];
+    }
+
+    // Get all organizations this user belongs to through profiles
+    const organizationIds = [
+      ...(user.organizationId ? [user.organizationId] : []),
+      ...user.profiles.map((p) => p.organizationId),
+    ];
+
+    return this.dbRead.prisma.schedule.findMany({
       where: {
         userId,
+        user: {
+          OR: [
+            // User must belong to the same organization
+            { organizationId: { in: organizationIds } },
+            // Or have a profile in the same organization
+            { profiles: { some: { organizationId: { in: organizationIds } } } },
+          ],
+          // Don't return schedules for locked users
+          locked: false,
+        },
       },
       include: {
         availability: true,
       },
     });
-
-    return schedules;
   }
 
   async deleteScheduleById(scheduleId: number) {
