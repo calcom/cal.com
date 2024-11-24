@@ -6,6 +6,8 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -29,6 +31,15 @@ import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
+export type eventTypeCustomClassNames = {
+  atomsWrapper?: string;
+  eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
+};
+
+export type EventTypeCustomClassNames = {
+  atomsWrapper?: string;
+  eventRecurringTab?: EventRecurringTabCustomClassNames;
+};
 
 export type EventTypePlatformWrapperProps = {
   id: number;
@@ -38,9 +49,8 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: {
-    atomsWrapper?: string;
-  };
+  customClassNames?: eventTypeCustomClassNames;
+  customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -154,6 +164,7 @@ const EventType = ({
         isTeamEvent={!!team}
         user={user?.data}
         teamId={team?.id}
+        customClassNames={customClassNames?.eventAvailabilityTab}
       />
     ) : (
       <></>
@@ -178,7 +189,10 @@ const EventType = ({
     limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
-      <EventRecurringTabPlatformWrapper eventType={eventType} />
+      <EventRecurringTabPlatformWrapper
+        eventType={eventType}
+        customClassNames={customClassNames?.eventRecurringTab}
+      />
     ) : (
       <></>
     ),

@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
+import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
@@ -34,6 +35,11 @@ import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
+
+// We don't need to test it. Also, it causes Formbricks error when imported
+vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+  default: {},
+}));
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
