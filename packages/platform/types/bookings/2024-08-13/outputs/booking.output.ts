@@ -9,6 +9,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsEmail,
   IsTimeZone,
   IsUrl,
   ValidateNested,
@@ -56,6 +57,16 @@ export class SeatedAttendee extends Attendee {
   @IsObject()
   @Expose()
   bookingFieldsResponses!: Record<string, unknown>;
+
+  @ApiProperty({
+    type: Object,
+    example: { key: "value" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  metadata?: Record<string, string>;
 }
 
 class Host {
@@ -188,6 +199,21 @@ class BaseBookingOutput_2024_08_13 {
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  createdAt!: string;
+
+  @ApiProperty({
+    type: Object,
+    example: { key: "value" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  metadata?: Record<string, string>;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
@@ -290,4 +316,34 @@ export class CreateRecurringSeatedBookingOutput_2024_08_13 extends BaseBookingOu
   @IsString()
   @Expose()
   recurringBookingUid!: string;
+}
+
+class ReassignedToDto {
+  @ApiProperty({ type: Number, example: 123 })
+  @IsInt()
+  @Expose()
+  id!: number;
+
+  @ApiProperty({ type: String, example: "John Doe" })
+  @IsString()
+  @Expose()
+  name!: string;
+
+  @ApiProperty({ type: String, example: "john.doe@example.com" })
+  @IsEmail()
+  @Expose()
+  email!: string;
+}
+
+export class ReassignBookingOutput_2024_08_13 {
+  @ApiProperty({ type: String, example: "booking_uid_123" })
+  @IsString()
+  @Expose()
+  bookingUid!: string;
+
+  @ApiProperty({ type: ReassignedToDto })
+  @ValidateNested()
+  @Type(() => ReassignedToDto)
+  @Expose()
+  reassignedTo!: ReassignedToDto;
 }

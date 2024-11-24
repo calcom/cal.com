@@ -12,18 +12,19 @@ import generateIcsFile from "../lib/generateIcsFile";
 import { GenerateIcsRole } from "../lib/generateIcsFile";
 import BaseEmail from "./_base-email";
 
+export type Reassigned = { name: string | null; email: string; reason?: string; byUser?: string };
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
   newSeat?: boolean;
   teamMember?: Person;
-  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+  reassigned?: Reassigned;
 
   constructor(input: {
     calEvent: CalendarEvent;
     newSeat?: boolean;
     teamMember?: Person;
-    reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+    reassigned?: Reassigned;
   }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
@@ -48,15 +49,31 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
       subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
-      html: await renderEmail("OrganizerScheduledEmail", {
-        calEvent: clonedCalEvent,
-        attendee: this.calEvent.organizer,
-        teamMember: this.teamMember,
-        newSeat: this.newSeat,
-        reassigned: this.reassigned,
-      }),
+      html: await this.getHtml(
+        clonedCalEvent,
+        this.calEvent.organizer,
+        this.teamMember,
+        this.newSeat,
+        this.reassigned
+      ),
       text: this.getTextBody(),
     };
+  }
+
+  async getHtml(
+    calEvent: CalendarEvent,
+    attendee: Person,
+    teamMember?: Person,
+    newSeat?: boolean,
+    reassigned?: Reassigned
+  ) {
+    return await renderEmail("OrganizerScheduledEmail", {
+      calEvent,
+      attendee,
+      teamMember,
+      newSeat,
+      reassigned,
+    });
   }
 
   protected getTextBody(

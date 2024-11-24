@@ -42,7 +42,6 @@ const organizationSelect = {
   name: true,
   metadata: true,
   logoUrl: true,
-  calVideoLogo: true,
   bannerUrl: true,
   isPlatform: true,
 };
@@ -363,7 +362,6 @@ export class ProfileRepository {
         },
         organization: {
           select: {
-            calVideoLogo: true,
             id: true,
             logoUrl: true,
             name: true,
@@ -378,7 +376,13 @@ export class ProfileRepository {
               },
             },
             members: {
+              distinct: ["role"],
               select: membershipSelect,
+              where: {
+                accepted: true,
+                // Filter out memberships that are not owned by the user
+                user: { profiles: { some: { id } } },
+              },
             },
           },
         },
