@@ -89,6 +89,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
     "@calcom/web/lib/getTeamMemberEmailFromCrm"
   );
+  const {
+    email: teamMemberEmail,
+    recordType: crmOwnerRecordType,
+    crmAppSlug,
+  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+    query,
+    eventData,
+  });
+
   return {
     props: {
       eventData: {
@@ -112,10 +121,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query,
-        eventData,
-      }),
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
     },
   };
 };
