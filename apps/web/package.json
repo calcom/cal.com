@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.7.10",
+  "version": "4.7.11",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -64,7 +64,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@replexica/sdk": "^0.6.0",
+    "@replexica/sdk": "^0.7.0",
     "@sentry/nextjs": "^8.8.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
