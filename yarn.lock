@@ -5016,6 +5016,7 @@ __metadata:
     "@dub/analytics": ^0.0.15
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
+    "@googleapis/admin": ^23.0.0
     "@googleapis/calendar": ^9.7.9
     "@googleapis/oauth2": ^1.0.7
     "@hookform/error-message": ^2.0.0
@@ -6591,6 +6592,15 @@ __metadata:
   dependencies:
     googleapis-common: ^7.0.0
   checksum: 894250d05213a5ca308460a1c0d997f28fa1939504bb66338457ecb9f8e590cc8f66667c8eb4dbf88965362009bb3cec4afb300de2e5ce94589919ee64a87e7f
+  languageName: node
+  linkType: hard
+
+"@googleapis/admin@npm:^23.0.0":
+  version: 23.0.0
+  resolution: "@googleapis/admin@npm:23.0.0"
+  dependencies:
+    googleapis-common: ^7.0.0
+  checksum: 385ec58507646c4ccbee7309cfbfbe3c6dcb8879ed8b8510d95b3877f2b4eb5340472e68dae8402cf90415cc636b9f64c3353faf63ec8d6ac88388a53a26290c
   languageName: node
   linkType: hard
 
