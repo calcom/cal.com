@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
+import type { EventBusyData, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
@@ -13,7 +13,7 @@ const getCalendarsEvents = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
   isOverlayUser?: boolean
-): Promise<EventBusyDate[][]> => {
+): Promise<EventBusyData[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
