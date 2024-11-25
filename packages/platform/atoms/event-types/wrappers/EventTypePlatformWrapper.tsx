@@ -9,6 +9,7 @@ import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialo
 import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
 import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,6 +37,7 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
+  eventLimitsTab?: EventLimitsTabCustomClassNames;
   eventAdvancedTab?: EventAdvancedTabCustomClassNames;
   eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
   eventRecurringTab?: EventRecurringTabCustomClassNames;
@@ -192,7 +194,14 @@ const EventType = ({
       <></>
     ),
     payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
-    limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
+    limits: tabs.includes("limits") ? (
+      <EventLimitsTabPlatformWrapper
+        eventType={eventType}
+        customClassNames={customClassNames?.eventLimitsTab}
+      />
+    ) : (
+      <></>
+    ),
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
       <EventRecurringTabPlatformWrapper
