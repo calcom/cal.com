@@ -1,7 +1,7 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import { oauth2_v2 } from "@googleapis/oauth2";
 import type { Prisma } from "@prisma/client";
-import type { Credentials } from "googleapis-common";
+import type { Credentials } from "google-auth-library";
 import type { OAuth2Client } from "googleapis-common";
 
 import logger from "@calcom/lib/logger";
