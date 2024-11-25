@@ -57,7 +57,7 @@ You need to use access token when managing managed user's:
 2. Event types [API reference](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type)
 3. Bookings - some endpoints like creating a booking is public, but some like getting all managed user's bookings require managed user's access token [API reference](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings)
 
-It is passed as an authorization bearer request header Authorization: Bearer <access-token>.
+It is passed as an authorization bearer request header Authorization: Bearer \<access-token\>.
 
 Validity period: access tokens are valid for 60 minutes and refresh tokens for 1 year, and tokens can be refreshed using the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive the new access and refresh tokens that you have to store in your database.
 
