@@ -5035,7 +5035,7 @@ __metadata:
     "@radix-ui/react-switch": ^1.0.0
     "@radix-ui/react-toggle-group": ^1.0.0
     "@radix-ui/react-tooltip": ^1.0.0
-    "@replexica/sdk": ^0.6.0
+    "@replexica/sdk": ^0.7.0
     "@sentry/nextjs": ^8.8.0
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
@@ -12316,28 +12316,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@replexica/sdk@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@replexica/sdk@npm:0.6.0"
+"@replexica/sdk@npm:^0.7.0":
+  version: 0.7.2
+  resolution: "@replexica/sdk@npm:0.7.2"
   dependencies:
     "@paralleldrive/cuid2": ^2.2.2
-    "@replexica/spec": 0.18.0
+    "@replexica/spec": 0.19.0
     jsdom: ^25.0.1
     typescript: ^5.6.3
     vitest: ^2.1.4
     zod: ^3.23.8
-  checksum: 95a239cf24025a8ea1a03b0720c8a1bd351f73777015fd3a8b74995740fb191c87d157ac04e7b1824f9b5b8f27cef3ce1b7126deb7bf7683b74b8435d3de1238
+  checksum: 5199f4c7721eaefa66f9da062b11d62d79249afaa30098325d3e52550e2ac5fb2c3bdf550e61691e020023f11718a5240d38c8ac54726159e075991150620535
   languageName: node
   linkType: hard
 
-"@replexica/spec@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@replexica/spec@npm:0.18.0"
+"@replexica/spec@npm:0.19.0":
+  version: 0.19.0
+  resolution: "@replexica/spec@npm:0.19.0"
   dependencies:
     typescript: ^5.6.3
     vitest: ^2.1.4
     zod: ^3.23.8
-  checksum: d9afcfd965b804d395436cc6daf9a051142e13658297e45f742a6397699360e8f28d43399c4c31077b250ca965e1733200bf8c63eae328b4960320d2dd6ae5b5
+  checksum: 11114313e42c43ffe5c68e709eb465f4bbd0e24c70fcbdec5e56b4c2a9c4c10b5cd5899c253ffb652b1d66db13015f9ccbcf1d11479e079361c9d6bf8170ebf5
   languageName: node
   linkType: hard
 
