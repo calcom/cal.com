@@ -54,7 +54,7 @@ export class OAuthClientUsersController {
 
   @Get("/")
   @ApiOperation({ summary: "Get all managed users" })
-  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getManagedUsers(
     @Param("clientId") oAuthClientId: string,
     @Query() queryParams: Pagination
