@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
 import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
@@ -35,6 +36,7 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
+  eventAdvancedTab?: EventAdvancedTabCustomClassNames;
   eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
   eventRecurringTab?: EventRecurringTabCustomClassNames;
   eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
@@ -184,6 +186,7 @@ const EventType = ({
         user={user?.data}
         isUserLoading={isUserLoading}
         showToast={showToast}
+        customClassNames={customClassNames?.eventAdvancedTab}
       />
     ) : (
       <></>
