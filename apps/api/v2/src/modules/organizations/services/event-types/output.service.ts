@@ -95,6 +95,7 @@ export class OutputOrganizationsEventTypesService {
       ownerId: userId,
       parentEventTypeId: parentId,
       schedulingType: databaseEventType.schedulingType,
+      bannerUrl: databaseEventType?.team?.bannerUrl,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
     };
   }
