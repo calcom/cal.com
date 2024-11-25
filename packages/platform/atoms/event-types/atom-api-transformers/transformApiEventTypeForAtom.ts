@@ -114,10 +114,6 @@ export function transformApiTeamEventTypeForAtom(
 
   const isDefault = isDefaultEvent(rest.title);
 
-  console.log(eventType, "this is the event type we have");
-
-  hosts.map((host) => console.log(host, host.name));
-
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
