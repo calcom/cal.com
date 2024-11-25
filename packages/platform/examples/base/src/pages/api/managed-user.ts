@@ -143,6 +143,7 @@ async function createTeam(orgId: number, name: string) {
       },
       body: JSON.stringify({
         name,
+        bannerUrl: "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
       }),
     }
   );
