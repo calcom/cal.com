@@ -11,7 +11,7 @@ import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
 import { OAuth2Client } from "google-auth-library";
-import { calendar_v3 } from "googleapis";
+import { calendar_v3 } from "@googleapis/calendar";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";

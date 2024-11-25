@@ -1,5 +1,5 @@
 import { OAuth2Client } from "google-auth-library";
-import { calendar_v3 } from "googleapis";
+import { calendar_v3 } from "@googleapis/calendar";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
