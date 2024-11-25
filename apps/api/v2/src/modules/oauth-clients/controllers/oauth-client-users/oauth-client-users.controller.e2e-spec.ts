@@ -109,18 +109,17 @@ describe("OAuth Client Users Endpoints", () => {
 
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
-      organization = await teamRepositoryFixture.create({ name: "organization" });
+      organization = await teamRepositoryFixture.create({
+        name: "organization",
+        isPlatform: true,
+        isOrganization: true,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       await profilesRepositoryFixture.create({
-        uid: "asd-asd",
+        uid: "asd1qwwqeqw-asddsadasd",
         username: platformAdminEmail,
         organization: { connect: { id: organization.id } },
-        movedFromUser: {
-          connect: {
-            id: platformAdmin.id,
-          },
-        },
         user: {
           connect: { id: platformAdmin.id },
         },
@@ -380,7 +379,7 @@ describe("OAuth Client Users Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
-
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let postResponseData: CreateManagedUserOutput["data"];
 
     const userEmail = "oauth-client-users-user@gmail.com";
@@ -400,10 +399,11 @@ describe("OAuth Client Users Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
         name: "Testy Organization",
         isOrganization: true,
+        isPlatform: true,
       });
 
       owner = await userRepositoryFixture.create({
@@ -425,6 +425,13 @@ describe("OAuth Client Users Endpoints", () => {
             id: owner.id,
           },
         },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: owner.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       oAuthClient1 = await createOAuthClient(organization.id);
