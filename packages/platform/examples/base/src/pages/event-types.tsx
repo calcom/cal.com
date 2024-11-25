@@ -27,8 +27,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
 
-  console.log(teamEventTypes, "these are all the team event types");
-
   return (
     <main
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
