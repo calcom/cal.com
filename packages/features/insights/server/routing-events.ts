@@ -5,7 +5,7 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { type ColumnFilter, type SelectFilterValue, isSelectFilterValue } from "@calcom/features/data-table";
+import { type ColumnFilter } from "@calcom/features/data-table";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -195,9 +195,7 @@ class RoutingEventsInsights {
     });
 
     const bookingStatusFilter = columnFilters.find((filter) => filter.id === "bookingStatus");
-    const fieldFilters = columnFilters.filter(
-      (filter) => filter.id !== "bookingStatus" && isSelectFilterValue(filter.value)
-    ) as Array<{ id: string; value: SelectFilterValue }>;
+    const fieldFilters = columnFilters.filter((filter) => filter.id !== "bookingStatus");
 
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
       ...(startDate &&
@@ -225,20 +223,24 @@ class RoutingEventsInsights {
     };
 
     if (fieldFilters.length > 0) {
-      responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => ({
-        OR: fieldFilter.value.map((value) => ({
-          response: {
-            path: [fieldFilter.id, "value"],
-            array_contains: [value],
-          },
-        })),
-      }));
+      responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => {
+        return makeWhereClause({
+          columnName: "response",
+          filterValue: fieldFilter.value,
+          json: { path: [fieldFilter.id, "value"] },
+        });
+      });
     } else if (fieldFilter) {
       responsesWhereCondition.response = {
         path: [fieldFilter.fieldId, "value"],
         array_contains: [fieldFilter.optionId],
       };
     }
+
+    console.log(
+      "💡 server side222",
+      JSON.stringify({ fieldFilters, bookingStatusFilter, responsesWhereCondition }, null, 2)
+    );
 
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,
@@ -479,6 +481,7 @@ class RoutingEventsInsights {
       return {
         id: f.id,
         label: f.label,
+        type: f.type,
         options: f.options,
       };
     });

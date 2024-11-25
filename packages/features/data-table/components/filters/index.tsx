@@ -23,7 +23,7 @@ import {
 } from "@calcom/ui";
 
 import type { FilterableColumn } from "../../lib/types";
-import { useFiltersFromSearchState, convertToTitleCase } from "../../lib/utils";
+import { convertToTitleCase, useFiltersState } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -128,7 +128,7 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const [state, setState] = useFiltersFromSearchState();
+  const [state, setState] = useFiltersState();
 
   const activeFilters = state.activeFilters;
   const columns = table
@@ -167,7 +167,10 @@ function AddFilterButtonComponent<TData>(
               {filterableColumns.map((column) => {
                 if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
-                  <CommandItem key={column.id} onSelect={() => handleAddFilter(column.id)}>
+                  <CommandItem
+                    key={column.id}
+                    onSelect={() => handleAddFilter(column.id)}
+                    className="px-4 py-2">
                     {convertToTitleCase(column.title)}
                   </CommandItem>
                 );
@@ -190,7 +193,7 @@ interface ActiveFiltersProps<TData> {
 }
 
 function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
-  const [state, setState] = useFiltersFromSearchState();
+  const [state, setState] = useFiltersState();
 
   const columns = table.getAllColumns().filter((column) => column.getCanFilter());
 
@@ -219,6 +222,8 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
             <PopoverTrigger asChild>
               <Button color="secondary">
                 {column.icon && <Icon name={column.icon} className="mr-2 h-4 w-4" />}
+                {!column.icon && column.type === "text" && <Icon name="file-text" className="mr-2 h-4 w-4" />}
+                {!column.icon && column.type === "select" && <Icon name="layers" className="mr-2 h-4 w-4" />}
                 {convertToTitleCase(column.title)}
                 <Icon name="chevron-down" className="ml-2 h-4 w-4" />
               </Button>

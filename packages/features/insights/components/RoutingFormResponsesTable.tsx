@@ -12,14 +12,14 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
-import type { SelectFilterValue } from "@calcom/features/data-table";
+import type { FilterValue } from "@calcom/features/data-table";
 import {
   DataTable,
   DataTableFilters,
   useFetchMoreOnBottomReached,
   useColumnFilters,
-  dataTableFilterFn,
   selectFilter,
+  dataTableFilter,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -240,7 +240,7 @@ export function RoutingFormResponsesTable({
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const { copyToClipboard, isCopied } = useCopy();
+  const { copyToClipboard } = useCopy();
 
   const {
     dateRange,
@@ -340,8 +340,6 @@ export function RoutingFormResponsesTable({
     });
   }, [flatData, headers, isHeadersLoading]);
 
-  console.log("💡 data!", { data, processedData });
-
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
   const columns = useMemo(
@@ -358,24 +356,31 @@ export function RoutingFormResponsesTable({
       }),
 
       ...((headers?.fields || []).map((fieldHeader) => {
+        const isTextOrEmail = fieldHeader.type === "text" || fieldHeader.type === "email";
         return columnHelper.accessor(fieldHeader.id, {
           id: fieldHeader.id,
           header: fieldHeader.label,
           size: 200,
           cell: (info) => {
-            let values = info.getValue();
-            values = Array.isArray(values) ? values : [values];
+            const values = info.getValue();
             return (
               <div className="max-w-[200px]">
-                <ResponseValueCell values={values} rowId={info.row.original.id} />
+                {isTextOrEmail ? (
+                  <span>{values}</span>
+                ) : (
+                  <ResponseValueCell
+                    values={Array.isArray(values) ? values : [values]}
+                    rowId={info.row.original.id}
+                  />
+                )}
               </div>
             );
           },
           meta: {
-            filter: { type: "select", icon: "layers" },
+            filter: isTextOrEmail ? { type: "text" } : { type: "select" },
           },
-          filterFn: (row, id, filterValue: SelectFilterValue) => {
-            return filterValue.some((value) => row.original[id].some((field) => field.value === value));
+          filterFn: (row, id, filterValue: FilterValue) => {
+            return dataTableFilter(row.original[id], filterValue);
           },
         });
       }) ?? []),
@@ -437,9 +442,6 @@ export function RoutingFormResponsesTable({
     },
     state: {
       columnFilters,
-    },
-    filterFns: {
-      dataTableFilterFn,
     },
     getFacetedUniqueValues: (_, columnId) => () => {
       if (!headers) {

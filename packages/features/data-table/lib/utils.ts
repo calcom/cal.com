@@ -1,84 +1,49 @@
 "use client";
 
-import type { Row } from "@tanstack/react-table";
 import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
-import { useMemo, useCallback } from "react";
-import { z, type Schema } from "zod";
+import { useMemo } from "react";
+import { z } from "zod";
 
-import type { SelectFilterValue, TextFilterValue, ColumnFilter } from "./types";
-import { ZSelectFilterValue, ZTextFilterValue } from "./types";
+import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
+import { ZFilterValue } from "./types";
 
-const filterSchema = z.object({
+export const dataTableFiltersSchema = z.object({
   f: z.string(),
-  v: z.union([ZSelectFilterValue, ZTextFilterValue]),
+  v: ZFilterValue,
 });
 
-export function useFiltersFromSearchState() {
+export function useFiltersState() {
   return useQueryStates({
-    activeFilters: parseAsArrayOf(parseAsJson(filterSchema.parse)).withDefault([]),
+    activeFilters: parseAsArrayOf(parseAsJson(dataTableFiltersSchema.parse)).withDefault([]),
   });
 }
 
-export function useFilterFromSearchState(id: string, schema?: Schema) {
-  const [state, setState] = useFiltersFromSearchState();
+export type FiltersSearchState = ReturnType<typeof useFiltersState>[0];
+export type SetFiltersSearchState = ReturnType<typeof useFiltersState>[1];
+export type ActiveFilter = z.infer<typeof dataTableFiltersSchema>;
 
-  const value = useMemo(() => {
-    const filter = (state.activeFilters || []).find((filter) => filter.f === id);
-    if (!schema || !filter?.v) {
-      return filter?.v;
-    } else {
-      const result = schema.safeParse(filter.v);
-      return result.success ? result.data : undefined;
-    }
-  }, [id, state, schema]);
-
-  const setValue = useCallback(
-    (value: z.infer<Schema>) => {
-      let activeFilters = state.activeFilters || [];
-      const filter = activeFilters.find((filter) => filter.f === id);
-      if (filter) {
-        filter.v = value;
-      } else {
-        activeFilters = [
-          ...activeFilters,
-          {
-            f: id,
-            v: value,
-          },
-        ];
-      }
-      setState({ activeFilters });
-    },
-    [id, state, setState]
+export function useColumnFilters() {
+  const [state] = useFiltersState();
+  return useMemo(
+    () =>
+      (state.activeFilters || [])
+        .filter((filter) => typeof filter === "object" && filter && "f" in filter && "v" in filter)
+        .map((filter) => ({
+          id: filter.f,
+          value: filter.v,
+        }))
+        .filter((filter) => {
+          // The empty arrays in `filtersSearchState` keep the filter UI component,
+          // but we do not send them to the actual query.
+          // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
+          if (Array.isArray(filter.value) && filter.value.length === 0) {
+            return false;
+          }
+          return true;
+        }),
+    [state]
   );
-
-  return [value, setValue];
 }
-
-export function useColumnFilters(): ColumnFilter[] {
-  const [filters] = useFiltersFromSearchState();
-  const columnFilters = useMemo(() => {
-    return (filters.activeFilters || [])
-      .map((filter) => ({
-        id: filter.f,
-        value: filter.v,
-      }))
-      .filter((filter) => {
-        // The empty arrays in `filtersSearchState` keep the filter UI component,
-        // but we do not send them to the actual query.
-        // Otherwise, { value: [] } would result in nothing being returned.
-        if (Array.isArray(filter.value) && filter.value.length === 0) {
-          return false;
-        }
-        return true;
-      });
-  }, [filters.activeFilters]);
-  return columnFilters;
-}
-
-export type FiltersSearchState = ReturnType<typeof useFiltersFromSearchState>[0];
-export type SetFiltersSearchState = ReturnType<typeof useFiltersFromSearchState>[1];
-export type ActiveFilter = NonNullable<FiltersSearchState["activeFilters"]>[number];
 
 export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
   switch (filterValue.data.operator) {
@@ -125,15 +90,13 @@ export const isSelectFilterValue = (filterValue: unknown): filterValue is Select
   return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
 };
 
-export const dataTableFilterFn = (row: Row<any>, id: string, filterValue: unknown) => {
-  console.log("💡 dataTableFilterFn", { row, id, filterValue });
+export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
   if (isSelectFilterValue(filterValue)) {
-    return selectFilter(row.original[id], filterValue);
+    return selectFilter(cellValue, filterValue);
   } else if (isTextFilterValue(filterValue)) {
-    return textFilter(row.original[id], filterValue);
-  } else {
-    return false;
+    return textFilter(cellValue, filterValue);
   }
+  return false;
 };
 
 export const convertToTitleCase = (str: string) => {

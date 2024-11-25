@@ -39,12 +39,10 @@ export function MultiSelectFilterOptions({
           const { label: optionLabel, value: optionValue } =
             typeof option === "string" ? { label: option, value: option } : option;
 
-          console.log("💡 optionValue", optionValue);
           return (
             <CommandItem
               key={optionValue}
               onSelect={() => {
-                console.log("💡 TESTTTT", { optionLabel, optionValue, filterValue });
                 const newFilterValue = filterValue?.includes(optionValue)
                   ? filterValue?.filter((value) => value !== optionValue)
                   : [...(filterValue || []), optionValue];
