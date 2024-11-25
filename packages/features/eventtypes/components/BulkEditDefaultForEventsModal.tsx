@@ -10,10 +10,12 @@ export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
 });
 
+export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+
 export function BulkEditDefaultForEventsModal(props: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  bulkUpdateFunction: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
+  bulkUpdateFunction: (params: BulkUpdatParams) => void;
   isPending: boolean;
   description: string;
 }) {
@@ -42,7 +44,10 @@ export function BulkEditDefaultForEventsModal(props: {
         <Form
           form={form}
           handleSubmit={(values) => {
-            props.bulkUpdateFunction(values);
+            props.bulkUpdateFunction({
+              eventTypeIds: values.eventTypeIds,
+              callback: () => props.setOpen(false),
+            });
           }}>
           <div className="flex flex-col space-y-2">
             {data.eventTypes.length > 0 && (

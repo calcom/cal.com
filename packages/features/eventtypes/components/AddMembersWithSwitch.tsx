@@ -9,14 +9,19 @@ import {
   AddMembersWithSwitchPlatformWrapper,
 } from "@calcom/atoms/monorepo";
 import { Segment } from "@calcom/features/Segment";
-import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import type {
+  FormValues,
+  Host,
+  SettingsToggleClassNames,
+  TeamMember,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import CheckedTeamSelect from "./CheckedTeamSelect";
-import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -57,6 +62,7 @@ const CheckedHostField = ({
   onChange,
   helperText,
   isRRWeightsEnabled,
+  customClassNames,
   ...rest
 }: {
   labelText?: string;
@@ -100,6 +106,7 @@ const CheckedHostField = ({
           options={options}
           placeholder={placeholder}
           isRRWeightsEnabled={isRRWeightsEnabled}
+          customClassNames={customClassNames}
           {...rest}
         />
       </div>
@@ -154,6 +161,11 @@ function MembersSegmentWithToggle({
   );
 }
 
+export type AddMembersWithSwitchCustomClassNames = {
+  assingAllTeamMembers?: SettingsToggleClassNames;
+  teamMemberSelect?: CheckedTeamSelectCustomClassNames;
+};
+
 export type AddMembersWithSwitchProps = {
   teamMembers: TeamMember[];
   value: Host[];
@@ -168,6 +180,7 @@ export type AddMembersWithSwitchProps = {
   teamId: number;
   isSegmentApplicable?: boolean;
   "data-testid"?: string;
+  customClassNames?: AddMembersWithSwitchCustomClassNames;
 };
 
 const enum AssignmentState {
@@ -232,6 +245,7 @@ export function AddMembersWithSwitch({
   isRRWeightsEnabled,
   teamId,
   isSegmentApplicable,
+  customClassNames,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -267,6 +281,7 @@ export function AddMembersWithSwitch({
               onActive();
             }}
             onInactive={onAssignAllTeamMembersInactive}
+            customClassNames={customClassNames?.assingAllTeamMembers}
           />
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
@@ -293,6 +308,7 @@ export function AddMembersWithSwitch({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 onActive={onActive}
                 onInactive={onAssignAllTeamMembersInactive}
+                customClassNames={customClassNames?.assingAllTeamMembers}
               />
             )}
           </div>
@@ -306,6 +322,7 @@ export function AddMembersWithSwitch({
               options={teamMembers.sort(sortByLabel)}
               placeholder={placeholder ?? t("add_attendees")}
               isRRWeightsEnabled={isRRWeightsEnabled}
+              customClassNames={customClassNames?.teamMemberSelect}
             />
           </div>
         </>
