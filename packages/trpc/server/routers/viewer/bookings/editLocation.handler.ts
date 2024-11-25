@@ -10,7 +10,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -89,20 +88,6 @@ async function updateBookingLocationInDb({
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
-
-  await BookingRepository.updateLocationById({
-    data: {
-      location: evt.location,
-      metadata: {
-        ...(typeof booking.metadata === "object" && booking.metadata),
-        ...bookingMetadataUpdate,
-      },
-      referencesToCreate,
-    },
-    where: {
-      id: booking.id,
-    },
-  });
 
   await prisma.booking.update({
     where: {
