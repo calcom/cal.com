@@ -1,7 +1,7 @@
 import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn } from "class-validator";
+import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl } from "class-validator";
 
 export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 export type TimeFormat = 12 | 24;
@@ -42,4 +42,12 @@ export class CreateManagedUserInput {
   @IsOptional()
   @ApiProperty({ example: Locales.EN, enum: Locales })
   locale?: Locales;
+
+  @IsUrl()
+  @IsOptional()
+  @ApiProperty({
+    example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+    description: `URL of the user's avatar image`,
+  })
+  avatarUrl?: string;
 }

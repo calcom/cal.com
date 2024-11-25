@@ -2,7 +2,7 @@ import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsIn, IsNumber, IsOptional, IsString, IsTimeZone } from "class-validator";
+import { IsEnum, IsIn, IsNumber, IsOptional, IsString, IsTimeZone, IsUrl } from "class-validator";
 
 export class UpdateManagedUserInput {
   @IsString()
@@ -40,4 +40,12 @@ export class UpdateManagedUserInput {
   @IsOptional()
   @ApiProperty({ example: Locales.EN, enum: Locales })
   locale?: Locales;
+
+  @IsUrl()
+  @IsOptional()
+  @ApiProperty({
+    example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+    description: `URL of the user's avatar image`,
+  })
+  avatarUrl?: string;
 }
