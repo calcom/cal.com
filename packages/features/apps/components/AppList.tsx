@@ -24,7 +24,7 @@ import {
   showToast,
 } from "@calcom/ui";
 
-type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
+export type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
 
 interface AppListProps {
   variant?: AppCategories;

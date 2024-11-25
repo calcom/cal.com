@@ -3,9 +3,11 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
+import type { UpdateDefaultConferencingAppParams } from "@calcom/features/apps/components/AppList";
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
@@ -38,12 +40,49 @@ const IntegrationsContainer = ({
   handleDisconnect,
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
+  const utils = trpc.useUtils();
   const query = trpc.viewer.integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
     includeTeamInstalledApps: true,
   });
+
+  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+
+  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
+
+  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+
+  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+    updateDefaultAppMutation.mutate(
+      { appSlug },
+      {
+        onSuccess: () => {
+          showToast("Default app updated successfully", "success");
+          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          callback();
+        },
+        onError: (error) => {
+          showToast(`Error: ${error.message}`, "error");
+        },
+      }
+    );
+  };
+
+  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
+    updateLocationsMutation.mutate(
+      {
+        eventTypeIds,
+      },
+      {
+        onSuccess: () => {
+          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          callback();
+        },
+      }
+    );
+  };
 
   // TODO: Refactor and reuse getAppCategories?
   const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
@@ -102,7 +141,15 @@ const IntegrationsContainer = ({
               }
             />
 
-            <AppList handleDisconnect={handleDisconnect} data={data} variant={variant} />
+            <AppList
+              handleDisconnect={handleDisconnect}
+              data={data}
+              variant={variant}
+              defaultConferencingApp={defaultConferencingApp}
+              handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+              handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+              isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+            />
           </div>
         );
       }}
