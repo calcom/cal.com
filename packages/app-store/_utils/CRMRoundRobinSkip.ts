@@ -23,7 +23,7 @@ export async function getCRMContactOwnerForRRLeadSkip(
   const contact = await crmManager.getContacts({ emails: bookerEmail, forRoundRobinSkip: true });
   const endTime = performance.now();
   logger.info(`Fetching from CRM took ${endTime - startTime}ms`);
-  if (!contact?.length || !contact[0].email) return nullReturnValue;
+  if (!contact?.length || !contact[0].ownerEmail) return nullReturnValue;
   return { email: contact[0].ownerEmail ?? null, recordType: contact[0].recordType ?? null, crmAppSlug };
 }
 
