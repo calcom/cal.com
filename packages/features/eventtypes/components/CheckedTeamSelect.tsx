@@ -1,3 +1,5 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Props } from "react-select";

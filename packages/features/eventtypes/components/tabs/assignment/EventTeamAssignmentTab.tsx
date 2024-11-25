@@ -43,6 +43,7 @@ export type EventTeamAssignmentTabBaseProps = Pick<
 > & {
   customClassNames?: EventTeamAssignmentTabCustomClassNames;
   orgId: number | null;
+  isSegmentApplicable: boolean;
 };
 
 export const mapMemberToChildrenOption = (
@@ -276,6 +277,7 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   teamId,
+  isSegmentApplicable,
 }: {
   orgId: number | null;
   value: Host[];
@@ -285,6 +287,7 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: RoundRobinHostsCustomClassNames;
   teamId: number;
+  isSegmentApplicable: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -342,7 +345,7 @@ const RoundRobinHosts = ({
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          isSegmentApplicable={!!orgId}
+          isSegmentApplicable={isSegmentApplicable}
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
@@ -435,6 +438,7 @@ const Hosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
+  isSegmentApplicable,
 }: {
   orgId: number | null;
   teamId: number;
@@ -442,6 +446,7 @@ const Hosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
+  isSegmentApplicable: boolean;
 }) => {
   const {
     control,
@@ -531,6 +536,7 @@ const Hosts = ({
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 customClassNames={customClassNames?.roundRobinHosts}
+                isSegmentApplicable={isSegmentApplicable}
               />
             </>
           ),
@@ -548,6 +554,7 @@ export const EventTeamAssignmentTab = ({
   eventType,
   customClassNames,
   orgId,
+  isSegmentApplicable,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -686,6 +693,7 @@ export const EventTeamAssignmentTab = ({
           </div>
           <Hosts
             orgId={orgId}
+            isSegmentApplicable={isSegmentApplicable}
             teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}

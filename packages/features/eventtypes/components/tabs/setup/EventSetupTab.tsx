@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
@@ -19,12 +18,13 @@ export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 >;
-export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean }) => {
+export const EventSetupTab = (
+  props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean; orgId?: number }
+) => {
   const { t } = useLocale();
-  const session = useSession();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding, orgId } = props;
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
@@ -105,8 +105,8 @@ export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; h
               onCheckedChange={(value) => {
                 formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
               }}
-              disabled={!session.data?.user.org?.id}
-              tooltip={!session.data?.user.org?.id ? t("orgs_upgrade_to_enable_feature") : undefined}
+              disabled={!orgId}
+              tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
             />
           </div>
           <TextField
