@@ -2,7 +2,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__/OAuthManager";
 import { adminMock, calendarMock, setCredentialsMock } from "./__mocks__/googleapis";
 
-import { expect, test, vi } from "vitest";
+import { expect, test, beforeEach, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
