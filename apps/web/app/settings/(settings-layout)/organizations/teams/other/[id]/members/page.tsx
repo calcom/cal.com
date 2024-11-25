@@ -15,9 +15,25 @@ const Page = async () => {
   const t = await getFixedT(session?.user.locale || "en");
 
   return (
-    // TODO: Add CTA Button
+    // TODO: Add CTA Button:
+    // CTA={
+    //   isOrgAdminOrOwner ? (
+    //     <Button
+    //       type="button"
+    //       color="primary"
+    //       StartIcon="plus"
+    //       className="ml-auto"
+    //       onClick={() => setShowMemberInvitationModal(true)}
+    //       data-testid="new-member-button">
+    //       {t("add")}
+    //     </Button>
+    //   ) : (
+    //     <></>
+    //   )
+    // }
+
     <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
-      <LegacyPage isAppDir={true} />
+      <LegacyPage />
     </SettingsHeader>
   );
 };

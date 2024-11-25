@@ -16,7 +16,7 @@ const Page = async () => {
 
   return (
     <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <LegacyPage isAppDir={true} />
+      <LegacyPage />
     </SettingsHeader>
   );
 };

@@ -16,7 +16,7 @@ const Page = async () => {
 
   return (
     <SettingsHeader title={t("profile")} description={t("profile_team_description")}>
-      <LegacyPage isAppDir={true} />
+      <LegacyPage />
     </SettingsHeader>
   );
 };

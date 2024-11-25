@@ -19,7 +19,7 @@ const Page = async () => {
       title={t("profile")}
       description={t("profile_org_description")}
       borderInShellHeader={true}>
-      <LegacyPage isAppDir={true} />
+      <LegacyPage />
     </SettingsHeader>
   );
 };

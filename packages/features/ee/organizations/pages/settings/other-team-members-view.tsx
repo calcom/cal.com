@@ -59,7 +59,7 @@ function MembersList(props: MembersListProps) {
   );
 }
 
-const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -135,27 +135,6 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta
-          title={t("team_members")}
-          description={t("members_team_description")}
-          CTA={
-            isOrgAdminOrOwner ? (
-              <Button
-                type="button"
-                color="primary"
-                StartIcon="plus"
-                className="ml-auto"
-                onClick={() => setShowMemberInvitationModal(true)}
-                data-testid="new-member-button">
-                {t("add")}
-              </Button>
-            ) : (
-              <></>
-            )
-          }
-        />
-      ) : null}
       {!isPending && (
         <>
           <div>

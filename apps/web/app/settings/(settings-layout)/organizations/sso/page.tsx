@@ -15,8 +15,8 @@ const Page = async () => {
   const t = await getFixedT(session?.user.locale || "en");
 
   return (
-    <SettingsHeader title={t("profile")} description={t("profile_org_description")}>
-      <OrgSSOView isAppDir={true} />
+    <SettingsHeader title={t("sso_configuration")} description={t("sso_configuration_description_orgs")}>
+      <OrgSSOView />
     </SettingsHeader>
   );
 };
