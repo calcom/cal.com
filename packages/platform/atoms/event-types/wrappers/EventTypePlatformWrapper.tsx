@@ -6,6 +6,10 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
+import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
@@ -35,7 +39,11 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
   eventSetupTab?: EventSetupTabCustomClassNames;
+  eventLimitsTab?: EventLimitsTabCustomClassNames;
+  eventAdvancedTab?: EventAdvancedTabCustomClassNames;
+  eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
   eventRecurringTab?: EventRecurringTabCustomClassNames;
+  eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -46,7 +54,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: EventTypeCustomClassNames;
+  customClassNames?: eventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -161,12 +169,18 @@ const EventType = ({
         isTeamEvent={!!team}
         user={user?.data}
         teamId={team?.id}
+        customClassNames={customClassNames?.eventAvailabilityTab}
       />
     ) : (
       <></>
     ),
     team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper team={team} eventType={eventType} teamMembers={teamMembers} />
+      <EventTeamAssignmentTabPlatformWrapper
+        team={team}
+        eventType={eventType}
+        teamMembers={teamMembers}
+        customClassNames={customClassNames?.eventAssignmentTab}
+      />
     ) : (
       <></>
     ),
@@ -177,12 +191,20 @@ const EventType = ({
         user={user?.data}
         isUserLoading={isUserLoading}
         showToast={showToast}
+        customClassNames={customClassNames?.eventAdvancedTab}
       />
     ) : (
       <></>
     ),
     payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
-    limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
+    limits: tabs.includes("limits") ? (
+      <EventLimitsTabPlatformWrapper
+        eventType={eventType}
+        customClassNames={customClassNames?.eventLimitsTab}
+      />
+    ) : (
+      <></>
+    ),
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
       <EventRecurringTabPlatformWrapper
