@@ -102,7 +102,6 @@ export function transformApiEventTypeForAtom(
       },
     })),
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
-    bannerUrl: eventType.bannerUrl,
   };
 }
 
@@ -114,6 +113,10 @@ export function transformApiTeamEventTypeForAtom(
   const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
+
+  console.log(eventType, "this is the event type we have");
+
+  hosts.map((host) => console.log(host, host.name));
 
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
@@ -172,6 +175,7 @@ export function transformApiTeamEventTypeForAtom(
       },
     })),
     users: hosts.map((host) => ({
+      ...host,
       metadata: undefined,
       bookerUrl: getBookerBaseUrlSync(null),
       profile: {

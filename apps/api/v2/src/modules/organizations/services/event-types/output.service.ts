@@ -132,9 +132,14 @@ export class OutputOrganizationsEventTypesService {
           name: databaseUser?.name || "",
           mandatory: databaseHost.isFixed,
           priority: getPriorityLabel(databaseHost.priority || 2),
+          avatarUrl: databaseUser?.avatarUrl,
         });
       } else {
-        transformedHosts.push({ userId: databaseHost.userId, name: databaseUser?.name || "" });
+        transformedHosts.push({
+          userId: databaseHost.userId,
+          name: databaseUser?.name || "",
+          avatarUrl: databaseUser?.avatarUrl,
+        });
       }
     }
 
