@@ -373,11 +373,6 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsArray()
   @DocsProperty()
   users!: User_2024_06_14[];
-
-  @IsString()
-  @IsOptional()
-  @DocsProperty()
-  bannerUrl?: string;
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
@@ -419,10 +414,8 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
 
-  // @IsObject()
   @IsString()
   @IsOptional()
   @DocsProperty()
-  // team!: { bannerUrl: string };
   bannerUrl?: string;
 }
