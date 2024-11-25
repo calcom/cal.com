@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { AppListCard as AppListCardComponent } from "@calcom/ui";
@@ -35,7 +36,10 @@ export type AppListCardProps = {
 
 const schema = z.object({ hl: z.string().optional() });
 
-export default function AppListCard(props: AppListCardProps) {
+function AppListCardPlatformWrapper(props: AppListCardProps) {
+  return <AppListCardComponent {...props} />;
+}
+function AppListCardWebWrapper(props: AppListCardProps) {
   const { slug, shouldHighlight } = props;
   const {
     data: { hl },
@@ -69,4 +73,9 @@ export default function AppListCard(props: AppListCardProps) {
   }, [highlight, pathname, router, searchParams, shouldHighlight]);
 
   return <AppListCardComponent {...props} />;
+}
+
+export default function AppListCard(props: AppListCardProps) {
+  const isPlatform = useIsPlatform();
+  return isPlatform ? <AppListCardPlatformWrapper {...props} /> : <AppListCardWebWrapper {...props} />;
 }
