@@ -413,4 +413,11 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsBoolean()
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
+
+  // @IsObject()
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  // team!: { bannerUrl: string };
+  bannerUrl?: string;
 }
