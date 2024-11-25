@@ -4,7 +4,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Host, TeamMember } from "../../lib/types";
-import AddMembersWithSwitch from "../AddMembersWithSwitch";
+import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
+import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
 // Mock matchMedia
 vi.mock("@formkit/auto-animate/react", () => ({
@@ -12,7 +13,7 @@ vi.mock("@formkit/auto-animate/react", () => ({
 }));
 
 // Mock Segment component
-vi.mock("@calcom/web/components/Segment", () => ({
+vi.mock("@calcom/features/Segment", () => ({
   Segment: vi.fn().mockImplementation(({ onQueryValueChange }) => (
     <div data-testid="mock-segment">
       <button onClick={() => onQueryValueChange({ queryValue: { id: "test" } })}>Update Query</button>
@@ -60,7 +61,7 @@ const renderComponent = ({
     hosts: [],
   },
 }: {
-  componentProps: Parameters<typeof AddMembersWithSwitch>[0];
+  componentProps: AddMembersWithSwitchProps;
   formDefaultValues?: Record<string, unknown>;
 }) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
