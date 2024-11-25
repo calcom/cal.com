@@ -1,11 +1,11 @@
 import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
-import { attribute } from "@calcom/lib/entity/attribute";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { attributeService } from "@calcom/lib/service/attribute/attribute";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -21,7 +21,8 @@ import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 const log = logger.getSubLogger({ prefix: ["handleUserEvents"] });
 
 const handleUserEvents = async (event: DirectorySyncEvent, organizationId: number) => {
-  log.debug("handleUserEvents", safeStringify(event));
+  log.debug("called", safeStringify(event));
+  const directoryId = event.directory_id;
   const eventData = event.data as User;
   const userEmail = eventData.email;
   // Check if user exists in DB
@@ -110,13 +111,14 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   }
 
   const customAttributes = getAttributesFromScimPayload(event);
-  const { numOfAttributeOptionsSet } = await attribute.setValueForUser({
+  await attributeService.assignValueToUserInOrgBulk({
     orgId: org.id,
     userId: updatedUser.id,
     attributeLabelToValueMap: customAttributes,
+    creator: {
+      dsyncId: directoryId,
+    },
   });
-
-  log.debug("handleUserEvents", `Number of attribute options set: ${numOfAttributeOptionsSet}`);
 };
 
 export default handleUserEvents;

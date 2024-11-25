@@ -147,7 +147,11 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                   const isAGroupOption = nonGroupOption.isGroup;
                   if (isAGroupOption) return null;
                   const groupSelectValue = watchedGroupOptions
-                    ?.filter(({ contains }) => contains?.includes(nonGroupOption.attributeOptionId))
+                    ?.filter(
+                      ({ contains }) =>
+                        nonGroupOption.attributeOptionId &&
+                        contains?.includes(nonGroupOption.attributeOptionId)
+                    )
                     .map((groupOption) => ({
                       label: groupOption.value,
                       value: groupOption.attributeOptionId,
@@ -170,6 +174,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                                 (groupOption) => groupOption.attributeOptionId === chosenGroupOption[0].value
                               );
                               const newContains = nonGroupOption.attributeOptionId;
+                              if (!newContains) return;
                               const existingContains =
                                 watchedOptions[indexOfGroupOptionInWatchedOptions].contains;
                               form.setValue(`options.${indexOfGroupOptionInWatchedOptions}.contains`, [

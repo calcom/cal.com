@@ -1,7 +1,13 @@
 import prisma from "@calcom/prisma";
 
 export class AttributeRepository {
-  static async findManyByNames({ attributeNames, orgId }: { attributeNames: string[]; orgId: number }) {
+  static async findManyByNamesAndOrgIdIncludeOptions({
+    attributeNames,
+    orgId,
+  }: {
+    attributeNames: string[];
+    orgId: number;
+  }) {
     return prisma.attribute.findMany({
       where: {
         name: { in: attributeNames, mode: "insensitive" },

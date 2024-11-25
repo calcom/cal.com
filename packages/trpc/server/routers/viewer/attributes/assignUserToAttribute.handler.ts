@@ -13,6 +13,11 @@ type GetOptions = {
   input: ZAssignUserToAttribute;
 };
 
+const whereClauseForAttributeOptionsManagedByCalcom = {
+  // Ensure that we operate only on options created by Cal.com
+  createdByDSyncId: null,
+};
+
 const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 
@@ -160,6 +165,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
             },
           },
           memberId: membership.id,
+          ...whereClauseForAttributeOptionsManagedByCalcom,
           NOT: {
             id: {
               in: options.map((option) => option.value),
@@ -191,9 +197,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
     // Delete the attribute from the user
     if (!attribute.value && !attribute.options) {
+      console.log("DELETE CASE-2");
       await prisma.attributeToUser.deleteMany({
         where: {
           memberId: membership.id,
+          ...whereClauseForAttributeOptionsManagedByCalcom,
           attributeOption: {
             attribute: {
               id: attribute.id,

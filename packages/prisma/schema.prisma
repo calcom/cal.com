@@ -355,7 +355,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
-  createdAttributeToUsers    AttributeToUser[]
+  createdAttributeToUsers    AttributeToUser[]            @relation("createdBy")
+  updatedAttributeToUsers    AttributeToUser[]            @relation("updatedBy")
 
   @@unique([email])
   @@unique([email, username])
@@ -366,6 +367,7 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+
 }
 
 model NotificationsSubscriptions {
@@ -1490,7 +1492,9 @@ model DSyncData {
   organizationId   Int?                    @unique
   org              OrganizationSettings?   @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
   teamGroupMapping DSyncTeamGroupMapping[]
-  createdAttributeToUsers AttributeToUser[]
+
+  createdAttributeToUsers AttributeToUser[] @relation("createdByDSync")
+  updatedAttributeToUsers AttributeToUser[] @relation("updatedByDSync")
 }
 
 model DSyncTeamGroupMapping {
@@ -1608,12 +1612,20 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
+  
   weight            Int?
+  
   createdAt         DateTime          @default(now())
   createdById       Int?
-  createdBy         User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy         User?             @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdByDSyncId  String?
-  createdByDSync    DSyncData?        @relation(fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
+  createdByDSync    DSyncData?        @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
+  
+  updatedAt         DateTime?         @updatedAt
+  updatedBy         User?             @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById       Int?
+  updatedByDSyncId  String?
+  updatedByDSync    DSyncData?        @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
 }

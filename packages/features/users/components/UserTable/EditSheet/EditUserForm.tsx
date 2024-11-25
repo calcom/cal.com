@@ -40,7 +40,15 @@ const stringOrNumber = z.string().or(z.number());
 
 const attributeSchema = z.object({
   id: z.string(),
-  options: z.array(z.object({ label: z.string().optional(), value: stringOrNumber.optional() })).optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string().optional(),
+        value: stringOrNumber.optional(),
+        createdByDSyncId: z.string().nullable().optional(),
+      })
+    )
+    .optional(),
   value: stringOrNumber.optional(),
 });
 
@@ -267,12 +275,22 @@ function AttributesList(props: { selectedUserId: number }) {
       } else if (attr.type === "MULTI_SELECT") {
         acc[key] = {
           id: attr.id,
-          options: attr.options.map((option) => ({ label: option.value, value: option.id })),
+          options: attr.options.map((option) => ({
+            label: option.value,
+            value: option.id,
+            createdByDSyncId: option.createdByDSyncId,
+          })),
         };
       } else if (attr.type === "SINGLE_SELECT") {
         acc[key] = {
           id: attr.id,
-          options: [{ label: attr.options[0]?.value, value: attr.options[0]?.id }],
+          options: [
+            {
+              label: attr.options[0]?.value,
+              value: attr.options[0]?.id,
+              createdByDSyncId: attr.options[0]?.createdByDSyncId ? attr.options[0]?.createdByDSyncId : null,
+            },
+          ],
         };
       } else {
         acc[key] = {
@@ -302,7 +320,8 @@ function AttributesList(props: { selectedUserId: number }) {
             control={control}
             key={attr.id}
             defaultValue={defaultValues[`attributes.${index}`]}
-            render={({ field }) => {
+            render={({ field: { value, ...field } }) => {
+              const fieldValue = value as AttributeType;
               return (
                 <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
@@ -312,7 +331,7 @@ function AttributesList(props: { selectedUserId: number }) {
                       labelClassName="text-emphasis mb-2 block text-sm font-medium leading-none"
                       label={attr.name}
                       type={attr.type === "TEXT" ? "text" : "number"}
-                      value={field.value?.value || ""}
+                      value={fieldValue?.value || ""}
                       onChange={(e) => {
                         field.onChange({
                           id: attr.id,
@@ -331,19 +350,23 @@ function AttributesList(props: { selectedUserId: number }) {
                       }}
                       label={attr.name}
                       options={getOptionsByAttributeId(attr.id)}
-                      value={attr.type === "MULTI_SELECT" ? field.value?.options : field.value?.options[0]}
+                      value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
                       onChange={(value) => {
-                        if (attr.type === "MULTI_SELECT") {
-                          field.onChange({
-                            id: attr.id,
-                            options: value.map((v: any) => ({ label: v.label, value: v.value })),
-                          });
-                        } else {
-                          field.onChange({
-                            id: attr.id,
-                            options: [{ label: value.label, value: value.value }],
-                          });
-                        }
+                        if (!value) return;
+                        const valueAsArray = value instanceof Array ? value : [value];
+
+                        const updatedOptions =
+                          attr.type === "MULTI_SELECT"
+                            ? valueAsArray.map((v) => ({ label: v.label, value: v.value }))
+                            : [{ label: valueAsArray[0].label, value: valueAsArray[0].value }];
+
+                        field.onChange({
+                          id: attr.id,
+                          options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
+                            earlierOptions: fieldValue.options || [],
+                            updatedOptions,
+                          }),
+                        });
                       }}
                     />
                   )}
@@ -355,4 +378,32 @@ function AttributesList(props: { selectedUserId: number }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Ensures that options that are not owned by cal.com are not removed
+ * Such options are created by dsync and removed only through corresponding dsync
+ */
+function getOptionsEnsuringNotOwnedByCalcomNotRemoved<
+  // Before assigning this option it can't have createdByDSyncId set
+  TOptionToChoose extends { value: string | number | undefined },
+  // Already set option can have createdByDSyncId set
+  TOptionAlreadySet extends {
+    value?: string | number | undefined;
+    createdByDSyncId?: string | null | undefined;
+  }
+>({
+  earlierOptions,
+  updatedOptions,
+}: {
+  earlierOptions: TOptionAlreadySet[];
+  updatedOptions: TOptionToChoose[];
+}) {
+  const optionsNotOwnedByCalcom = earlierOptions.filter((option) => !!option.createdByDSyncId);
+
+  const newUniqueOptionsPlusNotOwnedByCalcom = [...optionsNotOwnedByCalcom, ...updatedOptions].filter(
+    (option, index, self) => index === self.findIndex((o) => o.value === option.value && o.value)
+  );
+
+  return newUniqueOptionsPlusNotOwnedByCalcom;
 }

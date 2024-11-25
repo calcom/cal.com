@@ -6,7 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 const log = logger.getSubLogger({ prefix: ["getAttributesFromScimPayload"] });
 
 type ScimUserAttributeName = string;
-type ScimUserAttributeValue = string;
+type ScimUserAttributeValue = string | string[];
 
 function getAttributesFromScimPayload(
   event: DirectorySyncEvent
@@ -54,7 +54,10 @@ function getAttributesFromScimPayload(
       }
 
       // FIXME: Support array of strings
-      if (typeof value === "string") {
+      if (
+        typeof value === "string" ||
+        (value instanceof Array && value.every((item) => typeof item === "string"))
+      ) {
         scimUserAttributes[customAttributeName] = value;
       }
     });

@@ -44,8 +44,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       })),
     }));
 
-  console.log({ allAttributeOptions: JSON.stringify(allAttributeOptions) });
-
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
   }
@@ -110,12 +108,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           });
         });
 
-        console.log({
-          filterValue: filter.value,
-          attributeOptionValues,
-          groupOptionsWithContainsOptionValues: JSON.stringify(groupOptionsWithContainsOptionValues),
-        });
-
         whereClause.AttributeToUser = {
           some: {
             attributeOption: {
@@ -131,8 +123,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         break;
     }
   });
-
-  console.log({ whereClause: JSON.stringify(whereClause) });
 
   const teamMembers = await prisma.membership.findMany({
     where: whereClause,
@@ -170,8 +160,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       id: "asc",
     },
   });
-
-  console.log({ teamMembers: JSON.stringify(teamMembers) });
 
   let nextCursor: typeof cursor | undefined = undefined;
   if (teamMembers && teamMembers.length > limit) {

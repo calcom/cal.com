@@ -13,7 +13,7 @@ const log = logger.getSubLogger({ prefix: ["[scim]"] });
 // This is the handler for the SCIM API requests
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { dsyncController } = await jackson();
-  log.debug("SCIM request details", {
+  log.debug("Request from SCIM", {
     method: req.method,
     url: req.url,
     headers: req.headers,
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { status, data } = await dsyncController.requests.handle(request, handleEvents);
 
-  log.debug("SCIM Request Response", {
+  log.debug("Response to SCIM", {
     status,
     data,
   });
