@@ -16,6 +16,7 @@ import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
@@ -79,6 +80,7 @@ describe("OAuth Client Users Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let postResponseData: CreateManagedUserOutput["data"];
 
@@ -103,6 +105,7 @@ describe("OAuth Client Users Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
@@ -121,6 +124,13 @@ describe("OAuth Client Users Endpoints", () => {
         user: {
           connect: { id: platformAdmin.id },
         },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: platformAdmin.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       await app.init();
