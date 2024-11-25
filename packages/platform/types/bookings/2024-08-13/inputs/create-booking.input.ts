@@ -119,7 +119,6 @@ export class CreateBookingInput_2024_08_13 {
     example: "https://example.com/meeting",
     required: false,
   })
-  @IsUrl()
   @IsOptional()
   location?: string;
 
