@@ -54,7 +54,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: eventTypeCustomClassNames;
+  customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
