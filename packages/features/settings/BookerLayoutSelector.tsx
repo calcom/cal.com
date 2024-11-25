@@ -229,7 +229,7 @@ const BookerLayoutFields = ({
         <p className="text-sm">
           <Trans i18nKey="bookerlayout_override_global_settings">
             You can manage this for all your event types in Settings {"-> "}
-            <Link href="/settings/my-account/appearance" className="underline">
+            <Link target="_blank" href="/settings/my-account/appearance" className="underline">
               Appearance
             </Link>{" "}
             or{" "}

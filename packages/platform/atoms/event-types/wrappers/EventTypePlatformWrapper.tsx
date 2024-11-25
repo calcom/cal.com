@@ -6,6 +6,8 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
+import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
@@ -31,14 +33,13 @@ import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
-export type eventTypeCustomClassNames = {
-  atomsWrapper?: string;
-  eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
-};
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
+  eventAdvancedTab?: EventAdvancedTabCustomClassNames;
+  eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
   eventRecurringTab?: EventRecurringTabCustomClassNames;
+  eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -50,7 +51,6 @@ export type EventTypePlatformWrapperProps = {
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
   customClassNames?: eventTypeCustomClassNames;
-  customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -170,7 +170,12 @@ const EventType = ({
       <></>
     ),
     team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper team={team} eventType={eventType} teamMembers={teamMembers} />
+      <EventTeamAssignmentTabPlatformWrapper
+        team={team}
+        eventType={eventType}
+        teamMembers={teamMembers}
+        customClassNames={customClassNames?.eventAssignmentTab}
+      />
     ) : (
       <></>
     ),
@@ -181,6 +186,7 @@ const EventType = ({
         user={user?.data}
         isUserLoading={isUserLoading}
         showToast={showToast}
+        customClassNames={customClassNames?.eventAdvancedTab}
       />
     ) : (
       <></>

@@ -97,6 +97,308 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <EventTypeSettings
               customClassNames={{
                 atomsWrapper: "!w-[50vw] !m-auto",
+
+                eventAdvancedTab: {
+                  destinationCalendar: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    select: "border border-purple-300 shadow-sm",
+                    innerClassNames: {
+                      input: "",
+                      option: "",
+                      control: "",
+                      singleValue: "",
+                      valueContainer: "",
+                      multiValue: "",
+                      menu: "",
+                      menuList: "",
+                    },
+                    label: "",
+                  },
+                  eventName: {
+                    container: "bg-purple-50 border border-purple-200 shadow-sm",
+                    input: "border border-purple-300 shadow-inner",
+                    label: "",
+                    addOn: "",
+                  },
+                  addToCalendarEmailOrganizer: {
+                    container: "bg-purple-50 border border-purple-200 shadow-inner",
+                    label: "",
+                    description: "",
+                    children: "",
+                    emailSelect: {
+                      container: "",
+                      select: "",
+                      displayEmailLabel: "",
+                    },
+                  },
+                  requiresConfirmation: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    radioGroupContainer: "",
+                    alwaysConfirmationRadio: "",
+                    conditionalConfirmationRadio: {
+                      container: "",
+                      timeInput: "",
+                      timeUnitSelect: "",
+                      checkbox: "",
+                      checkboxDescription: "",
+                    },
+                  },
+                  bookerEmailVerification: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  calendarNotes: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  eventDetailsVisibility: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  bookingRedirect: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    redirectUrlInput: {
+                      container: "bg-purple-50 border border-purple-200 shadow-sm",
+                      label: "",
+                      input: "",
+                      addOn: "",
+                    },
+                    forwardParamsCheckbox: {
+                      checkbox: "",
+                      description: "",
+                      container: "bg-purple-50 border border-purple-300 shadow-sm",
+                    },
+                    error: "bg-purple-50 text-purple-700 border border-purple-300",
+                  },
+                  seatsOptions: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    seatsInput: {
+                      container: "bg-purple-50 border border-purple-200 shadow-sm",
+                      label: "",
+                      input: "",
+                      addOn: "",
+                    },
+                    showAttendeesCheckbox: {
+                      checkbox: "",
+                      description: "",
+                      container: "",
+                    },
+                    showAvalableSeatCountCheckbox: {
+                      checkbox: "",
+                      description: "",
+                      container: "",
+                    },
+                  },
+                  timezoneLock: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  eventTypeColors: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    warningText: "",
+                  },
+                  roundRobinReschedule: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                  },
+                  emailNotifications: {
+                    container: "bg-purple-50 border border-purple-200 shadow-md",
+                    label: "",
+                    description: "",
+                    children: "",
+                    confirmationDialog: {
+                      container: "bg-purple-50 border border-purple-300 shadow-lg",
+                      dialogTitle: "",
+                      description: "",
+                      confirmInput: {
+                        container: "",
+                        label: "",
+                        input: "",
+                        addOn: "",
+                      },
+                      dialogFooter: {
+                        container: "bg-purple-50",
+                        confirmButton: "",
+                        cancelButton: "",
+                      },
+                    },
+                  },
+                },
+                eventAssignmentTab: {
+                  assignmentType: {
+                    container: "border border-purple-200 bg-white rounded-lg p-6",
+                    label: "text-purple-700 font-semibold",
+                    description: "text-gray-600 text-sm",
+                    schedulingTypeSelect: {
+                      container: "mt-2",
+                      label: "text-purple-700",
+                      select: "border border-purple-300 rounded-md bg-white",
+                      innerClassNames: {
+                        control: "border-purple-300",
+                        input: "text-purple-900",
+                        option: "hover:bg-purple-100",
+                        menu: "border border-purple-200 rounded-md",
+                        singleValue: "text-purple-700",
+                      },
+                    },
+                  },
+                  hosts: {
+                    fixedHosts: {
+                      container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
+                      label: "text-purple-700 font-semibold",
+                      description: "text-purple-600 text-sm",
+                      addMembers: {
+                        assingAllTeamMembers: {
+                          container: "border border-purple-200 bg-white rounded-md",
+                          label: "text-purple-700",
+                          description: "text-gray-600",
+                        },
+                        teamMemberSelect: {
+                          hostsSelect: {
+                            container: "mt-2",
+                            select: "border border-purple-300 rounded-md bg-white",
+                            label: "text-purple-700",
+                            innerClassNames: {
+                              input: "text-purple-900",
+                              option: "hover:bg-purple-100",
+                              control: "border-purple-300",
+                              singleValue: "text-purple-700",
+                            },
+                          },
+                          selectedHostList: {
+                            container: "mt-4 border border-purple-200 rounded-md bg-white",
+                            listItem: {
+                              container: "flex items-center gap-2 p-3 bg-white hover:bg-purple-50",
+                              avatar: "rounded-full border border-purple-300",
+                              name: "text-purple-800 font-semibold",
+                              changePriorityButton: "text-purple-700 hover:bg-purple-100",
+                              changeWeightButton: "text-purple-700 hover:bg-purple-100",
+                              removeButton: "text-purple-600 hover:bg-purple-100",
+                            },
+                          },
+                          priorityDialog: {
+                            confirmButton: "bg-purple-700 text-white rounded-md px-4 py-2",
+                            label: "text-purple-700",
+                            select: "border border-purple-300 rounded-md bg-white",
+                          },
+                          weightDialog: {
+                            container: "w-full bg-white p-4 rounded-md border border-purple-300",
+                            label: "text-purple-700 font-semibold",
+                            confirmButton: "bg-purple-700 text-white rounded-md px-4 py-2",
+                            weightInput: {
+                              container: "w-24",
+                              label: "text-purple-700",
+                              input: "border border-purple-300 rounded-md bg-white text-purple-900",
+                              addOn: "text-purple-500",
+                            },
+                          },
+                        },
+                      },
+                    },
+                    roundRobinHosts: {
+                      container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
+                      label: "text-purple-700 font-semibold",
+                      description: "text-purple-600 text-sm",
+                      enableWeights: {
+                        container: "border border-purple-200 bg-white rounded-md",
+                        label: "text-purple-700",
+                        description: "text-gray-600",
+                      },
+                      addMembers: {
+                        assingAllTeamMembers: {
+                          container: "border border-purple-200 bg-white rounded-md",
+                          label: "text-purple-700",
+                          description: "text-gray-600",
+                        },
+                        teamMemberSelect: {
+                          hostsSelect: {
+                            container: "mt-2",
+                            select: "border border-purple-300 rounded-md bg-white",
+                            label: "text-purple-700",
+                            innerClassNames: {
+                              input: "text-purple-900",
+                              option: "hover:bg-purple-100",
+                              control: "border-purple-300",
+                              singleValue: "text-purple-700",
+                            },
+                          },
+                          selectedHostList: {
+                            container: "mt-4 border border-purple-200 rounded-md bg-white",
+                            listItem: {
+                              container: "flex items-center gap-2 p-3 bg-white hover:bg-purple-50",
+                              avatar: "rounded-full border border-purple-300",
+                              name: "text-purple-800 font-semibold",
+                              changePriorityButton: "text-purple-700 hover:bg-purple-100",
+                              changeWeightButton: "text-purple-700 hover:bg-purple-100",
+                              removeButton: "text-purple-600 hover:bg-purple-100",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  childrenEventTypes: {
+                    container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
+                    assignAllTeamMembers: {
+                      container: "border border-purple-200 bg-white rounded-md",
+                      label: "text-purple-700",
+                      description: "text-gray-600",
+                    },
+                    childrenEventTypesList: {
+                      assignToSelect: {
+                        container: "mt-2",
+                        select: "border border-purple-300 rounded-md bg-white",
+                        label: "text-purple-700",
+                        innerClassNames: {
+                          input: "text-purple-900",
+                          option: "hover:bg-purple-100",
+                          control: "border-purple-300",
+                          singleValue: "text-purple-700",
+                        },
+                      },
+                      selectedChildrenList: {
+                        container: "mt-4 border border-purple-200 rounded-md bg-white",
+                        listItem: {
+                          container: "flex items-center gap-2 p-3 bg-white hover:bg-purple-50",
+                          avatar: "rounded-full border border-purple-300",
+                          name: "text-purple-800 font-semibold",
+                          ownerBadge: "text-purple-600 bg-purple-100 rounded-md px-2",
+                          memberBadge: "text-purple-600 bg-purple-100 rounded-md px-2",
+                          hiddenBadge: "text-gray-400 bg-gray-100 rounded-md px-2",
+                          badgeContainer: "flex gap-1",
+                          eventLink: "text-purple-700",
+                          showOnProfileTooltip: "text-purple-600",
+                          previewEventTypeTooltip: "text-purple-600",
+                          previewEventTypeButton: "text-purple-700 hover:bg-purple-100",
+                          deleteEventTypeTooltip: "text-red-500",
+                          deleteEventTypeButton: "text-red-600 hover:bg-red-100",
+                        },
+                      },
+                    },
+                  },
+                },
                 eventAvailabilityTab: {
                   teamAvailability: {
                     chooseHostSchedulesLabelContainer: "border border-purple-200 bg-purple-50 rounded-md p-4",
