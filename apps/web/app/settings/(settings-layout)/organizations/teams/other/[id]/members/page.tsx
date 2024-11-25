@@ -1,7 +1,9 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
 
 import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
-import LegacyPage from "@calcom/features/ee/organizations/pages/settings/other-team-members-view";
+import LegacyPage, {
+  TeamMembersCTA,
+} from "@calcom/features/ee/organizations/pages/settings/other-team-members-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -15,24 +17,10 @@ const Page = async () => {
   const t = await getFixedT(session?.user.locale || "en");
 
   return (
-    // TODO: Add CTA Button:
-    // CTA={
-    //   isOrgAdminOrOwner ? (
-    //     <Button
-    //       type="button"
-    //       color="primary"
-    //       StartIcon="plus"
-    //       className="ml-auto"
-    //       onClick={() => setShowMemberInvitationModal(true)}
-    //       data-testid="new-member-button">
-    //       {t("add")}
-    //     </Button>
-    //   ) : (
-    //     <></>
-    //   )
-    // }
-
-    <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
+    <SettingsHeader
+      title={t("team_members")}
+      description={t("members_team_description")}
+      CTA={<TeamMembersCTA />}>
       <LegacyPage />
     </SettingsHeader>
   );
