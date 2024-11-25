@@ -3,7 +3,7 @@ import { OrganizationsEventTypesRepository } from "@/modules/organizations/repos
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host, DestinationCalendar } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
+import { SchedulingType, Team } from "@prisma/client";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
@@ -12,6 +12,7 @@ type EventTypeRelations = {
   schedule: Schedule | null;
   hosts: Host[];
   destinationCalendar?: DestinationCalendar | null;
+  team?: Pick<Team, "bannerUrl"> | null;
 };
 export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
@@ -66,6 +67,7 @@ type Input = Pick<
   | "eventName"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "team"
 >;
 
 @Injectable()

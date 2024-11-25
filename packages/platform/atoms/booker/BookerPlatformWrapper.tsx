@@ -481,6 +481,7 @@ export const BookerPlatformWrapper = (
         bookerForm={bookerForm}
         event={event}
         schedule={schedule}
+        orgBannerUrl={event.data?.bannerUrl}
         bookerLayout={bookerLayout}
         verifyCode={undefined}
         isPlatform

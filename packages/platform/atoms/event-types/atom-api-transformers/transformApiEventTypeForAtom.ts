@@ -102,6 +102,7 @@ export function transformApiEventTypeForAtom(
       },
     })),
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    bannerUrl: eventType.bannerUrl,
   };
 }
 
