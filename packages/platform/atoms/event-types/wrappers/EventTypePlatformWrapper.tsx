@@ -6,6 +6,8 @@ import { useRef, useState, useEffect } from "react";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
@@ -35,7 +37,9 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
   eventLimitsTab?: EventLimitsTabCustomClassNames;
+  eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
   eventRecurringTab?: EventRecurringTabCustomClassNames;
+  eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
 };
 
 export type EventTypePlatformWrapperProps = {
@@ -46,7 +50,7 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
-  customClassNames?: EventTypeCustomClassNames;
+  customClassNames?: eventTypeCustomClassNames;
   disableToasts?: boolean;
 };
 
@@ -160,12 +164,18 @@ const EventType = ({
         isTeamEvent={!!team}
         user={user?.data}
         teamId={team?.id}
+        customClassNames={customClassNames?.eventAvailabilityTab}
       />
     ) : (
       <></>
     ),
     team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper team={team} eventType={eventType} teamMembers={teamMembers} />
+      <EventTeamAssignmentTabPlatformWrapper
+        team={team}
+        eventType={eventType}
+        teamMembers={teamMembers}
+        customClassNames={customClassNames?.eventAssignmentTab}
+      />
     ) : (
       <></>
     ),

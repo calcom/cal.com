@@ -197,10 +197,121 @@ test.describe("Out of office", () => {
 
     await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
+
+  test("User can create Entry for past", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "13", "22", true);
+
+    // send request
+    await saveAndWaitForResponse(page);
+
+    const ooo = await prisma.outOfOfficeEntry.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        start: true,
+        end: true,
+      },
+      take: 1,
+    });
+
+    const latestEntry = ooo[0];
+
+    const currentDate = dayjs();
+    const fromDate = dayjs(latestEntry.start);
+    const toDate = dayjs(latestEntry.end);
+
+    expect(toDate.isBefore(currentDate)).toBe(true);
+    expect(fromDate.isBefore(currentDate)).toBe(true);
+  });
+
+  test("User can create overriding entries", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    // add another entry
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "11", "24");
+
+    // send request
+    await saveAndWaitForResponse(page);
+
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toHaveCount(2);
+  });
+
+  test("User cannot create duplicate entries", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    // add another entry
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[id="date"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page, 409);
+  });
 });
 
-async function saveAndWaitForResponse(page: Page) {
+async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
   await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
+    expectedStatusCode,
   });
+}
+
+async function selectToAndFromDates(page: Page, fromDate: string, toDate: string, isRangeInPast = false) {
+  // deselects by default selected range start day
+  await page.locator(`button[name="day"].rdp-day_range_start`).click();
+
+  const month = isRangeInPast ? "previous" : "next";
+
+  await page.locator(`button[name="${month}-month"]`).click();
+
+  await page.locator(`button[name="day"]:has-text("${fromDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:has-text("${toDate}")`).nth(0).click();
 }

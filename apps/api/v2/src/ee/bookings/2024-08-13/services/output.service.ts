@@ -50,7 +50,9 @@ type DatabaseBooking = Booking & {
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
   }[];
-} & { user: { id: number; name: string | null; email: string } | null };
+  user: { id: number; name: string | null; email: string } | null;
+  createdAt: Date;
+};
 
 type BookingWithUser = Booking & { user: { id: number; name: string | null; email: string } | null };
 
@@ -103,6 +105,7 @@ export class OutputBookingsService_2024_08_13 {
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
+      createdAt: databaseBooking.createdAt,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -165,6 +168,7 @@ export class OutputBookingsService_2024_08_13 {
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
       bookingFieldsResponses: databaseBooking.responses,
+      createdAt: databaseBooking.createdAt,
     };
 
     const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
@@ -208,6 +212,7 @@ export class OutputBookingsService_2024_08_13 {
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
+      createdAt: databaseBooking.createdAt,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -302,6 +307,7 @@ export class OutputBookingsService_2024_08_13 {
       meetingUrl: databaseBooking.location,
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
+      createdAt: databaseBooking.createdAt,
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {
