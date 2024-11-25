@@ -33,8 +33,7 @@ import {
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "./schema";
-import { excludeEmailSchema } from "./schema";
+import { type fieldsSchema, excludeEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
