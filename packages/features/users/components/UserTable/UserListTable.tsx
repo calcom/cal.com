@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,6 +12,17 @@ import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
+import {
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
+  DataTablePagination,
+  useColumnFilters,
+  useFetchMoreOnBottomReached,
+  textFilter,
+  isTextFilterValue,
+} from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
@@ -23,19 +33,7 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import {
-  Avatar,
-  Badge,
-  Button,
-  Checkbox,
-  DataTable,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSelectionBar,
-  DataTablePagination,
-  showToast,
-  useFetchMoreOnBottomReached,
-} from "@calcom/ui";
+import { Avatar, Badge, Button, Checkbox, showToast } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -122,7 +120,7 @@ export function UserListTable() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const columnFilters = useColumnFilters();
 
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -130,10 +128,7 @@ export function UserListTable() {
         limit: 10,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
-        filters: columnFilters.map((filter) => ({
-          id: filter.id,
-          value: filter.value as string[],
-        })),
+        filters: columnFilters,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -146,10 +141,7 @@ export function UserListTable() {
       limit: 100, // Max limit
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
-      filters: columnFilters.map((filter) => ({
-        id: filter.id,
-        value: filter.value as string[],
-      })),
+      filters: columnFilters,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -180,6 +172,9 @@ export function UserListTable() {
         (attributes?.map((attribute) => ({
           id: attribute.id,
           header: attribute.name,
+          meta: {
+            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
+          },
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -196,8 +191,13 @@ export function UserListTable() {
               </>
             );
           },
-          filterFn: (rows, id, filterValue) => {
-            const attributeValues = rows.original.attributes.filter((attr) => attr.attributeId === id);
+          filterFn: (row, id, filterValue) => {
+            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+
+            if (isTextFilterValue(filterValue)) {
+              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+            }
+
             if (attributeValues.length === 0) return false;
             return attributeValues.some((attr) => filterValue.includes(attr.value));
           },
@@ -210,6 +210,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         meta: {
           sticky: {
             position: "left",
@@ -236,6 +237,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        size: 170,
         header: () => {
           return `Members`;
         },
@@ -341,8 +343,14 @@ export function UserListTable() {
       },
       ...generateAttributeColumns(),
       {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
         id: "actions",
         enableHiding: false,
+        size: 50,
         meta: {
           sticky: { position: "right" },
         },
@@ -388,7 +396,6 @@ export function UserListTable() {
       columnFilters,
       rowSelection,
     },
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
@@ -453,7 +460,12 @@ export function UserListTable() {
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(headers, allMembers as UserTableUser[], ATTRIBUTE_IDS);
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allMembers as UserTableUser[],
+        ATTRIBUTE_IDS,
+        domain
+      );
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }

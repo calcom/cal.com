@@ -14,7 +14,7 @@ type DatePickerWithRangeProps = {
   dates: { startDate: Date; endDate?: Date };
   onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
   disabled?: boolean;
-  minDate?: Date;
+  minDate?: Date | null;
   maxDate?: Date;
 };
 
@@ -34,6 +34,7 @@ export function DatePickerWithRange({
       onDatesChange({ startDate: onChangeValues?.from, endDate: onChangeValues?.to });
     }
   }
+  const fromDate = minDate ?? new Date();
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -63,7 +64,8 @@ export function DatePickerWithRange({
           sideOffset={4}>
           <Calendar
             initialFocus
-            fromDate={minDate}
+            //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
+            fromDate={minDate === null ? undefined : fromDate}
             toDate={maxDate}
             mode="range"
             defaultMonth={dates?.startDate}

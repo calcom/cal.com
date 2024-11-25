@@ -1,4 +1,3 @@
-import type { SelectedCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
@@ -16,6 +15,7 @@ import type {
   EventBusyData,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendar,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
