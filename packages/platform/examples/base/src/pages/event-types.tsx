@@ -635,6 +635,92 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
                 },
+                eventSetupTab: {
+                  wrapper: "rounded-lg shadow-sm",
+                  titleSection: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    titleInput: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      addOn: "text-purple-500",
+                    },
+                    urlInput: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      addOn: "text-purple-500",
+                    },
+                    descriptionInput: {
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    },
+                  },
+                  durationSection: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    singleDurationInput: {
+                      container: "mb-4",
+                      label: "text-purple-700",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      addOn: "text-purple-500",
+                    },
+                    multipleDuration: {
+                      container: "space-y-2",
+                      availableDurationsSelect: {
+                        container: "mb-4",
+                        label: "text-purple-700",
+                        select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                        innerClassNames: {
+                          input: "text-purple-900",
+                          option: "text-purple-700 hover:bg-purple-200",
+                          control: "border-purple-300",
+                          singleValue: "text-purple-900",
+                          valueContainer: "bg-purple-100",
+                          multiValue: "bg-purple-200 rounded-md text-purple-900",
+                          menu: "border border-purple-200 rounded-md",
+                          menuList: "",
+                        },
+                      },
+                      defaultDurationSelect: {
+                        container: "mb-4",
+                        label: "text-purple-700",
+                        select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                      },
+                    },
+                    selectDurationToggle: {
+                      container: "",
+                      label: "text-purple-700",
+                      description: "text-purple-500",
+                      children: "",
+                    },
+                  },
+                  locationSection: {
+                    container: "border border-purple-200 bg-purple-100 rounded-lg",
+                    label: "text-purple-700",
+                    locationSelect: {
+                      optionIcon: "text-purple-500",
+                      optionLabel: "text-purple-800",
+                      optionWrapper: "hover:bg-purple-200 rounded-md",
+                      groupLabel: "text-purple-700",
+                      selectWrapper: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
+                    },
+                    removeLocationButton: "text-purple-500 hover:bg-purple-200 rounded-md",
+                    removeLocationIcon: "text-purple-500",
+                    addLocationButton: "text-purple-500 hover:bg-purple-200 rounded-md",
+                    organizerContactInput: {
+                      errorMessage: "text-purple-500",
+                      locationInput: {
+                        addressInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                        phoneInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      },
+                      publicDisplayCheckbox: {
+                        checkbox: "border border-purple-300 text-purple-500",
+                        description: "text-purple-500",
+                        container: "",
+                      },
+                    },
+                  },
+                },
               }}
               allowDelete={true}
               id={eventTypeId}

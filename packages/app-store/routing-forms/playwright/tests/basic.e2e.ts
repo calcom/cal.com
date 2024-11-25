@@ -99,6 +99,21 @@ test.describe("Routing Forms", () => {
       await expect(page.getByTestId(`404-page`)).toBeVisible();
     });
 
+    test("recently added form appears first in the list", async ({ page }) => {
+      await addForm(page, { name: "Test Form 1" });
+      await page.goto(`apps/routing-forms/forms`);
+      await page.waitForSelector('[data-testid="routing-forms-list"]');
+      await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(1);
+
+      await addForm(page, { name: "Test Form 2" });
+      await page.goto(`apps/routing-forms/forms`);
+      await page.waitForSelector('[data-testid="routing-forms-list"]');
+      await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(2);
+
+      const firstForm = page.locator('[data-testid="routing-forms-list"] > div h1').first();
+      await expect(firstForm).toHaveText("Test Form 2");
+    });
+
     test("should be able to edit a newly created form", async ({ page }) => {
       const formId = await addForm(page);
       const description = "Test Description";
