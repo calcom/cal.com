@@ -58,8 +58,17 @@ const getRows = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
           user: {
             select: { id: true, name: true, email: true },
           },
+          assignmentReason: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 1,
+          },
         },
       },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
     take,
     skip,
@@ -120,13 +129,17 @@ function presenter(args: {
   const formatDate = makeFormatDate(ctx.user.locale, ctx.user.timeZone);
   return {
     nextCursor,
-    headers: [...headers, "Routed To", "Booked At"],
+    headers: [...headers, "Routed To", "Assignment Reason", "Booked At", "Submitted At"],
     responses: responses.map((r, i) => {
       const currentRow = rows[i];
       return [
         ...r,
         currentRow.routedToBooking?.user?.email || "",
+        currentRow.routedToBooking?.assignmentReason.length
+          ? currentRow.routedToBooking.assignmentReason[0].reasonString
+          : "",
         currentRow.routedToBooking?.createdAt ? formatDate(currentRow.routedToBooking.createdAt) : "",
+        formatDate(currentRow.createdAt),
       ];
     }),
   };
