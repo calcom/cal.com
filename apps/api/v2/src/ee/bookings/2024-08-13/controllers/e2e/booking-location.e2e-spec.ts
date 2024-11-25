@@ -170,6 +170,7 @@ describe("Event types Endpoints", () => {
           .then(async (response) => {
             const responseBody: CreateBookingOutput_2024_08_13 = response.body;
             const booking = responseBody.data as BookingOutput_2024_08_13;
+            console.log("debeug booking.location", booking.location);
             expect(booking.location.startsWith("http://")).toBe(true);
             expect(booking.metadata).toEqual(body.metadata);
           });
