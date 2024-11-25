@@ -10,7 +10,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
-import { OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "googleapis-common";
 import { calendar_v3 } from "@googleapis/calendar";
 import { z } from "zod";
 

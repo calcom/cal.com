@@ -1,4 +1,4 @@
-import { OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "googleapis-common";
 import { calendar_v3 } from "@googleapis/calendar";
 import type { NextApiRequest, NextApiResponse } from "next";
 

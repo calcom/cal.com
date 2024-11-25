@@ -1,6 +1,6 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__/OAuthManager";
-import { googleapisMock, setCredentialsMock } from "./__mocks__/googleapis";
+import { adminMock, calendarMock, setCredentialsMock } from "./__mocks__/googleapis";
 
 import { expect, test, vi } from "vitest";
 import "vitest-fetch-mock";
@@ -22,7 +22,21 @@ vi.mock("./getGoogleAppKeys", () => ({
     redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
   }),
 }));
-googleapisMock;
+
+vi.mock("googleapis-common", () => ({
+  OAuth2Client: vi.fn().mockImplementation(() => ({
+    setCredentials: setCredentialsMock,
+  })),
+}));
+vi.mock("@googleapis/admin", () => adminMock);
+vi.mock("@googleapis/calendar", () => calendarMock);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  setCredentialsMock.mockClear();
+  calendarMock.calendar_v3.Calendar.mockClear();
+  adminMock.admin_directory_v1.Admin.mockClear();
+});
 
 const googleTestCredentialKey = {
   scope: "https://www.googleapis.com/auth/calendar.events",

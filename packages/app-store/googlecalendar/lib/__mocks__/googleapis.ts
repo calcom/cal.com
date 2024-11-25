@@ -1,22 +1,8 @@
-import { beforeEach, vi } from "vitest";
+import { vi } from "vitest";
 
-vi.mock("googleapis", () => googleapisMock);
-vi.mock("google-auth-library", () => ({
-  OAuth2Client: vi.fn().mockImplementation(() => ({
-    setCredentials: setCredentialsMock,
-  })),
-}));
-vi.mock("@googleapis/admin", () => adminMock);
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  setCredentialsMock.mockClear();
-  googleapisMock.calendar_v3.Calendar.mockClear();
-  adminMock.admin_directory_v1.Admin.mockClear();
-});
 const setCredentialsMock = vi.fn();
 
-const calendarMock = {
+const calendarMockImplementation = {
   channels: {
     stop: vi.fn().mockResolvedValue(undefined),
   },
@@ -33,9 +19,9 @@ const calendarMock = {
   },
 };
 
-const googleapisMock = {
+const calendarMock = {
   calendar_v3: {
-    Calendar: vi.fn().mockImplementation(() => calendarMock),
+    Calendar: vi.fn().mockImplementation(() => calendarMockImplementation),
   },
 };
 const adminMock = {
@@ -44,5 +30,4 @@ const adminMock = {
   },
 };
 
-export default googleapisMock;
-export { googleapisMock, setCredentialsMock };
+export { calendarMock, adminMock, setCredentialsMock };

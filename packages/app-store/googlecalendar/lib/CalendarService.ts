@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
-import { OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "googleapis-common";
 import { calendar_v3 } from "@googleapis/calendar";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
