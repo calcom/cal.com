@@ -152,18 +152,9 @@ export class OrganizationsEventTypesController {
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
     const { eventSlug } = queryParams;
-    console.log("------------");
-
-    console.log(eventSlug, " :this is the event slug");
-    console.log("------------");
 
     if (eventSlug) {
       const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
-
-      // console.log('-------------------');
-      // console.log(eventType, ' :this is the event type');
-
-      // console.log('-------------------');
 
       return {
         status: SUCCESS_STATUS,
@@ -172,8 +163,6 @@ export class OrganizationsEventTypesController {
     }
 
     const eventTypes = await this.organizationsEventTypesService.getTeamEventTypes(teamId);
-
-    console.log(eventTypes, "event types");
 
     return {
       status: SUCCESS_STATUS,

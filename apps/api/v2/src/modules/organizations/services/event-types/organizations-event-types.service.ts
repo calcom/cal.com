@@ -86,11 +86,6 @@ export class OrganizationsEventTypesService {
       eventTypeSlug
     );
 
-    console.log("-------------------");
-    console.log(eventType, " :this is the event type");
-
-    console.log("-------------------");
-
     if (!eventType) {
       return null;
     }
