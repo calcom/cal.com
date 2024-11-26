@@ -2640,6 +2640,9 @@ checksums:
     add_attributes_description: f85cd2cd1c16a04478909abb1a188b03
     new_option: 53ef69223fa6d5d640121556cebfef27
     update_profile: 4c76016c39de93fbfaa15d71d66055d3
+    attribute: cc92f647873ba9e17cff57d4a59737bd
+    create_attribute_description: 9eef7eb229892fd7c14505bf4937d0ac
+    edit_attribute_description: a9f89954771fb1eb0a1381e8538da8ee
     attribute_updated_successfully: 0e64422156c29940cd4dab2f9d1f40b2
     attribute_deleted_successfully: 397d8b28927091e8d892b02a606deae7
     attributes_edited_successfully: 2f7d5f01066da918c78ce93b8caf046d
