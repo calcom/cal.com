@@ -1096,7 +1096,7 @@ async function main() {
             },
           ],
         },
-        ...Array.from({ length: 1000 }, (_, i) => ({
+        ...Array.from({ length: 10 }, (_, i) => ({
           memberData: {
             email: `member${i}-acme@example.com`,
             password: {

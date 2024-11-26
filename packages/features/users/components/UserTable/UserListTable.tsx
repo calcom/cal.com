@@ -48,32 +48,6 @@ import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
 
-function generateRandomString() {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const length = Math.floor(Math.random() * (30 - 3 + 1)) + 3; // Random length between 3 and 20
-  let result = "";
-
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters[randomIndex];
-  }
-
-  return result;
-}
-
-const fakeTeams = Array(2000)
-  .fill(null)
-  .reduce((acc, _, index) => {
-    const teams = Array(Math.floor(Math.random() * 3) + 1)
-      .fill(null)
-      .map(() => ({ name: `Team ${generateRandomString()}` }));
-
-    acc[index] = teams;
-    return acc;
-  }, {});
-
-console.log("💡 fakeTeams", fakeTeams);
-
 const initialState: UserTableState = {
   changeMemberRole: {
     showModal: false,
@@ -160,8 +134,6 @@ export function UserListTable() {
         placeholderData: keepPreviousData,
       }
     );
-
-  console.log("💡 query response", { data, hasNextPage });
 
   const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
     {
@@ -352,7 +324,7 @@ export function UserListTable() {
                 </Badge>
               )}
 
-              {fakeTeams[row.id].map((team) => (
+              {teams[row.id].map((team) => (
                 <Badge
                   key={team.id}
                   variant="gray"
@@ -379,7 +351,7 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
-        size: 50,
+        size: 80,
         meta: {
           sticky: { position: "right" },
         },
@@ -422,8 +394,7 @@ export function UserListTable() {
       columnVisibility: initalColumnVisibility,
     },
     defaultColumn: {
-      minSize: 60,
-      maxSize: 300,
+      minSize: 100,
     },
     state: {
       columnFilters,
