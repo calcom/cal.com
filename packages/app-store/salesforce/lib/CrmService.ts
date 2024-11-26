@@ -431,7 +431,11 @@ export default class SalesforceCRMService implements CRM {
       : [];
   }
 
-  async createContacts(contactsToCreate: Attendee[], organizerEmail?: string) {
+  async createContacts(
+    contactsToCreate: Attendee[],
+    organizerEmail?: string,
+    calEventResponses?: CalEventResponses | null
+  ) {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
@@ -474,11 +478,14 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      await this.createAttendeeRecord({ attendee, recordType: SalesforceRecordEnum.LEAD, organizerId }).then(
-        (result) => {
-          createdContacts.push(...result);
-        }
-      );
+      await this.createAttendeeRecord({
+        attendee,
+        recordType: SalesforceRecordEnum.LEAD,
+        organizerId,
+        calEventResponses,
+      }).then((result) => {
+        createdContacts.push(...result);
+      });
     }
 
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
@@ -522,6 +529,7 @@ export default class SalesforceCRMService implements CRM {
                 attendee,
                 recordType: SalesforceRecordEnum.LEAD,
                 organizerId,
+                calEventResponses,
               })
             );
             if (result.success) {
@@ -670,11 +678,13 @@ export default class SalesforceCRMService implements CRM {
     recordType,
     organizerId,
     accountId,
+    calEventResponses,
   }: {
     attendee: Attendee;
     recordType: SalesforceRecordEnum;
     organizerId?: string;
     accountId?: string;
+    calEventResponses?: CalEventResponses | null;
   }) {
     const conn = await this.conn;
 
@@ -685,6 +695,7 @@ export default class SalesforceCRMService implements CRM {
           attendee,
           recordType: recordType,
           organizerId,
+          calEventResponses,
         }),
         AccountId: accountId,
       })
@@ -705,16 +716,19 @@ export default class SalesforceCRMService implements CRM {
     attendee,
     recordType,
     organizerId,
+    calEventResponses,
   }: {
     attendee: { email: string; name: string };
     recordType: SalesforceRecordEnum;
     organizerId?: string;
+    /**Only Leads have the default company field */
+    calEventResponses?: CalEventResponses | null;
   }) {
     const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
 
     // Assume that the first part of the email domain is the company title
-    const company = attendee.email.split("@")[1].split(".")[0];
-
+    const company =
+      this.getCompanyNameFromBookingResponse(calEventResponses) ?? attendee.email.split("@")[1].split(".")[0];
     return {
       LastName: LastName || "-",
       FirstName,
