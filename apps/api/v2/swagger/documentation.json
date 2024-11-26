@@ -13313,6 +13313,341 @@
           "recurringBookingUid"
         ]
       },
+      "SeatedAttendee": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "absent",
+          "seatUid"
+        ]
+      },
+      "CreateSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Host"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "accepted",
+              "rejected",
+              "pending"
+            ],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "seatUid",
+          "attendees"
+        ]
+      },
+      "CreateRecurringSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Host"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "accepted",
+              "rejected",
+              "pending"
+            ],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "seatUid",
+          "attendees",
+          "recurringBookingUid"
+        ]
+      },
       "CreateBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -13334,6 +13669,15 @@
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
                 }
+              },
+              {
+                "$ref": "#/components/schemas/CreateSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateRecurringSeatedBookingOutput_2024_08_13"
+                }
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or an array of RecurringBookingOutput objects"
@@ -13342,6 +13686,243 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "GetSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Host"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "accepted",
+              "rejected",
+              "pending"
+            ],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "attendees"
+        ]
+      },
+      "GetRecurringSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Host"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "accepted",
+              "rejected",
+              "pending"
+            ],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "attendees",
+          "recurringBookingUid"
         ]
       },
       "GetBookingOutput_2024_08_13": {
