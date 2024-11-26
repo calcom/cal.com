@@ -4,7 +4,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -206,10 +205,6 @@ function ListAttributeHeader() {
       </div>
     </>
   );
-}
-
-export function getLayout(page: React.ReactElement) {
-  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 export default OrganizationAttributesPage;
