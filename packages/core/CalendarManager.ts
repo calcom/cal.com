@@ -199,7 +199,6 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
 };
 
 export const getBusyCalendarTimes = async (
-  username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
