@@ -4,7 +4,11 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
+import {
+  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinScheduledEmailsAndSMS,
+  sendRoundRobinUpdatedEmailsAndSMS,
+} from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -339,6 +343,13 @@ export const roundRobinManualReassignment = async ({
   }
 
   if (hasOrganizerChanged) {
+    if (emailsEnabled) {
+      // send email with event updates to attendees
+      await sendRoundRobinUpdatedEmailsAndSMS({
+        calEvent: evtWithoutCancellationReason,
+      });
+    }
+
     // Handle changing workflows with organizer
     await handleWorkflowsUpdate({
       booking,
