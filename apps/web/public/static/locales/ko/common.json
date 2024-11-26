@@ -1643,6 +1643,8 @@
   "format": "형식",
   "uppercase_for_letters": "모든 문자에 대문자 사용",
   "replace_whitespaces_underscores": "공백을 밑줄로 바꾸기",
+  "platform_members": "플랫폼 멤버",
+  "platform_members_description": "플랫폼 팀의 관리자와 멤버를 관리하세요",
   "platform_billing": "플랫폼 결제",
   "manage_billing": "대금청구 관리",
   "manage_billing_description": "대금청구의 모든 항목 관리",

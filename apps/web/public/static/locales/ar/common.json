@@ -1643,6 +1643,8 @@
   "format": "التنسيق",
   "uppercase_for_letters": "استخدم الحروف الكبيرة لجميع الأحرف",
   "replace_whitespaces_underscores": "استبدل المساحات البيضاء بالشرطات السفلية",
+  "platform_members": "أعضاء المنصة",
+  "platform_members_description": "إدارة المسؤولين والأعضاء في فريق منصتك",
   "platform_billing": "فوترة المنصة",
   "manage_billing": "إدارة الفواتير",
   "manage_billing_description": "إدارة كل ما يخص الفواتير",

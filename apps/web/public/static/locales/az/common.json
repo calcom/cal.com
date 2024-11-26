@@ -1643,6 +1643,8 @@
   "format": "Format",
   "uppercase_for_letters": "Bütün hərfləri böyük hərflərlə yaz",
   "replace_whitespaces_underscores": "Boşluqları alt xətlərlə əvəz et",
+  "platform_members": "Platforma üzvləri",
+  "platform_members_description": "Platforma komandasındakı admin və üzvləri idarə edin",
   "platform_billing": "Platforma ödənişi",
   "manage_billing": "Ödənişləri idarə et",
   "manage_billing_description": "Bütün ödəniş işlərini idarə et",

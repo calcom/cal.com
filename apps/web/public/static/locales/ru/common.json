@@ -1643,6 +1643,8 @@
   "format": "Формат",
   "uppercase_for_letters": "Использовать только прописные буквы",
   "replace_whitespaces_underscores": "Заменить пробелы подчеркиванием",
+  "platform_members": "Участники платформы",
+  "platform_members_description": "Управляйте администраторами и участниками вашей команды на платформе",
   "platform_billing": "Биллинг платформы",
   "manage_billing": "Управление биллингом",
   "manage_billing_description": "Управление всем, что связано с биллингом",

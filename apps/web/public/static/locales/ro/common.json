@@ -1643,6 +1643,8 @@
   "format": "Format",
   "uppercase_for_letters": "Utilizați majuscule pentru toate literele",
   "replace_whitespaces_underscores": "Înlocuiți spațiile cu caractere de subliniere",
+  "platform_members": "Membrii platformei",
+  "platform_members_description": "Gestionează administratorii și membrii din echipa platformei tale",
   "platform_billing": "Facturare platformă",
   "manage_billing": "Gestionați facturarea",
   "manage_billing_description": "Gestionați toate aspectele legate de facturare",

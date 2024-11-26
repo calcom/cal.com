@@ -1643,6 +1643,8 @@
   "format": "Biçim",
   "uppercase_for_letters": "Tüm harfleri büyük harf olarak kullanın",
   "replace_whitespaces_underscores": "Boşlukları alt çizgi ile değiştir",
+  "platform_members": "Platform üyeleri",
+  "platform_members_description": "Platform ekibinizdeki yöneticileri ve üyeleri yönetin",
   "platform_billing": "Platform faturalandırması",
   "manage_billing": "Faturalandırmayı yönetin",
   "manage_billing_description": "Faturalandırmayla ilgili her şeyi yönetin",

@@ -1643,6 +1643,8 @@
   "format": "Formátum",
   "uppercase_for_letters": "Használjon nagybetűt minden betűhöz",
   "replace_whitespaces_underscores": "Cserélje ki a szóközöket aláhúzásjelre",
+  "platform_members": "Platform tagok",
+  "platform_members_description": "Platform csapatod adminisztrátorainak és tagjainak kezelése",
   "platform_billing": "Platform számlázás",
   "manage_billing": "Számlázás kezelése",
   "manage_billing_description": "Számlázással kapcsolatos teendők",

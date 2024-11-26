@@ -1643,6 +1643,8 @@
   "format": "Format",
   "uppercase_for_letters": "Koristite velika slova za sva slova",
   "replace_whitespaces_underscores": "Zamenite prazna mesta donjom crtom",
+  "platform_members": "Članovi platforme",
+  "platform_members_description": "Upravljajte administratorima i članovima vašeg platformskog tima",
   "platform_billing": "Naplata platforme",
   "manage_billing": "Upravljajte naplatom",
   "manage_billing_description": "Upravljajte svim u vezi sa naplatom",

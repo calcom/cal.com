@@ -1643,6 +1643,8 @@
   "format": "Formát",
   "uppercase_for_letters": "Použiť veľké písmená pre všetky písmená",
   "replace_whitespaces_underscores": "Nahradiť medzery podčiarkovníkmi",
+  "platform_members": "Členovia platformy",
+  "platform_members_description": "Spravujte administrátorov a členov vášho tímu platformy",
   "platform_billing": "Fakturácia platformy",
   "manage_billing": "Spravovať fakturáciu",
   "manage_billing_description": "Spravujte všetky záležitosti týkajúce sa fakturácie",

@@ -1643,6 +1643,8 @@
   "format": "書式",
   "uppercase_for_letters": "すべての文字に大文字を使用する",
   "replace_whitespaces_underscores": "空白をアンダーバー「 _ 」に置き換える",
+  "platform_members": "プラットフォームメンバー",
+  "platform_members_description": "プラットフォームチームの管理者とメンバーを管理する",
   "platform_billing": "プラットフォーム請求",
   "manage_billing": "請求を管理する",
   "manage_billing_description": "請求に関するすべての事柄を管理する",

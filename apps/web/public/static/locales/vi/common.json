@@ -1643,6 +1643,8 @@
   "format": "Định dạng",
   "uppercase_for_letters": "In hoa hết tất cả các chữ cái",
   "replace_whitespaces_underscores": "Thay thế khoảng trắng bằng dấu gạch dưới",
+  "platform_members": "Thành viên nền tảng",
+  "platform_members_description": "Quản lý quản trị viên và thành viên trong nhóm nền tảng của bạn",
   "platform_billing": "Thanh toán nền tảng",
   "manage_billing": "Quản lí thanh toán",
   "manage_billing_description": "Quản lí tất cả những thanh toán",

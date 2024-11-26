@@ -1643,6 +1643,8 @@
   "format": "格式",
   "uppercase_for_letters": "所有字母均使用大写",
   "replace_whitespaces_underscores": "将空格替换为下划线",
+  "platform_members": "平台成员",
+  "platform_members_description": "管理您平台团队中的管理员和成员",
   "platform_billing": "平台计费",
   "manage_billing": "管理计费",
   "manage_billing_description": "管理所有计费事项",

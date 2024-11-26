@@ -1643,6 +1643,8 @@
   "format": "Formatteren",
   "uppercase_for_letters": "Gebruik hoofdletters voor alle letters",
   "replace_whitespaces_underscores": "Vervang spaties door onderstrepingstekens",
+  "platform_members": "Platformleden",
+  "platform_members_description": "Beheer de beheerders en leden in je platformteam",
   "platform_billing": "Platformfacturering",
   "manage_billing": "Facturering beheren",
   "manage_billing_description": "Alles beheren wat met facturering te maken heeft",

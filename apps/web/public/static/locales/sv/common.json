@@ -1643,6 +1643,8 @@
   "format": "Formatera",
   "uppercase_for_letters": "Använd versaler för alla bokstäver",
   "replace_whitespaces_underscores": "Ersätt blanktecken med understreck",
+  "platform_members": "Plattformsmedlemmar",
+  "platform_members_description": "Hantera administratörer och medlemmar i ditt plattformsteam",
   "platform_billing": "Plattformsfakturering",
   "manage_billing": "Hantera fakturering",
   "manage_billing_description": "Hantera allt som faktureras",
