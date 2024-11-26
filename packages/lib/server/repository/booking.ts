@@ -23,6 +23,62 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
+const buildWhereClauseForActiveBookingCounts = ({
+  eventTypeId,
+  startDate,
+  endDate,
+  users,
+  virtualQueuesData,
+}: {
+  eventTypeId: number;
+  startDate?: Date;
+  endDate?: Date;
+  users: { id: number; email: string }[];
+  virtualQueuesData: {
+    chosenRouteId: string;
+    fieldOptionData: {
+      fieldId: string;
+      selectedOptionIds: string | number | string[];
+    };
+  } | null;
+}): Prisma.BookingWhereInput => ({
+  OR: [
+    {
+      user: {
+        id: {
+          in: users.map((user) => user.id),
+        },
+      },
+      OR: [
+        {
+          noShowHost: false,
+        },
+        {
+          noShowHost: null,
+        },
+      ],
+    },
+  ],
+  attendees: { some: { noShow: false } },
+  status: BookingStatus.ACCEPTED,
+  eventTypeId,
+  ...(startDate || endDate
+    ? {
+        createdAt: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
+    : {}),
+  ...(virtualQueuesData
+    ? {
+        routedFromRoutingFormReponse: {
+          chosenRouteId: virtualQueuesData.chosenRouteId,
+        },
+      }
+    : {}),
+});
+
 const buildWhereClauseForActiveBookings = ({
   eventTypeId,
   startDate,
@@ -151,7 +207,7 @@ export class BookingRepository {
   }) {
     return await prisma.booking.groupBy({
       by: ["userId"],
-      where: buildWhereClauseForActiveBookings({
+      where: buildWhereClauseForActiveBookingCounts({
         users,
         eventTypeId,
         startDate,
