@@ -29,7 +29,6 @@ import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
-import { GoogleService } from "@calcom/lib/server/service/google";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import prisma from "@calcom/prisma";
 import type {
