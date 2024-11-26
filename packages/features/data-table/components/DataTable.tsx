@@ -57,11 +57,11 @@ export function DataTable<TData, TValue>({
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
     }
     return colSizes;
-  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+  }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   return (
     <div
-      className={rest.className}
+      className={classNames("grid", rest.className)}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
@@ -92,9 +92,9 @@ export function DataTable<TData, TValue>({
                         width: `calc(var(--header-${header?.id}-size) * 1px)`,
                       }}
                       className={classNames(
-                        "flex items-center",
+                        "flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky top-0 z-20"
+                        meta?.sticky && "sticky top-0 z-20"
                       )}>
                       <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
@@ -152,7 +152,7 @@ export function DataTable<TData, TValue>({
                             width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                           }}
                           className={classNames(
-                            "flex items-center",
+                            "flex shrink-0 items-center overflow-auto",
                             variant === "compact" && "p-1.5",
                             meta?.sticky && "group-hover:bg-muted bg-default sticky"
                           )}>

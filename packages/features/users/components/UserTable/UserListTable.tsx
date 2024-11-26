@@ -24,6 +24,7 @@ import {
   isTextFilterValue,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   downloadAsCsv,
@@ -182,13 +183,13 @@ export function UserListTable() {
             );
             if (attributeValues.length === 0) return null;
             return (
-              <>
+              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
                 {attributeValues.map((attributeValue, index) => (
                   <Badge key={index} variant="gray" className="mr-1">
                     {attributeValue.value}
                   </Badge>
                 ))}
-              </>
+              </div>
             );
           },
           filterFn: (row, id, filterValue) => {
@@ -395,7 +396,7 @@ export function UserListTable() {
       columnVisibility: initalColumnVisibility,
     },
     defaultColumn: {
-      minSize: 100,
+      size: 150,
     },
     state: {
       columnFilters,
