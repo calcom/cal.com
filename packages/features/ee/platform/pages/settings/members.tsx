@@ -2,6 +2,7 @@
 
 import Shell from "@calcom/features/shell/Shell";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -10,6 +11,7 @@ import { useGetUserAttributes } from "@calcom/web/components/settings/platform/h
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 const PlatformMembersView = () => {
+  const { t } = useLocale();
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
     useGetUserAttributes();
   const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
@@ -61,10 +63,10 @@ const PlatformMembersView = () => {
           />
         </div>
       }
-      title="Platform members"
+      title={t("platform_members")}
+      subtitle={t("platform_members_description")}
       hideHeadingOnMobile
       withoutMain={false}
-      subtitle="Manage the admins and members in your platform team"
       isPlatformUser={true}>
       <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
     </Shell>
