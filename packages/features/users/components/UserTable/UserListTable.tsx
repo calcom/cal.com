@@ -19,6 +19,7 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
   useColumnFilters,
+  useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
 } from "@calcom/features/data-table";
@@ -121,7 +122,7 @@ export function UserListTable() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, fetchNextPage, isFetching, hasNextPage } =
+  const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 30,
@@ -425,6 +426,14 @@ export function UserListTable() {
     },
   });
 
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+    tableContainerRef,
+    fetchNextPage,
+    isFetching,
+    totalFetched,
+    totalDBRowCount
+  );
+
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
   const handleDownload = async () => {
@@ -483,10 +492,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
-        isFetching={isFetching}
-        totalFetched={totalFetched}
-        totalDBRowCount={totalDBRowCount}
-        fetchNextPage={fetchNextPage}>
+        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">
             <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">

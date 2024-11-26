@@ -4,7 +4,7 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useCallback, useEffect } from "react";
+import { useMemo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
@@ -13,48 +13,30 @@ export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
-  isFetching?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
+  onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
-  totalFetched: number;
-  totalDBRowCount: number;
-  fetchNextPage?: () => void;
+  infiniteScroll?: {
+    totalFetched: number;
+    totalDBRowCount: number;
+    fetchNextPage: () => void;
+  };
   children?: React.ReactNode;
 }
 export function DataTable<TData, TValue>({
   table,
   tableContainerRef,
   isPending,
-  isFetching,
   variant,
   onRowMouseclick,
-  totalFetched,
-  totalDBRowCount,
-  fetchNextPage,
+  onScroll,
+  infiniteScroll,
   children,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
-
-  const fetchMoreOnBottomReached = useCallback(
-    (containerRefElement?: HTMLDivElement | null) => {
-      if (containerRefElement && fetchNextPage) {
-        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        //once the user has scrolled within 500px of the bottom of the table, fetch more data if we can
-        if (scrollHeight - scrollTop - clientHeight < 500 && !isFetching && totalFetched < totalDBRowCount) {
-          fetchNextPage();
-        }
-      }
-    },
-    [fetchNextPage, totalDBRowCount, totalFetched, isFetching]
-  );
-
-  //a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data
-  useEffect(() => {
-    fetchMoreOnBottomReached(tableContainerRef.current);
-  }, [fetchMoreOnBottomReached, tableContainerRef]);
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
@@ -94,7 +76,7 @@ export function DataTable<TData, TValue>({
       data-testid={rest["data-testid"] ?? "data-table"}>
       <div
         ref={tableContainerRef}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+        onScroll={onScroll}
         className={classNames(
           "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
           "scrollbar-thin border-subtle relative rounded-md border"
