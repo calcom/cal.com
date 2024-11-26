@@ -4,8 +4,7 @@ import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-s
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 
-import ApiKeysView from "~/settings/developer/api-keys-view";
-import NewApiKeyButton from "~/settings/developer/components/CreateApiKeyButton";
+import ApiKeysView, { NewApiKeyButton } from "~/settings/developer/api-keys-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

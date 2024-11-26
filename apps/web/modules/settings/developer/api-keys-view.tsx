@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
@@ -30,6 +30,28 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
+export const apiKeyModalRef = {
+  current: null as null | ((show: boolean) => void),
+};
+export const apiKeyToEditRef = {
+  current: null as null | ((apiKey: (TApiKeys & { neverExpires?: boolean }) | undefined) => void),
+};
+
+export const NewApiKeyButton = () => {
+  const { t } = useLocale();
+  return (
+    <Button
+      color="secondary"
+      StartIcon="plus"
+      onClick={() => {
+        apiKeyModalRef.current?.(true);
+        apiKeyToEditRef.current?.(undefined);
+      }}>
+      {t("add")}
+    </Button>
+  );
+};
+
 const ApiKeysView = () => {
   const { t } = useLocale();
 
@@ -40,19 +62,14 @@ const ApiKeysView = () => {
     undefined
   );
 
-  const NewApiKeyButton = () => {
-    return (
-      <Button
-        color="secondary"
-        StartIcon="plus"
-        onClick={() => {
-          setApiKeyToEdit(undefined);
-          setApiKeyModal(true);
-        }}>
-        {t("add")}
-      </Button>
-    );
-  };
+  useEffect(() => {
+    apiKeyModalRef.current = setApiKeyModal;
+    apiKeyToEditRef.current = setApiKeyToEdit;
+    return () => {
+      apiKeyModalRef.current = null;
+      apiKeyToEditRef.current = null;
+    };
+  }, []);
 
   if (isPending || !data) {
     return (
