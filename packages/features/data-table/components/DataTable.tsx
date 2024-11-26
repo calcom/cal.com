@@ -18,11 +18,6 @@ export interface DataTableProps<TData, TValue> {
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
-  infiniteScroll?: {
-    totalFetched: number;
-    totalDBRowCount: number;
-    fetchNextPage: () => void;
-  };
   children?: React.ReactNode;
 }
 export function DataTable<TData, TValue>({
@@ -32,12 +27,12 @@ export function DataTable<TData, TValue>({
   variant,
   onRowMouseclick,
   onScroll,
-  infiniteScroll,
   children,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
+  // https://stackblitz.com/github/tanstack/table/tree/main/examples/react/virtualized-infinite-scrolling
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 100,
@@ -81,8 +76,7 @@ export function DataTable<TData, TValue>({
           "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
           "scrollbar-thin border-subtle relative rounded-md border"
         )}
-        style={{ gridArea: "body" }}
-        data-testid={rest["data-testid"] ?? "data-table"}>
+        style={{ gridArea: "body" }}>
         <TableNew className="grid border-0">
           <TableHeader className="bg-subtle sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
