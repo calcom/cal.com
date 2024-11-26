@@ -49,6 +49,10 @@ const computeLeadOffsets = async <T = Record<string, unknown>>({
     ) => {
       // satisfy TS, obviously as we've where'd on userId it cannot be null but try telling TS that..
       if (!booking.userId) return acc;
+      if (!hosts.map((host) => host.user.id).includes(booking.userId)) {
+        // ensure that the assigned organizer is actually this user?
+        return acc;
+      }
       acc.minBookingCount = Math.min(acc.minBookingCount, booking._count._all || Infinity);
       acc.bookingCountMap[booking.userId] = booking._count._all;
       return acc;
