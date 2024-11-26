@@ -9,7 +9,6 @@ export const useFetchMoreOnBottomReached = (
   totalFetched: number,
   totalDBRowCount: number
 ) => {
-  console.log("💡 fetchMoreOnBottomReached");
   const fetchMoreOnBottomReached = useCallback(
     (containerRefElement?: HTMLDivElement | null) => {
       if (containerRefElement) {

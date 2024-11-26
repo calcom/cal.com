@@ -21,6 +21,7 @@ export interface DataTableProps<TData, TValue> {
   totalFetched: number;
   totalDBRowCount: number;
   fetchNextPage?: () => void;
+  children?: React.ReactNode;
 }
 export function DataTable<TData, TValue>({
   table,
@@ -32,6 +33,7 @@ export function DataTable<TData, TValue>({
   totalFetched,
   totalDBRowCount,
   fetchNextPage,
+  children,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
@@ -54,7 +56,6 @@ export function DataTable<TData, TValue>({
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached, tableContainerRef]);
 
-  console.log("💡 rows.length", rows.length);
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 100,
@@ -83,112 +84,121 @@ export function DataTable<TData, TValue>({
 
   return (
     <div
-      ref={tableContainerRef}
-      onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-      className={classNames(
-        "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
-        "scrollbar-thin border-subtle relative rounded-md border",
-        rest.className
-      )}
       style={{
-        ...rest.style,
-        ...columnSizeVars,
-      }}
-      data-testid={rest["data-testid"] ?? "data-table"}>
-      <TableNew className="grid border-0">
-        <TableHeader className="bg-subtle sticky top-0 z-10">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="flex w-full">
-              {headerGroup.headers.map((header) => {
-                const meta = header.column.columnDef.meta;
+        gridTemplateRows: "auto 1fr auto",
+        gridTemplateAreas: "'header' 'body' 'footer'",
+      }}>
+      <div
+        ref={tableContainerRef}
+        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+        className={classNames(
+          "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
+          "scrollbar-thin border-subtle relative rounded-md border",
+          rest.className
+        )}
+        style={{
+          ...rest.style,
+          ...columnSizeVars,
+          gridArea: "body",
+        }}
+        data-testid={rest["data-testid"] ?? "data-table"}>
+        <TableNew className="grid border-0">
+          <TableHeader className="bg-subtle sticky top-0 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="flex w-full">
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                        ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                      }}
+                      className={classNames(
+                        "flex items-center",
+                        header.column.getCanSort() ? "cursor-pointer select-none" : "",
+                        meta?.sticky && "bg-subtle sticky top-0 z-20"
+                      )}>
+                      <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getIsSorted() && (
+                          <Icon
+                            name="arrow-up"
+                            className="ml-2 h-4 w-4"
+                            style={{
+                              transform:
+                                header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                              transition: "transform 0.2s ease-in-out",
+                            }}
+                          />
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+            {virtualRows && !isPending ? (
+              virtualRows.map((virtualRow) => {
+                const row = rows[virtualRow.index] as Row<TData>;
                 return (
-                  <TableHead
-                    key={header.id}
+                  <TableRow
+                    ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                    key={row.id}
+                    data-index={virtualRow.index} //needed for dynamic row height measurement
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
                     style={{
-                      ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                      ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                      width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                      display: "flex",
+                      position: "absolute",
+                      transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                      width: "100%",
                     }}
                     className={classNames(
-                      "flex items-center",
-                      header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                      meta?.sticky && "bg-subtle sticky top-0 z-20"
+                      onRowMouseclick && "hover:cursor-pointer",
+                      variant === "compact" && "!border-0",
+                      "group"
                     )}>
-                    <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getIsSorted() && (
-                        <Icon
-                          name="arrow-up"
-                          className="ml-2 h-4 w-4"
+                    {row.getVisibleCells().map((cell) => {
+                      const column = table.getColumn(cell.column.id);
+                      const meta = column?.columnDef.meta;
+                      return (
+                        <TableCell
+                          key={cell.id}
                           style={{
-                            transform:
-                              header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                            transition: "transform 0.2s ease-in-out",
+                            ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                            ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                           }}
-                        />
-                      )}
-                    </div>
-                  </TableHead>
+                          className={classNames(
+                            "flex items-center",
+                            variant === "compact" && "p-1.5",
+                            meta?.sticky && "group-hover:bg-muted bg-default sticky"
+                          )}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
                 );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-          {virtualRows && !isPending ? (
-            virtualRows.map((virtualRow) => {
-              const row = rows[virtualRow.index] as Row<TData>;
-              return (
-                <TableRow
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                  key={row.id}
-                  data-index={virtualRow.index} //needed for dynamic row height measurement
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                  style={{
-                    display: "flex",
-                    position: "absolute",
-                    transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                    width: "100%",
-                  }}
-                  className={classNames(
-                    onRowMouseclick && "hover:cursor-pointer",
-                    variant === "compact" && "!border-0",
-                    "group"
-                  )}>
-                  {row.getVisibleCells().map((cell) => {
-                    const column = table.getColumn(cell.column.id);
-                    const meta = column?.columnDef.meta;
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        style={{
-                          ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                          ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                          width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
-                        }}
-                        className={classNames(
-                          variant === "compact" && "p-1.5",
-                          meta?.sticky && "group-hover:bg-muted bg-default sticky"
-                        )}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </TableNew>
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </TableNew>
+      </div>
+      {children}
     </div>
   );
 }
