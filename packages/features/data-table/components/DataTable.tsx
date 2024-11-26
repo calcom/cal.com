@@ -3,8 +3,8 @@
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
-import { useMemo } from "react";
-import { useVirtual } from "react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useMemo, useCallback, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
@@ -13,34 +13,61 @@ export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
+  isFetching?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
-  children?: React.ReactNode;
+  totalFetched: number;
+  totalDBRowCount: number;
+  fetchNextPage?: () => void;
 }
 export function DataTable<TData, TValue>({
   table,
   tableContainerRef,
   isPending,
+  isFetching,
   variant,
   onRowMouseclick,
-  onScroll,
-  children,
+  totalFetched,
+  totalDBRowCount,
+  fetchNextPage,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
-  const rowVirtualizer = useVirtual({
-    parentRef: tableContainerRef,
-    size: rows.length,
+  const fetchMoreOnBottomReached = useCallback(
+    (containerRefElement?: HTMLDivElement | null) => {
+      if (containerRefElement && fetchNextPage) {
+        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+        //once the user has scrolled within 500px of the bottom of the table, fetch more data if we can
+        if (scrollHeight - scrollTop - clientHeight < 500 && !isFetching && totalFetched < totalDBRowCount) {
+          fetchNextPage();
+        }
+      }
+    },
+    [fetchNextPage, totalDBRowCount, totalFetched, isFetching]
+  );
+
+  //a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data
+  useEffect(() => {
+    fetchMoreOnBottomReached(tableContainerRef.current);
+  }, [fetchMoreOnBottomReached, tableContainerRef]);
+
+  console.log("💡 rows.length", rows.length);
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    estimateSize: () => 100,
+    getScrollElement: () => tableContainerRef.current,
+    // measure dynamic row height, except in firefox because it measures table border height incorrectly
+    measureElement:
+      typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
     overscan: 10,
   });
-  const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
-  const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
-  const paddingBottom =
-    virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
 
   const columnSizeVars = useMemo(() => {
     const headers = table.getFlatHeaders();
@@ -56,119 +83,112 @@ export function DataTable<TData, TValue>({
 
   return (
     <div
+      ref={tableContainerRef}
+      onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
       className={classNames(
-        "grid h-[85dvh]", // Set a fixed height for the container
+        "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
+        "scrollbar-thin border-subtle relative rounded-md border",
         rest.className
       )}
       style={{
-        gridTemplateRows: "auto 1fr auto",
-        gridTemplateAreas: "'header' 'body' 'footer'",
         ...rest.style,
         ...columnSizeVars,
       }}
       data-testid={rest["data-testid"] ?? "data-table"}>
-      <div
-        ref={tableContainerRef}
-        onScroll={onScroll}
-        className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
-        style={{ gridArea: "body" }}>
-        <TableNew className="border-0">
-          <TableHeader className="bg-subtle sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                        ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
-                      }}
-                      className={classNames(
-                        header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky top-0 z-20"
-                      )}>
-                      <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getIsSorted() && (
-                          <Icon
-                            name="arrow-up"
-                            className="ml-2 h-4 w-4"
-                            style={{
-                              transform:
-                                header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                              transition: "transform 0.2s ease-in-out",
-                            }}
-                          />
-                        )}
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {paddingTop > 0 && (
-              <tr>
-                <td style={{ height: `${paddingTop}px` }} />
-              </tr>
-            )}
-            {virtualRows && !isPending ? (
-              virtualRows.map((virtualRow) => {
-                const row = rows[virtualRow.index] as Row<TData>;
+      <TableNew className="grid border-0">
+        <TableHeader className="bg-subtle sticky top-0 z-10">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="flex w-full">
+              {headerGroup.headers.map((header) => {
+                const meta = header.column.columnDef.meta;
                 return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                  <TableHead
+                    key={header.id}
+                    style={{
+                      ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                      ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                      width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                    }}
                     className={classNames(
-                      onRowMouseclick && "hover:cursor-pointer",
-                      variant === "compact" && "!border-0",
-                      "group"
+                      "flex items-center",
+                      header.column.getCanSort() ? "cursor-pointer select-none" : "",
+                      meta?.sticky && "bg-subtle sticky top-0 z-20"
                     )}>
-                    {row.getVisibleCells().map((cell) => {
-                      const column = table.getColumn(cell.column.id);
-                      const meta = column?.columnDef.meta;
-                      return (
-                        <TableCell
-                          key={cell.id}
+                    <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.column.getIsSorted() && (
+                        <Icon
+                          name="arrow-up"
+                          className="ml-2 h-4 w-4"
                           style={{
-                            ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                            ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                            transform:
+                              header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                            transition: "transform 0.2s ease-in-out",
                           }}
-                          className={classNames(
-                            variant === "compact" && "p-1.5",
-                            meta?.sticky && "group-hover:bg-muted bg-default sticky"
-                          )}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                        />
+                      )}
+                    </div>
+                  </TableHead>
                 );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-            {paddingBottom > 0 && (
-              <tr>
-                <td style={{ height: `${paddingBottom}px` }} />
-              </tr>
-            )}
-          </TableBody>
-        </TableNew>
-      </div>
-      {children}
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+          {virtualRows && !isPending ? (
+            virtualRows.map((virtualRow) => {
+              const row = rows[virtualRow.index] as Row<TData>;
+              return (
+                <TableRow
+                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  key={row.id}
+                  data-index={virtualRow.index} //needed for dynamic row height measurement
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                  style={{
+                    display: "flex",
+                    position: "absolute",
+                    transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                    width: "100%",
+                  }}
+                  className={classNames(
+                    onRowMouseclick && "hover:cursor-pointer",
+                    variant === "compact" && "!border-0",
+                    "group"
+                  )}>
+                  {row.getVisibleCells().map((cell) => {
+                    const column = table.getColumn(cell.column.id);
+                    const meta = column?.columnDef.meta;
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        style={{
+                          ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                          ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                          width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                        }}
+                        className={classNames(
+                          variant === "compact" && "p-1.5",
+                          meta?.sticky && "group-hover:bg-muted bg-default sticky"
+                        )}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })
+          ) : (
+            <TableRow>
+              <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </TableNew>
     </div>
   );
 }

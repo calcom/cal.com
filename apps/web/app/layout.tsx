@@ -70,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
+        {/* <script src="https://unpkg.com/react-scan/dist/auto.global.js" async /> */}
         {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
           <script
             nonce={nonce}

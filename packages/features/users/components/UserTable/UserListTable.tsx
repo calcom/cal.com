@@ -19,7 +19,6 @@ import {
   DataTableSelectionBar,
   DataTablePagination,
   useColumnFilters,
-  useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
 } from "@calcom/features/data-table";
@@ -48,6 +47,32 @@ import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+
+function generateRandomString() {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const length = Math.floor(Math.random() * (30 - 3 + 1)) + 3; // Random length between 3 and 20
+  let result = "";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters[randomIndex];
+  }
+
+  return result;
+}
+
+const fakeTeams = Array(2000)
+  .fill(null)
+  .reduce((acc, _, index) => {
+    const teams = Array(Math.floor(Math.random() * 3) + 1)
+      .fill(null)
+      .map(() => ({ name: `Team ${generateRandomString()}` }));
+
+    acc[index] = teams;
+    return acc;
+  }, {});
+
+console.log("💡 fakeTeams", fakeTeams);
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -122,10 +147,10 @@ export function UserListTable() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, fetchNextPage, isFetching } =
+  const { data, isPending, fetchNextPage, isFetching, hasNextPage } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
-        limit: 10,
+        limit: 30,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
         filters: columnFilters,
@@ -135,6 +160,8 @@ export function UserListTable() {
         placeholderData: keepPreviousData,
       }
     );
+
+  console.log("💡 query response", { data, hasNextPage });
 
   const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
     {
@@ -237,7 +264,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        size: 170,
+        size: 200,
         header: () => {
           return `Members`;
         },
@@ -306,6 +333,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
+        size: 200,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -323,7 +351,8 @@ export function UserListTable() {
                   Pending
                 </Badge>
               )}
-              {teams.map((team) => (
+
+              {fakeTeams[row.id].map((team) => (
                 <Badge
                   key={team.id}
                   variant="gray"
@@ -392,6 +421,10 @@ export function UserListTable() {
     initialState: {
       columnVisibility: initalColumnVisibility,
     },
+    defaultColumn: {
+      minSize: 60,
+      maxSize: 300,
+    },
     state: {
       columnFilters,
       rowSelection,
@@ -420,14 +453,6 @@ export function UserListTable() {
       return new Map();
     },
   });
-
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
-    tableContainerRef,
-    fetchNextPage,
-    isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -481,92 +506,97 @@ export function UserListTable() {
 
   return (
     <>
+      <DataTableToolbar.Root className="lg:max-w-screen-2xl">
+        <div className="flex w-full flex-col gap-2 sm:flex-row">
+          <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
+            <DataTableToolbar.SearchBar
+              table={table}
+              onSearch={(value) => setDebouncedSearchTerm(value)}
+              className="sm:max-w-64 max-w-full"
+            />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <DataTableToolbar.CTA
+              type="button"
+              color="secondary"
+              StartIcon="file-down"
+              loading={isDownloading}
+              onClick={() => handleDownload()}
+              data-testid="export-members-button">
+              {t("download")}
+            </DataTableToolbar.CTA>
+            {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
+            <DataTableFilters.FilterButton table={table} omit={["member"]} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            {adminOrOwner && (
+              <DataTableToolbar.CTA
+                type="button"
+                color="primary"
+                StartIcon="plus"
+                className="rounded-md"
+                onClick={() =>
+                  dispatch({
+                    type: "INVITE_MEMBER",
+                    payload: {
+                      showModal: true,
+                    },
+                  })
+                }
+                data-testid="new-organization-member-button">
+                {t("add")}
+              </DataTableToolbar.CTA>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2 justify-self-start">
+          <DataTableFilters.ActiveFilters table={table} />
+        </div>
+      </DataTableToolbar.Root>
+
       <DataTable
         data-testid="user-list-data-table"
         // className="lg:max-w-screen-lg"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root className="lg:max-w-screen-2xl">
-          <div className="flex w-full flex-col gap-2 sm:flex-row">
-            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
-              <DataTableToolbar.SearchBar
-                table={table}
-                onSearch={(value) => setDebouncedSearchTerm(value)}
-                className="sm:max-w-64 max-w-full"
-              />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <DataTableToolbar.CTA
-                type="button"
-                color="secondary"
-                StartIcon="file-down"
-                loading={isDownloading}
-                onClick={() => handleDownload()}
-                data-testid="export-members-button">
-                {t("download")}
-              </DataTableToolbar.CTA>
-              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.FilterButton table={table} omit={["member"]} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
-              {adminOrOwner && (
-                <DataTableToolbar.CTA
-                  type="button"
-                  color="primary"
-                  StartIcon="plus"
-                  className="rounded-md"
-                  onClick={() =>
-                    dispatch({
-                      type: "INVITE_MEMBER",
-                      payload: {
-                        showModal: true,
-                      },
-                    })
-                  }
-                  data-testid="new-organization-member-button">
-                  {t("add")}
-                </DataTableToolbar.CTA>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2 justify-self-start">
-            <DataTableFilters.ActiveFilters table={table} />
-          </div>
-        </DataTableToolbar.Root>
-        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
-        </div>
+        isFetching={isFetching}
+        totalFetched={totalFetched}
+        totalDBRowCount={totalDBRowCount}
+        fetchNextPage={fetchNextPage}
+      />
 
-        {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
-            <DynamicLink table={table} domain={domain} />
-          </DataTableSelectionBar.Root>
-        )}
-        {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
-            </p>
-            {!isPlatformUser ? (
-              <>
-                <TeamListBulkAction table={table} />
-                {numberOfSelectedRows >= 2 && (
-                  <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                    Group Meeting
-                  </Button>
-                )}
-                <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
-                <EventTypesList table={table} orgTeams={teams} />
-              </>
-            ) : null}
-            <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-              onRemove={() => table.toggleAllPageRowsSelected(false)}
-            />
-          </DataTableSelectionBar.Root>
-        )}
-      </DataTable>
+      <div className="mt-4">
+        <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+      </div>
+
+      {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
+        <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DynamicLink table={table} domain={domain} />
+        </DataTableSelectionBar.Root>
+      )}
+      {numberOfSelectedRows > 0 && (
+        <DataTableSelectionBar.Root>
+          <p className="text-brand-subtle w-full px-2 text-center leading-none">
+            {numberOfSelectedRows} selected
+          </p>
+          {!isPlatformUser ? (
+            <>
+              <TeamListBulkAction table={table} />
+              {numberOfSelectedRows >= 2 && (
+                <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
+                  Group Meeting
+                </Button>
+              )}
+              <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
+              <EventTypesList table={table} orgTeams={teams} />
+            </>
+          ) : null}
+          <DeleteBulkUsers
+            users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+            onRemove={() => table.toggleAllPageRowsSelected(false)}
+          />
+        </DataTableSelectionBar.Root>
+      )}
 
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
