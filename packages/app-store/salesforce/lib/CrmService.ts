@@ -1071,5 +1071,6 @@ export default class SalesforceCRMService implements CRM {
     });
 
     if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
+    return companyValue;
   }
 }
