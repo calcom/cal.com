@@ -651,7 +651,6 @@ export default class GoogleCalendarService implements Calendar {
     });
     const response = res.data;
     await this.upsertSelectedCalendar({
-      userId: this.credential.userId!,
       externalId: calendarId,
       googleChannelId: response?.id,
       googleChannelKind: response?.kind,
@@ -684,7 +683,6 @@ export default class GoogleCalendarService implements Calendar {
         console.warn(JSON.stringify(err));
       });
     await this.upsertSelectedCalendar({
-      userId: this.credential.userId!,
       externalId: calendarId,
       googleChannelId: null,
       googleChannelKind: null,
@@ -723,12 +721,17 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async upsertSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
   ) {
+    if (!this.credential.userId) {
+      logger.error("upsertSelectedCalendar failed. userId is missing.");
+      return;
+    }
     return await SelectedCalendarRepository.upsert({
       ...data,
       integration: this.integrationName,
       credentialId: this.credential.id,
+      userId: this.credential.userId,
     });
   }
 

@@ -114,7 +114,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     try {
       await gCalService.upsertSelectedCalendar({
         externalId: selectedCalendarWhereUnique.externalId,
-        userId: selectedCalendarWhereUnique.userId,
       });
     } catch (error) {
       let errorMessage = "something_went_wrong";
