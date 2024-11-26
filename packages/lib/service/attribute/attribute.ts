@@ -26,10 +26,7 @@ type AttributeOptionsToAssignWithIdEnsured = {
 };
 
 type AttributeOptionAssignment = AttributeToUser & {
-  attributeOption: Omit<
-    AttributeOption,
-    "value" | "isGroup" | "contains" | "containedIn" | "id" | "attributeId"
-  > & {
+  attributeOption: Omit<AttributeOption, "value" | "isGroup" | "contains" | "id" | "attributeId"> & {
     label: string;
     attribute: Attribute;
   };

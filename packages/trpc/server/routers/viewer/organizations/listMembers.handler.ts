@@ -99,15 +99,17 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
-        const attributeOptionValues: string[] = [...filter.value];
-
-        filter.value.forEach((filterValueItem) => {
-          groupOptionsWithContainsOptionValues.forEach((groupOption) => {
-            if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
-              attributeOptionValues.push(groupOption.value);
-            }
+        const attributeOptionValues: string[] = [];
+        if (filter.value instanceof Array) {
+          filter.value.forEach((filterValueItem) => {
+            attributeOptionValues.push(filterValueItem);
+            groupOptionsWithContainsOptionValues.forEach((groupOption) => {
+              if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
+                attributeOptionValues.push(groupOption.value);
+              }
+            });
           });
-        });
+        }
 
         whereClause.AttributeToUser = {
           some: {
@@ -115,7 +117,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               attribute: {
                 id: filter.id,
               },
-              ...makeWhereClause("value", attributeOptionValues),
+              ...makeWhereClause(
+                "value",
+                attributeOptionValues.length > 0 ? attributeOptionValues : filter.value
+              ),
             },
           },
         };

@@ -196,11 +196,7 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
   });
 };
 
-function getValueOfAnOption(attributeOption: {
-  value: string | string[];
-  contains: { value: string }[];
-  containedIn: { value: string }[];
-}) {
+function getValueOfAnOption(attributeOption: { value: string | string[]; contains: { value: string }[] }) {
   if (attributeOption.contains.length > 0) {
     const subOptions = attributeOption.contains.map((option) => option.value);
     console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));

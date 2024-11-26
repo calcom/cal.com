@@ -28,7 +28,6 @@ const AttributeSchema = z.object({
       assignedUsers: z.number().optional(),
       isGroup: z.boolean().optional(),
       contains: z.array(z.string()).optional(),
-      containedIn: z.array(z.string()).optional(),
       attributeOptionId: z.string().optional(),
     })
   ),

@@ -43,7 +43,6 @@ async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
           value: true,
           slug: true,
           contains: true,
-          containedIn: true,
           attribute: {
             select: { id: true, name: true, type: true, slug: true },
           },
@@ -74,7 +73,6 @@ async function findAllAttributeOptions({ teamId }: { teamId: number }) {
       value: true,
       slug: true,
       contains: true,
-      containedIn: true,
       isGroup: true,
       attribute: true,
     },
@@ -145,10 +143,6 @@ export type AttributeOptionValueWithType = {
       id: string;
       value: string;
     }[];
-    containedIn: {
-      id: string;
-      value: string;
-    }[];
   };
 };
 
@@ -166,7 +160,6 @@ async function getAllAttributesWithTheirOptions({ teamId }: { teamId: number }) 
       id: string;
       value: string;
       slug: string;
-      containedIn: string[];
       contains: string[];
       isGroup: boolean;
     }[]
@@ -178,7 +171,6 @@ async function getAllAttributesWithTheirOptions({ teamId }: { teamId: number }) 
     const enrichedAttributeOption = {
       ...attributeOption,
       isGroup: attributeOption.contains.length > 0,
-      isInAGroup: attributeOption.containedIn.length > 0,
     };
     if (!existingOptionsArray) {
       console.log(`Setting attribute ${attribute.name} with id ${attribute.id}`);
@@ -236,18 +228,6 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
                     attribute.name
                   }: Option with id ${optionId} not found. Looked up in ${JSON.stringify(allOptions)}`
                 );
-                return null;
-              }
-              return option;
-            })
-            .filter((option): option is NonNullable<typeof option> => option !== null),
-          containedIn: attributeOption.containedIn
-            .map((optionId) => {
-              const option = allAttributesWithTheirOptions
-                .get(attribute.id)
-                ?.find((option) => option.id === optionId);
-              if (!option) {
-                console.error(`Generating containedIn: Option with id ${optionId} not found`);
                 return null;
               }
               return option;

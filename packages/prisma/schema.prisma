@@ -1582,7 +1582,6 @@ model AttributeOption {
   slug          String
   isGroup       Boolean           @default(false)
   contains      String[]
-  containedIn   String[]
   assignedUsers AttributeToUser[]
 }
 

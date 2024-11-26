@@ -39,7 +39,6 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
           id: true,
           value: true,
           contains: true,
-          containedIn: true,
           isGroup: true,
           _count: {
             select: {
@@ -75,7 +74,6 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
         isGroup: z.boolean().optional(),
         assignedUsers: z.number().optional(),
         contains: z.array(z.string()).optional(),
-        containedIn: z.array(z.string()).optional(),
       })
     ),
   });

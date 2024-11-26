@@ -89,7 +89,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
           slug: slugify(option.value),
           isGroup: option.isGroup,
           contains: option.contains,
-          containedIn: option.containedIn,
         },
       });
     });
@@ -102,7 +101,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
           value: option.value,
           isGroup: option.isGroup,
           contains: option.contains,
-          containedIn: option.containedIn,
           slug: slugify(option.value),
         },
       });

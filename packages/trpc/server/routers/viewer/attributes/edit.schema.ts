@@ -11,7 +11,6 @@ export const editAttributeSchema = z.object({
       id: z.string().optional(),
       isGroup: z.boolean().optional(),
       contains: z.array(z.string()).optional(),
-      containedIn: z.array(z.string()).optional(),
     })
   ),
 });

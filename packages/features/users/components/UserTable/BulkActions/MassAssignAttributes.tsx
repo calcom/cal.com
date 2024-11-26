@@ -182,7 +182,6 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
                     slug: value.slug,
                     contains: value.contains,
                     isGroup: value.isGroup,
-                    containedIn: value.containedIn,
                   }));
                   newAttributes.push(...newAttributeValues);
                 } else {
@@ -194,7 +193,6 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
                     slug: slugify(selectedAttributeOptions[0]),
                     contains: [],
                     isGroup: false,
-                    containedIn: [],
                   });
                 }
 
