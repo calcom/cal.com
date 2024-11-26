@@ -81,6 +81,7 @@ async function updateBookingLocationInDb({
   booking: {
     id: number;
     metadata: Booking["metadata"];
+    responses: Booking["responses"];
   };
   evt: Ensure<CalendarEvent, "location">;
   referencesToCreate: Prisma.BookingReferenceCreateInput[];
@@ -103,7 +104,7 @@ async function updateBookingLocationInDb({
         create: referencesToCreate,
       },
       responses: {
-        ...evt.responses,
+        ...(typeof booking.responses === "object" && booking.responses),
         location: {
           value: evt.location,
           optionValue: "",
@@ -272,7 +273,6 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     booking,
     evt: { ...evt, additionalInformation },
     referencesToCreate: updatedResult.referencesToCreate,
-    additionalInformation,
   });
 
   try {
