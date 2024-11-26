@@ -43,7 +43,7 @@ type Props = {
   editingPlatform: WorkspacePlatform;
   isCreate: boolean;
   platform: WorkspacePlatform;
-  platformId: number;
+  platformId?: number;
   platforms: WorkspacePlatform[];
 };
 
@@ -90,7 +90,7 @@ const WorkspacePlatformsPage = () => {
         <CreateUpdatePlatformDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          editingPlatform={editing.platform}
+          editingPlatform={editing.platform || undefined}
           key={editing.platform?.id}
         />
       )}
@@ -235,6 +235,8 @@ function UpdateServiceAccountFieldsDialog({
   });
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
+    if (!platformId) return;
+
     const parsedKey = JSON.parse(values.defaultServiceAccountKey);
     const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
     if (!validatedKey.success) {
