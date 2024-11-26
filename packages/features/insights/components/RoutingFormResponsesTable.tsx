@@ -529,18 +529,12 @@ export function RoutingFormResponsesTable({
         }}
         isPending={isFetching && !data}>
         <div className="header mb-4">
-          <div className="flex items-start justify-between gap-2">
-            <div className="mb-4">
-              <DataTableFilters.AddFilterButton table={table} />
-            </div>
-            <TeamAndSelfList omitOrg={true} />
-            <div className="mb-4">
-              <UserListInTeam />
-            </div>
-            <div className="mb-4">
-              <RoutingFormFilterList />
-            </div>
-            <div className="mb-4 flex gap-2">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <DataTableFilters.AddFilterButton table={table} />
+            <TeamAndSelfList omitOrg={true} className="mb-0" />
+            <UserListInTeam />
+            <RoutingFormFilterList />
+            <div className="flex gap-2">
               <DataTableFilters.ActiveFilters table={table} />
             </div>
             <div className="grow" />
