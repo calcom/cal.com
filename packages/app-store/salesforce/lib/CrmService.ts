@@ -1038,4 +1038,24 @@ export default class SalesforceCRMService implements CRM {
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
   }
+
+  /** Search the booking questions for the Company field value rather than relying on the email domain  */
+  private getCompanyNameFromBookingResponse(calEventResponses?: CalEventResponses | null) {
+    const appOptions = this.getAppOptions();
+    const companyFieldName = "Company";
+    const defaultTextValueLength = 225;
+
+    const { onBookingWriteToRecordFields = undefined } = appOptions;
+
+    if (!onBookingWriteToRecordFields || !calEventResponses) return;
+
+    // Check that we're writing to the Company field
+    if (!(companyFieldName in onBookingWriteToRecordFields)) return;
+
+    return this.getTextFieldValue({
+      fieldValue: onBookingWriteToRecordFields[companyFieldName].value,
+      fieldLength: defaultTextValueLength,
+      calEventResponses,
+    });
+  }
 }
