@@ -243,38 +243,48 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         html: emailContent.emailBody,
         batchId,
         replyTo: evt.organizer.email,
-        attachments: includeCalendarEvent
-          ? [
-              {
-                content: Buffer.from(
-                  generateIcsString({
-                    event: emailEvent,
-                    status,
-                  }) || ""
-                ).toString("base64"),
-                filename: "event.ics",
-                type: "text/calendar; method=REQUEST",
-                disposition: "attachment",
-                contentId: uuidv4(),
-              },
-            ]
-          : undefined,
+        attachments:
+          includeCalendarEvent && triggerEvent !== WorkflowTriggerEvents.EVENT_CANCELLED
+            ? [
+                {
+                  content: Buffer.from(
+                    generateIcsString({
+                      event: emailEvent,
+                      status,
+                    }) || ""
+                  ).toString("base64"),
+                  filename: "event.ics",
+                  type: "text/calendar; method=REQUEST",
+                  disposition: "attachment",
+                  contentId: uuidv4(),
+                },
+              ]
+            : undefined,
         sendAt: data.sendAt,
       },
       { sender }
     );
   }
 
-  if (
-    triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-    triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  if (triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED) {
+    // Handle cancellation notifications
     try {
       if (!sendTo) throw new Error("No email addresses provided");
       const addressees = Array.isArray(sendTo) ? sendTo : [sendTo];
       const promises = addressees.map((email) => sendEmail({ to: email }, triggerEvent));
-      // TODO: Maybe don't await for this?
+      await Promise.all(promises);
+    } catch (error) {
+      log.error("Error sending cancellation email");
+    }
+  } else if (
+    triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
+    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
+  ) {
+    // Handle other notifications
+    try {
+      if (!sendTo) throw new Error("No email addresses provided");
+      const addressees = Array.isArray(sendTo) ? sendTo : [sendTo];
+      const promises = addressees.map((email) => sendEmail({ to: email }, triggerEvent));
       await Promise.all(promises);
     } catch (error) {
       log.error("Error sending Email");
