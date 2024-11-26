@@ -10,7 +10,7 @@ import React, { Suspense, useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -140,6 +140,12 @@ tabs.find((tab) => {
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_your_org", href: "/settings/organizations/new" });
+  }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
+  }
 });
 
 // The following keys are assigned to admin only
@@ -226,7 +232,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
         name="arrow-left"
         className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
       />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
+      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -256,6 +262,7 @@ const TeamListCollapsible = () => {
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -335,7 +342,7 @@ const TeamListCollapsible = () => {
                   />
                   <VerticalTabItem
                     name={t("event_types_page_title")}
-                    href={`/event-types?teamIds=${team.id}`}
+                    href={`/event-types?teamId=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
@@ -369,6 +376,12 @@ const TeamListCollapsible = () => {
                           />
                         </>
                       ) : null}
+                      <VerticalTabItem
+                        name={t("booking_limits")}
+                        href={`/settings/teams/${team.id}/bookingLimits`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        disableChevron
+                      />
                     </>
                   )}
                 </CollapsibleContent>
@@ -415,6 +428,7 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -651,6 +665,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export type SettingsLayoutProps = {
   children: React.ReactNode;
   hideHeader?: boolean;
+  containerClassName?: string;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayout({ children, hideHeader, ...rest }: SettingsLayoutProps) {
@@ -696,7 +711,8 @@ export default function SettingsLayout({ children, hideHeader, ...rest }: Settin
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
+        <div
+          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           {!hideHeader && <ShellHeader />}
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>

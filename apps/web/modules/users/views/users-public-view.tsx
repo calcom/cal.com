@@ -18,7 +18,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
 
-import { type getServerSideProps } from "./users-public-view.getServerSideProps";
+import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {

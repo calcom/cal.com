@@ -10,6 +10,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
+import postHogClient from "@calcom/features/ee/event-tracking/lib/posthog/postHogClient";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -237,7 +238,7 @@ const providers: Provider[] = [
         belongsToActiveTeam: hasActiveTeams,
         locale: user.locale,
         profile: user.allProfiles[0],
-        createdAt: user.createdDate,
+        createdDate: user.createdDate,
       };
     },
   }),
@@ -408,10 +409,10 @@ const mapIdentityProvider = (providerName: string) => {
 };
 
 export const getOptions = ({
-  getDclid,
+  getDubId,
 }: {
   /** so we can extract the Dub cookie in both pages and app routers */
-  getDclid: () => string | undefined;
+  getDubId: () => string | undefined;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -563,7 +564,7 @@ export const getOptions = ({
       if (account.type === "credentials") {
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
-          return token;
+          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         // any other credentials, add user info
         return {
@@ -941,30 +942,38 @@ export const getOptions = ({
       */
       const user = message.user as User & {
         username: string;
-        createdAt: string;
+        createdDate: string;
       };
       // check if the user was created in the last 10 minutes
       // this is a workaround – in the future once we move to use the Account model in the DB
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
-      const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 10 * 60 * 1000);
-      if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
-        const dclid = getDclid();
-        // check if there's a dclid cookie set by @dub/analytics
-        if (dclid) {
-          // here we use waitUntil – meaning this code will run async to not block the main thread
-          waitUntil(
-            // if so, send a lead event to Dub
-            // @see https://d.to/conversions/next-auth
-            dub.track.lead({
-              clickId: dclid,
-              eventName: "Sign Up",
-              customerId: user.id.toString(),
-              customerName: user.name,
-              customerEmail: user.email,
-              customerAvatar: user.image,
-            })
-          );
+      const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
+      if ((isENVDev || IS_CALCOM) && isNewUser) {
+        if (process.env.DUB_API_KEY) {
+          const clickId = getDubId();
+          // check if there's a clickId (dub_id) cookie set by @dub/analytics
+          if (clickId) {
+            // here we use waitUntil – meaning this code will run async to not block the main thread
+            waitUntil(
+              // if so, send a lead event to Dub
+              // @see https://d.to/conversions/next-auth
+              dub.track.lead({
+                clickId,
+                eventName: "Sign Up",
+                customerId: user.id.toString(),
+                customerName: user.name,
+                customerEmail: user.email,
+                customerAvatar: user.image,
+              })
+            );
+          }
         }
+
+        postHogClient().capture(user.id.toString(), "Sign Up", {
+          email: user.email,
+          name: user.name,
+          username: user.username,
+        });
       }
     },
   },

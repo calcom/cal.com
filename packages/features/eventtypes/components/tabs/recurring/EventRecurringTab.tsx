@@ -1,12 +1,20 @@
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 
+import type { RecurringEventControllerProps } from "./RecurringEventController";
 import RecurringEventController from "./RecurringEventController";
 
-export const EventRecurringTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
+export type EventRecurringTabProps = Omit<RecurringEventControllerProps, "paymentEnabled">;
+
+export const EventRecurringTab = ({ eventType, customClassNames }: EventRecurringTabProps) => {
   const paymentAppData = getPaymentAppData(eventType);
 
   const requirePayment = paymentAppData.price > 0;
 
-  return <RecurringEventController paymentEnabled={requirePayment} eventType={eventType} />;
+  return (
+    <RecurringEventController
+      paymentEnabled={requirePayment}
+      eventType={eventType}
+      customClassNames={customClassNames}
+    />
+  );
 };

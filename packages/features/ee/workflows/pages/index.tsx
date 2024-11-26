@@ -68,8 +68,8 @@ function WorkflowsPage({ filteredList }: PageProps) {
         <ShellMain
           heading={t("workflows")}
           subtitle={t("workflows_to_automate_notifications")}
-          title="Workflows"
-          description="Create workflows to automate notifications and reminders."
+          title={t("workflows")}
+          description={t("workflows_to_automate_notifications")}
           hideHeadingOnMobile
           CTA={
             session.data?.hasValidLicense ? (

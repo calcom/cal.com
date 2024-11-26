@@ -1,6 +1,6 @@
 ---
 items:
-  - preview.png 
+  - preview.png
   - previewcheckins.png
   - previewcontacts.png
   - previewcreation.png

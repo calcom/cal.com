@@ -25,21 +25,21 @@ import {
   transformApiEventTypeForAtom,
   transformApiTeamEventTypeForAtom,
 } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
+import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
+import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
+import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
+import {
+  useGetBookingForReschedule,
+  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+} from "../hooks/bookings/useGetBookingForReschedule";
+import { useHandleBookEvent } from "../hooks/bookings/useHandleBookEvent";
 import { useEventType } from "../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
-import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
-import { useCreateBooking } from "../hooks/useCreateBooking";
-import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
-import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
-import {
-  useGetBookingForReschedule,
-  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
-} from "../hooks/useGetBookingForReschedule";
-import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
@@ -75,16 +75,17 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
   view?: VIEW_TYPE;
+  metadata?: Record<string, string>;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
 
-type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
 };
 
-type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
@@ -125,7 +126,10 @@ export const BookerPlatformWrapper = (
     return "";
   }, [props.username]);
 
-  setSelectedDuration(props.duration ?? null);
+  useEffect(() => {
+    setSelectedDuration(props.duration ?? null);
+  }, [props.duration]);
+
   setOrg(props.entity?.orgSlug ?? null);
 
   const isDynamic = useMemo(() => {
@@ -148,7 +152,7 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.defaultFormValues)
             : undefined,
       };
     }
@@ -157,7 +161,10 @@ export const BookerPlatformWrapper = (
       isSuccess,
       isError,
       isPending,
-      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+      data:
+        data && data.length > 0
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues)
+          : undefined,
     };
   }, [
     props.isTeamEvent,
@@ -242,7 +249,7 @@ export const BookerPlatformWrapper = (
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.timeZone,
+    timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     ...(props.isTeamEvent
@@ -329,7 +336,7 @@ export const BookerPlatformWrapper = (
     }))
   );
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
+    loggedInUsersTz: timezone,
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: latestCalendarsToLoad,
@@ -343,7 +350,7 @@ export const BookerPlatformWrapper = (
     event,
     bookingForm: bookerForm.bookingForm,
     hashedLink: props.hashedLink,
-    metadata: {},
+    metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
@@ -354,9 +361,9 @@ export const BookerPlatformWrapper = (
     (state: boolean) => {
       setIsOverlayCalendarEnabled(state);
       if (state) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
+        localStorage?.removeItem("overlayCalendarSwitchDefault");
       }
     },
     [setIsOverlayCalendarEnabled]
@@ -381,17 +388,19 @@ export const BookerPlatformWrapper = (
         });
         setBookingData(null);
       }
-      if (isOverlayCalendarEnabled) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
-      } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
+      localStorage?.removeItem("overlayCalendarSwitchDefault");
+    }
+    setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
+  }, [view, isOverlayCalendarEnabled]);
+
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}

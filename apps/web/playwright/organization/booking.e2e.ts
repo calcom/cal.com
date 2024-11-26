@@ -9,9 +9,12 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
 import {
+  bookTeamEvent,
   bookTimeSlot,
   doOnOrgDomain,
+  expectPageToBeNotFound,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
   testName,
 } from "../lib/testUtils";
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
@@ -163,6 +166,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
 
@@ -172,7 +176,7 @@ test.describe("Bookings", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj });
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj: eventHostsObj });
 
           // Since all the users have the same leastRecentlyBooked value
           // Anyone of the teammates could be the Host of the booking.
@@ -217,6 +221,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
       await owner.apiLogin();
 
       await markPhoneNumberAsRequiredField(page, teamEvent.id);
@@ -233,7 +238,7 @@ test.describe("Bookings", () => {
             page,
             team,
             event: teamEvent,
-            teamMatesObj,
+            teamMatesObj: eventHostsObj,
             opts: { attendeePhoneNumber: "+918888888888" },
           });
 
@@ -540,8 +545,9 @@ test.describe("Bookings", () => {
       const usernameOutsideOrg = userOutsideOrganization.username;
       // Before invite is accepted the booking page isn't available
       await expectPageToBeNotFound({ page, url: `/${usernameInOrg}` });
-      await userOutsideOrganization.apiLogin();
-      await acceptTeamOrOrgInvite(page);
+      const [newContext, newPage] = await userOutsideOrganization.apiLoginOnNewBrowser(browser);
+      await acceptTeamOrOrgInvite(newPage);
+      await newContext.close();
       await test.step("Book through new link", async () => {
         await doOnOrgDomain(
           {
@@ -600,55 +606,6 @@ async function bookUserEvent({
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }
 
-async function bookTeamEvent({
-  page,
-  team,
-  event,
-  teamMatesObj,
-  opts,
-}: {
-  page: Page;
-  team: {
-    slug: string | null;
-    name: string | null;
-  };
-  event: { slug: string; title: string; schedulingType: SchedulingType | null };
-  teamMatesObj?: { name: string }[];
-  opts?: { attendeePhoneNumber?: string };
-}) {
-  // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
-  // So, we are using /team in the URL to access the team booking
-  // There are separate tests to verify that the next.config.js rewrites are working
-  // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
-  await page.goto(`/team/${team.slug}/${event.slug}`);
-
-  await selectFirstAvailableTimeSlotNextMonth(page);
-  await bookTimeSlot(page, opts);
-  await expect(page.getByTestId("success-page")).toBeVisible();
-
-  // The title of the booking
-  if (event.schedulingType === SchedulingType.ROUND_ROBIN && teamMatesObj) {
-    const bookingTitle = await page.getByTestId("booking-title").textContent();
-
-    const isMatch = teamMatesObj?.some((teamMate) => {
-      const expectedTitle = `${event.title} between ${teamMate.name} and ${testName}`;
-      return expectedTitle.trim() === bookingTitle?.trim();
-    });
-
-    expect(isMatch).toBe(true);
-  } else {
-    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
-  }
-  // The booker should be in the attendee list
-  await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
-}
-
-async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
-  await page.goto(`${url}`);
-  await expect(page.getByTestId(`404-page`)).toBeVisible();
-}
-
 const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: number) => {
   // Make phone as required
   await markPhoneNumberAsRequiredField(page, eventId);
@@ -658,11 +615,9 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
   await emailRequiredFiled.locator("> :nth-child(2)").click();
   await page.getByTestId("field-add-save").click();
-
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator("[data-testid=update-eventtype]").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 };
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
@@ -673,9 +628,7 @@ const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
   await phoneRequiredFiled.locator("> :nth-child(1)").click();
   await page.getByTestId("field-add-save").click();
-
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator("[data-testid=update-eventtype]").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 };

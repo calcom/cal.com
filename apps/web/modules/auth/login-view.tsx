@@ -12,6 +12,7 @@ import { z } from "zod";
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
@@ -39,7 +40,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
+  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
@@ -59,7 +60,7 @@ PageProps & WithNonceProps<{}>) {
       email: z
         .string()
         .min(1, `${t("error_required_field")}`)
-        .email(`${t("enter_valid_email")}`),
+        .regex(emailRegex, `${t("enter_valid_email")}`),
       ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
@@ -195,6 +196,50 @@ PageProps & WithNonceProps<{}>) {
             : null
         }>
         <FormProvider {...methods}>
+          {!twoFactorRequired && (
+            <>
+              <div className="space-y-3">
+                {isGoogleLoginEnabled && (
+                  <Button
+                    color="primary"
+                    className="w-full justify-center"
+                    disabled={formState.isSubmitting}
+                    data-testid="google"
+                    CustomStartIcon={<GoogleIcon />}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      setLastUsed("google");
+                      await signIn("google", {
+                        callbackUrl,
+                      });
+                    }}>
+                    <span>{t("signin_with_google")}</span>
+                    {lastUsed === "google" && <LastUsed />}
+                  </Button>
+                )}
+                {displaySSOLogin && (
+                  <SAMLLogin
+                    disabled={formState.isSubmitting}
+                    samlTenantID={samlTenantID}
+                    samlProductID={samlProductID}
+                    setErrorMessage={setErrorMessage}
+                  />
+                )}
+              </div>
+              {(isGoogleLoginEnabled || displaySSOLogin) && (
+                <div className="my-8">
+                  <div className="relative flex items-center">
+                    <div className="border-subtle flex-grow border-t" />
+                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                      {t("or").toLocaleLowerCase()}
+                    </span>
+                    <div className="border-subtle flex-grow border-t" />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
           <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
@@ -233,48 +278,14 @@ PageProps & WithNonceProps<{}>) {
               {errorMessage && <Alert severity="error" title={errorMessage} />}
               <Button
                 type="submit"
-                color="primary"
+                color="secondary"
                 disabled={formState.isSubmitting}
                 className="w-full justify-center">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && (
-                  <span className="absolute right-3 text-xs text-gray-600">{t("last_used")}</span>
-                )}
+                {lastUsed === "credentials" && <LastUsed className="text-gray-600" />}
               </Button>
             </div>
           </form>
-          {!twoFactorRequired && (
-            <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
-              <div className="space-y-3">
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    className="w-full justify-center"
-                    disabled={formState.isSubmitting}
-                    data-testid="google"
-                    CustomStartIcon={<GoogleIcon />}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      setLastUsed("google");
-                      await signIn("google", {
-                        callbackUrl,
-                      });
-                    }}>
-                    <span>{t("signin_with_google")}</span>
-                    {lastUsed === "google" && <LastUsed />}
-                  </Button>
-                )}
-                {displaySSOLogin && (
-                  <SAMLLogin
-                    samlTenantID={samlTenantID}
-                    samlProductID={samlProductID}
-                    setErrorMessage={setErrorMessage}
-                  />
-                )}
-              </div>
-            </>
-          )}
         </FormProvider>
       </AuthContainer>
       <AddToHomescreen />

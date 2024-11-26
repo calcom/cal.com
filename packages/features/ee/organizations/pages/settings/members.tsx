@@ -1,7 +1,6 @@
 "use client";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -21,7 +20,6 @@ const MembersView = () => {
 
   return (
     <LicenseRequired>
-      <Meta title={t("organization_members")} description={t("organization_description")} />
       <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
       {!canLoggedInUserSeeMembers && (
         <div className="border-subtle rounded-xl border p-6" data-testId="members-privacy-warning">
@@ -31,6 +29,5 @@ const MembersView = () => {
     </LicenseRequired>
   );
 };
-MembersView.getLayout = getLayout;
 
 export default MembersView;

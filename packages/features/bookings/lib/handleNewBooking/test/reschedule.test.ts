@@ -825,10 +825,12 @@ describe("handleNewBooking", () => {
             });
 
             const createdBooking = await handleNewBooking(req);
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
             await expectBookingInDBToBeRescheduledFromTo({
               from: {
@@ -1531,10 +1533,12 @@ describe("handleNewBooking", () => {
             req.userId = organizer.id;
 
             const createdBooking = await handleNewBooking(req);
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
             await expectBookingInDBToBeRescheduledFromTo({
               from: {

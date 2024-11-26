@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },
+    ssr: {
+      noExternal: ["turndown"], // Example if you want to disable SSR for your library
+    },
     build: {
       commonjsOptions: {
         include: [/@calcom\/lib/, /@calcom\/features/, /node_modules/],
@@ -34,7 +37,7 @@ export default defineConfig(({ mode }) => {
         fileName: "cal-atoms",
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react-dom"],
+        external: ["react", "fs", "path", "os", "react-dom", "react-awesome-query-builder"],
         output: {
           globals: {
             react: "React",

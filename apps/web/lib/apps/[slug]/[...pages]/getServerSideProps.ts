@@ -13,7 +13,7 @@ import type { AppProps } from "@lib/app-providers";
 import { ssrInit } from "@server/lib/ssr";
 
 type AppPageType = {
-  getServerSideProps: AppGetServerSideProps;
+  getServerSideProps?: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ((props: any) => JSX.Element) &

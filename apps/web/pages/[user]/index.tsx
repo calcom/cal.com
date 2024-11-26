@@ -2,7 +2,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import User, { type PageProps } from "~/users/views/users-public-view";
 
-export { getServerSideProps } from "~/users/views/users-public-view.getServerSideProps";
+export { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 const UserPage = (props: PageProps) => <User {...props} />;
 

@@ -10,15 +10,14 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Meta } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
-import MemberListItem from "../components/MemberListItem";
+import MemberList from "../components/MemberList";
 import TeamInviteList from "../components/TeamInviteList";
 
-const MembersView = () => {
+const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
@@ -33,7 +32,7 @@ const MembersView = () => {
     data: team,
     isPending: isTeamsLoading,
     error: teamError,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -63,7 +62,9 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
+      {!isAppDir ? (
+        <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
+      ) : null}
       {!isPending && (
         <>
           <div>
@@ -86,13 +87,13 @@ const MembersView = () => {
             )}
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && team && (
-              <>
-                <MemberListItem
+              <div className="mb-6">
+                <MemberList
                   team={team}
                   isOrgAdminOrOwner={isOrgAdminOrOwner}
                   setShowMemberInvitationModal={setShowMemberInvitationModal}
                 />
-              </>
+              </div>
             )}
             {showMemberInvitationModal && team && team.id && (
               <MemberInvitationModalWithoutMembers
@@ -139,7 +140,5 @@ const MembersView = () => {
     </>
   );
 };
-
-MembersView.getLayout = getLayout;
 
 export default MembersView;

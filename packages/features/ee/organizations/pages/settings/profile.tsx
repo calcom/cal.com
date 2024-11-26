@@ -38,7 +38,6 @@ import {
 // if I include this in the above barrel import, I get a runtime error that the component is not exported.
 import { OrgBanner } from "@calcom/ui";
 
-import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { useOrgBranding } from "../../../organizations/context/provider";
 
 const orgProfileFormSchema = z.object({
@@ -61,7 +60,6 @@ type FormValues = {
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -129,7 +127,6 @@ const OrgProfileView = () => {
 
   return (
     <LicenseRequired>
-      <Meta title={t("profile")} description={t("profile_org_description")} borderInShellHeader={true} />
       <>
         {isOrgAdminOrOwner ? (
           <>
@@ -398,7 +395,5 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     </Form>
   );
 };
-
-OrgProfileView.getLayout = getLayout;
 
 export default OrgProfileView;

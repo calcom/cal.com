@@ -1,4 +1,4 @@
-import { StripeRepository } from "@calcom/lib/server/repository/stripe";
+import { StripeService } from "@calcom/lib/server/service/stripe";
 
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
@@ -7,7 +7,7 @@ type StripeCheckoutSessionOptions = {
 };
 
 export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSessionOptions) => {
-  return await StripeRepository.getCheckoutSession(input);
+  return await StripeService.getCheckoutSession(input);
 };
 
 export default stripeCheckoutSessionHandler;
