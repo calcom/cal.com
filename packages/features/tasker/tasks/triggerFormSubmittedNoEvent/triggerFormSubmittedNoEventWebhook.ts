@@ -33,6 +33,10 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
     id: z.string(),
     name: z.string(),
     teamId: z.number().nullable(),
+    fields: z
+      .array(z.object({ id: z.string(), label: z.string() }).passthrough())
+      .nullable()
+      .default([]),
   }),
 });
 
@@ -49,6 +53,49 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
   });
 
   if (bookingFromResponse) {
+    return;
+  }
+
+  const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentResponses =
+    (await prisma.app_RoutingForms_FormResponse.findMany({
+      where: {
+        formId: form.id,
+        createdAt: {
+          gte: sixtyMinutesAgo,
+          lt: new Date(),
+        },
+        routedToBookingUid: {
+          not: null,
+        },
+        NOT: {
+          id: responseId,
+        },
+      },
+    })) ?? [];
+
+  const emailValue = Object.values(responses).find(
+    (response): response is { value: string; label: string } => {
+      const value =
+        typeof response === "object" && response && "value" in response ? response.value : response;
+      return typeof value === "string" && value.includes("@");
+    }
+  )?.value;
+
+  // Check for duplicate email in recent responses
+  const hasDuplicate =
+    emailValue &&
+    recentResponses.some((response) => {
+      return Object.values(response.response as Record<string, { value: string; label: string }>).some(
+        (field) => {
+          if (!response.response || typeof response.response !== "object") return false;
+
+          return typeof field.value === "string" && field.value.toLowerCase() === emailValue.toLowerCase();
+        }
+      );
+    });
+
+  if (hasDuplicate) {
     return;
   }
 
