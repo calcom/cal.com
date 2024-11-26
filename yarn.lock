@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.61"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.63"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3547,6 +3547,7 @@ __metadata:
     helmet: ^7.1.0
     ioredis: ^5.3.2
     jest: ^29.7.0
+    jest-date-mock: ^1.0.10
     luxon: ^3.4.4
     nest-winston: ^1.9.4
     next-auth: ^4.22.1
@@ -3698,6 +3699,10 @@ __metadata:
     vite-plugin-dts: ^3.7.3
     vite-plugin-inspect: ^0.8.4
     vite-plugin-node-polyfills: ^0.22.0
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-awesome-query-builder: ^5.1.2
+    react-dom: ^18.0.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -4487,14 +4492,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.61":
-  version: 0.0.61
-  resolution: "@calcom/platform-libraries@npm:0.0.61"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.63":
+  version: 0.0.63
+  resolution: "@calcom/platform-libraries@npm:0.0.63"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: dd04843e877d036476b35c1fed0f5ea6089fc4df7962fb8be63d3c5651ec9527b37890237923f6c6db1fa29eef220ac888cfd7defa845fa269a04cbb70c6cab8
+  checksum: bb567ad7330a41717c9744ec4c4d6a90d8a585bca8c90b6dacf30f4bd3a97cb5572ce42df698cf1c3711b25222635b7483fd925dfa6f1df83b774d0fd2857099
   languageName: node
   linkType: hard
 
@@ -5030,7 +5035,7 @@ __metadata:
     "@radix-ui/react-switch": ^1.0.0
     "@radix-ui/react-toggle-group": ^1.0.0
     "@radix-ui/react-tooltip": ^1.0.0
-    "@replexica/sdk": ^0.6.0
+    "@replexica/sdk": ^0.7.0
     "@sentry/nextjs": ^8.8.0
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
@@ -12311,28 +12316,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@replexica/sdk@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@replexica/sdk@npm:0.6.0"
+"@replexica/sdk@npm:^0.7.0":
+  version: 0.7.2
+  resolution: "@replexica/sdk@npm:0.7.2"
   dependencies:
     "@paralleldrive/cuid2": ^2.2.2
-    "@replexica/spec": 0.18.0
+    "@replexica/spec": 0.19.0
     jsdom: ^25.0.1
     typescript: ^5.6.3
     vitest: ^2.1.4
     zod: ^3.23.8
-  checksum: 95a239cf24025a8ea1a03b0720c8a1bd351f73777015fd3a8b74995740fb191c87d157ac04e7b1824f9b5b8f27cef3ce1b7126deb7bf7683b74b8435d3de1238
+  checksum: 5199f4c7721eaefa66f9da062b11d62d79249afaa30098325d3e52550e2ac5fb2c3bdf550e61691e020023f11718a5240d38c8ac54726159e075991150620535
   languageName: node
   linkType: hard
 
-"@replexica/spec@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@replexica/spec@npm:0.18.0"
+"@replexica/spec@npm:0.19.0":
+  version: 0.19.0
+  resolution: "@replexica/spec@npm:0.19.0"
   dependencies:
     typescript: ^5.6.3
     vitest: ^2.1.4
     zod: ^3.23.8
-  checksum: d9afcfd965b804d395436cc6daf9a051142e13658297e45f742a6397699360e8f28d43399c4c31077b250ca965e1733200bf8c63eae328b4960320d2dd6ae5b5
+  checksum: 11114313e42c43ffe5c68e709eb465f4bbd0e24c70fcbdec5e56b4c2a9c4c10b5cd5899c253ffb652b1d66db13015f9ccbcf1d11479e079361c9d6bf8170ebf5
   languageName: node
   linkType: hard
 
@@ -29919,6 +29924,13 @@ __metadata:
     ts-node:
       optional: true
   checksum: 4cabf8f894c180cac80b7df1038912a3fc88f96f2622de33832f4b3314f83e22b08fb751da570c0ab2b7988f21604bdabade95e3c0c041068ac578c085cf7dff
+  languageName: node
+  linkType: hard
+
+"jest-date-mock@npm:^1.0.10":
+  version: 1.0.10
+  resolution: "jest-date-mock@npm:1.0.10"
+  checksum: 3bbdbc798e7827787392d66083d5ebbf050741003ac7732a5c84f33accb60f38a25670312745400052000d6b4df8377909b7afc700df6b0e09bdb78b89eb18cc
   languageName: node
   linkType: hard
 
