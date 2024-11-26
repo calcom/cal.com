@@ -185,6 +185,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   } else if (template === WorkflowTemplates.REMINDER) {
     emailContent = emailReminderTemplate(
       false,
+      evt.organizer.language.locale,
       action,
       evt.organizer.timeFormat,
       startTime,
