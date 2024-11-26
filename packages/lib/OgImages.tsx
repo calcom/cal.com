@@ -127,7 +127,6 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   const avatars = attendees
     .map((user) => {
       if ("image" in user && user?.image) return user.image;
-      if ("username" in user && user?.username) return `${CAL_URL}/${user.username}/avatar.png`;
       return null;
     })
     .filter(Boolean) as string[];

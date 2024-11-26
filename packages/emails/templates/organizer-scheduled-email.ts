@@ -60,7 +60,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     };
   }
 
-  protected async getHtml(
+  async getHtml(
     calEvent: CalendarEvent,
     attendee: Person,
     teamMember?: Person,
