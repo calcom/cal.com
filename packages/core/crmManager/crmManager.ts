@@ -32,7 +32,6 @@ export default class CrmManager {
     const { skipContactCreation } = crmService?.getAppOptions() || {};
     // First see if the attendees already exist in the crm
     let contacts = (await this.getContacts({ emails: event.attendees.map((a) => a.email) })) || [];
-    console.log("🚀 ~ CrmManager ~ createEvent ~ contacts:", contacts);
     // Ensure that all attendees are in the crm
     if (contacts.length == event.attendees.length) {
       return await crmService?.createEvent(event, contacts);

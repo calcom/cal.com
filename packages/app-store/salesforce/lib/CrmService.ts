@@ -899,7 +899,6 @@ export default class SalesforceCRMService implements CRM {
 
     return writeOnRecordBody;
   }
-
   private getTextFieldValue({
     fieldValue,
     fieldLength,
@@ -910,13 +909,12 @@ export default class SalesforceCRMService implements CRM {
     calEventResponses?: CalEventResponses | null;
   }) {
     let valueToWrite = fieldValue.substring(0, fieldLength);
-
     if (!calEventResponses) return valueToWrite;
 
     // Check if we need to replace any values with values from the booking questions
     const regexValueToReplace = /\{(.*?)\}/g;
     valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
-      return calEventResponses[captured]?.value.toString() ?? match;
+      return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
     });
 
     // Trim incase the replacement values increased the length
@@ -1066,10 +1064,12 @@ export default class SalesforceCRMService implements CRM {
     // Check that we're writing to the Company field
     if (!(companyFieldName in onBookingWriteToRecordFields)) return;
 
-    return this.getTextFieldValue({
+    const companyValue = this.getTextFieldValue({
       fieldValue: onBookingWriteToRecordFields[companyFieldName].value,
       fieldLength: defaultTextValueLength,
       calEventResponses,
     });
+
+    if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
   }
 }
