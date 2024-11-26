@@ -25,7 +25,7 @@ const Page = async () => {
       description={t("create_first_api_key_description", { appName: APP_NAME })}
       CTA={<NewApiKeyButton />}
       borderInShellHeader={true}>
-      <ApiKeysView isAppDir={true} />
+      <ApiKeysView />
     </SettingsHeader>
   );
 };
