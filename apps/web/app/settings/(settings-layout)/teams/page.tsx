@@ -16,7 +16,7 @@ const Page = async () => {
 
   return (
     <SettingsHeader title={t("teams")} description={t("create_manage_teams_collaborative")}>
-      <LegacyPage isAppDir={true} />
+      <LegacyPage />
     </SettingsHeader>
   );
 };
