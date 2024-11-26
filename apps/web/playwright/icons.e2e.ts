@@ -2,10 +2,14 @@ import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
-test("Icons render properly", async ({ page }, testInfo) => {
+// Set a consistent viewport size across all environments
+test.use({
+  viewport: { width: 1265, height: 1320 }, // Match the expected dimensions
+});
+
+test("Icons render properly", async ({ page }) => {
   await page.goto("/icons");
   await expect(page).toHaveScreenshot("icons.png", {
-    maxDiffPixelRatio: 0.05, // Allow some pixel differences (e.g., linux vs mac)
     fullPage: true,
   });
 });
