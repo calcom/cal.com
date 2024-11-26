@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -9,6 +10,13 @@ import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
 import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
+
+type OriginalRescheduledBooking =
+  | {
+      rescheduledBy?: string | null;
+    }
+  | null
+  | undefined;
 
 export type Host = {
   id: number;
@@ -50,6 +58,7 @@ export function sendWebhookPayload(
   triggerEvent: WebhookTriggerEvents,
   booking: Booking,
   maxStartTime: number,
+  originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
 ): Promise<any> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
@@ -67,6 +76,7 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       ...(!!hostEmail ? { hostEmail } : {}),
+      ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
@@ -111,12 +121,29 @@ export const prepareNoShowTrigger = async (
   booking: Booking;
   webhook: TWebhook;
   hostsThatDidntJoinTheCall: Host[];
+  hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  originalRescheduledBooking?: OriginalRescheduledBooking;
 } | void> => {
   const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
+  let originalRescheduledBooking = null;
+
+  if (booking.fromReschedule) {
+    originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: booking.fromReschedule,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      select: {
+        rescheduledBy: true,
+      },
+    });
+  }
 
   if (booking.status !== BookingStatus.ACCEPTED) {
     log.debug(
@@ -148,9 +175,16 @@ export const prepareNoShowTrigger = async (
   const hosts = getHosts(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
-  const hostsThatDidntJoinTheCall = hosts.filter(
-    (host) => !checkIfUserJoinedTheCall(host.id, allParticipants)
-  );
+  const hostsThatJoinedTheCall: Host[] = [];
+  const hostsThatDidntJoinTheCall: Host[] = [];
+
+  for (const host of hosts) {
+    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+      hostsThatJoinedTheCall.push(host);
+    } else {
+      hostsThatDidntJoinTheCall.push(host);
+    }
+  }
 
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
@@ -158,5 +192,13 @@ export const prepareNoShowTrigger = async (
     (meeting) => meeting.max_participants < numberOfHostsThatJoined
   );
 
-  return { hostsThatDidntJoinTheCall, booking, numberOfHostsThatJoined, webhook, didGuestJoinTheCall };
+  return {
+    hostsThatDidntJoinTheCall,
+    hostsThatJoinedTheCall,
+    booking,
+    numberOfHostsThatJoined,
+    webhook,
+    didGuestJoinTheCall,
+    originalRescheduledBooking,
+  };
 };

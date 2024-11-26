@@ -5,7 +5,7 @@ import PlatformPlansView from "~/settings/platform/plans/platform-plans-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => "Platform plans",
+    (t) => `${t("platform")} ${t("plans")}`,
     () => ""
   );
 };

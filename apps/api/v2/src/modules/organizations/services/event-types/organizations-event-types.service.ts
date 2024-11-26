@@ -6,13 +6,15 @@ import { DatabaseTeamEventType } from "@/modules/organizations/services/event-ty
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class OrganizationsEventTypesService {
+  private readonly logger = new Logger("OrganizationsEventTypesService");
+
   constructor(
     private readonly eventTypesService: EventTypesService_2024_06_14,
     private readonly dbWrite: PrismaWriteService,
@@ -144,5 +146,18 @@ export class OrganizationsEventTypesService {
     }
 
     return this.eventTypesRepository.deleteEventType(eventTypeId);
+  }
+
+  async deleteUserTeamEventTypesAndHosts(userId: number, teamId: number) {
+    try {
+      await this.organizationEventTypesRepository.deleteUserManagedTeamEventTypes(userId, teamId);
+      await this.organizationEventTypesRepository.removeUserFromTeamEventTypesHosts(userId, teamId);
+    } catch (err) {
+      this.logger.error("Could not remove user from all team event-types.", {
+        error: err,
+        userId,
+        teamId,
+      });
+    }
   }
 }

@@ -164,28 +164,6 @@ vi.mock("@calcom/trpc/react", () => ({
             isPending: false,
           })),
         },
-        findTeamMembersMatchingAttributeLogic: {
-          useMutation: vi.fn(({ onSuccess }) => {
-            return {
-              mutate: vi.fn(() => {
-                onSuccess({
-                  result: [
-                    {
-                      id: 1,
-                      name: "Matching User 1",
-                      email: "matching-user-1@example.com",
-                    },
-                    {
-                      id: 2,
-                      name: "Matching User 2",
-                      email: "matching-user-2@example.com",
-                    },
-                  ],
-                });
-              }),
-            };
-          }),
-        },
       },
       eventTypes: {
         get: {
@@ -204,11 +182,37 @@ vi.mock("@calcom/trpc/react", () => ({
           })),
         },
       },
+      routingForms: {
+        findTeamMembersMatchingAttributeLogicOfRoute: {
+          useMutation: vi.fn(({ onSuccess }) => {
+            return {
+              mutate: vi.fn(() => {
+                onSuccess({
+                  result: {
+                    users: [
+                      {
+                        id: 1,
+                        name: "Matching User 1",
+                        email: "matching-user-1@example.com",
+                      },
+                      {
+                        id: 2,
+                        name: "Matching User 2",
+                        email: "matching-user-2@example.com",
+                      },
+                    ],
+                  },
+                });
+              }),
+            };
+          }),
+        },
+      },
     },
   },
 }));
 
-const mockMutateFn = vi.fn(({ __testOnSuccess }) => {
+const mockReactQueryMutateFn = vi.fn(({ __testOnSuccess }) => {
   __testOnSuccess({
     uid: "RESCHEDULED_BOOKING_UID_SAME_TIMESLOT",
   });
@@ -218,7 +222,7 @@ vi.mock("@tanstack/react-query", () => ({
   useMutation: vi.fn(({ onSuccess }) => {
     return {
       mutate: vi.fn((payload) => {
-        mockMutateFn({
+        mockReactQueryMutateFn({
           ...payload,
           __testOnSuccess: onSuccess,
         });
@@ -441,7 +445,7 @@ describe("RerouteDialog", () => {
         );
         clickVerifyNewRouteButton();
         clickRescheduleWithSameTimeslotOfChosenEventButton();
-        expect(mockMutateFn).toHaveBeenCalledWith(
+        expect(mockReactQueryMutateFn).toHaveBeenCalledWith(
           expect.objectContaining({
             rescheduleUid: mockBooking.uid,
             // Shouldn't include the user who booked the booking

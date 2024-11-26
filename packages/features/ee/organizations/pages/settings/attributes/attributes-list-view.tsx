@@ -1,9 +1,9 @@
 "use client";
 
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -20,6 +20,7 @@ import {
   useMeta,
 } from "@calcom/ui";
 
+import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
@@ -31,23 +32,18 @@ const TypeToLabelMap = {
   MULTI_SELECT: "Multi-select",
 };
 
-function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
-  const utils = trpc.useUtils();
+function AttributeItem({
+  attribute,
+  setAttributeToDelete,
+}: {
+  attribute: AttributeItemProps;
+  setAttributeToDelete: Dispatch<SetStateAction<AttributeItemProps | undefined>>;
+}) {
   const { t } = useLocale();
   const [isEnabled, setIsEnabled] = useState(attribute.enabled);
   const mutation = trpc.viewer.attributes.toggleActive.useMutation({
     onSuccess: () => {
       showToast(t("attribute_updated_successfully"), "success");
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
-
-  const deleteMutation = trpc.viewer.attributes.delete.useMutation({
-    onSuccess: () => {
-      showToast(t("attribute_deleted_successfully"), "success");
-      utils.viewer.attributes.list.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -66,10 +62,6 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
         },
       }
     );
-  };
-
-  const handleDelete = () => {
-    deleteMutation.mutate({ id: attribute.id });
   };
 
   return (
@@ -112,8 +104,7 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
                 type="button"
                 StartIcon="trash-2"
                 color="destructive"
-                disabled={deleteMutation.isPending}
-                onClick={handleDelete}>
+                onClick={() => setAttributeToDelete(attribute)}>
                 {t("delete")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -127,7 +118,7 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
 function OrganizationAttributesPage() {
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
-
+  const [attributeToDelete, setAttributeToDelete] = useState<AttributeItemProps>();
   if (isLoading) {
     return (
       <>
@@ -148,7 +139,11 @@ function OrganizationAttributesPage() {
               <h2 className="text-emphasis text-base font-semibold leading-none">{t("custom")}</h2>
               <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
                 {data?.map((attribute) => (
-                  <AttributeItem attribute={attribute} key={attribute.id} />
+                  <AttributeItem
+                    setAttributeToDelete={setAttributeToDelete}
+                    attribute={attribute}
+                    key={attribute.id}
+                  />
                 ))}
               </li>
               <Button
@@ -181,6 +176,12 @@ function OrganizationAttributesPage() {
             </div>
           )}
         </div>
+        {attributeToDelete && (
+          <DeleteAttributeModal
+            attributeToDelete={attributeToDelete}
+            setAttributeToDelete={setAttributeToDelete}
+          />
+        )}
       </LicenseRequired>
     </>
   );
@@ -204,10 +205,6 @@ function ListAttributeHeader() {
       </div>
     </>
   );
-}
-
-export function getLayout(page: React.ReactElement) {
-  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 export default OrganizationAttributesPage;
