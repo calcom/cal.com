@@ -54,7 +54,7 @@ const teamProfileFormSchema = z.object({
   bio: z.string(),
 });
 
-const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const OtherTeamProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -169,7 +169,6 @@ const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <>
-      {!isAppDir ? <Meta title={t("profile")} description={t("profile_team_description")} /> : null}
       {!isPending ? (
         <>
           {isAdmin ? (

@@ -67,8 +67,9 @@ export async function handleConfirmation(args: {
     userId: number | null;
   };
   paid?: boolean;
+  emailsEnabled?: boolean;
 }) {
-  const { user, evt, recurringEventId, prisma, bookingId, booking, paid } = args;
+  const { user, evt, recurringEventId, prisma, bookingId, booking, paid, emailsEnabled = true } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const eventManager = new EventManager(user, eventTypeMetadata?.apps);
@@ -113,13 +114,15 @@ export async function handleConfirmation(args: {
         }
       }
 
-      await sendScheduledEmailsAndSMS(
-        { ...evt, additionalInformation: metadata },
-        undefined,
-        isHostConfirmationEmailsDisabled,
-        isAttendeeConfirmationEmailDisabled,
-        eventTypeMetadata
-      );
+      if (emailsEnabled) {
+        await sendScheduledEmailsAndSMS(
+          { ...evt, additionalInformation: metadata },
+          undefined,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled,
+          eventTypeMetadata
+        );
+      }
     } catch (error) {
       log.error(error);
     }

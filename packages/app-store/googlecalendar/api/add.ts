@@ -103,7 +103,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: [SCOPE_USERINFO_PROFILE, ...GOOGLE_CALENDAR_SCOPES],
+    scope: SCOPES,
     // A refresh token is only returned the first time the user
     // consents to providing access.  For illustration purposes,
     // setting the prompt to 'consent' will force this consent
