@@ -367,10 +367,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         emailContent = emailReminderTemplate(
           false,
-          reminder.booking.startTime.toISOString() || "",
+          reminder.booking.user?.locale || "en",
           WorkflowActions.EMAIL_ATTENDEE,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-          reminder.booking.user?.locale || "en",
+          reminder.booking.startTime.toISOString() || "",
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
           timeZone || "",
