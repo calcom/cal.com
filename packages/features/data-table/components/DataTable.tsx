@@ -84,23 +84,22 @@ export function DataTable<TData, TValue>({
 
   return (
     <div
+      className={rest.className}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
-      }}>
+        ...rest.style,
+        ...columnSizeVars,
+      }}
+      data-testid={rest["data-testid"] ?? "data-table"}>
       <div
         ref={tableContainerRef}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         className={classNames(
           "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
-          "scrollbar-thin border-subtle relative rounded-md border",
-          rest.className
+          "scrollbar-thin border-subtle relative rounded-md border"
         )}
-        style={{
-          ...rest.style,
-          ...columnSizeVars,
-          gridArea: "body",
-        }}
+        style={{ gridArea: "body" }}
         data-testid={rest["data-testid"] ?? "data-table"}>
         <TableNew className="grid border-0">
           <TableHeader className="bg-subtle sticky top-0 z-10">
