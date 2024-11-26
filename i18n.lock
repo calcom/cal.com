@@ -132,7 +132,9 @@ checksums:
     download_your_transcripts: 880d1c6fef8f49132b790645f24fb988
     your_meeting_has_been_booked: 5eb47861d87db595c13bc734ac681505
     event_type_has_been_rescheduled_on_time_date: 2f6ee619cb5a1d95d75b3d87d1e3ea00
+    event_type_has_been_updated: bff7fcaedc54eab54d0384d8653c1cb5
     event_has_been_rescheduled: b99efaf65a500bf8c5e6d27004d3a0ff
+    event_has_been_updated: ab949361376be2786ee1dc5197487f45
     your_event_has_been_rescheduled: de424effb6e5772044744555a2c552b1
     request_reschedule_subtitle: 697e1517dfa385fdd2c47ab7ad2b8310
     request_reschedule_title_organizer: 9a8f9d51dcd6bfff75c5d0fca72d2dc2
@@ -1645,6 +1647,8 @@ checksums:
     format: 14dfd9f7515f22e0f6f2ba64bc6af47e
     uppercase_for_letters: 12f5601089e8e42d3fc4cf73e3ec45f4
     replace_whitespaces_underscores: d785e8b787272f0755b0334469e30fc8
+    platform_members: 7d120109167614222e67020472bd89dc
+    platform_members_description: a4fe120499613736ac54ed368fe47c23
     platform_billing: e5fd386e4e409e7e88196211bab2ec9c
     manage_billing: 95d7c3339a608bdb9f0ff73be0107202
     manage_billing_description: d1dcdc64ba7a022f5cbf7da37d7b8a8c
@@ -2640,6 +2644,9 @@ checksums:
     add_attributes_description: f85cd2cd1c16a04478909abb1a188b03
     new_option: 53ef69223fa6d5d640121556cebfef27
     update_profile: 4c76016c39de93fbfaa15d71d66055d3
+    attribute: cc92f647873ba9e17cff57d4a59737bd
+    create_attribute_description: 9eef7eb229892fd7c14505bf4937d0ac
+    edit_attribute_description: a9f89954771fb1eb0a1381e8538da8ee
     attribute_updated_successfully: 0e64422156c29940cd4dab2f9d1f40b2
     attribute_deleted_successfully: 397d8b28927091e8d892b02a606deae7
     attributes_edited_successfully: 2f7d5f01066da918c78ce93b8caf046d
