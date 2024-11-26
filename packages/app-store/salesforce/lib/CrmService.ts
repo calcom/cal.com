@@ -547,7 +547,7 @@ export default class SalesforceCRMService implements CRM {
 
   async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
     const appOptions = this.getAppOptions();
-    const { sendNoShowAttendeeData, sendNoShowAttendeeDataField } = appOptions;
+    const { sendNoShowAttendeeData = false, sendNoShowAttendeeDataField = {} } = appOptions;
     const conn = await this.conn;
     // Check that no show is enabled
     if (!sendNoShowAttendeeData && !sendNoShowAttendeeDataField) {
@@ -805,7 +805,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
-    const { createEventOn, onBookingWriteToRecordFields } = this.getAppOptions();
+    const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
 
     // Determine record type (Contact or Lead)
     const personRecordType = this.determinePersonRecordType(createEventOn);
