@@ -18,6 +18,7 @@ export interface Contact {
   email: string;
   ownerId?: string;
   ownerEmail?: string;
+  recordType?: string;
 }
 
 export interface CrmEvent {
@@ -39,4 +40,8 @@ export interface CRM {
   }) => Promise<Contact[]>;
   createContacts: (contactsToCreate: ContactCreateInput[], organizerEmail?: string) => Promise<Contact[]>;
   getAppOptions: () => any;
+  handleAttendeeNoShow?: (
+    bookingUid: string,
+    attendees: { email: string; noShow: boolean }[]
+  ) => Promise<void>;
 }

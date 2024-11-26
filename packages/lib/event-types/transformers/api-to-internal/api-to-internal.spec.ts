@@ -9,7 +9,7 @@ import {
 } from "@calcom/platform-enums/monorepo";
 import type {
   InputBookingField_2024_06_14,
-  Location_2024_06_14,
+  InputLocation_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
   BookerLayouts_2024_06_14,
@@ -19,6 +19,9 @@ import type {
   CreateEventTypeInput_2024_06_14,
   SeatOptionsTransformedSchema,
   SeatOptionsDisabledSchema,
+  InputAttendeeAddressLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputAttendeeDefinedLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -42,7 +45,7 @@ import {
 
 describe("transformLocationsApiToInternal", () => {
   it("should transform address", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "address",
         address: "London road 10-1",
@@ -58,7 +61,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 
   it("should transform link", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "link",
         link: "https://customvideo.com/join/123456",
@@ -76,7 +79,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 
   it("should transform integration", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "integration",
         integration: "cal-video",
@@ -91,7 +94,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 
   it("should transform phone", () => {
-    const input: Location_2024_06_14[] = [
+    const input: InputLocation_2024_06_14[] = [
       {
         type: "phone",
         phone: "+37120993151",
@@ -105,6 +108,45 @@ describe("transformLocationsApiToInternal", () => {
 
     const result = transformLocationsApiToInternal(input);
 
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee address", () => {
+    const input: InputAttendeeAddressLocation_2024_06_14[] = [
+      {
+        type: "attendeeAddress",
+      },
+    ];
+
+    const expectedOutput = [{ type: "attendeeInPerson" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee phone", () => {
+    const input: InputAttendeePhoneLocation_2024_06_14[] = [
+      {
+        type: "attendeePhone",
+      },
+    ];
+
+    const expectedOutput = [{ type: "phone" }];
+
+    const result = transformLocationsApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform attendee defined", () => {
+    const input: InputAttendeeDefinedLocation_2024_06_14[] = [
+      {
+        type: "attendeeDefined",
+      },
+    ];
+
+    const expectedOutput = [{ type: "somewhereElse" }];
+
+    const result = transformLocationsApiToInternal(input);
     expect(result).toEqual(expectedOutput);
   });
 });

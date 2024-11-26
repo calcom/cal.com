@@ -7,7 +7,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Meta } from "@calcom/ui";
 
-const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const MembersView = () => {
   const { t } = useLocale();
   const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
 
@@ -20,9 +20,6 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <LicenseRequired>
-      {!isAppDir ? (
-        <Meta title={t("organization_members")} description={t("organization_description")} />
-      ) : null}
       <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
       {!canLoggedInUserSeeMembers && (
         <div className="border-subtle rounded-xl border p-6" data-testId="members-privacy-warning">

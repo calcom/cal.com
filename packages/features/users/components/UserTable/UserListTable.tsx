@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -9,27 +8,32 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import type { ColumnMeta } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
 import {
-  Avatar,
-  Badge,
-  Button,
-  Checkbox,
   DataTable,
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
   DataTablePagination,
-} from "@calcom/ui";
+  useColumnFilters,
+  useFetchMoreOnBottomReached,
+  textFilter,
+  isTextFilterValue,
+} from "@calcom/features/data-table";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  downloadAsCsv,
+  generateCsvRawForMembersTable,
+  generateHeaderFromReactTable,
+} from "@calcom/lib/csvUtils";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
+import { Avatar, Badge, Button, Checkbox, showToast } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -44,12 +48,6 @@ import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-import { useFetchMoreOnBottomReached } from "./useFetchMoreOnBottomReached";
-
-type CustomColumnMeta<TData, TValue> = ColumnMeta<TData, TValue> & {
-  sticky?: boolean;
-  stickLeft?: number;
-};
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -119,8 +117,10 @@ export function UserListTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const columnFilters = useColumnFilters();
 
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -128,16 +128,26 @@ export function UserListTable() {
         limit: 10,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
-        filters: columnFilters.map((filter) => ({
-          id: filter.id,
-          value: filter.value as string[],
-        })),
+        filters: columnFilters,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
       }
     );
+
+  const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
+    {
+      limit: 100, // Max limit
+      searchTerm: debouncedSearchTerm,
+      expand: ["attributes"],
+      filters: columnFilters,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      enabled: false,
+    }
+  );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -162,6 +172,9 @@ export function UserListTable() {
         (attributes?.map((attribute) => ({
           id: attribute.id,
           header: attribute.name,
+          meta: {
+            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
+          },
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -178,8 +191,13 @@ export function UserListTable() {
               </>
             );
           },
-          filterFn: (rows, id, filterValue) => {
-            const attributeValues = rows.original.attributes.filter((attr) => attr.attributeId === id);
+          filterFn: (row, id, filterValue) => {
+            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+
+            if (isTextFilterValue(filterValue)) {
+              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+            }
+
             if (attributeValues.length === 0) return false;
             return attributeValues.some((attr) => filterValue.includes(attr.value));
           },
@@ -192,10 +210,12 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         meta: {
-          sticky: true,
-          stickLeft: 0,
-        } as CustomColumnMeta<UserTableUser, unknown>,
+          sticky: {
+            position: "left",
+          },
+        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -217,13 +237,13 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        size: 170,
         header: () => {
           return `Members`;
         },
         meta: {
-          sticky: true,
-          stickyLeft: 24,
-        } as CustomColumnMeta<UserTableUser, unknown>,
+          sticky: { position: "left", gap: 24 },
+        },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -323,8 +343,17 @@ export function UserListTable() {
       },
       ...generateAttributeColumns(),
       {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
         id: "actions",
         enableHiding: false,
+        size: 50,
+        meta: {
+          sticky: { position: "right" },
+        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -365,12 +394,14 @@ export function UserListTable() {
     },
     state: {
       columnFilters,
+      rowSelection,
     },
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onRowSelectionChange: setRowSelection,
+    getRowId: (row) => `${row.id}`,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
@@ -400,6 +431,54 @@ export function UserListTable() {
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
+  const handleDownload = async () => {
+    try {
+      if (!org?.slug || !org?.name) {
+        throw new Error("Org slug or name is missing.");
+      }
+      setIsDownloading(true);
+      const headers = generateHeaderFromReactTable(table);
+      if (!headers || !headers.length) {
+        throw new Error("Header is missing.");
+      }
+
+      const result = await exportQuery.refetch();
+      if (!result.data) {
+        throw new Error("There are no members found.");
+      }
+      const allMembers = result.data.pages.flatMap((page) => page.rows ?? []) ?? [];
+      let lastPage = result.data.pages[result.data.pages.length - 1];
+
+      while (lastPage.nextCursor) {
+        const nextPage = await exportQuery.fetchNextPage();
+        if (!nextPage.data) {
+          break;
+        }
+        const latestPageItems = nextPage.data.pages[nextPage.data.pages.length - 1].rows ?? [];
+        allMembers.push(...latestPageItems);
+        lastPage = nextPage.data.pages[nextPage.data.pages.length - 1];
+      }
+
+      const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allMembers as UserTableUser[],
+        ATTRIBUTE_IDS,
+        domain
+      );
+      if (!csvRaw) {
+        throw new Error("Generating CSV file failed.");
+      }
+
+      const filename = `${org.name}_${new Date().toISOString().split("T")[0]}.csv`;
+      downloadAsCsv(csvRaw, filename);
+    } catch (error) {
+      showToast(`Error: ${error}`, "error");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <>
       <DataTable
@@ -410,29 +489,46 @@ export function UserListTable() {
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
-          <div className="flex w-full gap-2">
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-            <DataTableFilters.FilterButton table={table} omit={["member"]} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-            {adminOrOwner && (
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
+            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
+              <DataTableToolbar.SearchBar
+                table={table}
+                onSearch={(value) => setDebouncedSearchTerm(value)}
+                className="sm:max-w-64 max-w-full"
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <DataTableToolbar.CTA
                 type="button"
-                color="primary"
-                StartIcon="plus"
-                className="rounded-md"
-                onClick={() =>
-                  dispatch({
-                    type: "INVITE_MEMBER",
-                    payload: {
-                      showModal: true,
-                    },
-                  })
-                }
-                data-testid="new-organization-member-button">
-                {t("add")}
+                color="secondary"
+                StartIcon="file-down"
+                loading={isDownloading}
+                onClick={() => handleDownload()}
+                data-testid="export-members-button">
+                {t("download")}
               </DataTableToolbar.CTA>
-            )}
+              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
+              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.ColumnVisibilityButton table={table} />
+              {adminOrOwner && (
+                <DataTableToolbar.CTA
+                  type="button"
+                  color="primary"
+                  StartIcon="plus"
+                  className="rounded-md"
+                  onClick={() =>
+                    dispatch({
+                      type: "INVITE_MEMBER",
+                      payload: {
+                        showModal: true,
+                      },
+                    })
+                  }
+                  data-testid="new-organization-member-button">
+                  {t("add")}
+                </DataTableToolbar.CTA>
+              )}
+            </div>
           </div>
           <div className="flex gap-2 justify-self-start">
             <DataTableFilters.ActiveFilters table={table} />

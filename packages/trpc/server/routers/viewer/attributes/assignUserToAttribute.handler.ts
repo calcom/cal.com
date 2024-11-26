@@ -148,20 +148,8 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
           id: true,
         },
       });
-    } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
+    } else if (!attribute.value && attribute.options) {
       const options = attribute.options;
-
-      // Get all users attributes for this attribute
-      await prisma.attributeToUser.findMany({
-        where: {
-          attributeOption: {
-            attribute: {
-              id: attribute.id,
-            },
-          },
-          memberId: membership.id,
-        },
-      });
 
       // Delete all users attributes for this attribute that are not in the options list
       await prisma.attributeToUser.deleteMany({

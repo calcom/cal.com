@@ -61,6 +61,16 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
 
+    test("new event type appears first in the list", async ({ page }) => {
+      const nonce = randomString(3);
+      const eventTitle = `hello ${nonce}`;
+      await createNewEventType(page, { eventTitle });
+      await page.goto("/event-types");
+      const firstEvent = page.locator("[data-testid=event-types] > li a").first();
+      const firstEventTitle = await firstEvent.getAttribute("title");
+      await expect(firstEventTitle).toBe(eventTitle);
+    });
+
     test("enabling recurring event comes with default options", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;

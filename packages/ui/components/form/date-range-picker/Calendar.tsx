@@ -6,8 +6,8 @@ import { DayPicker } from "react-day-picker";
 import dayjs from "@calcom/dayjs";
 import { classNames as cn } from "@calcom/lib";
 
-import { Icon } from "../../../index";
 import { buttonClasses } from "../../button/Button";
+import { Icon } from "../../icon";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -21,7 +21,7 @@ function Calendar({
 }: CalendarProps) {
   return (
     <DayPicker
-      fromDate={fromDate || new Date()}
+      fromDate={fromDate}
       toDate={toDate || undefined}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}

@@ -17,9 +17,15 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import {
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
+  useFetchMoreOnBottomReached,
+} from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
-import { useFetchMoreOnBottomReached } from "@calcom/features/users/components/UserTable/useFetchMoreOnBottomReached";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,10 +38,6 @@ import {
   Button,
   ButtonGroup,
   Checkbox,
-  DataTable,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSelectionBar,
   ConfirmationDialogContent,
   Dialog,
   DialogClose,
@@ -177,6 +179,7 @@ export default function MemberList(props: Props) {
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState({});
 
   const removeMemberFromCache = ({
     utils,
@@ -376,6 +379,11 @@ export default function MemberList(props: Props) {
           // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
+      },
+      {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "actions",
@@ -602,12 +610,15 @@ export default function MemberList(props: Props) {
     },
     state: {
       columnFilters,
+      rowSelection,
     },
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getRowId: (row) => `${row.id}`,
   });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
