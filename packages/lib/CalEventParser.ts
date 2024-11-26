@@ -378,7 +378,7 @@ export const getPublicVideoCallUrl = (calEvent: Pick<CalendarEvent, "uid">): str
 
 export const getVideoCallUrlFromCalEvent = (
   calEvent: Parameters<typeof getPublicVideoCallUrl>[0] &
-    Pick<CalendarEvent, "videoCallData" | "additionalInformation">
+    Pick<CalendarEvent, "videoCallData" | "additionalInformation" | "location">
 ): string => {
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {

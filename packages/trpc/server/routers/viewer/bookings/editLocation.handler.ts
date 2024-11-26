@@ -102,6 +102,13 @@ async function updateBookingLocationInDb({
       references: {
         create: referencesToCreate,
       },
+      responses: {
+        ...evt.responses,
+        location: {
+          value: evt.location,
+          optionValue: "",
+        },
+      },
     },
   });
 }
@@ -259,11 +266,18 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     evt,
   });
 
-  await updateBookingLocationInDb({ booking, evt, referencesToCreate: updatedResult.referencesToCreate });
+  const additionalInformation = extractAdditionalInformation(updatedResult.results[0]);
+
+  await updateBookingLocationInDb({
+    booking,
+    evt: { ...evt, additionalInformation },
+    referencesToCreate: updatedResult.referencesToCreate,
+    additionalInformation,
+  });
 
   try {
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation: extractAdditionalInformation(updatedResult.results[0]) },
+      { ...evt, additionalInformation },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {

@@ -102,5 +102,6 @@ export const buildCalEventFromBooking = async ({
       : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    responses: booking.responses || {},
   };
 };
