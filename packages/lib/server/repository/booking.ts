@@ -42,21 +42,17 @@ const buildWhereClauseForActiveBookingCounts = ({
     };
   } | null;
 }): Prisma.BookingWhereInput => ({
+  user: {
+    id: {
+      in: users.map((user) => user.id),
+    },
+  },
   OR: [
     {
-      user: {
-        id: {
-          in: users.map((user) => user.id),
-        },
-      },
-      OR: [
-        {
-          noShowHost: false,
-        },
-        {
-          noShowHost: null,
-        },
-      ],
+      noShowHost: false,
+    },
+    {
+      noShowHost: null,
     },
   ],
   attendees: { some: { noShow: false } },
