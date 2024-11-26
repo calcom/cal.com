@@ -1643,6 +1643,8 @@
   "format": "Formatua",
   "uppercase_for_letters": "Letra larriz idatzi letra guztiak",
   "replace_whitespaces_underscores": "Ordeztu hutsuneak azpimarra batekin",
+  "platform_members": "Plataformako kideak",
+  "platform_members_description": "Kudeatu zure plataformako taldeko administratzaileak eta kideak",
   "platform_billing": "Plataformaren fakturazioa",
   "manage_billing": "Fakturazioa kudeatu",
   "manage_billing_description": "Kudeatu fakturazioari buruzko guztia",

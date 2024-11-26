@@ -1643,6 +1643,8 @@
   "format": "Format",
   "uppercase_for_letters": "Utilitza majúscules per a totes les lletres",
   "replace_whitespaces_underscores": "Substitueix els espais en blanc per guions baixos",
+  "platform_members": "Membres de la plataforma",
+  "platform_members_description": "Gestiona els administradors i membres del teu equip de plataforma",
   "platform_billing": "Facturació de la plataforma",
   "manage_billing": "Gestionar la facturació",
   "manage_billing_description": "Gestiona tot el relacionat amb la facturació",

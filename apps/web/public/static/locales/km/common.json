@@ -1643,6 +1643,8 @@
   "format": "ទ្រង់ទ្រាយ",
   "uppercase_for_letters": "ប្រើអក្សរធំសម្រាប់អក្សរទាំងអស់",
   "replace_whitespaces_underscores": "ជំនួសចន្លោះទទេដោយសញ្ញាគូសក្រោម",
+  "platform_members": "សមាជិកវេទិកា",
+  "platform_members_description": "គ្រប់គ្រងអ្នកគ្រប់គ្រង និងសមាជិកនៅក្នុងក្រុមវេទិការបស់អ្នក",
   "platform_billing": "ការគិតថ្លៃវេទិកា",
   "manage_billing": "គ្រប់គ្រងវិក្កយបត្រ",
   "manage_billing_description": "គ្រប់គ្រងរឿងទាំងអស់ដែលទាក់ទងនឹងវិក្កយបត្រ",

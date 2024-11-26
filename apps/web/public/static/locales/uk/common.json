@@ -1643,6 +1643,8 @@
   "format": "Формат",
   "uppercase_for_letters": "Використовувати всі великі літери",
   "replace_whitespaces_underscores": "Заміняти пробіли підкресленнями",
+  "platform_members": "Учасники платформи",
+  "platform_members_description": "Керуйте адміністраторами та учасниками вашої команди платформи",
   "platform_billing": "Тарифікація платформи",
   "manage_billing": "Керувати рахунками",
   "manage_billing_description": "Керувати всіма моментами виставлення рахунків",

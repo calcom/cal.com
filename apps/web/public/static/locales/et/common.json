@@ -1643,6 +1643,8 @@
   "format": "Formaat",
   "uppercase_for_letters": "Kasuta kõigi tähtede jaoks suurtähti",
   "replace_whitespaces_underscores": "Asenda tühikud alakriipsudega",
+  "platform_members": "Platvormi liikmed",
+  "platform_members_description": "Halda oma platvormi meeskonna administraatoreid ja liikmeid",
   "platform_billing": "Platvormi arveldus",
   "manage_billing": "Arvelduse haldamine",
   "manage_billing_description": "Hallake kõike arveldust",

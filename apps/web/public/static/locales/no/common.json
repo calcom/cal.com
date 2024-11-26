@@ -1643,6 +1643,8 @@
   "format": "Format",
   "uppercase_for_letters": "Bruk store bokstaver for alle bokstaver",
   "replace_whitespaces_underscores": "Erstatt mellomrom med understrek",
+  "platform_members": "Plattformmedlemmer",
+  "platform_members_description": "Administrer administratorer og medlemmer i plattformteamet ditt",
   "platform_billing": "Plattformfakturering",
   "manage_billing": "Administrer betaling",
   "manage_billing_description": "Administrer alt av betaling",

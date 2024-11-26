@@ -1643,6 +1643,8 @@
   "format": "Формат",
   "uppercase_for_letters": "Използвайте главни букви за всички букви",
   "replace_whitespaces_underscores": "Заменете интервалите с долни черти",
+  "platform_members": "Членове на платформата",
+  "platform_members_description": "Управлявайте администраторите и членовете във вашия екип на платформата",
   "platform_billing": "Таксуване в платформата",
   "manage_billing": "Управление на таксуването",
   "manage_billing_description": "Управлявайте всичко свързано с таксуването",

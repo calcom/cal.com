@@ -1643,6 +1643,8 @@
   "format": "Formatér",
   "uppercase_for_letters": "Brug store bogstaver for alle bogstaver",
   "replace_whitespaces_underscores": "Erstat blanke tegn med understregninger",
+  "platform_members": "Platformmedlemmer",
+  "platform_members_description": "Administrer administratorer og medlemmer i dit platformteam",
   "platform_billing": "Platformsfakturering",
   "manage_billing": "Håndtér fakturering",
   "manage_billing_description": "Håndtér alt omkring fakturering",

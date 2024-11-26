@@ -1643,6 +1643,8 @@
   "format": "Formatowanie",
   "uppercase_for_letters": "Użyj wielkich liter w przypadku wszystkich liter",
   "replace_whitespaces_underscores": "Zastąp spacje podkreśleniami",
+  "platform_members": "Członkowie platformy",
+  "platform_members_description": "Zarządzaj administratorami i członkami w zespole twojej platformy",
   "platform_billing": "Rozliczenia platformy",
   "manage_billing": "Zarządzaj płatnościami",
   "manage_billing_description": "Zarządzaj wszystkimi kwestiami dotyczącymi płatności",

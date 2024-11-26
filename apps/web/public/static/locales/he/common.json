@@ -1643,6 +1643,8 @@
   "format": "פורמט",
   "uppercase_for_letters": "שימוש באותיות רישיות עבור כל האותיות",
   "replace_whitespaces_underscores": "החלפת רווחים במקפים תחתונים",
+  "platform_members": "חברי פלטפורמה",
+  "platform_members_description": "ניהול מנהלים וחברים בצוות הפלטפורמה שלך",
   "platform_billing": "חיוב פלטפורמה",
   "manage_billing": "ניהול החיוב",
   "manage_billing_description": "ניהול כל מה שקשור לחיובים",

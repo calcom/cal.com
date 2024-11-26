@@ -1643,6 +1643,8 @@
   "format": "Formato",
   "uppercase_for_letters": "Use mayúsculas para todas las letras",
   "replace_whitespaces_underscores": "Reemplace espacios en blanco con guiones bajos",
+  "platform_members": "Miembros de la plataforma",
+  "platform_members_description": "Gestiona los administradores y miembros en tu equipo de plataforma",
   "platform_billing": "Facturación de la plataforma",
   "manage_billing": "Gestione la facturación",
   "manage_billing_description": "Gestione todo lo relacionado con la facturación",

@@ -1645,6 +1645,8 @@ checksums:
     format: 14dfd9f7515f22e0f6f2ba64bc6af47e
     uppercase_for_letters: 12f5601089e8e42d3fc4cf73e3ec45f4
     replace_whitespaces_underscores: d785e8b787272f0755b0334469e30fc8
+    platform_members: 7d120109167614222e67020472bd89dc
+    platform_members_description: a4fe120499613736ac54ed368fe47c23
     platform_billing: e5fd386e4e409e7e88196211bab2ec9c
     manage_billing: 95d7c3339a608bdb9f0ff73be0107202
     manage_billing_description: d1dcdc64ba7a022f5cbf7da37d7b8a8c
