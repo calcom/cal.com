@@ -219,7 +219,7 @@ const nextConfig = {
     },
   },
   images: {
-    formats: ['image/avif', 'image/webp', 'image/png'],
+    formats: ['image/avif', 'image/webp'],
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
