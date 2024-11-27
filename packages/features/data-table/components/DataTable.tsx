@@ -4,7 +4,7 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
@@ -44,6 +44,14 @@ export function DataTable<TData, TValue>({
         : undefined,
     overscan: 10,
   });
+
+  useEffect(() => {
+    if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+      setTimeout(() => {
+        onScroll?.({ target: tableContainerRef.current });
+      }, 100);
+    }
+  }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
@@ -152,7 +160,7 @@ export function DataTable<TData, TValue>({
                             width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                           }}
                           className={classNames(
-                            "flex shrink-0 items-center overflow-auto",
+                            "flex shrink-0 items-center overflow-hidden",
                             variant === "compact" && "p-1.5",
                             meta?.sticky && "group-hover:bg-muted bg-default sticky"
                           )}>
