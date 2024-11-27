@@ -1,4 +1,5 @@
 import { m } from "framer-motion";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -11,6 +12,8 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { locales as i18nLocales } from "@calcom/lib/i18n";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -59,6 +62,7 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
 }) => {
+  const session = useSession();
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -103,9 +107,13 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
-  const translatedDescription = (event?.fieldTranslations ?? []).find((translation) =>
-    browserLocale.startsWith(translation.targetLang)
+  const userLocale = session.data?.user.locale ?? navigator.language;
+  const translatedDescription = (event?.fieldTranslations ?? []).find(
+    (trans) =>
+      trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
+      i18nLocales.includes(trans.targetLocale) &&
+      // browser language looks like "en-US", "es-ES", "fr-FR", etc
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
   )?.translatedText;
 
   return (
