@@ -357,6 +357,8 @@ model User {
   reassignedBookings         Booking[]                    @relation("reassignByUser")
   createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
+  createdBlacklists          Blacklist[]                  @relation("CreatedBlacklists")
+  updatedBlacklists          Blacklist[]                  @relation("UpdatedBlacklists")
 
   @@unique([email])
   @@unique([email, username])
@@ -1654,4 +1656,26 @@ model EventTypeTranslation {
   @@unique([eventTypeId, field, targetLocale])
   @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@index([eventTypeId, field, targetLocale])
+}
+
+enum BlacklistType {
+  EMAIL
+  DOMAIN
+  USERNAME
+}
+
+model Blacklist {
+  id          String        @id @unique @default(cuid())
+  type        BlacklistType
+  // The identifier of the blacklisted entity (email or domain)
+  value       String
+  description String
+  createdAt   DateTime      @default(now())
+  createdBy   User          @relation("CreatedBlacklists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdById Int
+  updatedAt   DateTime      @updatedAt
+  updatedBy   User?         @relation("UpdatedBlacklists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedById Int?
+
+  @@unique([type, value])
 }

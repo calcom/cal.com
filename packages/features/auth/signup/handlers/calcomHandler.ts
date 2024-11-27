@@ -6,6 +6,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import { checkIfEmailInBlacklistController } from "@calcom/features/blacklist/operations/check-if-email-in-blacklist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
@@ -25,16 +26,6 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
-const isEmailInBlacklist = (email: string) => {
-  const blacklistedDomains = (process.env.BLACKLIST_EMAIL_DOMAINS || "")
-    .split(",")
-    .map((domain) => domain.trim());
-  if (!blacklistedDomains.length) return false;
-  const emailDomain = email.split("@")[1]?.toLowerCase();
-  console.log("emailDomain", emailDomain);
-  return blacklistedDomains.includes(emailDomain);
-};
-
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const {
     email: _email,
@@ -48,7 +39,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     })
     .parse(req.body);
 
-  const shouldLockByDefault = isEmailInBlacklist(_email);
+  const shouldLockByDefault = await checkIfEmailInBlacklistController(_email);
 
   log.debug("handler", { email: _email });
 
