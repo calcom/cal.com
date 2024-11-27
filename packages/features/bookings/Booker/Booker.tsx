@@ -67,14 +67,11 @@ const BookerComponent = ({
   isPlatform,
   orgBannerUrl,
   customClassNames,
+  areInstantMeetingParametersSet = false,
+  i18nLocales = ["en"],
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
   const searchParams = useSearchParams();
-
-  const areInstantMeetingParametersSet = !!event.data?.instantMeetingParameters
-    ? searchParams &&
-      event.data.instantMeetingParameters.every((param) => Array.from(searchParams.values()).includes(param))
-    : true;
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -358,6 +355,7 @@ const BookerComponent = ({
                   event={event.data}
                   isPending={event.isPending}
                   isPlatform={isPlatform}
+                  i18nLocales={i18nLocales}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (

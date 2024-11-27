@@ -90,6 +90,9 @@ export interface BookerProps {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  areInstantMeetingParametersSet?: boolean;
+  userLocale?: string | null;
+  i18nLocales?: string[];
 }
 
 export type WrappedBookerPropsMain = {

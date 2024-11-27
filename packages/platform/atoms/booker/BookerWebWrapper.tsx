@@ -23,6 +23,7 @@ import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/l
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { locales as i18nLocales } from "@calcom/lib/i18n";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 type BookerWebWrapperAtomProps = BookerProps;
@@ -181,6 +182,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     theme: event.data?.profile.theme,
   });
 
+  const areInstantMeetingParametersSet = !!event.data?.instantMeetingParameters
+    ? searchParams &&
+      event.data.instantMeetingParameters.every((param) => Array.from(searchParams.values()).includes(param))
+    : true;
+
   return (
     <BookerComponent
       {...props}
@@ -219,6 +225,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       verifyCode={verifyCode}
       isPlatform={false}
+      areInstantMeetingParametersSet={areInstantMeetingParametersSet}
+      userLocale={session?.user.locale}
+      i18nLocales={i18nLocales}
     />
   );
 };
