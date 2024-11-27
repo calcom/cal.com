@@ -10,6 +10,7 @@ import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-em
 import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
 import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
+import AttendeeUpdatedEmail from "@calcom/emails/templates/attendee-updated-email";
 import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
 import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
 import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
@@ -211,6 +212,8 @@ export { OrganizerReassignedEmail };
 export { OrganizerRescheduledEmail };
 
 export { AttendeeRescheduledEmail };
+
+export { AttendeeUpdatedEmail };
 
 export { OrganizerRequestEmail };
 

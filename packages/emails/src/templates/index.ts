@@ -6,6 +6,7 @@ export { AttendeeLocationChangeEmail } from "./AttendeeLocationChangeEmail";
 export { AttendeeRequestEmail } from "./AttendeeRequestEmail";
 export { AttendeeWasRequestedToRescheduleEmail } from "./AttendeeWasRequestedToRescheduleEmail";
 export { AttendeeRescheduledEmail } from "./AttendeeRescheduledEmail";
+export { AttendeeUpdatedEmail } from "./AttendeeUpdatedEmail";
 export { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 export { DisabledAppEmail } from "./DisabledAppEmail";
 export { SlugReplacementEmail } from "./SlugReplacementEmail";
