@@ -262,7 +262,7 @@ export function RoutingFormResponsesTable({
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
-        limit: 10,
+        limit: 30,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
