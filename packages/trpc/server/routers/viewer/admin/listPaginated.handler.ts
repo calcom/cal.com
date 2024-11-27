@@ -38,7 +38,11 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
   const users = await prisma.user.findMany({
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    where: searchFilters,
+    where: {
+      ...searchFilters,
+      // To bypass the excludeLockedUsersExtension
+      OR: [{ locked: false }, { locked: true }],
+    },
     orderBy: {
       id: "asc",
     },
