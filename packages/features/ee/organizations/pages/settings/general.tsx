@@ -209,15 +209,13 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
         />
       </div>
 
-      <SectionBottomActions align="end">
-        <Button
-          disabled={isDisabled}
-          color="primary"
-          type="submit"
-          tooltip={!isAdminOrOwner ? t("owner_permission_needed") : undefined}>
-          {t("update")}
-        </Button>
-      </SectionBottomActions>
+      {isAdminOrOwner && (
+        <SectionBottomActions align="end">
+          <Button disabled={isDisabled} color="primary" type="submit">
+            {t("update")}
+          </Button>
+        </SectionBottomActions>
+      )}
     </Form>
   );
 };
