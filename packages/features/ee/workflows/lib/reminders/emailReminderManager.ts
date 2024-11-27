@@ -19,7 +19,7 @@ import {
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
-import { deleteScheduledSend as deleteScheduledEmailSend } from "./providers/sendgridProvider";
+import { cancelScheduledEmail as cancelScheduledEmailSend } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -379,7 +379,7 @@ export const deleteScheduledEmailReminder = async (reminderId: number, reference
       },
     });
 
-    await deleteScheduledEmailSend(referenceId);
+    await cancelScheduledEmailSend(referenceId);
   } catch (error) {
     log.error(`Error canceling reminder with error ${error}`);
   }
