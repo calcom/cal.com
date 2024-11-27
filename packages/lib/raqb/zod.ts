@@ -88,11 +88,13 @@ export const raqbQueryValueSchema = z.union([
     id: z.string().optional(),
     type: z.literal("group"),
     children1: raqbChildren1Schema.optional(),
+    properties: z.any(),
   }),
   z.object({
     id: z.string().optional(),
     type: z.literal("switch_group"),
     children1: raqbChildren1Schema.optional(),
+    properties: z.any(),
   }),
 ]);
 
