@@ -243,7 +243,8 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId: result?.credentialId || undefined,
+        credentialId: result?.credentialId !== -1 ? result?.credentialId ?? undefined : undefined,
+        delegatedToId: result?.delegatedToId || undefined,
       };
     });
 
@@ -671,8 +672,12 @@ export default class EventManager {
       for (const destination of destinationCalendars) {
         if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
-        if (destination.credentialId) {
-          let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
+        if (destination.credentialId || destination.domainWideDelegationCredentialId) {
+          let credential = destination.domainWideDelegationCredentialId
+            ? this.calendarCredentials.find(
+                (c) => c.delegatedToId === destination.domainWideDelegationCredentialId
+              )
+            : this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({

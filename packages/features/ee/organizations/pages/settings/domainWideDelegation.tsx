@@ -192,7 +192,7 @@ function DelegationFormFields({ workspacePlatforms }: { workspacePlatforms: Work
   const { t } = useLocale();
   const form = useFormContext();
   return (
-    <>
+    <div className="space-y-4">
       <TextField label={t("domain")} {...form.register("domain")} />
       <Controller
         name="workspacePlatformSlug"
@@ -210,7 +210,7 @@ function DelegationFormFields({ workspacePlatforms }: { workspacePlatforms: Work
           );
         }}
       />
-    </>
+    </div>
   );
 }
 

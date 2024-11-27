@@ -319,7 +319,11 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
-  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(
+    calEventRaw: CalendarEvent,
+    credentialId: number,
+    overrideExternalId?: string
+  ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
@@ -368,8 +372,9 @@ export default class GoogleCalendarService implements Calendar {
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
 
     const selectedCalendar =
-      formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
-      "primary";
+      overrideExternalId ??
+      (formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+        "primary");
 
     try {
       let event;

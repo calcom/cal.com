@@ -567,6 +567,9 @@ model BookingReference {
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
   credentialId Int?
 
+  delegatedTo   DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
+  delegatedToId String?
+
   @@index([bookingId])
   @@index([type])
   @@index([uid])
@@ -1636,6 +1639,7 @@ model DomainWideDelegation {
 
   selectedCalendars   SelectedCalendar[]
   destinationCalendar DestinationCalendar[]
+  bookingReferences   BookingReference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1669,7 +1673,6 @@ model WorkspacePlatform {
 
   @@unique([slug])
 }
-
 
 enum AssignmentReasonEnum {
   ROUTING_FORM_ROUTING

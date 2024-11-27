@@ -5,7 +5,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { CalendarAppDomainWideDelegationClientIdNotAuthorizedError, CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
+import { CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -251,10 +251,12 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
+  const overrideExternalIdForDelegatedCredential = credential.delegatedToId ? externalId : undefined;
+
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        .createEvent(calEvent, credential.id)
+        .createEvent(calEvent, credential.id, overrideExternalIdForDelegatedCredential)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**
@@ -309,6 +311,7 @@ export const createEvent = async (
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
     externalId,
     credentialId: credential.id,
+    delegatedToId: credential.delegatedToId,
   };
 };
 
