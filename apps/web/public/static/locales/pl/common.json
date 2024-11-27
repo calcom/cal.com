@@ -46,7 +46,6 @@
   "event_request_reassigned": "Twoje zaplanowane wydarzenie zostało przypisane ponownie",
   "event_reassigned_subtitle": "Wydarzenie nie będzie już widoczne w Twoim kalendarzu, a Twoje prawdopodobieństwo w round robin nie zostanie negatywnie naruszone",
   "organizer": "Organizator",
-  "owner_permission_needed": "Musisz być właścicielem organizacji.",
   "reassigned_to": "Przypisano ponownie do",
   "need_to_reschedule_or_cancel": "Potrzebujesz zmienić harmonogram lub anulować?",
   "you_can_view_booking_details_with_this_url": "Możesz zobaczyć szczegóły rezerwacji pod tym adresem URL {{url}} i dodać wydarzenie do swojego kalendarza",

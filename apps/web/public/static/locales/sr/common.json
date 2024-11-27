@@ -46,7 +46,6 @@
   "event_request_reassigned": "Vaš zakazani događaj je preraspoređen",
   "event_reassigned_subtitle": "Događaj više neće biti u vašem kalendaru i vaša verovatnoća za round robin neće biti negativno pogođena",
   "organizer": "Organizator",
-  "owner_permission_needed": "Morate biti vlasnik organizacije.",
   "reassigned_to": "Preraspoređeno na",
   "need_to_reschedule_or_cancel": "Morate da odložite ili otkažete?",
   "you_can_view_booking_details_with_this_url": "Možete pogledati detalje rezervacije na ovom linku {{url}} i dodati događaj u svoj kalendar",

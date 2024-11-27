@@ -46,7 +46,6 @@
   "event_request_reassigned": "Tu evento programado fue reasignado",
   "event_reassigned_subtitle": "Ya no tendrás el evento en tu calendario y tu probabilidad de round robin no se verá afectada negativamente",
   "organizer": "Organizador",
-  "owner_permission_needed": "Necesitas ser propietario de la organización.",
   "reassigned_to": "Reasignado a",
   "need_to_reschedule_or_cancel": "¿Necesitas reprogramar o cancelar?",
   "you_can_view_booking_details_with_this_url": "Puedes ver los detalles de la reserva en este enlace {{url}} y agregar el evento a tu calendario",

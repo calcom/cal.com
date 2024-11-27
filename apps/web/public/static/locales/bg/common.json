@@ -46,7 +46,6 @@
   "event_request_reassigned": "Планираното ви събитие беше преразпределено",
   "event_reassigned_subtitle": "Събитието вече няма да бъде във вашия календар и вашата round robin вероятност няма да бъде негативно засегната",
   "organizer": "Организатор",
-  "owner_permission_needed": "Трябва да сте собственик на организацията.",
   "reassigned_to": "Преразпределено към",
   "need_to_reschedule_or_cancel": "Нужда от пренасрочване или отказ?",
   "you_can_view_booking_details_with_this_url": "Можете да видите детайлите за резервацията от този URL {{url}} и да добавите събитието във вашия календар",

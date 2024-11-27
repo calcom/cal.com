@@ -46,7 +46,6 @@
   "event_request_reassigned": "Вашу заплановану подію було перепризначено",
   "event_reassigned_subtitle": "Ця подія більше не буде у вашому календарі, і це не вплине негативно на ваші шанси у round robin",
   "organizer": "Організатор",
-  "owner_permission_needed": "Ви повинні бути власником організації.",
   "reassigned_to": "Перепризначено",
   "need_to_reschedule_or_cancel": "Потрібно перенести чи скасувати?",
   "you_can_view_booking_details_with_this_url": "Ви можете переглянути деталі бронювання за цим посиланням {{url}} і додати подію до свого календаря",

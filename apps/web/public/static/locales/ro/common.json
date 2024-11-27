@@ -46,7 +46,6 @@
   "event_request_reassigned": "Evenimentul dvs. programat a fost realocat",
   "event_reassigned_subtitle": "Nu veți mai avea evenimentul în calendar și probabilitatea dvs. de round robin nu va fi afectată negativ",
   "organizer": "Organizator",
-  "owner_permission_needed": "Trebuie să fii proprietarul organizației.",
   "reassigned_to": "Realocat către",
   "need_to_reschedule_or_cancel": "Trebuie să reprogramați sau să anulați?",
   "you_can_view_booking_details_with_this_url": "Puteți vizualiza detaliile rezervării folosind acest URL {{url}} și adăuga evenimentul în calendarul dvs.",

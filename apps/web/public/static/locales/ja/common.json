@@ -46,7 +46,6 @@
   "event_request_reassigned": "予定されていたイベントが再割り当てされました",
   "event_reassigned_subtitle": "このイベントはあなたのカレンダーから削除され、ラウンドロビンの可能性に悪影響を与えることはありません",
   "organizer": "主催者",
-  "owner_permission_needed": "組織のオーナー権限が必要です。",
   "reassigned_to": "再割り当て先",
   "need_to_reschedule_or_cancel": "再スケジュールまたはキャンセルが必要ですか？",
   "you_can_view_booking_details_with_this_url": "このURL {{url}} から予約の詳細を確認し、イベントをカレンダーに追加できます",

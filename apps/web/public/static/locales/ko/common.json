@@ -46,7 +46,6 @@
   "event_request_reassigned": "예약된 이벤트가 재배정되었습니다",
   "event_reassigned_subtitle": "더 이상 캘린더에 이벤트가 표시되지 않으며, 라운드 로빈 가능성에 부정적인 영향을 미치지 않습니다",
   "organizer": "주최자",
-  "owner_permission_needed": "조직의 소유자 권한이 필요합니다.",
   "reassigned_to": "재배정된 대상",
   "need_to_reschedule_or_cancel": "다시 일정을 잡거나 취소하시겠습니까?",
   "you_can_view_booking_details_with_this_url": "이 URL {{url}}에서 예약 세부 정보를 확인하고 일정을 캘린더에 추가할 수 있습니다",

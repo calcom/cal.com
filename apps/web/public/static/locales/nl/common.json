@@ -46,7 +46,6 @@
   "event_request_reassigned": "Je geplande afspraak is opnieuw toegewezen",
   "event_reassigned_subtitle": "De afspraak staat niet meer in je agenda en je round robin-kans wordt niet negatief beïnvloed",
   "organizer": "Organisator",
-  "owner_permission_needed": "Je moet eigenaar zijn van de organisatie.",
   "reassigned_to": "Opnieuw toegewezen aan",
   "need_to_reschedule_or_cancel": "Moet u verplaatsen of annuleren?",
   "you_can_view_booking_details_with_this_url": "Je kunt de boekingsdetails bekijken via deze url {{url}} en het evenement aan je agenda toevoegen",

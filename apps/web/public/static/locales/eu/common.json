@@ -46,7 +46,6 @@
   "event_request_reassigned": "Zure programatutako gertaera berresleitua izan da",
   "event_reassigned_subtitle": "Gertaera ez da zure egutegian agertuko eta zure round robin probabilitatean ez du eragin negatiborik izango",
   "organizer": "Antolatzailea",
-  "owner_permission_needed": "Erakundearen jabea izan behar duzu.",
   "reassigned_to": "Honi esleitua",
   "need_to_reschedule_or_cancel": "Programazioa aldatu edo bertan behera utzi behar duzu?",
   "you_can_view_booking_details_with_this_url": "Erreserbaren xehetasunak URL honetatik ikusi ditzakezu {{url}} eta gertaera zure egutegira gehitu",
