@@ -168,8 +168,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   const eventType = eventTypeId
     ? await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId })
     : await EventTypeRepository.findBySlugAndUserIdOrTeamId({
-        // Assume that the slug was saved in the format of team/{teamName}/{eventSlug}
-        slug: eventTypeUrl.split("/")[2],
+        // Assume that the slug was saved in the format of team/{teamName}/{eventSlug}?query
+        slug: eventTypeUrl.split("/")[2].split("?")[0],
         teamId: form?.teamId,
         userId: form.userId,
       });
