@@ -529,6 +529,7 @@ test.describe("Bookings", () => {
       const { invitedUserEmail } = await inviteExistingUserToOrganization({
         page,
         organizationId: org.id,
+        organizationSlug: org.slug,
         user: userOutsideOrganization,
         usersFixture: users,
       });

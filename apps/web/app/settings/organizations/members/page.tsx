@@ -2,7 +2,7 @@ import { _generateMetadata, getFixedT } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
-import LegacyPage from "@calcom/features/ee/organizations/pages/settings/members";
+import LegacyPage from "@calcom/features/ee/organizations/pages/members";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 
