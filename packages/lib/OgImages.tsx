@@ -56,10 +56,7 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = (
-  { title, users = [], profile }: MeetingImageProps,
-  encodeUri = true
-): string => {
+export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
   const url = [
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
@@ -70,7 +67,7 @@ export const constructMeetingImage = (
     // Joining a multiline string for readability.
   ].join("");
 
-  return encodeUri ? encodeURIComponent(url) : url;
+  return url;
 };
 
 /**
