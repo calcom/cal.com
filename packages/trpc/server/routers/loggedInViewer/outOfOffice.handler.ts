@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { WebhookTriggerEvents } from "@prisma/client/enums";
 import { v4 as uuidv4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
@@ -15,7 +16,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import type { TOutOfOfficeDelete, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
-import { WebhookTriggerEvents } from ".prisma/client";
 
 type TBookingRedirect = {
   ctx: {
@@ -39,7 +39,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   }
 
   // If start date is before to today throw error
-  if (startTimeUtc.isBefore(dayjs().startOf("day").subtract(1, "day"))) {
+  const localToday = dayjs.utc().add(input.offset, "minute").startOf("day");
+  if (startTimeUtc.isBefore(localToday)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 
