@@ -96,6 +96,95 @@ describe("Bookings Endpoints 2024-08-13", () => {
         user.id
       );
 
+      bookingWithSplitName = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2020, 0, 8, 12, 0, 0)),
+        endTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+        title: "peer coding lets goo",
+        uid: "booking",
+        eventType: {
+          connect: {
+            id: event.id,
+          },
+        },
+        location: "integrations:daily",
+        customInputs: {},
+        metadata: {},
+        responses: {
+          name: splitName,
+          email: "oldie@gmail.com",
+        },
+        attendees: {
+          create: {
+            email: "oldie@gmail.com",
+            name: "Oldie Goldie",
+            locale: "lv",
+            timeZone: "Europe/Rome",
+          },
+        },
+      });
+
+      const seatedEvent = await eventTypesRepositoryFixture.create(
+        { title: "peer coding", slug: "seated-peer-coding-100", length: 60, seatsPerTimeSlot: 3 },
+        user.id
+      );
+
+      seatedBookingWithSplitName = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+        endTime: new Date(Date.UTC(2020, 0, 8, 15, 0, 0)),
+        title: "peer coding lets goo",
+        uid: "seated-booking",
+        eventType: {
+          connect: {
+            id: seatedEvent.id,
+          },
+        },
+        location: "integrations:daily",
+        customInputs: {},
+        metadata: {},
+        responses: {
+          name: splitName,
+          email: "oldie@gmail.com",
+        },
+        attendees: {
+          create: {
+            email: "oldie@gmail.com",
+            name: "Oldie Goldie",
+            locale: "lv",
+            timeZone: "Europe/Rome",
+            bookingSeat: {
+              create: {
+                referenceUid: "unique-seat-uid",
+                data: {
+                  responses: {
+                    email: "oldie@gmail.com",
+                    name: {
+                      firstName: "Oldie",
+                      lastName: "Goldie",
+                    },
+                  },
+                },
+                metadata: {},
+                booking: {
+                  connect: {
+                    uid: "seated-booking",
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
       const eventTypeWithBookingFields = await eventTypesRepositoryFixture.create(
         {
           title: "peer coding with booking fields",
@@ -309,6 +398,57 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
       return client;
     }
+
+    describe("get individual booking", () => {
+      it("should should get a seated booking with split name responses", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${bookingWithSplitName.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.attendees[0].name).toEqual(`${splitName.firstName} ${splitName.lastName}`);
+              expect(data.bookingFieldsResponses.name).toEqual(splitName);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should should get a seated booking with split name responses", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${seatedBookingWithSplitName.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              // eslint-disable-next-line
+              // @ts-ignore
+              const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+              console.log("asap data", JSON.stringify(data, null, 2));
+              expect(data.attendees[0].name).toEqual(`${splitName.firstName} ${splitName.lastName}`);
+              expect(data.attendees[0].bookingFieldsResponses.name).toEqual(splitName);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+    });
 
     describe("make booking", () => {
       it("should not be able to book an event type with custom required booking fields if they are missing in bookingFieldsResponses", async () => {
