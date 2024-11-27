@@ -1,18 +1,27 @@
-import type { ComponentProps, Dispatch, SetStateAction } from "react";
+import { useMemo, type ComponentProps, type Dispatch, type SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import type { Options } from "react-select";
 
-import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import {
+  useIsPlatform,
+  AddMembersWithSwitchWebWrapper,
+  AddMembersWithSwitchPlatformWrapper,
+} from "@calcom/atoms/monorepo";
+import { Segment } from "@calcom/features/Segment";
+import type {
+  FormValues,
+  Host,
+  SettingsToggleClassNames,
+  TeamMember,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { trpc } from "@calcom/trpc";
 import { Label, SettingsToggle } from "@calcom/ui";
 
-import { Segment } from "../../../../apps/web/components/Segment";
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import CheckedTeamSelect from "./CheckedTeamSelect";
-import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -53,6 +62,7 @@ const CheckedHostField = ({
   onChange,
   helperText,
   isRRWeightsEnabled,
+  customClassNames,
   ...rest
 }: {
   labelText?: string;
@@ -96,6 +106,7 @@ const CheckedHostField = ({
           options={options}
           placeholder={placeholder}
           isRRWeightsEnabled={isRRWeightsEnabled}
+          customClassNames={customClassNames}
           {...rest}
         />
       </div>
@@ -122,7 +133,7 @@ function MembersSegmentWithToggle({
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
     setRrSegmentQueryValue(queryValue);
   };
-
+  const isPlatform = useIsPlatform();
   return (
     <Controller<FormValues>
       name="assignRRMembersUsingSegment"
@@ -136,19 +147,26 @@ function MembersSegmentWithToggle({
           onCheckedChange={(active) => {
             setAssignRRMembersUsingSegment(active);
           }}>
-          <Segment
-            teamId={teamId}
-            queryValue={rrSegmentQueryValue}
-            onQueryValueChange={onQueryValueChange}
-            className={className}
-          />
+          {!isPlatform && (
+            <Segment
+              teamId={teamId}
+              queryValue={rrSegmentQueryValue}
+              onQueryValueChange={onQueryValueChange}
+              className={className}
+            />
+          )}
         </SettingsToggle>
       )}
     />
   );
 }
 
-type AddMembersWithSwitchProps = {
+export type AddMembersWithSwitchCustomClassNames = {
+  assingAllTeamMembers?: SettingsToggleClassNames;
+  teamMemberSelect?: CheckedTeamSelectCustomClassNames;
+};
+
+export type AddMembersWithSwitchProps = {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -162,6 +180,7 @@ type AddMembersWithSwitchProps = {
   teamId: number;
   isSegmentApplicable?: boolean;
   "data-testid"?: string;
+  customClassNames?: AddMembersWithSwitchCustomClassNames;
 };
 
 const enum AssignmentState {
@@ -213,7 +232,7 @@ function useSegmentState() {
   };
 }
 
-function AddMembersWithSwitch({
+export function AddMembersWithSwitch({
   teamMembers,
   value,
   onChange,
@@ -226,6 +245,7 @@ function AddMembersWithSwitch({
   isRRWeightsEnabled,
   teamId,
   isSegmentApplicable,
+  customClassNames,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -242,11 +262,6 @@ function AddMembersWithSwitch({
     assignRRMembersUsingSegment,
     isAssigningAllTeamMembersApplicable: automaticAddAllEnabled,
     isSegmentApplicable,
-  });
-  const utils = trpc.useUtils();
-
-  utils.viewer.appRoutingForms.getAttributesForTeam.prefetch({
-    teamId,
   });
 
   const onAssignAllTeamMembersInactive = () => {
@@ -266,6 +281,7 @@ function AddMembersWithSwitch({
               onActive();
             }}
             onInactive={onAssignAllTeamMembersInactive}
+            customClassNames={customClassNames?.assingAllTeamMembers}
           />
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
@@ -292,6 +308,7 @@ function AddMembersWithSwitch({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 onActive={onActive}
                 onInactive={onAssignAllTeamMembersInactive}
+                customClassNames={customClassNames?.assingAllTeamMembers}
               />
             )}
           </div>
@@ -305,6 +322,7 @@ function AddMembersWithSwitch({
               options={teamMembers.sort(sortByLabel)}
               placeholder={placeholder ?? t("add_attendees")}
               isRRWeightsEnabled={isRRWeightsEnabled}
+              customClassNames={customClassNames?.teamMemberSelect}
             />
           </div>
         </>
@@ -318,10 +336,15 @@ const AddMembersWithSwitchWrapper = ({
 }: AddMembersWithSwitchProps & {
   containerClassName?: string;
 }) => {
+  const isPlatform = useIsPlatform();
+  const AddMembersWithSwitchWrapped = useMemo(
+    () => (isPlatform ? AddMembersWithSwitchPlatformWrapper : AddMembersWithSwitchWebWrapper),
+    [isPlatform]
+  );
   return (
     <div className="rounded-md ">
       <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
-        <AddMembersWithSwitch {...props} />
+        <AddMembersWithSwitchWrapped {...props} />
       </div>
     </div>
   );
