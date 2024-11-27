@@ -2996,6 +2996,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -11549,6 +11550,13 @@
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
+          },
           "bookingFieldsResponses": {
             "type": "object",
             "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
@@ -11603,6 +11611,13 @@
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -11664,6 +11679,13 @@
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
+          },
           "bookingFieldsResponses": {
             "type": "object",
             "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
@@ -11678,6 +11700,28 @@
           }
         },
         "required": ["start", "lengthInMinutes", "eventTypeId", "attendee"]
+      },
+      "BookingHost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "jane100"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          }
+        },
+        "required": ["id", "name", "username", "timeZone"]
       },
       "EventType": {
         "type": "object",
@@ -11715,7 +11759,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -11769,6 +11813,16 @@
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "attendees": {
             "type": "array",
@@ -11804,6 +11858,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees"
         ]
       },
@@ -11829,7 +11884,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -11883,6 +11938,16 @@
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "attendees": {
             "type": "array",
@@ -11922,6 +11987,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees",
           "recurringBookingUid"
         ]

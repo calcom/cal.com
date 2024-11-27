@@ -18,6 +18,7 @@ import {
 
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
+import { ValidateMetadata } from "./validators/validate-metadata";
 
 class Attendee {
   @ApiProperty({
@@ -118,20 +119,23 @@ export class CreateBookingInput_2024_08_13 {
     example: "https://example.com/meeting",
     required: false,
   })
-  @IsUrl()
   @IsOptional()
   location?: string;
 
-  // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-  // @ApiProperty({
-  //   type: Object,
-  //   description: "Optional metadata for the booking.",
-  //   example: { key: "value" },
-  //   required: false,
-  // })
-  // @IsObject()
-  // @IsOptional()
-  // metadata!: Record<string, unknown>;
+  @ApiProperty({
+    type: Object,
+    description:
+      "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+    example: { key: "value" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  @ValidateMetadata({
+    message:
+      "Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+  })
+  metadata?: Record<string, string>;
 
   @ApiPropertyOptional({
     type: Object,

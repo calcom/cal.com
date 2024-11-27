@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,7 +12,19 @@ import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
+import {
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
+  DataTablePagination,
+  useColumnFilters,
+  useFetchMoreOnBottomReached,
+  textFilter,
+  isTextFilterValue,
+} from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   downloadAsCsv,
@@ -23,19 +34,7 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import {
-  Avatar,
-  Badge,
-  Button,
-  Checkbox,
-  DataTable,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSelectionBar,
-  DataTablePagination,
-  showToast,
-  useFetchMoreOnBottomReached,
-} from "@calcom/ui";
+import { Avatar, Badge, Button, Checkbox, showToast } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -120,19 +119,17 @@ export function UserListTable() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const columnFilters = useColumnFilters();
 
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
-        limit: 10,
+        limit: 30,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
-        filters: columnFilters.map((filter) => ({
-          id: filter.id,
-          value: filter.value as string[],
-        })),
+        filters: columnFilters,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -145,10 +142,7 @@ export function UserListTable() {
       limit: 100, // Max limit
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
-      filters: columnFilters.map((filter) => ({
-        id: filter.id,
-        value: filter.value as string[],
-      })),
+      filters: columnFilters,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -179,6 +173,9 @@ export function UserListTable() {
         (attributes?.map((attribute) => ({
           id: attribute.id,
           header: attribute.name,
+          meta: {
+            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
+          },
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -186,17 +183,22 @@ export function UserListTable() {
             );
             if (attributeValues.length === 0) return null;
             return (
-              <>
+              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
                 {attributeValues.map((attributeValue, index) => (
                   <Badge key={index} variant="gray" className="mr-1">
                     {attributeValue.value}
                   </Badge>
                 ))}
-              </>
+              </div>
             );
           },
-          filterFn: (rows, id, filterValue) => {
-            const attributeValues = rows.original.attributes.filter((attr) => attr.attributeId === id);
+          filterFn: (row, id, filterValue) => {
+            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+
+            if (isTextFilterValue(filterValue)) {
+              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+            }
+
             if (attributeValues.length === 0) return false;
             return attributeValues.some((attr) => filterValue.includes(attr.value));
           },
@@ -209,6 +211,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         meta: {
           sticky: {
             position: "left",
@@ -235,6 +238,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        size: 200,
         header: () => {
           return `Members`;
         },
@@ -303,6 +307,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
+        size: 200,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -320,6 +325,7 @@ export function UserListTable() {
                   Pending
                 </Badge>
               )}
+
               {teams.map((team) => (
                 <Badge
                   key={team.id}
@@ -340,8 +346,14 @@ export function UserListTable() {
       },
       ...generateAttributeColumns(),
       {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
         id: "actions",
         enableHiding: false,
+        size: 80,
         meta: {
           sticky: { position: "right" },
         },
@@ -383,14 +395,19 @@ export function UserListTable() {
     initialState: {
       columnVisibility: initalColumnVisibility,
     },
+    defaultColumn: {
+      size: 150,
+    },
     state: {
       columnFilters,
+      rowSelection,
     },
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onRowSelectionChange: setRowSelection,
+    getRowId: (row) => `${row.id}`,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
@@ -449,7 +466,12 @@ export function UserListTable() {
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(headers, allMembers as UserTableUser[], ATTRIBUTE_IDS);
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allMembers as UserTableUser[],
+        ATTRIBUTE_IDS,
+        domain
+      );
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
@@ -518,6 +540,7 @@ export function UserListTable() {
             <DataTableFilters.ActiveFilters table={table} />
           </div>
         </DataTableToolbar.Root>
+
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>
           <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
         </div>
@@ -551,7 +574,6 @@ export function UserListTable() {
           </DataTableSelectionBar.Root>
         )}
       </DataTable>
-
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}

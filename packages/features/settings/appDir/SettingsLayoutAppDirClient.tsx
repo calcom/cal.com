@@ -79,10 +79,6 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/general",
       },
       {
-        name: "members",
-        href: "/settings/organizations/members",
-      },
-      {
         name: "privacy",
         href: "/settings/organizations/privacy",
       },
@@ -672,6 +668,7 @@ export type SettingsLayoutProps = {
   children: React.ReactNode;
   currentOrg: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
   otherTeams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>> | null;
+  containerClassName?: string;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayoutAppDirClient({
@@ -723,7 +720,8 @@ export default function SettingsLayoutAppDirClient({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
+        <div
+          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
