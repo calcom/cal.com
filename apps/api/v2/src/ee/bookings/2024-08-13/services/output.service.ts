@@ -20,7 +20,13 @@ import { Booking, BookingSeat } from "@calcom/prisma/client";
 export const bookingResponsesSchema = z
   .object({
     email: z.string(),
-    name: z.string(),
+    name: z.union([
+      z.string(),
+      z.object({
+        firstName: z.string(),
+        lastName: z.string(),
+      }),
+    ]),
     guests: z.array(z.string()).optional(),
     rescheduleReason: z.string().optional(),
   })
@@ -31,7 +37,13 @@ export const seatedBookingResponsesSchema = z
     responses: z
       .object({
         email: z.string(),
-        name: z.string(),
+        name: z.union([
+          z.string(),
+          z.object({
+            firstName: z.string(),
+            lastName: z.string(),
+          }),
+        ]),
       })
       .passthrough(),
   })

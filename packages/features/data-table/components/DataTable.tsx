@@ -3,8 +3,8 @@
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
-import { useMemo } from "react";
-import { useVirtual } from "react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useMemo, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
@@ -14,7 +14,7 @@ export interface DataTableProps<TData, TValue> {
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
+  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
@@ -32,15 +32,33 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
-  const rowVirtualizer = useVirtual({
-    parentRef: tableContainerRef,
-    size: rows.length,
+  // https://stackblitz.com/github/tanstack/table/tree/main/examples/react/virtualized-infinite-scrolling
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    estimateSize: () => 100,
+    getScrollElement: () => tableContainerRef.current,
+    // measure dynamic row height, except in firefox because it measures table border height incorrectly
+    measureElement:
+      typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
     overscan: 10,
   });
-  const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
-  const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
-  const paddingBottom =
-    virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
+
+  useEffect(() => {
+    if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+      const target = tableContainerRef.current;
+      // Right after the last row is rendered, tableContainer's scrollHeight is
+      // temporarily larger than the actual height of the table, so we need to
+      // wait for a short time before calling onScroll to ensure the scrollHeight
+      // is correct.
+      setTimeout(() => {
+        onScroll?.({ target });
+      }, 100);
+    }
+  }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
 
   const columnSizeVars = useMemo(() => {
     const headers = table.getFlatHeaders();
@@ -52,14 +70,11 @@ export function DataTable<TData, TValue>({
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
     }
     return colSizes;
-  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+  }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   return (
     <div
-      className={classNames(
-        "grid h-[85dvh]", // Set a fixed height for the container
-        rest.className
-      )}
+      className={classNames("grid", rest.className)}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
@@ -70,12 +85,15 @@ export function DataTable<TData, TValue>({
       <div
         ref={tableContainerRef}
         onScroll={onScroll}
-        className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
+        className={classNames(
+          "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
+          "scrollbar-thin border-subtle relative rounded-md border"
+        )}
         style={{ gridArea: "body" }}>
-        <TableNew className="border-0">
+        <TableNew className="grid border-0">
           <TableHeader className="bg-subtle sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="flex w-full">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta;
                   return (
@@ -87,8 +105,9 @@ export function DataTable<TData, TValue>({
                         width: `calc(var(--header-${header?.id}-size) * 1px)`,
                       }}
                       className={classNames(
+                        "flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky top-0 z-20"
+                        meta?.sticky && "sticky top-0 z-20"
                       )}>
                       <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
@@ -112,20 +131,23 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {paddingTop > 0 && (
-              <tr>
-                <td style={{ height: `${paddingTop}px` }} />
-              </tr>
-            )}
+          <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
             {virtualRows && !isPending ? (
               virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<TData>;
                 return (
                   <TableRow
+                    ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                     key={row.id}
+                    data-index={virtualRow.index} //needed for dynamic row height measurement
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                    style={{
+                      display: "flex",
+                      position: "absolute",
+                      transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                      width: "100%",
+                    }}
                     className={classNames(
                       onRowMouseclick && "hover:cursor-pointer",
                       variant === "compact" && "!border-0",
@@ -143,6 +165,7 @@ export function DataTable<TData, TValue>({
                             width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                           }}
                           className={classNames(
+                            "flex shrink-0 items-center overflow-hidden",
                             variant === "compact" && "p-1.5",
                             meta?.sticky && "group-hover:bg-muted bg-default sticky"
                           )}>
@@ -159,11 +182,6 @@ export function DataTable<TData, TValue>({
                   No results.
                 </TableCell>
               </TableRow>
-            )}
-            {paddingBottom > 0 && (
-              <tr>
-                <td style={{ height: `${paddingBottom}px` }} />
-              </tr>
             )}
           </TableBody>
         </TableNew>
