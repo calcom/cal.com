@@ -55,7 +55,7 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   // Verify that there is correct URL that would generate the awesome OG image
   expect(ogImage).toContain(
-    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype=meeting&title=30%20min"
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage?type=meeting&title=30%20min"
   );
   // Verify Organizer Name in the URL
   expect(ogImage).toContain("meetingProfileName=Test%20User");
