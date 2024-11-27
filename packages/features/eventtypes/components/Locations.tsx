@@ -309,7 +309,7 @@ const Locations: React.FC<LocationsProps> = ({
                 {!(disableLocationProp && isChildrenManagedEventType) && (
                   <button
                     data-testid={`delete-locations.${index}.type`}
-                    className={classNames("block h-9 min-h-9 px-2", customClassNames?.removeLocationButton)}
+                    className={classNames("min-h-9 block h-9 px-2", customClassNames?.removeLocationButton)}
                     type="button"
                     onClick={() => remove(index)}
                     aria-label={t("remove")}>
