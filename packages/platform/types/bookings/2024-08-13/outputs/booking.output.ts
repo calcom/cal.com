@@ -80,6 +80,11 @@ class Host {
   @Expose()
   name!: string;
 
+  @ApiProperty({ type: String, example: "jane100" })
+  @IsString()
+  @Expose()
+  username!: string;
+
   @ApiProperty({ type: String, example: "America/Los_Angeles" })
   @IsTimeZone()
   @Expose()

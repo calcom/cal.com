@@ -37,6 +37,8 @@ export const seatedBookingResponsesSchema = z
   })
   .passthrough();
 
+type DatabaseUser = { id: number; name: string | null; email: string; username: string | null };
+
 type DatabaseBooking = Booking & {
   eventType: {
     id: number;
@@ -50,11 +52,11 @@ type DatabaseBooking = Booking & {
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
   }[];
-  user: { id: number; name: string | null; email: string } | null;
+  user: DatabaseUser | null;
   createdAt: Date;
 };
 
-type BookingWithUser = Booking & { user: { id: number; name: string | null; email: string } | null };
+type BookingWithUser = Booking & { user: DatabaseUser | null };
 
 type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 
@@ -77,7 +79,7 @@ export class OutputBookingsService_2024_08_13 {
       uid: databaseBooking.uid,
       title: databaseBooking.title,
       description: databaseBooking.description,
-      hosts: [databaseBooking.user],
+      hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
@@ -118,6 +120,22 @@ export class OutputBookingsService_2024_08_13 {
     return userDefinedMetadata;
   }
 
+  getHost(user: DatabaseUser | null) {
+    if (!user) {
+      return {
+        id: "unknown",
+        name: "unknown",
+        email: "unknown",
+        username: "unknown",
+      };
+    }
+
+    return {
+      ...user,
+      username: user.username || "unknown",
+    };
+  }
+
   async getOutputRecurringBookings(bookingsIds: number[]) {
     const transformed = [];
 
@@ -146,7 +164,7 @@ export class OutputBookingsService_2024_08_13 {
       uid: databaseBooking.uid,
       title: databaseBooking.title,
       description: databaseBooking.description,
-      hosts: [databaseBooking.user],
+      hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
@@ -203,7 +221,7 @@ export class OutputBookingsService_2024_08_13 {
       uid: databaseBooking.uid,
       title: databaseBooking.title,
       description: databaseBooking.description,
-      hosts: [databaseBooking.user],
+      hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -298,7 +316,7 @@ export class OutputBookingsService_2024_08_13 {
       uid: databaseBooking.uid,
       title: databaseBooking.title,
       description: databaseBooking.description,
-      hosts: [databaseBooking.user],
+      hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
