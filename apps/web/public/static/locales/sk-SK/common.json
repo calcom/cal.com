@@ -46,6 +46,7 @@
   "event_request_reassigned": "Vaša naplánovaná udalosť bola pridelená",
   "event_reassigned_subtitle": "Udalosť už nebudete mať vo svojom kalendári a vaša pravdepodobnosť round robin nebude negatívne ovplyvnená",
   "organizer": "Organizátor",
+  "owner_permission_needed": "Musíte byť vlastníkom organizácie.",
   "reassigned_to": "Pridelené komu",
   "need_to_reschedule_or_cancel": "Potrebujete preplánovať alebo zrušiť?",
   "you_can_view_booking_details_with_this_url": "Podrobnosti o rezervácii si môžete pozrieť na tejto url {{url}} a pridať udalosť do svojho kalendára",

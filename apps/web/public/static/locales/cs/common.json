@@ -46,6 +46,7 @@
   "event_request_reassigned": "Vaše naplánovaná událost byla přeřazena",
   "event_reassigned_subtitle": "Událost již nebude ve vašem kalendáři a nebude to mít negativní vliv na vaši pravděpodobnost v round robin systému",
   "organizer": "Organizátor",
+  "owner_permission_needed": "Musíte být vlastníkem organizace.",
   "reassigned_to": "Přeřazeno na",
   "need_to_reschedule_or_cancel": "Přeplánovat nebo zrušit?",
   "you_can_view_booking_details_with_this_url": "Podrobnosti rezervace si můžete prohlédnout na této adrese URL {{url}} a přidat událost do svého kalendáře",

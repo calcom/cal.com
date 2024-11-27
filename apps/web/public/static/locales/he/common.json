@@ -46,6 +46,7 @@
   "event_request_reassigned": "האירוע המתוכנן שלך הועבר",
   "event_reassigned_subtitle": "האירוע לא יופיע יותר ביומן שלך והסיכוי שלך ב-round robin לא יושפע לרעה",
   "organizer": "ארגון",
+  "owner_permission_needed": "עליך להיות בעל הארגון.",
   "reassigned_to": "הועבר ל",
   "need_to_reschedule_or_cancel": "רוצה לקבוע מועד חדש או לבטל?",
   "you_can_view_booking_details_with_this_url": "ניתן לצפות בפרטי ההזמנה מהקישור הזה {{url}} ולהוסיף את האירוע ליומן שלך",

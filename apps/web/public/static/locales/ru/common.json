@@ -46,6 +46,7 @@
   "event_request_reassigned": "Ваша запланированная встреча была переназначена",
   "event_reassigned_subtitle": "Встреча будет удалена из вашего календаря, и это не повлияет отрицательно на ваши шансы в round robin",
   "organizer": "Организатор",
+  "owner_permission_needed": "Вам необходимо быть владельцем организации.",
   "reassigned_to": "Переназначено",
   "need_to_reschedule_or_cancel": "Хотите перенести или отменить?",
   "you_can_view_booking_details_with_this_url": "Вы можете просмотреть детали бронирования по этой ссылке {{url}} и добавить встречу в свой календарь",

@@ -46,6 +46,7 @@
   "event_request_reassigned": "Az ütemezett eseménye átütemezésre került",
   "event_reassigned_subtitle": "Az esemény már nem szerepel a naptárában, és ez nem befolyásolja negatívan a round robin valószínűségét",
   "organizer": "Szervező",
+  "owner_permission_needed": "A szervezet tulajdonosának kell lenned.",
   "reassigned_to": "Átütemezve erre:",
   "need_to_reschedule_or_cancel": "Átütemeznéd vagy lemondanád?",
   "you_can_view_booking_details_with_this_url": "A foglalás részleteit megtekintheti ezen az URL-en: {{url}}, és hozzáadhatja az eseményt a naptárához",
