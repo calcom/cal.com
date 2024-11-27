@@ -47,6 +47,10 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+      // Right after the last row is rendered, tableContainer's scrollHeight is
+      // temporarily larger than the actual height of the table, so we need to
+      // wait for a short time before calling onScroll to ensure the scrollHeight
+      // is correct.
       setTimeout(() => {
         onScroll?.({ target: tableContainerRef.current });
       }, 100);
