@@ -7,10 +7,7 @@ import { HeadSeo } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
 
-const MembersPage: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
+const MembersPage: React.FC = () => {
   const { t } = useLocale();
   return (
     <Shell
