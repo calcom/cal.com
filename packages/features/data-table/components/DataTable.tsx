@@ -14,7 +14,7 @@ export interface DataTableProps<TData, TValue> {
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
+  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
@@ -47,12 +47,13 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+      const target = tableContainerRef.current;
       // Right after the last row is rendered, tableContainer's scrollHeight is
       // temporarily larger than the actual height of the table, so we need to
       // wait for a short time before calling onScroll to ensure the scrollHeight
       // is correct.
       setTimeout(() => {
-        onScroll?.({ target: tableContainerRef.current });
+        onScroll?.({ target });
       }, 100);
     }
   }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
