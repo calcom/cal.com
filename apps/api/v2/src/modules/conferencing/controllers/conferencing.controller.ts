@@ -171,7 +171,7 @@ export class ConferencingController {
   async listInstalledConferencingApps(
     @GetUser("id") userId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
-    const conferencingApps = await this.conferencingService.getInstalledConferencingApps(userId);
+    const conferencingApps = await this.conferencingService.getConferencingApps(userId);
 
     const data = conferencingApps.map((conferencingApps) =>
       plainToInstance(ConferencingAppsOutputDto, conferencingApps)
