@@ -38,12 +38,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
   }
 
-  // If start date is before to today throw error
-  const localToday = dayjs.utc().add(input.offset, "minute").startOf("day");
-  if (startTimeUtc.isBefore(localToday)) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
-  }
-
   let toUserId: number | null = null;
 
   if (input.toTeamUserId) {

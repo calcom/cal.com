@@ -61,28 +61,6 @@ describe("outOfOfficeCreateOrUpdate", () => {
     );
   });
 
-  it("should throw error if start date is before today", async () => {
-    // today: "2024-11-22T03:23:45Z"
-    const input = {
-      dateRange: {
-        startDate: new Date("2024-11-21T23:00:00.000Z"), // same as today, "2024-11-22T00:00:00+01:00"
-        endDate: new Date("2024-11-23T23:00:00.000Z"),
-      },
-      offset: 60,
-      reasonId: 1,
-      notes: "",
-      toTeamUserId: null,
-    };
-
-    await expect(outOfOfficeCreateOrUpdate({ ctx: { user: mockUser }, input })).resolves.not.toThrow();
-
-    input.dateRange.startDate = new Date("2024-11-20T23:00:00.000Z"); // a day before today, "2024-11-21T00:00:00+01:00"
-
-    await expect(outOfOfficeCreateOrUpdate({ ctx: { user: mockUser }, input })).rejects.toThrow(
-      "start_date_must_be_in_the_future"
-    );
-  });
-
   it("should handle timezone offset correctly", async () => {
     const input = {
       dateRange: {
