@@ -247,4 +247,17 @@ describe("queryValueValidationSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("should allow properties in the query that has rule grouping details", () => {
+    const result = raqbQueryValueSchema.parse({
+      id: "8",
+      type: "group",
+      properties: {
+        not: false,
+        conjunction: "OR",
+      },
+    });
+    expect(result.properties.not).toBe(false);
+    expect(result.properties.conjunction).toBe("OR");
+  });
 });
