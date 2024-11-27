@@ -23,7 +23,7 @@ const MembersPage: React.FC & {
       subtitle={t("organization_description")}>
       <HeadSeo title={t("organization_members")} description={t("organization_description")} />
 
-      <MembersView isAppDir={true} />
+      <MembersView />
     </Shell>
   );
 };
