@@ -217,13 +217,12 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
       {state.activeFilters.map((filter) => {
         const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
+        const icon = column.icon || (column.type === "text" ? "file-text" : "layers");
         return (
           <Popover key={column.id}>
             <PopoverTrigger asChild>
               <Button color="secondary">
-                {column.icon && <Icon name={column.icon} className="mr-2 h-4 w-4" />}
-                {!column.icon && column.type === "text" && <Icon name="file-text" className="mr-2 h-4 w-4" />}
-                {!column.icon && column.type === "select" && <Icon name="layers" className="mr-2 h-4 w-4" />}
+                <Icon name={icon} className="mr-2 h-4 w-4" />
                 {convertToTitleCase(column.title)}
                 <Icon name="chevron-down" className="ml-2 h-4 w-4" />
               </Button>

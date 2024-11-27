@@ -9,9 +9,8 @@ type makeWhereClauseProps = {
 
 export function makeWhereClause(props: makeWhereClauseProps) {
   const { columnName, filterValue } = props;
-  const isJson = ("json" in props && props.json === true) || typeof props.json === "object";
-  const jsonPath =
-    isJson && typeof props.json === "object" && "path" in props.json ? props.json.path : undefined;
+  const isJson = props.json === true || (typeof props.json === "object" && props.json.path?.length > 0);
+  const jsonPath = isJson && typeof props.json === "object" ? props.json.path : undefined;
 
   const jsonPathObj = isJson && jsonPath ? { path: jsonPath } : {};
   if (isSelectFilterValue(filterValue)) {

@@ -45,7 +45,11 @@ export function useColumnFilters() {
   );
 }
 
-export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
+export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
+  if (typeof cellValue !== "string") {
+    return false;
+  }
+
   switch (filterValue.data.operator) {
     case "equals":
       return cellValue.toLowerCase() === (filterValue.data.operand || "").toLowerCase();
@@ -77,11 +81,11 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
   );
 };
 
-export const selectFilter = (cellValue: string | string[] | undefined, filterValue: SelectFilterValue) => {
-  if (cellValue === undefined) {
+export const selectFilter = (cellValue: unknown | undefined, filterValue: SelectFilterValue) => {
+  const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
+  if (!cellValueArray.every((value) => typeof value === "string")) {
     return false;
   }
-  const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
 
   return filterValue.length === 0 ? true : cellValueArray.some((v) => filterValue.includes(v));
 };
