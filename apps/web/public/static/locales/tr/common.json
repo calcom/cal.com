@@ -46,6 +46,7 @@
   "event_request_reassigned": "Planlanmış etkinliğiniz yeniden atandı",
   "event_reassigned_subtitle": "Etkinlik artık takviminizde olmayacak ve round robin olasılığınız olumsuz etkilenmeyecek",
   "organizer": "Organizatör",
+  "owner_permission_needed": "Organizasyonun sahibi olmanız gerekiyor.",
   "reassigned_to": "Yeniden atanan kişi",
   "need_to_reschedule_or_cancel": "Yeniden planlamanız veya iptal etmeniz mi gerekiyor?",
   "you_can_view_booking_details_with_this_url": "Rezervasyon detaylarını bu URL'den {{url}} görüntüleyebilir ve etkinliği takviminize ekleyebilirsiniz",

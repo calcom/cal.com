@@ -46,6 +46,7 @@
   "event_request_reassigned": "Din planlagte begivenhed er blevet omfordelt",
   "event_reassigned_subtitle": "Begivenheden vil ikke længere være på din kalender, og din round robin-sandsynlighed vil ikke blive negativt påvirket",
   "organizer": "Arrangør",
+  "owner_permission_needed": "Du skal være ejer af organisationen.",
   "reassigned_to": "Omfordelt til",
   "need_to_reschedule_or_cancel": "Behov for at omlægge eller annullere?",
   "you_can_view_booking_details_with_this_url": "Du kan se bookingdetaljerne fra denne URL {{url}} og tilføje begivenheden til din kalender",

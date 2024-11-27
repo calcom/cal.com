@@ -46,6 +46,7 @@
   "event_request_reassigned": "Ditt schemalagda event har omtilldelats",
   "event_reassigned_subtitle": "Eventet kommer inte längre att finnas i din kalender och din round robin-sannolikhet kommer inte att påverkas negativt",
   "organizer": "Arrangör",
+  "owner_permission_needed": "Du måste vara ägare av organisationen.",
   "reassigned_to": "Omtilldelad till",
   "need_to_reschedule_or_cancel": "Behöver du boka om eller avboka?",
   "you_can_view_booking_details_with_this_url": "Du kan se bokningsdetaljerna från denna URL {{url}} och lägga till händelsen i din kalender",

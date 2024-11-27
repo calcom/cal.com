@@ -46,6 +46,7 @@
   "event_request_reassigned": "Sự kiện đã lên lịch của bạn đã được phân công lại",
   "event_reassigned_subtitle": "Sự kiện sẽ không còn trên lịch của bạn và khả năng được chọn trong quy trình luân phiên của bạn sẽ không bị ảnh hưởng tiêu cực",
   "organizer": "Tổ chức",
+  "owner_permission_needed": "Bạn cần phải là chủ sở hữu của tổ chức.",
   "reassigned_to": "Đã phân công lại cho",
   "need_to_reschedule_or_cancel": "Cần phải đổi lịch hẹn hoặc huỷ?",
   "you_can_view_booking_details_with_this_url": "Bạn có thể xem chi tiết đặt chỗ từ đường dẫn này {{url}} và thêm sự kiện vào lịch của bạn",

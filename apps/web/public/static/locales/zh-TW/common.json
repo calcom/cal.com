@@ -46,6 +46,7 @@
   "event_request_reassigned": "您預定的活動已被重新分配",
   "event_reassigned_subtitle": "此活動將不再出現在您的日曆中，且不會對您的輪流排班機率產生負面影響",
   "organizer": "主辦",
+  "owner_permission_needed": "您必須是組織的擁有者。",
   "reassigned_to": "重新分配給",
   "need_to_reschedule_or_cancel": "要重新規劃還是取消嗎？",
   "you_can_view_booking_details_with_this_url": "您可以透過此網址 {{url}} 查看預訂詳情，並將活動添加到您的日曆中",

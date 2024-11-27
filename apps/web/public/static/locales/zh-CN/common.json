@@ -46,6 +46,7 @@
   "event_request_reassigned": "您预定的活动已被重新分配",
   "event_reassigned_subtitle": "该活动将不再出现在您的日历中，且不会对您的轮询可能性产生负面影响",
   "organizer": "组织者",
+  "owner_permission_needed": "您需要是该组织的所有者。",
   "reassigned_to": "重新分配给",
   "need_to_reschedule_or_cancel": "需要重新安排还是取消？",
   "you_can_view_booking_details_with_this_url": "您可以通过此网址 {{url}} 查看预订详情，并将事件添加到您的日历中",

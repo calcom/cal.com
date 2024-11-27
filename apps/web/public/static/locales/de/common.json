@@ -46,6 +46,7 @@
   "event_request_reassigned": "Ihr geplanter Termin wurde neu zugewiesen",
   "event_reassigned_subtitle": "Der Termin wird nicht mehr in Ihrem Kalender erscheinen und Ihre Round-Robin-Wahrscheinlichkeit wird nicht negativ beeinflusst",
   "organizer": "Organisator",
+  "owner_permission_needed": "Sie müssen Inhaber der Organisation sein.",
   "reassigned_to": "Neu zugewiesen an",
   "need_to_reschedule_or_cancel": "Möchten Sie einen neuen Termin finden oder absagen?",
   "you_can_view_booking_details_with_this_url": "Sie können die Buchungsdetails unter dieser URL einsehen {{url}} und den Termin zu Ihrem Kalender hinzufügen",

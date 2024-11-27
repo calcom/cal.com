@@ -48,6 +48,7 @@ checksums:
     event_request_reassigned: 75288fd880682c0ffe6d1266ac1ff2a6
     event_reassigned_subtitle: ba35902acfe98f44fe2e55662a034f0c
     organizer: cff6864d56049b2de93285c6fb7648ca
+    owner_permission_needed: af5750bfa47ec88984dc3636da219ff9
     reassigned_to: 0725f5f92ec345b512a5cc0e34c8beea
     need_to_reschedule_or_cancel: 8e4fcedd363b7f923dceb26c8143ba54
     you_can_view_booking_details_with_this_url: 64f9ae32d2162ea4afab41fb8ac07fb1

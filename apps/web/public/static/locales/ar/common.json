@@ -46,6 +46,7 @@
   "event_request_reassigned": "تم إعادة تعيين الحدث المجدول الخاص بك",
   "event_reassigned_subtitle": "لن يظهر الحدث بعد الآن في تقويمك ولن يتأثر احتمال الـ round robin الخاص بك سلبًا",
   "organizer": "المنظِّم",
+  "owner_permission_needed": "يجب أن تكون مالكاً للمؤسسة.",
   "reassigned_to": "تم إعادة التعيين إلى",
   "need_to_reschedule_or_cancel": "هل تحتاج إلى إعادة جدولة أو إلغاء؟",
   "you_can_view_booking_details_with_this_url": "يمكنك عرض تفاصيل الحجز من هذا الرابط {{url}} وإضافة الحدث إلى تقويمك",
