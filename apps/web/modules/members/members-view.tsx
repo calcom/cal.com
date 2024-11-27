@@ -5,8 +5,6 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 
-import type { AppProps } from "@lib/app-providers";
-
 const MembersPage: React.FC = () => {
   const { t } = useLocale();
   return (
