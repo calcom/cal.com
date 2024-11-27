@@ -171,14 +171,6 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
-  const AddConferencingButton = () => {
-    return (
-      <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
-        {add}
-      </Button>
-    );
-  };
-
   return (
     <SettingsHeader
       title={title}

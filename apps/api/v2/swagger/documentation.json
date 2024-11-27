@@ -3810,6 +3810,92 @@
         ]
       }
     },
+    "/v2/conferencing/{app}/oauth/auth-url": {
+      "get": {
+        "operationId": "ConferencingController_redirect",
+        "summary": "Get oauth conferencing app auth url",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing/{app}/oauth/callback": {
+      "get": {
+        "operationId": "ConferencingController_save",
+        "summary": "conferencing apps oauths callback",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
     "/v2/conferencing": {
       "get": {
         "operationId": "ConferencingController_listConferencingApps",
@@ -14047,6 +14133,22 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "ConferencingAppsOutputResponseDto": {
