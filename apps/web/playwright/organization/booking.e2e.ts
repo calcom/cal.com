@@ -427,7 +427,9 @@ test.describe("Bookings", () => {
           expect(ogUrl).toEqual(`${orgOrigin}${calLink}`);
           expect(canonicalLink).toEqual(`${orgOrigin}${calLink}`);
           // Verify that there is correct URL that would generate the awesome OG image
-          expect(ogImage).toContain("/api/social/og/image?type=meeting&title=");
+          expect(ogImage).toContain(
+            "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype=meeting&title="
+          );
           // Verify Organizer Name in the URL
           expect(ogImage).toContain("meetingProfileName=Test%20User");
         }
