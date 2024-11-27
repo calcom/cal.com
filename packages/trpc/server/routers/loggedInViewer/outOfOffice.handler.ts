@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { WebhookTriggerEvents } from "@prisma/client/enums";
 import { v4 as uuidv4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
@@ -11,6 +10,7 @@ import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayl
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -72,51 +72,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       throw new TRPCError({ code: "NOT_FOUND", message: "user_not_found" });
     }
     toUserId = user?.id;
-  }
-
-  // Validate if OOO entry for these dates already exists
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          uuid: {
-            not: input.uuid ?? "",
-          },
-        },
-        {
-          OR: [
-            {
-              start: {
-                lt: endTimeUtc.toISOString(), //existing start is less than or equal to input end time
-              },
-              end: {
-                gt: startTimeUtc.toISOString(), //existing end is greater than or equal to input start time
-              },
-            },
-            {
-              //existing start is within the new input range
-              start: {
-                gt: startTimeUtc.toISOString(),
-                lt: endTimeUtc.toISOString(),
-              },
-            },
-            {
-              //existing end is within the new input range
-              end: {
-                gt: startTimeUtc.toISOString(),
-                lt: endTimeUtc.toISOString(),
-              },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  // don't allow overlapping entries
-  if (outOfOfficeEntry) {
-    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
   }
 
   if (!input.reasonId) {

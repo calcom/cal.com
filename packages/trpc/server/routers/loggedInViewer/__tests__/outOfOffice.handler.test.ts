@@ -103,43 +103,6 @@ describe("outOfOfficeCreateOrUpdate", () => {
     });
 
     expect(prisma.outOfOfficeEntry.findFirst).toHaveBeenNthCalledWith(1, {
-      where: {
-        AND: [
-          { userId: 4 },
-          {
-            uuid: {
-              not: "",
-            },
-          },
-          {
-            OR: [
-              {
-                start: {
-                  lt: endTimeUtc,
-                },
-                end: {
-                  gt: startTimeUtc,
-                },
-              },
-              {
-                start: {
-                  gt: startTimeUtc,
-                  lt: endTimeUtc,
-                },
-              },
-              {
-                end: {
-                  gt: startTimeUtc,
-                  lt: endTimeUtc,
-                },
-              },
-            ],
-          },
-        ],
-      },
-    });
-
-    expect(prisma.outOfOfficeEntry.findFirst).toHaveBeenNthCalledWith(2, {
       select: {
         toUserId: true,
         userId: true,
