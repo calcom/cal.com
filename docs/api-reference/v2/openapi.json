@@ -11792,6 +11792,10 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -11832,6 +11836,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees"
         ]
       },
@@ -11912,6 +11917,10 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -11956,6 +11965,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees",
           "recurringBookingUid"
         ]
