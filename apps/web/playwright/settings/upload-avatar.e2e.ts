@@ -7,7 +7,7 @@ import { prisma } from "@calcom/prisma";
 import { test } from "../lib/fixtures";
 
 test.describe("User Avatar", async () => {
-  test("it can upload a user profile image", async ({ page, users }) => {
+  test("it can upload a user profile image @test", async ({ page, users }) => {
     const user = await users.create({ name: "John Doe" });
     await user.apiLogin();
 
