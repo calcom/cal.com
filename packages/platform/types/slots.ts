@@ -57,6 +57,20 @@ export class GetAvailableSlotsInput {
   @IsString()
   @IsOptional()
   orgSlug?: string;
+
+  @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === "true" || value === true) return true;
+    if (value === "false" || value === false) return false;
+    return undefined;
+  })
+  @IsOptional()
+  @ApiProperty({
+    description: "Format API response to show slots as start and end time instead of time.",
+    type: Boolean,
+    example: true,
+  })
+  formatAsStartAndEndTime?: boolean;
 }
 
 export class RemoveSelectedSlotInput {

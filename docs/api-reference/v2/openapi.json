@@ -4748,6 +4748,16 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "formatAsStartAndEndTime",
+            "required": true,
+            "in": "query",
+            "description": "Format API response to show slots as start and end time instead of time.",
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -4771,13 +4781,31 @@
                             "type": "array",
                             "items": {
                               "type": "object",
-                              "properties": {
-                                "time": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "example": "2024-09-25T08:00:00.000Z"
+                              "oneOf": [
+                                {
+                                  "properties": {
+                                    "time": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    }
+                                  }
+                                },
+                                {
+                                  "properties": {
+                                    "startTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    },
+                                    "endTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:30:00.000Z"
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           }
                         }
@@ -4798,13 +4826,12 @@
                         ],
                         "2024-09-26": [
                           {
-                            "time": "2024-09-26T08:00:00.000Z"
+                            "startTime": "2024-09-26T08:00:00.000Z",
+                            "endTime": "2024-09-26T08:30:00.000Z"
                           },
                           {
-                            "time": "2024-09-26T08:15:00.000Z"
-                          },
-                          {
-                            "time": "2024-09-26T08:30:00.000Z"
+                            "startTime": "2024-09-26T08:15:00.000Z",
+                            "endTime": "2024-09-26T08:45:00.000Z"
                           }
                         ]
                       }
@@ -11792,6 +11819,10 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -11832,6 +11863,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees"
         ]
       },
@@ -11912,6 +11944,10 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -11956,6 +11992,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees",
           "recurringBookingUid"
         ]

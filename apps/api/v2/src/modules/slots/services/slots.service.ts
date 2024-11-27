@@ -54,4 +54,8 @@ export class SlotsService {
     const event = await this.eventTypeRepo.getEventTypeById(eventTypeId);
     return !!event?.teamId;
   }
+
+  async getEventTypeWithDuration(eventTypeId: number) {
+    return await this.eventTypeRepo.getEventTypeWithDuration(eventTypeId);
+  }
 }
