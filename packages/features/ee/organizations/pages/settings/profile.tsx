@@ -57,18 +57,9 @@ type FormValues = {
   calVideoLogo: string | null;
 };
 
-const SkeletonLoader = ({
-  title,
-  description,
-  isAppDir,
-}: {
-  title: string;
-  description: string;
-  isAppDir?: boolean;
-}) => {
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -84,7 +75,7 @@ const SkeletonLoader = ({
   );
 };
 
-const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const OrgProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -110,9 +101,7 @@ const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   );
 
   if (isPending || !orgBranding || !currentOrganisation) {
-    return (
-      <SkeletonLoader isAppDir={isAppDir} title={t("profile")} description={t("profile_org_description")} />
-    );
+    return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
 
   const isOrgAdminOrOwner =
@@ -138,9 +127,6 @@ const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <LicenseRequired>
-      {!isAppDir ? (
-        <Meta title={t("profile")} description={t("profile_org_description")} borderInShellHeader={true} />
-      ) : null}
       <>
         {isOrgAdminOrOwner ? (
           <>

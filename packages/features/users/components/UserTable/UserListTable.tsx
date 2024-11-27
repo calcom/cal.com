@@ -26,6 +26,7 @@ import {
   selectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   downloadAsCsv,
@@ -127,7 +128,7 @@ export function UserListTable() {
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
-        limit: 10,
+        limit: 30,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
         filters: columnFilters,
@@ -184,13 +185,13 @@ export function UserListTable() {
             );
             if (attributeValues.length === 0) return null;
             return (
-              <>
+              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
                 {attributeValues.map((attributeValue, index) => (
                   <Badge key={index} variant="gray" className="mr-1">
                     {attributeValue.value}
                   </Badge>
                 ))}
-              </>
+              </div>
             );
           },
           filterFn: (row, id, filterValue) => {
@@ -242,7 +243,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        size: 170,
+        size: 200,
         header: () => {
           return `Members`;
         },
@@ -311,6 +312,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
+        size: 200,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -328,6 +330,7 @@ export function UserListTable() {
                   Pending
                 </Badge>
               )}
+
               {teams.map((team) => (
                 <Badge
                   key={team.id}
@@ -355,7 +358,7 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
-        size: 50,
+        size: 80,
         meta: {
           sticky: { position: "right" },
         },
@@ -396,6 +399,9 @@ export function UserListTable() {
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+    },
+    defaultColumn: {
+      size: 150,
     },
     state: {
       columnFilters,
@@ -539,6 +545,7 @@ export function UserListTable() {
             <DataTableFilters.ActiveFilters table={table} />
           </div>
         </DataTableToolbar.Root>
+
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>
           <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
         </div>
@@ -572,7 +579,6 @@ export function UserListTable() {
           </DataTableSelectionBar.Root>
         )}
       </DataTable>
-
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
