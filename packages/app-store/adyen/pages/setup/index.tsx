@@ -21,22 +21,21 @@ export default function SetupPage() {
             <div>
               <p className="text-lgf text-default mt-5 font-bold">Getting started with Adyen</p>
               <p className="text-default font-semi mt-2">
-                Here in Cal.com we offer Adyen as one of our payment gateway. You can use your own Adyen
-                company/merchant account to receive payments from your customers enabling and setting up price
-                and currency for each of your event types.
+                To setup a Adyen payout option, you must supply your credentials from your live business Adyen
+                account.
               </p>
 
               <p className="text-lgf text-default mt-5 inline-flex font-bold">
                 <Icon name="circle-alert" className="mr-2 mt-1 h-4 w-4" /> Important requirements:
               </p>
               <ul className="text-default ml-1 mt-2 list-disc pl-2">
-                <li>Adyen Company with live credentials </li>
-                <li>viable Adyen Merchant account</li>
+                <li>Adyen Company Account with live credentials </li>
+                <li>Viable Adyen Merchant listing within the Company account</li>
               </ul>
 
               <p className="text-default mb-2 mt-5 font-bold">Resources:</p>
               <a className="text-orange-600 underline" target="_blank" href="https://www.adyen.com/signup">
-                Link to Adyen developer account sign up
+                Link to Adyen developer account sign up/request for a Company Account
               </a>
 
               <p className="text-lgf text-default mt-5 font-bold">Setup instructions</p>
@@ -61,13 +60,12 @@ export default function SetupPage() {
                   {" and copy it in the fields above."}
                 </li>
                 <li>
-                  In the same page, generate and copy the client key, be sure to add &quot;*.cal.com&quot; to
-                  the list of allowed origin:
+                  In the same page, generate and copy the client key / client secret, be sure to add
+                  &quot;*.cal.com&quot; to the list of allowed origin afterwards:
                 </li>
                 <li>
-                  {
-                    "Create the webhook for app.cal.com/api/integrations/adyen/webhook, Generate and paste the HMAC key for webhooks. "
-                  }
+                  Create the webhook for app.cal.com/api/integrations/adyen/webhook, Generate and paste the
+                  HMAC key for webhooks.
                   <a
                     className="text-orange-600 underline"
                     target="_blank"
