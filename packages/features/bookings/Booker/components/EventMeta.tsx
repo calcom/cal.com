@@ -13,6 +13,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nLocales from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
@@ -30,7 +31,6 @@ export const EventMeta = ({
   isPlatform = true,
   classNames,
   locale,
-  i18nLocales,
 }: {
   event?: Pick<
     BookerEvent,
@@ -62,7 +62,6 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
   locale?: string | null;
-  i18nLocales: string[];
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -112,7 +111,7 @@ export const EventMeta = ({
   const translatedDescription = (event?.fieldTranslations ?? []).find(
     (trans) =>
       trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
-      i18nLocales.includes(trans.targetLocale) &&
+      i18nLocales.locale.targets.includes(trans.targetLocale) &&
       // browser language looks like "en-US", "es-ES", "fr-FR", etc
       (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
   )?.translatedText;
