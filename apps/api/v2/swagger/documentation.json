@@ -12850,6 +12850,13 @@
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
+          },
           "bookingFieldsResponses": {
             "type": "object",
             "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
@@ -12912,6 +12919,13 @@
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -12981,6 +12995,13 @@
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -13101,6 +13122,16 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -13138,6 +13169,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees"
         ]
       },
@@ -13223,6 +13255,16 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -13264,6 +13306,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees",
           "recurringBookingUid"
         ]

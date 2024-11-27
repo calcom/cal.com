@@ -151,6 +151,18 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
 
+  const isDuplicateOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
+    where: {
+      userId: ctx.user.id,
+      start: startTimeUtc,
+      end: endTimeUtc,
+    },
+  });
+
+  if (isDuplicateOutOfOfficeEntry) {
+    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
+  }
+
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
     where: {

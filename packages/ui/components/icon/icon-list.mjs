@@ -119,6 +119,7 @@ export const lucideIconList = new Set([
   "sun",
   "sunrise",
   "sunset",
+  "tags",
   "terminal",
   "trash-2",
   "trash",

@@ -251,9 +251,11 @@ export const bookingCreateBodySchema = z.object({
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
   teamMemberEmail: z.string().nullish(),
+  crmOwnerRecordType: z.string().nullish(),
   routedTeamMemberIds: z.array(z.number()).nullish(),
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
+  crmAppSlug: z.string().nullish().optional(),
 
   /**
    * Holds the corrected responses of the Form for a booking, provided during rerouting
@@ -279,6 +281,7 @@ export const bookingConfirmPatchBodySchema = z.object({
   confirmed: z.boolean(),
   recurringEventId: z.string().optional(),
   reason: z.string().optional(),
+  emailsEnabled: z.boolean().default(true),
 });
 
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType

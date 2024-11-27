@@ -30,7 +30,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "../../packages/features/bookings/lib/getBookingInfo.ts",
-    "../../packages/features/bookings/lib/getUserBooking.ts"
+    "../../packages/features/bookings/lib/getUserBooking.ts",
+    "../../packages/features/Segment.tsx"
   ],
   "exclude": ["node_modules"]
 }

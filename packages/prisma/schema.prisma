@@ -355,6 +355,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
+  createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
+  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
 
   @@unique([email])
   @@unique([email, username])
@@ -648,6 +650,7 @@ model Booking {
   rescheduledBy                String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
+  assignmentReason             AssignmentReason[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1179,6 +1182,7 @@ model BookingSeat {
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   /// @zod.custom(imports.bookingSeatDataSchema)
   data         Json?
+  metadata     Json?
 
   @@index([bookingId])
   @@index([attendeeId])
@@ -1607,23 +1611,47 @@ model AttributeToUser {
   @@unique([memberId, attributeOptionId])
 }
 
+enum AssignmentReasonEnum {
+  ROUTING_FORM_ROUTING
+  ROUTING_FORM_ROUTING_FALLBACK
+  REASSIGNED
+  REROUTED
+  SALESFORCE_ASSIGNMENT
+}
+
+model AssignmentReason {
+  id           Int                  @id @unique @default(autoincrement())
+  createdAt    DateTime             @default(now())
+  bookingId    Int
+  booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reasonEnum   AssignmentReasonEnum
+  reasonString String
+}
+
 enum EventTypeAutoTranslatedField {
   DESCRIPTION // Currently the only field we translate
 }
 
 model EventTypeTranslation {
   id             String                       @id @default(cuid())
+  uid            String?
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
   sourceLang     String
   targetLang     String
+  sourceLocale   String
+  targetLocale   String
   translatedText String                       @db.Text
   createdAt      DateTime                     @default(now())
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
   updatedBy      Int?
+  creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
+  updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  @@unique([eventTypeId, field, targetLang])
-  @@index([eventTypeId, field, targetLang])
+  @@unique([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@unique([eventTypeId, field, targetLocale])
+  @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@index([eventTypeId, field, targetLocale])
 }
