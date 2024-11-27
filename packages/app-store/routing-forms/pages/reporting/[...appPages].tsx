@@ -253,7 +253,6 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   return (
     <div className="cal-query-builder">
       <Query
-        // {...(config as unknown as Config)}
         {...withRaqbSettingsAndWidgets({
           config,
           configFor: ConfigFor.FormFields,
