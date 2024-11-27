@@ -99,7 +99,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   });
 
   if (meeting) {
-    const pageImage = constructMeetingImage(meeting);
+    const pageImage = getSeoImage("ogImage") + constructMeetingImage(meeting);
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,
