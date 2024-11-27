@@ -88,6 +88,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
+    instantMeetingParameters: [],
     instantMeetingExpiryTimeOffsetInSeconds: 90,
     instantMeetingScheduleId: null,
     locations: null,
@@ -119,6 +120,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
     seatsShowAvailabilityCount: null,
+    maxLeadThreshold: null,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
@@ -137,6 +139,9 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
     eventTypeColor: null,
+    assignRRMembersUsingSegment: false,
+    rrSegmentQueryValue: null,
+    autoTranslateDescriptionEnabled: false,
     ...eventType,
   };
 };

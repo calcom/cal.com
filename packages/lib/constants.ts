@@ -168,6 +168,7 @@ export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || 
 export const WEBSITE_PRIVACY_POLICY_URL =
   process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.com/privacy";
 export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.com/terms";
+export const REPLEXICA_API_KEY = process.env.REPLEXICA_API_KEY;
 
 /**
  * The maximum number of days we should check for if we don't find all required bookable days

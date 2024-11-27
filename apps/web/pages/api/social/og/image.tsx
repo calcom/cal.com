@@ -83,11 +83,11 @@ export default async function handler(req: NextApiRequest) {
           />
         ),
         ogConfig
-      ) as { body: Buffer };
+      );
 
       return new Response(img.body, {
         status: 200,
-        headers: { "Content-Type": "image/png", "cache-control": "max-age=86400" },
+        headers: { "Content-Type": "image/png", "cache-control": "max-age=0" },
       });
     }
     case "app": {
@@ -97,9 +97,7 @@ export default async function handler(req: NextApiRequest) {
         slug: searchParams.get("slug"),
         imageType,
       });
-      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig) as {
-        body: Buffer;
-      };
+      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
 
       return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }
@@ -111,9 +109,7 @@ export default async function handler(req: NextApiRequest) {
         imageType,
       });
 
-      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
-        body: Buffer;
-      };
+      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
       return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }

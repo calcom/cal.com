@@ -32,6 +32,8 @@ function Type({
   isInstantMeeting,
   orgBannerUrl,
   teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
   isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
@@ -67,6 +69,8 @@ function Type({
         )}
         orgBannerUrl={orgBannerUrl}
         teamMemberEmail={teamMemberEmail}
+        crmOwnerRecordType={crmOwnerRecordType}
+        crmAppSlug={crmAppSlug}
       />
     </main>
   );

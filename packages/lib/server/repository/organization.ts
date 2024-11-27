@@ -311,6 +311,19 @@ export class OrganizationRepository {
     return { ...org, metadata: parsedMetadata };
   }
 
+  static async findCalVideoLogoByOrgId({ id }: { id: number }) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        calVideoLogo: true,
+      },
+    });
+
+    return org?.calVideoLogo;
+  }
+
   static utils = {
     /**
      * Gets the organization setting if the team is an organization.
