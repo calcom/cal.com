@@ -74,7 +74,7 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, description }: AppImageProps, encodeUri = true): string => {
+export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
   const url = [
     `?type=app`,
     `&name=${encodeURIComponent(name)}`,
@@ -83,10 +83,10 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps, en
     // Joining a multiline string for readability.
   ].join("");
 
-  return encodeUri ? encodeURIComponent(url) : url;
+  return url;
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps, encodeUri = true) => {
+export const constructGenericImage = ({ title, description }: GenericImageProps) => {
   const url = [
     `?type=generic`,
     `&title=${encodeURIComponent(title)}`,
@@ -94,7 +94,7 @@ export const constructGenericImage = ({ title, description }: GenericImageProps,
     // Joining a multiline string for readability.
   ].join("");
 
-  return encodeUri ? encodeURIComponent(url) : url;
+  return url;
 };
 
 const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
