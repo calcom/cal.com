@@ -68,6 +68,14 @@ async function getAttributeRoutingConfig(
     },
     select: {
       routes: true,
+      responses: {
+        where: {
+          id: routingFormResponseId,
+        },
+        select: {
+          chosenRouteId: true,
+        },
+      },
     },
   });
   if (!routingFormQuery || !routingFormQuery?.routes) return null;
@@ -76,10 +84,9 @@ async function getAttributeRoutingConfig(
   if (!parsedRoutes.success || !parsedRoutes.data) return null;
 
   // Find the route with the attributeRoutingConfig
-  // FIXME: There could be multiple routes with same action.eventTypeId, we should actually ensure we have the chosenRouteId in here and use that route.
   const route = parsedRoutes.data.find((route) => {
     if ("action" in route) {
-      return route.action.eventTypeId === eventTypeId;
+      return route.id === routingFormQuery.responses[0].chosenRouteId;
     }
   });
 
