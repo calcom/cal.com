@@ -95,14 +95,13 @@ const handleMarkNoShow = async ({
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
-      const { webhooks, bookingId } = await getWebhooksService(bookingUid);
+      const { webhooks, bookingId } = await getWebhooksService(bookingUid, platformClientId);
 
       await webhooks.sendPayload({
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
         bookingUid,
         bookingId,
-        platformClientId,
       });
 
       responsePayload.setAttendees(payload.attendees);
@@ -181,7 +180,7 @@ const updateAttendees = async (
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async (bookingUid: string) => {
+const getWebhooksService = async (bookingUid: string, platformClientId?: string) => {
   const booking = await prisma.booking.findUnique({
     where: { uid: bookingUid },
     select: {
@@ -206,6 +205,7 @@ const getWebhooksService = async (bookingUid: string) => {
     eventTypeId: booking?.eventType?.id,
     orgId,
     triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+    oAuthClientId: platformClientId,
   });
 
   return { webhooks, bookingId: booking?.id };

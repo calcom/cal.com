@@ -48,7 +48,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     reason: rejectionReason,
     confirmed,
     emailsEnabled,
-    platformClientId,
+    platformClientParams,
   } = input;
 
   const tOrganizer = await getTranslation(user.locale ?? "en", "common");
@@ -222,6 +222,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           members: [],
         }
       : undefined,
+    ...(platformClientParams ? platformClientParams : {}),
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -278,7 +279,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       bookingId,
       booking,
       emailsEnabled,
-      platformClientId,
+      platformClientId: platformClientParams?.platformClientId,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -398,7 +399,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
       teamId,
       orgId,
-      oAuthClientId: platformClientId,
+      oAuthClientId: platformClientParams?.platformClientId,
     };
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {
