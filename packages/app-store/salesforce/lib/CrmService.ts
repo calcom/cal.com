@@ -878,11 +878,14 @@ export default class SalesforceCRMService implements CRM {
       // Handle different field types
       if (fieldConfig.fieldType === field.type) {
         if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
-          writeOnRecordBody[field.name] = this.getTextFieldValue({
+          const extractedText = this.getTextFieldValue({
             fieldValue: fieldConfig.value,
             fieldLength: field.length,
             calEventResponses,
           });
+          if (extractedText) {
+            writeOnRecordBody[field.name] = extractedText;
+          }
         } else if (field.type === SalesforceFieldType.DATE) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
@@ -908,14 +911,20 @@ export default class SalesforceCRMService implements CRM {
     fieldLength: number;
     calEventResponses?: CalEventResponses | null;
   }) {
-    let valueToWrite = fieldValue.substring(0, fieldLength);
-    if (!calEventResponses) return valueToWrite;
+    // If no {} then indicates we're passing a static value
+    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
+
+    let valueToWrite = fieldValue;
 
     // Check if we need to replace any values with values from the booking questions
     const regexValueToReplace = /\{(.*?)\}/g;
     valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
+      if (!calEventResponses) return valueToWrite;
       return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
     });
+
+    // If a value wasn't found in the responses. Don't return the field name
+    if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
     return valueToWrite.substring(0, fieldLength);
