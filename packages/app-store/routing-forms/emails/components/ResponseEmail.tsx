@@ -10,7 +10,7 @@ export const ResponseEmail = ({
   orderedResponses,
   ...props
 }: {
-  form: Pick<App_RoutingForms_Form, "id" | "name">;
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">; // Ensure `fields` is included in the form
   orderedResponses: OrderedResponses;
   subject: string;
 } & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
@@ -37,16 +37,15 @@ export const ResponseEmail = ({
       subtitle="New Response Received"
       {...props}>
       {orderedResponses.map((fieldResponse, index) => {
-        return (
-          <Info
-            withSpacer
-            key={index}
-            label={fieldResponse.label}
-            description={
-              fieldResponse.value instanceof Array ? fieldResponse.value.join(",") : fieldResponse.value
-            }
-          />
-        );
+        const field = form.fields?.find((f) => f.label === fieldResponse.label);
+        const description =
+          fieldResponse.value instanceof Array
+            ? fieldResponse.value
+                .map((id) => field?.options?.find((opt) => opt.id === id)?.label || id)
+                .join(", ")
+            : field?.options?.find((opt) => opt.id === fieldResponse.value)?.label || fieldResponse.value;
+
+        return <Info withSpacer key={index} label={fieldResponse.label} description={description} />;
       })}
     </BaseEmailHtml>
   );
