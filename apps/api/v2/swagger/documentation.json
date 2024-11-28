@@ -13025,6 +13025,33 @@
           "attendee"
         ]
       },
+      "BookingHost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "jane100"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "timeZone"
+        ]
+      },
       "EventType": {
         "type": "object",
         "properties": {
@@ -13064,7 +13091,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -13197,7 +13224,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {

@@ -355,6 +355,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
+  createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
+  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
 
   @@unique([email])
   @@unique([email, username])
@@ -1632,17 +1634,24 @@ enum EventTypeAutoTranslatedField {
 
 model EventTypeTranslation {
   id             String                       @id @default(cuid())
+  uid            String?
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
   sourceLang     String
   targetLang     String
+  sourceLocale   String
+  targetLocale   String
   translatedText String                       @db.Text
   createdAt      DateTime                     @default(now())
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
   updatedBy      Int?
+  creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
+  updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  @@unique([eventTypeId, field, targetLang])
-  @@index([eventTypeId, field, targetLang])
+  @@unique([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@unique([eventTypeId, field, targetLocale])
+  @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@index([eventTypeId, field, targetLocale])
 }
