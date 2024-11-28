@@ -155,28 +155,22 @@ describe("removeMember", () => {
       });
 
       //Check if the remaining memberships are correct
-      const remainingMemberships = await prismaMock.membership.findMany({
+      const remainingMemberships = await prismaMock.membership.count({
         where: {
           teamId: childTeam.id,
         },
-        select: {
-          userId: true,
-        },
       });
 
-      expect(remainingMemberships.length).toBe(1);
+      expect(remainingMemberships).toBe(1);
 
       //Check if the event type has the correct hosts
-      const eventType = await prismaMock.eventType.findUnique({
+      const remainingHostsCount = await prismaMock.host.count({
         where: {
-          id: 1,
-        },
-        select: {
-          hosts: true,
+          eventTypeId: 1,
         },
       });
 
-      expect(eventType?.hosts?.length).toBe(1);
+      expect(remainingHostsCount).toBe(1);
     });
   });
 });
