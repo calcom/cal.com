@@ -287,7 +287,17 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
                 <Button
                   color="minimal"
                   onClick={() => {
-                    setLocalWeights({});
+                    // Restore to default weights from the original value
+                    setLocalWeights(
+                      teamMembers.reduce<Record<string, number>>((acc, member) => {
+                        // Find the member in the value array and use its weight if it exists
+                        const memberInValue = value.find(
+                          (host) => host.userId === parseInt(member.value, 10)
+                        );
+                        acc[member.value] = memberInValue?.weight ?? 100;
+                        return acc;
+                      }, {})
+                    );
                     setSearchQuery("");
                   }}>
                   {t("cancel")}
