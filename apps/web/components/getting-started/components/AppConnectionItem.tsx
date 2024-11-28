@@ -7,7 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Badge, Button, Icon } from "@calcom/ui";
+import { Badge, Button, Icon, showToast } from "@calcom/ui";
 
 interface IAppConnectionItem {
   title: string;
@@ -46,6 +46,10 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
             }
             setInstalling(false);
             utils.viewer.integrations.invalidate();
+            showToast(t("app_successfully_installed"), "success");
+          },
+          onError: (error) => {
+            if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
           },
         }}
         render={(buttonProps) => (
