@@ -237,11 +237,6 @@ class RoutingEventsInsights {
       };
     }
 
-    console.log(
-      "💡 server side222",
-      JSON.stringify({ fieldFilters, bookingStatusFilter, responsesWhereCondition }, null, 2)
-    );
-
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,
     });

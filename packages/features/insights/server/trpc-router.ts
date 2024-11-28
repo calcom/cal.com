@@ -1594,7 +1594,6 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
-      console.log("💡 server side", input.columnFilters);
       return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
         teamId: input.teamId ?? null,
         startDate,

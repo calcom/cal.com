@@ -20,6 +20,7 @@ import {
   useColumnFilters,
   selectFilter,
   dataTableFilter,
+  convertToTitleCase,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -359,7 +360,7 @@ export function RoutingFormResponsesTable({
         const isTextOrEmail = fieldHeader.type === "text" || fieldHeader.type === "email";
         return columnHelper.accessor(fieldHeader.id, {
           id: fieldHeader.id,
-          header: fieldHeader.label,
+          header: convertToTitleCase(fieldHeader.label),
           size: 200,
           cell: (info) => {
             const values = info.getValue();
