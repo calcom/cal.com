@@ -16,7 +16,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
-import { default as appMeta } from "../config.json";
+import { metadata } from "../metadata.generated";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -566,7 +566,7 @@ export default class SalesforceCRMService implements CRM {
     // Get all Salesforce events associated with the booking
     const salesforceEvents = await prisma.bookingReference.findMany({
       where: {
-        type: appMeta.type,
+        type: metadata.type,
         booking: {
           uid: bookingUid,
         },

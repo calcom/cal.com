@@ -16,7 +16,7 @@ import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 import { appKeysSchema } from "../zod";
 
 const nextcloudEventResultSchema = z.object({
@@ -35,7 +35,7 @@ const nextcloudEventResultSchema = z.object({
 const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
-  const clientCredentials = getParsedAppKeysFromSlug(config.slug, appKeysSchema);
+  const clientCredentials = getParsedAppKeysFromSlug(metadata.slug, appKeysSchema);
 
   const fetchNextcloudApi = async (endpoint: string, options?: RequestInit) => {
     const auth = new OAuthManager({
@@ -44,7 +44,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         type: "user",
         id: credential.userId,
       },
-      appSlug: config.slug,
+      appSlug: metadata.slug,
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
         const { nextcloudTalkClientId, nextcloudTalkClientSecret, nextcloudTalkHost } =
@@ -128,7 +128,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
       return Promise.resolve([]);
     },
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
-      const appKeys = await getAppKeysFromSlug(config.slug);
+      const appKeys = await getAppKeysFromSlug(metadata.slug);
       const meetingPattern = (appKeys.nextcloudTalkPattern as string) || "{uuid}";
       const hostUrl = appKeys.nextcloudTalkHost as string;
 
@@ -161,7 +161,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
 
         if (result.ocs && result.ocs.data) {
           return {
-            type: config.type,
+            type: metadata.type,
             id: result.ocs.data.token,
             password: "",
             url: `${hostUrl}/call/${result.ocs.data.token}`,
@@ -197,7 +197,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       return Promise.resolve({
-        type: config.type,
+        type: metadata.type,
         id: bookingRef.meetingId as string,
         password: bookingRef.meetingPassword as string,
         url: bookingRef.meetingUrl as string,

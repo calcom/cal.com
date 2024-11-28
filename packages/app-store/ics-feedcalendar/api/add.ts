@@ -5,8 +5,8 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import appConfig from "../config.json";
 import { CalendarService } from "../lib";
+import { metadata } from "../metadata.generated";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -23,11 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = {
-      type: appConfig.type,
+      type: metadata.type,
       key: symmetricEncrypt(JSON.stringify({ urls, skipWriting }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
       userId: user.id,
       teamId: null,
-      appId: appConfig.slug,
+      appId: metadata.slug,
       invalid: false,
     };
 

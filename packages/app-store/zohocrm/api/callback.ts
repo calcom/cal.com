@@ -9,7 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 let client_id = "";
 let client_secret = "";
@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = accountsServer;
 
-  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, zohoCrmTokenInfo.data, req);
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, zohoCrmTokenInfo.data, req);
 
   const state = decodeOAuthState(req);
 

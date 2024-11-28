@@ -4,7 +4,7 @@ import { expect, test, vi, describe } from "vitest";
 
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { internalServerErrorResponse, successResponse } from "../../_utils/testUtils";
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 import VideoApiAdapter from "./VideoApiAdapter";
 
 const URLS = {
@@ -20,9 +20,9 @@ const URLS = {
 
 vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
   default: vi.fn().mockImplementation((slug) => {
-    if (slug !== config.slug) {
+    if (slug !== metadata.slug) {
       throw new Error(
-        `expected to be called with the correct slug. Expected ${config.slug} -  Received ${slug}`
+        `expected to be called with the correct slug. Expected ${metadata.slug} -  Received ${slug}`
       );
     }
     return {
@@ -40,7 +40,7 @@ vi.mock("../../_utils/oauth/OAuthManager", () => ({
 }));
 
 const testCredential = {
-  appId: config.slug,
+  appId: metadata.slug,
   id: 1,
   invalid: false,
   key: {
@@ -50,7 +50,7 @@ const testCredential = {
     access_token: "",
     refresh_token: "",
   },
-  type: config.type,
+  type: metadata.type,
   userId: 1,
   user: { email: "example@cal.com" },
   teamId: 1,
@@ -235,7 +235,7 @@ describe("updateMeeting", () => {
     expect(updatedMeeting).toEqual({
       id: 1,
       password: "",
-      type: config.type,
+      type: metadata.type,
       url: "https://join_web_url.example.com",
     });
   });

@@ -5,12 +5,12 @@ import { defaultResponder } from "@calcom/lib/server";
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);
-  const slug = appConfig.slug;
-  const appType = appConfig.type;
+  const slug = metadata.slug;
+  const appType = metadata.type;
   const returnTo = req.query?.returnTo;
 
   await checkInstalled(slug, session.user.id);
@@ -21,7 +21,7 @@ export async function getHandler(req: NextApiRequest) {
     key: {},
   });
 
-  return { url: returnTo ?? getInstalledAppPath({ variant: appConfig.variant, slug: "ping" }) };
+  return { url: returnTo ?? getInstalledAppPath({ variant: metadata.variant, slug: "ping" }) };
 }
 
 export default defaultResponder(getHandler);

@@ -1,12 +1,12 @@
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
 import { createDefaultInstallation } from "../../_utils/installation";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 const handler: AppDeclarativeHandler = {
-  appType: appConfig.type,
-  slug: appConfig.slug,
-  variant: appConfig.variant,
+  appType: metadata.type,
+  slug: metadata.slug,
+  variant: metadata.variant,
   supportsMultipleInstalls: false,
   handlerType: "add",
   redirect: {

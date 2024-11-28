@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   const returnTo = req.query?.returnTo;
-  const appType = config.type;
+  const appType = metadata.type;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: appType,
         key: {},
         userId: req.session.user.id,
-        appId: config.slug,
+        appId: metadata.slug,
       },
     });
     if (!installation) {
@@ -45,5 +45,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   return res
     .status(200)
-    .json({ url: returnTo ?? getInstalledAppPath({ variant: "conferencing", slug: config.slug }) });
+    .json({ url: returnTo ?? getInstalledAppPath({ variant: "conferencing", slug: metadata.slug }) });
 }

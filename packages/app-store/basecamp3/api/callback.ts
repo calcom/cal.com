@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -79,9 +79,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       credentials: {
         create: {
-          type: appConfig.type,
+          type: metadata.type,
           key: { ...tokenResponseBody, account: authResponseBody.accounts[0] },
-          appId: appConfig.slug,
+          appId: metadata.slug,
         },
       },
     },
@@ -89,5 +89,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const state = decodeOAuthState(req);
 
-  res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
+  res.redirect(getInstalledAppPath({ variant: metadata.variant, slug: metadata.slug }));
 }

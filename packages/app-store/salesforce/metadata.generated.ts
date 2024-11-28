@@ -1,0 +1,18 @@
+/* This file is auto-generated for salesforce. Do not modify directly. */
+export const metadata = {
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  name: "Salesforce",
+  slug: "salesforce",
+  type: "salesforce_crm",
+  logo: "icon.png",
+  url: "https://cal.com/",
+  variant: "crm",
+  categories: ["crm"],
+  publisher: "Cal.com, Inc.",
+  email: "help@cal.com",
+  description:
+    "Salesforce (Sales Cloud) is a cloud-based application designed to help your salespeople sell smarter and faster by centralizing customer information, logging their interactions with your company, and automating many of the tasks salespeople do every day.",
+  extendsFeature: "EventType",
+  __createdUsingCli: true,
+  isOAuth: true,
+} as const;

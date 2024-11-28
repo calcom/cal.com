@@ -4,7 +4,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
@@ -14,6 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const state = decodeOAuthState(req);
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
-      getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
+      getInstalledAppPath({ variant: metadata.variant, slug: metadata.slug })
   );
 }

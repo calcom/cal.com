@@ -7,8 +7,8 @@ import prisma from "@calcom/prisma";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
+import { metadata } from "../metadata.generated";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
-  const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
+  const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${metadata.slug}/callback`);
   const params = new URLSearchParams([
     ["grant_type", "authorization_code"],
     ["client_id", client_id],
@@ -71,9 +71,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
     },
     where: {
-      type: config.type,
+      type: metadata.type,
       userId: req.session?.user.id,
-      appId: config.slug,
+      appId: metadata.slug,
     },
   });
 
@@ -83,9 +83,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  await createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, responseBody, req);
 
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: metadata.variant, slug: metadata.slug })
   );
 }

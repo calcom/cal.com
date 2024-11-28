@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import prisma from "@calcom/prisma";
 
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
   const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
 
-  const appType = config.type;
+  const appType = metadata.type;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {

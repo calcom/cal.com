@@ -10,7 +10,7 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */
 export interface TeamsEventResult {
@@ -28,7 +28,7 @@ const o365VideoAppKeysSchema = z.object({
 });
 
 const getO365VideoAppKeys = async () => {
-  return getParsedAppKeysFromSlug(config.slug, o365VideoAppKeysSchema);
+  return getParsedAppKeysFromSlug(metadata.slug, o365VideoAppKeysSchema);
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
@@ -40,7 +40,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       type: "user",
       id: credential.userId,
     },
-    appSlug: config.slug,
+    appSlug: metadata.slug,
     currentTokenObject: tokenResponse,
     fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
       if (!refreshToken) {
