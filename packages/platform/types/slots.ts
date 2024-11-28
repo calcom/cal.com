@@ -1,6 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsArray, IsBoolean, IsDateString, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class GetAvailableSlotsInput {
   @IsDateString()
@@ -43,6 +52,7 @@ export class GetAvailableSlotsInput {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
+  @Min(1, { message: "Duration must be a positive number" })
   @ApiProperty({ description: "Only for dynamic events - length of returned slots." })
   duration?: number;
 
