@@ -44,7 +44,7 @@ async function excludeLockedUsers(
 ) {
   args.where = args.where || {};
   const whereString = safeJSONStringify(args.where);
-  const shouldIncludeLocked = whereString.includes('"locked":false');
+  const shouldIncludeLocked = whereString.includes('"locked":');
   // Unless explicitly specified, we exclude locked users
   if (!shouldIncludeLocked) {
     args.where.locked = false;
