@@ -5,7 +5,6 @@ import { UserListTable } from "@calcom/features/users/components/UserTable/UserL
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Meta } from "@calcom/ui";
 
 const MembersView = () => {
   const { t } = useLocale();
