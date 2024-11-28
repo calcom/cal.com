@@ -58,12 +58,12 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  */
 export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
   const url = [
-    `?type=meeting`,
-    `&title=${encodeURIComponent(title)}`,
-    `&meetingProfileName=${encodeURIComponent(profile.name)}`,
-    profile.image && `&meetingImage=${encodeURIComponent(makeAbsoluteUrl(profile.image))}`,
-    `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
-    `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
+    `%3Ftype%3Dmeeting`,
+    `%26title%3D${encodeURIComponent(title)}`,
+    `%26meetingProfileName%3D${encodeURIComponent(profile.name)}`,
+    profile.image && `%26meetingImage%3D${encodeURIComponent(makeAbsoluteUrl(profile.image))}`,
+    `${users.map((user) => `%26names%3D${encodeURIComponent(user.name)}`).join("")}`,
+    `${users.map((user) => `%26usernames%3D${encodeURIComponent(user.username)}`).join("")}`,
     // Joining a multiline string for readability.
   ].join("");
 
@@ -76,10 +76,10 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  */
 export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
   const url = [
-    `?type=app`,
-    `&name=${encodeURIComponent(name)}`,
-    `&slug=${encodeURIComponent(slug)}`,
-    `&description=${encodeURIComponent(description)}`,
+    `%3Ftype%3Dapp`,
+    `%26name%3D${encodeURIComponent(name)}`,
+    `%26slug%3D${encodeURIComponent(slug)}`,
+    `%26description%3D${encodeURIComponent(description)}`,
     // Joining a multiline string for readability.
   ].join("");
 
@@ -88,9 +88,9 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps): s
 
 export const constructGenericImage = ({ title, description }: GenericImageProps) => {
   const url = [
-    `?type=generic`,
-    `&title=${encodeURIComponent(title)}`,
-    `&description=${encodeURIComponent(description)}`,
+    `%3Ftype%3Dgeneric`,
+    `%26title%3D${encodeURIComponent(title)}`,
+    `%26description%3D${encodeURIComponent(description)}`,
     // Joining a multiline string for readability.
   ].join("");
 

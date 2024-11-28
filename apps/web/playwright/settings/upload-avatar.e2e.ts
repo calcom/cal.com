@@ -66,7 +66,7 @@ test.describe("User Avatar", async () => {
       // yes, OG image URI encodes at multiple places.. don't want to mess with that.
       await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
         "content",
-        new RegExp(`meetingImage=${encodeURIComponent(`${CAL_URL}/api/avatar/${objectKey}.png`)}`)
+        new RegExp(`meetingImage%3D${encodeURIComponent(`${CAL_URL}/api/avatar/${objectKey}.png`)}`)
       );
     });
   });
