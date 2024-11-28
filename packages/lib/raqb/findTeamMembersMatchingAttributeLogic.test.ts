@@ -39,7 +39,11 @@ function mockAttributesScenario({
           return [
             attributeId,
             // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-            { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
+            {
+              attributeOption: { value, contains: [] },
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              type: attributes.find((attribute) => attribute.id === attributeId)!.type,
+            },
           ];
         })
       ),

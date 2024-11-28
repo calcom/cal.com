@@ -350,7 +350,7 @@ const createMissingOptionsAndReturnAlongWithExisting = async <
             attributeOption.label.toLowerCase() === option.label.toLowerCase()
         )
       )
-      .filter((option) => !!option);
+      .filter((option): option is NonNullable<typeof option> => option !== null);
     return {
       attribute,
       optionsToAssign: optionsWithIdsOfTheSameAttribute,
