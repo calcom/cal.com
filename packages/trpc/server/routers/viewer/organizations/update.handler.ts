@@ -156,7 +156,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       teamId: currentOrgId,
       isBanner: true,
     });
-  } else if (input.banner === "") {
+  } else {
     data.bannerUrl = null;
   }
 

@@ -431,7 +431,11 @@ export default class SalesforceCRMService implements CRM {
       : [];
   }
 
-  async createContacts(contactsToCreate: Attendee[], organizerEmail?: string) {
+  async createContacts(
+    contactsToCreate: Attendee[],
+    organizerEmail?: string,
+    calEventResponses?: CalEventResponses | null
+  ) {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
@@ -474,11 +478,14 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      await this.createAttendeeRecord({ attendee, recordType: SalesforceRecordEnum.LEAD, organizerId }).then(
-        (result) => {
-          createdContacts.push(...result);
-        }
-      );
+      await this.createAttendeeRecord({
+        attendee,
+        recordType: SalesforceRecordEnum.LEAD,
+        organizerId,
+        calEventResponses,
+      }).then((result) => {
+        createdContacts.push(...result);
+      });
     }
 
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
@@ -522,6 +529,7 @@ export default class SalesforceCRMService implements CRM {
                 attendee,
                 recordType: SalesforceRecordEnum.LEAD,
                 organizerId,
+                calEventResponses,
               })
             );
             if (result.success) {
@@ -547,7 +555,7 @@ export default class SalesforceCRMService implements CRM {
 
   async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
     const appOptions = this.getAppOptions();
-    const { sendNoShowAttendeeData, sendNoShowAttendeeDataField } = appOptions;
+    const { sendNoShowAttendeeData = false, sendNoShowAttendeeDataField = {} } = appOptions;
     const conn = await this.conn;
     // Check that no show is enabled
     if (!sendNoShowAttendeeData && !sendNoShowAttendeeDataField) {
@@ -670,11 +678,13 @@ export default class SalesforceCRMService implements CRM {
     recordType,
     organizerId,
     accountId,
+    calEventResponses,
   }: {
     attendee: Attendee;
     recordType: SalesforceRecordEnum;
     organizerId?: string;
     accountId?: string;
+    calEventResponses?: CalEventResponses | null;
   }) {
     const conn = await this.conn;
 
@@ -685,6 +695,7 @@ export default class SalesforceCRMService implements CRM {
           attendee,
           recordType: recordType,
           organizerId,
+          calEventResponses,
         }),
         AccountId: accountId,
       })
@@ -705,16 +716,19 @@ export default class SalesforceCRMService implements CRM {
     attendee,
     recordType,
     organizerId,
+    calEventResponses,
   }: {
     attendee: { email: string; name: string };
     recordType: SalesforceRecordEnum;
     organizerId?: string;
+    /**Only Leads have the default company field */
+    calEventResponses?: CalEventResponses | null;
   }) {
     const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
 
     // Assume that the first part of the email domain is the company title
-    const company = attendee.email.split("@")[1].split(".")[0];
-
+    const company =
+      this.getCompanyNameFromBookingResponse(calEventResponses) ?? attendee.email.split("@")[1].split(".")[0];
     return {
       LastName: LastName || "-",
       FirstName,
@@ -805,7 +819,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
-    const { createEventOn, onBookingWriteToRecordFields } = this.getAppOptions();
+    const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
 
     // Determine record type (Contact or Lead)
     const personRecordType = this.determinePersonRecordType(createEventOn);
@@ -885,7 +899,6 @@ export default class SalesforceCRMService implements CRM {
 
     return writeOnRecordBody;
   }
-
   private getTextFieldValue({
     fieldValue,
     fieldLength,
@@ -896,13 +909,12 @@ export default class SalesforceCRMService implements CRM {
     calEventResponses?: CalEventResponses | null;
   }) {
     let valueToWrite = fieldValue.substring(0, fieldLength);
-
     if (!calEventResponses) return valueToWrite;
 
     // Check if we need to replace any values with values from the booking questions
     const regexValueToReplace = /\{(.*?)\}/g;
     valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
-      return calEventResponses[captured]?.value.toString() ?? match;
+      return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
     });
 
     // Trim incase the replacement values increased the length
@@ -1037,5 +1049,28 @@ export default class SalesforceCRMService implements CRM {
 
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
+  }
+
+  /** Search the booking questions for the Company field value rather than relying on the email domain  */
+  private getCompanyNameFromBookingResponse(calEventResponses?: CalEventResponses | null) {
+    const appOptions = this.getAppOptions();
+    const companyFieldName = "Company";
+    const defaultTextValueLength = 225;
+
+    const { onBookingWriteToRecordFields = undefined } = appOptions;
+
+    if (!onBookingWriteToRecordFields || !calEventResponses) return;
+
+    // Check that we're writing to the Company field
+    if (!(companyFieldName in onBookingWriteToRecordFields)) return;
+
+    const companyValue = this.getTextFieldValue({
+      fieldValue: onBookingWriteToRecordFields[companyFieldName].value,
+      fieldLength: defaultTextValueLength,
+      calEventResponses,
+    });
+
+    if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
+    return companyValue;
   }
 }
