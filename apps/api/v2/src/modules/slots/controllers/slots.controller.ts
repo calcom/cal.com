@@ -179,7 +179,7 @@ export class SlotsController {
       >((acc, [date, slots]) => {
         acc[date] = (slots as { time: string }[]).map((slot) => {
           const startTime = new Date(slot.time);
-          const endTime = new Date(startTime.getTime() + duration * 60000); // Convert minutes to milliseconds
+          const endTime = new Date(startTime.getTime() + duration * 60000); 
           return {
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
