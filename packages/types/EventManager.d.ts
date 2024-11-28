@@ -24,6 +24,7 @@ export interface EventResult<T> {
   calError?: string;
   calWarnings?: string[];
   credentialId?: number;
+  delegatedToId?: string | null;
   externalId?: string | null;
 }
 
