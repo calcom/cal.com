@@ -82,7 +82,8 @@ const handleMarkNoShow = async ({
   noShowHost,
   userId,
   locale,
-}: TNoShowInputSchema & { userId?: number; locale?: string }) => {
+  platformClientId,
+}: TNoShowInputSchema & { userId?: number; locale?: string; platformClientId?: string }) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
@@ -101,6 +102,7 @@ const handleMarkNoShow = async ({
         /** We send webhook message pre-translated, on client we already handle this */
         bookingUid,
         bookingId,
+        platformClientId,
       });
 
       responsePayload.setAttendees(payload.attendees);
