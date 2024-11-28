@@ -68,8 +68,19 @@ export async function handleConfirmation(args: {
   };
   paid?: boolean;
   emailsEnabled?: boolean;
+  platformClientId?: string;
 }) {
-  const { user, evt, recurringEventId, prisma, bookingId, booking, paid, emailsEnabled = true } = args;
+  const {
+    user,
+    evt,
+    recurringEventId,
+    prisma,
+    bookingId,
+    booking,
+    paid,
+    emailsEnabled = true,
+    platformClientId,
+  } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const eventManager = new EventManager(user, eventTypeMetadata?.apps);
@@ -355,6 +366,7 @@ export async function handleConfirmation(args: {
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
       orgId,
+      oAuthClientId: platformClientId,
     });
     const subscribersMeetingStarted = await getWebhooks({
       userId,
@@ -362,6 +374,7 @@ export async function handleConfirmation(args: {
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
       teamId: eventType?.teamId,
       orgId,
+      oAuthClientId: platformClientId,
     });
     const subscribersMeetingEnded = await getWebhooks({
       userId,
@@ -369,6 +382,7 @@ export async function handleConfirmation(args: {
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
       teamId: eventType?.teamId,
       orgId,
+      oAuthClientId: platformClientId,
     });
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
@@ -410,6 +424,7 @@ export async function handleConfirmation(args: {
       eventTypeId: booking.eventTypeId,
       teamId,
       orgId,
+      oAuthClientId: platformClientId,
     });
 
     const eventTypeInfo: EventTypeInfo = {
@@ -440,7 +455,7 @@ export async function handleConfirmation(args: {
         payload
       ).catch((e) => {
         log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientId}`,
           safeStringify(e)
         );
       })
@@ -456,6 +471,7 @@ export async function handleConfirmation(args: {
         triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
         teamId: eventType?.teamId,
         orgId,
+        oAuthClientId: platformClientId,
       });
       const bookingWithPayment = await prisma.booking.findFirst({
         where: {

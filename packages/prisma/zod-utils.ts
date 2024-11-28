@@ -282,6 +282,7 @@ export const bookingConfirmPatchBodySchema = z.object({
   recurringEventId: z.string().optional(),
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
+  platformClientId: z.string().optional(),
 });
 
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
