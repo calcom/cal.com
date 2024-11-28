@@ -1582,14 +1582,7 @@ export const insightsRouter = router({
         routingFormId: z.string().optional(),
         cursor: z.number().optional(),
         limit: z.number().optional(),
-        bookingStatus: bookingStatusSchema,
         columnFilters: z.array(ZColumnFilter),
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1604,9 +1597,7 @@ export const insightsRouter = router({
         cursor: input.cursor,
         userId: input.userId ?? null,
         limit: input.limit,
-        bookingStatus: input.bookingStatus ?? null,
         columnFilters: input.columnFilters,
-        fieldFilter: input.fieldFilter ?? null,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure

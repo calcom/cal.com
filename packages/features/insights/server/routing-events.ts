@@ -184,9 +184,7 @@ class RoutingEventsInsights {
     limit,
     userId,
     columnFilters,
-    fieldFilter,
-    bookingStatus,
-  }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & { cursor?: number; limit?: number }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
       isAll,
@@ -205,17 +203,14 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus || bookingStatusFilter
+      ...(userId || bookingStatusFilter
         ? {
-            ...(bookingStatus === "NO_BOOKING"
-              ? { routedToBooking: null }
-              : {
-                  routedToBooking: {
-                    ...(userId && { userId }),
-                    ...(bookingStatus && { status: bookingStatus }),
-                    ...(bookingStatusFilter && makeWhereClause("status", bookingStatusFilter.value)),
-                  },
-                }),
+            ...{
+              routedToBooking: {
+                ...(userId && { userId }),
+                ...(bookingStatusFilter && makeWhereClause("status", bookingStatusFilter.value)),
+              },
+            },
           }
         : {}),
 
@@ -230,11 +225,6 @@ class RoutingEventsInsights {
           json: { path: [fieldFilter.id, "value"] },
         });
       });
-    } else if (fieldFilter) {
-      responsesWhereCondition.response = {
-        path: [fieldFilter.fieldId, "value"],
-        array_contains: [fieldFilter.optionId],
-      };
     }
 
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({

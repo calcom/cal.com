@@ -49,7 +49,13 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
   );
 
   const filterOptions = useMemo(() => {
-    let options: Option[] = [];
+    let options: Option[] = [
+      {
+        label: t("user"),
+        value: "user",
+        StartIcon: "users" as IconName,
+      },
+    ];
 
     // Add routing forms filter options
     if (showRoutingFilters) {
@@ -58,6 +64,24 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
         value: "routing_forms" as FilterType,
         StartIcon: "calendar-check-2" as IconName,
       });
+
+      options.push({
+        label: t("booking_status"),
+        value: "booking_status" as FilterType,
+        StartIcon: "circle" as IconName,
+      });
+
+      // Add dynamic routing form field options
+      if (routingFormFieldOptions?.length) {
+        options = [
+          ...options,
+          ...routingFormFieldOptions.map((option) => ({
+            label: option.label,
+            value: `rf_${option.id}` as FilterType,
+            StartIcon: "layers" as IconName,
+          })),
+        ];
+      }
     } else {
       options.push({
         label: t("event_type"),
