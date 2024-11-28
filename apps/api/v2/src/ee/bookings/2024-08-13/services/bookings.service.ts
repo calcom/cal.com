@@ -105,7 +105,7 @@ export class BookingsService_2024_08_13 {
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
     const bookingFields = body.bookingFieldsResponses;
-    if (!bookingFields || !eventType) {
+    if (!bookingFields || !eventType || !eventType.bookingFields) {
       return true;
     }
 
