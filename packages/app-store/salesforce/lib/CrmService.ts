@@ -3,6 +3,7 @@ import jsforce from "jsforce";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -922,8 +923,9 @@ export default class SalesforceCRMService implements CRM {
 
     let valueToWrite = fieldValue;
 
-    if (fieldValue.startsWith("{form: ")) {
+    if (fieldValue.startsWith("{form:")) {
       // Get routing from response
+      if (!bookingUid) return;
       valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid);
     } else {
       // Get the value from the booking response
@@ -938,7 +940,34 @@ export default class SalesforceCRMService implements CRM {
     return valueToWrite.substring(0, fieldLength);
   }
 
-  private getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
+  private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
+    // Get the form response
+    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+      where: {
+        routedToBookingUid: bookingUid,
+      },
+      select: {
+        response: true,
+      },
+    });
+    if (!routingFormResponse) return fieldValue;
+    const response = routingFormResponse.response as FormResponse;
+    const regex = /\{form:(.*?)\}/;
+    const regexMatch = fieldValue.match(regex);
+    if (!regexMatch) return fieldValue;
+
+    const identifierField = regexMatch?.[1];
+    if (!identifierField) return fieldValue;
+
+    // Search for fieldValue, only handle raw text return for now
+    for (const fieldId of Object.keys(response)) {
+      const field = response[fieldId];
+
+      if (field?.identifier === identifierField) {
+        return field.value.toString();
+      }
+    }
+
     return fieldValue;
   }
 
