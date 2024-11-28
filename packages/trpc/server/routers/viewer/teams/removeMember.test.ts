@@ -14,6 +14,7 @@ import { describe, test, expect } from "vitest";
 
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
+import type { TrpcSessionUser } from "../../../trpc";
 import removeMember from "./removeMember.handler";
 
 describe("removeMember", () => {
@@ -34,7 +35,7 @@ describe("removeMember", () => {
           membership: { accepted: true, role: MembershipRole.ADMIN },
         },
         {
-          team: { id: org.id, name: org.name, slug: org.slug, parentId: null },
+          team: { id: org.id, name: org.name, slug: org.slug, parentId: undefined },
           membership: { accepted: true, role: MembershipRole.OWNER },
         },
       ],
@@ -55,7 +56,7 @@ describe("removeMember", () => {
             membership: { accepted: true },
           },
           {
-            team: { id: org.id, name: org.name, slug: org.slug, parentId: null },
+            team: { id: org.id, name: org.name, slug: org.slug, parentId: undefined },
             membership: { accepted: true },
           },
         ],
@@ -87,7 +88,7 @@ describe("removeMember", () => {
           usersApartFromOrganizer: otherTeamMembers,
           apps: [TestData.apps["daily-video"]],
         },
-        org?.organization
+        org
       )
     );
 
