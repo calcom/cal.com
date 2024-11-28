@@ -45,7 +45,7 @@ export type FilterableColumn = {
   | {
       type: "select";
       icon?: IconName;
-      options: Map<string | { label: string; value: string }, number> | undefined;
+      options: Map<string | { label: string; value: string }, number>;
     }
   | {
       type: "text";

@@ -15,7 +15,7 @@ import {
 import type { FilterableColumn, SelectFilterValue } from "../../lib/types";
 
 export type MultiSelectFilterOptionsProps = {
-  column: FilterableColumn;
+  column: Extract<FilterableColumn, { type: "select" }>;
   filterValue?: SelectFilterValue;
   setFilterValue: (value: SelectFilterValue) => void;
   removeFilter: (columnId: string) => void;

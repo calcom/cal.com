@@ -77,7 +77,7 @@ class RoutingEventsInsights {
     userId,
     bookingStatus,
     fieldFilter,
-  }: RoutingFormInsightsFilter) {
+  }: Omit<RoutingFormInsightsFilter, "columnFilters">) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
@@ -208,7 +208,8 @@ class RoutingEventsInsights {
             ...{
               routedToBooking: {
                 ...(userId && { userId }),
-                ...(bookingStatusFilter && makeWhereClause("status", bookingStatusFilter.value)),
+                ...(bookingStatusFilter &&
+                  makeWhereClause({ columnName: "status", filterValue: bookingStatusFilter.value })),
               },
             },
           }
@@ -486,7 +487,7 @@ class RoutingEventsInsights {
     fieldFilter,
     take,
     skip,
-  }: RoutingFormInsightsFilter & { take?: number; skip?: number }) {
+  }: Omit<RoutingFormInsightsFilter, "columnFilters"> & { take?: number; skip?: number }) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
       teamId,
       isAll,

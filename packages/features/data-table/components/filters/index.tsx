@@ -131,18 +131,7 @@ function AddFilterButtonComponent<TData>(
   const [state, setState] = useFiltersState();
 
   const activeFilters = state.activeFilters;
-  const columns = table
-    .getAllColumns()
-    .filter((column) => column.getCanFilter())
-    .filter((column) => !omit?.includes(column.id));
-
-  const filterableColumns = useMemo(() => {
-    return columns.map((column) => ({
-      id: column.id,
-      title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
-      options: column.getFacetedUniqueValues(),
-    }));
-  }, [columns]);
+  const filterableColumns = useFilterableColumns(table, omit);
 
   const handleAddFilter = (columnId: string) => {
     if (!activeFilters?.some((filter) => filter.f === columnId)) {
@@ -183,6 +172,45 @@ function AddFilterButtonComponent<TData>(
   );
 }
 
+function useFilterableColumns<TData>(table: Table<TData>, omit?: string[]) {
+  const columns = useMemo(
+    () =>
+      table
+        .getAllColumns()
+        .filter((column) => column.getCanFilter())
+        .filter((column) => !omit?.includes(column.id)),
+    [table.getAllColumns(), omit]
+  );
+
+  const filterableColumns = useMemo<FilterableColumn[]>(
+    () =>
+      columns
+        .map((column) => {
+          const type = column.columnDef.meta?.filter?.type || "select";
+          const base = {
+            id: column.id,
+            title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
+            ...(column.columnDef.meta?.filter || {}),
+            type,
+          };
+          if (type === "select") {
+            return {
+              ...base,
+              options: column.getFacetedUniqueValues(),
+            };
+          } else if (type === "text") {
+            return {
+              ...base,
+            };
+          }
+        })
+        .filter((column): column is FilterableColumn => Boolean(column)),
+    [columns]
+  );
+
+  return filterableColumns;
+}
+
 const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
   props: AddFilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement>; omit?: string[] }
 ) => ReturnType<typeof AddFilterButtonComponent>;
@@ -195,22 +223,7 @@ interface ActiveFiltersProps<TData> {
 function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
   const [state, setState] = useFiltersState();
 
-  const columns = table.getAllColumns().filter((column) => column.getCanFilter());
-
-  const filterableColumns = useMemo<FilterableColumn[]>(
-    () =>
-      columns.map((column) => {
-        const type = column.columnDef.meta?.filter?.type || "select";
-        return {
-          id: column.id,
-          title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
-          ...(column.columnDef.meta?.filter || {}),
-          type,
-          options: type === "select" ? column.getFacetedUniqueValues() : undefined,
-        };
-      }),
-    [columns]
-  );
+  const filterableColumns = useFilterableColumns(table);
 
   return (
     <>
