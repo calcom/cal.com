@@ -916,18 +916,26 @@ export default class SalesforceCRMService implements CRM {
 
     let valueToWrite = fieldValue;
 
-    // Check if we need to replace any values with values from the booking questions
-    const regexValueToReplace = /\{(.*?)\}/g;
-    valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
-      if (!calEventResponses) return valueToWrite;
-      return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
-    });
+    if (fieldValue.startsWith("{form: ")) {
+      // Get routing from response
+    } else {
+      // Get the value from the booking response
+      if (!calEventResponses) return;
+      valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
+    }
 
     // If a value wasn't found in the responses. Don't return the field name
     if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
     return valueToWrite.substring(0, fieldLength);
+  }
+
+  private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
+    const regexValueToReplace = /\{(.*?)\}/g;
+    return fieldValue.replace(regexValueToReplace, (match, captured) => {
+      return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
+    });
   }
 
   private async getDateFieldValue(
