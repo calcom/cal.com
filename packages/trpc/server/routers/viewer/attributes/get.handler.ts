@@ -49,7 +49,6 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
       },
     },
   });
-  console.log("attributeFindUnique", attribute);
 
   const formattedAttribute = {
     ...attribute,

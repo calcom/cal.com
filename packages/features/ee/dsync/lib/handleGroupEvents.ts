@@ -14,8 +14,10 @@ import {
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
+const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
+
 const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
-  logger.debug("handleGroupEvents", safeStringify(event));
+  log.debug("called", safeStringify(event));
   // Find the group name associated with the event
   const eventData = event.data as Group;
 

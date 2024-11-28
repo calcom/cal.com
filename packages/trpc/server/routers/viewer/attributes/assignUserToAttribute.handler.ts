@@ -37,9 +37,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       teamId: org.id,
     },
     select: {
+      name: true,
       id: true,
       type: true,
       options: true,
+      isLocked: true,
     },
   });
 
@@ -95,7 +97,14 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   // const promises: Promise<{ id: string }>[] = [];
 
-  input.attributes.map(async (attribute) => {
+  const unlockedAttributes = input.attributes.filter((attribute) => {
+    const attributeFromDb = attributes.find((a) => a.id === attribute.id);
+    return !attributeFromDb?.isLocked;
+  });
+
+  const lockedAttributes = attributes.filter((attribute) => attribute.isLocked);
+
+  unlockedAttributes.map(async (attribute) => {
     // TEXT, NUMBER
     if (attribute.value && !attribute.options) {
       const valueAsString = String(attribute.value);
@@ -197,7 +206,6 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
     // Delete the attribute from the user
     if (!attribute.value && !attribute.options) {
-      console.log("DELETE CASE-2");
       await prisma.attributeToUser.deleteMany({
         where: {
           memberId: membership.id,
@@ -214,7 +222,9 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   return {
     success: true,
-    message: "Attributes assigned successfully",
+    message: `Attributes assigned successfully. Locked attributes ${lockedAttributes
+      .map((attribute) => attribute.name)
+      .join(", ")} were not assigned.`,
   };
 };
 

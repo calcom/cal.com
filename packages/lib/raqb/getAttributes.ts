@@ -1,36 +1,54 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { attributeService } from "@calcom/lib/service/attribute/attributeService";
 import prisma from "@calcom/prisma";
 
 import type { Attribute } from "./types";
 
-const whereClauseForAttributesAssignedToMembersOfTeam = (teamId: number) => ({
-  member: {
-    user: {
-      teams: {
-        some: {
-          teamId,
+type AttributeId = string;
+type UserId = number;
+export type AttributeOptionValue = {
+  value: string;
+  isGroup: boolean;
+  contains: {
+    id: string;
+    slug: string;
+    value: string;
+  }[];
+};
+
+export type AttributeOptionValueWithType = {
+  type: Attribute["type"];
+  attributeOption: AttributeOptionValue | AttributeOptionValue[];
+};
+
+/**
+ * Note: assignedAttributeOptions[x].attributeOption isn't unique. It is returned multiple times depending on how many users it is assigned to
+ */
+async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
+  const log = logger.getSubLogger({ prefix: ["getAssignedAttributeOptions"] });
+  const whereClauseForAssignment = {
+    member: {
+      user: {
+        teams: {
+          some: {
+            teamId,
+          },
         },
       },
     },
-  },
-});
-/**
- * It return and attributeOption multiple times depending on how many users it is assigned to
- */
-async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
-  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
+  };
 
   log.debug(
     safeStringify({
       teamId,
-      whereClauseForAttributesAssignedToMembersOfTeam,
+      whereClauseForAssignment,
     })
   );
 
   const assignedAttributeOptions = await prisma.attributeToUser.findMany({
-    where: whereClauseForAttributesAssignedToMembersOfTeam(teamId),
+    where: whereClauseForAssignment,
     select: {
       member: {
         select: {
@@ -43,6 +61,7 @@ async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
           value: true,
           slug: true,
           contains: true,
+          isGroup: true,
           attribute: {
             select: { id: true, name: true, type: true, slug: true },
           },
@@ -53,30 +72,6 @@ async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
 
   log.debug("Returned assignedAttributeOptions", safeStringify({ assignedAttributeOptions }));
   return assignedAttributeOptions;
-}
-
-async function findAllAttributeOptions({ teamId }: { teamId: number }) {
-  return await prisma.attributeOption.findMany({
-    where: {
-      attribute: {
-        team: {
-          children: {
-            some: {
-              id: teamId,
-            },
-          },
-        },
-      },
-    },
-    select: {
-      id: true,
-      value: true,
-      slug: true,
-      contains: true,
-      isGroup: true,
-      attribute: true,
-    },
-  });
 }
 
 async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId: number; userId?: number }) {
@@ -134,69 +129,14 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
   return attributes satisfies Attribute[];
 }
 
-type AttributeId = string;
-export type AttributeOptionValueWithType = {
-  type: Attribute["type"];
-  attributeOption: {
-    value: string | string[];
-    contains: {
-      id: string;
-      value: string;
-    }[];
-  };
-};
-
-type UserId = number;
-
-/**
- * Ensures all attributes are their with all their options(only assigned options) mapped to them
- * This is needed because we receive options in an unordered manner
- */
-async function getAllAttributesWithTheirOptions({ teamId }: { teamId: number }) {
-  const allOptionsOfAllAttributes = await findAllAttributeOptions({ teamId });
-  const attributeOptionsMap = new Map<
-    AttributeId,
-    {
-      id: string;
-      value: string;
-      slug: string;
-      contains: string[];
-      isGroup: boolean;
-    }[]
-  >();
-  allOptionsOfAllAttributes.forEach((_attributeOption) => {
-    const { attribute, ...attributeOption } = _attributeOption;
-    console.log({ attributeOptionSlug: attributeOption.slug });
-    const existingOptionsArray = attributeOptionsMap.get(attribute.id);
-    const enrichedAttributeOption = {
-      ...attributeOption,
-      isGroup: attributeOption.contains.length > 0,
-    };
-    if (!existingOptionsArray) {
-      console.log(`Setting attribute ${attribute.name} with id ${attribute.id}`);
-      attributeOptionsMap.set(attribute.id, [enrichedAttributeOption]);
-    } else {
-      console.log(`Pushing attribute ${attribute.name} with id ${attribute.id}`);
-      // We already have the options for this attribute
-      existingOptionsArray.push(enrichedAttributeOption);
-    }
-  });
-  return attributeOptionsMap;
-}
-
 export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
-  const assignedAttributeOptions = await getAssignedAttributeOptions({ teamId });
-  const allAttributesWithTheirOptions = await getAllAttributesWithTheirOptions({
-    teamId,
-  });
+  const [assignedAttributeOptions, allAttributesWithTheirOptions] = await Promise.all([
+    getAssignedAttributeOptions({ teamId }),
+    // We need to fetch even the unassigned options, to know what all sub-options are there in an option group. Because it is possible that sub-options aren't assigned directly to the user
+    attributeService.findAllAttributesWithTheirOptions({ teamId }),
+  ]);
 
-  console.log({
-    allAttributesWithTheirOptions: JSON.stringify(
-      Object.fromEntries(allAttributesWithTheirOptions.entries())
-    ),
-  });
-
-  const teamMembers = assignedAttributeOptions.reduce((acc, attributeToUser) => {
+  const teamMembersThatHaveOptionAssigned = assignedAttributeOptions.reduce((acc, attributeToUser) => {
     const { userId } = attributeToUser.member;
     const { attribute, ...attributeOption } = attributeToUser.attributeOption;
 
@@ -205,41 +145,76 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
     }
 
     const attributes = acc[userId].attributes;
-    const attributeValue = attributes[attribute.id]?.attributeOption.value;
-    if (attributeValue instanceof Array) {
-      // Value already exists, so push to it
-      attributeValue.push(attributeOption.value);
-    } else if (attributeValue) {
+    const currentAttributeOptionValue = attributes[attribute.id]?.attributeOption;
+    const newAttributeOptionValue = {
+      isGroup: attributeOption.isGroup,
+      value: attributeOption.value,
+      contains: tranformContains({ contains: attributeOption.contains, attribute }),
+    };
+
+    if (currentAttributeOptionValue instanceof Array) {
       // Value already exists, so push to it and also make it an array before pushing
-      attributes[attribute.id].attributeOption.value = [attributeValue, attributeOption.value];
+      attributes[attribute.id].attributeOption = [...currentAttributeOptionValue, newAttributeOptionValue];
+    } else if (currentAttributeOptionValue) {
+      // Value already exists, so push to it and also make it an array before pushing
+      attributes[attribute.id].attributeOption = [
+        currentAttributeOptionValue,
+        {
+          isGroup: attributeOption.isGroup,
+          value: attributeOption.value,
+          contains: tranformContains({ contains: attributeOption.contains, attribute }),
+        },
+      ];
     } else {
       // Set the first value
       attributes[attribute.id] = {
         type: attribute.type,
-        attributeOption: {
-          value: attributeOption.value,
-          contains: attributeOption.contains
-            .map((optionId) => {
-              const allOptions = allAttributesWithTheirOptions.get(attribute.id);
-              const option = allOptions?.find((option) => option.id === optionId);
-              if (!option) {
-                console.error(
-                  `Generating contains for attribute ${
-                    attribute.name
-                  }: Option with id ${optionId} not found. Looked up in ${JSON.stringify(allOptions)}`
-                );
-                return null;
-              }
-              return option;
-            })
-            .filter((option): option is NonNullable<typeof option> => option !== null),
-        },
+        attributeOption: newAttributeOptionValue,
       };
     }
     return acc;
   }, {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>);
 
-  return Object.values(teamMembers);
+  return Object.values(teamMembersThatHaveOptionAssigned);
+
+  /**
+   * Transforms ["optionId1", "optionId2"] to [{
+   *   id: "optionId1",
+   *   value: "optionValue1",
+   *   slug: "optionSlug1",
+   * }, {
+   *   id: "optionId2",
+   *   value: "optionValue2",
+   *   slug: "optionSlug2",
+   * }]
+   */
+  function tranformContains({
+    contains,
+    attribute,
+  }: {
+    contains: string[];
+    attribute: { id: string; name: string };
+  }) {
+    return contains
+      .map((optionId) => {
+        const allOptions = allAttributesWithTheirOptions.get(attribute.id);
+        const option = allOptions?.find((option) => option.id === optionId);
+        if (!option) {
+          console.error(
+            `Enriching "contains" for attribute ${
+              attribute.name
+            }: Option with id ${optionId} not found. Looked up in ${JSON.stringify(allOptions)}`
+          );
+          return null;
+        }
+        return {
+          id: option.id,
+          value: option.value,
+          slug: option.slug,
+        };
+      })
+      .filter((option): option is NonNullable<typeof option> => option !== null);
+  }
 }
 
 export async function getUsersAttributes({ userId, teamId }: { userId: number; teamId: number }) {

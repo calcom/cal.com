@@ -288,7 +288,7 @@ function AttributesList(props: { selectedUserId: number }) {
             {
               label: attr.options[0]?.value,
               value: attr.options[0]?.id,
-              createdByDSyncId: attr.options[0]?.createdByDSyncId ? attr.options[0]?.createdByDSyncId : null,
+              createdByDSyncId: attr.options[0]?.createdByDSyncId ?? null,
             },
           ],
         };
@@ -342,6 +342,7 @@ function AttributesList(props: { selectedUserId: number }) {
                   )}
                   {["SINGLE_SELECT", "MULTI_SELECT"].includes(attr.type) && (
                     <SelectField
+                      isDisabled={attr.isLocked}
                       name={field.name}
                       containerClassName="w-full"
                       isMulti={attr.type === "MULTI_SELECT"}

@@ -32,6 +32,10 @@ type AttributeOptionAssignment = AttributeToUser & {
   };
 };
 
+async function findTeamById({ teamId }: { teamId: number }) {
+  return prisma.team.findUnique({ where: { id: teamId } });
+}
+
 const findAttributesByName = async ({
   orgId,
   attributeNames,
@@ -57,6 +61,33 @@ const findAttributesByName = async ({
         };
       }),
     };
+  });
+};
+/**
+ * Returns all the options for all the attributes for a team
+ */
+const findAllAttributeOptions = async ({ teamId }: { teamId: number }) => {
+  const team = await findTeamById({ teamId });
+
+  // A non-org team doesn't have attributes
+  if (!team || !team.parentId) {
+    return [];
+  }
+
+  return await prisma.attributeOption.findMany({
+    where: {
+      attribute: {
+        teamId: team.parentId,
+      },
+    },
+    select: {
+      id: true,
+      value: true,
+      slug: true,
+      contains: true,
+      isGroup: true,
+      attribute: true,
+    },
   });
 };
 
@@ -601,5 +632,33 @@ export const attributeService = {
     newOption: { label: string };
   }) {
     return existingAssignment.attributeOption.label.toLowerCase() === newOption.label.toLowerCase();
+  },
+
+  /**
+   * Ensures all attributes are their with all their options(only assigned options) mapped to them
+   */
+  async findAllAttributesWithTheirOptions({ teamId }: { teamId: number }) {
+    const allOptionsOfAllAttributes = await findAllAttributeOptions({ teamId });
+    const attributeOptionsMap = new Map<
+      AttributeId,
+      {
+        id: string;
+        value: string;
+        slug: string;
+        contains: string[];
+        isGroup: boolean;
+      }[]
+    >();
+    allOptionsOfAllAttributes.forEach((_attributeOption) => {
+      const { attribute, ...attributeOption } = _attributeOption;
+      const existingOptionsArray = attributeOptionsMap.get(attribute.id);
+      if (!existingOptionsArray) {
+        attributeOptionsMap.set(attribute.id, [attributeOption]);
+      } else {
+        // We already have the options for this attribute
+        existingOptionsArray.push(attributeOption);
+      }
+    });
+    return attributeOptionsMap;
   },
 };

@@ -27,6 +27,8 @@
   2. Simular a failure in adding the user
     - Failure could be in user creation or attribute assignment creation
   3. Remove the user and Re-add the user and see it is correctly synced.
+- Cal.com changes
+  - [ ] Try removing a locked attribute assignment from a user.
 
 
 

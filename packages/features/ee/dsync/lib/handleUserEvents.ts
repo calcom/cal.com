@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { attributeService } from "@calcom/lib/service/attribute/attribute";
+import { attributeService } from "@calcom/lib/service/attribute/attributeService";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -19,6 +19,42 @@ import dSyncUserSelect from "./users/dSyncUserSelect";
 import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 
 const log = logger.getSubLogger({ prefix: ["handleUserEvents"] });
+
+async function syncCustomAttributesToUser({
+  event,
+  userEmail,
+  org,
+  directoryId,
+}: {
+  event: DirectorySyncEvent;
+  userEmail: string;
+  org: {
+    id: number;
+  };
+  directoryId: string;
+}) {
+  const updatedUser = await prisma.user.findFirst({
+    where: {
+      email: userEmail,
+    },
+    select: dSyncUserSelect,
+  });
+
+  if (!updatedUser) {
+    log.error(`User not found in DB ${userEmail}. Skipping custom attributes sync.`);
+    return;
+  }
+
+  const customAttributes = getAttributesFromScimPayload(event);
+  await attributeService.assignValueToUserInOrgBulk({
+    orgId: org.id,
+    userId: updatedUser.id,
+    attributeLabelToValueMap: customAttributes,
+    creator: {
+      dsyncId: directoryId,
+    },
+  });
+}
 
 const handleUserEvents = async (event: DirectorySyncEvent, organizationId: number) => {
   log.debug("called", safeStringify(event));
@@ -71,6 +107,13 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
         currentUserParentTeamName: org?.parent?.name,
         orgSlug: org.slug,
       });
+
+      await syncCustomAttributesToUser({
+        event,
+        userEmail,
+        org,
+        directoryId,
+      });
     } else {
       // If data.active is false then remove the user from the org
       await removeUserFromOrg({
@@ -96,29 +139,14 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
       teamId: organizationId,
       isOrg: true,
     });
+
+    await syncCustomAttributesToUser({
+      event,
+      userEmail,
+      org,
+      directoryId,
+    });
   }
-
-  const updatedUser = await prisma.user.findFirst({
-    where: {
-      email: userEmail,
-    },
-    select: dSyncUserSelect,
-  });
-
-  if (!updatedUser) {
-    log.error("handleUserEvents", `User still not created in DB ${userEmail}`);
-    return;
-  }
-
-  const customAttributes = getAttributesFromScimPayload(event);
-  await attributeService.assignValueToUserInOrgBulk({
-    orgId: org.id,
-    userId: updatedUser.id,
-    attributeLabelToValueMap: customAttributes,
-    creator: {
-      dsyncId: directoryId,
-    },
-  });
 };
 
 export default handleUserEvents;

@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 
-import { attributeService, buildPrismaQueriesForAttributeOptionToUser } from "../attribute/attribute";
+import { attributeService, buildPrismaQueriesForAttributeOptionToUser } from "../attribute/attributeService";
 
 function buildMockAttribute(data: {
   teamId: number;

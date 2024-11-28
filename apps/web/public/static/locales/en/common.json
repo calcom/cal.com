@@ -2645,6 +2645,7 @@
   "add_attributes": "Add attributes",
   "add_attributes_description": "Add attributes to your team members",
   "new_option": "New option",
+  "new_group_option": "New group option",
   "update_profile": "Update member",
   "attribute": "Attribute",
   "create_attribute_description": "Create an attribute for your team members",

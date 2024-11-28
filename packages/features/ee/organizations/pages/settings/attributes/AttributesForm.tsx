@@ -5,6 +5,7 @@ import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { entries } from "@calcom/prisma/zod-utils";
 import {
   Button,
   Form,
@@ -46,6 +47,50 @@ interface AttributeFormProps {
   initialValues?: FormValues;
   onSubmit: (values: FormValues) => void;
   header: React.ReactNode;
+}
+
+export function getGroupOptionUpdate({
+  newGroupOptions,
+  previousGroupOptions,
+  subOption,
+  allOptions,
+}: {
+  newGroupOptions: { label: string; value: string | undefined }[];
+  previousGroupOptions: { label: string; value: string | undefined }[];
+  subOption: { attributeOptionId?: string };
+  allOptions: { attributeOptionId?: string; contains?: string[] }[];
+}) {
+  const nonGroupOptionId = subOption.attributeOptionId;
+  if (!nonGroupOptionId) return {};
+  // Find diff b/w previouslyChosenGroupOptions and chosenGroupOptions
+  const removedGroupOptions = previousGroupOptions.filter(
+    (option) => !newGroupOptions.map((o) => o.value).includes(option.value)
+  );
+
+  const optionsUpdate: { [key: number]: string[] } = {};
+
+  // Update all groupOptions' contains as per the final state.
+  newGroupOptions.forEach((newGroupOption) => {
+    const indexOfGroupOptionInWatchedOptions = allOptions.findIndex(
+      (groupOption) => groupOption.attributeOptionId === newGroupOption.value
+    );
+    const existingContains = allOptions[indexOfGroupOptionInWatchedOptions].contains;
+    const newContains = [...(existingContains || []), nonGroupOptionId].filter(
+      (value, index, self) => self.indexOf(value) === index
+    );
+    optionsUpdate[indexOfGroupOptionInWatchedOptions] = newContains;
+  });
+
+  // Because certain groupOptions might have been removed, we need to update such groupOptions' contains as well.
+  removedGroupOptions.forEach((removedGroupOption) => {
+    const indexOfGroupOptionInWatchedOptions = allOptions.findIndex(
+      (groupOption) => groupOption.attributeOptionId === removedGroupOption.value
+    );
+    const existingContains = allOptions[indexOfGroupOptionInWatchedOptions].contains || [];
+    const newContains = existingContains.filter((value) => value !== nonGroupOptionId);
+    optionsUpdate[indexOfGroupOptionInWatchedOptions] = newContains;
+  });
+  return optionsUpdate;
 }
 
 export function AttributeForm({ initialValues, onSubmit, header }: AttributeFormProps) {
@@ -168,18 +213,16 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                               value: f.attributeOptionId,
                             }))}
                             value={groupSelectValue}
-                            onChange={(chosenGroupOption) => {
-                              const indexOfGroupOptionInWatchedOptions = watchedOptions.findIndex(
-                                (groupOption) => groupOption.attributeOptionId === chosenGroupOption[0].value
-                              );
-                              const newContains = nonGroupOption.attributeOptionId;
-                              if (!newContains) return;
-                              const existingContains =
-                                watchedOptions[indexOfGroupOptionInWatchedOptions].contains;
-                              form.setValue(`options.${indexOfGroupOptionInWatchedOptions}.contains`, [
-                                ...(existingContains || []),
-                                newContains,
-                              ]);
+                            onChange={(chosenGroupOptions) => {
+                              const optionsUpdate = getGroupOptionUpdate({
+                                newGroupOptions: chosenGroupOptions as { label: string; value: string }[],
+                                previousGroupOptions: groupSelectValue,
+                                subOption: nonGroupOption,
+                                allOptions: watchedOptions,
+                              });
+                              entries(optionsUpdate).forEach(([index, value]) => {
+                                form.setValue(`options.${index}.contains`, value);
+                              });
                             }}
                             className="min-w-64"
                           />

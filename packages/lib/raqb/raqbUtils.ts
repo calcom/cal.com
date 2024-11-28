@@ -10,7 +10,7 @@ import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import type { AttributeOptionValueWithType } from "./getAttributes";
+import type { AttributeOptionValueWithType, AttributeOptionValue } from "./getAttributes";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 
@@ -196,13 +196,29 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
   });
 };
 
-function getValueOfAnOption(attributeOption: { value: string | string[]; contains: { value: string }[] }) {
-  if (attributeOption.contains.length > 0) {
-    const subOptions = attributeOption.contains.map((option) => option.value);
-    console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
-    return subOptions;
+export function getValueOfAttributeOption(
+  attributeOptions:
+    | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
+    | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">[]
+) {
+  if (!(attributeOptions instanceof Array)) {
+    return transformAttributeOption(attributeOptions);
   }
-  return attributeOption.value;
+  return attributeOptions
+    .map(transformAttributeOption)
+    .flat()
+    .filter((value, index, self) => self.indexOf(value) === index);
+
+  function transformAttributeOption(
+    attributeOption: Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
+  ) {
+    if (attributeOption.isGroup) {
+      const subOptions = attributeOption.contains.map((option) => option.value);
+      console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
+      return subOptions;
+    }
+    return attributeOption.value;
+  }
 }
 
 function getAttributesData({
@@ -214,7 +230,7 @@ function getAttributesData({
   return Object.entries(attributesData).reduce(
     (acc, [attributeId, { type: attributeType, attributeOption }]) => {
       const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(
-        getValueOfAnOption(attributeOption)
+        getValueOfAttributeOption(attributeOption)
       );
 
       acc[attributeId] =

@@ -7,7 +7,38 @@ const log = logger.getSubLogger({ prefix: ["getAttributesFromScimPayload"] });
 
 type ScimUserAttributeName = string;
 type ScimUserAttributeValue = string | string[];
-
+/**
+ * event.data.raw has this format
+ * {
+ *   "schemas": [
+ *     "urn:ietf:params:scim:schemas:core:2.0:User",
+ *     "segment",
+ *     "territory"
+ *   ],
+ *   "userName": "member@samldemo.com",
+ *   "name": {
+ *     "givenName": "Member SAML Demo",
+ *     "familyName": "Member SAML Demo"
+ *   },
+ *   "emails": [
+ *     {
+ *       "primary": true,
+ *       "value": "member@samldemo.com"
+ *     }
+ *   ],
+ *   "displayName": "Member SAML Demo",
+ *   "territory": {
+ *     "territory": "NAM"
+ *   },
+ *   "segment": {
+ *     "segment": "SMB"
+ *   },
+ *   "externalId": "00ukzk1wrsKZqofit5d7",
+ *   "groups": [],
+ *   "active": true,
+ *   "id": "b36ba9fa-783b-44e6-a770-a652cb9d71ba"
+ * }
+ */
 function getAttributesFromScimPayload(
   event: DirectorySyncEvent
 ): Record<ScimUserAttributeName, ScimUserAttributeValue> {
@@ -53,7 +84,7 @@ function getAttributesFromScimPayload(
         return;
       }
 
-      // FIXME: Support array of strings
+      // TODO: Support number as well as Attribute support number type
       if (
         typeof value === "string" ||
         (value instanceof Array && value.every((item) => typeof item === "string"))
