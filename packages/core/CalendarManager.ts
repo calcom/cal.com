@@ -311,7 +311,7 @@ export const createEvent = async (
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
     externalId,
     credentialId: credential.id,
-    delegatedToId: credential.delegatedToId,
+    delegatedToId: credential.delegatedToId ?? undefined,
   };
 };
 

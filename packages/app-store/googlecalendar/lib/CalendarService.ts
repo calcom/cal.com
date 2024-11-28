@@ -322,7 +322,7 @@ export default class GoogleCalendarService implements Calendar {
   async createEvent(
     calEventRaw: CalendarEvent,
     credentialId: number,
-    overrideExternalId?: string
+    overrideExternalIdForDelegatedCredential?: string
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
@@ -372,7 +372,7 @@ export default class GoogleCalendarService implements Calendar {
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
 
     const selectedCalendar =
-      overrideExternalId ??
+      overrideExternalIdForDelegatedCredential ??
       (formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
         "primary");
 

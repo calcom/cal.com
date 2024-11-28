@@ -80,6 +80,7 @@ export type NewCalendarEventType = {
   location?: string | null;
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
+  delegatedToId?: string | null;
 };
 
 export type CalendarEventType = {
@@ -249,7 +250,11 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 }
 
 export interface Calendar {
-  createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType>;
+  createEvent(
+    event: CalendarEvent,
+    credentialId: number,
+    overrideExternalIdForDelegatedCredential?: string
+  ): Promise<NewCalendarEventType>;
 
   updateEvent(
     uid: string,

@@ -678,7 +678,7 @@ export default class EventManager {
                 (c) => c.delegatedToId === destination.domainWideDelegationCredentialId
               )
             : this.calendarCredentials.find((c) => c.id === destination.credentialId);
-          if (!credential) {
+          if (!credential && destination.credentialId) {
             // Fetch credential from DB
             const credentialFromDB = await prisma.credential.findUnique({
               where: {
