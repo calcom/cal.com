@@ -10,7 +10,7 @@ import { FilterType } from "./FilterType";
 import { RoutingFormFieldFilter } from "./RoutingFormFieldFilter";
 import { RoutingFormFilterList } from "./RoutingFormFilterList";
 import { TeamAndSelfList } from "./TeamAndSelfList";
-import { UserListInTeam } from "./UsersListInTeam";
+import { UserListInTeam } from "./UserListInTeam";
 
 const ClearFilters = () => {
   const { t } = useLocale();

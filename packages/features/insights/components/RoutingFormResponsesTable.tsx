@@ -48,7 +48,7 @@ import { DateSelect } from "../filters/DateSelect";
 import { RoutingDownload } from "../filters/Download";
 import { RoutingFormFilterList } from "../filters/RoutingFormFilterList";
 import { TeamAndSelfList } from "../filters/TeamAndSelfList";
-import { UserListInTeam } from "../filters/UsersListInTeam";
+import { UserListInTeam } from "../filters/UserListInTeam";
 import { RoutingKPICards } from "./RoutingKPICards";
 
 type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
@@ -533,8 +533,8 @@ export function RoutingFormResponsesTable({
           <div className="flex flex-wrap items-start justify-between gap-2">
             <DataTableFilters.AddFilterButton table={table} />
             <TeamAndSelfList omitOrg={true} className="mb-0" />
-            <UserListInTeam />
-            <RoutingFormFilterList />
+            <UserListInTeam showOnlyWhenSelectedInContext={false} />
+            <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
             <div className="flex gap-2">
               <DataTableFilters.ActiveFilters table={table} />
             </div>

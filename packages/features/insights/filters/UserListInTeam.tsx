@@ -13,15 +13,23 @@ const mapUserToOption = (user: User) => ({
   icon: <Avatar alt={`${user.name} avatar`} imageSrc={user.avatarUrl} size="sm" className="mr-2" />,
 });
 
-export const UserListInTeam = () => {
+export const UserListInTeam = ({
+  showOnlyWhenSelectedInContext = true,
+}: {
+  showOnlyWhenSelectedInContext?: boolean;
+}) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
-  const { selectedTeamId, selectedMemberUserId, isAll } = filter;
+  const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
 
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
     teamId: selectedTeamId ?? -1,
     isAll: !!isAll,
   });
+
+  if (showOnlyWhenSelectedInContext && !selectedFilter?.includes("user")) {
+    return null;
+  }
 
   if (!selectedTeamId || !isSuccess || data?.length === 0) {
     return null;

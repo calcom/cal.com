@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import InsightsLayout from "./layout";
 
-export default function InsightsPage() {
+export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
 
   return (
