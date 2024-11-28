@@ -21,7 +21,7 @@ function Calendar({
 }: CalendarProps) {
   return (
     <DayPicker
-      fromDate={fromDate || new Date()}
+      fromDate={fromDate}
       toDate={toDate || undefined}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}

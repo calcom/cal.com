@@ -56,10 +56,7 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = (
-  { title, users = [], profile }: MeetingImageProps,
-  encodeUri = true
-): string => {
+export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
   const url = [
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
@@ -70,14 +67,14 @@ export const constructMeetingImage = (
     // Joining a multiline string for readability.
   ].join("");
 
-  return encodeUri ? encodeURIComponent(url) : url;
+  return url;
 };
 
 /**
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, description }: AppImageProps, encodeUri = true): string => {
+export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
   const url = [
     `?type=app`,
     `&name=${encodeURIComponent(name)}`,
@@ -86,10 +83,10 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps, en
     // Joining a multiline string for readability.
   ].join("");
 
-  return encodeUri ? encodeURIComponent(url) : url;
+  return url;
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps, encodeUri = true) => {
+export const constructGenericImage = ({ title, description }: GenericImageProps) => {
   const url = [
     `?type=generic`,
     `&title=${encodeURIComponent(title)}`,
@@ -97,7 +94,7 @@ export const constructGenericImage = ({ title, description }: GenericImageProps,
     // Joining a multiline string for readability.
   ].join("");
 
-  return encodeUri ? encodeURIComponent(url) : url;
+  return url;
 };
 
 const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
@@ -127,7 +124,6 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   const avatars = attendees
     .map((user) => {
       if ("image" in user && user?.image) return user.image;
-      if ("username" in user && user?.username) return `${CAL_URL}/${user.username}/avatar.png`;
       return null;
     })
     .filter(Boolean) as string[];

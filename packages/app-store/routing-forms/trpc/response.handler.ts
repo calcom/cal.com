@@ -3,14 +3,14 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
-// import { RoutingFormFieldType } from "../lib/FieldTypes";
-import { findTeamMembersMatchingAttributeLogicOfRoute } from "../lib/findTeamMembersMatchingAttributeLogicOfRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
+import isRouter from "../lib/isRouter";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
 import { onFormSubmission } from "./utils";
@@ -119,34 +119,41 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     }
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
-    if (!chosenRoute) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Chosen route not found",
-      });
-    }
+    let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
 
-    const teamMembersMatchingAttributeLogicWithResult =
-      form.teamId && chosenRouteId
-        ? await findTeamMembersMatchingAttributeLogicOfRoute({
-            response,
-            route: chosenRoute,
-            form: serializableForm,
+    if (chosenRoute) {
+      if (isRouter(chosenRoute)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Chosen route is a router",
+        });
+      }
+      const teamMembersMatchingAttributeLogicWithResult = form.teamId
+        ? await findTeamMembersMatchingAttributeLogic({
+            dynamicFieldValueOperands: {
+              response,
+              fields: serializableForm.fields || [],
+            },
+            attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+            fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
             teamId: form.teamId,
           })
         : null;
 
-    moduleLogger.debug(
-      "teamMembersMatchingAttributeLogic",
-      safeStringify({ teamMembersMatchingAttributeLogicWithResult })
-    );
+      moduleLogger.debug(
+        "teamMembersMatchingAttributeLogic",
+        safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+      );
 
-    const teamMemberIdsMatchingAttributeLogic =
-      teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-        ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
-            (member) => member.userId
-          )
-        : null;
+      teamMemberIdsMatchingAttributeLogic =
+        teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+          ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+              (member) => member.userId
+            )
+          : null;
+    } else {
+      // It currently happens for a Router route. Such a route id isn't present in the form.routes
+    }
 
     // const chosenRouteName = `Route ${chosenRouteIndex + 1}`;
 
@@ -218,15 +225,18 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       { ...serializableFormWithFields, userWithEmails },
       dbFormResponse.response as FormResponse,
       dbFormResponse.id,
-      "action" in chosenRoute ? chosenRoute.action : undefined
+      chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
     );
 
     return {
       isPreview: false,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
-      attributeRoutingConfig:
-        "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+      attributeRoutingConfig: chosenRoute
+        ? "attributeRoutingConfig" in chosenRoute
+          ? chosenRoute.attributeRoutingConfig
+          : null
+        : null,
     };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
