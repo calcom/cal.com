@@ -10,7 +10,7 @@ export const ResponseEmail = ({
   orderedResponses,
   ...props
 }: {
-  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">; // Ensure `fields` is included in the form
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">;
   orderedResponses: OrderedResponses;
   subject: string;
 } & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
