@@ -4,7 +4,11 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinReassignedEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
+import {
+  sendRoundRobinReassignedEmailsAndSMS,
+  sendRoundRobinScheduledEmailsAndSMS,
+  sendRoundRobinUpdatedEmailsAndSMS,
+} from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -389,6 +393,13 @@ export const roundRobinReassignment = async ({
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
+    if (emailsEnabled) {
+      // send email with event updates to attendees
+      await sendRoundRobinUpdatedEmailsAndSMS({
+        calEvent: evtWithoutCancellationReason,
+      });
+    }
+
     const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,

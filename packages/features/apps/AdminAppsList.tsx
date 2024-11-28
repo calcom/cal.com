@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { classNames as cs } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -34,8 +35,6 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui";
-
-import AppListCard from "../../../apps/web/components/AppListCard";
 
 type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
 

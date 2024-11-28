@@ -96,6 +96,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        username: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -351,6 +352,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
               expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
@@ -508,6 +510,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toEqual(createdBooking.id);
               expect(data.uid).toEqual(createdBooking.uid);
               expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
               expect(data.status).toEqual(createdBooking.status);
               expect(data.start).toEqual(createdBooking.start);
               expect(data.end).toEqual(createdBooking.end);
