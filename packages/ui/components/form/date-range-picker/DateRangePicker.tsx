@@ -3,7 +3,6 @@
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
-import type { DateRange } from "react-day-picker";
 
 import { classNames as cn } from "@calcom/lib";
 
@@ -26,13 +25,17 @@ export function DatePickerWithRange({
   onDatesChange,
   disabled,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
-  // Even though this is uncontrolled we need to do a bit of logic to improve the UX when selecting dates
-  function _onDatesChange(onChangeValues: DateRange | undefined) {
-    if (onChangeValues?.from && !onChangeValues?.to) {
-      onDatesChange({ startDate: onChangeValues.from, endDate: onChangeValues.from });
+  function handleDayClick(date: Date) {
+    if (dates?.startDate && dates?.endDate) {
+      onDatesChange({ startDate: date, endDate: undefined });
+    } else if (dates?.startDate && !dates?.endDate) {
+      const startDate = date < dates.startDate ? date : dates.startDate;
+      const endDate = date < dates.startDate ? dates.startDate : date;
+      onDatesChange({ startDate, endDate });
     } else {
-      onDatesChange({ startDate: onChangeValues?.from, endDate: onChangeValues?.to });
+      onDatesChange({ startDate: date, endDate: date });
     }
+    console.log({ date, dates });
   }
   const fromDate = minDate ?? new Date();
 
@@ -70,7 +73,7 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={dates?.startDate}
             selected={{ from: dates?.startDate, to: dates?.endDate }}
-            onSelect={(values) => _onDatesChange(values)}
+            onDayClick={(day) => handleDayClick(day)}
             numberOfMonths={1}
             disabled={disabled}
           />
