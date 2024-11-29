@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
         fileName: "cal-atoms",
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react-dom"],
+        external: ["react", "fs", "path", "os", "react-dom", "react-awesome-query-builder"],
         output: {
           globals: {
             react: "React",

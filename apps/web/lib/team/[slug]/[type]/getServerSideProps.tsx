@@ -5,6 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
@@ -51,7 +52,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
-      parent: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
       name: true,
       slug: true,
       eventTypes: {
@@ -64,6 +76,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           schedulingType: true,
           metadata: true,
           length: true,
+        },
+      },
+      isOrganization: true,
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
         },
       },
     },
@@ -89,6 +107,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
     "@calcom/web/lib/getTeamMemberEmailFromCrm"
   );
+  const {
+    email: teamMemberEmail,
+    recordType: crmOwnerRecordType,
+    crmAppSlug,
+  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+    query,
+    eventData,
+  });
+
+  const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
   return {
     props: {
       eventData: {
@@ -112,10 +142,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query,
-        eventData,
-      }),
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
+      isSEOIndexable: allowSEOIndexing,
     },
   };
 };
