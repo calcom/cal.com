@@ -12,6 +12,7 @@ type StatusAggregate = {
   rescheduled: number;
   cancelled: number;
   noShowHost: number;
+  noShowGuest: number;
   _all: number;
   uncompleted: number;
 };
@@ -79,22 +80,31 @@ class EventsInsights {
       "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
       "timeStatus",
-      "noShowHost"
+      "noShowHost",
+      "noShowGuest"
     FROM (
       SELECT
         DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
+        CAST(COUNT(CASE WHEN "a"."noShow" = true THEN 1 END) AS INTEGER) AS "noShowGuest",
         "timeStatus",
         "noShowHost"
       FROM
         "BookingTimeStatus"
+      JOIN
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatus"."id"
       WHERE
         "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
         AND ${Prisma.raw(whereClause)}
+      GROUP BY
+        "createdAt", 
+        "timeStatus", 
+        "noShowHost"
     ) AS truncated_dates
     GROUP BY
       "periodStart",
       "timeStatus",
-      "noShowHost"
+      "noShowHost",
+      "noShowGuest"
     ORDER BY
       "periodStart";
   `;
@@ -116,6 +126,7 @@ class EventsInsights {
           noShowHost: 0,
           _all: 0,
           uncompleted: 0,
+          noShowGuest: 0,
         };
       }
 
@@ -160,6 +171,7 @@ class EventsInsights {
           rescheduled: 0,
           cancelled: 0,
           noShowHost: 0,
+          noShowGuest: 0,
           _all: 0,
           uncompleted: 0,
         };
@@ -167,6 +179,27 @@ class EventsInsights {
     });
 
     return aggregate;
+  };
+
+  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const bookings = await prisma.bookingTimeStatus.findMany({
+      where,
+      select: {
+        id: true,
+      },
+    });
+
+    const { _count: totalNoShowGuests } = await prisma.attendee.aggregate({
+      where: {
+        bookingId: {
+          in: bookings.map((booking) => booking.id),
+        },
+        noShow: true,
+      },
+      _count: true,
+    });
+
+    return totalNoShowGuests;
   };
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
