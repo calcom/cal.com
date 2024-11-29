@@ -2817,5 +2817,7 @@
   "rr_distribution_method_balanced_description": "Budeme sledovat, kolik rezervací bylo provedeno u jednotlivých hostitelů a porovnávat je s ostatními. Některé hostitele, kteří jsou příliš napřed, dočasně deaktivujeme, aby byly rezervace rovnoměrně distribuovány.",
   "exclude_emails_that_contain": "Vyloučit e-maily obsahující...",
   "exclude_emails_match_found_error_message": "Zadejte prosím platnou pracovní e-mailovou adresu",
+  "disable_org_url_label": "Zakázat veřejný profil organizace a přesměrování",
+  "disable_org_url_description": "Přesměruje {{orgSlug}}.cal.com na {{destination}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
