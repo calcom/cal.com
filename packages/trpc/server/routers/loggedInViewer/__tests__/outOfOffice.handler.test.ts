@@ -8,12 +8,18 @@ import { outOfOfficeCreateOrUpdate } from "../outOfOffice.handler";
 const prismaMock = {
   outOfOfficeEntry: {
     findFirst: vi.fn().mockResolvedValue(undefined),
+    findUnique: vi.fn().mockResolvedValue(undefined),
+    upsert: vi.fn().mockResolvedValue(undefined),
   },
 };
 vi.spyOn(prisma.outOfOfficeEntry, "findFirst").mockImplementation(prismaMock.outOfOfficeEntry.findFirst);
+vi.spyOn(prisma.outOfOfficeEntry, "findUnique").mockImplementation(prismaMock.outOfOfficeEntry.findUnique);
+vi.spyOn(prisma.outOfOfficeEntry, "upsert").mockImplementation(prismaMock.outOfOfficeEntry.upsert);
 
 afterEach(() => {
   prismaMock.outOfOfficeEntry.findFirst.mockClear();
+  prismaMock.outOfOfficeEntry.findUnique.mockClear();
+  prismaMock.outOfOfficeEntry.upsert.mockClear();
 });
 
 const mockUser = {
