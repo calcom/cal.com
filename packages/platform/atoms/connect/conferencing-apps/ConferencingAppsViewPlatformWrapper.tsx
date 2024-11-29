@@ -7,11 +7,9 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
-import { trpc } from "@calcom/trpc/react";
+import type { App } from "@calcom/types/App";
 import {
   Button,
-  EmptyScreen,
-  showToast,
   SkeletonContainer,
   SkeletonText,
   Dropdown,
@@ -19,19 +17,30 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
+  EmptyScreen,
 } from "@calcom/ui";
 
-import { useConnect } from "../../hooks/stripe/useConnect";
+import { AtomsWrapper } from "../../src/components/atoms-wrapper";
+import { useToast } from "../../src/components/ui/use-toast";
+import { useAtomsGetInstalledConferencingApps } from "./hooks/useAtomsGetInstalledConferencingApps";
+import { useConnect } from "./hooks/useConnect";
+import { useDeleteCredential } from "./hooks/useDeleteCredential";
+import { useGetDefaultConferencingApp } from "./hooks/useGetDefaultConferencingApp";
+import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
 
-type ConferencingAppsViewWebWrapperProps = {
+type ConferencingAppsViewPlatformWrapperProps = {
   title: string;
   description: string;
   add: string;
+  disableToasts?: boolean;
 };
 
-type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
+type UpdateDefaultConferencingAppParams = {
+  appSlug: string;
+  callback: () => void;
+};
 type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
-type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
+type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void; app: App["slug"] };
 
 const SkeletonLoader = () => {
   return (
@@ -47,91 +56,99 @@ const SkeletonLoader = () => {
 type ModalState = {
   isOpen: boolean;
   credentialId: null | number;
+  app: App["slug"] | null;
 };
 
-export const ConferencingAppsViewWebWrapper = ({
+export const ConferencingAppsViewPlatformWrapper = ({
   title,
   description,
   add,
-}: ConferencingAppsViewWebWrapperProps) => {
+  disableToasts = false,
+}: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
+  // const utils = trpc.useUtils();
+  const { toast } = useToast();
+
+  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+    if (!disableToasts) {
+      toast({ description: message });
+    }
+  };
 
   const [modal, updateModal] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
     {
       isOpen: false,
       credentialId: null,
+      app: null,
     }
   );
 
   const handleModelClose = () => {
-    updateModal({ isOpen: false, credentialId: null });
+    updateModal({ isOpen: false, credentialId: null, app: null });
   };
 
-  const handleDisconnect = (credentialId: number) => {
-    updateModal({ isOpen: true, credentialId });
+  const handleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => {
+    updateModal({ isOpen: true, credentialId, app });
   };
 
-  const installedIntegrationsQuery = trpc.viewer.integrations.useQuery({
-    variant: "conferencing",
-    onlyInstalled: true,
+  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps();
+  const { data: defaultConferencingApp } = useGetDefaultConferencingApp();
+
+  const deleteCredentialMutation = useDeleteCredential({
+    onSuccess: () => {
+      showToast(t("app_removed_successfully"), "success");
+      handleModelClose();
+      // utils.viewer.integrations.invalidate();
+      // utils.viewer.connectedCalendars.invalidate();
+    },
+    onError: () => {
+      showToast(t("error_removing_app"), "error");
+      handleModelClose();
+    },
   });
 
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+  const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  });
 
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+  // const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
-
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
-
-  const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
-    deleteCredentialMutation.mutate(
-      { id: credentialId, teamId },
-      {
-        onSuccess: () => {
-          showToast(t("app_removed_successfully"), "success");
-          callback();
-          utils.viewer.integrations.invalidate();
-          utils.viewer.connectedCalendars.invalidate();
-        },
-        onError: () => {
-          showToast(t("error_removing_app"), "error");
-          callback();
-        },
-      }
-    );
+  const handleRemoveApp = ({ app }: RemoveAppParams) => {
+    deleteCredentialMutation.mutate(app);
   };
 
   const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
-    updateDefaultAppMutation.mutate(
-      { appSlug },
-      {
-        onSuccess: () => {
-          showToast("Default app updated successfully", "success");
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
-        },
-        onError: (error) => {
-          showToast(`Error: ${error.message}`, "error");
-        },
-      }
-    );
+    updateDefaultAppMutation.mutate(appSlug, {
+      onSuccess: () => {
+        showToast("Default app updated successfully", "success");
+        // utils.viewer.getUsersDefaultConferencingApp.invalidate();
+        callback();
+      },
+      onError: (error) => {
+        showToast(`Error: ${error.message}`, "error");
+      },
+    });
   };
 
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
-    updateLocationsMutation.mutate(
-      {
-        eventTypeIds,
-      },
-      {
-        onSuccess: () => {
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
-        },
-      }
-    );
+    return;
+    // updateLocationsMutation.mutate(
+    //   {
+    //     eventTypeIds,
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    //       callback();
+    //     },
+    //   }
+    // );
   };
 
   const { connect } = useConnect();
@@ -150,19 +167,12 @@ export const ConferencingAppsViewWebWrapper = ({
             </DropdownItem>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <DropdownItem
-              color="secondary"
-              className="disabled:opacity-40"
-              onClick={() => connect()}
-              data-testid="resend-verify-email-button">
+            <DropdownItem color="secondary" className="disabled:opacity-40" onClick={() => connect()}>
               {t("zoom")}
             </DropdownItem>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <DropdownItem
-              color="secondary"
-              className="disabled:opacity-40"
-              data-testid="secondary-email-delete-button">
+            <DropdownItem color="secondary" className="disabled:opacity-40">
               {t("cal video")}
             </DropdownItem>
           </DropdownMenuItem>
@@ -172,58 +182,62 @@ export const ConferencingAppsViewWebWrapper = ({
   };
 
   return (
-    <SettingsHeader
-      title={title}
-      description={description}
-      CTA={<AddConferencingButtonPlatform />}
-      borderInShellHeader={true}>
-      <>
-        <div className="bg-default w-full sm:mx-0 xl:mt-0">
-          <QueryCell
-            query={installedIntegrationsQuery}
-            customLoader={<SkeletonLoader />}
-            success={({ data }) => {
-              if (!data.items.length) {
+    <AtomsWrapper>
+      <SettingsHeader
+        title={title}
+        description={description}
+        CTA={<AddConferencingButtonPlatform />}
+        borderInShellHeader={true}>
+        <>
+          <div className="bg-default w-full sm:mx-0 xl:mt-0">
+            <QueryCell
+              query={installedIntegrationsQuery}
+              customLoader={<SkeletonLoader />}
+              success={({ data }) => {
+                if (!data.items.length) {
+                  return (
+                    <EmptyScreen
+                      Icon="calendar"
+                      headline={t("no_category_apps", {
+                        category: t("conferencing").toLowerCase(),
+                      })}
+                      description={t("no_category_apps_description_conferencing")}
+                      buttonRaw={
+                        <Button
+                          color="secondary"
+                          data-testid="connect-conferencing-apps"
+                          href="/apps/categories/conferencing">
+                          {t("connect_conference_apps")}
+                        </Button>
+                      }
+                    />
+                  );
+                }
                 return (
-                  <EmptyScreen
-                    Icon="calendar"
-                    headline={t("no_category_apps", {
-                      category: t("conferencing").toLowerCase(),
-                    })}
-                    description={t("no_category_apps_description_conferencing")}
-                    buttonRaw={
-                      <Button
-                        color="secondary"
-                        data-testid="connect-conferencing-apps"
-                        href="/apps/categories/conferencing">
-                        {t("connect_conference_apps")}
-                      </Button>
-                    }
+                  <AppList
+                    listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
+                    handleDisconnect={handleDisconnect}
+                    data={data}
+                    variant="conferencing"
+                    defaultConferencingApp={defaultConferencingApp}
+                    handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+                    handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+                    // isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+                    isBulkUpdateDefaultLocationPending={false}
                   />
                 );
-              }
-              return (
-                <AppList
-                  listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
-                  handleDisconnect={handleDisconnect}
-                  data={data}
-                  variant="conferencing"
-                  defaultConferencingApp={defaultConferencingApp}
-                  handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
-                  handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
-                  isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
-                />
-              );
-            }}
+              }}
+            />
+          </div>
+          <DisconnectIntegrationModal
+            handleModelClose={handleModelClose}
+            isOpen={modal.isOpen}
+            credentialId={modal.credentialId}
+            app={modal.app}
+            handleRemoveApp={handleRemoveApp}
           />
-        </div>
-        <DisconnectIntegrationModal
-          handleModelClose={handleModelClose}
-          isOpen={modal.isOpen}
-          credentialId={modal.credentialId}
-          handleRemoveApp={handleRemoveApp}
-        />
-      </>
-    </SettingsHeader>
+        </>
+      </SettingsHeader>
+    </AtomsWrapper>
   );
 };

@@ -9,7 +9,9 @@ import {
   ConferencingAppsOutputResponseDto,
   ConferencingAppOutputResponseDto,
   ConferencingAppsOutputDto,
+  DisconnectConferencingAppOutputResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
+import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
@@ -28,7 +30,6 @@ import {
   BadRequestException,
   Delete,
   Headers,
-  ParseIntPipe,
   Redirect,
   UnauthorizedException,
   Req,
@@ -38,7 +39,6 @@ import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
 import { CONFERENCING_APPS, GOOGLE_MEET, ZOOM, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ERROR_STATUS } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -94,7 +94,6 @@ export class ConferencingController {
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @Param("app") app: string
-    // @Query("teamId", new ParseIntPipe({ optional: true })) teamId?: number
   ): Promise<GetConferencingAppsOauthUrlResponseDto> {
     let credential;
     const origin = req.headers.origin;
@@ -105,7 +104,6 @@ export class ConferencingController {
       fromApp: false,
       returnTo: origin,
       accessToken,
-      // teamId,
     };
 
     switch (app) {
@@ -131,11 +129,10 @@ export class ConferencingController {
     @Query("code") code: string,
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined
-  ): Promise<GetConferencingAppsOauthUrlResponseDto> {
-    const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
+  ): Promise<{ url: string }> {
+    const decodedCallbackState: OAuthCallbackState = JSON.parse(JSON.parse(state));
     try {
       const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
-
       if (error) {
         throw new BadRequestException(error_description);
       }
@@ -146,20 +143,14 @@ export class ConferencingController {
 
       switch (app) {
         case ZOOM:
-          const credential = await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId);
-
-          return {
-            status: SUCCESS_STATUS,
-            data: plainToInstance(ConferencingAppsOauthUrlOutputDto, credential),
-          };
+          return await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId);
 
         default:
           throw new BadRequestException("Invalid conferencing app, available apps are: ", [ZOOM].join(", "));
       }
     } catch (error) {
       return {
-        data: { url: decodedCallbackState.onErrorReturnTo ?? "" },
-        status: ERROR_STATUS,
+        url: decodedCallbackState.onErrorReturnTo ?? "",
       };
     }
   }
@@ -188,18 +179,17 @@ export class ConferencingController {
     @GetUser("id") userId: number,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
-    switch (app) {
-      case GOOGLE_MEET:
-        await this.googleMeetService.setDefault(userId);
+    await this.conferencingService.setDefaultConferencingApp(userId, app);
+    return { status: SUCCESS_STATUS };
+  }
 
-        return { status: SUCCESS_STATUS };
-
-      default:
-        throw new BadRequestException(
-          "Invalid conferencing app, available apps are: ",
-          CONFERENCING_APPS.join(", ")
-        );
-    }
+  @Get("/default")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Get your default conferencing application" })
+  async getDefault(@GetUser("id") userId: number): Promise<GetDefaultConferencingAppOutputResponseDto> {
+    const defaultconferencingApp = await this.conferencingService.getUserDefaultConferencingApp(userId);
+    return { status: SUCCESS_STATUS, data: defaultconferencingApp };
   }
 
   @Delete("/:app/disconnect")
@@ -209,18 +199,8 @@ export class ConferencingController {
   async disconnect(
     @GetUser("id") userId: number,
     @Param("app") app: string
-  ): Promise<ConferencingAppOutputResponseDto> {
-    switch (app) {
-      case GOOGLE_MEET:
-        const credential = await this.googleMeetService.disconnectGoogleMeetApp(userId);
-
-        return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
-
-      default:
-        throw new BadRequestException(
-          "Invalid conferencing app, available apps are: ",
-          CONFERENCING_APPS.join(", ")
-        );
-    }
+  ): Promise<DisconnectConferencingAppOutputResponseDto> {
+    await this.conferencingService.disconnectConferencingApp(userId, app);
+    return { status: SUCCESS_STATUS };
   }
 }

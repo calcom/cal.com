@@ -1,21 +1,10 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.respository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  BadRequestException,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { BadRequestException, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-
-import { GOOGLE_MEET } from "@calcom/platform-constants";
 
 import stringify = require("qs-stringify");
 
@@ -29,13 +18,7 @@ export class ZoomVideoService {
   private logger = new Logger("ZoomVideoService");
   private redirectUri = `${this.config.get("api.url")}/conferencing/zoom/oauth/callback`;
 
-  constructor(
-    private readonly config: ConfigService,
-    private readonly conferencingRepository: ConferencingRepository,
-    private readonly credentialsRepository: CredentialsRepository,
-    private readonly usersRepository: UsersRepository,
-    private readonly appsRepository: AppsRepository
-  ) {}
+  constructor(private readonly config: ConfigService, private readonly appsRepository: AppsRepository) {}
 
   async getZoomAppKeys() {
     const app = await this.appsRepository.getAppBySlug("zoom");
@@ -123,31 +106,6 @@ export class ZoomVideoService {
       "zoom"
     );
 
-    return { url: state.returnTo };
-  }
-
-  async disconnectZoomApp(userId: number) {
-    const googleMeet = await this.conferencingRepository.findGoogleMeet(userId);
-
-    if (!googleMeet) {
-      throw new BadRequestException("Google Meet is not connected.");
-    }
-
-    const googleMeetCredential = await this.credentialsRepository.deleteUserCredentialById(
-      userId,
-      googleMeet.id
-    );
-
-    return googleMeetCredential;
-  }
-
-  async setDefault(userId: number) {
-    const user = await this.usersRepository.setDefaultConferencingApp(userId, GOOGLE_MEET);
-    const metadata = user.metadata as { defaultConferencingApp?: { appSlug?: string } };
-
-    if (metadata?.defaultConferencingApp?.appSlug !== GOOGLE_MEET) {
-      throw new InternalServerErrorException("Could not set Google Meet as default conferencing app");
-    }
-    return true;
+    return { url: state.returnTo ?? "" };
   }
 }

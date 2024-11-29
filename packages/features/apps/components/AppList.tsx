@@ -10,7 +10,7 @@ import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/Bul
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc";
+import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import {
   Alert,
@@ -24,12 +24,14 @@ import {
   showToast,
 } from "@calcom/ui";
 
+type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
+
 export type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
 
 interface AppListProps {
   variant?: AppCategories;
   data: RouterOutputs["viewer"]["integrations"];
-  handleDisconnect: (credentialId: number) => void;
+  handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
   handleUpdateDefaultConferencingApp: (params: UpdateDefaultConferencingAppParams) => void;
@@ -111,6 +113,7 @@ export const AppList = ({
                   <ConnectOrDisconnectIntegrationMenuItem
                     credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                     type={item.type}
+                    app={item.slug}
                     isGlobal={item.isGlobal}
                     installed
                     invalidCredentialIds={item.invalidCredentialIds}
@@ -194,14 +197,15 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   installed?: boolean;
   invalidCredentialIds?: number[];
   teamId?: number;
-  handleDisconnect: (credentialId: number, teamId?: number) => void;
+  app: App["slug"];
+  handleDisconnect: HandleDisconnect;
 }) {
-  const { type, credentialId, isGlobal, installed, handleDisconnect, teamId } = props;
+  const { type, credentialId, isGlobal, installed, handleDisconnect, teamId, app } = props;
   const { t } = useLocale();
 
-  const utils = trpc.useUtils();
+  // const utils = trpc.useUtils();
   const handleOpenChange = () => {
-    utils.viewer.integrations.invalidate();
+    // utils.viewer.integrations.invalidate();
   };
 
   if (credentialId || type === "stripe_payment" || isGlobal) {
@@ -209,7 +213,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
       <DropdownMenuItem>
         <DropdownItem
           color="destructive"
-          onClick={() => handleDisconnect(credentialId, teamId)}
+          onClick={() => handleDisconnect(credentialId, app, teamId)}
           disabled={isGlobal}
           StartIcon="trash">
           {t("remove_app")}

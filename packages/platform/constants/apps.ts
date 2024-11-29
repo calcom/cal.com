@@ -21,7 +21,7 @@ export const ZOOM = "zoom";
 export const ZOOM_TYPE = "zoom_video";
 export const ZOOM_ID = "zoom";
 
-export const CONFERENCING_APPS = [GOOGLE_MEET];
+export const CONFERENCING_APPS = [GOOGLE_MEET, ZOOM];
 
 export const APPS_TYPE_ID_MAPPING = {
   [GOOGLE_CALENDAR_TYPE]: GOOGLE_CALENDAR_ID,

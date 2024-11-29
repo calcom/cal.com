@@ -19,6 +19,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
@@ -80,6 +81,9 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+
+export { getConnectedApps } from "@calcom/lib/getConnectedApps";
+export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
@@ -215,3 +219,4 @@ export { AttendeeRescheduledEmail };
 export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
+export { handleDeleteCredential };

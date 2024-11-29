@@ -3881,14 +3881,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": [
@@ -3898,7 +3891,7 @@
     },
     "/v2/conferencing": {
       "get": {
-        "operationId": "ConferencingController_listConferencingApps",
+        "operationId": "ConferencingController_listInstalledConferencingApps",
         "summary": "List your conferencing applications",
         "parameters": [],
         "responses": {
@@ -3949,6 +3942,28 @@
         ]
       }
     },
+    "/v2/conferencing/default": {
+      "get": {
+        "operationId": "ConferencingController_getDefault",
+        "summary": "Get your default conferencing application",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
     "/v2/conferencing/{app}/disconnect": {
       "delete": {
         "operationId": "ConferencingController_disconnect",
@@ -3969,7 +3984,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
                 }
               }
             }
@@ -14175,6 +14190,52 @@
         ]
       },
       "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DefaultConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "appSlug": {
+            "type": "string"
+          },
+          "appLink": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DisconnectConferencingAppOutputResponseDto": {
         "type": "object",
         "properties": {
           "status": {
