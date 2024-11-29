@@ -189,10 +189,14 @@ function getHostsWithCalibration({
           booking.userId !== userId // attendee email check is missing here in case of fixed hosts
       );
 
-      calibration += bookingsInTimeframe.length / (hosts.length - 1);
+      const nrOfHostsCreatedBefore =
+        hosts.filter((host) => host.createdAt.getTime() <= oooEntry.start.getTime()).length || 1;
+
+      // - 1 because the we need to exclude the current user
+      calibration += bookingsInTimeframe.length / (nrOfHostsCreatedBefore - 1);
     });
 
-    oooCalibration.set(userId, calibration); // This can remain a Map if you need userId-based lookups later
+    oooCalibration.set(userId, calibration);
   });
 
   let newHostsWithCalibration: Map<
@@ -380,7 +384,6 @@ async function getCurrentMonthCalendarBusyTimes(
     selectedCalendars: SelectedCalendar[];
   }[]
 ): Promise<{ userId: number; busyTimes: EventBusyDate[] }[]> {
-  console.log(`selectedCalendars ${JSON.stringify(usersWithCredentials)}`);
   return Promise.all(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
