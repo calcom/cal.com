@@ -80,8 +80,8 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
     },
   });
 
-  const groupedAttributes = userAttributes.reduce<GroupedAttribute[]>((acc, attribute) => {
-    const { attributeOption, createdByDSyncId } = attribute;
+  const groupedAttributes = userAttributes.reduce<GroupedAttribute[]>((acc, assignment) => {
+    const { attributeOption, createdByDSyncId } = assignment;
     const { attribute: attrInfo, ...optionInfo } = attributeOption;
     const optionInfoWithCreatedByDSyncId = { ...optionInfo, createdByDSyncId };
     const existingGroup = acc.find((group) => group.id === attrInfo.id);

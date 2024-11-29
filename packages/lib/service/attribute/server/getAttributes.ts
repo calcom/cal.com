@@ -1,11 +1,12 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { attributeService } from "@calcom/lib/service/attribute/attributeService";
 import prisma from "@calcom/prisma";
 import type { AttributeType } from "@calcom/prisma/enums";
 
-type AttributeId = string;
+import type { AttributeId } from "../types";
+import { findAllAttributesWithTheirOptions } from "./utils";
+
 type UserId = number;
 
 export type Attribute = {
@@ -145,7 +146,7 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
   const [assignedAttributeOptions, allAttributesWithTheirOptions] = await Promise.all([
     getAssignedAttributeOptions({ teamId }),
     // We need to fetch even the unassigned options, to know what all sub-options are there in an option group. Because it is possible that sub-options aren't assigned directly to the user
-    attributeService.findAllAttributesWithTheirOptions({ teamId }),
+    findAllAttributesWithTheirOptions({ teamId }),
   ]);
 
   const teamMembersThatHaveOptionAssigned = assignedAttributeOptions.reduce((acc, attributeToUser) => {

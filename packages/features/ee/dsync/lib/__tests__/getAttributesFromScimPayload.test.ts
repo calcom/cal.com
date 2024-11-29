@@ -133,4 +133,32 @@ describe("getAttributesFromScimPayload", () => {
       department: "Engineering",
     });
   });
+
+  it("should extract from core namespace as well.", () => {
+    const event = {
+      event: "user.created",
+      data: {
+        raw: {
+          schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+          userName: "kush@acme.com",
+          name: { givenName: "Kush", familyName: "Kush" },
+          emails: [{ primary: true, value: "kush@acme.com" }],
+          displayName: "Kush",
+          territory: "XANAM",
+          externalId: "00ulb1kpy4EMATtuS5d7",
+          groups: [],
+          active: true,
+        },
+      },
+    } as DirectorySyncEvent;
+
+    const result = getAttributesFromScimPayload(event);
+    expect(result).toEqual({
+      userName: "kush@acme.com",
+      displayName: "Kush",
+      territory: "XANAM",
+      externalId: "00ulb1kpy4EMATtuS5d7",
+      groups: [],
+    });
+  });
 });

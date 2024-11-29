@@ -1581,6 +1581,10 @@ model AttributeOption {
   value         String
   slug          String
   isGroup       Boolean           @default(false)
+  // It is a list of AttributeOptions ids that are contained in the group option
+  // You could think of a person having the group option to actually have all the options in the contains list.
+  // We are not using relation here because it would be a many to many relation because a group option can contain many non-group options and a non-group option can be contained in many group options
+  // Such a relation would require its own table to be managed and we don't need it for now.
   contains      String[]
   assignedUsers AttributeToUser[]
 }
@@ -1618,6 +1622,7 @@ model AttributeToUser {
   
   weight            Int?
   
+  // We don't intentionally delete assignments on deletion of a user/directory sync
   createdAt         DateTime          @default(now())
   createdById       Int?
   createdBy         User?             @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)

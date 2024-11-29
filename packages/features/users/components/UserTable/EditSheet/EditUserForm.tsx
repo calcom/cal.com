@@ -236,10 +236,10 @@ export function EditForm({
   );
 }
 
-type AttributeType = z.infer<typeof attributeSchema>;
+type Attribute = z.infer<typeof attributeSchema>;
 
 type DefaultValueType = {
-  [key: `attributes.${number}`]: AttributeType;
+  [key: `attributes.${number}`]: Attribute;
 };
 
 function AttributesList(props: { selectedUserId: number }) {
@@ -321,7 +321,7 @@ function AttributesList(props: { selectedUserId: number }) {
             key={attr.id}
             defaultValue={defaultValues[`attributes.${index}`]}
             render={({ field: { value, ...field } }) => {
-              const fieldValue = value as AttributeType;
+              const fieldValue = value as Attribute | undefined | null;
               return (
                 <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
@@ -363,8 +363,9 @@ function AttributesList(props: { selectedUserId: number }) {
 
                         field.onChange({
                           id: attr.id,
+                          // It is also ensured in the backend that the options not owned by cal.com are not removed
                           options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
-                            earlierOptions: fieldValue.options || [],
+                            earlierOptions: fieldValue?.options || [],
                             updatedOptions,
                           }),
                         });

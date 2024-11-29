@@ -1,8 +1,9 @@
 ## BUGS 
-- Deleting the assignments for all members instead of the one being pushed
 - Test Attribute Edit. It seems to be doing weird things with the ids.
 
 ## TODO
+- [x] Sync from Okta to user could be in core namespace urn:ietf:params:scim:schemas:core:2.0:User and we might need to ask for the namespace to sync from.
+- [x] Deleting a sub-option, should remove it from option-group?
 - [x] Locked attribute are free to have its options completely reset by SCIM
 - [x] Unlocked attribute shouldn't get updates from SCIM but in case they still do, we follow this strategy
     - If attribute from SCIM, doesn't exist on user, we allow it to be freely set on the user
@@ -27,8 +28,7 @@
   2. Simular a failure in adding the user
     - Failure could be in user creation or attribute assignment creation
   3. Remove the user and Re-add the user and see it is correctly synced.
-- Cal.com changes
-  - [ ] Try removing a locked attribute assignment from a user.
+  - [x] Try removing a locked attribute assignment from a user.
 
 
 

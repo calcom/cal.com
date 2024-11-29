@@ -23,7 +23,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const options = input.options;
+  // If an option is removed, it is to be removed from contains of corresponding group as well if any
+  const options = getOptionsWithValidContains(input.options);
 
   const foundAttribute = await prisma.attribute.findUnique({
     where: {
@@ -112,6 +113,29 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
 
   return attributes;
 };
+
+/**
+ * Ensures that contains has no non-existent sub-options
+ */
+function getOptionsWithValidContains(options: ZEditAttributeSchema["options"]) {
+  return options.map(({ contains, ...option }) => {
+    if (!contains)
+      return {
+        ...option,
+        contains: [],
+      };
+    const possibleSubOptions = options
+      .filter((option) => !option.isGroup)
+      .filter((option): option is typeof option & { id: string } => option.id !== undefined);
+
+    const possibleSubOptionsIds = possibleSubOptions.map((option) => option.id);
+
+    return {
+      ...option,
+      contains: contains.filter((subOptionId) => possibleSubOptionsIds.includes(subOptionId)),
+    };
+  });
+}
 
 async function validateOptionsBelongToAttribute(
   options: ZEditAttributeSchema["options"],

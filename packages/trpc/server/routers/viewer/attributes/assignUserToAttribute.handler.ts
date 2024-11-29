@@ -1,3 +1,4 @@
+import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/lib/service/attribute/server/utils";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -11,11 +12,6 @@ type GetOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: ZAssignUserToAttribute;
-};
-
-const whereClauseForAttributeOptionsManagedByCalcom = {
-  // Ensure that we operate only on options created by Cal.com
-  createdByDSyncId: null,
 };
 
 const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
@@ -97,14 +93,14 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   // const promises: Promise<{ id: string }>[] = [];
 
-  const unlockedAttributes = input.attributes.filter((attribute) => {
+  const unlockedAttributesInInput = input.attributes.filter((attribute) => {
     const attributeFromDb = attributes.find((a) => a.id === attribute.id);
     return !attributeFromDb?.isLocked;
   });
 
-  const lockedAttributes = attributes.filter((attribute) => attribute.isLocked);
+  const lockedAttributesFromDb = attributes.filter((attribute) => attribute.isLocked);
 
-  unlockedAttributes.map(async (attribute) => {
+  unlockedAttributesInInput.map(async (attribute) => {
     // TEXT, NUMBER
     if (attribute.value && !attribute.options) {
       const valueAsString = String(attribute.value);
@@ -174,7 +170,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
             },
           },
           memberId: membership.id,
-          ...whereClauseForAttributeOptionsManagedByCalcom,
+          ...getWhereClauseForAttributeOptionsManagedByCalcom(),
           NOT: {
             id: {
               in: options.map((option) => option.value),
@@ -209,7 +205,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       await prisma.attributeToUser.deleteMany({
         where: {
           memberId: membership.id,
-          ...whereClauseForAttributeOptionsManagedByCalcom,
+          ...getWhereClauseForAttributeOptionsManagedByCalcom(),
           attributeOption: {
             attribute: {
               id: attribute.id,
@@ -222,9 +218,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   return {
     success: true,
-    message: `Attributes assigned successfully. Locked attributes ${lockedAttributes
-      .map((attribute) => attribute.name)
-      .join(", ")} were not assigned.`,
+    message: lockedAttributesFromDb.length
+      ? `Attributes assigned successfully. Locked attributes ${lockedAttributesFromDb
+          .map((attribute) => attribute.name)
+          .join(", ")} were not assigned.`
+      : "Attributes assigned successfully.",
   };
 };
 

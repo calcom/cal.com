@@ -1,4 +1,4 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 
-import { attributeService, buildPrismaQueriesForAttributeOptionToUser } from "../attribute/attributeService";
+import { assignValueToUserInOrgBulk, buildPrismaQueriesForAttributeOptionToUser } from "./assignValueToUser";
 
 function buildMockAttribute(data: {
   teamId: number;
@@ -151,7 +151,7 @@ describe("addValueForMember", () => {
 
       const { user, membership } = await createMockUserWithMembership({ orgId });
 
-      await attributeService.assignValueToUserInOrgBulk({
+      await assignValueToUserInOrgBulk({
         orgId,
         userId: user.id,
         attributeLabelToValueMap: {
@@ -172,7 +172,7 @@ describe("addValueForMember", () => {
       expect(createdAttributeToUsers[0].attributeOptionId).toEqual("102");
 
       // Do another update. This should reset the options assigned to the user and add just this one
-      await attributeService.assignValueToUserInOrgBulk({
+      await assignValueToUserInOrgBulk({
         orgId,
         userId: user.id,
         attributeLabelToValueMap: {
@@ -218,7 +218,7 @@ describe("addValueForMember", () => {
         dsyncId: null,
       });
 
-      await attributeService.assignValueToUserInOrgBulk({
+      await assignValueToUserInOrgBulk({
         orgId,
         userId: user.id,
         attributeLabelToValueMap: {
@@ -304,7 +304,7 @@ describe("addValueForMember", () => {
           dsyncId: dsync2!.id as unknown as string,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -376,7 +376,7 @@ describe("addValueForMember", () => {
           dsyncId: dsync2!.id as unknown as string,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -430,7 +430,7 @@ describe("addValueForMember", () => {
           },
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -476,7 +476,7 @@ describe("addValueForMember", () => {
           dsyncId: null,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -558,7 +558,7 @@ describe("addValueForMember", () => {
           dsyncId: dsyncDoingAssignment_id,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -614,7 +614,7 @@ describe("addValueForMember", () => {
           organizationId: orgId,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -672,7 +672,7 @@ describe("addValueForMember", () => {
           organizationId: orgId,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -733,7 +733,7 @@ describe("addValueForMember", () => {
           },
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -804,7 +804,7 @@ describe("addValueForMember", () => {
           dsyncId: dsync.id,
         });
 
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -843,7 +843,7 @@ describe("addValueForMember", () => {
         });
 
         const { user, membership } = await createMockUserWithMembership({ orgId });
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {
@@ -887,7 +887,7 @@ describe("addValueForMember", () => {
         });
 
         const { user, membership } = await createMockUserWithMembership({ orgId });
-        await attributeService.assignValueToUserInOrgBulk({
+        await assignValueToUserInOrgBulk({
           orgId,
           userId: user.id,
           attributeLabelToValueMap: {

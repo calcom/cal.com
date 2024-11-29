@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { attributeService } from "@calcom/lib/service/attribute/attributeService";
+import { assignValueToUserInOrgBulk } from "@calcom/lib/service/attribute/server/assignValueToUser";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -46,7 +46,7 @@ async function syncCustomAttributesToUser({
   }
 
   const customAttributes = getAttributesFromScimPayload(event);
-  await attributeService.assignValueToUserInOrgBulk({
+  await assignValueToUserInOrgBulk({
     orgId: org.id,
     userId: user.id,
     attributeLabelToValueMap: customAttributes,

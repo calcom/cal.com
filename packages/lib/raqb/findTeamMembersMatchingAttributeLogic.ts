@@ -7,8 +7,8 @@ import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import {
   getTeamMembersWithAttributeOptionValuePerAttribute,
   getAttributesForTeam,
-} from "@calcom/lib/service/attribute/getAttributes";
-import type { Attribute } from "@calcom/lib/service/attribute/getAttributes";
+} from "@calcom/lib/service/attribute/server/getAttributes";
+import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 
 import { RaqbLogicResult } from "./evaluateRaqbLogic";
 import jsonLogic from "./jsonLogic";

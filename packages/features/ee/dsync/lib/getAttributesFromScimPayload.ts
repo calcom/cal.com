@@ -58,6 +58,9 @@ function getAttributesFromScimPayload(
   const raw = event.data.raw;
   raw.schemas.forEach((schema: unknown) => {
     if (schema === "urn:ietf:params:scim:schemas:core:2.0:User") {
+      // Core schema has payload in the root
+      const { schemas: _schemas, ...namespaceData } = raw;
+      collectAttributes(namespaceData);
       return;
     }
     const namespaceName = schema;
@@ -74,7 +77,15 @@ function getAttributesFromScimPayload(
       return;
     }
 
-    Object.entries(namespaceData).forEach(([customAttributeName, value]) => {
+    collectAttributes(namespaceData);
+  });
+
+  log.debug("Collected attributes", `Attributes: ${safeStringify(scimUserAttributes)}`);
+
+  return scimUserAttributes;
+
+  function collectAttributes(data: Record<string, unknown>) {
+    Object.entries(data).forEach(([customAttributeName, value]) => {
       if (!value) {
         log.warn(
           "getAttributesFromScimPayload",
@@ -98,9 +109,7 @@ function getAttributesFromScimPayload(
         scimUserAttributes[customAttributeName] = value;
       }
     });
-  });
-
-  return scimUserAttributes;
+  }
 }
 
 export default getAttributesFromScimPayload;

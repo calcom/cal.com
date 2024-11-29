@@ -12,7 +12,7 @@ import type {
   AttributeOptionValueWithType,
   AttributeOptionValue,
   Attribute,
-} from "@calcom/lib/service/attribute/getAttributes";
+} from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });

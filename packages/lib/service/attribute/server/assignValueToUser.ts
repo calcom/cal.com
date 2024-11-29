@@ -1,18 +1,22 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import type { Attribute, AttributeToUser, AttributeOption } from "@calcom/prisma/client";
-import { AttributeType } from "@calcom/prisma/enums";
 
-import { AttributeRepository } from "../../server/repository/attribute";
-import { AttributeOptionRepository } from "../../server/repository/attributeOption";
-import { AttributeToUserRepository } from "../../server/repository/attributeToUser";
-import { MembershipRepository } from "../../server/repository/membership";
-import type { AttributeId, AttributeName, BulkAttributeAssigner } from "./types";
+import { AttributeRepository } from "../../../server/repository/attribute";
+import { AttributeOptionRepository } from "../../../server/repository/attributeOption";
+import { MembershipRepository } from "../../../server/repository/membership";
+import type { AttributeId, AttributeName, BulkAttributeAssigner, AttributeOptionAssignment } from "../types";
+import {
+  doesSupportMultipleValues,
+  isAssignmentForLockedAttribute,
+  isAssignmentForTheSamePool,
+  isAssignmentSame,
+  buildSlugFromValue,
+  canSetValueBeyondOptions,
+} from "../utils";
+import { findAssignmentsForMember } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["entity/attribute"] });
-type AttributeLabelToValueMap = Record<AttributeName, string | string[]>;
 
 type AttributesIncludingOptions = Awaited<ReturnType<typeof findAttributesByName>>[number];
 type AttributeOptionsToAssign = {
@@ -24,17 +28,7 @@ type AttributeOptionsToAssignWithIdEnsured = {
   attribute: { id: AttributeId; isLocked: boolean };
   optionsToAssign: { id: string; label: string }[];
 };
-
-type AttributeOptionAssignment = AttributeToUser & {
-  attributeOption: Omit<AttributeOption, "value" | "isGroup" | "contains" | "id" | "attributeId"> & {
-    label: string;
-    attribute: Attribute;
-  };
-};
-
-async function findTeamById({ teamId }: { teamId: number }) {
-  return prisma.team.findUnique({ where: { id: teamId } });
-}
+type AttributeLabelToValueMap = Record<AttributeName, string | string[]>;
 
 const findAttributesByName = async ({
   orgId,
@@ -61,33 +55,6 @@ const findAttributesByName = async ({
         };
       }),
     };
-  });
-};
-/**
- * Returns all the options for all the attributes for a team
- */
-const findAllAttributeOptions = async ({ teamId }: { teamId: number }) => {
-  const team = await findTeamById({ teamId });
-
-  // A non-org team doesn't have attributes
-  if (!team || !team.parentId) {
-    return [];
-  }
-
-  return await prisma.attributeOption.findMany({
-    where: {
-      attribute: {
-        teamId: team.parentId,
-      },
-    },
-    select: {
-      id: true,
-      value: true,
-      slug: true,
-      contains: true,
-      isGroup: true,
-      attribute: true,
-    },
   });
 };
 
@@ -149,13 +116,13 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
       // Prevent overriding the only value for an unlocked attribute
       if (
         existingAttributeOptionAssignment &&
-        !attributeService.isAssignmentForLockedAttribute({
+        !isAssignmentForLockedAttribute({
           assignment: existingAttributeOptionAssignment,
         }) &&
-        !attributeService.doesSupportMultipleValues({
+        !doesSupportMultipleValues({
           attribute: existingAttributeOptionAssignment.attributeOption.attribute,
         }) &&
-        !attributeService.isAssignmentForTheSamePool({
+        !isAssignmentForTheSamePool({
           assignment: existingAttributeOptionAssignment,
           updater,
         })
@@ -170,7 +137,7 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
         // Prevent unnecessary recreation of the assignment, to avoid resetting the "weight"
         if (
           existingAttributeOptionAssignment &&
-          attributeService.isAssignmentSame({
+          isAssignmentSame({
             existingAssignment: existingAttributeOptionAssignment,
             newOption: optionToAssign,
           })
@@ -217,7 +184,7 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
   const unlockedAttributesAssignmentIdsInThePool = existingAttributeOptionAssignments
     .filter((assignment) => {
       return (
-        attributeService.isAssignmentForTheSamePool({
+        isAssignmentForTheSamePool({
           assignment,
           updater,
         }) && unlockedAttributeIds.includes(assignment.attributeOption.attribute.id)
@@ -332,7 +299,7 @@ const buildPrismaQueryForAttributeOptionCreation = ({
     options.map((option) => ({
       attributeId,
       value: option,
-      slug: attributeService.buildSlugFromValue({ value: option }),
+      slug: buildSlugFromValue({ value: option }),
     }))
   );
   return attributeOptionCreateManyInput.flat();
@@ -411,7 +378,7 @@ const buildAttributeOptionsToAssign = async ({
       const labelsEntries = Array.from(labelToFoundOptionMap.entries());
       const optionsToAssign = labelsEntries
         .filter(([_, option]) => {
-          return attributeService.canSetValueBeyondOptions({ attribute }) ? true : !!option;
+          return canSetValueBeyondOptions({ attribute }) ? true : !!option;
         })
         .map(([label]) => {
           const foundLabel = labelToFoundOptionMap.get(label) ?? null;
@@ -437,228 +404,108 @@ const buildAttributeOptionsToAssign = async ({
   });
 };
 
-export const attributeService = {
-  /**
-   * For a user in an org, it assigns all the attributes with their values as per the attributeLabelToValueMap.
-   */
-  async assignValueToUserInOrgBulk({
+/**
+ * For a user in an org, it assigns all the attributes with their values as per the attributeLabelToValueMap.
+ */
+export const assignValueToUserInOrgBulk = async ({
+  orgId,
+  userId,
+  attributeLabelToValueMap,
+  updater,
+}: {
+  orgId: number;
+  userId: number;
+  attributeLabelToValueMap: AttributeLabelToValueMap;
+  updater: BulkAttributeAssigner;
+}) => {
+  const membership = await MembershipRepository.findFirstByUserIdAndTeamId({ userId, teamId: orgId });
+  const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
+  if (!membership) {
+    console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);
+    return defaultReturn;
+  }
+
+  const { id: memberId } = membership;
+  const attributeNames = Object.keys(attributeLabelToValueMap);
+
+  const allAttributesBeingAssigned = await findAttributesByName({
     orgId,
-    userId,
+    attributeNames,
+  });
+
+  if (!allAttributesBeingAssigned.length) {
+    console.warn(`None of the attributes ${attributeNames.join(", ")} found in org ${orgId}`);
+    return defaultReturn;
+  }
+
+  const attributeOptionsToAssign = await buildAttributeOptionsToAssign({
     attributeLabelToValueMap,
-    updater,
-  }: {
-    orgId: number;
-    userId: number;
-    attributeLabelToValueMap: AttributeLabelToValueMap;
-    updater: BulkAttributeAssigner;
-  }) {
-    const membership = await MembershipRepository.findFirstByUserIdAndTeamId({ userId, teamId: orgId });
-    const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
-    if (!membership) {
-      console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);
-      return defaultReturn;
-    }
+    allAttributesBeingAssigned,
+    orgId,
+  });
 
-    const { id: memberId } = membership;
-    const attributeNames = Object.keys(attributeLabelToValueMap);
+  // We need to fetch all the assigned options even those that aren't being set directly in call.
+  // We need to decide on the fate of all existing assignments
+  const existingAttributeOptionAssignments = await findAssignmentsForMember({ memberId });
 
-    const allAttributesBeingAssigned = await findAttributesByName({
+  const { attributeToUserUpdateManyInput, attributeToUserCreateManyInput, attributeToUserDeleteQueries } =
+    buildPrismaQueriesForAttributeOptionToUser({
       orgId,
-      attributeNames,
+      memberId,
+      attributeOptionsToAssign,
+      existingAttributeOptionAssignments,
+      updater,
     });
 
-    if (!allAttributesBeingAssigned.length) {
-      console.warn(`None of the attributes ${attributeNames.join(", ")} found in org ${orgId}`);
-      return defaultReturn;
-    }
+  const { numOfAttributeOptionsDeleted, numOfAttributeOptionsSet, numOfAttributeOptionsUpdated } =
+    await prisma.$transaction(async (tx) => {
+      // First delete all existing options, to allow them to be set again.
+      const deleteQueriesResult = await Promise.all(
+        Object.entries(attributeToUserDeleteQueries).map(([_, attributeToUserDeleteQuery]) =>
+          attributeToUserDeleteQuery
+            ? tx.attributeToUser.deleteMany({
+                where: attributeToUserDeleteQuery,
+              })
+            : Promise.resolve({ count: 0 })
+        )
+      );
 
-    const attributeOptionsToAssign = await buildAttributeOptionsToAssign({
-      attributeLabelToValueMap,
-      allAttributesBeingAssigned,
-      orgId,
-    });
-
-    // We need to fetch all the assigned options even those that aren't being set directly in call.
-    // We need to decide on the fate of all existing assignments
-    const existingAttributeOptionAssignments = await this.findAssignmentsForMember({ memberId });
-
-    const { attributeToUserUpdateManyInput, attributeToUserCreateManyInput, attributeToUserDeleteQueries } =
-      buildPrismaQueriesForAttributeOptionToUser({
-        orgId,
-        memberId,
-        attributeOptionsToAssign,
-        existingAttributeOptionAssignments,
-        updater,
+      // Then set the new options.
+      const { count: numOfAttributeOptionsSet } = await tx.attributeToUser.createMany({
+        data: attributeToUserCreateManyInput,
+        // In case the values already exist, we skip them instead of throwing an error.
+        skipDuplicates: true,
       });
 
-    const { numOfAttributeOptionsDeleted, numOfAttributeOptionsSet, numOfAttributeOptionsUpdated } =
-      await prisma.$transaction(async (tx) => {
-        // First delete all existing options, to allow them to be set again.
-        const deleteQueriesResult = await Promise.all(
-          Object.entries(attributeToUserDeleteQueries).map(([_, attributeToUserDeleteQuery]) =>
-            attributeToUserDeleteQuery
-              ? tx.attributeToUser.deleteMany({
-                  where: attributeToUserDeleteQuery,
-                })
-              : Promise.resolve({ count: 0 })
-          )
-        );
-
-        // Then set the new options.
-        const { count: numOfAttributeOptionsSet } = await tx.attributeToUser.createMany({
-          data: attributeToUserCreateManyInput,
-          // In case the values already exist, we skip them instead of throwing an error.
-          skipDuplicates: true,
-        });
-
-        let numOfAttributeOptionsUpdated = 0;
-        if (attributeToUserUpdateManyInput) {
-          ({ count: numOfAttributeOptionsUpdated } = await tx.attributeToUser.updateMany({
-            where: attributeToUserUpdateManyInput?.where,
-            data: attributeToUserUpdateManyInput?.data,
-          }));
-        }
-
-        const numOfAttributeOptionsDeleted = deleteQueriesResult.reduce(
-          (acc, query) => acc + (query.count ?? 0),
-          0
-        );
-
-        return {
-          numOfAttributeOptionsDeleted,
-          numOfAttributeOptionsSet,
-          numOfAttributeOptionsUpdated,
-        };
-      });
-
-    log.debug({
-      numOfAttributeOptionsSet,
-      numOfAttributeOptionsDeleted,
-      numOfAttributeOptionsUpdated,
-    });
-
-    return {
-      numOfAttributeOptionsSet,
-      numOfAttributeOptionsDeleted,
-      numOfAttributeOptionsUpdated,
-    };
-  },
-
-  hasOptions({
-    attribute,
-  }: {
-    attribute: {
-      type: AttributeType;
-    };
-  }) {
-    return attribute.type === AttributeType.MULTI_SELECT || attribute.type === AttributeType.SINGLE_SELECT;
-  },
-
-  canSetValueBeyondOptions({
-    attribute,
-  }: {
-    attribute: {
-      type: AttributeType;
-    };
-  }) {
-    return !this.hasOptions({ attribute });
-  },
-
-  doesSupportMultipleValues({ attribute }: { attribute: { type: AttributeType } }) {
-    return attribute.type === AttributeType.MULTI_SELECT;
-  },
-
-  buildSlugFromValue({ value }: { value: string }) {
-    return slugify(value);
-  },
-
-  async findAssignmentsForMember({ memberId }: { memberId: number }) {
-    const assignments = await AttributeToUserRepository.findManyIncludeAttribute({ memberId });
-    return assignments.map((assignment) => ({
-      ...assignment,
-      attributeOption: {
-        ...assignment.attributeOption,
-        label: assignment.attributeOption.value,
-      },
-    }));
-  },
-  /**
-   * What is a pool?
-   * There can be two pools:
-   * 1. SCIM Pool - All assignments in this pool are created/updated by SCIM.
-   * 2. Cal.com User Pool - All assignments in this pool are created/updated by Cal.com Users.
-   */
-  isAssignmentForTheSamePool({
-    assignment,
-    updater,
-  }: {
-    assignment: Pick<
-      AttributeOptionAssignment,
-      "createdByDSyncId" | "updatedByDSyncId" | "createdById" | "updatedById"
-    >;
-    updater: BulkAttributeAssigner;
-  }) {
-    if ("dsyncId" in updater) {
-      // Cal.com user updated an assignment created by SCIM. It no longer belongs to the SCIM pool.
-      if (assignment.updatedById) {
-        return false;
+      let numOfAttributeOptionsUpdated = 0;
+      if (attributeToUserUpdateManyInput) {
+        ({ count: numOfAttributeOptionsUpdated } = await tx.attributeToUser.updateMany({
+          where: attributeToUserUpdateManyInput?.where,
+          data: attributeToUserUpdateManyInput?.data,
+        }));
       }
-      // Either SCIM created the assignment or updated it
-      return !!assignment.updatedByDSyncId || !!assignment.createdByDSyncId;
-    }
-    // SCIM neither created nor updated the assignment, it has to belong to the only left pool(i.e. Cal.com User Pool)
-    return !assignment.createdByDSyncId && !assignment.updatedByDSyncId;
-  },
 
-  isAssignmentForLockedAttribute({
-    assignment,
-  }: {
-    assignment: {
-      attributeOption: {
-        attribute: {
-          isLocked: boolean;
-        };
+      const numOfAttributeOptionsDeleted = deleteQueriesResult.reduce(
+        (acc, query) => acc + (query.count ?? 0),
+        0
+      );
+
+      return {
+        numOfAttributeOptionsDeleted,
+        numOfAttributeOptionsSet,
+        numOfAttributeOptionsUpdated,
       };
-    };
-  }) {
-    return assignment.attributeOption.attribute.isLocked;
-  },
-
-  isAssignmentSame({
-    existingAssignment,
-    newOption,
-  }: {
-    existingAssignment: { attributeOption: { label: string } };
-    newOption: { label: string };
-  }) {
-    return existingAssignment.attributeOption.label.toLowerCase() === newOption.label.toLowerCase();
-  },
-
-  /**
-   * Ensures all attributes are their with all their options(only assigned options) mapped to them
-   */
-  async findAllAttributesWithTheirOptions({ teamId }: { teamId: number }) {
-    const allOptionsOfAllAttributes = await findAllAttributeOptions({ teamId });
-    const attributeOptionsMap = new Map<
-      AttributeId,
-      {
-        id: string;
-        value: string;
-        slug: string;
-        contains: string[];
-        isGroup: boolean;
-      }[]
-    >();
-    allOptionsOfAllAttributes.forEach((_attributeOption) => {
-      const { attribute, ...attributeOption } = _attributeOption;
-      const existingOptionsArray = attributeOptionsMap.get(attribute.id);
-      if (!existingOptionsArray) {
-        attributeOptionsMap.set(attribute.id, [attributeOption]);
-      } else {
-        // We already have the options for this attribute
-        existingOptionsArray.push(attributeOption);
-      }
     });
-    return attributeOptionsMap;
-  },
+
+  log.debug({
+    numOfAttributeOptionsSet,
+    numOfAttributeOptionsDeleted,
+    numOfAttributeOptionsUpdated,
+  });
+
+  return {
+    numOfAttributeOptionsSet,
+    numOfAttributeOptionsDeleted,
+    numOfAttributeOptionsUpdated,
+  };
 };
