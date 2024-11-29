@@ -7,7 +7,16 @@ import { DataTableSkeleton } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, ToggleGroup, Badge, Icon, Tooltip } from "@calcom/ui";
+import {
+  Avatar,
+  ToggleGroup,
+  Badge,
+  Icon,
+  Tooltip,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@calcom/ui";
 import {
   Table,
   TableBody,
@@ -222,6 +231,25 @@ export function RoutedToPerPeriod() {
     );
   }
 
+  const isCurrentPeriod = (date: Date, today: Date, selectedPeriod: string): boolean => {
+    if (selectedPeriod === "perDay") {
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      );
+    } else if (selectedPeriod === "perWeek") {
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      return date >= weekStart && date <= weekEnd;
+    } else if (selectedPeriod === "perMonth") {
+      return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    }
+    return false;
+  };
+
   return (
     <div className="w-full text-sm">
       <div className="flex h-12 items-center">
@@ -240,23 +268,8 @@ export function RoutedToPerPeriod() {
                   {uniquePeriods.map((period, index) => {
                     const date = period;
                     const today = new Date();
-                    let isCurrent = false;
 
-                    if (selectedPeriod === "perDay") {
-                      isCurrent =
-                        date.getDate() === today.getDate() &&
-                        date.getMonth() === today.getMonth() &&
-                        date.getFullYear() === today.getFullYear();
-                    } else if (selectedPeriod === "perWeek") {
-                      const weekStart = new Date(today);
-                      weekStart.setDate(today.getDate() - today.getDay());
-                      const weekEnd = new Date(weekStart);
-                      weekEnd.setDate(weekStart.getDate() + 6);
-                      isCurrent = date >= weekStart && date <= weekEnd;
-                    } else if (selectedPeriod === "perMonth") {
-                      isCurrent =
-                        date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-                    }
+                    const isCurrent = isCurrentPeriod(date, today, selectedPeriod);
 
                     return (
                       <TableHead
@@ -272,24 +285,49 @@ export function RoutedToPerPeriod() {
                 </TableRow>
               </TableHeader>
               <TableBody className="relative">
-                {processedData.map((row, index) => (
-                  <TableRow key={row.id} ref={index === processedData.length - 1 ? ref : undefined}>
-                    <TableCell className="bg-default w-[200px]">
-                      <div className="flex items-center gap-2">
-                        <Avatar size="sm" imageSrc={row.avatarUrl} alt={row.name} />
-                        <div className="flex flex-col gap-1 truncate">
-                          <span>{row.name}</span>
-                          {getPerformanceBadge(row.performance, t)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    {uniquePeriods.map((period) => (
-                      <TableCell key={period.toISOString()} className="text-center">
-                        {row.stats[period.toISOString()]}
+                {processedData.map((row, index) => {
+                  return (
+                    <TableRow
+                      key={row.id}
+                      ref={index === processedData.length - 1 ? ref : undefined}
+                      className="divide-muted divide-x">
+                      <TableCell className="bg-default w-[200px]">
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <div className="flex cursor-pointer items-center gap-2">
+                              <Avatar size="sm" imageSrc={row.avatarUrl} alt={row.name} />
+                              <div className="flex flex-col gap-1 truncate">
+                                <span>{row.name}</span>
+                              </div>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="p-3">
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-default font-medium">{row.name}</span>
+                                {getPerformanceBadge(row.performance, t)}
+                              </div>
+                              <div className="text-subtle flex flex-col text-sm">
+                                <div>
+                                  {t("total_bookings_per_period")}: <Badge>{row.totalBookings}</Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+                      {uniquePeriods.map((period) => {
+                        return (
+                          <TableCell key={period.toISOString()} className="text-center">
+                            {row.stats[period.toISOString()] === 0 ? null : (
+                              <>{row.stats[period.toISOString()]}</>
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
