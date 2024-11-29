@@ -119,14 +119,14 @@ const lookupByLabel = <TWithLabel extends { label: string }>({
 export const buildPrismaQueriesForAttributeOptionToUser = ({
   existingAttributeOptionAssignments,
   attributeOptionsToAssign,
-  creator,
+  updater,
   memberId,
 }: {
   orgId: number;
   memberId: number;
   existingAttributeOptionAssignments: AttributeOptionAssignment[];
   attributeOptionsToAssign: AttributeOptionsToAssignWithIdEnsured[];
-  creator: BulkAttributeAssigner;
+  updater: BulkAttributeAssigner;
 }) => {
   const assignmentsToUpdateIds: string[] = [];
   if (!attributeOptionsToAssign.length) {
@@ -157,7 +157,7 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
         }) &&
         !attributeService.isAssignmentForTheSamePool({
           assignment: existingAttributeOptionAssignment,
-          creator,
+          updater,
         })
       ) {
         console.warn(
@@ -185,10 +185,10 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
         acc.attributeToUserCreateManyInput.push({
           memberId,
           attributeOptionId: optionToAssign.id,
-          ...("dsyncId" in creator
-            ? { createdByDSyncId: creator.dsyncId, createdById: null }
+          ...("dsyncId" in updater
+            ? { createdByDSyncId: updater.dsyncId, createdById: null }
             : {
-                createdById: creator.userId,
+                createdById: updater.userId,
                 createdByDSyncId: null,
               }),
         });
@@ -219,7 +219,7 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
       return (
         attributeService.isAssignmentForTheSamePool({
           assignment,
-          creator,
+          updater,
         }) && unlockedAttributeIds.includes(assignment.attributeOption.attribute.id)
       );
     })
@@ -273,10 +273,10 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
           },
         }),
         data: {
-          ...("dsyncId" in creator
-            ? { updatedByDSyncId: creator.dsyncId, updatedById: null }
+          ...("dsyncId" in updater
+            ? { updatedByDSyncId: updater.dsyncId, updatedById: null }
             : {
-                updatedById: creator.userId,
+                updatedById: updater.userId,
                 updatedByDSyncId: null,
               }),
         },
@@ -289,7 +289,7 @@ export const buildPrismaQueriesForAttributeOptionToUser = ({
     unlockedAttributesAssignmentIdsInThePool,
     unlockedAttributeIds,
     existingAttributeOptionAssignments,
-    creator,
+    updater,
     attributeToUserDeleteQueryWhereClauseForLockedAttributes: safeStringify(
       attributeToUserDeleteQueryWhereClauseForLockedAttributes
     ),
@@ -445,12 +445,12 @@ export const attributeService = {
     orgId,
     userId,
     attributeLabelToValueMap,
-    creator,
+    updater,
   }: {
     orgId: number;
     userId: number;
     attributeLabelToValueMap: AttributeLabelToValueMap;
-    creator: BulkAttributeAssigner;
+    updater: BulkAttributeAssigner;
   }) {
     const membership = await MembershipRepository.findFirstByUserIdAndTeamId({ userId, teamId: orgId });
     const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
@@ -488,7 +488,7 @@ export const attributeService = {
         memberId,
         attributeOptionsToAssign,
         existingAttributeOptionAssignments,
-        creator,
+        updater,
       });
 
     const { numOfAttributeOptionsDeleted, numOfAttributeOptionsSet, numOfAttributeOptionsUpdated } =
@@ -590,15 +590,15 @@ export const attributeService = {
    */
   isAssignmentForTheSamePool({
     assignment,
-    creator,
+    updater,
   }: {
     assignment: Pick<
       AttributeOptionAssignment,
       "createdByDSyncId" | "updatedByDSyncId" | "createdById" | "updatedById"
     >;
-    creator: BulkAttributeAssigner;
+    updater: BulkAttributeAssigner;
   }) {
-    if ("dsyncId" in creator) {
+    if ("dsyncId" in updater) {
       // Cal.com user updated an assignment created by SCIM. It no longer belongs to the SCIM pool.
       if (assignment.updatedById) {
         return false;

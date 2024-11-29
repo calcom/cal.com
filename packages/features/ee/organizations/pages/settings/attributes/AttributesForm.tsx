@@ -18,7 +18,7 @@ import {
   SettingsToggle,
 } from "@calcom/ui";
 
-const AttributeSchema = z.object({
+const AttributeFormSchema = z.object({
   attrName: z.string().min(1),
   isLocked: z.boolean().optional(),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
@@ -34,7 +34,7 @@ const AttributeSchema = z.object({
   ),
 });
 
-type FormValues = z.infer<typeof AttributeSchema>;
+type FormValues = z.infer<typeof AttributeFormSchema>;
 
 const AttributeTypeOptions = [
   { value: "TEXT", label: "Text" },
@@ -70,27 +70,52 @@ export function getGroupOptionUpdate({
   const optionsUpdate: { [key: number]: string[] } = {};
 
   // Update all groupOptions' contains as per the final state.
-  newGroupOptions.forEach((newGroupOption) => {
-    const indexOfGroupOptionInWatchedOptions = allOptions.findIndex(
-      (groupOption) => groupOption.attributeOptionId === newGroupOption.value
-    );
-    const existingContains = allOptions[indexOfGroupOptionInWatchedOptions].contains;
-    const newContains = [...(existingContains || []), nonGroupOptionId].filter(
-      (value, index, self) => self.indexOf(value) === index
-    );
-    optionsUpdate[indexOfGroupOptionInWatchedOptions] = newContains;
-  });
+  newGroupOptions
+    .filter((option): option is { label: string; value: string } => !!option.value)
+    .forEach((newGroupOption) => {
+      const { groupOption, index: indexOfGroupOptionInWatchedOptions } = getGroupOptionMatching({
+        allOptions,
+        toMatchWith: newGroupOption,
+      });
+      if (!groupOption) return;
+      const existingContains = groupOption.contains;
+      const newContains = [...(existingContains || []), nonGroupOptionId].filter(
+        (value, index, self) => self.indexOf(value) === index
+      );
+      optionsUpdate[indexOfGroupOptionInWatchedOptions] = newContains;
+    });
 
   // Because certain groupOptions might have been removed, we need to update such groupOptions' contains as well.
-  removedGroupOptions.forEach((removedGroupOption) => {
-    const indexOfGroupOptionInWatchedOptions = allOptions.findIndex(
-      (groupOption) => groupOption.attributeOptionId === removedGroupOption.value
-    );
-    const existingContains = allOptions[indexOfGroupOptionInWatchedOptions].contains || [];
-    const newContains = existingContains.filter((value) => value !== nonGroupOptionId);
-    optionsUpdate[indexOfGroupOptionInWatchedOptions] = newContains;
-  });
+  removedGroupOptions
+    .filter((option): option is { label: string; value: string } => !!option.value)
+    .forEach((removedGroupOption) => {
+      const { groupOption, index: indexOfGroupOptionInWatchedOptions } = getGroupOptionMatching({
+        allOptions,
+        toMatchWith: removedGroupOption,
+      });
+      if (!groupOption) return;
+      const existingContains = groupOption.contains || [];
+      const newContains = existingContains.filter((value) => value !== nonGroupOptionId);
+      optionsUpdate[indexOfGroupOptionInWatchedOptions] = newContains;
+    });
   return optionsUpdate;
+
+  function getGroupOptionMatching({
+    allOptions,
+    toMatchWith,
+  }: {
+    allOptions: { attributeOptionId?: string; contains?: string[] }[];
+    toMatchWith: { value: string };
+  }) {
+    const indexOfGroupOptionInWatchedOptions = allOptions.findIndex(
+      (option) => option.attributeOptionId === toMatchWith.value
+    );
+    return {
+      index: indexOfGroupOptionInWatchedOptions,
+      groupOption:
+        (allOptions[indexOfGroupOptionInWatchedOptions] as (typeof allOptions)[number] | undefined) ?? null,
+    };
+  }
 }
 
 export function AttributeForm({ initialValues, onSubmit, header }: AttributeFormProps) {
@@ -113,14 +138,16 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
         ...initialValues,
         options: initialValues.options.map((option) => ({
           ...option,
-          id: undefined,
+          // Set attributeOptionId equal to id field because 'id' property is used by useFieldArray
           attributeOptionId: option.id,
+          // Also, set id to undefined to make it clear that this id is not used by us.
+          id: undefined,
         })),
       }
     : undefined;
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(AttributeSchema),
+    resolver: zodResolver(AttributeFormSchema),
     defaultValues: initialValuesEnsuringThatOptionIdIsNotInId || {
       attrName: "",
       options: [{ value: "", isGroup: false }],
@@ -143,9 +170,10 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
       handleSubmit={(values) => {
         onSubmit({
           ...values,
-          options: values.options.map((option) => ({
+          options: values.options.map(({ attributeOptionId, ...option }) => ({
             ...option,
-            id: option.attributeOptionId,
+            // Set back attributeOptionId in id field
+            id: attributeOptionId,
           })),
         });
       }}>
@@ -155,8 +183,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
         render={({ field: { value, onChange } }) => {
           return (
             <SettingsToggle
-              title={t("Lock for assignment")}
-              description={t("Lock for assignment of options from cal.com. Supposed to be updated by SCIM")}
+              title={t("lock_attribute_for_assignment")}
+              description={t("lock_attribute_for_assignment_description")}
               checked={value}
               onCheckedChange={(checked) => {
                 onChange(checked);
@@ -190,7 +218,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                 {watchedOptions.map((nonGroupOption, index) => {
                   const isAGroupOption = nonGroupOption.isGroup;
                   if (isAGroupOption) return null;
-                  const groupSelectValue = watchedGroupOptions
+                  const groupOptionsSelectFieldSelectedValue = watchedGroupOptions
                     ?.filter(
                       ({ contains }) =>
                         nonGroupOption.attributeOptionId &&
@@ -200,6 +228,14 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                       label: groupOption.value,
                       value: groupOption.attributeOptionId,
                     }));
+
+                  const groupOptionsSelectFieldOptions = watchedGroupOptions
+                    .map((f) => ({
+                      label: f.value,
+                      value: f.attributeOptionId,
+                    }))
+                    .filter((option): option is { label: string; value: string } => !!option.value);
+
                   return (
                     <>
                       <div className="flex items-center gap-2" key={nonGroupOption.id}>
@@ -207,17 +243,18 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                           <Input {...form.register(`options.${index}.value`)} />
                           <SelectField
                             isMulti
-                            placeholder="Select Group"
-                            options={watchedGroupOptions.map((f) => ({
-                              label: f.value,
-                              value: f.attributeOptionId,
-                            }))}
-                            value={groupSelectValue}
+                            isDisabled={!nonGroupOption.attributeOptionId}
+                            placeholder="Add to group"
+                            options={groupOptionsSelectFieldOptions}
+                            value={groupOptionsSelectFieldSelectedValue}
                             onChange={(chosenGroupOptions) => {
+                              // subOption is the option that is being added to groups
+                              const subOption = nonGroupOption;
                               const optionsUpdate = getGroupOptionUpdate({
-                                newGroupOptions: chosenGroupOptions as { label: string; value: string }[],
-                                previousGroupOptions: groupSelectValue,
-                                subOption: nonGroupOption,
+                                // Spread makes it non-readonly
+                                newGroupOptions: [...chosenGroupOptions],
+                                previousGroupOptions: groupOptionsSelectFieldSelectedValue,
+                                subOption,
                                 allOptions: watchedOptions,
                               });
                               entries(optionsUpdate).forEach(([index, value]) => {

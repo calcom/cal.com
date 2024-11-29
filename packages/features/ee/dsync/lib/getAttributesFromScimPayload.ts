@@ -38,6 +38,12 @@ type ScimUserAttributeValue = string | string[];
  *   "active": true,
  *   "id": "b36ba9fa-783b-44e6-a770-a652cb9d71ba"
  * }
+ *
+ * Transforms above to
+ * {
+ *   "territory": "NAM",
+ *   "segment": "SMB"
+ * }
  */
 function getAttributesFromScimPayload(
   event: DirectorySyncEvent

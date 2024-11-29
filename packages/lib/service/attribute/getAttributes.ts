@@ -3,11 +3,23 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { attributeService } from "@calcom/lib/service/attribute/attributeService";
 import prisma from "@calcom/prisma";
-
-import type { Attribute } from "./types";
+import type { AttributeType } from "@calcom/prisma/enums";
 
 type AttributeId = string;
 type UserId = number;
+
+export type Attribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+  }[];
+};
+
 export type AttributeOptionValue = {
   value: string;
   isGroup: boolean;
@@ -153,10 +165,8 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
     };
 
     if (currentAttributeOptionValue instanceof Array) {
-      // Value already exists, so push to it and also make it an array before pushing
       attributes[attribute.id].attributeOption = [...currentAttributeOptionValue, newAttributeOptionValue];
     } else if (currentAttributeOptionValue) {
-      // Value already exists, so push to it and also make it an array before pushing
       attributes[attribute.id].attributeOption = [
         currentAttributeOptionValue,
         {

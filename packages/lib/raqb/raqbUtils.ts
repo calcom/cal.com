@@ -6,11 +6,14 @@ import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-fo
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
 import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
-import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type {
+  AttributeOptionValueWithType,
+  AttributeOptionValue,
+  Attribute,
+} from "@calcom/lib/service/attribute/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
-
-import type { AttributeOptionValueWithType, AttributeOptionValue } from "./getAttributes";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
 

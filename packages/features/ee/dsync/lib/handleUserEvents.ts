@@ -33,14 +33,14 @@ async function syncCustomAttributesToUser({
   };
   directoryId: string;
 }) {
-  const updatedUser = await prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       email: userEmail,
     },
     select: dSyncUserSelect,
   });
 
-  if (!updatedUser) {
+  if (!user) {
     log.error(`User not found in DB ${userEmail}. Skipping custom attributes sync.`);
     return;
   }
@@ -48,9 +48,9 @@ async function syncCustomAttributesToUser({
   const customAttributes = getAttributesFromScimPayload(event);
   await attributeService.assignValueToUserInOrgBulk({
     orgId: org.id,
-    userId: updatedUser.id,
+    userId: user.id,
     attributeLabelToValueMap: customAttributes,
-    creator: {
+    updater: {
       dsyncId: directoryId,
     },
   });

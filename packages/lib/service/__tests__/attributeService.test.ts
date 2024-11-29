@@ -157,7 +157,7 @@ describe("addValueForMember", () => {
         attributeLabelToValueMap: {
           Department: "Sales",
         },
-        creator: {
+        updater: {
           userId: 999,
         },
       });
@@ -178,7 +178,7 @@ describe("addValueForMember", () => {
         attributeLabelToValueMap: {
           Department: "engineering",
         },
-        creator: {
+        updater: {
           userId: 999,
         },
       });
@@ -225,7 +225,7 @@ describe("addValueForMember", () => {
           Department: ["marketing", "engineering", "unknown"],
         },
         // Setting value using the same dsyncId that was used to create the option in SCIM Pool
-        creator: {
+        updater: {
           dsyncId: dsyncDoingAssignment_id,
         },
       });
@@ -311,7 +311,7 @@ describe("addValueForMember", () => {
             Department: "marketing",
           },
           // Setting value using the same dsyncId that was used to create the option in SCIM Pool
-          creator: {
+          updater: {
             dsyncId: dsyncDoingAssignment_id,
           },
         });
@@ -383,7 +383,7 @@ describe("addValueForMember", () => {
             Department: ["marketing", "engineering"],
           },
           // Setting value using the same dsyncId that was used to create the option in SCIM Pool
-          creator: {
+          updater: {
             dsyncId: dsyncDoingAssignment_id,
           },
         });
@@ -436,7 +436,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "Sales",
           },
-          creator: {
+          updater: {
             dsyncId: dsyncDoingAssignment_id,
           },
         });
@@ -482,7 +482,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "not-already-an-option",
           },
-          creator: {
+          updater: {
             dsyncId: dsyncDoingAssignment_id,
           },
         });
@@ -564,7 +564,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "marketing",
           },
-          creator: {
+          updater: {
             dsyncId: dsyncDoingAssignment_id,
           },
         });
@@ -620,7 +620,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "engineering",
           },
-          creator: {
+          updater: {
             dsyncId: dsync.id as unknown as string,
           },
         });
@@ -678,7 +678,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "not-already-an-option",
           },
-          creator: {
+          updater: {
             dsyncId: dsync.id as unknown as string,
           },
         });
@@ -739,7 +739,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "Sales",
           },
-          creator: {
+          updater: {
             dsyncId: dsyncDoingAssignment_id,
           },
         });
@@ -810,7 +810,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "marketing",
           },
-          creator: {
+          updater: {
             userId: userDoingAssignment_id,
           },
         });
@@ -849,7 +849,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "not-already-an-option",
           },
-          creator: {
+          updater: {
             userId: userDoingAssignment_id,
           },
         });
@@ -893,7 +893,7 @@ describe("addValueForMember", () => {
           attributeLabelToValueMap: {
             Department: "not-already-an-option",
           },
-          creator: {
+          updater: {
             userId: userDoingAssignment_id,
           },
         });
@@ -935,7 +935,7 @@ describe("buildPrismaQueriesForAttributeOptionToUser", () => {
         memberId: mockMemberId,
         existingAttributeOptionAssignments: [],
         attributeOptionsToAssign: [],
-        creator: mockCreator,
+        updater: mockCreator,
       });
 
       expect(result.attributeToUserCreateManyInput).toHaveLength(0);
@@ -957,7 +957,7 @@ describe("buildPrismaQueriesForAttributeOptionToUser", () => {
         memberId: mockMemberId,
         existingAttributeOptionAssignments: [],
         attributeOptionsToAssign,
-        creator: mockCreator,
+        updater: mockCreator,
       });
 
       expect(result.attributeToUserCreateManyInput).toHaveLength(1);
@@ -986,7 +986,7 @@ describe("buildPrismaQueriesForAttributeOptionToUser", () => {
         memberId: mockMemberId,
         existingAttributeOptionAssignments: [],
         attributeOptionsToAssign,
-        creator: mockCreator,
+        updater: mockCreator,
       });
 
       expect(result.attributeToUserDeleteQueries.locked).toEqual({
@@ -1024,7 +1024,7 @@ describe("buildPrismaQueriesForAttributeOptionToUser", () => {
         memberId: mockMemberId,
         existingAttributeOptionAssignments: existingAssignments,
         attributeOptionsToAssign,
-        creator: mockCreator,
+        updater: mockCreator,
       });
 
       expect(result.attributeToUserUpdateManyInput).toEqual({
