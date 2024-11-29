@@ -469,20 +469,24 @@ model Team {
 }
 
 model OrganizationSettings {
-  id                            Int        @id @default(autoincrement())
-  organization                  Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId                Int        @unique
-  isOrganizationConfigured      Boolean    @default(false)
+  id                                  Int        @id @default(autoincrement())
+  organization                        Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId                      Int        @unique
+  isOrganizationConfigured            Boolean    @default(false)
   // It decides if new organization members can be auto-accepted or not
-  isOrganizationVerified        Boolean    @default(false)
-  orgAutoAcceptEmail            String
-  lockEventTypeCreationForUsers Boolean    @default(false)
-  adminGetsNoSlotsNotification  Boolean    @default(false)
+  isOrganizationVerified              Boolean    @default(false)
+  // It is a domain e.g "acme.com". Any email with this domain might be auto-accepted
+  // Also, it is the domain to which the organization profile is redirected.
+  orgAutoAcceptEmail                  String
+  lockEventTypeCreationForUsers       Boolean    @default(false)
+  adminGetsNoSlotsNotification        Boolean    @default(false)
   // It decides if instance ADMIN has reviewed the organization or not.
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
-  isAdminReviewed               Boolean    @default(false)
-  dSyncData                     DSyncData?
-  isAdminAPIEnabled             Boolean    @default(false)
+  isAdminReviewed                     Boolean    @default(false)
+  dSyncData                           DSyncData?
+  isAdminAPIEnabled                   Boolean    @default(false)
+  allowSEOIndexing                    Boolean    @default(false)
+  orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
 }
 
 enum MembershipRole {
