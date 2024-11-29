@@ -34,6 +34,7 @@ function Type({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -47,6 +48,7 @@ function Type({
         isTeamEvent
         entity={eventData.entity}
         bookingData={booking}
+        isSEOIndexable={isSEOIndexable}
       />
       <Booker
         username={user}
