@@ -1704,10 +1704,11 @@ export const insightsRouter = router({
           .optional(),
         routingFormId: z.string().optional(),
         limit: z.number().optional(),
+        searchQuery: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, period, cursor, limit, isAll, routingFormId } = input;
+      const { teamId, startDate, endDate, period, cursor, limit, isAll, routingFormId, searchQuery } = input;
 
       return await RoutingEventsInsights.routedToPerPeriod({
         teamId: teamId ?? null,
@@ -1720,6 +1721,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: routingFormId ?? null,
+        searchQuery: searchQuery ?? null,
       });
     }),
 });

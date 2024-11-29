@@ -16,6 +16,7 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  Input,
 } from "@calcom/ui";
 import {
   Table,
@@ -31,26 +32,39 @@ import { useFilterContext } from "../context/provider";
 interface FormCardProps {
   selectedPeriod: string;
   onPeriodChange: (value: string) => void;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   children: ReactNode;
 }
 
-function FormCard({ selectedPeriod, onPeriodChange, children }: FormCardProps) {
+function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange, children }: FormCardProps) {
   const { t } = useLocale();
 
   return (
     <div className="border-subtle w-full rounded-md border">
       <div className="flex flex-col">
         <div className="p-4">
-          <ToggleGroup
-            options={[
-              { label: t("per_day"), value: "perDay" },
-              { label: t("per_week"), value: "perWeek" },
-              { label: t("per_month"), value: "perMonth" },
-            ]}
-            className="w-fit"
-            value={selectedPeriod}
-            onValueChange={(value) => value && onPeriodChange(value)}
-          />
+          <div className="mb-4 flex items-center justify-between">
+            <ToggleGroup
+              options={[
+                { label: t("per_day"), value: "perDay" },
+                { label: t("per_week"), value: "perWeek" },
+                { label: t("per_month"), value: "perMonth" },
+              ]}
+              className="w-fit"
+              value={selectedPeriod}
+              onValueChange={(value) => value && onPeriodChange(value)}
+            />
+            <div className="w-64">
+              <Input
+                type="text"
+                placeholder={t("search_by_name_or_email")}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
           {children}
         </div>
       </div>
@@ -119,6 +133,9 @@ export function RoutedToPerPeriod() {
   const [selectedPeriod, setSelectedPeriod] = useQueryState("selectedPeriod", {
     defaultValue: "perWeek",
   });
+  const [searchQuery, setSearchQuery] = useQueryState("search", {
+    defaultValue: "",
+  });
   const { ref, inView } = useInView({
     threshold: 0,
     rootMargin: "300px",
@@ -134,6 +151,7 @@ export function RoutedToPerPeriod() {
         period: selectedPeriod as "perDay" | "perWeek" | "perMonth",
         isAll: !!isAll,
         routingFormId: selectedRoutingFormId ?? undefined,
+        searchQuery: searchQuery || undefined,
         limit: 10,
       },
       {
@@ -222,7 +240,11 @@ export function RoutedToPerPeriod() {
           <h2 className="text-emphasis text-md font-semibold">{t("routed_to_per_period")}</h2>
         </div>
 
-        <FormCard selectedPeriod={selectedPeriod} onPeriodChange={setSelectedPeriod}>
+        <FormCard
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={setSelectedPeriod}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}>
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
           </div>
@@ -256,7 +278,11 @@ export function RoutedToPerPeriod() {
         <h2 className="text-emphasis text-md font-semibold">{t("routed_to_per_period")}</h2>
       </div>
 
-      <FormCard selectedPeriod={selectedPeriod} onPeriodChange={setSelectedPeriod}>
+      <FormCard
+        selectedPeriod={selectedPeriod}
+        onPeriodChange={setSelectedPeriod}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}>
         <div className="mt-6">
           <div
             className="scrollbar-thin border-subtle relaitve relative h-[80dvh] overflow-auto rounded-md border"

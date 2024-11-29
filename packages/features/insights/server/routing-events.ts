@@ -19,6 +19,7 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   startDate?: string;
   endDate?: string;
   userId?: number | null;
+  searchQuery?: string | null;
   bookingStatus?: BookingStatus | "NO_BOOKING" | null;
   fieldFilter?: {
     fieldId: string;
@@ -72,6 +73,7 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
     userId,
+    searchQuery,
     bookingStatus,
     fieldFilter,
   }: RoutingFormInsightsFilter) {
@@ -92,13 +94,21 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus
+      ...(userId || bookingStatus || searchQuery
         ? {
             ...(bookingStatus === "NO_BOOKING"
               ? { routedToBooking: null }
               : {
                   routedToBooking: {
                     ...(userId && { userId }),
+                    ...(searchQuery && {
+                      user: {
+                        OR: [
+                          { email: { contains: searchQuery, mode: "insensitive" } },
+                          { name: { contains: searchQuery, mode: "insensitive" } },
+                        ],
+                      },
+                    }),
                     ...(bookingStatus && { status: bookingStatus }),
                   },
                 }),
@@ -647,6 +657,7 @@ class RoutingEventsInsights {
     cursor,
     userCursor,
     limit = 10,
+    searchQuery,
   }: RoutingFormInsightsTeamFilter & {
     period: "perDay" | "perWeek" | "perMonth";
     startDate: string;
@@ -654,6 +665,7 @@ class RoutingEventsInsights {
     cursor?: string;
     userCursor?: number;
     limit?: number;
+    searchQuery?: string;
   }) {
     const dayJsPeriodMap = {
       perDay: "day",
@@ -684,6 +696,10 @@ class RoutingEventsInsights {
       teamConditions.push(`f.id = '${routingFormId}'`);
     }
 
+    const searchCondition = searchQuery
+      ? Prisma.sql`AND (u.name ILIKE ${`%${searchQuery}%`} OR u.email ILIKE ${`%${searchQuery}%`})`
+      : Prisma.empty;
+
     const whereClause = teamConditions.length
       ? Prisma.sql`AND ${Prisma.raw(teamConditions.join(" AND "))}`
       : Prisma.empty;
@@ -711,6 +727,7 @@ class RoutingEventsInsights {
         WHERE r."routedToBookingUid" IS NOT NULL
         AND r."createdAt" >= ${startDate}
         AND r."createdAt" <= ${endDate}
+        ${searchCondition}
         ${whereClause}
         ${userCursor ? Prisma.sql`AND b."userId" > ${userCursor}` : Prisma.empty}
         ORDER BY b."userId", r."createdAt" DESC
