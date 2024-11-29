@@ -552,11 +552,6 @@ function isFullDayEvent(date1: Date, date2: Date) {
 
   // Check if the time difference is approximately one full day
   return Math.abs(difference - MILLISECONDS_IN_A_DAY) < 1000;
-  // 24 hours in milliseconds
-  const millisecondsIn24Hours = 24 * 60 * 60 * 1000;
-  const difference = Math.abs(date1.getTime() - date2.getTime());
-
-  return difference === millisecondsIn24Hours;
 }
 
 async function fetchAllDataNeededForCalculations<
@@ -711,19 +706,19 @@ async function fetchAllDataNeededForCalculations<
     },
   });
 
-  const groupedOOOEntries = new Map<number, { start: Date; end: Date }[]>();
+  const oooEntriesGroupedByUserId = new Map<number, { start: Date; end: Date }[]>();
 
   oooEntries.forEach((entry) => {
-    if (!groupedOOOEntries.has(entry.userId)) {
-      groupedOOOEntries.set(entry.userId, []);
+    if (!oooEntriesGroupedByUserId.has(entry.userId)) {
+      oooEntriesGroupedByUserId.set(entry.userId, []);
     }
-    groupedOOOEntries.get(entry.userId)!.push({ start: entry.start, end: entry.end });
+    oooEntriesGroupedByUserId.get(entry.userId)!.push({ start: entry.start, end: entry.end });
   });
 
   const oooData: { userId: number; oooEntries: { start: Date; end: Date }[] }[] = [];
 
   userFullDayBusyTimes.forEach((fullDayBusyTimes, userId) => {
-    const oooEntriesForUser = groupedOOOEntries.get(userId) || [];
+    const oooEntriesForUser = oooEntriesGroupedByUserId.get(userId) || [];
     const combinedEntries = [...oooEntriesForUser, ...fullDayBusyTimes];
     const oooEntries = mergeOverlappingRanges(combinedEntries);
 
