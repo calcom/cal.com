@@ -1,11 +1,12 @@
 import type { Table } from "@tanstack/react-table";
 import type { ColumnFiltersState } from "@tanstack/react-table";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import type { Attribute as _Attribute, Option } from "@calcom/prisma/client";
+import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import {
   Alert,
@@ -31,15 +32,15 @@ interface Props {
   filters: ColumnFiltersState;
 }
 
-type Attribute = _Attribute & { options: Option[] };
+type Attribute = _Attribute & { options: AttributeOption[] };
 
 type AttributesContextType = {
   selectedAttribute: string | undefined;
-  setSelectedAttribute: (attribute: string | undefined) => void;
+  setSelectedAttribute: Dispatch<SetStateAction<string | undefined>>;
   foundAttributeInCache: Attribute | undefined;
 
   selectedAttributeOptions: string[];
-  setSelectedAttributeOptions: (options: string[]) => void;
+  setSelectedAttributeOptions: Dispatch<SetStateAction<string[]>>;
 
   attributes: Attribute[] | undefined;
 };
@@ -76,6 +77,21 @@ function useAttributes() {
   return context;
 }
 
+function getTranslateableStringFromType(type: string) {
+  switch (type) {
+    case "SINGLE_SELECT":
+      return "single_select";
+    case "MULTI_SELECT":
+      return "multi_select";
+    case "TEXT":
+      return "text";
+    case "NUMBER":
+      return "number";
+    default:
+      return undefined;
+  }
+}
+
 function SelectedAttributeToAssign() {
   const { t } = useLocale();
   const {
@@ -84,20 +100,10 @@ function SelectedAttributeToAssign() {
     setSelectedAttributeOptions,
   } = useAttributes();
 
-  function getTranslateableStringFromType(type: string) {
-    switch (type) {
-      case "SINGLE_SELECT":
-        return "single_select";
-      case "MULTI_SELECT":
-        return "multi_select";
-      case "TEXT":
-        return "text";
-      case "NUMBER":
-        return "number";
-      default:
-        return undefined;
-    }
+  if (!foundAttribute) {
+    return null;
   }
+
   const translateableType = getTranslateableStringFromType(foundAttribute.type);
 
   const isSelectable = foundAttribute.type === "SINGLE_SELECT" || foundAttribute.type === "MULTI_SELECT";
@@ -120,9 +126,9 @@ function SelectedAttributeToAssign() {
                     if (foundAttribute.type === "SINGLE_SELECT") {
                       setSelectedAttributeOptions([option.id]);
                     } else {
-                      setSelectedAttributeOptions((prev) => {
+                      setSelectedAttributeOptions((prev: string[]) => {
                         if (prev.includes(option.id)) {
-                          return prev.filter((id) => id !== option.id);
+                          return prev.filter((id: string) => id !== option.id);
                         }
                         return [...prev, option.id];
                       });
@@ -214,7 +220,7 @@ function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }
     );
   }
 
-  if (selectedAttribute && foundAttributeInCache) {
+  if (selectedAttribute) {
     return <SelectedAttributeToAssign />;
   }
 
