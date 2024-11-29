@@ -40,7 +40,7 @@ type UpdateDefaultConferencingAppParams = {
   callback: () => void;
 };
 type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
-type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void; app: App["slug"] };
+type RemoveAppParams = { callback: () => void; app?: App["slug"] };
 
 const SkeletonLoader = () => {
   return (
@@ -120,7 +120,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   // const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
   const handleRemoveApp = ({ app }: RemoveAppParams) => {
-    deleteCredentialMutation.mutate(app);
+    !!app && deleteCredentialMutation.mutate(app);
   };
 
   const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
