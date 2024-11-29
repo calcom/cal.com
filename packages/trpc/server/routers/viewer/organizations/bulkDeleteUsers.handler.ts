@@ -34,7 +34,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       team: {
         OR: [
           {
-            parentId: currentUser.organizationId,
+            parentId: currentUserOrgId,
           },
           { id: currentUserOrgId },
         ],
