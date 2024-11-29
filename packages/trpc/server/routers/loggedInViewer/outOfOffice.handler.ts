@@ -103,8 +103,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const isDuplicateOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
     where: {
       userId: ctx.user.id,
-      start: startTimeUtc,
-      end: endTimeUtc,
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
     },
   });
 
