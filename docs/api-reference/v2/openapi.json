@@ -11701,6 +11701,28 @@
         },
         "required": ["start", "lengthInMinutes", "eventTypeId", "attendee"]
       },
+      "BookingHost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "jane100"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          }
+        },
+        "required": ["id", "name", "username", "timeZone"]
+      },
       "EventType": {
         "type": "object",
         "properties": {
@@ -11737,7 +11759,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -11791,6 +11813,10 @@
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
           },
           "metadata": {
             "type": "object",
@@ -11832,6 +11858,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees"
         ]
       },
@@ -11857,7 +11884,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -11911,6 +11938,10 @@
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
           },
           "metadata": {
             "type": "object",
@@ -11956,6 +11987,7 @@
           "eventTypeId",
           "eventType",
           "absentHost",
+          "createdAt",
           "attendees",
           "recurringBookingUid"
         ]

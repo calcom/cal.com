@@ -810,12 +810,22 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
+type TeamCreateReturnType = Awaited<ReturnType<typeof prismock.team.create>>;
+
+function assertNonNullableSlug<T extends { slug: string | null }>(
+  org: T
+): asserts org is T & { slug: string } {
+  if (org.slug === null) {
+    throw new Error("Slug cannot be null");
+  }
+}
+
 export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}) {
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -841,7 +851,7 @@ export async function createOrganization(orgData: {
       },
     });
   }
-
+  assertNonNullableSlug(org);
   return org;
 }
 
