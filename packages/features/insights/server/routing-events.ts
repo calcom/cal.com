@@ -718,14 +718,14 @@ class RoutingEventsInsights {
       SELECT *
       FROM routed_responses
       ORDER BY id ASC
-      LIMIT ${limit + 1}
+      LIMIT ${limit}
     `;
 
     const users = usersQuery;
-    const hasMoreUsers = users.length > limit;
-    if (hasMoreUsers) users.pop();
 
-    // Get bookings per period for these users
+    const hasMoreUsers = users.length === limit;
+
+    // Get periods with pagination
     const periodStats = await prisma.$queryRaw<
       Array<{
         userId: number;
@@ -733,58 +733,79 @@ class RoutingEventsInsights {
         total: number;
       }>
     >`
-      WITH RECURSIVE periods AS (
-        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as period_start
+      -- First, generate all months in the range
+      WITH RECURSIVE date_range AS (
+        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT period_start + (CASE 
+        SELECT date + (CASE 
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
         END)
-        FROM periods
-        WHERE period_start < ${endDate}::timestamp
+        FROM date_range
+        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
       ),
-      bookings_by_period AS (
+      -- Get all unique users we want to show
+      all_users AS (
+        SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]) as user_id
+      ),
+      -- Get periods with pagination
+      paginated_periods AS (
+        SELECT date as period_start
+        FROM date_range
+        ORDER BY date ASC
+        ${cursor ? Prisma.sql`OFFSET ${parseInt(cursor, 10)}` : Prisma.empty}
+        LIMIT ${limit}
+      ),
+      -- Generate combinations for paginated periods
+      date_user_combinations AS (
+        SELECT 
+          period_start,
+          user_id as "userId"
+        FROM paginated_periods
+        CROSS JOIN all_users
+      ),
+      -- Count bookings per user per period
+      booking_counts AS (
         SELECT 
           b."userId",
-          date_trunc(${dayjsPeriod}, r."createdAt") as period_start,
-          COUNT(*)::integer as total
-        FROM "App_RoutingForms_FormResponse" r
+          date_trunc(${dayjsPeriod}, b."createdAt") as period_start,
+          COUNT(DISTINCT b.id)::integer as total
+        FROM "Booking" b
+        JOIN "App_RoutingForms_FormResponse" r ON r."routedToBookingUid" = b.uid
         JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
-        JOIN "Booking" b ON r."routedToBookingUid" = b.uid
-        WHERE b."userId" IN (${Prisma.join(users.map((u) => u.id))})
-        AND r."createdAt" >= ${startDate}
-        AND r."createdAt" <= ${endDate}
+        WHERE b."userId" IN (SELECT user_id FROM all_users)
+        AND date_trunc(${dayjsPeriod}, b."createdAt") >= (SELECT MIN(period_start) FROM paginated_periods)
+        AND date_trunc(${dayjsPeriod}, b."createdAt") <= (SELECT MAX(period_start) FROM paginated_periods)
         ${whereClause}
         GROUP BY 1, 2
       )
+      -- Join everything together
       SELECT 
-        COALESCE(u."userId", bp."userId") as "userId",
-        p.period_start,
-        COALESCE(bp.total, 0)::integer as total
-      FROM periods p
-      CROSS JOIN (SELECT DISTINCT "userId" FROM bookings_by_period) u
-      LEFT JOIN bookings_by_period bp 
-        ON bp.period_start = p.period_start 
-        AND bp."userId" = u."userId"
-      ORDER BY p.period_start ASC, "userId" ASC
-      ${cursor ? Prisma.sql`OFFSET ${parseInt(cursor, 10)}` : Prisma.empty}
-      LIMIT ${limit + 1}
+        c."userId",
+        c.period_start,
+        COALESCE(b.total, 0)::integer as total
+      FROM date_user_combinations c
+      LEFT JOIN booking_counts b ON 
+        b."userId" = c."userId" AND 
+        b.period_start = c.period_start
+      ORDER BY c.period_start ASC, c."userId" ASC
     `;
 
-    const hasMorePeriods = periodStats.length > limit;
-    if (hasMorePeriods) periodStats.pop();
-
-    // Add total count query for users
-    const totalUsersCount = await prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(DISTINCT b."userId")::integer as count
-      FROM "App_RoutingForms_FormResponse" r
-      JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
-      JOIN "Booking" b ON r."routedToBookingUid" = b.uid
-      WHERE r."routedToBookingUid" IS NOT NULL
-      AND r."createdAt" >= ${startDate}
-      AND r."createdAt" <= ${endDate}
-      ${whereClause}
+    // Get total number of periods to determine if there are more
+    const totalPeriodsQuery = await prisma.$queryRaw<[{ count: number }]>`
+      WITH RECURSIVE date_range AS (
+        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
+        UNION ALL
+        SELECT date + (CASE 
+          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+        END)
+        FROM date_range
+        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
+      )
+      SELECT COUNT(*)::integer as count FROM date_range
     `;
 
     // Get statistics for the entire period for comparison
@@ -810,7 +831,7 @@ class RoutingEventsInsights {
 
     // Calculate average and median
     const average =
-      statsQuery.reduce((sum, stat) => sum + Number(stat.total_bookings), 0) / statsQuery.length;
+      statsQuery.reduce((sum, stat) => sum + Number(stat.total_bookings), 0) / statsQuery.length || 0;
     const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
 
     // Create a map of user performance indicators
@@ -829,6 +850,10 @@ class RoutingEventsInsights {
       return acc;
     }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
 
+    const totalPeriods = totalPeriodsQuery[0].count;
+    const currentPeriodOffset = cursor ? parseInt(cursor, 10) : 0;
+    const hasMorePeriods = currentPeriodOffset + limit < totalPeriods;
+
     return {
       users: {
         data: users.map((user) => ({
@@ -837,15 +862,10 @@ class RoutingEventsInsights {
           totalBookings: userPerformance[user.id]?.total || 0,
         })),
         nextCursor: hasMoreUsers ? users[users.length - 1].id : undefined,
-        totalCount: totalUsersCount[0].count,
       },
       periodStats: {
         data: periodStats,
-        nextCursor: hasMorePeriods ? (parseInt(cursor || "0", 10) + limit).toString() : undefined,
-      },
-      statistics: {
-        average,
-        median,
+        nextCursor: hasMorePeriods ? (currentPeriodOffset + limit).toString() : undefined,
       },
     };
   }
