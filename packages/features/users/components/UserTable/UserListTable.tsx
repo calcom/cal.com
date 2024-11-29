@@ -176,6 +176,7 @@ export function UserListTable() {
           meta: {
             filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
           },
+          size: 120,
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -280,6 +281,7 @@ export function UserListTable() {
         id: "role",
         accessorFn: (data) => data.role,
         header: "Role",
+        size: 100,
         cell: ({ row, table }) => {
           const { role, username } = row.original;
           return (
@@ -307,7 +309,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
-        size: 200,
+        size: 140,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
