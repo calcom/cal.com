@@ -2823,5 +2823,10 @@
   "exclude_emails_match_found_error_message": "Please enter a valid work email address",
   "search_columns": "Search columns",
   "search_options": "Search options",
+  "disable_org_url_label": "Disable public organization profile and redirect",
+  "disable_org_url_description": "Redirects {{orgSlug}}.cal.com to {{destination}}",
+  "single_select": "Single Select",
+  "multi_select": "Multi Select",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
+
