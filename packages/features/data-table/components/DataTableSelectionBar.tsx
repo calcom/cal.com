@@ -28,7 +28,7 @@ const Root = forwardRef<
     <div
       ref={ref}
       className={classNames(
-        "bg-brand-default text-brand fixed bottom-4 left-1/2 flex w-fit -translate-x-1/2 transform items-center space-x-3 rounded-lg px-4 py-2",
+        "bg-brand-default text-brand fixed bottom-0 left-0 z-40 flex w-full items-center space-x-1 overflow-x-auto px-2 py-2 sm:space-x-2 md:bottom-4 md:left-1/2 md:z-auto md:w-fit md:-translate-x-1/2 md:transform md:space-x-3 md:overflow-x-hidden md:rounded-lg md:px-4",
         props.className
       )}
       style={{ ...props.style }}

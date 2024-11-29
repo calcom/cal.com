@@ -552,7 +552,7 @@ export function UserListTable() {
         )}
         {numberOfSelectedRows > 0 && (
           <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
+            <p className="text-brand-subtle w-full px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {numberOfSelectedRows} selected
             </p>
             {!isPlatformUser ? (
