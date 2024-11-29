@@ -2804,6 +2804,7 @@
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce Option",
   "lookup_field_name": "Lookup Field Name",
+  "salesforce_if_free_email_domain_skip_owner_check": "If attendee has a free email domain, skip the ownership check and round robin as normal",
   "filter_operator_is": "Is",
   "filter_operator_is_not": "Is not",
   "filter_operator_contains": "Contains",
