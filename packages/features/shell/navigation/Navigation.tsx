@@ -170,8 +170,12 @@ const useNavigationItems = (isPlatformNavigation = false) => {
     const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
     const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
-    const mobileNavigationBottomItems = items.filter((item) => !item.moreOnMobile && !item.onlyDesktop);
-    const mobileNavigationMoreItems = items.filter((item) => item.moreOnMobile && !item.onlyDesktop);
+    const mobileNavigationBottomItems = items.filter(
+      (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
+    );
+    const mobileNavigationMoreItems = items.filter(
+      (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
+    );
 
     return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
   }, [isPlatformNavigation, orgBranding]);
