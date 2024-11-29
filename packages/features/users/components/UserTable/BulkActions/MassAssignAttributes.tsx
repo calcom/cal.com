@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useMemo, type PropsWithChildren } 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
+import type { Attribute as _Attribute, Option } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import {
   Alert,
@@ -30,10 +31,12 @@ interface Props {
   filters: ColumnFiltersState;
 }
 
+type Attribute = _Attribute & { options: Option[] };
+
 type AttributesContextType = {
-  selectedAttribute: string | null;
-  setSelectedAttribute: (attribute: string | null) => void;
-  foundAttributeInCache: Attribute | null;
+  selectedAttribute: string | undefined;
+  setSelectedAttribute: (attribute: string | undefined) => void;
+  foundAttributeInCache: Attribute | undefined;
 
   selectedAttributeOptions: string[];
   setSelectedAttributeOptions: (options: string[]) => void;
@@ -45,7 +48,7 @@ const AttributesContext = createContext<AttributesContextType | null>(null);
 
 function AttributesProvider({ children }: PropsWithChildren) {
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
-  const [selectedAttribute, setSelectedAttribute] = useState<string | null>(null);
+  const [selectedAttribute, setSelectedAttribute] = useState<string>();
   const [selectedAttributeOptions, setSelectedAttributeOptions] = useState<string[]>([]);
 
   const foundAttributeInCache = useMemo(
@@ -53,7 +56,7 @@ function AttributesProvider({ children }: PropsWithChildren) {
     [selectedAttribute, attributes]
   );
 
-  const value = {
+  const value: AttributesContextType = {
     selectedAttribute,
     setSelectedAttribute,
     selectedAttributeOptions,
@@ -229,7 +232,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
 
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
     onSuccess: (success) => {
       // Optimistically update the infinite query data
@@ -301,7 +304,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
         }
       );
 
-      setSelectedAttribute(null);
+      setSelectedAttribute(undefined);
       setSelectedAttributeOptions([]);
       showToast(success.message, "success");
     },
@@ -314,7 +317,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
     <Popover
       onOpenChange={(open) => {
         if (!open) {
-          setSelectedAttribute(null);
+          setSelectedAttribute(undefined);
           setSelectedAttributeOptions([]);
           setShowMultiSelectWarning(false);
         }
@@ -335,7 +338,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                 className="rounded-md"
                 size="sm"
                 onClick={() => {
-                  setSelectedAttribute(null);
+                  setSelectedAttribute(undefined);
                   setSelectedAttributeOptions([]);
                   setShowMultiSelectWarning(false);
                 }}>
