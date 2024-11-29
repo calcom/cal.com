@@ -34,15 +34,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     href: "/availability",
     icon: "clock",
   },
-  ...(orgBranding
-    ? [
-        {
-          name: "members",
-          href: `/settings/organizations/${orgBranding.slug}/members`,
-          icon: "building",
-        } satisfies NavigationItemType,
-      ]
-    : []),
   {
     name: "teams",
     href: "/teams",
@@ -85,6 +76,15 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     href: "/more",
     icon: "ellipsis",
   },
+  ...(orgBranding
+    ? [
+        {
+          name: "members",
+          href: `/settings/organizations/${orgBranding.slug}/members`,
+          icon: "building",
+        } satisfies NavigationItemType,
+      ]
+    : []),
   {
     name: "routing_forms",
     href: "/apps/routing-forms/forms",
