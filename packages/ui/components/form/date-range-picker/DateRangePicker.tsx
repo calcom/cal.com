@@ -35,7 +35,6 @@ export function DatePickerWithRange({
     } else {
       onDatesChange({ startDate: date, endDate: date });
     }
-    console.log({ date, dates });
   }
   const fromDate = minDate ?? new Date();
 
