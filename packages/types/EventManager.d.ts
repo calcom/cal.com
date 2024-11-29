@@ -10,6 +10,7 @@ export interface PartialReference {
   meetingUrl?: string | null;
   externalCalendarId?: string | null;
   credentialId?: number | null;
+  delegatedToId?: string | null;
 }
 
 export interface EventResult<T> {

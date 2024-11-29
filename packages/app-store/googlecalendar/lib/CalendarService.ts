@@ -177,8 +177,6 @@ export default class GoogleCalendarService implements Calendar {
   }) => {
     if (!this.credential.delegatedToId) return null;
 
-    const user = this.credential.delegatedToId;
-
     //TODO: Compute it once and save it
     const domainWideDelegation =
       await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({

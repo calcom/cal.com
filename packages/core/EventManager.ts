@@ -334,8 +334,10 @@ export default class EventManager {
     const calendarCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
       this.calendarCredentials,
-      credentialType
+      credentialType,
+      reference.delegatedToId
     );
+
     if (calendarCredential) {
       await deleteEvent({
         credential: calendarCredential,
@@ -364,8 +366,12 @@ export default class EventManager {
   private async getCredentialAndWarnIfNotFound(
     credentialId: number | null | undefined,
     credentials: CredentialPayload[],
-    type: string
+    type: string,
+    delegatedToId?: string | null
   ) {
+    if (delegatedToId) {
+      return this.calendarCredentials.find((cred) => cred.delegatedToId === delegatedToId);
+    }
     const credential = credentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
@@ -440,6 +446,7 @@ export default class EventManager {
             meetingUrl: true,
             externalCalendarId: true,
             credentialId: true,
+            delegatedToId: true,
           },
         },
         destinationCalendar: true,
@@ -630,6 +637,7 @@ export default class EventManager {
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
+    console.log("createAllCalendarEvents.this.calendarCredentials", this.calendarCredentials);
 
     const fallbackToFirstCalendarInTheList = async () => {
       /**
