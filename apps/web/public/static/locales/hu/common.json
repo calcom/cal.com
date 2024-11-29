@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Kérjük, adjon meg egy érvényes munkahelyi e-mail címet",
   "disable_org_url_label": "Nyilvános szervezeti profil és átirányítás kikapcsolása",
   "disable_org_url_description": "Átirányítja a {{orgSlug}}.cal.com címet a {{destination}} címre",
+  "single_select": "Egyszeres kiválasztás",
+  "multi_select": "Többszörös kiválasztás",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

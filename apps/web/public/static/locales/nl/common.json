@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Voer een geldig zakelijk e-mailadres in",
   "disable_org_url_label": "Openbaar organisatieprofiel uitschakelen en doorverwijzen",
   "disable_org_url_description": "Verwijst {{orgSlug}}.cal.com door naar {{destination}}",
+  "single_select": "Enkele selectie",
+  "multi_select": "Meervoudige selectie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Vui lòng nhập địa chỉ email công việc hợp lệ",
   "disable_org_url_label": "Vô hiệu hóa hồ sơ tổ chức công khai và chuyển hướng",
   "disable_org_url_description": "Chuyển hướng {{orgSlug}}.cal.com đến {{destination}}",
+  "single_select": "Chọn một",
+  "multi_select": "Chọn nhiều",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

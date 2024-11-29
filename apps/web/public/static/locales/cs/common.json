@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Zadejte prosím platnou pracovní e-mailovou adresu",
   "disable_org_url_label": "Zakázat veřejný profil organizace a přesměrování",
   "disable_org_url_description": "Přesměruje {{orgSlug}}.cal.com na {{destination}}",
+  "single_select": "Jeden výběr",
+  "multi_select": "Více výběrů",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

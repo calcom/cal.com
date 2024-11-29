@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Zadajte platnú pracovnú e-mailovú adresu",
   "disable_org_url_label": "Zakázať verejný profil organizácie a presmerovanie",
   "disable_org_url_description": "Presmeruje {{orgSlug}}.cal.com na {{destination}}",
+  "single_select": "Jednoduchý výber",
+  "multi_select": "Viacnásobný výber",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

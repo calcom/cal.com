@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Si us plau, introdueix una adreça de correu electrònic de treball vàlida",
   "disable_org_url_label": "Desactiva el perfil públic de l'organització i redirigeix",
   "disable_org_url_description": "Redirigeix {{orgSlug}}.cal.com a {{destination}}",
+  "single_select": "Selecció única",
+  "multi_select": "Selecció múltiple",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "请输入有效的工作电子邮件地址",
   "disable_org_url_label": "禁用公开组织资料并重定向",
   "disable_org_url_description": "将 {{orgSlug}}.cal.com 重定向到 {{destination}}",
+  "single_select": "单选",
+  "multi_select": "多选",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

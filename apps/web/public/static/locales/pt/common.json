@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Por favor, insira um endereço de email de trabalho válido",
   "disable_org_url_label": "Desativar perfil público da organização e redirecionar",
   "disable_org_url_description": "Redireciona {{orgSlug}}.cal.com para {{destination}}",
+  "single_select": "Seleção única",
+  "multi_select": "Seleção múltipla",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

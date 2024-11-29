@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Моля, въведете валиден служебен имейл адрес",
   "disable_org_url_label": "Деактивиране на публичния профил на организацията и пренасочване",
   "disable_org_url_description": "Пренасочва {{orgSlug}}.cal.com към {{destination}}",
+  "single_select": "Единичен избор",
+  "multi_select": "Множествен избор",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

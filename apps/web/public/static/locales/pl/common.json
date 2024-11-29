@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Proszę wprowadzić prawidłowy adres e-mail służbowy",
   "disable_org_url_label": "Wyłącz publiczny profil organizacji i przekierowanie",
   "disable_org_url_description": "Przekierowuje {{orgSlug}}.cal.com na {{destination}}",
+  "single_select": "Pojedynczy wybór",
+  "multi_select": "Wielokrotny wybór",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

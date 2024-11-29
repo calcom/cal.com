@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Lütfen geçerli bir iş e-posta adresi girin",
   "disable_org_url_label": "Genel kurum profilini devre dışı bırak ve yönlendir",
   "disable_org_url_description": "{{orgSlug}}.cal.com adresini {{destination}} adresine yönlendirir",
+  "single_select": "Tekli Seçim",
+  "multi_select": "Çoklu Seçim",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

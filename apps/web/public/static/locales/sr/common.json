@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Molimo unesite važeću poslovnu e-mail adresu",
   "disable_org_url_label": "Onemogući javni profil organizacije i preusmeravanje",
   "disable_org_url_description": "Preusmerava {{orgSlug}}.cal.com na {{destination}}",
+  "single_select": "Jednostruki izbor",
+  "multi_select": "Višestruki izbor",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

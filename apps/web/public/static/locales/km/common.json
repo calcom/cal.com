@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលការងារដែលមានសុពលភាព",
   "disable_org_url_label": "បិទទម្រង់សាធារណៈរបស់ស្ថាប័ន និងបញ្ជូនបន្ត",
   "disable_org_url_description": "បញ្ជូនបន្តពី {{orgSlug}}.cal.com ទៅកាន់ {{destination}}",
+  "single_select": "ជ្រើសរើសតែមួយ",
+  "multi_select": "ជ្រើសរើសច្រើន",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

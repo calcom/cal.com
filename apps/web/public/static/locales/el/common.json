@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email εργασίας",
   "disable_org_url_label": "Απενεργοποίηση δημόσιου προφίλ οργανισμού και ανακατεύθυνση",
   "disable_org_url_description": "Ανακατευθύνει το {{orgSlug}}.cal.com στο {{destination}}",
+  "single_select": "Μονή επιλογή",
+  "multi_select": "Πολλαπλή επιλογή",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

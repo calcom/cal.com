@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Zəhmət olmasa düzgün iş e-poçt ünvanı daxil edin",
   "disable_org_url_label": "İctimai təşkilat profilini deaktiv edin və yönləndirin",
   "disable_org_url_description": "{{orgSlug}}.cal.com ünvanını {{destination}} ünvanına yönləndirir",
+  "single_select": "Tək seçim",
+  "multi_select": "Çoxlu seçim",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

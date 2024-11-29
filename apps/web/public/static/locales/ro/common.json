@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Vă rugăm să introduceți o adresă de email de serviciu validă",
   "disable_org_url_label": "Dezactivează profilul public al organizației și redirecționează",
   "disable_org_url_description": "Redirecționează {{orgSlug}}.cal.com către {{destination}}",
+  "single_select": "Selecție unică",
+  "multi_select": "Selecție multiplă",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

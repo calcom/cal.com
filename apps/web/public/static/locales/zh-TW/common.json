@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "請輸入有效的工作電子郵件地址",
   "disable_org_url_label": "停用公開組織檔案並重新導向",
   "disable_org_url_description": "將 {{orgSlug}}.cal.com 重新導向至 {{destination}}",
+  "single_select": "單選",
+  "multi_select": "多選",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

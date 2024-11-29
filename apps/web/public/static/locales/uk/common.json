@@ -2819,5 +2819,7 @@
   "exclude_emails_match_found_error_message": "Будь ласка, введіть дійсну робочу електронну адресу",
   "disable_org_url_label": "Вимкнути публічний профіль організації та перенаправлення",
   "disable_org_url_description": "Перенаправляє {{orgSlug}}.cal.com на {{destination}}",
+  "single_select": "Одиночний вибір",
+  "multi_select": "Множинний вибір",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
