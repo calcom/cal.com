@@ -13,7 +13,7 @@ import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import isRouter from "../lib/isRouter";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
-import { zodFields, zodRouterRoute, zodRoutes, queryValueSaveValidationSchema } from "../zod";
+import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
 
 interface FormMutationHandlerOptions {
@@ -22,42 +22,6 @@ interface FormMutationHandlerOptions {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TFormMutationInputSchema;
-}
-
-function throwIfInvalidQueryValueToBeSaved({
-  routes,
-}: {
-  routes: FormMutationHandlerOptions["input"]["routes"];
-}) {
-  if (!routes) {
-    return;
-  }
-  routes.forEach((route, routeIndex) => {
-    if (isRouter(route)) {
-      return;
-    }
-    // We use separate schema for queryValye here which is much more strict
-    // It allows that we are still lenient with schema while reading the queryValue but while saving it we are strict
-    const parsedFormFieldsQueryValue = queryValueSaveValidationSchema.safeParse(route.queryValue);
-    if (!parsedFormFieldsQueryValue.success) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} form fields: ${parsedFormFieldsQueryValue.error.errors
-          .map((err) => err.message)
-          .join(", ")}`,
-      });
-    }
-
-    const parsedAttributesQueryValue = queryValueSaveValidationSchema.safeParse(route.attributesQueryValue);
-    if (!parsedAttributesQueryValue.success) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} attributes: ${parsedAttributesQueryValue.error.errors
-          .map((err) => err.message)
-          .join(", ")}`,
-      });
-    }
-  });
 }
 
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
@@ -70,16 +34,9 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       code: "FORBIDDEN",
     });
   }
-  let { routes: inputRoutes } = input;
 
-  // Ensures that wrong queryValue is not saved
-  // This is super useful when we make some wrong change in RAQB config accidentally and end up
-  // - Removing an operator support from a rule
-  // - Populating things wrong for any reason in RAQB
-  // It would just ensure that the wrong queryValue is not saved. Because it is impossible to fix it once saved. User would have to manually fix it then.
-  throwIfInvalidQueryValueToBeSaved({ routes: inputRoutes });
+  let { routes: inputRoutes, fields: inputFields } = input;
 
-  let { fields: inputFields } = input;
   inputFields = inputFields || [];
   inputRoutes = inputRoutes || [];
   type InputFields = typeof inputFields;
@@ -351,7 +308,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       });
     }
 
-    if (!canEditEntity(sourceForm, userId)) {
+    if (!(await canEditEntity(sourceForm, userId))) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,

@@ -9,6 +9,7 @@ type EventDetails = {
   username: string;
   eventSlug: string;
   startTime: Dayjs;
+  endTime: Dayjs;
   visitorTimezone?: string;
   visitorUid?: string;
 };
@@ -21,9 +22,9 @@ const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 7 * 24 * 3600 : 60;
 
 const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
 
-const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string) => {
+const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string, teamId?: number) => {
   return `${REDIS_KEY_VERSION}.${eventDetails.username}:${eventDetails.eventSlug}${
-    orgSlug ? `@${orgSlug}` : ""
+    orgSlug ? `@${orgSlug}:team_${teamId}` : ""
   }`;
 };
 
@@ -40,12 +41,14 @@ const constructDataHash = (eventDetails: EventDetails) => {
 export const handleNotificationWhenNoSlots = async ({
   eventDetails,
   orgDetails,
+  teamId,
 }: {
   eventDetails: EventDetails;
   orgDetails: { currentOrgDomain: string | null };
+  teamId?: number;
 }) => {
   // Check for org
-  if (!orgDetails.currentOrgDomain) return;
+  if (!orgDetails.currentOrgDomain || !teamId) return;
   const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
   if (!UPSTASH_ENV_FOUND) return;
 
@@ -68,7 +71,7 @@ export const handleNotificationWhenNoSlots = async ({
 
   const redis = new RedisService();
 
-  const usersUniqueKey = constructRedisKey(eventDetails, orgDetails.currentOrgDomain);
+  const usersUniqueKey = constructRedisKey(eventDetails, orgDetails.currentOrgDomain, teamId);
   // Get only the required amount of data so the request is as small as possible
   // We may need to get more data and check the startDate occurrence of this
   // Not trigger email if the start months are the same
@@ -82,12 +85,14 @@ export const handleNotificationWhenNoSlots = async ({
 
   // We add one as we know we just added one to the list - saves us re-fetching the data
   if (usersExistingNoSlots.length + 1 === NO_SLOTS_COUNT_FOR_NOTIFICATION) {
-    // Get all org admins to send the email too
+    // Get all team admins to send the email too
     const foundAdmins = await prisma.membership.findMany({
       where: {
         team: {
-          slug: orgDetails.currentOrgDomain,
-          isOrganization: true,
+          id: teamId,
+          parentId: {
+            not: null,
+          },
         },
         role: {
           in: ["ADMIN", "OWNER"],
@@ -100,6 +105,15 @@ export const handleNotificationWhenNoSlots = async ({
             locale: true,
           },
         },
+      },
+    });
+
+    const teamSlug = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        slug: true,
       },
     });
     // TODO: use new tasker as we dont want this blocking loading slots (Just out of scope for this PR)
@@ -116,9 +130,11 @@ export const handleNotificationWhenNoSlots = async ({
         },
         user: eventDetails.username,
         slug: eventDetails.eventSlug,
-        startTime: eventDetails.startTime.format("YYYY-MM"),
+        startTime: eventDetails.startTime.format("YYYY-MM-DD"),
+        endTime: eventDetails.endTime.format("YYYY-MM-DD"),
         // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availability
         editLink: `${WEBAPP_URL}/availability?type=team`,
+        teamSlug: teamSlug?.slug ?? "",
       };
 
       emailsToSend.push(sendOrganizationAdminNoSlotsNotification(payload));
