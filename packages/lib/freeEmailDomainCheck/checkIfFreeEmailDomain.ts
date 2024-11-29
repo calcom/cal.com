@@ -1,6 +1,6 @@
 import { freeEmailDomainsThatStartWithANumberObject, freeEmailDomains } from "./freeEmailDomains";
 
-export const checkIfFreeEmail = (email: string) => {
+export const checkIfFreeEmailDomain = (email: string) => {
   const emailDomain = email.split("@")?.[1];
   // If there's no email domain return as if it was a free email domain
   if (!emailDomain) return true;
