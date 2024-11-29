@@ -538,6 +538,10 @@ export default function Signup({
                         if (token) {
                           searchQueryParams.set("email", prepopulateFormValues?.email);
                         }
+                        if (redirectUrl) {
+                          searchQueryParams.set("redirect", redirectUrl);
+                        }
+
                         const url = searchQueryParams.toString()
                           ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
                           : GOOGLE_AUTH_URL;
