@@ -1,6 +1,6 @@
 import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -121,7 +121,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
                         selectedEvents.has(id) || (areAllUsersHostForTeam && !removeHostFromEvents.has(id))
                     );
                     return (
-                      <>
+                      <Fragment key={team.teamId}>
                         <ListItem
                           isTeam
                           onSelect={() => {
@@ -200,7 +200,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
                             />
                           );
                         })}
-                      </>
+                      </Fragment>
                     );
                   })}
               </CommandGroup>
