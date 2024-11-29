@@ -547,6 +547,11 @@ function mergeOverlappingRanges(ranges: { start: Date; end: Date }[]): { start: 
 }
 
 function isFullDayEvent(date1: Date, date2: Date) {
+  const MILLISECONDS_IN_A_DAY = 24 * 60 * 60 * 1000;
+  const difference = Math.abs(date1.getTime() - date2.getTime());
+
+  // Check if the time difference is approximately one full day
+  return Math.abs(difference - MILLISECONDS_IN_A_DAY) < 1000;
   // 24 hours in milliseconds
   const millisecondsIn24Hours = 24 * 60 * 60 * 1000;
   const difference = Math.abs(date1.getTime() - date2.getTime());
