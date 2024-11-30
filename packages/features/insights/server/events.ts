@@ -74,18 +74,24 @@ class EventsInsights {
     const whereClause = buildSqlCondition(whereConditional);
 
     const data = await prisma.$queryRaw<
-      { periodStart: Date; bookingsCount: number; timeStatus: string; noShowHost: boolean }[]
+      {
+        periodStart: Date;
+        bookingsCount: number;
+        timeStatus: string;
+        noShowHost: boolean;
+        noShowGuest: number;
+      }[]
     >`
     SELECT
       "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuest",
       "timeStatus",
-      "noShowHost",
-      "noShowGuest"
+      "noShowHost"
     FROM (
       SELECT
         DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
-        CAST(COUNT(CASE WHEN "a"."noShow" = true THEN 1 END) AS INTEGER) AS "noShowGuest",
+        "a"."noShow" AS "isNoShowGuest",
         "timeStatus",
         "noShowHost"
       FROM
@@ -95,22 +101,17 @@ class EventsInsights {
       WHERE
         "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
         AND ${Prisma.raw(whereClause)}
-      GROUP BY
-        "createdAt", 
-        "timeStatus", 
-        "noShowHost"
     ) AS truncated_dates
     GROUP BY
       "periodStart",
       "timeStatus",
-      "noShowHost",
-      "noShowGuest"
+      "noShowHost"
     ORDER BY
       "periodStart";
   `;
 
     const aggregate: AggregateResult = {};
-    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost }) => {
+    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost, noShowGuest }) => {
       const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
       if (dayjs(periodStart).isAfter(endDate)) {
@@ -141,6 +142,9 @@ class EventsInsights {
       if (noShowHost) {
         aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
       }
+
+      // Track no-show guests explicitly
+      aggregate[formattedDate]["noShowGuest"] += noShowGuest;
     });
 
     // Generate a complete list of expected date labels based on the timeline
