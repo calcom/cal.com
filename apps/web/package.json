@@ -11,7 +11,7 @@
     "dev:cron": "ts-node cron-tester.ts",
     "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",
     "dx": "yarn dev",
-    "test-codegen": "yarn playwright codegen http://localhost:3000",
+    "test-codegen": "dotenv -e ../.env -- yarn playwright codegen ${NEXT_PUBLIC_WEBAPP_URL}",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "build": "next build",

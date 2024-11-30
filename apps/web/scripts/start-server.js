@@ -1,6 +1,16 @@
 require("dotenv").config({ path: "../../.env" });
-const { exec } = require("child_process");
+const { spawn } = require("child_process");
 const { URL } = require("url");
+
+const args = process.argv.slice(2);
+const command = args[0];
+const portFlagIndex = args.findIndex((arg) => arg === "-p" || arg === "--port");
+let customPort = null;
+
+if (portFlagIndex !== -1 && args[portFlagIndex + 1]) {
+  customPort = args[portFlagIndex + 1];
+  console.log("Custom port specified:", customPort);
+}
 
 const webAppUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
 if (!webAppUrl) {
@@ -8,24 +18,40 @@ if (!webAppUrl) {
   process.exit(1);
 }
 
-const url = new URL(webAppUrl);
 let port;
-
-if (url.port) {
-  console.log(`Setting port to ${url.port} from NEXT_PUBLIC_WEBAPP_URL`);
-  port = url.port;
-} else {
-  console.warn("No port found in NEXT_PUBLIC_WEBAPP_URL. Defaulting to 3000.");
-  port = 3000;
+try {
+  port = customPort || new URL(webAppUrl).port || 3000;
+  console.log("Using port:", port);
+} catch (error) {
+  console.error("Error parsing NEXT_PUBLIC_WEBAPP_URL:", error);
+  process.exit(1);
 }
 
-exec(`PORT=${port} next ${process.argv[2]}`, (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Error: ${error.message}`);
-    return;
-  }
-  if (stderr) {
-    console.error(stderr);
-  }
-  console.log(stdout);
+const nextProcess = spawn("next", [command], {
+  env: { ...process.env, PORT: port },
+  shell: true,
+  stdio: "pipe",
+});
+
+nextProcess.stdout.on("data", (data) => {
+  console.log(data.toString());
+});
+
+nextProcess.stderr.on("data", (data) => {
+  console.error(data.toString());
+});
+
+nextProcess.on("close", (code) => {
+  console.log(`Process exited with code ${code}`);
+});
+
+nextProcess.on("error", (error) => {
+  console.error("Failed to start Next.js process:", error);
+  process.exit(1);
+});
+
+process.on("SIGINT", () => {
+  console.log("\nGracefully shutting down...");
+  nextProcess.kill();
+  process.exit(0);
 });
