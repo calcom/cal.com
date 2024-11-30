@@ -12,8 +12,7 @@
     "cli": "ts-node --transpile-only src/cli.tsx",
     "watch": "ts-node --transpile-only src/build.ts --watch",
     "generate": "ts-node --transpile-only src/build.ts",
-    "post-install": "yarn build",
-    "generate-metadata": "ts-node --transpile-only ../app-store/generateMetadata.ts"
+    "post-install": "yarn build"
   },
   "files": [
     "dist/cli.js"

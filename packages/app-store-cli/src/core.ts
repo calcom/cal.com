@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 
+import { AppMetaSchema } from "../generateMetadata";
 import { APP_STORE_PATH, TEMPLATES_PATH, IS_WINDOWS_PLATFORM } from "./constants";
 import execSync from "./utils/execSync";
 
@@ -117,6 +118,33 @@ export const BaseAppFork = {
       ...config,
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
+
+    const parsedConfig = AppMetaSchema.parse(config); // This will throw an error if validation fails
+    const metadataPath = `${appDirPath}/metadata.generated.ts`;
+    // Check if the metadata file already exists
+    if (fs.existsSync(metadataPath)) {
+      // If metadata file exists, read the existing content
+      const existingMetadata = fs.readFileSync(metadataPath, "utf-8");
+
+      // Parse the existing metadata and update it
+      const updatedMetadata = existingMetadata.replace(
+        /export const metadata = (.*?);/s, // Regex to find the metadata export
+        `export const metadata = ${JSON.stringify(parsedConfig, null, 2)} as const;`
+      );
+
+      // Write the updated metadata back to the file
+      fs.writeFileSync(metadataPath, updatedMetadata);
+      console.log(`Updated metadata in ${metadataPath}`);
+    } else {
+      const tsContent = `
+        /* This file is auto-generated for ${config.slug}. Do not modify directly. */
+        export const metadata = ${JSON.stringify(parsedConfig, null, 2)} as const;
+      `;
+      // If metadata file doesn't exist, create a new one
+      fs.writeFileSync(metadataPath, tsContent);
+      console.log(`Generated new metadata file for ${config.slug}`);
+    }
+
     fs.writeFileSync(
       `${appDirPath}/DESCRIPTION.md`,
       fs

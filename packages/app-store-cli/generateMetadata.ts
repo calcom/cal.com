@@ -24,8 +24,8 @@ export const AppMetaSchema = z.object({
   isOAuth: z.boolean().optional(),
 });
 
-const appsDir = path.resolve(__dirname, "../../packages/app-store");
-const templatesDir = path.resolve(__dirname, "../../packages/app-store/templates");
+const appsDir = path.resolve(__dirname, "../app-store");
+const templatesDir = path.resolve(__dirname, "../app-store/templates");
 
 function generateMetadataForDirectory(directory: string) {
   const folderNames = fs.readdirSync(directory);
@@ -36,7 +36,6 @@ function generateMetadataForDirectory(directory: string) {
     const outputPath = path.join(folderPath, "metadata.generated.ts");
 
     if (!fs.existsSync(configPath)) {
-      console.warn(`Skipping ${folder}: config.json not found.`);
       return;
     }
 
@@ -50,19 +49,14 @@ function generateMetadataForDirectory(directory: string) {
             `;
 
       fs.writeFileSync(outputPath, tsContent);
-      console.log(`Generated metadata file for ${folder}`);
-    } catch (error) {
-      console.error(`Error processing ${folder}:`, error);
-    }
+    } catch (error) {}
   });
 }
 
-function generateMetadataForAllApps() {
+export function generateMetadataForAllApps() {
   // Generate metadata for apps
   generateMetadataForDirectory(appsDir);
 
   // Generate metadata for templates
   generateMetadataForDirectory(templatesDir);
 }
-
-generateMetadataForAllApps();
