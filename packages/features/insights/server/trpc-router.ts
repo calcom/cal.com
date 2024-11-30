@@ -506,7 +506,7 @@ export const insightsRouter = router({
           EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
           EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
           EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuest"] || 0;
+          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
         }
         return EventData;
       });

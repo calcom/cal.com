@@ -12,7 +12,7 @@ type StatusAggregate = {
   rescheduled: number;
   cancelled: number;
   noShowHost: number;
-  noShowGuest: number;
+  noShowGuests: number;
   _all: number;
   uncompleted: number;
 };
@@ -79,13 +79,13 @@ class EventsInsights {
         bookingsCount: number;
         timeStatus: string;
         noShowHost: boolean;
-        noShowGuest: number;
+        noShowGuests: number;
       }[]
     >`
     SELECT
       "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
-      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuest",
+      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
       "timeStatus",
       "noShowHost"
     FROM (
@@ -111,7 +111,7 @@ class EventsInsights {
   `;
 
     const aggregate: AggregateResult = {};
-    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost, noShowGuest }) => {
+    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
       const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
       if (dayjs(periodStart).isAfter(endDate)) {
@@ -127,7 +127,7 @@ class EventsInsights {
           noShowHost: 0,
           _all: 0,
           uncompleted: 0,
-          noShowGuest: 0,
+          noShowGuests: 0,
         };
       }
 
@@ -144,7 +144,7 @@ class EventsInsights {
       }
 
       // Track no-show guests explicitly
-      aggregate[formattedDate]["noShowGuest"] += noShowGuest;
+      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
     });
 
     // Generate a complete list of expected date labels based on the timeline
@@ -175,7 +175,7 @@ class EventsInsights {
           rescheduled: 0,
           cancelled: 0,
           noShowHost: 0,
-          noShowGuest: 0,
+          noShowGuests: 0,
           _all: 0,
           uncompleted: 0,
         };
