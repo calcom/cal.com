@@ -1,4 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import type { EventLinks } from "@calcom/ee/workflows/lib/reminders/utils";
+import { getShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -144,6 +146,16 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   let smsMessage = message;
 
   if (smsMessage) {
+    const eventLinks: EventLinks = {
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+      cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true` || "",
+      rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}` || "",
+      noShowUrl: "",
+      ratingUrl: "",
+    };
+
+    const shortLinks = await getShortenLinks(eventLinks);
+
     const variables: VariablesType = {
       eventName: evt.title,
       organizerName: evt.organizer.name,
@@ -157,9 +169,9 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       location: evt.location,
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
-      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+      meetingUrl: shortLinks.meetingUrl,
+      cancelLink: shortLinks.cancelLink,
+      rescheduleLink: shortLinks.rescheduleLink,
       attendeeTimezone: evt.attendees[0].timeZone,
       eventTimeInAttendeeTimezone: dayjs(evt.startTime).tz(evt.attendees[0].timeZone),
       eventEndTimeInAttendeeTimezone: dayjs(evt.endTime).tz(evt.attendees[0].timeZone),
