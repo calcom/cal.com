@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
@@ -24,7 +23,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Alert, Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
@@ -75,20 +74,7 @@ type EventTypeScheduleDetailsProps = {
   customClassNames?: AvailabilityTableCustomClassNames;
 };
 
-type HostSchedulesQueryType =
-  | GetAllSchedulesByUserIdQueryType
-  | (({ userId }: { userId: number }) => UseQueryResult<
-      {
-        schedules: {
-          id: number;
-          name: string;
-          isDefault: boolean;
-          userId: number;
-          readOnly: boolean;
-        }[];
-      },
-      Error
-    >);
+type HostSchedulesQueryType = GetAllSchedulesByUserIdQueryType;
 
 type EventTypeTeamScheduleProps = {
   hostSchedulesQuery: HostSchedulesQueryType;
@@ -415,17 +401,19 @@ const TeamMemberSchedule = ({
   const formMethods = useFormContext<FormValues>();
   const { getValues } = formMethods;
 
-  const { data, isPending } = hostScheduleQuery({
+  const { data: schedules, isPending } = hostScheduleQuery({
     userId: host.userId,
   });
 
-  const schedules = data?.schedules;
+  // const schedules = data?.schedules;
   const options = schedules?.map((schedule) => ({
     value: schedule.id,
     label: schedule.name,
     isDefault: schedule.isDefault,
     isManaged: false,
   }));
+
+  const userHasDefaultSchedule = schedules?.some((schedule) => schedule.hasDefaultSchedule);
 
   //Set to defaultSchedule if Host Schedule is not previously selected
   const scheduleId = getValues(`hosts.${index}.scheduleId`);
@@ -450,30 +438,38 @@ const TeamMemberSchedule = ({
         {isPending ? (
           <Spinner className="mt-2 h-6 w-6" />
         ) : (
-          <Controller
-            name={`hosts.${index}.scheduleId`}
-            render={({ field }) => {
-              return (
-                <Select
-                  placeholder={t("select")}
-                  options={options}
-                  isSearchable={false}
-                  onChange={(selected) => {
-                    field.onChange(selected?.value || null);
-                  }}
-                  className={classNames(
-                    "block w-full min-w-0 flex-1 rounded-sm text-sm",
-                    customClassNames?.select
-                  )}
-                  innerClassNames={customClassNames?.innerClassNames}
-                  value={value as AvailabilityOption}
-                  components={{ Option, SingleValue }}
-                  isMulti={false}
-                  isDisabled={isPending}
-                />
-              );
-            }}
-          />
+          <>
+            {!userHasDefaultSchedule ? (
+              <div className="my-2">
+                <Alert severity="warning" title={t("view_only_edit_availability_not_onboarded")} />
+              </div>
+            ) : (
+              <Controller
+                name={`hosts.${index}.scheduleId`}
+                render={({ field }) => {
+                  return (
+                    <Select
+                      placeholder={t("select")}
+                      options={options}
+                      isSearchable={false}
+                      onChange={(selected) => {
+                        field.onChange(selected?.value || null);
+                      }}
+                      className={classNames(
+                        "block w-full min-w-0 flex-1 rounded-sm text-sm",
+                        customClassNames?.select
+                      )}
+                      innerClassNames={customClassNames?.innerClassNames}
+                      value={value as AvailabilityOption}
+                      components={{ Option, SingleValue }}
+                      isMulti={false}
+                      isDisabled={isPending}
+                    />
+                  );
+                }}
+              />
+            )}
+          </>
         )}
       </div>
     </>
