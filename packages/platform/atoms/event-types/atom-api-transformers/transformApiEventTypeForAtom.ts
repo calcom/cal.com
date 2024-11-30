@@ -132,7 +132,7 @@ export function transformApiTeamEventTypeForAtom(
     isDynamic: false,
     profile: {
       username: "team",
-      name: "team",
+      name: "Team",
       weekStart: "Sunday",
       image: "",
       brandColor: null,
