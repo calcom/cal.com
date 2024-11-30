@@ -211,6 +211,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         meta: {
           sticky: {
@@ -353,6 +354,8 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        enableSorting: false,
+        enableResizing: false,
         size: 80,
         meta: {
           sticky: { position: "right" },
@@ -390,6 +393,7 @@ export function UserListTable() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
+    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {

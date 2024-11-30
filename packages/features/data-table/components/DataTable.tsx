@@ -3,8 +3,8 @@
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useEffect } from "react";
+import { useVirtualizer, type Virtualizer } from "@tanstack/react-virtual";
+import { useMemo, useEffect, memo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
@@ -58,8 +58,6 @@ export function DataTable<TData, TValue>({
     }
   }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
 
-  const virtualRows = rowVirtualizer.getVirtualItems();
-
   const columnSizeVars = useMemo(() => {
     const headers = table.getFlatHeaders();
     const colSizes: { [key: string]: number } = {};
@@ -79,7 +77,6 @@ export function DataTable<TData, TValue>({
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
         ...rest.style,
-        ...columnSizeVars,
       }}
       data-testid={rest["data-testid"] ?? "data-table"}>
       <div
@@ -90,8 +87,41 @@ export function DataTable<TData, TValue>({
           "scrollbar-thin border-subtle relative rounded-md border"
         )}
         style={{ gridArea: "body" }}>
-        <TableNew className="grid border-0">
+        <TableNew
+          className="grid border-0"
+          style={{
+            ...columnSizeVars,
+            width: table.getTotalSize(),
+          }}>
           <TableHeader className="bg-subtle sticky top-0 z-10">
+            <style jsx>{`
+              .data-table-resizer {
+                position: absolute;
+                top: 0;
+                height: 100%;
+                right: 0;
+                width: 5px;
+                background: rgba(0, 0, 0, 0.5);
+                cursor: col-resize;
+                user-select: none;
+                touch-action: none;
+              }
+
+              .data-table-resizer.data-table-is-resizing {
+                background: blue;
+                opacity: 1;
+              }
+
+              @media (hover: hover) {
+                .data-table-resizer {
+                  opacity: 0;
+                }
+
+                *:hover > .data-table-resizer {
+                  opacity: 1;
+                }
+              }
+            `}</style>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="flex w-full">
                 {headerGroup.headers.map((header) => {
@@ -105,11 +135,13 @@ export function DataTable<TData, TValue>({
                         width: `calc(var(--header-${header?.id}-size) * 1px)`,
                       }}
                       className={classNames(
-                        "flex shrink-0 items-center",
+                        "relative flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
                         meta?.sticky && "bg-subtle sticky top-0 z-20"
                       )}>
-                      <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
+                      <div
+                        className="flex h-full w-full items-center"
+                        onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -125,68 +157,131 @@ export function DataTable<TData, TValue>({
                           />
                         )}
                       </div>
+                      {header.column.getCanResize() && (
+                        <div
+                          // onDoubleClick={() => header.column.resetSize()}
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`data-table-resizer ${
+                            header.column.getIsResizing() ? "data-table-is-resizing" : ""
+                          }`}
+                        />
+                      )}
                     </TableHead>
                   );
                 })}
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-            {virtualRows && !isPending ? (
-              virtualRows.map((virtualRow) => {
-                const row = rows[virtualRow.index] as Row<TData>;
-                return (
-                  <TableRow
-                    ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                    key={row.id}
-                    data-index={virtualRow.index} //needed for dynamic row height measurement
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                    style={{
-                      display: "flex",
-                      position: "absolute",
-                      transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                      width: "100%",
-                    }}
-                    className={classNames(
-                      onRowMouseclick && "hover:cursor-pointer",
-                      variant === "compact" && "!border-0",
-                      "group"
-                    )}>
-                    {row.getVisibleCells().map((cell) => {
-                      const column = table.getColumn(cell.column.id);
-                      const meta = column?.columnDef.meta;
-                      return (
-                        <TableCell
-                          key={cell.id}
-                          style={{
-                            ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                            ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
-                          }}
-                          className={classNames(
-                            "flex shrink-0 items-center overflow-hidden",
-                            variant === "compact" && "p-1.5",
-                            meta?.sticky && "group-hover:bg-muted bg-default sticky"
-                          )}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+          {/* When resizing any column we will render this special memoized version of our table body */}
+          {table.getState().columnSizingInfo.isResizingColumn ? (
+            <MemoizedTableBody
+              table={table}
+              rowVirtualizer={rowVirtualizer}
+              rows={rows}
+              variant={variant}
+              isPending={isPending}
+              onRowMouseclick={onRowMouseclick}
+            />
+          ) : (
+            <DataTableBody
+              table={table}
+              rowVirtualizer={rowVirtualizer}
+              rows={rows}
+              variant={variant}
+              isPending={isPending}
+              onRowMouseclick={onRowMouseclick}
+            />
+          )}
         </TableNew>
       </div>
       {children}
     </div>
+  );
+}
+
+const MemoizedTableBody = memo(
+  DataTableBody,
+  (prev, next) =>
+    prev.table.options.data === next.table.options.data &&
+    prev.rowVirtualizer === next.rowVirtualizer &&
+    prev.rows === next.rows &&
+    prev.variant === next.variant &&
+    prev.isPending === next.isPending &&
+    prev.onRowMouseclick === next.onRowMouseclick
+) as typeof DataTableBody;
+
+type DataTableBodyProps<TData> = {
+  table: ReactTableType<TData>;
+  rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
+  rows: Row<TData>[];
+  variant?: "default" | "compact";
+  isPending?: boolean;
+  onRowMouseclick?: (row: Row<TData>) => void;
+};
+
+function DataTableBody<TData>({
+  table,
+  rowVirtualizer,
+  rows,
+  variant,
+  isPending,
+  onRowMouseclick,
+}: DataTableBodyProps<TData>) {
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  return (
+    <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+      {virtualRows && !isPending ? (
+        virtualRows.map((virtualRow) => {
+          const row = rows[virtualRow.index] as Row<TData>;
+          return (
+            <TableRow
+              ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+              key={row.id}
+              data-index={virtualRow.index} //needed for dynamic row height measurement
+              data-state={row.getIsSelected() && "selected"}
+              onClick={() => onRowMouseclick && onRowMouseclick(row)}
+              style={{
+                display: "flex",
+                position: "absolute",
+                transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                width: "100%",
+              }}
+              className={classNames(
+                onRowMouseclick && "hover:cursor-pointer",
+                variant === "compact" && "!border-0",
+                "group"
+              )}>
+              {row.getVisibleCells().map((cell) => {
+                const column = table.getColumn(cell.column.id);
+                const meta = column?.columnDef.meta;
+                return (
+                  <TableCell
+                    key={cell.id}
+                    style={{
+                      ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                      ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                      width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                    }}
+                    className={classNames(
+                      "flex shrink-0 items-center overflow-hidden",
+                      variant === "compact" && "p-1.5",
+                      meta?.sticky && "group-hover:bg-muted bg-default sticky"
+                    )}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })
+      ) : (
+        <TableRow>
+          <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+            No results.
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
   );
 }
