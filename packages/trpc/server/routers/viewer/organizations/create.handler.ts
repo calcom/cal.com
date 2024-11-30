@@ -122,6 +122,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   // We only allow creating an annual billing period if you are a system admin
   const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
 
+  if (isPlatform && !loggedInUser.completedOnboarding) {
+    // add default availability and creaete some default event types for the user
+    // once above is done, completedOnboarding can be set to true
+  }
+
   if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
   }
