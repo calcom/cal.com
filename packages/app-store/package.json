@@ -12,8 +12,7 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json",
-    "generate-metadata": "ts-node generateMetadata.ts"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
   },
   "dependencies": {
     "@calcom/dailyvideo": "*",
