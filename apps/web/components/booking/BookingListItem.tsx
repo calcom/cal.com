@@ -257,6 +257,14 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "user-plus" as const,
     },
+    {
+      id: "remove_members",
+      label: t("remove_guests"),
+      onClick: () => {
+        setIsOpenRemoveGuestsDialog(true);
+      },
+      icon: "user-x" as const,
+    },
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -336,6 +344,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
+  const [isOpenRemoveGuestsDialog, setIsOpenRemoveGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
