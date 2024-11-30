@@ -405,7 +405,6 @@ const TeamMemberSchedule = ({
     userId: host.userId,
   });
 
-  // const schedules = data?.schedules;
   const options = schedules?.map((schedule) => ({
     value: schedule.id,
     label: schedule.name,
