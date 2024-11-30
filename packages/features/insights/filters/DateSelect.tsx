@@ -77,11 +77,13 @@ export const DateSelect = () => {
         maxDate={currentDate.toDate()}
         disabled={false}
         onDatesChange={({ startDate, endDate }) => {
-          setConfigFilters({
-            dateRange: [dayjs(startDate), dayjs(endDate), null],
-          });
-          setStartDate(dayjs(startDate));
-          setEndDate(dayjs(endDate));
+          if (startDate && endDate) {
+            setConfigFilters({
+              dateRange: [dayjs(startDate), dayjs(endDate), null],
+            });
+          }
+          setStartDate(startDate ? dayjs(startDate) : startDate);
+          setEndDate(endDate ? dayjs(endDate) : endDate);
           setSelectedPreset(presetOptions.find((c) => c.value === null));
         }}
       />

@@ -53,7 +53,7 @@ export function DatePickerWithRange({
                   {format(dates.startDate, "LLL dd, y")} - {format(dates.endDate, "LLL dd, y")}
                 </>
               ) : (
-                format(dates.startDate, "LLL dd, y")
+                <>{format(dates.startDate, "LLL dd, y")} - End</>
               )
             ) : (
               <span>Pick a date</span>
