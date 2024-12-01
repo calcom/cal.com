@@ -175,6 +175,25 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 
+export const DEFAULT_EVENT_TYPES = [
+  {
+    title: t("15min_meeting"),
+    slug: "15min",
+    length: 15,
+  },
+  {
+    title: t("30min_meeting"),
+    slug: "30min",
+    length: 30,
+  },
+  {
+    title: t("secret_meeting"),
+    slug: "secret",
+    length: 15,
+    hidden: true,
+  },
+];
+
 export default defaultEvents;
 
 export type DefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;
