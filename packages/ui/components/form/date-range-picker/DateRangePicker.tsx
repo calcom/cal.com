@@ -26,14 +26,12 @@ export function DatePickerWithRange({
   disabled,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
-    if (dates?.startDate && dates?.endDate) {
+    if (dates?.endDate) {
       onDatesChange({ startDate: date, endDate: undefined });
-    } else if (dates?.startDate && !dates?.endDate) {
+    } else {
       const startDate = date < dates.startDate ? date : dates.startDate;
       const endDate = date < dates.startDate ? dates.startDate : date;
       onDatesChange({ startDate, endDate });
-    } else {
-      onDatesChange({ startDate: date, endDate: date });
     }
   }
   const fromDate = minDate ?? new Date();

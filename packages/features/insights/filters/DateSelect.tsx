@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DateRangePicker } from "@calcom/ui";
@@ -22,10 +23,10 @@ export const DateSelect = () => {
   const { filter, setConfigFilters } = useFilterContext();
   const currentDate = dayjs();
   const [initialStartDate, initialEndDate, range] = filter?.dateRange || [null, null, null];
-  const [startDate, setStartDate] = useState(initialStartDate);
-  const [endDate, setEndDate] = useState(initialEndDate);
-  const startValue = startDate?.toDate() || null;
-  const endValue = endDate?.toDate() || null;
+  const [startDate, setStartDate] = useState<Dayjs>(initialStartDate);
+  const [endDate, setEndDate] = useState<Dayjs | undefined>(initialEndDate);
+  const startValue = startDate.toDate();
+  const endValue = endDate?.toDate();
   const [selectedPreset, setSelectedPreset] = useState(presetOptions.find((c) => c.value === range));
 
   const updateDateRange = (val: string | null) => {
@@ -82,7 +83,7 @@ export const DateSelect = () => {
               dateRange: [dayjs(startDate), dayjs(endDate), null],
             });
           }
-          setStartDate(startDate ? dayjs(startDate) : startDate);
+          setStartDate(dayjs(startDate));
           setEndDate(endDate ? dayjs(endDate) : endDate);
           setSelectedPreset(presetOptions.find((c) => c.value === null));
         }}
