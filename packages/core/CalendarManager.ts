@@ -49,7 +49,6 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { integration, credential } = item;
-        console.log("credential", credential);
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;

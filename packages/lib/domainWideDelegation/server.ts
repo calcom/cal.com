@@ -107,7 +107,6 @@ export async function getAllDomainWideDelegationCredentialsForUser({
     : [];
 
   log.debug("Returned", { domainWideDelegationCredentials });
-  console.log("domainWideDelegationCredentials", domainWideDelegationCredentials);
   return domainWideDelegationCredentials;
 }
 
