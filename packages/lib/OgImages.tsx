@@ -89,12 +89,12 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps): s
 export const constructGenericImage = ({ title, description }: GenericImageProps) => {
   const url = [
     `?type=generic`,
-    `&title=${encodeURIComponent(title)}`,
-    `&description=${encodeURIComponent(description)}`,
+    `&title=${title}`,
+    `&description=${description}`,
     // Joining a multiline string for readability.
   ].join("");
 
-  return url;
+  return encodeURIComponent(url);
 };
 
 const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
