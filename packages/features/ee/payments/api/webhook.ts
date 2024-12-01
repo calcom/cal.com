@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { getAllCredentials } from "bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
@@ -72,7 +73,12 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     },
   });
   if (!requiresConfirmation) {
-    const eventManager = new EventManager(user, eventType?.metadata?.apps);
+    const allCredentials = await getAllCredentials(user, eventType);
+
+    const eventManager = new EventManager(
+      { ...user, credentials: allCredentials },
+      eventType?.metadata?.apps
+    );
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;

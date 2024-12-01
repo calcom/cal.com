@@ -7,18 +7,20 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+export type EventType = {
+  userId?: number | null;
+  team?: { id: number | null; parentId: number | null } | null;
+  parentId?: number | null;
+  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+} | null;
+
 /**
  * Gets credentials from the user, team, and org if applicable
  *
  */
 export const getAllCredentials = async (
   user: { id: number; username: string | null; email: string; credentials: CredentialPayload[] },
-  eventType: {
-    userId?: number | null;
-    team?: { id: number | null; parentId: number | null } | null;
-    parentId?: number | null;
-    metadata: z.infer<typeof EventTypeMetaDataSchema>;
-  } | null
+  eventType: EventType
 ) => {
   let allCredentials = user.credentials;
 

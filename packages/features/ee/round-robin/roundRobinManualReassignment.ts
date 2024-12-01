@@ -17,7 +17,6 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -268,13 +267,6 @@ export const roundRobinManualReassignment = async ({
     include: { user: { select: { email: true } } },
   });
 
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
-    user: {
-      email: newUser.email,
-      id: newUser.id,
-    },
-  });
-
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
         where: { userId: originalOrganizer.id },
@@ -288,7 +280,8 @@ export const roundRobinManualReassignment = async ({
     changedOrganizer: hasOrganizerChanged,
     previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
-      user: { ...newUser, credentials: credentials.concat(domainWideDelegationCredentials) },
+      user: { ...newUser, credentials: credentials },
+      eventType,
     },
     bookingId,
     bookingLocation,
