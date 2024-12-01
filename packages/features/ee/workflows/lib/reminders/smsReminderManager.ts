@@ -176,7 +176,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         evt.title,
         timeZone,
         attendeeName,
-        name
+        name,
+        bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl
       ) || message;
   }
 

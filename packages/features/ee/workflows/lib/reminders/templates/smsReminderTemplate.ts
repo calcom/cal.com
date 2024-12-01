@@ -10,7 +10,8 @@ const smsReminderTemplate = (
   eventName?: string,
   timeZone?: string,
   attendee?: string,
-  name?: string
+  name?: string,
+  meetingUrl?: string
 ) => {
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
 
@@ -21,6 +22,7 @@ const smsReminderTemplate = (
     startTime = `{EVENT_TIME_${currentTimeFormat}}`;
 
     eventDate = "{EVENT_DATE_YYYY MMM D}";
+    meetingUrl = "{MEETING_URL}";
     attendee = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
@@ -30,12 +32,12 @@ const smsReminderTemplate = (
 
   const templateOne = `Hi${
     name ? ` ${name}` : ``
-  }, this is a reminder that your meeting (${eventName}) with ${attendee} is on ${eventDate} at ${startTime} ${timeZone}.`;
+  }, this is a reminder that your meeting (${eventName}) with ${attendee} is on ${eventDate} at ${startTime} ${timeZone}. Please join using the meeting link: ${meetingUrl}.`;
 
   //Twilio recomments message to be no longer than 320 characters
   if (templateOne.length <= 320) return templateOne;
 
-  const templateTwo = `Hi, this is a reminder that your meeting with ${attendee} is on ${eventDate} at ${startTime} ${timeZone}`;
+  const templateTwo = `Hi, this is a reminder that your meeting with ${attendee} is on ${eventDate} at ${startTime} ${timeZone}. Join using the link: ${meetingUrl}`;
 
   //Twilio supports up to 1600 characters
   if (templateTwo.length <= 1600) return templateTwo;

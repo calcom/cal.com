@@ -192,7 +192,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       evt.title,
       timeZone,
       attendeeName,
-      name
+      name,
+      undefined,
+      bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl
     );
   } else if (template === WorkflowTemplates.RATING) {
     emailContent = emailRatingTemplate({
@@ -212,6 +214,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
+
+  console.log("========================EMAIL CONTENT=======================", emailContent);
 
   const batchId = await getBatchId();
 

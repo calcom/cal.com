@@ -248,7 +248,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             timeZone || "",
             attendeeName || "",
             name || "",
-            !!reminder.booking.user?.hideBranding
+            !!reminder.booking.user?.hideBranding,
+            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl
           );
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
           const organizerOrganizationProfile = await prisma.profile.findFirst({
@@ -374,7 +375,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           timeZone || "",
           attendeeName || "",
           name || "",
-          !!reminder.booking.user?.hideBranding
+          !!reminder.booking.user?.hideBranding,
+          bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl
         );
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();

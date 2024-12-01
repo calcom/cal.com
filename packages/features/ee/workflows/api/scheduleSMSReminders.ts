@@ -158,7 +158,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking?.eventType?.title || "",
           timeZone || "",
           attendeeName || "",
-          userName
+          userName,
+          bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl
         );
       }
 
