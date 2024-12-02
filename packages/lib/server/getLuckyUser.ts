@@ -66,7 +66,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
   routingFormResponse: RoutingFormResponse | null;
 }
 // === dayjs.utc().startOf("month").toDate();
-const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
 // TS helper function.
 const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
@@ -342,7 +342,7 @@ async function getCurrentMonthsBookings({
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
-    startDate: startOfMonth,
+    startDate: startOfMonth(),
     endDate: new Date(),
     virtualQueuesData,
   });
@@ -525,7 +525,7 @@ async function fetchAllDataNeededForCalculations<
         eventTypeId: eventType.id,
         isFixed: false,
         createdAt: {
-          gte: startOfMonth,
+          gte: startOfMonth(),
         },
       },
     }),
