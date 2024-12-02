@@ -10,7 +10,7 @@ declare module "@tanstack/table-core" {
 
     // `autoWidth` can make the column size dynamic,
     // allowing each row to have a different width based on its content.
-    // As a result, scrolling may be flaky.
+    // As a result, scrolling may be flaky, unless the content size is consistent.
     autoWidth?: boolean;
   }
 }
