@@ -338,7 +338,7 @@ const BookerComponent = ({
                 {!hideEventTypeDetails && orgBannerUrl && !isPlatform && (
                   <img
                     loading="eager"
-                    className="-mb-9 ltr:rounded-tl-md rtl:rounded-tr-md"
+                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
