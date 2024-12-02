@@ -37,6 +37,7 @@ export type PreviewState = {
   >;
   palette: {
     brandColor: string;
+    darkBrandColor: string;
   };
   hideEventTypeDetails: boolean;
   layout: BookerLayouts;

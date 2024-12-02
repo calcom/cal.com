@@ -21,7 +21,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -544,8 +543,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
-  const { resolvedTheme, forcedTheme } = useGetTheme();
-  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
 
   const [month, selectedDatesAndTimes] = useBookerStore(
     (state) => [state.month, state.selectedDatesAndTimes],
@@ -587,13 +584,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const paletteDefaultValue = useCallback(
     (paletteName: string) => {
       if (paletteName === "brandColor") {
-        const color = hasDarkTheme ? defaultBrandColor.darkBrandColor : defaultBrandColor.brandColor;
-        return color ?? "#000000";
+        return defaultBrandColor.brandColor ?? "#000000";
+      }
+
+      if (paletteName === "darkBrandColor") {
+        return defaultBrandColor.darkBrandColor ?? "#ffffff";
       }
 
       return "#000000";
     },
-    [hasDarkTheme, defaultBrandColor]
+    [defaultBrandColor]
   );
 
   const [previewState, setPreviewState] = useState<PreviewState>({
@@ -613,6 +613,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     hideEventTypeDetails: false,
     palette: {
       brandColor: paletteDefaultValue("brandColor"),
+      darkBrandColor: paletteDefaultValue("darkBrandColor"),
     },
   });
 
@@ -632,7 +633,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return null;
   }
 
-  const addToPalette = (update: (typeof previewState)["palette"]) => {
+  const addToPalette = (update: Partial<(typeof previewState)["palette"]>) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -675,9 +676,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
-      styles: {
-        branding: {
-          ...previewState.palette,
+      cssVarsPerTheme: {
+        light: {
+          "cal-brand": previewState.palette.brandColor,
+        },
+        dark: {
+          "cal-brand": previewState.palette.darkBrandColor,
         },
       },
     },
@@ -1012,7 +1016,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       ) : null}
                       {[
-                        { name: "brandColor", title: "Brand Color" },
+                        { name: "brandColor", title: "light_brand_color" },
+                        { name: "darkBrandColor", title: "dark_brand_color" },
                         // { name: "lightColor", title: "Light Color" },
                         // { name: "lighterColor", title: "Lighter Color" },
                         // { name: "lightestColor", title: "Lightest Color" },
@@ -1020,7 +1025,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         // { name: "medianColor", title: "Median Color" },
                       ].map((palette) => (
                         <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{palette.title}</div>
+                          <div className="mb-2">{t(palette.title)}</div>
                           <div className="w-full">
                             <ColorPicker
                               popoverAlign="start"
