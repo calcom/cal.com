@@ -1,6 +1,6 @@
 import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
@@ -109,7 +109,7 @@ export function EventTypesList({ table, teamId }: Props) {
 
                     if (events.length === 0 || !teamId) return null;
                     return (
-                      <>
+                      <Fragment key={teamId}>
                         {events.map((event) => {
                           const hosts = event.hosts;
                           const areAllUsersHostForEventType = selectedUsers.every((user) =>
@@ -144,7 +144,7 @@ export function EventTypesList({ table, teamId }: Props) {
                             />
                           );
                         })}
-                      </>
+                      </Fragment>
                     );
                   })}
               </CommandGroup>
