@@ -79,6 +79,8 @@ async function createRoutingFormWithResponse({
     },
   });
 
+  const routeId = v4();
+
   const form = await prismock.app_RoutingForms_Form.create({
     data: {
       ...formData,
@@ -88,7 +90,7 @@ async function createRoutingFormWithResponse({
           id: v4(),
           type: "group",
         },
-        id: v4(),
+        id: routeId,
         ...route,
       })),
       user: {
@@ -101,6 +103,7 @@ async function createRoutingFormWithResponse({
 
   const responseRecord = await prismock.app_RoutingForms_FormResponse.create({
     data: {
+      chosenRouteId: routeId,
       response: {},
       form: {
         connect: {
