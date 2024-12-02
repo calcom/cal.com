@@ -107,7 +107,7 @@ export function DataTable<TData, TValue>({
                       className={classNames(
                         "flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "sticky top-0 z-20"
+                        meta?.sticky && "bg-subtle sticky top-0 z-20"
                       )}>
                       <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
