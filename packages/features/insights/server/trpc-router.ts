@@ -1753,7 +1753,7 @@ export const insightsRouter = router({
 
         return { data: csvString, filename: downloadAs };
       } catch (e) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e.message });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
 });
