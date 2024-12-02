@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -622,6 +623,7 @@ export class EventTypeRepository {
       },
       secondaryEmailId: true,
       maxLeadThreshold: true,
+      useEventLevelSelectedCalendars: true,
     });
 
     return await prisma.eventType.findFirst({
@@ -711,5 +713,101 @@ export class EventTypeRepository {
         ],
       },
     });
+  }
+
+  static async findForAvailabilityCheck({ id }: { id: number }) {
+    const eventType = await prisma.eventType.findUnique({
+      where: { id },
+      select: {
+        ...eventTypeSelect,
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        },
+        hosts: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                id: true,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        selectedCalendars: {
+          select: {
+            externalId: true,
+            integration: true,
+          },
+        },
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                days: true,
+                date: true,
+                startTime: true,
+                endTime: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            startTime: true,
+            endTime: true,
+            days: true,
+            date: true,
+          },
+        },
+      },
+    });
+    if (!eventType) {
+      return eventType;
+    }
+    return {
+      ...eventType,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    };
+  }
+
+  static getSelectedCalendarsFromUser({
+    user,
+    eventTypeId,
+  }: {
+    user: { allSelectedCalendars: SelectedCalendar[] };
+    eventTypeId: number;
+  }) {
+    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 }

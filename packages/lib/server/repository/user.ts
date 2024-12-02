@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -742,7 +743,7 @@ export class UserRepository {
     });
   }
   static async findUserWithCredentials({ id }: { id: number }) {
-    return await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         id,
       },
@@ -755,5 +756,38 @@ export class UserRepository {
         selectedCalendars: true,
       },
     });
+    if (!user) {
+      return null;
+    }
+    const { selectedCalendars, ...restUser } = user;
+    return {
+      ...restUser,
+      userLevelSelectedCalendars: selectedCalendars.filter((calendar) => calendar.eventTypeId === null),
+      allSelectedCalendars: selectedCalendars,
+    };
+  }
+
+  static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
+    const user = await prisma.user.findFirst({
+      where,
+      select: {
+        ...availabilityUserSelect,
+        selectedCalendars: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const { selectedCalendars, ...restUser } = user;
+    return {
+      ...restUser,
+      userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+      allSelectedCalendars: selectedCalendars,
+    };
   }
 }

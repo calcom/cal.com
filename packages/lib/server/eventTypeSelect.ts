@@ -1,5 +1,6 @@
 import { Prisma } from "@calcom/prisma/client";
 
+// Keep scalars fields only here
 export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   teamId: true,
@@ -61,4 +62,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   rrSegmentQueryValue: true,
   assignRRMembersUsingSegment: true,
   maxLeadThreshold: true,
+  useEventLevelSelectedCalendars: true,
 });

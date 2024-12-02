@@ -1,21 +1,219 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
+
+const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
+
+type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
+type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
+
 export type UserWithCalendars = Pick<User, "id"> & {
-  selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration">[];
+  selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
   destinationCalendar: DestinationCalendar | null;
 };
 
-export type ConnectedDestinationCalendars = Awaited<ReturnType<typeof getConnectedDestinationCalendars>>;
+export type ConnectedDestinationCalendars = Awaited<
+  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
+>;
 
-export async function getConnectedDestinationCalendars(
-  user: UserWithCalendars,
-  onboarding: boolean,
-  prisma: PrismaClient
-) {
+async function handleNoConnectedCalendars(user: UserWithCalendars) {
+  log.debug(`No connected calendars, deleting destination calendar if it exists for user ${user.id}`);
+
+  if (!user.destinationCalendar) return user;
+  await prisma.destinationCalendar.delete({
+    where: { userId: user.id },
+  });
+
+  return {
+    ...user,
+    destinationCalendar: null,
+  };
+}
+
+type ToggledCalendarDetails = {
+  externalId: string;
+  integration: string;
+};
+
+async function handleNoDestinationCalendar({
+  user,
+  connectedCalendars,
+  onboarding,
+}: {
+  user: UserWithCalendars;
+  connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
+  onboarding: boolean;
+}) {
+  if (!connectedCalendars.length) {
+    throw new Error("No connected calendars");
+  }
+  const updatedConnectedCalendars = connectedCalendars.map((connectedCalendar) => ({
+    ...connectedCalendar,
+  }));
+  let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
+  log.debug(
+    `There are connected calendars, but no destination calendar, so create a default destination calendar in DB for user ${user.id}`
+  );
+  /*
+    So create a default destination calendar with the first primary connected calendar
+    */
+  const {
+    integration = "",
+    externalId = "",
+    credentialId,
+    email: primaryEmail,
+  } = updatedConnectedCalendars[0].primary ?? {};
+
+  // Select the first calendar matching the primary by default since that will also be the destination calendar
+  if (onboarding && externalId) {
+    const calendarIndex = (updatedConnectedCalendars[0].calendars || []).findIndex(
+      (item) => item.externalId === externalId && item.integration === integration
+    );
+    if (calendarIndex >= 0 && updatedConnectedCalendars[0].calendars) {
+      updatedConnectedCalendars[0].calendars[calendarIndex].isSelected = true;
+      calendarToEnsureIsEnabledForConflictCheck = {
+        externalId,
+        integration,
+      };
+    }
+  }
+
+  const updatedUser = { ...user };
+
+  updatedUser.destinationCalendar = await prisma.destinationCalendar.create({
+    data: {
+      userId: user.id,
+      integration,
+      externalId,
+      credentialId,
+      primaryEmail,
+    },
+  });
+
+  return {
+    updatedUser,
+    updatedConnectedCalendars,
+    calendarToEnsureIsEnabledForConflictCheck,
+  };
+}
+
+async function handleDestinationCalendarNotInConnectedCalendars({
+  user,
+  connectedCalendars,
+  onboarding,
+}: {
+  user: UserWithCalendars;
+  connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
+  onboarding: boolean;
+}) {
+  const updatedUser = { ...user };
+  const updatedConnectedCalendars = connectedCalendars.map((connectedCalendar) => ({
+    ...connectedCalendar,
+  }));
+  let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
+  log.debug(
+    `Destination calendar isn't in connectedCalendars, update it to the first primary connected calendar for user ${user.id}`
+  );
+  const {
+    integration = "",
+    externalId = "",
+    email: primaryEmail,
+  } = updatedConnectedCalendars[0].primary ?? {};
+  // Select the first calendar matching the primary by default since that will also be the destination calendar
+  if (onboarding && externalId) {
+    const calendarIndex = (updatedConnectedCalendars[0].calendars || []).findIndex(
+      (item) => item.externalId === externalId && item.integration === integration
+    );
+    if (calendarIndex >= 0 && updatedConnectedCalendars[0].calendars) {
+      updatedConnectedCalendars[0].calendars[calendarIndex].isSelected = true;
+      calendarToEnsureIsEnabledForConflictCheck = {
+        externalId,
+        integration,
+      };
+    }
+  }
+
+  updatedUser.destinationCalendar = await prisma.destinationCalendar.update({
+    where: { userId: user.id },
+    data: {
+      integration,
+      externalId,
+      primaryEmail,
+    },
+  });
+
+  return {
+    updatedUser,
+    updatedConnectedCalendars,
+    calendarToEnsureIsEnabledForConflictCheck,
+  };
+}
+
+function findMatchingCalendar({
+  connectedCalendars,
+  calendar,
+}: {
+  connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
+  calendar: DestinationCalendar;
+}) {
+  // Check if destinationCalendar exists in connectedCalendars
+  const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+  const matchingCalendar = allCals.find(
+    (cal) => cal.externalId === calendar.externalId && cal.integration === calendar.integration
+  );
+  return matchingCalendar;
+}
+
+async function ensureSelectedCalendarIsInDb({
+  user,
+  selectedCalendar,
+}: {
+  user: UserWithCalendars;
+  selectedCalendar: {
+    integration: string;
+    externalId: string;
+  };
+}) {
+  log.debug(
+    `Upsert the selectedCalendar record to the DB for user ${user.id} with details ${JSON.stringify(
+      selectedCalendar
+    )}`
+  );
+  await prisma.selectedCalendar.upsert({
+    where: {
+      userId_integration_externalId: {
+        userId: user.id,
+        integration: selectedCalendar.integration,
+        externalId: selectedCalendar.externalId,
+      },
+    },
+    create: {
+      userId: user.id,
+      integration: selectedCalendar.integration,
+      externalId: selectedCalendar.externalId,
+    },
+    // already exists
+    update: {},
+  });
+}
+
+export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+  user,
+  onboarding,
+  eventTypeId,
+  prisma,
+}: {
+  user: UserWithCalendars;
+  onboarding: boolean;
+  eventTypeId?: number | null;
+  prisma: PrismaClient;
+}) {
   const userCredentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
@@ -27,99 +225,60 @@ export async function getConnectedDestinationCalendars(
     select: credentialForCalendarServiceSelect,
   });
 
+  const eventTypeSelectedCalendars = user.selectedCalendars.filter(
+    (selectedCalendar) => selectedCalendar.eventTypeId === eventTypeId
+  );
+
+  const userSelectedCalendars = user.selectedCalendars.filter(
+    (selectedCalendar) => !selectedCalendar.eventTypeId
+  );
+
+  log.debug({ eventTypeSelectedCalendars, userSelectedCalendars, allUserCalendars: user.selectedCalendars });
+
+  const selectedCalendars = eventTypeId ? eventTypeSelectedCalendars : userSelectedCalendars;
+
   // get user's credentials + their connected integrations
   const calendarCredentials = getCalendarCredentials(userCredentials);
 
   // get all the connected integrations' calendars (from third party)
   const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
     calendarCredentials,
-    user.selectedCalendars,
+    selectedCalendars,
     user.destinationCalendar?.externalId
   );
-  let toggledCalendarDetails:
-    | {
-        externalId: string;
-        integration: string;
-      }
-    | undefined;
 
-  if (connectedCalendars.length === 0) {
-    /* As there are no connected calendars, delete the destination calendar if it exists */
-    if (user.destinationCalendar) {
-      await prisma.destinationCalendar.delete({
-        where: { userId: user.id },
-      });
-      user.destinationCalendar = null;
-    }
+  let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
+
+  let updatedUser: UserWithCalendars = user;
+  let updatedConnectedCalendars: ConnectedCalendarsFromGetConnectedCalendars = connectedCalendars;
+  if (updatedConnectedCalendars.length === 0) {
+    updatedUser = await handleNoConnectedCalendars(user);
   } else if (!user.destinationCalendar) {
-    /*
-      There are connected calendars, but no destination calendar
-      So create a default destination calendar with the first primary connected calendar
-      */
-    const {
-      integration = "",
-      externalId = "",
-      credentialId,
-      email: primaryEmail,
-    } = connectedCalendars[0].primary ?? {};
-    // Select the first calendar matching the primary by default since that will also be the destination calendar
-    if (onboarding && externalId) {
-      const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
-        (item) => item.externalId === externalId && item.integration === integration
-      );
-      if (calendarIndex >= 0 && connectedCalendars[0].calendars) {
-        connectedCalendars[0].calendars[calendarIndex].isSelected = true;
-        toggledCalendarDetails = {
-          externalId,
-          integration,
-        };
-      }
-    }
-    user.destinationCalendar = await prisma.destinationCalendar.create({
-      data: {
-        userId: user.id,
-        integration,
-        externalId,
-        credentialId,
-        primaryEmail,
-      },
-    });
+    ({ updatedUser, calendarToEnsureIsEnabledForConflictCheck, updatedConnectedCalendars } =
+      await handleNoDestinationCalendar({
+        user,
+        connectedCalendars,
+        onboarding,
+        eventTypeId,
+      }));
   } else {
     /* There are connected calendars and a destination calendar */
-
-    // Check if destinationCalendar exists in connectedCalendars
-    const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
-    const destinationCal = allCals.find(
-      (cal) =>
-        cal.externalId === user.destinationCalendar?.externalId &&
-        cal.integration === user.destinationCalendar?.integration
+    log.debug(
+      `There are connected calendars and a destination calendar, so check if destinationCalendar exists in connectedCalendars for user ${user.id}`
     );
 
+    const destinationCal = findMatchingCalendar({ connectedCalendars, calendar: user.destinationCalendar });
     if (!destinationCal) {
-      // If destinationCalendar is out of date, update it with the first primary connected calendar
-      const { integration = "", externalId = "", email: primaryEmail } = connectedCalendars[0].primary ?? {};
-      // Select the first calendar matching the primary by default since that will also be the destination calendar
-      if (onboarding && externalId) {
-        const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
-          (item) => item.externalId === externalId && item.integration === integration
-        );
-        if (calendarIndex >= 0 && connectedCalendars[0].calendars) {
-          connectedCalendars[0].calendars[calendarIndex].isSelected = true;
-          toggledCalendarDetails = {
-            externalId,
-            integration,
-          };
-        }
-      }
-      user.destinationCalendar = await prisma.destinationCalendar.update({
-        where: { userId: user.id },
-        data: {
-          integration,
-          externalId,
-          primaryEmail,
-        },
-      });
+      ({ updatedUser, calendarToEnsureIsEnabledForConflictCheck, updatedConnectedCalendars } =
+        await handleDestinationCalendarNotInConnectedCalendars({
+          user,
+          connectedCalendars,
+          onboarding,
+        }));
     } else if (onboarding && !destinationCal.isSelected) {
+      log.debug(
+        `Onboarding:Destination calendar is not selected, but in connectedCalendars, so mark it as selected in the calendar list for user ${user.id}`
+      );
       // Mark the destination calendar as selected in the calendar list
       // We use every so that we can exit early once we find the matching calendar
       connectedCalendars.every((cal) => {
@@ -130,7 +289,7 @@ export async function getConnectedDestinationCalendars(
         );
         if (index >= 0 && cal.calendars) {
           cal.calendars[index].isSelected = true;
-          toggledCalendarDetails = {
+          calendarToEnsureIsEnabledForConflictCheck = {
             externalId: destinationCal.externalId,
             integration: destinationCal.integration || "",
           };
@@ -143,30 +302,25 @@ export async function getConnectedDestinationCalendars(
   }
 
   // Insert the newly toggled record to the DB
-  if (toggledCalendarDetails) {
-    await prisma.selectedCalendar.upsert({
-      where: {
-        userId_integration_externalId: {
-          userId: user.id,
-          integration: toggledCalendarDetails.integration,
-          externalId: toggledCalendarDetails.externalId,
-        },
-      },
-      create: {
-        userId: user.id,
-        integration: toggledCalendarDetails.integration,
-        externalId: toggledCalendarDetails.externalId,
-      },
-      // already exists
-      update: {},
-    });
+  if (calendarToEnsureIsEnabledForConflictCheck) {
+    await ensureSelectedCalendarIsInDb({ user, selectedCalendar: calendarToEnsureIsEnabledForConflictCheck });
   }
 
   return {
     connectedCalendars,
     destinationCalendar: {
-      ...(user.destinationCalendar as DestinationCalendar),
+      ...(updatedUser.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,
     },
   };
+}
+
+async function getSelectedCalendarsForEvent(eventType: { userId: number; id: number }) {
+  const selectedCalendars = await SelectedCalendarRepository.findMany({
+    where: {
+      eventTypeId: eventType.id,
+      userId: eventType.userId,
+    },
+  });
+  return selectedCalendars;
 }

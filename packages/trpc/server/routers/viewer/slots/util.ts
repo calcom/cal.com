@@ -28,6 +28,7 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
@@ -162,31 +163,7 @@ export async function getEventType(
       id: eventTypeId,
     },
     select: {
-      id: true,
-      slug: true,
-      minimumBookingNotice: true,
-      length: true,
-      offsetStart: true,
-      seatsPerTimeSlot: true,
-      timeZone: true,
-      slotInterval: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      bookingLimits: true,
-      durationLimits: true,
-      assignAllTeamMembers: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      onlyShowFirstAvailableSlot: true,
-      periodCountCalendarDays: true,
-      rescheduleWithSameRoundRobinHost: true,
-      periodDays: true,
-      metadata: true,
-      assignRRMembersUsingSegment: true,
-      rrSegmentQueryValue: true,
-      maxLeadThreshold: true,
+      ...eventTypeSelect,
       team: {
         select: {
           id: true,
@@ -234,6 +211,7 @@ export async function getEventType(
           user: {
             select: {
               credentials: { select: credentialForCalendarServiceSelect },
+              selectedCalendars: true,
               ...availabilityUserSelect,
             },
           },
@@ -256,6 +234,7 @@ export async function getEventType(
       users: {
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
+          selectedCalendars: true,
           ...availabilityUserSelect,
         },
       },
@@ -266,8 +245,25 @@ export async function getEventType(
     return null;
   }
 
+  const hosts = eventType.hosts.map((host) => ({
+    ...host,
+    user: {
+      ...host.user,
+      allSelectedCalendars: host.user.selectedCalendars,
+      userLevelSelectedCalendars: host.user.selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+    },
+  }));
+
+  const users = eventType.users.map((user) => ({
+    ...user,
+    allSelectedCalendars: user.selectedCalendars,
+    userLevelSelectedCalendars: user.selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+  }));
+
   return {
     ...eventType,
+    hosts,
+    users,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
   };

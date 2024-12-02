@@ -91,6 +91,7 @@ model EventType {
   availability                            Availability[]
   webhooks                                Webhook[]
   destinationCalendar                     DestinationCalendar?
+  useEventLevelSelectedCalendars          Boolean                   @default(false)
   eventName                               String?
   customInputs                            EventTypeCustomInput[]
   parentId                                Int?
@@ -157,10 +158,11 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  selectedCalendars                       SelectedCalendar[]
 
   /// @zod.custom(imports.eventTypeColor)
-  eventTypeColor                   Json?
-  rescheduleWithSameRoundRobinHost Boolean @default(false)
+  eventTypeColor                          Json?
+  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -704,6 +706,9 @@ model SelectedCalendar {
   externalId               String
   credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId             Int?
+  eventTypeId              Int?
+  eventType                EventType? @relation(fields: [eventTypeId], references: [id])
+
   // Used to identify a watched calendar channel in Google Calendar
   googleChannelId          String?     @unique
   googleChannelKind        String?
@@ -716,6 +721,7 @@ model SelectedCalendar {
   @@index([integration])
   @@index([externalId])
 }
+
 
 enum EventTypeCustomInputType {
   TEXT     @map("text")
@@ -1659,3 +1665,4 @@ model EventTypeTranslation {
   @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@index([eventTypeId, field, targetLocale])
 }
+

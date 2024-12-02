@@ -26,7 +26,6 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
     },
   },
   availability: true,
-  selectedCalendars: true,
   travelSchedules: true,
 });
 

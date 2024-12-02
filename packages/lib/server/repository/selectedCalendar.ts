@@ -8,6 +8,7 @@ type SelectedCalendarCreateInput = {
   userId: number;
   externalId: string;
   integration: string;
+  eventTypeId?: number;
 };
 
 export class SelectedCalendarRepository {
@@ -26,6 +27,7 @@ export class SelectedCalendarRepository {
           integration: data.integration,
           externalId: data.externalId,
         },
+        eventTypeId: data.eventTypeId || null,
       },
       create: { ...data },
       update: { ...data },
@@ -97,6 +99,7 @@ export class SelectedCalendarRepository {
           externalId: data.externalId,
           integration: data.integration,
         },
+        eventTypeId: data.eventTypeId ?? null,
       },
     });
   }
