@@ -9,7 +9,10 @@ import {
   IsOptional,
   IsString,
   Min,
+  IsEnum,
 } from "class-validator";
+
+import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput {
   @IsDateString()
@@ -68,19 +71,21 @@ export class GetAvailableSlotsInput {
   @IsOptional()
   orgSlug?: string;
 
-  @IsBoolean()
+  @IsString()
+  @IsEnum(SlotFormat, {
+    message: "slotFormat must be either 'range' or 'time'",
+  })
   @Transform(({ value }) => {
-    if (value === "true" || value === true) return true;
-    if (value === "false" || value === false) return false;
-    return undefined;
+    if (!value) return undefined;
+    return value.toLowerCase();
   })
   @IsOptional()
   @ApiProperty({
-    description: "Format API response to show slots as start and end time instead of time.",
-    type: Boolean,
-    example: true,
+    description: "Format of slot times in response. Use 'range' to get start and end times.",
+    example: "range",
+    enum: SlotFormat,
   })
-  formatAsStartAndEndTime?: boolean;
+  slotFormat?: SlotFormat;
 }
 
 export class RemoveSelectedSlotInput {

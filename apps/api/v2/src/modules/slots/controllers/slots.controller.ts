@@ -5,6 +5,7 @@ import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } 
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SlotFormat } from "@calcom/platform-enums";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
@@ -124,9 +125,9 @@ export class SlotsController {
         status: "success",
         data: {
           slots: {
-            // Default format (when formatAsStartAndEndTime is not true)
+            // Default format (when slotFormat is 'time' or not provided)
             "2024-09-25": [{ time: "2024-09-25T08:00:00.000Z" }, { time: "2024-09-25T08:15:00.000Z" }],
-            // Alternative format (when formatAsStartAndEndTime is true)
+            // Alternative format (when slotFormat is 'range')
             "2024-09-26": [
               {
                 startTime: "2024-09-26T08:00:00.000Z",
@@ -158,46 +159,20 @@ export class SlotsController {
       },
     });
 
-    if (query.formatAsStartAndEndTime) {
-      let duration = 0;
-      if (query.duration) {
-        duration = query.duration;
-      } else if (query.eventTypeId) {
-        const eventType = await this.slotsService.getEventTypeWithDuration(query.eventTypeId);
-
-        if (!eventType) {
-          throw new Error("Event type not found");
-        }
-
-        duration = eventType.length;
-      } else {
-        throw new Error("duration or eventTypeId is required");
-      }
-
-      const transformedSlots = Object.entries(availableSlots.slots).reduce<
-        Record<string, { startTime: string; endTime: string }[]>
-      >((acc, [date, slots]) => {
-        acc[date] = (slots as { time: string }[]).map((slot) => {
-          const startTime = new Date(slot.time);
-          const endTime = new Date(startTime.getTime() + duration * 60000); 
-          return {
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-          };
-        });
-        return acc;
-      }, {});
-
-      return {
-        data: {
-          slots: transformedSlots,
-        },
-        status: SUCCESS_STATUS,
-      };
-    }
+    const transformedSlots =
+      query.slotFormat === SlotFormat.Range
+        ? await this.slotsService.formatSlots(
+            availableSlots,
+            query.duration,
+            query.eventTypeId,
+            query.slotFormat
+          )
+        : availableSlots.slots;
 
     return {
-      data: availableSlots,
+      data: {
+        slots: transformedSlots,
+      },
       status: SUCCESS_STATUS,
     };
   }

@@ -5005,13 +5005,17 @@
             }
           },
           {
-            "name": "formatAsStartAndEndTime",
+            "name": "slotFormat",
             "required": true,
             "in": "query",
-            "description": "Format API response to show slots as start and end time instead of time.",
-            "example": true,
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
             "schema": {
-              "type": "boolean"
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
             }
           }
         ],
