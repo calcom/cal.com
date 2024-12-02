@@ -280,7 +280,7 @@ export const roundRobinManualReassignment = async ({
     changedOrganizer: hasOrganizerChanged,
     previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
-      user: { ...newUser, credentials: credentials },
+      user: { ...newUser, credentials },
       eventType,
     },
     bookingId,
