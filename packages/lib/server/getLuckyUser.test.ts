@@ -45,6 +45,8 @@ it("can find lucky user with maximize availability", async () => {
       ],
     }),
   ];
+  prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -93,6 +95,9 @@ it("can find lucky user with maximize availability and priority ranking", async 
       ],
     }),
   ];
+
+  prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -268,6 +273,8 @@ describe("maximize availability and weights", () => {
         ],
       }),
     ];
+
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -359,6 +366,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -455,6 +463,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -557,6 +566,8 @@ describe("maximize availability and weights", () => {
         createdAt: new Date(0),
       },
     ];
+
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     // TODO: we may be able to use native prisma generics somehow?
     prismaMock.user.findMany.mockResolvedValue(users);
@@ -785,7 +796,7 @@ describe("attribute weights and virtual queues", () => {
     });
   });
 
-  it.only("uses attribute weights and counts only bookings within virtual queue", async () => {
+  it("uses attribute weights and counts only bookings within virtual queue", async () => {
     const users: GetLuckyUserAvailableUsersType = [
       buildUser({
         id: 1,
