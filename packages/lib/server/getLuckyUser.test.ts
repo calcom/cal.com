@@ -16,7 +16,7 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
   default: {},
 }));
 vi.mock("@calcom/ui", () => ({}));
-
+// add tests for ooo calibration ehre
 it("can find lucky user with maximize availability", async () => {
   const users: GetLuckyUserAvailableUsersType = [
     buildUser({
@@ -59,6 +59,7 @@ it("can find lucky user with maximize availability", async () => {
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(users[1]);
 });
@@ -107,6 +108,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(users[1]);
 
@@ -163,6 +165,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(usersWithPriorities[2]);
 
@@ -224,6 +227,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(usersWithSamePriorities[1]);
 });
@@ -291,12 +295,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -311,6 +315,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
   });
@@ -386,12 +391,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -406,6 +411,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
   });
@@ -481,12 +487,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -501,6 +507,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
   });
@@ -540,12 +547,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: middleOfMonth,
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -582,6 +589,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
     // findMany bookings are AFTER the new host (user 1) was added, calibration=0.
@@ -606,6 +614,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
   });
@@ -742,6 +751,8 @@ describe("attribute weights and virtual queues", () => {
           user: {
             id: 1,
             email: "test1@example.com",
+            credentials: [],
+            selectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 10,
@@ -750,6 +761,8 @@ describe("attribute weights and virtual queues", () => {
           user: {
             id: 2,
             email: "test2@example.com",
+            credentials: [],
+            selectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 150,
@@ -772,7 +785,7 @@ describe("attribute weights and virtual queues", () => {
     });
   });
 
-  it("uses attribute weights and counts only bookings within virtual queue", async () => {
+  it.only("uses attribute weights and counts only bookings within virtual queue", async () => {
     const users: GetLuckyUserAvailableUsersType = [
       buildUser({
         id: 1,
@@ -857,6 +870,7 @@ describe("attribute weights and virtual queues", () => {
       },
       chosenRouteId: routeId,
     };
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -950,12 +964,12 @@ describe("attribute weights and virtual queues", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },

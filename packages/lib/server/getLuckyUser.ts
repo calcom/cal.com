@@ -206,7 +206,7 @@ function getHostsWithCalibration({
       userId: number;
       createdAt: Date;
     }
-  >;
+  > = new Map();
 
   if (allRRHostsCreatedThisMonth.length && existingBookings.length) {
     // Calculate calibration for each new host and store in a Map
