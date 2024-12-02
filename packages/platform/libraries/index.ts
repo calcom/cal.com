@@ -84,6 +84,7 @@ export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestin
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
+export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 

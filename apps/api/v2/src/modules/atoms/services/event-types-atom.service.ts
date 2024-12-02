@@ -30,7 +30,7 @@ import type {
   CredentialPayload,
 } from "@calcom/platform-libraries";
 import { getClientSecretFromPayment } from "@calcom/platform-libraries";
-import { getBulkEventTypes } from "@calcom/platform-libraries-1.2.3";
+import { getBulkEventTypes, bulkUpdateEventsToDefaultLocation } from "@calcom/platform-libraries-1.2.3";
 import { PrismaClient } from "@calcom/prisma/client";
 
 type EnabledAppType = App & {
@@ -321,5 +321,13 @@ export class EventTypesAtomService {
       clientSecret: getClientSecretFromPayment(payment),
       profile,
     };
+  }
+
+  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[]) {
+    return bulkUpdateEventsToDefaultLocation({
+      eventTypeIds,
+      user,
+      prisma: this.dbRead.prisma as unknown as PrismaClient,
+    });
   }
 }

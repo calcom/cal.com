@@ -22,6 +22,7 @@ import {
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
+import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import { useAtomsGetInstalledConferencingApps } from "./hooks/useAtomsGetInstalledConferencingApps";
 import { useConnect } from "./hooks/useConnect";
@@ -121,7 +122,14 @@ export const ConferencingAppsViewPlatformWrapper = ({
     },
   });
 
-  // const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  });
 
   const handleRemoveApp = ({ app }: RemoveAppParams) => {
     !!app && deleteCredentialMutation.mutate(app);
@@ -146,18 +154,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
   };
 
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
-    return;
-    // updateLocationsMutation.mutate(
-    //   {
-    //     eventTypeIds,
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       utils.viewer.getUsersDefaultConferencingApp.invalidate();
-    //       callback();
-    //     },
-    //   }
-    // );
+    bulkUpdateEventTypesToDefaultLocation.mutate(eventTypeIds, {
+      onSuccess: () => {
+        // utils.viewer.getUsersDefaultConferencingApp.invalidate();
+        callback();
+      },
+    });
   };
 
   const { connect } = useConnect();
@@ -231,8 +233,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
                     defaultConferencingApp={defaultConferencingApp}
                     handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
                     handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
-                    // isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
-                    isBulkUpdateDefaultLocationPending={false}
+                    isBulkUpdateDefaultLocationPending={bulkUpdateEventTypesToDefaultLocation?.isPending}
                     eventTypes={eventTypesQuery?.eventTypes}
                     isEventTypesFetching={isEventTypesFetching}
                   />

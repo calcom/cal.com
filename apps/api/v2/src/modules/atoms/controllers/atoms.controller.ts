@@ -1,5 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { EventTypesAppInput } from "@/modules/atoms/inputs/event-types-app.input";
+import {
+  BulkUpdateEventTypeToDefaultLocationDto,
+  EventTypesAppInput,
+} from "@/modules/atoms/inputs/event-types-app.input";
 import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -19,7 +22,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { UpdateEventTypeReturn } from "@calcom/platform-libraries";
 import { ConnectedApps } from "@calcom/platform-libraries-1.2.3";
 import { ApiResponse } from "@calcom/platform-types";
@@ -138,5 +141,18 @@ export class AtomsController {
     const conferencingApps = await this.conferencingService.getConferencingApps(user);
 
     return { status: SUCCESS_STATUS, data: conferencingApps };
+  }
+
+  @Patch("event-types/bulk-update-to-default-location")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  async bulkUpdateAtomEventTypes(
+    @GetUser() user: UserWithProfile,
+    @Body() body: BulkUpdateEventTypeToDefaultLocationDto
+  ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
+    await this.eventTypesService.bulkUpdateEventTypesDefaultLocation(user, body.eventTypeIds);
+    return {
+      status: SUCCESS_STATUS,
+    };
   }
 }
