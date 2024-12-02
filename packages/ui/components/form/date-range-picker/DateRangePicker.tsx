@@ -41,7 +41,7 @@ export function DatePickerWithRange({
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
-            id="date"
+            data-testid="date-range"
             color="secondary"
             EndIcon="calendar"
             className={cn("justify-between text-left font-normal", !dates && "text-subtle")}>
