@@ -26,10 +26,10 @@ import {
   HoverCardContent,
   HoverCardTrigger,
   Table,
+  TableHeader,
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
@@ -282,19 +282,32 @@ export function RoutingFormResponsesTable({
     if (!headers) return [];
 
     // Group headers by label
-    const headersByLabel = headers.reduce((acc, header) => {
-      if (!acc[header.label]) {
-        acc[header.label] = {
-          id: header.label, // Use label as id for the merged header
-          label: header.label,
-          options: header.options || [],
-        };
-      } else if (header.options) {
-        // Merge options from headers with the same label
-        acc[header.label].options = [...acc[header.label].options, ...header.options];
-      }
-      return acc;
-    }, {} as Record<string, (typeof headers)[0]>);
+    const headersByLabel = headers.reduce(
+      (acc, header) => {
+        if (!acc[header.label]) {
+          acc[header.label] = {
+            id: header.id,
+            label: header.label,
+            options: [], // Initialize as empty array
+          };
+        }
+
+        // Only merge options if they exist
+        if (header.options?.length) {
+          acc[header.label].options = [...acc[header.label].options, ...header.options];
+        }
+
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          id: string;
+          label: string;
+          options: { id: string | null; label: string }[];
+        }
+      >
+    );
 
     return Object.values(headersByLabel);
   }, [headers]);
@@ -311,6 +324,9 @@ export function RoutingFormResponsesTable({
       };
 
       // Group responses by header label
+      // NOTE: this is a HACK to group responses by label and not ID. Some how a client has duplicate headers in a form and we need to merge them
+      // We will revert this code when we have merged these on a DB level.
+      // These fields can also have different types, select,multiselect,text etc... so can provide weird results.
       const valuesByLabel: Record<string, any[]> = {};
 
       Object.entries(response.response).forEach(([fieldId, field]) => {
@@ -324,7 +340,7 @@ export function RoutingFormResponsesTable({
         if (header.options) {
           if (Array.isArray(field.value)) {
             const labels = field.value.map((id) => {
-              const option = header.options?.find((opt) => opt.id === id);
+              const option = header.options?.find((opt) => opt?.id?.toLowerCase() === id.toLowerCase());
               return option?.label ?? id;
             });
             valuesByLabel[header.label].push(...labels);
