@@ -22,7 +22,7 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
-  const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
+  const { users, profile, eventTypes, markdownStrippedBio, entity, isOrgSEOIndexable } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -59,6 +59,13 @@ export function UserPage(props: PageProps) {
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
+
+  const allowSEOIndexing = isOrg
+    ? isOrgSEOIndexable
+      ? profile.allowSEOIndexing
+      : false
+    : profile.allowSEOIndexing;
+
   return (
     <>
       <HeadSeo
@@ -71,8 +78,8 @@ export function UserPage(props: PageProps) {
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
-          noindex: !profile.allowSEOIndexing,
-          nofollow: !profile.allowSEOIndexing,
+          noindex: !allowSEOIndexing,
+          nofollow: !allowSEOIndexing,
         }}
       />
 
