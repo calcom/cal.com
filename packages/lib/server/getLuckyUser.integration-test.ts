@@ -155,7 +155,9 @@ const createHostWithBookings = async ({
 };
 
 function expectLuckyUsers(luckyUsers: { email: string }[], expectedLuckyUsers: { email: string }[]) {
-  expect(luckyUsers.map((user) => user.email)).toEqual(expectedLuckyUsers.map((user) => user.email));
+  expect(luckyUsers.map((user) => user.email).sort((mailA, mailB) => mailA.localeCompare(mailB))).toEqual(
+    expectedLuckyUsers.map((user) => user.email).sort((mailA, mailB) => mailA.localeCompare(mailB))
+  );
 }
 
 describe("getLuckyUser Integration tests", () => {
