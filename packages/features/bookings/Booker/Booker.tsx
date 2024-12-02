@@ -160,7 +160,9 @@ const BookerComponent = ({
       <BookEventForm
         key={key}
         onCancel={() => {
+          const allErrors = { ...formErrors, ...errors };
           setSelectedTimeslot(null);
+          if (allErrors.hasDataErrors || allErrors.hasFormErrors) bookingForm.clearErrors();
           if (seatedEventData.bookingUid) {
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
           }
