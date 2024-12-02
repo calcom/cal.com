@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
@@ -18,7 +19,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const redirectAfterSuccess =
     getSafeRedirectUrl(state?.returnTo) ??
     getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug });
-  const redirectAfterSuccessOrError = getSafeRedirectUrl(state.onErrorReturnTo) ?? redirectAfterSuccess;
+  const redirectAfterSuccessOrError = getSafeRedirectUrl(state?.onErrorReturnTo) ?? redirectAfterSuccess;
   if (!code || typeof code !== "string") {
     if (state?.onErrorReturnTo || state?.returnTo) {
       res.redirect(redirectAfterSuccessOrError);
@@ -32,6 +33,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const { client_id, client_secret } = await getAppKeysFromSlug("closecom");
+
+  if (!client_id || typeof client_id !== "string")
+    return res.status(400).json({ message: "Close.com client_id missing." });
+  if (!client_secret || typeof client_secret !== "string")
+    return res.status(400).json({ message: "Close.com client_secret missing." });
+
   try {
     const response = await fetch("https://api.close.com/oauth2/token/", {
       method: "POST",

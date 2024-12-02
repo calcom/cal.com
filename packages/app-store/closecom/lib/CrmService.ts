@@ -86,7 +86,7 @@ export default class CloseComCRMService implements CRM {
         refresh_token: parsedKey.data.refresh_token,
         expires_at: parsedKey.data.expires_at,
         isOAuth: true,
-        userId: credential.userId,
+        userId: credential.userId!,
       });
     } else {
       throw new Error("No valid authentication method found");

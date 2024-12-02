@@ -13,7 +13,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { client_id } = await getAppKeysFromSlug("closecom");
 
-  const state = encodeOAuthState(req);
+  if (!client_id || typeof client_id !== "string")
+    return res.status(400).json({ message: "Close.com client_id missing." });
+
+  const state = encodeOAuthState(req) ?? "";
 
   const params = new URLSearchParams({
     client_id,

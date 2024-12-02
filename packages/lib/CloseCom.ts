@@ -273,13 +273,23 @@ export default class CloseCom {
       this.expires_at = Date.now() + data.expires_in * 1000;
 
       try {
-        // Update credentials in DB
+        const credential = await prisma.credential.findFirst({
+          where: {
+            userId: this.userId,
+            type: "closecom_crm",
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!credential?.id) {
+          throw new Error("Credential not found");
+        }
+
         await prisma.credential.update({
           where: {
-            type_userId: {
-              type: "closecom_crm",
-              userId: this.userId,
-            },
+            id: credential.id,
           },
           data: {
             key: {
