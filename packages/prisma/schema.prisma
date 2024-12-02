@@ -109,6 +109,7 @@ model EventType {
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
+  requiresConfirmationForFreeEmail        Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)

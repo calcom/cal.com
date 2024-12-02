@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
@@ -11,14 +12,16 @@ export function getRequiresConfirmationFlags({
   userId,
   paymentAppData,
   originalRescheduledBookingOrganizerId,
+  bookerEmail,
 }: {
   eventType: EventType;
   bookingStartTime: string;
   userId: number | undefined;
   paymentAppData: PaymentAppData;
   originalRescheduledBookingOrganizerId: number | undefined;
+  bookerEmail: string;
 }) {
-  const requiresConfirmation = determineRequiresConfirmation(eventType, bookingStartTime);
+  const requiresConfirmation = determineRequiresConfirmation(eventType, bookingStartTime, bookerEmail);
   const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBookingOrganizerId);
   const isConfirmedByDefault = determineIsConfirmedByDefault(
     requiresConfirmation,
@@ -38,9 +41,18 @@ export function getRequiresConfirmationFlags({
   };
 }
 
-function determineRequiresConfirmation(eventType: EventType, bookingStartTime: string): boolean {
+function determineRequiresConfirmation(
+  eventType: EventType,
+  bookingStartTime: string,
+  bookerEmail: string
+): boolean {
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
+
+  if (requiresConfirmationForFreeEmail) {
+    requiresConfirmation = checkIfFreeEmailDomain(bookerEmail);
+  }
 
   if (rcThreshold) {
     const timeDifference = dayjs(dayjs(bookingStartTime).utc().format()).diff(dayjs(), rcThreshold.unit);
