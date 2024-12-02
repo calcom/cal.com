@@ -67,7 +67,7 @@ test.describe("User Avatar", async () => {
       const searchParam = `meetingImage=${encodeURIComponent(`${CAL_URL}/api/avatar/${objectKey}.png`)}`;
       await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
         "content",
-        new RegExp(encodeURI(searchParam))
+        new RegExp(encodeURIComponent(searchParam))
       );
     });
   });
