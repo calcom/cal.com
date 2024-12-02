@@ -387,7 +387,7 @@ test.describe("Bookings", () => {
       });
     });
 
-    test("check SSR and OG ", async ({ page, users, orgs }) => {
+    test("check SSR and OG", async ({ page, users, orgs }) => {
       const name = "Test User";
       const org = await orgs.create({
         name: "TestOrg",
@@ -428,10 +428,10 @@ test.describe("Bookings", () => {
           expect(canonicalLink).toEqual(`${orgOrigin}${calLink}`);
           // Verify that there is correct URL that would generate the awesome OG image
           expect(ogImage).toContain(
-            "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+            "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage?type=meeting&title="
           );
           // Verify Organizer Name in the URL
-          expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+          expect(ogImage).toContain("meetingProfileName=Test%20User");
         }
       );
     });
@@ -529,6 +529,7 @@ test.describe("Bookings", () => {
       const { invitedUserEmail } = await inviteExistingUserToOrganization({
         page,
         organizationId: org.id,
+        organizationSlug: org.slug,
         user: userOutsideOrganization,
         usersFixture: users,
       });

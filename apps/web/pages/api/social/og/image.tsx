@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest) {
 
       return new Response(img.body, {
         status: 200,
-        headers: { "Content-Type": "image/png", "cache-control": "max-age=86400" },
+        headers: { "Content-Type": "image/png", "cache-control": "max-age=0" },
       });
     }
     case "app": {
