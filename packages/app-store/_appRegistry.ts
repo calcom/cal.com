@@ -103,7 +103,10 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
   })[];
   const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
-    const allCredentials = [...dbapp.credentials, ...domainWideDelegationCredentials];
+    const dbAppDomainWideDelegationCredentials = domainWideDelegationCredentials.filter(
+      (credential) => credential.appId === dbapp.slug
+    );
+    const allCredentials = [...dbapp.credentials, ...dbAppDomainWideDelegationCredentials];
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
     // Skip if app isn't installed
