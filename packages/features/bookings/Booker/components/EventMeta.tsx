@@ -11,7 +11,9 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
@@ -28,6 +30,7 @@ export const EventMeta = ({
   isPending,
   isPlatform = true,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
@@ -58,6 +61,7 @@ export const EventMeta = ({
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -77,6 +81,7 @@ export const EventMeta = ({
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
   );
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
@@ -103,9 +108,13 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const browserLocale = navigator.language; // e.g. "en-US", "es-ES", "fr-FR"
-  const translatedDescription = (event?.fieldTranslations ?? []).find((translation) =>
-    browserLocale.startsWith(translation.targetLang)
+  const userLocale = locale ?? navigator.language;
+  const translatedDescription = (event?.fieldTranslations ?? []).find(
+    (trans) =>
+      trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
+      i18nLocales.includes(trans.targetLocale) &&
+      // browser language looks like "en-US", "es-ES", "fr-FR", etc
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
   )?.translatedText;
 
   return (
