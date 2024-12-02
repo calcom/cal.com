@@ -28,6 +28,7 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -220,3 +221,4 @@ export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
+export { getBulkEventTypes };

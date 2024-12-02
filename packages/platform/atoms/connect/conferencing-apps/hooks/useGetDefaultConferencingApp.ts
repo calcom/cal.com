@@ -16,7 +16,7 @@ type ResponseDataType =
     }
   | undefined;
 export const useGetDefaultConferencingApp = () => {
-  const pathname = `/conferencing/zoom/oauth/auth-url`;
+  const pathname = `/conferencing/default`;
   const { isInit, accessToken } = useAtomsContext();
 
   return useQuery({

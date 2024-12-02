@@ -5,8 +5,12 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import type {
+  BulkUpdatParams,
+  EventTypes,
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -26,17 +30,17 @@ import {
 
 type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
-export type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
-
 interface AppListProps {
   variant?: AppCategories;
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
-  handleUpdateDefaultConferencingApp: (params: UpdateDefaultConferencingAppParams) => void;
+  handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
+  eventTypes?: EventTypes;
+  isEventTypesFetching?: boolean;
 }
 
 export const AppList = ({
@@ -45,9 +49,11 @@ export const AppList = ({
   variant,
   listClassName,
   defaultConferencingApp,
-  handleUpdateDefaultConferencingApp,
+  handleUpdateUserDefaultConferencingApp,
   handleBulkUpdateDefaultLocation,
   isBulkUpdateDefaultLocationPending,
+  eventTypes,
+  isEventTypesFetching,
 }: AppListProps) => {
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
@@ -100,9 +106,12 @@ export const AppList = ({
                           if (locationType?.linkType === "static") {
                             setLocationType({ ...locationType, slug: appSlug });
                           } else {
-                            handleUpdateDefaultConferencingApp({
+                            handleUpdateUserDefaultConferencingApp({
                               appSlug,
-                              callback: () => setBulkUpdateModal(true),
+                              onSuccessCallback: () => setBulkUpdateModal(true),
+                              onErrorCallback: () => {
+                                return;
+                              },
                             });
                           }
                         }}>
@@ -174,6 +183,7 @@ export const AppList = ({
           locationType={locationType}
           setLocationType={() => setLocationType(undefined)}
           onSuccess={onSuccessCallback}
+          handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
         />
       )}
 
@@ -184,6 +194,8 @@ export const AppList = ({
           setOpen={setBulkUpdateModal}
           isPending={isBulkUpdateDefaultLocationPending}
           description={t("default_conferencing_bulk_description")}
+          eventTypes={eventTypes}
+          isEventTypesFetching={isEventTypesFetching}
         />
       )}
     </>

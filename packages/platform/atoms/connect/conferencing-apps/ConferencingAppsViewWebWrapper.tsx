@@ -8,20 +8,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  EmptyScreen,
-  showToast,
-  SkeletonContainer,
-  SkeletonText,
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownItem,
-} from "@calcom/ui";
-
-import { useConnect } from "../../hooks/stripe/useConnect";
+import { Button, EmptyScreen, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 type ConferencingAppsViewWebWrapperProps = {
   title: string;
@@ -29,7 +16,12 @@ type ConferencingAppsViewWebWrapperProps = {
   add: string;
 };
 
-type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
+type UpdateUsersDefaultConferencingAppParams = {
+  appSlug: string;
+  appLink?: string;
+  onSuccessCallback: () => void;
+  onErrorCallback: () => void;
+};
 type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
@@ -86,6 +78,9 @@ export const ConferencingAppsViewWebWrapper = ({
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
       { id: credentialId, teamId },
@@ -104,17 +99,23 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
-  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+  const handleUpdateUserDefaultConferencingApp = ({
+    appSlug,
+    appLink,
+    onSuccessCallback,
+    onErrorCallback,
+  }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(
-      { appSlug },
+      { appSlug, appLink },
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
           utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
+          onSuccessCallback();
         },
         onError: (error) => {
           showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
         },
       }
     );
@@ -134,43 +135,6 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
-  const { connect } = useConnect();
-  const AddConferencingButtonPlatform = () => {
-    return (
-      <Dropdown>
-        <DropdownMenuTrigger asChild>
-          <Button color="secondary" StartIcon="plus">
-            {add}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" className="disabled:opacity-40">
-              {t("google meet")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DropdownItem
-              color="secondary"
-              className="disabled:opacity-40"
-              onClick={() => connect()}
-              data-testid="resend-verify-email-button">
-              {t("zoom")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DropdownItem
-              color="secondary"
-              className="disabled:opacity-40"
-              data-testid="secondary-email-delete-button">
-              {t("cal video")}
-            </DropdownItem>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </Dropdown>
-    );
-  };
-
   const AddConferencingButton = () => {
     return (
       <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
@@ -183,7 +147,7 @@ export const ConferencingAppsViewWebWrapper = ({
     <SettingsHeader
       title={title}
       description={description}
-      CTA={<AddConferencingButtonPlatform />}
+      CTA={<AddConferencingButton />}
       borderInShellHeader={true}>
       <>
         <div className="bg-default w-full sm:mx-0 xl:mt-0">
@@ -217,9 +181,11 @@ export const ConferencingAppsViewWebWrapper = ({
                   data={data}
                   variant="conferencing"
                   defaultConferencingApp={defaultConferencingApp}
-                  handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+                  handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
                   handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
                   isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+                  eventTypes={eventTypesQueryData?.eventTypes}
+                  isEventTypesFetching={isEventTypesFetching}
                 />
               );
             }}

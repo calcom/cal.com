@@ -3,8 +3,8 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import type { UpdateDefaultConferencingAppParams } from "@calcom/features/apps/components/AppList";
 import { AppList } from "@calcom/features/apps/components/AppList";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -54,17 +54,25 @@ const IntegrationsContainer = ({
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
-  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
+  const handleUpdateUserDefaultConferencingApp = ({
+    appSlug,
+    onSuccessCallback,
+    onErrorCallback,
+  }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(
       { appSlug },
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
           utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
+          onSuccessCallback();
         },
         onError: (error) => {
           showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
         },
       }
     );
@@ -146,9 +154,11 @@ const IntegrationsContainer = ({
               data={data}
               variant={variant}
               defaultConferencingApp={defaultConferencingApp}
-              handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+              handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
               handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
               isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+              eventTypes={eventTypesQueryData?.eventTypes}
+              isEventTypesFetching={isEventTypesFetching}
             />
           </div>
         );

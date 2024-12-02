@@ -57,6 +57,17 @@ export class AtomsController {
     };
   }
 
+  @Get("/event-types")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  async getAtomEventTypes(@GetUser("id") userId: number): Promise<ApiResponse<unknown>> {
+    const eventType = await this.eventTypesService.getUserEventTypes(userId);
+    return {
+      status: SUCCESS_STATUS,
+      data: eventType,
+    };
+  }
+
   @Get("event-types-app/:appSlug")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
@@ -123,8 +134,8 @@ export class AtomsController {
   @Get("/conferencing")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
-  async listInstalledConferencingApps(@GetUser("id") userId: number): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(userId);
+  async listInstalledConferencingApps(@GetUser() user: UserWithProfile): Promise<ApiResponse<ConnectedApps>> {
+    const conferencingApps = await this.conferencingService.getConferencingApps(user);
 
     return { status: SUCCESS_STATUS, data: conferencingApps };
   }

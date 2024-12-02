@@ -22,6 +22,7 @@ import {
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
+import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import { useAtomsGetInstalledConferencingApps } from "./hooks/useAtomsGetInstalledConferencingApps";
 import { useConnect } from "./hooks/useConnect";
 import { useDeleteCredential } from "./hooks/useDeleteCredential";
@@ -35,9 +36,11 @@ type ConferencingAppsViewPlatformWrapperProps = {
   disableToasts?: boolean;
 };
 
-type UpdateDefaultConferencingAppParams = {
+type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
-  callback: () => void;
+  appLink?: string;
+  onSuccessCallback: () => void;
+  onErrorCallback: () => void;
 };
 type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
@@ -94,6 +97,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
 
   const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps();
   const { data: defaultConferencingApp } = useGetDefaultConferencingApp();
+  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes();
 
   const deleteCredentialMutation = useDeleteCredential({
     onSuccess: () => {
@@ -123,15 +127,20 @@ export const ConferencingAppsViewPlatformWrapper = ({
     !!app && deleteCredentialMutation.mutate(app);
   };
 
-  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+  const handleUpdateUserDefaultConferencingApp = ({
+    appSlug,
+    onSuccessCallback,
+    onErrorCallback,
+  }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(appSlug, {
       onSuccess: () => {
         showToast("Default app updated successfully", "success");
         // utils.viewer.getUsersDefaultConferencingApp.invalidate();
-        callback();
+        onSuccessCallback();
       },
       onError: (error) => {
         showToast(`Error: ${error.message}`, "error");
+        onErrorCallback();
       },
     });
   };
@@ -220,10 +229,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
                     data={data}
                     variant="conferencing"
                     defaultConferencingApp={defaultConferencingApp}
-                    handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+                    handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
                     handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
                     // isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
                     isBulkUpdateDefaultLocationPending={false}
+                    eventTypes={eventTypesQuery?.eventTypes}
+                    isEventTypesFetching={isEventTypesFetching}
                   />
                 );
               }}

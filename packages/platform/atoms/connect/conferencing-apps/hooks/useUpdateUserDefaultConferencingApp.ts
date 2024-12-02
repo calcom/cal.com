@@ -23,7 +23,6 @@ export const useUpdateUserDefaultConferencingApp = ({
     mutationFn: (app: App["slug"]) => {
       if (!app) throw new Error("app is required");
       const pathname = `/conferencing/${app}/default`;
-      console.log("ppathnameathname: ", pathname);
       return http?.post(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return;

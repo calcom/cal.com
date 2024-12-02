@@ -30,6 +30,7 @@ import type {
   CredentialPayload,
 } from "@calcom/platform-libraries";
 import { getClientSecretFromPayment } from "@calcom/platform-libraries";
+import { getBulkEventTypes } from "@calcom/platform-libraries-1.2.3";
 import { PrismaClient } from "@calcom/prisma/client";
 
 type EnabledAppType = App & {
@@ -79,6 +80,10 @@ export class EventTypesAtomService {
     }
 
     return eventType;
+  }
+
+  async getUserEventTypes(userId: number) {
+    return getBulkEventTypes(userId);
   }
 
   async updateTeamEventType(
