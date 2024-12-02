@@ -103,6 +103,19 @@ export class AtomsController {
     };
   }
 
+  @Patch("/event-types/bulk-update-to-default-location")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  async bulkUpdateAtomEventTypes(
+    @GetUser() user: UserWithProfile,
+    @Body() body: BulkUpdateEventTypeToDefaultLocationDto
+  ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
+    await this.eventTypesService.bulkUpdateEventTypesDefaultLocation(user, body.eventTypeIds);
+    return {
+      status: SUCCESS_STATUS,
+    };
+  }
+
   @Patch("event-types/:eventTypeId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
@@ -141,18 +154,5 @@ export class AtomsController {
     const conferencingApps = await this.conferencingService.getConferencingApps(user);
 
     return { status: SUCCESS_STATUS, data: conferencingApps };
-  }
-
-  @Patch("event-types/bulk-update-to-default-location")
-  @Version(VERSION_NEUTRAL)
-  @UseGuards(ApiAuthGuard)
-  async bulkUpdateAtomEventTypes(
-    @GetUser() user: UserWithProfile,
-    @Body() body: BulkUpdateEventTypeToDefaultLocationDto
-  ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
-    await this.eventTypesService.bulkUpdateEventTypesDefaultLocation(user, body.eventTypeIds);
-    return {
-      status: SUCCESS_STATUS,
-    };
   }
 }
