@@ -2817,5 +2817,9 @@
   "rr_distribution_method_balanced_description": "Ostalari bakoitzarekin egin diren erreserben kopurua monitorizatu eta besteekin konparatuko dugu, aurreregi doazen ostalari batzuk desgaituz erreserbak modu orekatuan banatzeko",
   "exclude_emails_that_contain": "Baztertu hau duten emailak...",
   "exclude_emails_match_found_error_message": "Mesedez, sartu baliozko lan helbide elektroniko bat",
+  "disable_org_url_label": "Desgaitu erakundearen profil publikoa eta birbideratu",
+  "disable_org_url_description": "{{orgSlug}}.cal.com {{destination}}-era birbideratzen du",
+  "single_select": "Hautapen bakarra",
+  "multi_select": "Hautapen anitza",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

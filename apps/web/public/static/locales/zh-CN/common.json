@@ -2817,5 +2817,9 @@
   "rr_distribution_method_balanced_description": "系统会监控每位主持人已接受的预订数量并与其他人进行比较，如果某些主持人的预订数量远超他人，系统会暂时停用这些主持人，以确保预订均匀分配。",
   "exclude_emails_that_contain": "排除包含...的电子邮件",
   "exclude_emails_match_found_error_message": "请输入有效的工作电子邮件地址",
+  "disable_org_url_label": "禁用公开组织资料并重定向",
+  "disable_org_url_description": "将 {{orgSlug}}.cal.com 重定向到 {{destination}}",
+  "single_select": "单选",
+  "multi_select": "多选",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2817,5 +2817,9 @@
   "rr_distribution_method_balanced_description": "Vi vil overvåge, hvor mange bookinger der er foretaget med hver vært og sammenligne dette med andre, og deaktivere nogle værter, der er for langt foran, så bookinger fordeles jævnt.",
   "exclude_emails_that_contain": "Ekskluder e-mails, der indeholder ...",
   "exclude_emails_match_found_error_message": "Indtast venligst en gyldig arbejds-e-mailadresse",
+  "disable_org_url_label": "Deaktiver offentlig organisationsprofil og omdirigering",
+  "disable_org_url_description": "Omdirigerer {{orgSlug}}.cal.com til {{destination}}",
+  "single_select": "Enkeltvalg",
+  "multi_select": "Flervalg",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

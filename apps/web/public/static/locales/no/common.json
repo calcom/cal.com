@@ -2817,5 +2817,9 @@
   "rr_distribution_method_balanced_description": "Vi vil overvåke hvor mange bestillinger som er gjort med hver vert og sammenligne dette med andre, og deaktivere enkelte verter som ligger for langt foran slik at bestillinger blir jevnt fordelt.",
   "exclude_emails_that_contain": "Ekskluder e-poster som inneholder ...",
   "exclude_emails_match_found_error_message": "Vennligst skriv inn en gyldig arbeids-e-postadresse",
+  "disable_org_url_label": "Deaktiver offentlig organisasjonsprofil og omdirigering",
+  "disable_org_url_description": "Omdirigerer {{orgSlug}}.cal.com til {{destination}}",
+  "single_select": "Enkeltvalg",
+  "multi_select": "Flervalg",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
