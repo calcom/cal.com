@@ -89,6 +89,8 @@ function ReminderSelection({
           });
           setDefaultReminder(event?.value || 30);
         }}
+        menuPortalTarget={document.body} // Render dropdown in the body
+        menuPosition="absolute"
       />
     </>
   );
