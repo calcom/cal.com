@@ -84,6 +84,9 @@ export const DOCS_URL = "https://cal.com/docs";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
 export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 export const SEO_IMG_OGIMG = `${CAL_URL}/api/social/og/image`;
+// The Dynamic OG Image is passed through Next's Image API to further optimize it.
+// This results in a 80% smaller image 🤯. It is however important that for the query
+// /api/social/og/image endpoint is dynamically generating the image
 export const SEO_IMG_OGIMG_VIDEO = `${CAL_URL}/video-og-image.png`;
 export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
