@@ -16,7 +16,7 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
   default: {},
 }));
 vi.mock("@calcom/ui", () => ({}));
-// add tests for ooo calibration ehre
+
 it("can find lucky user with maximize availability", async () => {
   const users: GetLuckyUserAvailableUsersType = [
     buildUser({
@@ -519,6 +519,98 @@ describe("maximize availability and weights", () => {
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+  });
+
+  it("applies calibration when user had OOO entries this month", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    const middleOfMonth = new Date(
+      Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 14, 12, 0, 0)
+    );
+
+    const allRRHosts = [
+      {
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        weight: users[1].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
+      {
+        start: dayjs().subtract(10, "day").toDate(),
+        end: dayjs().subtract(5, "day").toDate(),
+        userId: users[0].id,
+      },
+    ]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([
+      {
+        userId: allRRHosts[0].user.id,
+        weight: allRRHosts[0].weight,
+        createdAt: allRRHosts[0].createdAt,
+      },
+    ]);
+
+    // bookings of current month, all of these happened during OOO time
+    // user 1 will get a calibration of 2
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 4,
+        userId: 2,
+        createdAt: dayjs().subtract(7, "days").toDate(),
+      }),
+      buildBooking({
+        id: 5,
+        userId: 2,
+        createdAt: dayjs().subtract(6, "days").toDate(),
+      }),
+    ]);
+
+    await expect(
+      getLuckyUser({
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: {},
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      })
+    ).resolves.toStrictEqual(users[1]);
   });
 
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
