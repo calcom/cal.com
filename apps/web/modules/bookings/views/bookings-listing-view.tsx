@@ -82,6 +82,7 @@ export default function Bookings() {
     {
       limit: 10,
       filters: {
+        ...filterQuery,
         status: filterQuery.status ?? status,
       },
     },
