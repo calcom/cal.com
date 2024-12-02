@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, Fragment } from "react";
+import React, { cloneElement, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
@@ -13,9 +13,10 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
+import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 
+import usePostHog from "../ee/event-tracking/lib/posthog/userPostHog";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -26,16 +27,22 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-
+  const postHog = usePostHog();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-
+  const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
   useBootIntercom();
   useFormbricks();
 
+  useEffect(() => {
+    if (!props.isPublic) {
+      postHog.identify();
+    }
+  }, [props.isPublic, postHog]);
+
   return (
     <>
-      {!props.withoutSeo && (
+      {!withoutSeo && (
         <HeadSeo
           title={pageTitle ?? APP_NAME}
           description={props.description ?? props.subtitle?.toString() ?? ""}
@@ -172,7 +179,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl",
                       props.hideHeadingOnMobile && "hidden"
                     )}>
@@ -198,7 +205,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {props.heading === "Bookings" && buttonToShow !== ButtonState.NONE && (
+              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow !== ButtonState.NONE && (
                 <Button
                   color="primary"
                   onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
@@ -214,7 +221,7 @@ export function ShellMain(props: LayoutProps) {
                       : "allow_browser_notifications"
                   )}
                 </Button>
-              )}
+              )} */}
             </header>
           )}
         </div>
