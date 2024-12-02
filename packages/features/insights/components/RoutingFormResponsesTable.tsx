@@ -278,6 +278,27 @@ export function RoutingFormResponsesTable({
   const totalDBRowCount = data?.pages?.[0]?.total ?? 0;
   const totalFetched = flatData.length;
 
+  const mergedHeaders = useMemo(() => {
+    if (!headers) return [];
+
+    // Group headers by label
+    const headersByLabel = headers.reduce((acc, header) => {
+      if (!acc[header.label]) {
+        acc[header.label] = {
+          id: header.label, // Use label as id for the merged header
+          label: header.label,
+          options: header.options || [],
+        };
+      } else if (header.options) {
+        // Merge options from headers with the same label
+        acc[header.label].options = [...acc[header.label].options, ...header.options];
+      }
+      return acc;
+    }, {} as Record<string, (typeof headers)[0]>);
+
+    return Object.values(headersByLabel);
+  }, [headers]);
+
   const processedData = useMemo(() => {
     if (isHeadersLoading) return [];
     return flatData.map((response) => {
@@ -289,25 +310,37 @@ export function RoutingFormResponsesTable({
         routedToBooking: response.routedToBooking,
       };
 
+      // Group responses by header label
+      const valuesByLabel: Record<string, any[]> = {};
+
       Object.entries(response.response).forEach(([fieldId, field]) => {
         const header = headers?.find((h) => h.id === fieldId);
+        if (!header) return;
 
-        if (header?.options) {
+        if (!valuesByLabel[header.label]) {
+          valuesByLabel[header.label] = [];
+        }
+
+        if (header.options) {
           if (Array.isArray(field.value)) {
-            // Map the IDs to their corresponding labels for array values
             const labels = field.value.map((id) => {
               const option = header.options?.find((opt) => opt.id === id);
               return option?.label ?? id;
             });
-            row[fieldId] = labels;
+            valuesByLabel[header.label].push(...labels);
           } else {
-            // Handle single value case
             const option = header.options?.find((opt) => opt.id === field.value);
-            row[fieldId] = option?.label ?? field.value;
+            valuesByLabel[header.label].push(option?.label ?? field.value);
           }
         } else {
-          row[fieldId] = field.value;
+          valuesByLabel[header.label].push(field.value);
         }
+      });
+
+      // Add merged values to row
+      Object.entries(valuesByLabel).forEach(([label, values]) => {
+        const uniqueValues = Array.from(new Set(values)).filter(Boolean);
+        row[label] = uniqueValues;
       });
 
       return row;
@@ -328,9 +361,9 @@ export function RoutingFormResponsesTable({
         },
       }),
 
-      ...(headers?.map((header) => {
-        return columnHelper.accessor(header.id, {
-          id: header.id,
+      ...(mergedHeaders?.map((header) => {
+        return columnHelper.accessor(header.label, {
+          id: header.label,
           header: header.label,
           size: 200,
           cell: (info) => {
