@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
@@ -175,24 +176,29 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 
-export const DEFAULT_EVENT_TYPES = [
-  {
-    title: t("15min_meeting"),
-    slug: "15min",
-    length: 15,
-  },
-  {
-    title: t("30min_meeting"),
-    slug: "30min",
-    length: 30,
-  },
-  {
-    title: t("secret_meeting"),
-    slug: "secret",
-    length: 15,
-    hidden: true,
-  },
-];
+export const useGetDefaultEventTypes = () => {
+  const { t } = useLocale();
+  const DEFAULT_EVENT_TYPES = [
+    {
+      title: t("15min_meeting"),
+      slug: "15min",
+      length: 15,
+    },
+    {
+      title: t("30min_meeting"),
+      slug: "30min",
+      length: 30,
+    },
+    {
+      title: t("secret_meeting"),
+      slug: "secret",
+      length: 15,
+      hidden: true,
+    },
+  ];
+
+  return DEFAULT_EVENT_TYPES;
+};
 
 export default defaultEvents;
 
