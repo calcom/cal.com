@@ -1,4 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+
+import { describe, expect, it, vi, beforeEach, beforeAll } from "vitest";
 
 import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
@@ -11,9 +13,24 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 describe("isLockedOrBlocked", () => {
+  beforeAll(async () => {
+    await prismock.blacklist.createMany({
+      data: [
+        {
+          type: "EMAIL",
+          value: "spam.com",
+          createdById: 1,
+        },
+        {
+          type: "DOMAIN",
+          value: "blocked.com",
+          createdById: 1,
+        },
+      ],
+    });
+  });
   beforeEach(() => {
     vi.resetAllMocks();
-    process.env.BLACKLIST_EMAIL_DOMAINS = "blocked.com,spam.com";
   });
 
   it("should return false if no user in request", async () => {

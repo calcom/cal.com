@@ -1673,7 +1673,7 @@ model Blacklist {
   type        BlacklistType
   // The identifier of the blacklisted entity (email or domain)
   value       String
-  description String
+  description String?
   createdAt   DateTime      @default(now())
   createdBy   User          @relation("CreatedBlacklists", onDelete: Cascade, fields: [createdById], references: [id])
   createdById Int

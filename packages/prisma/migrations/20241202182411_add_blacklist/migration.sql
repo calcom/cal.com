@@ -6,7 +6,7 @@ CREATE TABLE "Blacklist" (
     "id" TEXT NOT NULL,
     "type" "BlacklistType" NOT NULL,
     "value" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" INTEGER NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
