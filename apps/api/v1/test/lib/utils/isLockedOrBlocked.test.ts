@@ -9,7 +9,7 @@ describe("isLockedOrBlocked", () => {
     await prismock.blacklist.createMany({
       data: [
         {
-          type: "EMAIL",
+          type: "DOMAIN",
           value: "spam.com",
           createdById: 1,
         },
