@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "إعادة توجيه {{orgSlug}}.cal.com إلى {{destination}}",
   "single_select": "اختيار فردي",
   "multi_select": "اختيار متعدد",
+  "group_meeting": "اجتماع جماعي",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

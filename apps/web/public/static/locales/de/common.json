@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Leitet {{orgSlug}}.cal.com zu {{destination}} weiter",
   "single_select": "Einfachauswahl",
   "multi_select": "Mehrfachauswahl",
+  "group_meeting": "Gruppenbesprechung",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Omdirigerar {{orgSlug}}.cal.com till {{destination}}",
   "single_select": "Enkelval",
   "multi_select": "Flerval",
+  "group_meeting": "Gruppmöte",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

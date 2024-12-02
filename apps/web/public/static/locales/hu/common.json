@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Átirányítja a {{orgSlug}}.cal.com címet a {{destination}} címre",
   "single_select": "Egyszeres kiválasztás",
   "multi_select": "Többszörös kiválasztás",
+  "group_meeting": "Csoportos megbeszélés",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "將 {{orgSlug}}.cal.com 重新導向至 {{destination}}",
   "single_select": "單選",
   "multi_select": "多選",
+  "group_meeting": "群組會議",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

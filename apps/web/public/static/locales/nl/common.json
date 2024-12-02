@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Verwijst {{orgSlug}}.cal.com door naar {{destination}}",
   "single_select": "Enkele selectie",
   "multi_select": "Meervoudige selectie",
+  "group_meeting": "Groepsbijeenkomst",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

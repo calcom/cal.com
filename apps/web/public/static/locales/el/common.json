@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Ανακατευθύνει το {{orgSlug}}.cal.com στο {{destination}}",
   "single_select": "Μονή επιλογή",
   "multi_select": "Πολλαπλή επιλογή",
+  "group_meeting": "Ομαδική συνάντηση",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

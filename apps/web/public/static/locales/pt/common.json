@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Redireciona {{orgSlug}}.cal.com para {{destination}}",
   "single_select": "Seleção única",
   "multi_select": "Seleção múltipla",
+  "group_meeting": "Reunião em grupo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

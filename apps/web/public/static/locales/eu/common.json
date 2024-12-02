@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "{{orgSlug}}.cal.com {{destination}}-era birbideratzen du",
   "single_select": "Hautapen bakarra",
   "multi_select": "Hautapen anitza",
+  "group_meeting": "Talde bilera",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Redirigeix {{orgSlug}}.cal.com a {{destination}}",
   "single_select": "Selecció única",
   "multi_select": "Selecció múltiple",
+  "group_meeting": "Reunió de grup",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

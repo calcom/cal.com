@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "{{orgSlug}}.cal.com ünvanını {{destination}} ünvanına yönləndirir",
   "single_select": "Tək seçim",
   "multi_select": "Çoxlu seçim",
+  "group_meeting": "Qrup görüşü",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

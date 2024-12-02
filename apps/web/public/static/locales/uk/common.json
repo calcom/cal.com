@@ -2821,5 +2821,6 @@
   "disable_org_url_description": "Перенаправляє {{orgSlug}}.cal.com на {{destination}}",
   "single_select": "Одиночний вибір",
   "multi_select": "Множинний вибір",
+  "group_meeting": "Групова зустріч",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
