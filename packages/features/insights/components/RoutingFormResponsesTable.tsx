@@ -61,6 +61,8 @@ type RoutingFormTableRow = {
   [key: string]: any;
 };
 
+type FieldCellValue = { label: string; value: string };
+
 function CellWithOverflowX({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={classNames("group relative max-w-[200px]", className)}>
@@ -371,7 +373,12 @@ export function RoutingFormResponsesTable({
             filter: isTextOrEmail ? { type: "text" } : { type: "select" },
           },
           filterFn: (row, id, filterValue: FilterValue) => {
-            return dataTableFilter(row.original[id], filterValue);
+            return dataTableFilter(
+              Array.isArray(row.original[id])
+                ? row.original[id].map((item: FieldCellValue) => item.value)
+                : row.original[id].value,
+              filterValue
+            );
           },
         });
       }) ?? []),
@@ -520,17 +527,14 @@ export function RoutingFormResponsesTable({
         }}
         isPending={isFetching && !data}>
         <div className="header mb-4">
-          <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             <DataTableFilters.AddFilterButton table={table} />
             <TeamAndSelfList omitOrg={true} className="mb-0" />
             <UserListInTeam showOnlyWhenSelectedInContext={false} />
             <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
-            <div className="flex gap-2">
-              <DataTableFilters.ActiveFilters table={table} />
-            </div>
-            <div className="grow" />
-            <RoutingDownload />
+            <DataTableFilters.ActiveFilters table={table} />
             <DateSelect />
+            <RoutingDownload />
             <DataTableFilters.ColumnVisibilityButton table={table} />
           </div>
           <RoutingKPICards />
