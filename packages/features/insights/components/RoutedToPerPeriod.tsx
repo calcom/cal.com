@@ -1,11 +1,12 @@
 import type { TFunction } from "next-i18next";
 import { useQueryState } from "nuqs";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { useInView } from "react-intersection-observer";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 
+import type { Dayjs } from "@calcom/dayjs";
 import { DataTableSkeleton } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import {
@@ -35,7 +36,7 @@ interface DownloadButtonProps {
   teamId?: number;
   isAll?: boolean;
   routingFormId?: string;
-  dateRange: [Date | null, Date | null];
+  dateRange: [Dayjs, Dayjs, string | null];
   selectedPeriod: string;
   searchQuery?: string;
 }
@@ -222,10 +223,12 @@ export function RoutedToPerPeriod() {
     defaultValue: "",
   });
 
-  const { ref, inView } = useInView({
-    threshold: 0,
-    rootMargin: "300px",
+  const { ref: loadMoreRef } = useInViewObserver(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
   });
+
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } =
@@ -254,12 +257,6 @@ export function RoutedToPerPeriod() {
         enabled: !!dateRange[0] && !!dateRange[1],
       }
     );
-
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const flattenedUsers = useMemo(() => {
     const userMap = new Map();
@@ -331,9 +328,9 @@ export function RoutedToPerPeriod() {
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          teamId={selectedTeamId}
+          teamId={selectedTeamId ?? undefined}
           isAll={isAll}
-          routingFormId={selectedRoutingFormId}
+          routingFormId={selectedRoutingFormId ?? undefined}
           dateRange={dateRange}>
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
@@ -409,7 +406,7 @@ export function RoutedToPerPeriod() {
                   return (
                     <TableRow
                       key={row.id}
-                      ref={index === processedData.length - 1 ? ref : undefined}
+                      ref={index === processedData.length - 1 ? loadMoreRef : undefined}
                       className="divide-muted divide-x">
                       <TableCell className="bg-default w-[200px]">
                         <HoverCard>
