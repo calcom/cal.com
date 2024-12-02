@@ -35,6 +35,7 @@ function TeamPage({
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
+  isSEOIndexable,
 }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
@@ -174,6 +175,10 @@ function TeamPage({
             name: `${team.name}`,
             image: profileImageSrc,
           },
+        }}
+        nextSeoProps={{
+          nofollow: !isSEOIndexable,
+          noindex: !isSEOIndexable,
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
