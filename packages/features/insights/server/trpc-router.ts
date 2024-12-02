@@ -1721,7 +1721,39 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: routingFormId ?? null,
-        searchQuery: searchQuery ?? null,
+        searchQuery: searchQuery,
       });
+    }),
+  routedToPerPeriodCsv: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        period: z.enum(["perDay", "perWeek", "perMonth"]),
+        searchQuery: z.string().optional(),
+        routingFormId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate } = input;
+      try {
+        const csvData = await RoutingEventsInsights.routedToPerPeriodCsv({
+          teamId: input.teamId ?? null,
+          startDate,
+          endDate,
+          isAll: input.isAll ?? false,
+          organizationId: ctx.user.organizationId ?? null,
+          routingFormId: input.routingFormId ?? null,
+          period: input.period,
+          searchQuery: input.searchQuery,
+        });
+
+        const csvString = RoutingEventsInsights.objectToCsv(csvData);
+        const downloadAs = `routed-to-${input.period}-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+          endDate
+        ).format("YYYY-MM-DD")}.csv`;
+
+        return { data: csvString, filename: downloadAs };
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e.message });
+      }
     }),
 });

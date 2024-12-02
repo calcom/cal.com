@@ -2799,6 +2799,7 @@
   "routing_form_insights_booking_at": "Booking At",
   "routing_form_insights_submitted_at": "Submitted At",
   "total_bookings_per_period":"Total Bookings per period",  
+  "routed_to_per_period":"Routed to per period",
   "per_day": "Per day",
   "per_week": "Per week",
   "per_month": "Per month",

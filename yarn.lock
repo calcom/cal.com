@@ -135,21 +135,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@antfu/ni@npm:0.21.5":
-  version: 0.21.5
-  resolution: "@antfu/ni@npm:0.21.5"
-  bin:
-    na: bin/na.mjs
-    nci: bin/nci.mjs
-    ni: bin/ni.mjs
-    nlx: bin/nlx.mjs
-    nr: bin/nr.mjs
-    nu: bin/nu.mjs
-    nun: bin/nun.mjs
-  checksum: 9d5e04faa5096c94141870cc5b7f46d89e60d615e81765f788651235767ac6b86c6dd89bb709ac7a86fe9ded471fa549f04dd4dcdb121f2c492c9fd85200d0bc
-  languageName: node
-  linkType: hard
-
 "@antfu/ni@npm:0.21.8":
   version: 0.21.8
   resolution: "@antfu/ni@npm:0.21.8"
@@ -4183,7 +4168,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.61"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.63"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4225,6 +4210,7 @@ __metadata:
     helmet: ^7.1.0
     ioredis: ^5.3.2
     jest: ^29.7.0
+    jest-date-mock: ^1.0.10
     luxon: ^3.4.4
     nest-winston: ^1.9.4
     next-auth: ^4.22.1
@@ -4376,6 +4362,10 @@ __metadata:
     vite-plugin-dts: ^3.7.3
     vite-plugin-inspect: ^0.8.4
     vite-plugin-node-polyfills: ^0.22.0
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-awesome-query-builder: ^5.1.2
+    react-dom: ^18.0.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -4857,6 +4847,7 @@ __metadata:
     "@calcom/ui": "*"
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
+    "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
@@ -4864,7 +4855,6 @@ __metadata:
     lexical: ^0.9.0
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
-    react-virtual: ^2.10.4
     stripe-event-types: ^3.1.0
     web-push: ^3.6.7
     zustand: ^4.3.2
@@ -5202,14 +5192,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.61":
-  version: 0.0.61
-  resolution: "@calcom/platform-libraries@npm:0.0.61"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.63":
+  version: 0.0.63
+  resolution: "@calcom/platform-libraries@npm:0.0.63"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: dd04843e877d036476b35c1fed0f5ea6089fc4df7962fb8be63d3c5651ec9527b37890237923f6c6db1fa29eef220ac888cfd7defa845fa269a04cbb70c6cab8
+  checksum: bb567ad7330a41717c9744ec4c4d6a90d8a585bca8c90b6dacf30f4bd3a97cb5572ce42df698cf1c3711b25222635b7483fd925dfa6f1df83b774d0fd2857099
   languageName: node
   linkType: hard
 
@@ -5656,7 +5646,6 @@ __metadata:
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
-    react-virtual: ^2.10.4
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -5745,7 +5734,7 @@ __metadata:
     "@radix-ui/react-switch": ^1.0.0
     "@radix-ui/react-toggle-group": ^1.0.0
     "@radix-ui/react-tooltip": ^1.0.0
-    "@replexica/sdk": ^0.6.0
+    "@replexica/sdk": ^0.7.0
     "@sentry/nextjs": ^8.8.0
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
@@ -11788,17 +11777,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/debug@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/debug@npm:5.1.1"
-  dependencies:
-    "@types/debug": 4.1.8
-    debug: 4.3.4
-    strip-ansi: 6.0.1
-  checksum: ab073c70aac7f8240b70c6021b7f46b34a0bbbe6a220fe503cd34bfd6c7b9890916f42c6bc7b7345a3225f8ea9d9744064e716fe39fb2d40e44c752689ee3415
-  languageName: node
-  linkType: hard
-
 "@prisma/debug@npm:5.11.0":
   version: 5.11.0
   resolution: "@prisma/debug@npm:5.11.0"
@@ -11842,17 +11820,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/engines-version@npm:5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2":
+  version: 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+  resolution: "@prisma/engines-version@npm:5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2"
+  checksum: 9ea0689474db5da01d14ec6b24b348c282ce7fc6874a15c7dc7910398a52ef44f67a10b24dee8e41386b4611bdbbc10679145cba5b092f7989cf0543bbf5b078
+  languageName: node
+  linkType: hard
+
 "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574":
   version: 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
   resolution: "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574"
   checksum: 493f84e8856bf214c64177f879f7009740156492a3e1b42cd02e91eec273a5d290bfdde9ca32c361cd8a0616a33d903163582a51e44a79a6b6b318f72130517f
-  languageName: node
-  linkType: hard
-
-"@prisma/engines@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/engines@npm:5.1.1"
-  checksum: 561c85def110279eb7c764e7c1ea1f8f54d9a2948ed5e5db9b11321c2bef362d178b756e39e7e022ee27cb2be5ac8d9b835967ce341ad8f6a1e8502f988140ee
   languageName: node
   linkType: hard
 
@@ -11865,6 +11843,18 @@ __metadata:
     "@prisma/fetch-engine": 5.11.0
     "@prisma/get-platform": 5.11.0
   checksum: 927ba456fdd8d60704b48d294e9ff91ca7d260617b67b7f2bc20ddeb6c5aead36af5cbf9348d17c71c2217ecce4f17d8f0676ab780fdadb27b8d95675a032379
+  languageName: node
+  linkType: hard
+
+"@prisma/engines@npm:5.22.0":
+  version: 5.22.0
+  resolution: "@prisma/engines@npm:5.22.0"
+  dependencies:
+    "@prisma/debug": 5.22.0
+    "@prisma/engines-version": 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+    "@prisma/fetch-engine": 5.22.0
+    "@prisma/get-platform": 5.22.0
+  checksum: b66d08f4291af401a1dc75f096bbd980383bf4334221e5dd6be67882a0a91661d994d4b80f94a683b13bbf9062412eb194263df2f7925d53d1e20bfc6c4ede73
   languageName: node
   linkType: hard
 
@@ -11891,31 +11881,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/fetch-engine@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/fetch-engine@npm:5.1.1"
-  dependencies:
-    "@prisma/debug": 5.1.1
-    "@prisma/get-platform": 5.1.1
-    execa: 5.1.1
-    find-cache-dir: 3.3.2
-    fs-extra: 11.1.1
-    hasha: 5.2.2
-    http-proxy-agent: 7.0.0
-    https-proxy-agent: 7.0.1
-    kleur: 4.1.5
-    node-fetch: 2.6.12
-    p-filter: 2.1.0
-    p-map: 4.0.0
-    p-retry: 4.6.2
-    progress: 2.0.3
-    rimraf: 3.0.2
-    temp-dir: 2.0.0
-    tempy: 1.0.1
-  checksum: 7a98c05f8417183fcc211d94dc004dab425887c49199c20b277e487f66b2882039da31cb946dcd41e0fc78a47c298760f31f446883592027270627f7b83ce016
-  languageName: node
-  linkType: hard
-
 "@prisma/fetch-engine@npm:5.11.0":
   version: 5.11.0
   resolution: "@prisma/fetch-engine@npm:5.11.0"
@@ -11924,6 +11889,17 @@ __metadata:
     "@prisma/engines-version": 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
     "@prisma/get-platform": 5.11.0
   checksum: 708650f95d9cd3537c067934921af46a7674c186469a952399580bc6834fccd3df2f35867a6da0f3f472d3cd11a007f777c1a95c0dd0cc5f19ea53ecb2af7ba2
+  languageName: node
+  linkType: hard
+
+"@prisma/fetch-engine@npm:5.22.0":
+  version: 5.22.0
+  resolution: "@prisma/fetch-engine@npm:5.22.0"
+  dependencies:
+    "@prisma/debug": 5.22.0
+    "@prisma/engines-version": 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+    "@prisma/get-platform": 5.22.0
+  checksum: d65def9fe4a86ef05041738d12cb730cc8b948379e11ac3e3fa2db08d5640a70467b623b4bb0d6d3f4da86c135f6c6da61867c1658eab430dd0e3939382d3a41
   languageName: node
   linkType: hard
 
@@ -11952,15 +11928,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/generator-helper@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/generator-helper@npm:5.1.1"
+"@prisma/generator-helper@npm:5.22.0, @prisma/generator-helper@npm:^5.9.1":
+  version: 5.22.0
+  resolution: "@prisma/generator-helper@npm:5.22.0"
   dependencies:
-    "@prisma/debug": 5.1.1
-    "@types/cross-spawn": 6.0.2
-    cross-spawn: 7.0.3
-    kleur: 4.1.5
-  checksum: e576e0396031e0f90442c5fd37c0ee13894d03d89d4d9c572e787268156fcda960a969773c37030f3d66271c56424c34c988ac15c75be5dde5f71c6be7266bf6
+    "@prisma/debug": 5.22.0
+  checksum: 5c942d95b0e31c5b80eecb29185ff2561ca9a5eb86badb0d6dfd96c4e8b8e65e726c8682366bd55c332d9682deda08bc90d8f8dd7c0fc0652c9254d0d983bf47
   languageName: node
   linkType: hard
 
@@ -11988,15 +11961,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/generator-helper@npm:^5.9.1":
-  version: 5.22.0
-  resolution: "@prisma/generator-helper@npm:5.22.0"
-  dependencies:
-    "@prisma/debug": 5.22.0
-  checksum: 5c942d95b0e31c5b80eecb29185ff2561ca9a5eb86badb0d6dfd96c4e8b8e65e726c8682366bd55c332d9682deda08bc90d8f8dd7c0fc0652c9254d0d983bf47
-  languageName: node
-  linkType: hard
-
 "@prisma/generator-helper@npm:~3.8.1":
   version: 3.8.1
   resolution: "@prisma/generator-helper@npm:3.8.1"
@@ -12009,30 +11973,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/get-platform@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/get-platform@npm:5.1.1"
-  dependencies:
-    "@prisma/debug": 5.1.1
-    escape-string-regexp: 4.0.0
-    execa: 5.1.1
-    fs-jetpack: 5.1.0
-    kleur: 4.1.5
-    replace-string: 3.1.0
-    strip-ansi: 6.0.1
-    tempy: 1.0.1
-    terminal-link: 2.1.1
-    ts-pattern: 4.3.0
-  checksum: 9d94496b3acec6553331016e92519b692ad60994a33bc1e3b3fe9758d606b0741b846d6ed99fb164fb7d59912a844f15ce6f46cb29b20ca0ce6c8e9db54d91aa
-  languageName: node
-  linkType: hard
-
 "@prisma/get-platform@npm:5.11.0":
   version: 5.11.0
   resolution: "@prisma/get-platform@npm:5.11.0"
   dependencies:
     "@prisma/debug": 5.11.0
   checksum: c3712ca6d56bc47f420280960aca167bf44a47a23eb63d310ae1c144f27c938b9a658a6c3dc4555b53f2de16083e371775216a3d282524459143b9fe3c7b84db
+  languageName: node
+  linkType: hard
+
+"@prisma/get-platform@npm:5.22.0":
+  version: 5.22.0
+  resolution: "@prisma/get-platform@npm:5.22.0"
+  dependencies:
+    "@prisma/debug": 5.22.0
+  checksum: 6d1f47dc586560c3518dadcf1cccaa8d624d1268e5d74a12277cc6ecf7cb2f530ec34b8019faa2c22eb29243efe3733d3c9005ec36dc84cd766d2794fa7b0025
   languageName: node
   linkType: hard
 
@@ -12076,53 +12031,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/internals@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@prisma/internals@npm:5.1.1"
+"@prisma/internals@npm:5.22.0":
+  version: 5.22.0
+  resolution: "@prisma/internals@npm:5.22.0"
   dependencies:
-    "@antfu/ni": 0.21.5
-    "@opentelemetry/api": 1.4.1
-    "@prisma/debug": 5.1.1
-    "@prisma/engines": 5.1.1
-    "@prisma/fetch-engine": 5.1.1
-    "@prisma/generator-helper": 5.1.1
-    "@prisma/get-platform": 5.1.1
-    "@prisma/prisma-schema-wasm": 5.1.1-1.6a3747c37ff169c90047725a05a6ef02e32ac97e
-    archiver: 5.3.1
+    "@prisma/debug": 5.22.0
+    "@prisma/engines": 5.22.0
+    "@prisma/fetch-engine": 5.22.0
+    "@prisma/generator-helper": 5.22.0
+    "@prisma/get-platform": 5.22.0
+    "@prisma/prisma-schema-wasm": 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+    "@prisma/schema-files-loader": 5.22.0
     arg: 5.0.2
-    checkpoint-client: 1.1.27
-    cli-truncate: 2.1.0
-    dotenv: 16.0.3
-    escape-string-regexp: 4.0.0
-    execa: 5.1.1
-    find-up: 5.0.0
-    fp-ts: 2.16.0
-    fs-extra: 11.1.1
-    fs-jetpack: 5.1.0
-    global-dirs: 3.0.1
-    globby: 11.1.0
-    indent-string: 4.0.0
-    is-windows: 1.0.2
-    is-wsl: 2.2.0
-    kleur: 4.1.5
-    new-github-issue-url: 0.2.1
-    node-fetch: 2.6.12
-    npm-packlist: 5.1.3
-    open: 7.4.2
-    p-map: 4.0.0
     prompts: 2.4.2
-    read-pkg-up: 7.0.1
-    replace-string: 3.1.0
-    resolve: 1.22.2
-    string-width: 4.2.3
-    strip-ansi: 6.0.1
-    strip-indent: 3.0.0
-    temp-dir: 2.0.0
-    tempy: 1.0.1
-    terminal-link: 2.1.1
-    tmp: 0.2.1
-    ts-pattern: 4.3.0
-  checksum: 6c6059ed996e333a925c1ca650a7f84f010494451355798ca76102ecd1e2d05218b6800f36448d94ac885c8b15f00903652e1398b300c53c9d2f53aac6fec515
+  checksum: 94324cf549df71b5edfe2b22c58e70287e12d3b69982def14673652ce3643418c05ebbfc81070e397e944342aff1158bad2e565eaea55956b9eb185a5629ffd4
   languageName: node
   linkType: hard
 
@@ -12176,10 +12098,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/prisma-schema-wasm@npm:5.1.1-1.6a3747c37ff169c90047725a05a6ef02e32ac97e":
-  version: 5.1.1-1.6a3747c37ff169c90047725a05a6ef02e32ac97e
-  resolution: "@prisma/prisma-schema-wasm@npm:5.1.1-1.6a3747c37ff169c90047725a05a6ef02e32ac97e"
-  checksum: 72191fe2bc4ec28287ab0ea119506eb890b536cf1498b516f5576055489a9fec4853ba285408a05dfcb963076987ffd40088ac144a0d13d3377ca9971f94276e
+"@prisma/prisma-schema-wasm@npm:5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2":
+  version: 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+  resolution: "@prisma/prisma-schema-wasm@npm:5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2"
+  checksum: 8e06630cca318ad298ce84b83242b3e7118ebc478790dea412066e9be9d610d98fcb4b3bc33026c9a522488a4db43e11866df5e2250ef77b6d0d060e84d83237
   languageName: node
   linkType: hard
 
@@ -12187,6 +12109,16 @@ __metadata:
   version: 5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59
   resolution: "@prisma/prisma-schema-wasm@npm:5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59"
   checksum: d4639f673559ee94dd995c1d1046ce437a909103850339c8850c37f60c7c31da1bca3738ad875757ff7caee8753c4907526deb7426ee9281dd7ac6e0e013d35b
+  languageName: node
+  linkType: hard
+
+"@prisma/schema-files-loader@npm:5.22.0":
+  version: 5.22.0
+  resolution: "@prisma/schema-files-loader@npm:5.22.0"
+  dependencies:
+    "@prisma/prisma-schema-wasm": 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+    fs-extra: 11.1.1
+  checksum: 871673c09e612b5b580f31af7304d60016d7e8c66bd8c641c35bc026b2f7452369d98454c92ffd11570931b28d0b7dec511ef8f3375d65b05b8d0f47fcd4ec6e
   languageName: node
   linkType: hard
 
@@ -14315,28 +14247,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@replexica/sdk@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@replexica/sdk@npm:0.6.0"
+"@replexica/sdk@npm:^0.7.0":
+  version: 0.7.4
+  resolution: "@replexica/sdk@npm:0.7.4"
   dependencies:
     "@paralleldrive/cuid2": ^2.2.2
-    "@replexica/spec": 0.18.0
+    "@replexica/spec": 0.20.0
     jsdom: ^25.0.1
     typescript: ^5.6.3
     vitest: ^2.1.4
     zod: ^3.23.8
-  checksum: 95a239cf24025a8ea1a03b0720c8a1bd351f73777015fd3a8b74995740fb191c87d157ac04e7b1824f9b5b8f27cef3ce1b7126deb7bf7683b74b8435d3de1238
+  checksum: 58c5620cb92798009551e636953d7e3b4915e01dbeb4bcbe40ebbc0d5f29465944997417a8650af45f2a6f6e7ac7099436fa934b86857ab13a6147bdd6557606
   languageName: node
   linkType: hard
 
-"@replexica/spec@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@replexica/spec@npm:0.18.0"
+"@replexica/spec@npm:0.20.0":
+  version: 0.20.0
+  resolution: "@replexica/spec@npm:0.20.0"
   dependencies:
     typescript: ^5.6.3
     vitest: ^2.1.4
     zod: ^3.23.8
-  checksum: d9afcfd965b804d395436cc6daf9a051142e13658297e45f742a6397699360e8f28d43399c4c31077b250ca965e1733200bf8c63eae328b4960320d2dd6ae5b5
+  checksum: 5db941f4bd1376fbe53d14e7dee82feaee61ce7447cc17d2b96daa55481dbc05e03653f644c9e24c627461e0ab458ddfe82993a7e2b2d6636db7c5aef4d65021
   languageName: node
   linkType: hard
 
@@ -17380,7 +17312,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.0.0-beta.60":
+"@tanstack/react-virtual@npm:^3.0.0-beta.60, @tanstack/react-virtual@npm:^3.10.9":
   version: 3.10.9
   resolution: "@tanstack/react-virtual@npm:3.10.9"
   dependencies:
@@ -20856,21 +20788,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"archiver@npm:5.3.1":
-  version: 5.3.1
-  resolution: "archiver@npm:5.3.1"
-  dependencies:
-    archiver-utils: ^2.1.0
-    async: ^3.2.3
-    buffer-crc32: ^0.2.1
-    readable-stream: ^3.6.0
-    readdir-glob: ^1.0.0
-    tar-stream: ^2.2.0
-    zip-stream: ^4.1.0
-  checksum: 905b198ed04d26c951b80545d45c7f2e0432ef89977a93af8a762501d659886e39dda0fbffb0d517ff3fa450a3d09a29146e4273c2170624e1988f889fb5302c
-  languageName: node
-  linkType: hard
-
 "archiver@npm:5.3.2":
   version: 5.3.2
   resolution: "archiver@npm:5.3.2"
@@ -22477,10 +22394,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bson@npm:6.1.0":
-  version: 6.1.0
-  resolution: "bson@npm:6.1.0"
-  checksum: 8250c8158c22d2a0ca0e7677c0cbef9fa6341c176382b835dbf4c7f8aebdfd74d530f7225c6f3b98ca78a68aab4f1ad3d2fad54160a98b3e6ed9823b80db2e48
+"bson@npm:6.10.0":
+  version: 6.10.0
+  resolution: "bson@npm:6.10.0"
+  checksum: 79777d22da08841c44dbe31d0eaa74ddd3a5becebe559affd859f395ddcdead3d7b8d0a1dfa45ca47d68a7c4c1cdd56b9f575406df8c7e0ed9e3470925f24f44
   languageName: node
   linkType: hard
 
@@ -22788,7 +22705,7 @@ __metadata:
     node-gyp: ^10.2.0
     node-ical: ^0.16.1
     prettier: ^2.8.6
-    prismock: ^1.21.1
+    prismock: ^1.33.4
     resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
@@ -29337,13 +29254,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fp-ts@npm:2.16.0":
-  version: 2.16.0
-  resolution: "fp-ts@npm:2.16.0"
-  checksum: 0724a4d8b2171cc98e9d9a05e6fe7e0acbc8c79eaabe8e257cbe3a6a5a77acdbdd2572e2ca8135e91d6e02542237499db6e952a58829ba0796ab96063dd39eb2
-  languageName: node
-  linkType: hard
-
 "fp-ts@npm:2.16.1":
   version: 2.16.1
   resolution: "fp-ts@npm:2.16.1"
@@ -31479,16 +31389,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"https-proxy-agent@npm:7.0.1":
-  version: 7.0.1
-  resolution: "https-proxy-agent@npm:7.0.1"
-  dependencies:
-    agent-base: ^7.0.2
-    debug: 4
-  checksum: 2d765c31865071373771f53abdd72912567b76015a4eff61094f586194192950cd89257d50f0e621807a16c083bc8cad5852e3885c6ba154d2ce721a18fac248
-  languageName: node
-  linkType: hard
-
 "https-proxy-agent@npm:7.0.2, https-proxy-agent@npm:^7.0.1, https-proxy-agent@npm:^7.0.2":
   version: 7.0.2
   resolution: "https-proxy-agent@npm:7.0.2"
@@ -32471,7 +32371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-core-module@npm:^2.11.0, is-core-module@npm:^2.13.0":
+"is-core-module@npm:^2.13.0":
   version: 2.13.0
   resolution: "is-core-module@npm:2.13.0"
   dependencies:
@@ -33556,6 +33456,13 @@ __metadata:
     ts-node:
       optional: true
   checksum: 4cabf8f894c180cac80b7df1038912a3fc88f96f2622de33832f4b3314f83e22b08fb751da570c0ab2b7988f21604bdabade95e3c0c041068ac578c085cf7dff
+  languageName: node
+  linkType: hard
+
+"jest-date-mock@npm:^1.0.10":
+  version: 1.0.10
+  resolution: "jest-date-mock@npm:1.0.10"
+  checksum: 3bbdbc798e7827787392d66083d5ebbf050741003ac7732a5c84f33accb60f38a25670312745400052000d6b4df8377909b7afc700df6b0e09bdb78b89eb18cc
   languageName: node
   linkType: hard
 
@@ -41493,17 +41400,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismock@npm:^1.21.1":
-  version: 1.21.1
-  resolution: "prismock@npm:1.21.1"
+"prismock@npm:^1.33.4":
+  version: 1.33.5
+  resolution: "prismock@npm:1.33.5"
   dependencies:
     "@paralleldrive/cuid2": 2.2.2
-    "@prisma/generator-helper": 5.1.1
-    "@prisma/internals": 5.1.1
-    bson: 6.1.0
+    "@prisma/generator-helper": 5.22.0
+    "@prisma/internals": 5.22.0
+    bson: 6.10.0
   peerDependencies:
     "@prisma/client": "*"
-  checksum: d64211ea4167cf15ce4c8de5d8b6d2705250d984f3221470c6be970184fbec5eeaf33529da270b6c9466b12619e30a41392fe4d54fef3b7ffaaad3aff3c2d7d6
+    prisma: "*"
+  checksum: 58cc42d62b97ac39ec1299ddfa4885024775bc5d1b71d73a6cdc416f88f600d0da82197500fbf34162b6245d61b9528df00f2402b67083e7207953eede020aa0
   languageName: node
   linkType: hard
 
@@ -43103,7 +43011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtual@npm:^2.10.4, react-virtual@npm:^2.8.2":
+"react-virtual@npm:^2.8.2":
   version: 2.10.4
   resolution: "react-virtual@npm:2.10.4"
   dependencies:
@@ -43295,7 +43203,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"readdir-glob@npm:^1.0.0, readdir-glob@npm:^1.1.2":
+"readdir-glob@npm:^1.1.2":
   version: 1.1.3
   resolution: "readdir-glob@npm:1.1.3"
   dependencies:
@@ -44031,19 +43939,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@npm:1.22.2":
-  version: 1.22.2
-  resolution: "resolve@npm:1.22.2"
-  dependencies:
-    is-core-module: ^2.11.0
-    path-parse: ^1.0.7
-    supports-preserve-symlinks-flag: ^1.0.0
-  bin:
-    resolve: bin/resolve
-  checksum: 7e5df75796ebd429445d102d5824482ee7e567f0070b2b45897b29bb4f613dcbc262e0257b8aeedb3089330ccaea0d6a0464df1a77b2992cf331dcda0f4cb549
-  languageName: node
-  linkType: hard
-
 "resolve@npm:1.22.4":
   version: 1.22.4
   resolution: "resolve@npm:1.22.4"
@@ -44126,19 +44021,6 @@ __metadata:
     is-core-module: ^2.1.0
     path-parse: ^1.0.6
   checksum: a05b356e47b85ad3613d9e2a39a824f3c27f4fcad9c9ff6c7cc71a2e314c5904a90ab37481ad0069d03cab9eaaac6eb68aca1bc3355fdb05f1045cd50e2aacea
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@1.22.2#~builtin<compat/resolve>":
-  version: 1.22.2
-  resolution: "resolve@patch:resolve@npm%3A1.22.2#~builtin<compat/resolve>::version=1.22.2&hash=c3c19d"
-  dependencies:
-    is-core-module: ^2.11.0
-    path-parse: ^1.0.7
-    supports-preserve-symlinks-flag: ^1.0.0
-  bin:
-    resolve: bin/resolve
-  checksum: 66cc788f13b8398de18eb4abb3aed90435c84bb8935953feafcf7231ba4cd191b2c10b4a87b1e9681afc34fb138c705f91f7330ff90bfa36f457e5584076a2b8
   languageName: node
   linkType: hard
 

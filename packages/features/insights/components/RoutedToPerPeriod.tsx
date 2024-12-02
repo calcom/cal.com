@@ -1,10 +1,11 @@
 import type { TFunction } from "next-i18next";
 import { useQueryState } from "nuqs";
-import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
 import { DataTableSkeleton } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
+import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import {
@@ -17,6 +18,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
   Input,
+  Button,
 } from "@calcom/ui";
 import {
   Table,
@@ -29,15 +31,88 @@ import {
 
 import { useFilterContext } from "../context/provider";
 
+interface DownloadButtonProps {
+  teamId?: number;
+  isAll?: boolean;
+  routingFormId?: string;
+  dateRange: [Date | null, Date | null];
+  selectedPeriod: string;
+  searchQuery?: string;
+}
+
+function DownloadButton({
+  teamId,
+  isAll,
+  routingFormId,
+  dateRange,
+  selectedPeriod,
+  searchQuery,
+}: DownloadButtonProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const utils = trpc.useContext();
+  const { t } = useLocale();
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default form submission
+
+    try {
+      const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
+        teamId: teamId ?? undefined,
+        startDate: dateRange[0]?.toISOString() ?? "",
+        endDate: dateRange[1]?.toISOString() ?? "",
+        period: selectedPeriod as "perDay" | "perWeek" | "perMonth",
+        isAll: !!isAll,
+        routingFormId: routingFormId ?? undefined,
+        searchQuery: searchQuery || undefined,
+      });
+
+      if (!result?.data) {
+        throw new Error("No data received");
+      }
+
+      downloadAsCsv(result.data, result.filename || "routing-data.csv");
+    } catch (error) {
+      console.error("Download failed:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <Button
+      type="button" // Change from submit to button
+      color="secondary"
+      variant="icon"
+      onClick={handleDownload}
+      disabled={isDownloading}
+      StartIcon={isDownloading ? "rotate-ccw" : "download"}
+    />
+  );
+}
+
 interface FormCardProps {
   selectedPeriod: string;
   onPeriodChange: (value: string) => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   children: ReactNode;
+  teamId?: number;
+  isAll?: boolean;
+  routingFormId?: string;
+  dateRange: [Date | null, Date | null];
 }
 
-function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange, children }: FormCardProps) {
+function FormCard({
+  selectedPeriod,
+  onPeriodChange,
+  searchQuery,
+  onSearchChange,
+  children,
+  teamId,
+  isAll,
+  routingFormId,
+  dateRange,
+}: FormCardProps) {
   const { t } = useLocale();
 
   return (
@@ -55,13 +130,23 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
               value={selectedPeriod}
               onValueChange={(value) => value && onPeriodChange(value)}
             />
-            <div className="w-64">
-              <Input
-                type="text"
-                placeholder={t("search_by_name_or_email")}
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full"
+            <div className="flex gap-2">
+              <div className="w-64">
+                <Input
+                  type="text"
+                  placeholder={t("search")}
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <DownloadButton
+                teamId={teamId}
+                isAll={isAll}
+                routingFormId={routingFormId}
+                dateRange={dateRange}
+                selectedPeriod={selectedPeriod}
+                searchQuery={searchQuery}
               />
             </div>
           </div>
@@ -136,6 +221,7 @@ export function RoutedToPerPeriod() {
   const [searchQuery, setSearchQuery] = useQueryState("search", {
     defaultValue: "",
   });
+
   const { ref, inView } = useInView({
     threshold: 0,
     rootMargin: "300px",
@@ -244,7 +330,11 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
+          onSearchChange={setSearchQuery}
+          teamId={selectedTeamId}
+          isAll={isAll}
+          routingFormId={selectedRoutingFormId}
+          dateRange={dateRange}>
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
           </div>
@@ -282,7 +372,11 @@ export function RoutedToPerPeriod() {
         selectedPeriod={selectedPeriod}
         onPeriodChange={setSelectedPeriod}
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}>
+        onSearchChange={setSearchQuery}
+        teamId={selectedTeamId}
+        isAll={isAll}
+        routingFormId={selectedRoutingFormId}
+        dateRange={dateRange}>
         <div className="mt-6">
           <div
             className="scrollbar-thin border-subtle relaitve relative h-[80dvh] overflow-auto rounded-md border"
