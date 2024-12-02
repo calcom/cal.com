@@ -9,6 +9,7 @@ import { TextArea } from "@calcom/ui";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
+import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
@@ -175,8 +176,8 @@ const getEmbedTypeSpecificString = ({
   let uiInstructionStringArg: {
     apiName: string;
     theme: PreviewState["theme"];
-    brandColor: string;
-    darkBrandColor: string;
+    brandColor: string | null;
+    darkBrandColor: string | null;
     hideEventTypeDetails: boolean;
     layout?: BookerLayout;
   };
@@ -238,26 +239,20 @@ const getEmbedUIInstructionString = ({
 }: {
   apiName: string;
   theme?: string;
-  brandColor: string;
-  darkBrandColor: string;
+  brandColor: string | null;
+  darkBrandColor: string | null;
   hideEventTypeDetails: boolean;
   layout?: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
+
   return getInstructionString({
     apiName,
     instructionName: "ui",
     instructionArg: {
       theme,
-      cssVarsPerTheme: {
-        light: {
-          "cal-brand": brandColor,
-        },
-        dark: {
-          "cal-brand": darkBrandColor,
-        },
-      },
-      hideEventTypeDetails: hideEventTypeDetails,
+      cssVarsPerTheme: buildCssVarsPerTheme({ brandColor, darkBrandColor }),
+      hideEventTypeDetails,
       layout,
     },
   });

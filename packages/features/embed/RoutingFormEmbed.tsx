@@ -15,10 +15,7 @@ export const RoutingFormEmbedDialog = () => {
       types={routingFormTypes}
       tabs={tabs}
       eventTypeHideOptionDisabled={true}
-      defaultBrandColor={{
-        brandColor: user?.brandColor,
-        darkBrandColor: user?.darkBrandColor,
-      }}
+      defaultBrandColor={user ? { brandColor: user.brandColor, darkBrandColor: user.darkBrandColor } : null}
     />
   );
 };

@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { RefObject } from "react";
-import { createRef, useRef, useState, useCallback } from "react";
+import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
@@ -17,7 +17,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,10 +41,17 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EmbedDialogProps = {
+  types: EmbedTypes;
+  tabs: EmbedTabs;
+  eventTypeHideOptionDisabled: boolean;
+  defaultBrandColor: { brandColor: string | null; darkBrandColor: string | null } | null;
+};
 
 const enum Theme {
   auto = "auto",
@@ -526,14 +533,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   eventTypeHideOptionDisabled,
   types,
   defaultBrandColor,
-}: {
+}: EmbedDialogProps & {
   embedType: EmbedType;
   embedUrl: string;
-  tabs: EmbedTabs;
   namespace: string;
   eventTypeHideOptionDisabled: boolean;
-  types: EmbedTypes;
-  defaultBrandColor: { brandColor?: string | null; darkBrandColor?: string | null };
 }) => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
@@ -581,20 +585,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     layout: BookerLayouts.MONTH_VIEW,
   };
 
-  const paletteDefaultValue = useCallback(
-    (paletteName: string) => {
-      if (paletteName === "brandColor") {
-        return defaultBrandColor.brandColor ?? "#000000";
-      }
+  const paletteDefaultValue = (paletteName: string) => {
+    if (paletteName === "brandColor") {
+      return defaultBrandColor?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR;
+    }
 
-      if (paletteName === "darkBrandColor") {
-        return defaultBrandColor.darkBrandColor ?? "#ffffff";
-      }
+    if (paletteName === "darkBrandColor") {
+      return defaultBrandColor?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR;
+    }
 
-      return "#000000";
-    },
-    [defaultBrandColor]
-  );
+    return "#000000";
+  };
 
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
@@ -612,8 +613,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
-      brandColor: paletteDefaultValue("brandColor"),
-      darkBrandColor: paletteDefaultValue("darkBrandColor"),
+      brandColor: defaultBrandColor?.brandColor ?? null,
+      darkBrandColor: defaultBrandColor?.darkBrandColor ?? null,
     },
   });
 
@@ -676,14 +677,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
-      cssVarsPerTheme: {
-        light: {
-          "cal-brand": previewState.palette.brandColor,
-        },
-        dark: {
-          "cal-brand": previewState.palette.darkBrandColor,
-        },
-      },
+      cssVarsPerTheme: buildCssVarsPerTheme({
+        brandColor: previewState.palette.brandColor,
+        darkBrandColor: previewState.palette.darkBrandColor,
+      }),
     },
   });
 
@@ -1188,12 +1185,7 @@ export const EmbedDialog = ({
   tabs,
   eventTypeHideOptionDisabled,
   defaultBrandColor,
-}: {
-  types: EmbedTypes;
-  tabs: EmbedTabs;
-  eventTypeHideOptionDisabled: boolean;
-  defaultBrandColor: { brandColor?: string | null; darkBrandColor?: string | null };
-}) => {
+}: EmbedDialogProps) => {
   const searchParams = useCompatSearchParams();
   const embedUrl = (searchParams?.get("embedUrl") || "") as string;
   const namespace = (searchParams?.get("namespace") || "") as string;

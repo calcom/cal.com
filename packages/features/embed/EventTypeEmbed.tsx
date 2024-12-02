@@ -15,10 +15,7 @@ export const EventTypeEmbedDialog = () => {
       types={types}
       tabs={tabs}
       eventTypeHideOptionDisabled={false}
-      defaultBrandColor={{
-        brandColor: user?.brandColor,
-        darkBrandColor: user?.darkBrandColor,
-      }}
+      defaultBrandColor={user ? { brandColor: user.brandColor, darkBrandColor: user.darkBrandColor } : null}
     />
   );
 };
