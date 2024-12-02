@@ -1682,4 +1682,5 @@ model Blacklist {
   updatedById Int?
 
   @@unique([type, value])
+  @@index([type, value])
 }

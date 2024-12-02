@@ -30,21 +30,24 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
 
   const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
   const hashedKey = hashAPIKey(strippedApiKey);
-  const apiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
+  const apiKey = await prisma.apiKey.findUnique({
+    where: { hashedKey },
+    include: {
+      user: {
+        select: { role: true, locked: true, email: true },
+      },
+    },
+  });
   if (!apiKey) return res.status(401).json({ error: "Your API key is not valid." });
   if (apiKey.expiresAt && dateNotInPast(apiKey.expiresAt)) {
     return res.status(401).json({ error: "This API key is expired." });
   }
-  if (!apiKey.userId) return res.status(404).json({ error: "No user found for this API key." });
+  if (!apiKey.userId || !apiKey.user)
+    return res.status(404).json({ error: "No user found for this API key." });
 
   // save the user id in the request for later use
   req.userId = apiKey.userId;
-
-  const user = await prisma.user.findUnique({
-    where: { id: apiKey.userId },
-    select: { role: true, locked: true, email: true },
-  });
-  req.user = user;
+  req.user = apiKey.user;
 
   const { isAdmin, scope } = await isAdminGuard(req);
   const userIsLockedOrBlocked = await isLockedOrBlocked(req);

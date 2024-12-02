@@ -7,11 +7,14 @@ import type { IBlacklistRepository } from "./blacklist.repository.interface";
 
 export class BlacklistRepository implements IBlacklistRepository {
   async getEmailInBlacklist(email: string) {
+    const [, domain] = email.split("@");
     try {
       const emailInBlacklist = await db.blacklist.findFirst({
         where: {
-          type: BlacklistType.EMAIL,
-          value: email,
+          OR: [
+            { type: BlacklistType.EMAIL, value: email },
+            { type: BlacklistType.DOMAIN, value: domain },
+          ],
         },
       });
       return emailInBlacklist;

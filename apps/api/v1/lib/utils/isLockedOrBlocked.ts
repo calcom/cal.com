@@ -1,14 +1,9 @@
 import type { NextApiRequest } from "next";
 
-function isEmailInBlacklist(email: string) {
-  const blacklistedDomains = (process.env.BLACKLIST_EMAIL_DOMAINS || "")
-    .split(",")
-    .map((domain) => domain.trim());
-  return blacklistedDomains.includes(email.split("@")[1]?.toLowerCase());
-}
+import { checkIfEmailInBlacklistController } from "@calcom/features/blacklist/operations/check-if-email-in-blacklist.controller";
 
 export async function isLockedOrBlocked(req: NextApiRequest) {
   const user = req.user;
   if (!user?.email) return false;
-  return user.locked || isEmailInBlacklist(user.email);
+  return user.locked || (await checkIfEmailInBlacklistController(user.email));
 }

@@ -6,7 +6,7 @@ import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 import { ScopeOfAdmin } from "./scopeOfAdmin";
 
 export const isAdminGuard = async (req: NextApiRequest) => {
-  const { user } = req;
+  const { user, userId } = req;
   if (!user) return { isAdmin: false, scope: null };
 
   const { role: userRole } = user;
@@ -33,7 +33,7 @@ export const isAdminGuard = async (req: NextApiRequest) => {
       },
     },
   });
-  if (!orgOwnerOrAdminMemberships.length) return { isAdmin: false, scope: null };
+  if (orgOwnerOrAdminMemberships.length > 0) return { isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin };
 
-  return { isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin };
+  return { isAdmin: false, scope: null };
 };
