@@ -5006,7 +5006,7 @@
           },
           {
             "name": "slotFormat",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times.",
             "example": "range",

@@ -80,7 +80,7 @@ export class GetAvailableSlotsInput {
     return value.toLowerCase();
   })
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Format of slot times in response. Use 'range' to get start and end times.",
     example: "range",
     enum: SlotFormat,
