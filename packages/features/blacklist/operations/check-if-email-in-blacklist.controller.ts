@@ -25,8 +25,9 @@ export async function checkIfEmailInBlacklistController(
   email: string
 ): Promise<ReturnType<typeof presenter>> {
   return await startSpan({ name: "checkIfEmailInBlacklist Controller" }, async () => {
+    const lowercasedEmail = email.toLowerCase();
     const blacklistRepository = new BlacklistRepository();
-    const blacklistedEmail = await blacklistRepository.getEmailInBlacklist(email);
+    const blacklistedEmail = await blacklistRepository.getEmailInBlacklist(lowercasedEmail);
     return presenter(blacklistedEmail);
   });
 }

@@ -1,19 +1,11 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, expect, it, vi, beforeEach, beforeAll } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 
 import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
-vi.mock("@calcom/prisma", () => ({
-  default: {
-    user: {
-      findUnique: vi.fn(),
-    },
-  },
-}));
-
 describe("isLockedOrBlocked", () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await prismock.blacklist.createMany({
       data: [
         {
@@ -28,9 +20,6 @@ describe("isLockedOrBlocked", () => {
         },
       ],
     });
-  });
-  beforeEach(() => {
-    vi.resetAllMocks();
   });
 
   it("should return false if no user in request", async () => {
