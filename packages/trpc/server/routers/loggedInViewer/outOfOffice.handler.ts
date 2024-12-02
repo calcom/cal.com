@@ -73,37 +73,39 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   }
 
   // Prevent infinite redirects but consider time ranges
-  const existingOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    select: {
-      userId: true,
-      toUserId: true,
-    },
-    where: {
-      ...(toUserId && { userId: toUserId }),
-      toUserId: ctx.user.id,
-      // Check for time overlap or collision
-      OR: [
-        // Outside of range
-        {
-          AND: [
-            { start: { lte: inputEndTime.toISOString() } },
-            { end: { gte: inputStartTime.toISOString() } },
-          ],
-        },
-        // Inside of range
-        {
-          AND: [
-            { start: { gte: inputStartTime.toISOString() } },
-            { end: { lte: inputEndTime.toISOString() } },
-          ],
-        },
-      ],
-    },
-  });
+  if (!!toUserId) {
+    const existingOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
+      select: {
+        userId: true,
+        toUserId: true,
+      },
+      where: {
+        userId: toUserId,
+        toUserId: ctx.user.id,
+        // Check for time overlap or collision
+        OR: [
+          // Outside of range
+          {
+            AND: [
+              { start: { lte: inputEndTime.toISOString() } },
+              { end: { gte: inputStartTime.toISOString() } },
+            ],
+          },
+          // Inside of range
+          {
+            AND: [
+              { start: { gte: inputStartTime.toISOString() } },
+              { end: { lte: inputEndTime.toISOString() } },
+            ],
+          },
+        ],
+      },
+    });
 
-  // don't allow infinite redirects
-  if (existingOutOfOfficeEntry) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
+    // don't allow infinite redirects
+    if (existingOutOfOfficeEntry) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
+    }
   }
 
   const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
