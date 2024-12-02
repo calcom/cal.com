@@ -674,19 +674,21 @@ export default function MemberList(props: Props) {
         </DataTableToolbar.Root>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
+          <DataTableSelectionBar.Root className="justify-center">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {numberOfSelectedRows >= 2 && (
-              <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                Group Meeting
-              </Button>
+              <DataTableSelectionBar.Button
+                onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                icon="handshake">
+                {t("group_meeting")}
+              </DataTableSelectionBar.Button>
             )}
             <EventTypesList table={table} teamId={props.team.id} />
             <DeleteBulkTeamMembers
