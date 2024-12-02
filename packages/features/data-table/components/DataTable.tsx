@@ -62,12 +62,13 @@ export function DataTable<TData, TValue>({
 
   const columnSizeVars = useMemo(() => {
     const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: number } = {};
+    const colSizes: { [key: string]: string } = {};
     for (let i = 0; i < headers.length; i++) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const header = headers[i]!;
-      colSizes[`--header-${header.id}-size`] = header.getSize();
-      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+      const isAutoWidth = header.column.columnDef.meta?.autoWidth;
+      colSizes[`--header-${header.id}-size`] = isAutoWidth ? "auto" : `${header.getSize()}px`;
+      colSizes[`--col-${header.column.id}-size`] = isAutoWidth ? "auto" : `${header.column.getSize()}px`;
     }
     return colSizes;
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
@@ -102,7 +103,7 @@ export function DataTable<TData, TValue>({
                       style={{
                         ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                         ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                        width: `var(--header-${header?.id}-size)`,
                       }}
                       className={classNames(
                         "flex shrink-0 items-center",
@@ -162,7 +163,7 @@ export function DataTable<TData, TValue>({
                           style={{
                             ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                             ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                            width: `var(--col-${cell.column.id}-size)`,
                           }}
                           className={classNames(
                             "flex shrink-0 items-center overflow-hidden",
