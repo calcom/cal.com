@@ -115,6 +115,7 @@ test.describe("Organization Settings", () => {
           page,
           switchTestId: `${ctx.org.id}-seo-indexing-switch`,
           expectedChecked: true,
+          waitForMessage: "Your team has been updated successfully.",
         });
       });
 
