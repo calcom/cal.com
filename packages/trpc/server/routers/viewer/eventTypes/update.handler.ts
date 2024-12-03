@@ -504,6 +504,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+
   if (deletedWebhooks) {
     await ctx.prisma.$transaction(
       deletedWebhooks.map((wh) =>

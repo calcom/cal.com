@@ -3,6 +3,7 @@ import jsforce from "jsforce";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -431,7 +432,11 @@ export default class SalesforceCRMService implements CRM {
       : [];
   }
 
-  async createContacts(contactsToCreate: Attendee[], organizerEmail?: string) {
+  async createContacts(
+    contactsToCreate: Attendee[],
+    organizerEmail?: string,
+    calEventResponses?: CalEventResponses | null
+  ) {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
@@ -474,11 +479,14 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      await this.createAttendeeRecord({ attendee, recordType: SalesforceRecordEnum.LEAD, organizerId }).then(
-        (result) => {
-          createdContacts.push(...result);
-        }
-      );
+      await this.createAttendeeRecord({
+        attendee,
+        recordType: SalesforceRecordEnum.LEAD,
+        organizerId,
+        calEventResponses,
+      }).then((result) => {
+        createdContacts.push(...result);
+      });
     }
 
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
@@ -517,13 +525,14 @@ export default class SalesforceCRMService implements CRM {
 
         for (const attendee of contactsToCreate) {
           try {
-            const result = await conn.sobject(SalesforceRecordEnum.LEAD).create(
-              this.generateCreateRecordBody({
-                attendee,
-                recordType: SalesforceRecordEnum.LEAD,
-                organizerId,
-              })
-            );
+            const createBody = await this.generateCreateRecordBody({
+              attendee,
+              recordType: SalesforceRecordEnum.LEAD,
+              organizerId,
+              calEventResponses,
+            });
+
+            const result = await conn.sobject(SalesforceRecordEnum.LEAD).create(createBody);
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
@@ -547,7 +556,7 @@ export default class SalesforceCRMService implements CRM {
 
   async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
     const appOptions = this.getAppOptions();
-    const { sendNoShowAttendeeData, sendNoShowAttendeeDataField } = appOptions;
+    const { sendNoShowAttendeeData = false, sendNoShowAttendeeDataField = {} } = appOptions;
     const conn = await this.conn;
     // Check that no show is enabled
     if (!sendNoShowAttendeeData && !sendNoShowAttendeeDataField) {
@@ -670,22 +679,27 @@ export default class SalesforceCRMService implements CRM {
     recordType,
     organizerId,
     accountId,
+    calEventResponses,
   }: {
     attendee: Attendee;
     recordType: SalesforceRecordEnum;
     organizerId?: string;
     accountId?: string;
+    calEventResponses?: CalEventResponses | null;
   }) {
     const conn = await this.conn;
+
+    const createBody = await this.generateCreateRecordBody({
+      attendee,
+      recordType: recordType,
+      organizerId,
+      calEventResponses,
+    });
 
     return await conn
       .sobject(recordType)
       .create({
-        ...this.generateCreateRecordBody({
-          attendee,
-          recordType: recordType,
-          organizerId,
-        }),
+        ...createBody,
         AccountId: accountId,
       })
       .then((result) => {
@@ -701,20 +715,24 @@ export default class SalesforceCRMService implements CRM {
       });
   }
 
-  private generateCreateRecordBody({
+  private async generateCreateRecordBody({
     attendee,
     recordType,
     organizerId,
+    calEventResponses,
   }: {
     attendee: { email: string; name: string };
     recordType: SalesforceRecordEnum;
     organizerId?: string;
+    /**Only Leads have the default company field */
+    calEventResponses?: CalEventResponses | null;
   }) {
     const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
 
     // Assume that the first part of the email domain is the company title
-    const company = attendee.email.split("@")[1].split(".")[0];
-
+    const company =
+      (await this.getCompanyNameFromBookingResponse(calEventResponses)) ??
+      attendee.email.split("@")[1].split(".")[0];
     return {
       LastName: LastName || "-",
       FirstName,
@@ -805,7 +823,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
-    const { createEventOn, onBookingWriteToRecordFields } = this.getAppOptions();
+    const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
 
     // Determine record type (Contact or Lead)
     const personRecordType = this.determinePersonRecordType(createEventOn);
@@ -864,11 +882,15 @@ export default class SalesforceCRMService implements CRM {
       // Handle different field types
       if (fieldConfig.fieldType === field.type) {
         if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
-          writeOnRecordBody[field.name] = this.getTextFieldValue({
+          const extractedText = await this.getTextFieldValue({
             fieldValue: fieldConfig.value,
             fieldLength: field.length,
             calEventResponses,
+            bookingUid,
           });
+          if (extractedText) {
+            writeOnRecordBody[field.name] = extractedText;
+          }
         } else if (field.type === SalesforceFieldType.DATE) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
@@ -885,28 +907,75 @@ export default class SalesforceCRMService implements CRM {
 
     return writeOnRecordBody;
   }
-
-  private getTextFieldValue({
+  private async getTextFieldValue({
     fieldValue,
     fieldLength,
     calEventResponses,
+    bookingUid,
   }: {
     fieldValue: string;
     fieldLength: number;
     calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
   }) {
-    let valueToWrite = fieldValue.substring(0, fieldLength);
+    // If no {} then indicates we're passing a static value
+    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
 
-    if (!calEventResponses) return valueToWrite;
+    let valueToWrite = fieldValue;
 
-    // Check if we need to replace any values with values from the booking questions
-    const regexValueToReplace = /\{(.*?)\}/g;
-    valueToWrite = valueToWrite.replace(regexValueToReplace, (match, captured) => {
-      return calEventResponses[captured]?.value.toString() ?? match;
-    });
+    if (fieldValue.startsWith("{form:")) {
+      // Get routing from response
+      if (!bookingUid) return;
+      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid);
+    } else {
+      // Get the value from the booking response
+      if (!calEventResponses) return;
+      valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
+    }
+
+    // If a value wasn't found in the responses. Don't return the field name
+    if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
     return valueToWrite.substring(0, fieldLength);
+  }
+
+  private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
+    // Get the form response
+    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+      where: {
+        routedToBookingUid: bookingUid,
+      },
+      select: {
+        response: true,
+      },
+    });
+    if (!routingFormResponse) return fieldValue;
+    const response = routingFormResponse.response as FormResponse;
+    const regex = /\{form:(.*?)\}/;
+    const regexMatch = fieldValue.match(regex);
+    if (!regexMatch) return fieldValue;
+
+    const identifierField = regexMatch?.[1];
+    if (!identifierField) return fieldValue;
+
+    // Search for fieldValue, only handle raw text return for now
+    for (const fieldId of Object.keys(response)) {
+      const field = response[fieldId];
+
+      if (field?.identifier === identifierField) {
+        return field.value.toString();
+      }
+    }
+
+    return fieldValue;
+  }
+
+  private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
+    const regexValueToReplace = /\{(.*?)\}/g;
+    return fieldValue.replace(regexValueToReplace, (match, captured) => {
+      return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
+    });
   }
 
   private async getDateFieldValue(
@@ -1037,5 +1106,28 @@ export default class SalesforceCRMService implements CRM {
 
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
+  }
+
+  /** Search the booking questions for the Company field value rather than relying on the email domain  */
+  private async getCompanyNameFromBookingResponse(calEventResponses?: CalEventResponses | null) {
+    const appOptions = this.getAppOptions();
+    const companyFieldName = "Company";
+    const defaultTextValueLength = 225;
+
+    const { onBookingWriteToRecordFields = undefined } = appOptions;
+
+    if (!onBookingWriteToRecordFields || !calEventResponses) return;
+
+    // Check that we're writing to the Company field
+    if (!(companyFieldName in onBookingWriteToRecordFields)) return;
+
+    const companyValue = await this.getTextFieldValue({
+      fieldValue: onBookingWriteToRecordFields[companyFieldName].value,
+      fieldLength: defaultTextValueLength,
+      calEventResponses,
+    });
+
+    if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
+    return companyValue;
   }
 }

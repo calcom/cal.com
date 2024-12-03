@@ -25,6 +25,7 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  HoverCardPortal,
   Table,
   TableBody,
   TableCell,
@@ -118,15 +119,17 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
             <HoverCardTrigger>
               <Badge variant="gray">+{value.length - 2}</Badge>
             </HoverCardTrigger>
-            <HoverCardContent side="bottom" align="start" className="w-fit">
-              <div className="flex flex-col gap-1">
-                {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                    {v}
-                  </span>
-                ))}
-              </div>
-            </HoverCardContent>
+            <HoverCardPortal>
+              <HoverCardContent side="bottom" align="start" className="w-fit">
+                <div className="flex flex-col gap-1">
+                  {value.slice(2).map((v: string, i: number) => (
+                    <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              </HoverCardContent>
+            </HoverCardPortal>
           </HoverCard>
         </>
       ) : (
@@ -184,32 +187,34 @@ function BookingAtCell({
           </Link>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-            <div>
-              <p className="text-sm font-medium">{booking.user.name}</p>
-              <p className="group/booking_status_email text-subtle flex items-center text-xs">
-                <span className="truncate">{booking.user.email}</span>
-                <button
-                  className="invisible ml-2 group-hover/booking_status_email:visible"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyToClipboard(booking.user?.email ?? "");
-                  }}>
-                  <Icon name="copy" />
-                </button>
-              </p>
+      <HoverCardPortal>
+        <HoverCardContent>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+              <div>
+                <p className="text-sm font-medium">{booking.user.name}</p>
+                <p className="group/booking_status_email text-subtle flex items-center text-xs">
+                  <span className="truncate">{booking.user.email}</span>
+                  <button
+                    className="invisible ml-2 group-hover/booking_status_email:visible"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      copyToClipboard(booking.user?.email ?? "");
+                    }}>
+                    <Icon name="copy" />
+                  </button>
+                </p>
+              </div>
+            </div>
+            <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
+              <span>Status:</span>
+              <BookingStatusBadge booking={booking} />
             </div>
           </div>
-          <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
-            <span>Status:</span>
-            <BookingStatusBadge booking={booking} />
-          </div>
-        </div>
-      </HoverCardContent>
+        </HoverCardContent>
+      </HoverCardPortal>
     </HoverCard>
   );
 }
@@ -262,7 +267,7 @@ export function RoutingFormResponsesTable({
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
-        limit: 10,
+        limit: 30,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
