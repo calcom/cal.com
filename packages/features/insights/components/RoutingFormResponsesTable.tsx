@@ -26,10 +26,10 @@ import {
   HoverCardContent,
   HoverCardTrigger,
   Table,
+  TableHeader,
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
@@ -262,7 +262,7 @@ export function RoutingFormResponsesTable({
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
-        limit: 10,
+        limit: 30,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -278,6 +278,40 @@ export function RoutingFormResponsesTable({
   const totalDBRowCount = data?.pages?.[0]?.total ?? 0;
   const totalFetched = flatData.length;
 
+  const mergedHeaders = useMemo(() => {
+    if (!headers) return [];
+
+    // Group headers by label
+    const headersByLabel = headers.reduce(
+      (acc, header) => {
+        if (!acc[header.label]) {
+          acc[header.label] = {
+            id: header.id,
+            label: header.label,
+            options: [], // Initialize as empty array
+          };
+        }
+
+        // Only merge options if they exist
+        if (header.options?.length) {
+          acc[header.label].options = [...acc[header.label].options, ...header.options];
+        }
+
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          id: string;
+          label: string;
+          options: { id: string | null; label: string }[];
+        }
+      >
+    );
+
+    return Object.values(headersByLabel);
+  }, [headers]);
+
   const processedData = useMemo(() => {
     if (isHeadersLoading) return [];
     return flatData.map((response) => {
@@ -289,25 +323,40 @@ export function RoutingFormResponsesTable({
         routedToBooking: response.routedToBooking,
       };
 
+      // Group responses by header label
+      // NOTE: this is a HACK to group responses by label and not ID. Some how a client has duplicate headers in a form and we need to merge them
+      // We will revert this code when we have merged these on a DB level.
+      // These fields can also have different types, select,multiselect,text etc... so can provide weird results.
+      const valuesByLabel: Record<string, any[]> = {};
+
       Object.entries(response.response).forEach(([fieldId, field]) => {
         const header = headers?.find((h) => h.id === fieldId);
+        if (!header) return;
 
-        if (header?.options) {
+        if (!valuesByLabel[header.label]) {
+          valuesByLabel[header.label] = [];
+        }
+
+        if (header.options) {
           if (Array.isArray(field.value)) {
-            // Map the IDs to their corresponding labels for array values
             const labels = field.value.map((id) => {
-              const option = header.options?.find((opt) => opt.id === id);
+              const option = header.options?.find((opt) => opt?.id?.toLowerCase() === id.toLowerCase());
               return option?.label ?? id;
             });
-            row[fieldId] = labels;
+            valuesByLabel[header.label].push(...labels);
           } else {
-            // Handle single value case
             const option = header.options?.find((opt) => opt.id === field.value);
-            row[fieldId] = option?.label ?? field.value;
+            valuesByLabel[header.label].push(option?.label ?? field.value);
           }
         } else {
-          row[fieldId] = field.value;
+          valuesByLabel[header.label].push(field.value);
         }
+      });
+
+      // Add merged values to row
+      Object.entries(valuesByLabel).forEach(([label, values]) => {
+        const uniqueValues = Array.from(new Set(values)).filter(Boolean);
+        row[label] = uniqueValues;
       });
 
       return row;
@@ -328,9 +377,9 @@ export function RoutingFormResponsesTable({
         },
       }),
 
-      ...(headers?.map((header) => {
-        return columnHelper.accessor(header.id, {
-          id: header.id,
+      ...(mergedHeaders?.map((header) => {
+        return columnHelper.accessor(header.label, {
+          id: header.label,
           header: header.label,
           size: 200,
           cell: (info) => {

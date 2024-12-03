@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useState } from "react";
 
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
@@ -34,6 +35,9 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
     },
   });
   const dependency = props.dependencyData?.find((data) => !data.installed);
+
+  const [isInstalling, setInstalling] = useState(false);
+
   return (
     <div className="flex flex-row items-center justify-between p-5">
       <div className="flex items-center space-x-3">
@@ -49,6 +53,13 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
               if (defaultInstall && slug) {
                 setDefaultConferencingApp.mutate({ slug });
               }
+              setInstalling(false);
+              utils.viewer.integrations.invalidate();
+              showToast(t("app_successfully_installed"), "success");
+            },
+            onError: (error) => {
+              if (error instanceof Error)
+                showToast(error.message || t("app_could_not_be_installed"), "error");
             },
           }}
           render={(buttonProps) => (
@@ -57,7 +68,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
               color="secondary"
               disabled={installed || !!dependency}
               type="button"
-              loading={buttonProps?.isPending}
+              loading={isInstalling || buttonProps?.loading}
               tooltip={
                 dependency ? (
                   <div className="items-start space-x-2.5">
@@ -96,6 +107,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                 // Save cookie key to return url step
                 document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
                 buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
+                setInstalling(true);
               }}>
               {installed ? t("installed") : t("connect")}
             </Button>

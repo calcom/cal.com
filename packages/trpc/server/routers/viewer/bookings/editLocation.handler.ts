@@ -10,7 +10,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -82,6 +81,7 @@ async function updateBookingLocationInDb({
   booking: {
     id: number;
     metadata: Booking["metadata"];
+    responses: Booking["responses"];
   };
   evt: Ensure<CalendarEvent, "location">;
   referencesToCreate: Prisma.BookingReferenceCreateInput[];
@@ -89,20 +89,6 @@ async function updateBookingLocationInDb({
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
-
-  await BookingRepository.updateLocationById({
-    data: {
-      location: evt.location,
-      metadata: {
-        ...(typeof booking.metadata === "object" && booking.metadata),
-        ...bookingMetadataUpdate,
-      },
-      referencesToCreate,
-    },
-    where: {
-      id: booking.id,
-    },
-  });
 
   await prisma.booking.update({
     where: {
@@ -116,6 +102,13 @@ async function updateBookingLocationInDb({
       },
       references: {
         create: referencesToCreate,
+      },
+      responses: {
+        ...(typeof booking.responses === "object" && booking.responses),
+        location: {
+          value: evt.location,
+          optionValue: "",
+        },
       },
     },
   });
@@ -274,11 +267,17 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     evt,
   });
 
-  await updateBookingLocationInDb({ booking, evt, referencesToCreate: updatedResult.referencesToCreate });
+  const additionalInformation = extractAdditionalInformation(updatedResult.results[0]);
+
+  await updateBookingLocationInDb({
+    booking,
+    evt: { ...evt, additionalInformation },
+    referencesToCreate: updatedResult.referencesToCreate,
+  });
 
   try {
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation: extractAdditionalInformation(updatedResult.results[0]) },
+      { ...evt, additionalInformation },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {
