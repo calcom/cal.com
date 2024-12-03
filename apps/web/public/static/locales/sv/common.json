@@ -2822,5 +2822,6 @@
   "single_select": "Enkelval",
   "multi_select": "Flerval",
   "group_meeting": "Gruppmöte",
+  "salesforce_ignore_guests": "Skapa inte nya poster för gäster som läggs till i bokningen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

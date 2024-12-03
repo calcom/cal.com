@@ -2822,5 +2822,6 @@
   "single_select": "Jednoduchý výber",
   "multi_select": "Viacnásobný výber",
   "group_meeting": "Skupinové stretnutie",
+  "salesforce_ignore_guests": "Nevytvárať nové záznamy pre hostí pridaných do rezervácie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
