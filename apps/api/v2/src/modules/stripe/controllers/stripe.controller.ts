@@ -21,8 +21,9 @@ import {
   Req,
   BadRequestException,
   Headers,
+  Param,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiOperation } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { stringify } from "querystring";
@@ -40,12 +41,14 @@ export class StripeController {
   @Get("/connect")
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get stripe connect URL" })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @GetUser() user: UserWithProfile,
     @Query("redir") redir?: string | null,
-    @Query("errorRedir") errorRedir?: string | null
+    @Query("errorRedir") errorRedir?: string | null,
+    @Query("teamId") teamId?: string | null
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
     const accessToken = authorization.replace("Bearer ", "");
@@ -55,6 +58,7 @@ export class StripeController {
       fromApp: false,
       returnTo: !!redir ? redir : origin,
       accessToken,
+      teamId: Number(teamId) ?? null,
     };
 
     const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
@@ -72,6 +76,7 @@ export class StripeController {
   @Get("/save")
   @UseGuards()
   @Redirect(undefined, 301)
+  @ApiOperation({ summary: "Save stripe credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -95,7 +100,18 @@ export class StripeController {
   @Get("/check")
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Check stripe connection" })
   async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
-    return await this.stripeService.checkIfStripeAccountConnected(user.id);
+    return await this.stripeService.checkIfIndividualStripeAccountConnected(user.id);
+  }
+
+  @Get("/check/:teamId")
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Check team stripe connection" })
+  async checkTeamStripeConnection(
+    @Param("teamId") teamId: string
+  ): Promise<StripCredentialsCheckOutputResponseDto> {
+    return await this.stripeService.checkIfTeamStripeAccountConnected(Number(teamId));
   }
 }

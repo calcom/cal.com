@@ -43,6 +43,12 @@ const OrgAppearanceView = ({
   } = themeForm;
 
   const [hideBrandingValue, setHideBrandingValue] = useState(currentOrg?.hideBranding ?? false);
+  const [allowSEOIndexingValue, setAllowSEOIndexingValue] = useState(
+    currentOrg?.organizationSettings?.allowSEOIndexing ?? false
+  );
+  const [orgProfileRedirectsToVerifiedDomainValue, setOrgProfileRedirectsToVerifiedDomainValue] = useState(
+    currentOrg?.organizationSettings?.orgProfileRedirectsToVerifiedDomain ?? false
+  );
 
   const brandColorsFormMethods = useForm<BrandColorsFormValues>({
     defaultValues: {
@@ -78,9 +84,15 @@ const OrgAppearanceView = ({
     <div>
       <Form
         form={themeForm}
-        handleSubmit={(value) => {
+        handleSubmit={({ theme }) => {
+          if (theme === "light" || theme === "dark") {
+            mutation.mutate({
+              theme,
+            });
+            return;
+          }
           mutation.mutate({
-            theme: value.theme === "" ? null : value.theme,
+            theme: null,
           });
         }}>
         <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
@@ -92,7 +104,7 @@ const OrgAppearanceView = ({
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
             variant="system"
-            value={undefined}
+            value="system"
             label={t("theme_system")}
             defaultChecked={currentOrg.theme === null}
             register={themeForm.register}
@@ -144,6 +156,36 @@ const OrgAppearanceView = ({
         onCheckedChange={(checked) => {
           setHideBrandingValue(checked);
           mutation.mutate({ hideBranding: checked });
+        }}
+        switchContainerClassName="mt-6"
+      />
+
+      <SettingsToggle
+        data-testid={`${currentOrg?.id}-seo-indexing-switch`}
+        toggleSwitchAtTheEnd={true}
+        title={t("seo_indexing")}
+        description={t("allow_seo_indexing")}
+        disabled={mutation.isPending}
+        checked={allowSEOIndexingValue}
+        onCheckedChange={(checked) => {
+          setAllowSEOIndexingValue(checked);
+          mutation.mutate({ allowSEOIndexing: checked });
+        }}
+        switchContainerClassName="mt-6"
+      />
+
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("disable_org_url_label")}
+        description={t("disable_org_url_description", {
+          orgSlug: currentOrg?.slug,
+          destination: currentOrg?.organizationSettings?.orgAutoAcceptEmail,
+        })}
+        disabled={mutation.isPending}
+        checked={orgProfileRedirectsToVerifiedDomainValue}
+        onCheckedChange={(checked) => {
+          setOrgProfileRedirectsToVerifiedDomainValue(checked);
+          mutation.mutate({ orgProfileRedirectsToVerifiedDomain: checked });
         }}
         switchContainerClassName="mt-6"
       />

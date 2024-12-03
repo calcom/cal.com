@@ -76,4 +76,8 @@ export class UpdateOrgTeamDto {
   @IsOptional()
   @IsString()
   readonly bookingLimits?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly includeManagedEventsInLimits?: boolean;
 }

@@ -108,6 +108,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const { t } = useLocale();
@@ -179,6 +180,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
     onSuccess: (booking) => {
+      if (booking.isDryRun) {
+        showToast(t("booking_dry_run_successful"), "success");
+        return;
+      }
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
@@ -260,6 +265,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
+        rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
       };
 
       bookingSuccessRedirect({
@@ -303,6 +309,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     mutationFn: createRecurringBooking,
     onSuccess: async (bookings) => {
       const booking = bookings[0] || {};
+
+      if (booking.isDryRun) {
+        showToast(t("booking_dry_run_successful"), "success");
+        return;
+      }
+
       const { uid } = booking;
 
       if (!uid) {

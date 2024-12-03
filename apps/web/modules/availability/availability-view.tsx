@@ -7,6 +7,7 @@ import { useCallback, useState } from "react";
 
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
@@ -80,13 +81,22 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   });
 
   const bulkUpdateDefaultAvailabilityMutation =
-    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
-      onSuccess: () => {
-        utils.viewer.availability.list.invalidate();
-        setBulkUpdateModal(false);
-        showToast(t("success"), "success");
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
+
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
+    bulkUpdateDefaultAvailabilityMutation.mutate(
+      {
+        eventTypeIds,
       },
-    });
+      {
+        onSuccess: () => {
+          utils.viewer.availability.list.invalidate();
+          showToast(t("success"), "success");
+          callback();
+        },
+      }
+    );
+  };
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
@@ -149,7 +159,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
               open={bulkUpdateModal}
               setOpen={setBulkUpdateModal}
-              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
+              bulkUpdateFunction={bulkUpdateFunction}
               description={t("default_schedules_bulk_description")}
             />
           )}
@@ -201,7 +211,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
     (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
-  const canViewTeamAvailability = isOrg && (isOrgAdminOrOwner || !isOrgAndPrivate);
+  const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
 
   const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
 
@@ -213,11 +223,11 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
     <div>
       <Shell
         heading={t("availability")}
-        title="Availability"
-        description="Configure times when you are available for bookings."
+        subtitle={t("configure_availability")}
+        title={t("availability")}
+        description={t("configure_availability")}
         hideHeadingOnMobile
         withoutMain={false}
-        subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
             <ToggleGroup
@@ -233,7 +243,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
           </div>
         }>
         {searchParams?.get("type") === "team" && canViewTeamAvailability ? (
-          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} isOrg={isOrg} />
         ) : (
           <AvailabilityListWithQuery />
         )}

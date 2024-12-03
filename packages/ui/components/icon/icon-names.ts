@@ -33,6 +33,7 @@ export type IconName =
   | "chevron-left"
   | "chevron-right"
   | "chevron-up"
+  | "chevrons-down-up"
   | "chevrons-left"
   | "chevrons-right"
   | "circle-alert"
@@ -119,6 +120,7 @@ export type IconName =
   | "sun"
   | "sunrise"
   | "sunset"
+  | "tags"
   | "terminal"
   | "trash-2"
   | "trash"
@@ -132,6 +134,7 @@ export type IconName =
   | "users"
   | "venetian-mask"
   | "video"
+  | "waypoints"
   | "webhook"
   | "x"
   | "zap";

@@ -251,7 +251,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         title: booking.title,
         language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
-          slug: booking.eventType?.slug,
+          slug: booking.eventType?.slug || "",
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },

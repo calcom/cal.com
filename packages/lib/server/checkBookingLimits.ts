@@ -14,7 +14,8 @@ export async function checkBookingLimits(
   eventStartDate: Date,
   eventId: number,
   rescheduleUid?: string | undefined,
-  timeZone?: string | null
+  timeZone?: string | null,
+  includeManagedEvents?: boolean
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
@@ -28,6 +29,7 @@ export async function checkBookingLimits(
       eventId,
       timeZone,
       rescheduleUid,
+      includeManagedEvents,
     })
   );
 
@@ -47,6 +49,7 @@ export async function checkBookingLimit({
   timeZone,
   teamId,
   user,
+  includeManagedEvents = false,
 }: {
   eventStartDate: Date;
   eventId?: number;
@@ -56,6 +59,7 @@ export async function checkBookingLimit({
   timeZone?: string | null;
   teamId?: number;
   user?: { id: number; email: string };
+  includeManagedEvents?: boolean;
 }) {
   {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
@@ -75,8 +79,9 @@ export async function checkBookingLimit({
         teamId,
         startDate: startDate,
         endDate: endDate,
-        returnCount: true,
+        shouldReturnCount: true,
         excludedUid: rescheduleUid,
+        includeManagedEvents,
       });
     } else {
       bookingsInPeriod = await prisma.booking.count({

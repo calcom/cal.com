@@ -6,10 +6,10 @@ import appStore from "..";
 
 type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 
-type CrmClass = Class<CRM, [CredentialPayload]>;
+type CrmClass = Class<CRM, [CredentialPayload, any]>;
 
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
-export const getCrm = async (credential: CredentialPayload) => {
+export const getCrm = async (credential: CredentialPayload, appOptions: any) => {
   if (!credential || !credential.key) return null;
   const { type: crmType } = credential;
 
@@ -26,7 +26,7 @@ export const getCrm = async (credential: CredentialPayload) => {
 
   if (crmApp && "lib" in crmApp && "CrmService" in crmApp.lib) {
     const CrmService = crmApp.lib.CrmService as CrmClass;
-    return new CrmService(credential);
+    return new CrmService(credential, appOptions);
   }
 };
 

@@ -78,8 +78,8 @@ export default class PipedriveCrmService implements CRM {
     return results.map((result) => result.result);
   }
 
-  async getContacts(email: string | string[]): Promise<Contact[]> {
-    const emailArray = Array.isArray(email) ? email : [email];
+  async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
+    const emailArray = Array.isArray(emails) ? emails : [emails];
 
     const result = emailArray.map(async (attendeeEmail) => {
       const headers = new Headers();
@@ -229,5 +229,9 @@ export default class PipedriveCrmService implements CRM {
 
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }
