@@ -37,3 +37,5 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 - cal.com instance admin needs to create a workspace platform which requires Service Account Key.
 - After this, organization owner can create a domain-wide-delegation for that workspace platform and a domain of their choice.
 - No Credential table entry is created at the moment but the workspace platform's related apps will be considered as "installed" for the users with email matchind dwd domain. An in-memory credential like object is created for this purpose. It allows avoiding creation of thousands of records for all the members of the organization when dwd is enabled.
+- DWD Credential is applicable to Users only. 
+   - For team, we don't use dwd credential as you can impersonate a user and not team through Dwd credential. Currently supported apps(Google Calendar and Google Meet) don't support team installation, so we could simply allow enabling DWD without any issues.

@@ -1,8 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+
+import { buildCredentialPayloadForCalendar } from "../buildCredentialPayloadForCalendar";
 
 type SelectedCalendarCreateInput = {
   credentialId: number;
@@ -10,20 +11,6 @@ type SelectedCalendarCreateInput = {
   externalId: string;
   integration: string;
 };
-
-function buildSelectedCalendarPayload(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-  const { credentialId, domainWideDelegationCredentialId, ...rest } = data;
-  return {
-    ...rest,
-    ...(!isDomainWideDelegationCredential({ credentialId })
-      ? {
-          credentialId,
-        }
-      : {
-          domainWideDelegationCredentialId,
-        }),
-  };
-}
 
 export class SelectedCalendarRepository {
   static async create(data: SelectedCalendarCreateInput) {
@@ -34,7 +21,10 @@ export class SelectedCalendarRepository {
     });
   }
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    const selectedCalendarPayload = buildSelectedCalendarPayload(data);
+    const credentialPayload = buildCredentialPayloadForCalendar({
+      credentialId: data.credentialId ?? null,
+      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId ?? null,
+    });
 
     return await prisma.selectedCalendar.upsert({
       where: {
@@ -44,8 +34,14 @@ export class SelectedCalendarRepository {
           externalId: data.externalId,
         },
       },
-      create: selectedCalendarPayload,
-      update: selectedCalendarPayload,
+      create: {
+        ...data,
+        ...credentialPayload,
+      },
+      update: {
+        ...data,
+        ...credentialPayload,
+      },
     });
   }
   /** Retrieve calendars that need to be watched */

@@ -1,25 +1,8 @@
 import type { Prisma } from "@prisma/client";
 
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { prisma } from "@calcom/prisma";
 
-function buildCredentialPayload({
-  credentialId,
-  domainWideDelegationCredentialId,
-}: {
-  credentialId: number | null;
-  domainWideDelegationCredentialId: string | null;
-}) {
-  return {
-    ...(!isDomainWideDelegationCredential({ credentialId })
-      ? {
-          credentialId,
-        }
-      : {
-          domainWideDelegationCredentialId,
-        }),
-  };
-}
+import { buildCredentialPayloadForCalendar } from "../buildCredentialPayloadForCalendar";
 
 export class DestinationCalendarRepository {
   static async create(data: Prisma.DestinationCalendarCreateInput) {
@@ -65,27 +48,24 @@ export class DestinationCalendarRepository {
       domainWideDelegationCredentialId?: string | null;
     };
   }) {
-    const credentialPayloadForUpdate = buildCredentialPayload({
+    const credentialPayloadForUpdate = buildCredentialPayloadForCalendar({
       credentialId: update.credentialId ?? null,
       domainWideDelegationCredentialId: update.domainWideDelegationCredentialId ?? null,
     });
 
-    const credentialPayloadForCreate = buildCredentialPayload({
+    const credentialPayloadForCreate = buildCredentialPayloadForCalendar({
       credentialId: create.credentialId ?? null,
       domainWideDelegationCredentialId: create.domainWideDelegationCredentialId ?? null,
     });
 
-    const { credentialId: _, domainWideDelegationCredentialId: __, ...restUpdate } = update;
-    const { credentialId: ___, domainWideDelegationCredentialId: _____, ...restCreate } = create;
-
     return await prisma.destinationCalendar.upsert({
       where,
       update: {
-        ...restUpdate,
+        ...update,
         ...credentialPayloadForUpdate,
       },
       create: {
-        ...restCreate,
+        ...create,
         ...credentialPayloadForCreate,
       },
     });

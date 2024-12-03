@@ -84,6 +84,7 @@ export async function getLocationGroupedOptions(
       user,
     });
 
+    // We only add dwd credentials if the request for location options is for a user because DWD Credential is applicable to Users only.  
     credentials = [...credentials, ...domainWideDelegationCredentials];
   }
 
