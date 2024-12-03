@@ -13,7 +13,6 @@ import {
   Avatar,
   ToggleGroup,
   Badge,
-  Icon,
   Tooltip,
   HoverCard,
   HoverCardContent,
@@ -100,7 +99,7 @@ interface FormCardProps {
   teamId?: number;
   isAll?: boolean;
   routingFormId?: string;
-  dateRange: [Date | null, Date | null];
+  dateRange: [Dayjs, Dayjs, string | null];
 }
 
 function FormCard({
@@ -173,7 +172,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
       return (
         <Tooltip content={t("above_average")}>
           <Badge variant="success" className="w-fit gap-1">
-            <Icon name="arrow-up" className="h-3 w-3" />
+            {t("above_average")}
           </Badge>
         </Tooltip>
       );
@@ -181,7 +180,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
       return (
         <Tooltip content={t("below_average")}>
           <Badge variant="red" className="w-fit gap-1">
-            <Icon name="arrow-down" className="h-3 w-3" />
+            {t("below_average")}
           </Badge>
         </Tooltip>
       );
@@ -189,7 +188,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
       return (
         <Tooltip content={t("median")}>
           <Badge variant="orange" className="w-fit gap-1">
-            <Icon name="dot" className="h-3 w-3" />
+            {t("median")}
           </Badge>
         </Tooltip>
       );
@@ -197,7 +196,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
       return (
         <Tooltip content={t("at_average")}>
           <Badge variant="blue" className="w-fit gap-1">
-            <Icon name="arrow-right" className="h-3 w-3" />
+            {t("at_average")}
           </Badge>
         </Tooltip>
       );
@@ -205,7 +204,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
       return (
         <Tooltip content={t("no_data")}>
           <Badge variant="gray" className="w-fit gap-1">
-            <Icon name="dot" className="h-3 w-3" />
+            {t("no_data")}
           </Badge>
         </Tooltip>
       );
@@ -422,11 +421,11 @@ export function RoutedToPerPeriod() {
                             <div className="flex flex-col gap-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-default font-medium">{row.name}</span>
-                                {getPerformanceBadge(row.performance, t)}
                               </div>
                               <div className="text-subtle flex flex-col text-sm">
                                 <div>
                                   {t("total_bookings_per_period")}: <Badge>{row.totalBookings}</Badge>
+                                  {t("status")}: {getPerformanceBadge(row.performance, t)}
                                 </div>
                               </div>
                             </div>
