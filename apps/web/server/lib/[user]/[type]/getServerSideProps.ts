@@ -19,7 +19,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 type Props = {
   eventData: Pick<
     NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-    "id" | "length" | "metadata" | "entity"
+    "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
   >;
   booking?: GetBookingType;
   rescheduleUid: string | null;
@@ -143,6 +143,10 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         ...eventData.metadata,
         multipleDuration: [15, 30, 45, 60, 90],
       },
+      profile: eventData.profile,
+      title: eventData.title,
+      users: eventData.users,
+      hidden: eventData.hidden,
     },
     user: usernames.join("+"),
     slug,
@@ -231,6 +235,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       length: eventData.length,
       metadata: eventData.metadata,
+      profile: eventData.profile,
+      title: eventData.title,
+      users: eventData.users,
+      hidden: eventData.hidden,
     },
     user: username,
     slug,

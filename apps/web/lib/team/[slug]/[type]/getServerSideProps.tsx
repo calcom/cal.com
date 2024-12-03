@@ -118,6 +118,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+  const publicEventData = await ssr.viewer.public.event.fetch({
+    username: teamSlug,
+    eventSlug: meetingSlug,
+    org: isValidOrgDomain ? currentOrgDomain : null,
+    fromRedirectOfNonOrgLink,
+    isTeamEvent: !!team,
+  });
 
   return {
     props: {
@@ -132,6 +139,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+        ...(publicEventData && {
+          profile: publicEventData.profile,
+          title: publicEventData.title,
+          users: publicEventData.users,
+          hidden: publicEventData.hidden,
+        }),
       },
       booking,
       user: teamSlug,

@@ -44,6 +44,12 @@ function Type({
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
         isSEOIndexable={isSEOIndexable ?? true}
+        eventData={{
+          profile: eventData.profile,
+          users: eventData.users,
+          hidden: eventData.hidden,
+          title: eventData.title,
+        }}
         entity={eventData.entity}
         bookingData={booking}
       />
