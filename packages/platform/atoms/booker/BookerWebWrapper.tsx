@@ -182,12 +182,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   });
 
   const areInstantMeetingParametersSet = Boolean(
-    !!event.data?.instantMeetingParameters
-      ? searchParams &&
-          event.data.instantMeetingParameters.every((param) =>
-            Array.from(searchParams.values()).includes(param)
-          )
-      : true
+    event.data?.instantMeetingParameters &&
+      searchParams &&
+      event.data.instantMeetingParameters.every((param) => searchParams.has(param))
   );
 
   return (
