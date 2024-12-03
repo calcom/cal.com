@@ -84,6 +84,16 @@ export async function getServerSideProps(
     return { notFound: true };
   }
 
+  // if the app is of type routing-forms then redirect with /routing
+  if (appName === "routing-forms") {
+    return {
+      redirect: {
+        destination: `/routing/${pages.length ? pages.join("/") : ""}`,
+        permanent: false,
+      },
+    };
+  }
+
   if (route.getServerSideProps) {
     // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
