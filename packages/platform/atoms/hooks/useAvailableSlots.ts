@@ -25,7 +25,6 @@ export const useAvailableSlots = ({ enabled, ...rest }: GetAvailableSlotsInput &
     },
     enabled: enabled,
   });
-  console.log("useAvailableSlots", JSON.stringify(availableSlots));
 
   return availableSlots;
 };

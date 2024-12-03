@@ -56,6 +56,8 @@ export const AvailableTimeSlots = ({
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  console.warn("LOG SCHEDULE", JSON.stringify(schedule));
+
   const onTimeSelect = (
     time: string,
     attendees: number,
