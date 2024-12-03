@@ -129,6 +129,8 @@ export const useEventTypeForm = ({
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
+      webhooks: eventType.webhooks || [],
+      deletedWebhooks: [],
     };
   }, [eventType, periodDates]);
 
@@ -289,6 +291,7 @@ export const useEventTypeForm = ({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       multipleDurationEnabled,
       length,
+      webhooks,
       ...input
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
@@ -357,6 +360,7 @@ export const useEventTypeForm = ({
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
+      webhooks,
     } satisfies EventTypeUpdateInput;
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {

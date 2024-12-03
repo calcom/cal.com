@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
+import { v4 } from "uuid";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
@@ -7,13 +8,14 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -36,6 +38,7 @@ type User = {
   };
   selectedCalendars: SessionUser["selectedCalendars"];
   organizationId: number | null;
+  locale: string;
 };
 
 type UpdateOptions = {
@@ -76,6 +79,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     aiPhoneCallConfig,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
+    description: newDescription,
+    webhooks,
+    deletedWebhooks,
     ...rest
   } = input;
 
@@ -83,6 +89,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      description: true,
+      fieldTranslations: {
+        select: {
+          field: true,
+        },
+      },
       isRRWeightsEnabled: true,
       hosts: {
         select: {
@@ -108,6 +120,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       workflows: {
         select: {
           workflowId: true,
+        },
+      },
+      webhooks: {
+        select: {
+          id: true,
         },
       },
       team: {
@@ -153,10 +170,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
+  if (autoTranslateDescriptionEnabled && !ctx.user.organizationId) {
+    logger.error(
+      "Auto-translating description requires an organization. This should not happen - UI controls should prevent this state."
+    );
+  }
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    description: newDescription,
     bookingFields,
     isRRWeightsEnabled,
     rrSegmentQueryValue:
@@ -480,6 +504,61 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  if (deletedWebhooks) {
+    await ctx.prisma.$transaction(
+      deletedWebhooks.map((wh) =>
+        ctx.prisma.webhook.delete({
+          where: { id: wh.id },
+        })
+      )
+    );
+  }
+
+  if (webhooks) {
+    const webhooksForUpdates = webhooks.filter((wh) => wh.id);
+    const webhooksForInserts = webhooks
+      .filter((wh) => !wh.id) // New webhooks without id
+      .map((newWebhook) => ({
+        ...newWebhook,
+        id: v4(), // Generate a unique ID
+      }));
+
+    await ctx.prisma.$transaction([
+      ctx.prisma.webhook.createMany({
+        data: webhooksForInserts,
+      }),
+
+      // Update existing webhooks
+      ...webhooksForUpdates.map((wh) =>
+        ctx.prisma.webhook.update({
+          where: { id: wh.id },
+          data: wh,
+        })
+      ),
+    ]);
+  }
+
+  // Logic for updating `fieldTranslations`
+  // user has no description translations OR user is changing the description
+  const descriptionTranslationsNeeded =
+    eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.DESCRIPTION)
+      .length === 0 || newDescription;
+  const description = newDescription ?? eventType.description;
+
+  if (
+    ctx.user.organizationId &&
+    autoTranslateDescriptionEnabled &&
+    descriptionTranslationsNeeded &&
+    description
+  ) {
+    await tasker.create("translateEventTypeDescription", {
+      eventTypeId: id,
+      description,
+      userLocale: ctx.user.locale,
+      userId: ctx.user.id,
+    });
+  }
+
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
@@ -507,7 +586,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     return acc;
   }, {});
-
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,

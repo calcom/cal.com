@@ -2,13 +2,13 @@ import type { Webhook } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
+import EventTypeWebhookListItem from "@calcom/features/webhooks/components/EventTypeWebhookListItem";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
-import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,8 +20,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
-
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
+  const { getValues, setValue, register } = formMethods;
+  const { data: webhooks, isPending } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "other",
@@ -32,31 +32,30 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
 
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
-    async onSuccess() {
-      setEditModalOpen(false);
-      showToast(t("webhook_updated_successfully"), "success");
-      await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
-    },
-    onError(error) {
-      showToast(`${error.message}`, "error");
-    },
-  });
+  const handleUpdateWebhook = (updatedWebhook: Partial<Webhook>) => {
+    const currentWebhooks = getValues("webhooks") || [];
+    const updatedWebhooks = [...currentWebhooks];
+    const index = currentWebhooks.findIndex((webhook) => webhook.id === webhookToEdit.id);
+    updatedWebhooks[index] = { ...updatedWebhooks[index], ...updatedWebhook };
+    setValue("webhooks", updatedWebhooks, { shouldDirty: true });
+    setEditModalOpen(false);
+  };
 
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
-    async onSuccess() {
-      setCreateModalOpen(false);
-      showToast(t("webhook_created_successfully"), "success");
-      await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
-    },
-    onError(error) {
-      showToast(`${error.message}`, "error");
-    },
-  });
+  const handleDeleteWebhook = (webhookId: string) => {
+    const webhooks = getValues("webhooks");
+    const deletedWebhooks = getValues("deletedWebhooks");
 
-  const onCreateWebhook = async (values: WebhookFormSubmitData) => {
+    const updatedDeletedWebhooks = [...deletedWebhooks, { id: webhookId }];
+    // Remove the webhook from the current list and add it to 'deletedWebhooks'
+    setValue(
+      "webhooks",
+      webhooks.filter((wh) => wh.id !== webhookId),
+      { shouldDirty: true }
+    );
+    setValue("deletedWebhooks", updatedDeletedWebhooks, { shouldDirty: true });
+  };
+
+  const handleCreateWebhook = (values: WebhookFormSubmitData) => {
     if (
       subscriberUrlReserved({
         subscriberUrl: values.subscriberUrl,
@@ -73,7 +72,50 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       values.payloadTemplate = null;
     }
 
-    createWebhookMutation.mutate({
+    const currentWebhooks = getValues("webhooks") || [];
+    const newWebhook = {
+      ...values,
+      id: Date.now().toString(), // Generate temporary ID for new webhook
+    };
+    setValue("webhooks", [...currentWebhooks, newWebhook], { shouldDirty: true });
+    setCreateModalOpen(false); // Close modal
+  };
+
+  //get rid of edit mutation
+  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+    async onSuccess() {
+      setEditModalOpen(false);
+      showToast(t("webhook_updated_successfully"), "success");
+      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.eventTypes.get.invalidate();
+    },
+    onError(error) {
+      showToast(`${error.message}`, "error");
+    },
+  });
+
+  const onCreateWebhook = async (values: WebhookFormSubmitData) => {
+    // Check for reserved subscriber URL
+    if (
+      subscriberUrlReserved({
+        subscriberUrl: values.subscriberUrl,
+        id: values.id,
+        webhooks: getValues("webhooks"), // Use the current form state
+        eventTypeId: eventType.id,
+      })
+    ) {
+      showToast(t("webhook_subscriber_url_reserved"), "error");
+      return;
+    }
+
+    // Ensure payloadTemplate is properly set
+    if (!values.payloadTemplate) {
+      values.payloadTemplate = null;
+    }
+
+    // Add the new webhook to the webhooks array
+    const currentWebhooks = getValues("webhooks") || [];
+    const newWebhook = {
       subscriberUrl: values.subscriberUrl,
       eventTriggers: values.eventTriggers,
       active: values.active,
@@ -82,7 +124,11 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       eventTypeId: eventType.id,
       time: values.time,
       timeUnit: values.timeUnit,
-    });
+    };
+
+    const updatedWebhooks = [...currentWebhooks, newWebhook];
+    setValue("webhooks", updatedWebhooks, { shouldDirty: true });
+    setCreateModalOpen(false);
   };
 
   const NewWebhookButton = () => {
@@ -103,7 +149,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     translate: t,
     formMethods,
   });
-  const webhookLockedStatus = shouldLockDisableProps("webhooks");
+
+  const webhooksDisableProps = shouldLockDisableProps("webhooks", { simple: true });
+  const lockedText = webhooksDisableProps.isLocked ? "locked" : "unlocked";
+  const cannotEditWebhooks = isChildrenManagedEventType ? webhooksDisableProps.isLocked : false;
 
   return (
     <div>
@@ -114,47 +163,103 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
               <>
                 {isManagedEventType && (
                   <Alert
-                    severity="neutral"
+                    severity={webhooksDisableProps.isLocked ? "neutral" : "green"}
                     className="mb-2"
-                    title={t("locked_for_members")}
-                    message={t("locked_webhooks_description")}
+                    title={
+                      <Trans
+                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                        {lockedText[0].toUpperCase()}
+                        {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
+                      </Trans>
+                    }
+                    actions={
+                      <div className="flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
+                    }
+                    message={
+                      <Trans
+                        i18nKey={`webhooks_${lockedText}_${
+                          isManagedEventType ? "for_members" : "by_team_admins"
+                        }_description`}>
+                        {isManagedEventType ? "Members" : "You"}{" "}
+                        {webhooksDisableProps.isLocked
+                          ? "will be able to see the active webhooks but will not be able to edit any webhook settings"
+                          : "will be able to see the active webhooks and will be able to edit any webhook settings"}
+                      </Trans>
+                    }
                   />
                 )}
                 {webhooks.length ? (
                   <>
                     <div className="border-subtle mb-2 rounded-md border p-8">
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
-                          <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
-                            {t("add_webhook_description", { appName: APP_NAME })}
-                          </p>
-                        </div>
-                        {isChildrenManagedEventType && !isManagedEventType ? (
-                          <Button StartIcon="lock" color="secondary" disabled>
-                            {t("locked_by_team_admin")}
-                          </Button>
-                        ) : (
-                          <NewWebhookButton />
+                      <Controller
+                        name="webhooks"
+                        defaultValue={webhooks}
+                        render={({ field: { value, onChange } }) => (
+                          <>
+                            {/* Conditionally Render Header */}
+                            {value?.length > 0 && (
+                              <div className="flex justify-between">
+                                <div>
+                                  <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
+                                  <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
+                                    {t("add_webhook_description", { appName: APP_NAME })}
+                                  </p>
+                                </div>
+                                {isChildrenManagedEventType &&
+                                !isManagedEventType &&
+                                webhooksDisableProps.isLocked ? (
+                                  <Button StartIcon="lock" color="secondary" disabled>
+                                    {t("locked_by_team_admin")}
+                                  </Button>
+                                ) : (
+                                  <NewWebhookButton />
+                                )}
+                              </div>
+                            )}
+                            {/* Render Webhooks List or Empty Screen */}
+                            <div className="border-subtle my-8 rounded-md border">
+                              {value?.length > 0 ? (
+                                value.map((webhook, index) => (
+                                  <EventTypeWebhookListItem
+                                    key={webhook.id}
+                                    webhook={webhook}
+                                    lastItem={value.length === index + 1}
+                                    index={index}
+                                    canEditWebhook={!cannotEditWebhooks}
+                                    onEditWebhook={() => {
+                                      setEditModalOpen(true);
+                                      setWebhookToEdit(webhook);
+                                    }}
+                                    onToggleWebhook={(updatedWebhook) => {
+                                      const updatedWebhooks = [...value];
+                                      updatedWebhooks[index] = updatedWebhook;
+                                      onChange(updatedWebhooks);
+                                    }}
+                                    onDeleteWebhook={(updatedWebhook) => {
+                                      handleDeleteWebhook(updatedWebhook.id);
+                                    }}
+                                  />
+                                ))
+                              ) : (
+                                <EmptyScreen
+                                  Icon="webhook"
+                                  headline={t("create_your_first_webhook")}
+                                  description={t("first_event_type_webhook_description")}
+                                  buttonRaw={
+                                    isChildrenManagedEventType && !isManagedEventType ? (
+                                      <Button StartIcon="lock" color="secondary" disabled>
+                                        {t("locked_by_team_admin")}
+                                      </Button>
+                                    ) : (
+                                      <NewWebhookButton />
+                                    )
+                                  }
+                                />
+                              )}
+                            </div>
+                          </>
                         )}
-                      </div>
-
-                      <div className="border-subtle my-8 rounded-md border">
-                        {webhooks.map((webhook, index) => {
-                          return (
-                            <WebhookListItem
-                              key={webhook.id}
-                              webhook={webhook}
-                              lastItem={webhooks.length === index + 1}
-                              canEditWebhook={!webhookLockedStatus.disabled}
-                              onEditWebhook={() => {
-                                setEditModalOpen(true);
-                                setWebhookToEdit(webhook);
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
+                      />
 
                       <p className="text-default text-sm font-normal">
                         <Trans i18nKey="edit_or_manage_webhooks">
@@ -231,7 +336,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     values.payloadTemplate = null;
                   }
 
-                  editWebhookMutation.mutate({
+                  handleUpdateWebhook({
                     id: webhookToEdit?.id || "",
                     subscriberUrl: values.subscriberUrl,
                     eventTriggers: values.eventTriggers,
