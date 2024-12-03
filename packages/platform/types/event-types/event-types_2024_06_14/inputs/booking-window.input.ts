@@ -40,7 +40,7 @@ class BookingWindowBase {
 
 const rollingDescription = `
       Determines the behavior of the booking window:
-      - If **true**, the window is rolling. This means the number of available days will always equal the specified 'value' 
+      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' 
         and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, 
         a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days 
         becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.
