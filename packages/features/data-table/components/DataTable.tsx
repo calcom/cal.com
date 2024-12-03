@@ -87,34 +87,6 @@ export function DataTable<TData, TValue>({
           "scrollbar-thin border-subtle relative rounded-md border"
         )}
         style={{ gridArea: "body" }}>
-        <style jsx>{`
-          .data-table-resizer {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            right: 0;
-            width: 5px;
-            background: rgba(0, 0, 0, 0.5);
-            cursor: col-resize;
-            user-select: none;
-            touch-action: none;
-          }
-
-          .data-table-resizer.data-table-is-resizing {
-            background: blue;
-            opacity: 1;
-          }
-
-          @media (hover: hover) {
-            .data-table-resizer {
-              opacity: 0;
-            }
-
-            *:hover > .data-table-resizer {
-              opacity: 1;
-            }
-          }
-        `}</style>
         <TableNew
           className="grid border-0"
           style={{
@@ -163,10 +135,8 @@ export function DataTable<TData, TValue>({
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
-                            "absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none bg-black bg-opacity-50",
-                            `data-table-resizer ${
-                              header.column.getIsResizing() ? "data-table-is-resizing" : ""
-                            }`
+                            "bg-inverted absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
+                            header.column.getIsResizing() && "!opacity-75"
                           )}
                         />
                       )}
