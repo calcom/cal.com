@@ -2817,5 +2817,11 @@
   "rr_distribution_method_balanced_description": "Her ev sahibiyle yapılan rezervasyon sayısını takip edip diğerleriyle karşılaştıracağız ve rezervasyonların eşit dağılımını sağlamak için çok ileri giden bazı ev sahiplerini devre dışı bırakacağız.",
   "exclude_emails_that_contain": "... içeren e-postaları hariç tut",
   "exclude_emails_match_found_error_message": "Lütfen geçerli bir iş e-posta adresi girin",
+  "disable_org_url_label": "Genel kurum profilini devre dışı bırak ve yönlendir",
+  "disable_org_url_description": "{{orgSlug}}.cal.com adresini {{destination}} adresine yönlendirir",
+  "single_select": "Tekli Seçim",
+  "multi_select": "Çoklu Seçim",
+  "group_meeting": "Grup Toplantısı",
+  "salesforce_ignore_guests": "Rezervasyona eklenen misafirler için yeni kayıt oluşturma",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
