@@ -463,6 +463,7 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  // Available for Organization only
   domainWideDelegations  DomainWideDelegation[]
   features               TeamFeatures[]
 
@@ -1649,7 +1650,7 @@ model DomainWideDelegation {
   updatedAt DateTime @updatedAt
 
   // Should be fare to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
-  // Because we don't know which domain the organization might have, we couldn't make it unique as that would prevent an authorized owner to prevent using that domain.
+  // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
   @@unique([organizationId, domain])
 }
 

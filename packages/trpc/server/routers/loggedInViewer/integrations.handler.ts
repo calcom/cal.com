@@ -6,7 +6,6 @@ import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -140,9 +139,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     ...(appId ? { where: { slug: appId } } : {}),
   });
 
-  // ?? Do we need this?
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
-
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
@@ -199,26 +195,15 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         });
       }
 
-      // let domainWideDelegationCredentialsForApp = domainWideDelegationCredentials.filter((c) => c.appId === app.slug);
-      // if (app.usesCredentialsOf) {
-      //   const domainWideDelegationCredentialsForAppDependency = domainWideDelegationCredentials.filter((c) => c.appId === app.usesCredentialsOf);
-      //   domainWideDelegationCredentialsForApp = [...domainWideDelegationCredentialsForApp, ...domainWideDelegationCredentialsForAppDependency];
-      //   console.log("domainWideDelegationCredentialsForAppDependency", domainWideDelegationCredentialsForAppDependency);
-      // }
       return {
         ...app,
         ...(teams.length && {
           credentialOwner,
         }),
-        userCredentialIds: [
-          ...userCredentialIds /*...domainWideDelegationCredentialsForApp.map((c) => c.id)*/,
-        ],
+        userCredentialIds,
         invalidCredentialIds,
         teams,
-        isInstalled:
-          !!userCredentialIds.length ||
-          !!teams.length ||
-          app.isGlobal /*|| !!domainWideDelegationCredentialsForApp.length*/,
+        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
         isSetupAlready,
         ...(app.dependencies && { dependencyData }),
       };
