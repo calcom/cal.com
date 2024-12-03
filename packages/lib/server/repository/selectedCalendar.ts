@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -10,6 +11,20 @@ type SelectedCalendarCreateInput = {
   integration: string;
 };
 
+function buildSelectedCalendarPayload(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+  const { credentialId, domainWideDelegationCredentialId, ...rest } = data;
+  return {
+    ...rest,
+    ...(!isDomainWideDelegationCredential({ credentialId })
+      ? {
+          credentialId,
+        }
+      : {
+          domainWideDelegationCredentialId,
+        }),
+  };
+}
+
 export class SelectedCalendarRepository {
   static async create(data: SelectedCalendarCreateInput) {
     return await prisma.selectedCalendar.create({
@@ -19,6 +34,8 @@ export class SelectedCalendarRepository {
     });
   }
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    const selectedCalendarPayload = buildSelectedCalendarPayload(data);
+
     return await prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
@@ -27,8 +44,8 @@ export class SelectedCalendarRepository {
           externalId: data.externalId,
         },
       },
-      create: { ...data },
-      update: { ...data },
+      create: selectedCalendarPayload,
+      update: selectedCalendarPayload,
     });
   }
   /** Retrieve calendars that need to be watched */

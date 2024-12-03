@@ -38,7 +38,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
-        domainWideDelegationCredentialId: domainWideDelegationCredentialId ?? null,
+        ...(domainWideDelegationCredentialId && { domainWideDelegationCredentialId }),
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
       };

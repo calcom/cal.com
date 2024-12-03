@@ -4,19 +4,17 @@ import { z } from "zod";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
 
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
   credentialId: z.coerce.number(),
-  domainWideDelegationCredentialId: z.string().nullable(),
+  domainWideDelegationCredentialId: z.string().nullish().default(null),
 });
 
 /** Shared authentication middleware for GET, DELETE and POST requests */
@@ -46,28 +44,13 @@ async function postHandler(req: CustomNextApiRequest) {
 
   const { integration, externalId, credentialId, domainWideDelegationCredentialId } =
     selectedCalendarSelectSchema.parse(req.body);
-  await prisma.selectedCalendar.upsert({
-    where: {
-      userId_integration_externalId: {
-        userId: user.id,
-        integration,
-        externalId,
-      },
-    },
-    create: {
-      userId: user.id,
-      integration,
-      externalId,
-      ...(!isDomainWideDelegationCredential({ credentialId })
-        ? {
-            credentialId,
-          }
-        : {
-            domainWideDelegationCredentialId,
-          }),
-    },
-    // already exists
-    update: {},
+
+  await SelectedCalendarRepository.upsert({
+    userId: user.id,
+    integration,
+    externalId,
+    credentialId,
+    domainWideDelegationCredentialId,
   });
 
   return { message: "Calendar Selection Saved" };
