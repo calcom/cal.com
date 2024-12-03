@@ -107,7 +107,7 @@ export function DataTable<TData, TValue>({
                         width: `calc(var(--header-${header?.id}-size) * 1px)`,
                       }}
                       className={classNames(
-                        "bg-subtle hover:bg-muted relative flex shrink-0 items-center ",
+                        "bg-subtle hover:bg-muted relative flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
                         meta?.sticky && "sticky top-0 z-20"
                       )}>
@@ -131,7 +131,6 @@ export function DataTable<TData, TValue>({
                       </div>
                       {header.column.getCanResize() && (
                         <div
-                          // onDoubleClick={() => header.column.resetSize()}
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
