@@ -5,7 +5,7 @@ import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
-import kebabCase from "lodash";
+import kebabCase from "lodash/kebabCase";
 import { useMemo, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
