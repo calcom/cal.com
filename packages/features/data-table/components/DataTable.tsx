@@ -87,41 +87,41 @@ export function DataTable<TData, TValue>({
           "scrollbar-thin border-subtle relative rounded-md border"
         )}
         style={{ gridArea: "body" }}>
+        <style jsx>{`
+          .data-table-resizer {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            right: 0;
+            width: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: col-resize;
+            user-select: none;
+            touch-action: none;
+          }
+
+          .data-table-resizer.data-table-is-resizing {
+            background: blue;
+            opacity: 1;
+          }
+
+          @media (hover: hover) {
+            .data-table-resizer {
+              opacity: 0;
+            }
+
+            *:hover > .data-table-resizer {
+              opacity: 1;
+            }
+          }
+        `}</style>
         <TableNew
           className="grid border-0"
           style={{
             ...columnSizeVars,
             width: table.getTotalSize(),
           }}>
-          <TableHeader className="bg-subtle sticky top-0 z-10">
-            <style jsx>{`
-              .data-table-resizer {
-                position: absolute;
-                top: 0;
-                height: 100%;
-                right: 0;
-                width: 5px;
-                background: rgba(0, 0, 0, 0.5);
-                cursor: col-resize;
-                user-select: none;
-                touch-action: none;
-              }
-
-              .data-table-resizer.data-table-is-resizing {
-                background: blue;
-                opacity: 1;
-              }
-
-              @media (hover: hover) {
-                .data-table-resizer {
-                  opacity: 0;
-                }
-
-                *:hover > .data-table-resizer {
-                  opacity: 1;
-                }
-              }
-            `}</style>
+          <TableHeader className="sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="flex w-full">
                 {headerGroup.headers.map((header) => {
@@ -135,9 +135,9 @@ export function DataTable<TData, TValue>({
                         width: `calc(var(--header-${header?.id}-size) * 1px)`,
                       }}
                       className={classNames(
-                        "relative flex shrink-0 items-center",
+                        "bg-subtle hover:bg-muted relative flex shrink-0 items-center ",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "bg-subtle sticky top-0 z-20"
+                        meta?.sticky && "sticky top-0 z-20"
                       )}>
                       <div
                         className="flex h-full w-full items-center"
@@ -162,9 +162,12 @@ export function DataTable<TData, TValue>({
                           // onDoubleClick={() => header.column.resetSize()}
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
-                          className={`data-table-resizer ${
-                            header.column.getIsResizing() ? "data-table-is-resizing" : ""
-                          }`}
+                          className={classNames(
+                            "absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none bg-black bg-opacity-50",
+                            `data-table-resizer ${
+                              header.column.getIsResizing() ? "data-table-is-resizing" : ""
+                            }`
+                          )}
                         />
                       )}
                     </TableHead>
@@ -263,10 +266,12 @@ function DataTableBody<TData>({
                       ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
                       width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                     }}
+                    data-sticky={Boolean(meta?.sticky)}
                     className={classNames(
                       "flex shrink-0 items-center overflow-hidden",
                       variant === "compact" && "p-1.5",
-                      meta?.sticky && "group-hover:bg-muted bg-default sticky"
+                      meta?.sticky &&
+                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sticky"
                     )}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
