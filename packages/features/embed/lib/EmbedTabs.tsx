@@ -9,6 +9,7 @@ import { TextArea } from "@calcom/ui";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
+import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
@@ -175,25 +176,27 @@ const getEmbedTypeSpecificString = ({
   let uiInstructionStringArg: {
     apiName: string;
     theme: PreviewState["theme"];
-    brandColor: string;
+    brandColor: string | null;
+    darkBrandColor: string | null;
     hideEventTypeDetails: boolean;
     layout?: BookerLayout;
   };
+  const baseUiInstructionStringArg = {
+    theme: previewState.theme,
+    brandColor: previewState.palette.brandColor,
+    darkBrandColor: previewState.palette.darkBrandColor,
+    hideEventTypeDetails: previewState.hideEventTypeDetails,
+    layout: previewState.layout,
+  };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
+      ...baseUiInstructionStringArg,
       apiName: getApiNameForReactSnippet({ mainApiName: "cal" }),
-      theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
-      layout: previewState.layout,
     };
   } else {
     uiInstructionStringArg = {
+      ...baseUiInstructionStringArg,
       apiName: getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" }),
-      theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
-      layout: previewState.layout,
     };
   }
   if (!frameworkCodes[embedType]) {
@@ -230,27 +233,26 @@ const getEmbedUIInstructionString = ({
   apiName,
   theme,
   brandColor,
+  darkBrandColor,
   hideEventTypeDetails,
   layout,
 }: {
   apiName: string;
   theme?: string;
-  brandColor: string;
+  brandColor: string | null;
+  darkBrandColor: string | null;
   hideEventTypeDetails: boolean;
   layout?: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
+
   return getInstructionString({
     apiName,
     instructionName: "ui",
     instructionArg: {
       theme,
-      styles: {
-        branding: {
-          brandColor,
-        },
-      },
-      hideEventTypeDetails: hideEventTypeDetails,
+      cssVarsPerTheme: buildCssVarsPerTheme({ brandColor, darkBrandColor }),
+      hideEventTypeDetails,
       layout,
     },
   });
