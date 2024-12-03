@@ -100,14 +100,13 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
-  const [localWeights, setLocalWeights] = useState<Record<string, number>>(() =>
-    teamMembers.reduce<Record<string, number>>((acc, member) => {
-      // Find the member in the value array and use its weight if it exists
-      const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-      acc[member.value] = memberInValue?.weight ?? 100;
-      return acc;
-    }, {})
-  );
+  const localWeightsInitialValues = teamMembers.reduce<Record<string, number>>((acc, member) => {
+    // Find the member in the value array and use its weight if it exists
+    const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
+    acc[member.value] = memberInValue?.weight ?? 100;
+    return acc;
+  }, {});
+  const [localWeights, setLocalWeights] = useState<Record<string, number>>(localWeightsInitialValues);
   const [uploadErrors, setUploadErrors] = useState<Array<{ email: string; error: string }>>([]);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
 
