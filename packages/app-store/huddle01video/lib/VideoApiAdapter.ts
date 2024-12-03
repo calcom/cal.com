@@ -4,13 +4,18 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
 
-import { getHuddle01APIKey, getHuddle01Credential } from "../utils/storage";
+import { getHuddle01Credential } from "../utils/storage";
 
 const API_END_POINT = "https://platform-api.huddle01.workers.dev/api/v2/calendar";
 
 const fetchHuddleAPI = async (userId: number) => {
   const { identityToken } = await getHuddle01Credential(userId);
-  const { apiKey } = await getHuddle01APIKey();
+  const apiKey = process.env.HUDDLE01_API_TOKEN;
+
+  if (!apiKey) {
+    log.error("[Huddle01 Error] -> app key not found");
+    throw new Error("Huddle01 app key not found");
+  }
 
   const headers = {
     "x-api-key": apiKey,

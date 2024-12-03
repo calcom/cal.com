@@ -6,7 +6,6 @@ import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, useMeta, showToast } from "@calcom/ui";
@@ -88,9 +87,6 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
       </div>
     </>
   );
-}
-export function getLayout(page: React.ReactElement) {
-  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 export default CreateAttributesPage;
