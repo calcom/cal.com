@@ -184,7 +184,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
       searchParams &&
-      event.data.instantMeetingParameters.every((param) => searchParams.has(param))
+      event.data.instantMeetingParameters?.every?.((param) =>
+        Array.from(searchParams.values()).includes(param)
+      )
   );
 
   return (
@@ -225,7 +227,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       verifyCode={verifyCode}
       isPlatform={false}
-      areInstantMeetingParametersSet={areInstantMeetingParametersSet satisfies boolean}
+      areInstantMeetingParametersSet={areInstantMeetingParametersSet}
       userLocale={session?.user.locale}
     />
   );
