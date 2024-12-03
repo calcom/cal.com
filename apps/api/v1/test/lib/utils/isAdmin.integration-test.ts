@@ -19,7 +19,7 @@ describe("isAdmin guard", () => {
     });
 
     req.userId = 0;
-    req.user = null;
+    req.user = undefined;
 
     const { isAdmin, scope } = await isAdminGuard(req);
 
