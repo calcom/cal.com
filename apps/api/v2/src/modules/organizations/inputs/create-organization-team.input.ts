@@ -1,22 +1,24 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsOptional, IsString, IsUrl, Length } from "class-validator";
 
 export class CreateOrgTeamDto {
   @IsString()
   @Length(1)
-  @ApiProperty({ description: "Name of the team", example: "CalTeam" })
+  @ApiProperty({ description: "Name of the team", example: "CalTeam", required: true })
   readonly name!: string;
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ description: "Team slug", example: "caltel" })
+  @ApiPropertyOptional({ type: String, description: "Team slug", example: "caltel", required: false })
   readonly slug?: string;
 
   @IsOptional()
   @IsUrl()
-  @ApiProperty({
-    example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+  @ApiPropertyOptional({
+    type: String,
+    example: "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
     description: `URL of the teams logo image`,
+    required: false,
   })
   readonly logoUrl?: string;
 
@@ -66,9 +68,11 @@ export class CreateOrgTeamDto {
 
   @IsOptional()
   @IsUrl()
-  @ApiProperty({
-    example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+  @ApiPropertyOptional({
+    type: String,
+    example: "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
     description: `URL of the teams banner image which is shown on booker`,
+    required: false,
   })
   readonly bannerUrl?: string;
 
@@ -78,16 +82,22 @@ export class CreateOrgTeamDto {
 
   @IsOptional()
   @IsString()
-  @ApiProperty({
+  @ApiPropertyOptional({
+    type: String,
     example: "America/New_York",
     description: `Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed.`,
+    required: false,
+    default: "Europe/London",
   })
   readonly timeZone?: string = "Europe/London";
 
   @IsOptional()
   @IsString()
-  @ApiProperty({
+  @ApiPropertyOptional({
+    type: String,
     example: "Monday",
+    required: false,
+    default: "Sunday",
   })
   readonly weekStart?: string = "Sunday";
 
