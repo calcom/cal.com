@@ -19,8 +19,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { getAllCredentials } from "../../../bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
 export const config = {
