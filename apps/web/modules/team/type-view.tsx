@@ -37,6 +37,7 @@ function Type({
   isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
+  const { profile, users, hidden, title } = eventData;
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -46,12 +47,16 @@ function Type({
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
         isTeamEvent
-        eventData={{
-          profile: eventData.profile,
-          users: eventData.users,
-          hidden: eventData.hidden,
-          title: eventData.title,
-        }}
+        eventData={
+          profile && users && title && hidden !== undefined
+            ? {
+                profile,
+                users,
+                title,
+                hidden,
+              }
+            : undefined
+        }
         entity={eventData.entity}
         bookingData={booking}
         isSEOIndexable={isSEOIndexable}

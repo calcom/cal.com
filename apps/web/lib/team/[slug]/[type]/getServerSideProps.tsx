@@ -123,7 +123,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventSlug: meetingSlug,
     org: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink,
-    isTeamEvent: !!team,
+    isTeamEvent: true,
   });
 
   return {
