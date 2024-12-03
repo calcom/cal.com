@@ -75,14 +75,17 @@ export class DestinationCalendarRepository {
       domainWideDelegationCredentialId: create.domainWideDelegationCredentialId ?? null,
     });
 
+    const { credentialId: _, domainWideDelegationCredentialId: __, ...restUpdate } = update;
+    const { credentialId: ___, domainWideDelegationCredentialId: _____, ...restCreate } = create;
+
     return await prisma.destinationCalendar.upsert({
       where,
       update: {
-        ...update,
+        ...restUpdate,
         ...credentialPayloadForUpdate,
       },
       create: {
-        ...create,
+        ...restCreate,
         ...credentialPayloadForCreate,
       },
     });
