@@ -247,6 +247,9 @@ class RoutingEventsInsights {
             user: {
               select: { id: true, name: true, email: true, avatarUrl: true },
             },
+            assignmentReason: {
+              select: { reasonString: true },
+            },
           },
         },
         createdAt: true,
