@@ -2822,5 +2822,6 @@
   "single_select": "Seleção única",
   "multi_select": "Seleção múltipla",
   "group_meeting": "Reunião em grupo",
+  "salesforce_ignore_guests": "Não criar novos registros para convidados adicionados ao agendamento",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
