@@ -41,7 +41,7 @@ type ConfirmOptions = {
 
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const { user } = ctx;
-  const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
+  const { bookingId, recurringEventId, reason: rejectionReason, confirmed, emailsEnabled } = input;
 
   const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
@@ -269,6 +269,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       prisma,
       bookingId,
       booking,
+      emailsEnabled,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -368,7 +369,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
+    if (emailsEnabled) {
+      await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
+    }
 
     const teamId = await getTeamIdFromEventType({
       eventType: {

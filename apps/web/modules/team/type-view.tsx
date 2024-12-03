@@ -32,6 +32,9 @@ function Type({
   isInstantMeeting,
   orgBannerUrl,
   teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
+  isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -45,6 +48,7 @@ function Type({
         isTeamEvent
         entity={eventData.entity}
         bookingData={booking}
+        isSEOIndexable={isSEOIndexable}
       />
       <Booker
         username={user}
@@ -65,6 +69,8 @@ function Type({
         )}
         orgBannerUrl={orgBannerUrl}
         teamMemberEmail={teamMemberEmail}
+        crmOwnerRecordType={crmOwnerRecordType}
+        crmAppSlug={crmAppSlug}
       />
     </main>
   );

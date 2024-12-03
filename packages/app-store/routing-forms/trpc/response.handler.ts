@@ -3,15 +3,17 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
+import isRouter from "../lib/isRouter";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
-import { onFormSubmission, findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
+import { onFormSubmission } from "./utils";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response.handler"] });
 
@@ -95,13 +97,6 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
-    const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: {
-        formId,
-        response: response,
-      },
-    });
-
     const settings = RoutingFormSettings.parse(form.settings);
     let userWithEmails: string[] = [];
     if (form.teamId && settings?.sendUpdatesTo?.length) {
@@ -123,44 +118,125 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
-    const teamMembersMatchingAttributeLogicWithResult =
-      form.teamId && chosenRouteId
-        ? await findTeamMembersMatchingAttributeLogicOfRoute({
-            response,
-            routeId: chosenRouteId,
-            form: serializableForm,
+    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
+
+    if (chosenRoute) {
+      if (isRouter(chosenRoute)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Chosen route is a router",
+        });
+      }
+      const teamMembersMatchingAttributeLogicWithResult = form.teamId
+        ? await findTeamMembersMatchingAttributeLogic({
+            dynamicFieldValueOperands: {
+              response,
+              fields: serializableForm.fields || [],
+            },
+            attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+            fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
             teamId: form.teamId,
           })
         : null;
 
-    moduleLogger.debug(
-      "teamMembersMatchingAttributeLogic",
-      safeStringify({ teamMembersMatchingAttributeLogicWithResult })
-    );
+      moduleLogger.debug(
+        "teamMembersMatchingAttributeLogic",
+        safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+      );
 
-    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-      ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map((member) => member.userId)
-      : null;
-
-    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
-    if (!chosenRoute) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Chosen route not found",
-      });
+      teamMemberIdsMatchingAttributeLogic =
+        teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+          ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+              (member) => member.userId
+            )
+          : null;
+    } else {
+      // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
+
+    // const chosenRouteName = `Route ${chosenRouteIndex + 1}`;
+
+    // if (input.isPreview) {
+    //   // Detect if response has value for a field that isn't in the field list
+    //   const formFields = serializableFormWithFields.fields.map((field) => field.id);
+    //   const extraFields = Object.keys(response).filter((fieldId) => !formFields.includes(fieldId));
+    //   const attributeRoutingConfig =
+    //     "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null;
+
+    //   let previewData = {
+    //     teamMemberIdsMatchingAttributeLogic,
+    //     chosenRoute: {
+    //       name: chosenRouteName,
+    //       action: "action" in chosenRoute ? chosenRoute.action : null,
+    //     },
+    //     skipContactOwner: attributeRoutingConfig?.skipContactOwner ?? false,
+    //     warnings: [] as string[],
+    //     errors: [] as string[],
+    //   };
+
+    //   if (extraFields.length > 0) {
+    //     // If response submitted directly through the /response.handler, it is useful to know which fields were non-existent
+    //     // If we reach here through router, all extra fields are already removed from here
+    //     previewData.warnings.push(
+    //       `Response contains values for non-existent fields: ${extraFields.join(", ")}`
+    //     );
+    //   }
+
+    //   // Check for values not present in options for SINGLE_SELECT and MULTISELECT fields
+    //   serializableFormWithFields.fields.forEach((field) => {
+    //     if (
+    //       field.type !== RoutingFormFieldType.SINGLE_SELECT &&
+    //       field.type !== RoutingFormFieldType.MULTI_SELECT
+    //     ) {
+    //       return;
+    //     }
+
+    //     const fieldResponse = response[field.id];
+
+    //     if (fieldResponse && fieldResponse.value) {
+    //       const values = Array.isArray(fieldResponse.value) ? fieldResponse.value : [fieldResponse.value];
+    //       const invalidValues = values.filter(
+    //         (value) => !field.options?.some((option) => option.id === value || option.label === value)
+    //       );
+    //       if (invalidValues.length > 0) {
+    //         previewData.errors.push(`Invalid value(s) for ${field.label}: ${invalidValues.join(", ")}`);
+    //       }
+    //     }
+    //   });
+
+    //   return {
+    //     isPreview: true,
+    //     previewData,
+    //     formResponse: null,
+    //     teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+    //   };
+    // }
+
+    const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+      data: {
+        formId,
+        response: response,
+        chosenRouteId,
+      },
+    });
 
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
       dbFormResponse.response as FormResponse,
       dbFormResponse.id,
-      "action" in chosenRoute ? chosenRoute.action : undefined
+      chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
     );
+
     return {
+      isPreview: false,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
-      attributeRoutingConfig:
-        "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+      attributeRoutingConfig: chosenRoute
+        ? "attributeRoutingConfig" in chosenRoute
+          ? chosenRoute.attributeRoutingConfig
+          : null
+        : null,
     };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

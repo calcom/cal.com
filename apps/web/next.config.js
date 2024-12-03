@@ -186,7 +186,7 @@ const nextConfig = {
     locales: ["en"],
     localeDetection: false,
   },
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -207,7 +207,6 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
-    "@calcom/ui",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -218,16 +217,16 @@ const nextConfig = {
     lodash: {
       transform: "lodash/{{member}}",
     },
-    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-    // "@calcom/ui": {
-    //   transform: "@calcom/ui/components/{{member}}",
-    // },
   },
   images: {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
+      if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
+        config.devtool = false;
+      }
+
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
@@ -668,10 +667,14 @@ const nextConfig = {
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
-      autoInstrumentServerFunctions: true,
+      autoInstrumentServerFunctions: false,
       hideSourceMaps: true,
       // disable source map generation for the server code
       disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+      silent: false,
+      sourcemaps: {
+        disable: process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1",
+      },
     })
   );
 }
