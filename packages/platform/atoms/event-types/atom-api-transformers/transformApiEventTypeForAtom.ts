@@ -29,7 +29,7 @@ import {
 import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
 
 export function transformApiEventTypeForAtom(
-  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
+  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
