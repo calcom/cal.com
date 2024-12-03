@@ -2817,5 +2817,10 @@
   "rr_distribution_method_balanced_description": "Vi övervakar hur många bokningar som har gjorts med varje värd och jämför detta med andra, och inaktiverar vissa värdar som ligger för långt före så att bokningarna fördelas jämnt.",
   "exclude_emails_that_contain": "Uteslut e-postmeddelanden som innehåller ...",
   "exclude_emails_match_found_error_message": "Ange en giltig arbets-e-postadress",
+  "disable_org_url_label": "Inaktivera offentlig organisationsprofil och omdirigering",
+  "disable_org_url_description": "Omdirigerar {{orgSlug}}.cal.com till {{destination}}",
+  "single_select": "Enkelval",
+  "multi_select": "Flerval",
+  "group_meeting": "Gruppmöte",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
