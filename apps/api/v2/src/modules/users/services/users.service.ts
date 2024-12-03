@@ -2,10 +2,10 @@ import { UsersRepository, UserWithProfile } from "@/modules/users/users.reposito
 import { Injectable } from "@nestjs/common";
 import { User } from "@calcom/prisma/client";
 import Ajv from "ajv";
-import userResponseSchema from "../schemas/userResponseSchema.json";
+import userResponseSchema from "../schemas/userResponseSchema.json" assert { type: "json" };
 
 const ajv = new Ajv();
-const validateUserResponse = ajv.compile(userResponseSchema);
+const validateUserResponse = ajv.compile(userResponseSchema as any);
 
 @Injectable()
 export class UsersService {
