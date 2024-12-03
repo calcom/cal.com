@@ -369,9 +369,9 @@ export function RoutedToPerPeriod() {
         onPeriodChange={setSelectedPeriod}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        teamId={selectedTeamId}
+        teamId={selectedTeamId ?? undefined}
         isAll={isAll}
-        routingFormId={selectedRoutingFormId}
+        routingFormId={selectedRoutingFormId ?? undefined}
         dateRange={dateRange}>
         <div className="mt-6">
           <div
