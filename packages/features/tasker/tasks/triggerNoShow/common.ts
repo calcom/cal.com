@@ -58,6 +58,7 @@ export function sendWebhookPayload(
   triggerEvent: WebhookTriggerEvents,
   booking: Booking,
   maxStartTime: number,
+  participants: ParticipantsWithEmail,
   originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
 ): Promise<any> {
@@ -75,6 +76,7 @@ export function sendWebhookPayload(
       startTime: booking.startTime,
       attendees: booking.attendees,
       endTime: booking.endTime,
+      participants,
       ...(!!hostEmail ? { hostEmail } : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
@@ -113,6 +115,29 @@ export function checkIfUserJoinedTheCall(userId: number, allParticipants: Partic
   );
 }
 
+const getUserById = async (userId: number) => {
+  return prisma.user.findUnique({
+    where: { id: userId },
+  });
+};
+
+type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
+
+export async function getParticipantsWithEmail(
+  allParticipants: Participants
+): Promise<ParticipantsWithEmail> {
+  const participantsWithEmail = await Promise.all(
+    allParticipants.map(async (participant) => {
+      if (!participant.user_id) return participant;
+
+      const user = await getUserById(parseInt(participant.user_id));
+      return { ...participant, email: user?.email };
+    })
+  );
+
+  return participantsWithEmail;
+}
+
 export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
 
 export const prepareNoShowTrigger = async (
@@ -125,6 +150,7 @@ export const prepareNoShowTrigger = async (
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
   originalRescheduledBooking?: OriginalRescheduledBooking;
+  participants: ParticipantsWithEmail;
 } | void> => {
   const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
@@ -192,6 +218,8 @@ export const prepareNoShowTrigger = async (
     (meeting) => meeting.max_participants < numberOfHostsThatJoined
   );
 
+  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
+
   return {
     hostsThatDidntJoinTheCall,
     hostsThatJoinedTheCall,
@@ -200,5 +228,6 @@ export const prepareNoShowTrigger = async (
     webhook,
     didGuestJoinTheCall,
     originalRescheduledBooking,
+    participants: participantsWithEmail,
   };
 };

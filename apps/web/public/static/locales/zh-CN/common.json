@@ -2822,5 +2822,6 @@
   "single_select": "单选",
   "multi_select": "多选",
   "group_meeting": "群组会议",
+  "salesforce_ignore_guests": "不为预约中添加的访客创建新记录",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

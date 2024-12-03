@@ -2822,5 +2822,6 @@
   "single_select": "Единичен избор",
   "multi_select": "Множествен избор",
   "group_meeting": "Групова среща",
+  "salesforce_ignore_guests": "Да не се създават нови записи за гости, добавени към резервацията",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -4,6 +4,8 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
+// eslint-disable-next-line no-restricted-imports
+import kebabCase from "lodash/kebabCase";
 import { useMemo, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -67,8 +69,10 @@ export function DataTable<TData, TValue>({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const header = headers[i]!;
       const isAutoWidth = header.column.columnDef.meta?.autoWidth;
-      colSizes[`--header-${header.id}-size`] = isAutoWidth ? "auto" : `${header.getSize()}px`;
-      colSizes[`--col-${header.column.id}-size`] = isAutoWidth ? "auto" : `${header.column.getSize()}px`;
+      colSizes[`--header-${kebabCase(header.id)}-size`] = isAutoWidth ? "auto" : `${header.getSize()}px`;
+      colSizes[`--col-${kebabCase(header.column.id)}-size`] = isAutoWidth
+        ? "auto"
+        : `${header.column.getSize()}px`;
     }
     return colSizes;
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
@@ -103,7 +107,7 @@ export function DataTable<TData, TValue>({
                       style={{
                         ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                         ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                        width: `var(--header-${header?.id}-size)`,
+                        width: `var(--header-${kebabCase(header?.id)}-size)`,
                       }}
                       className={classNames(
                         "flex shrink-0 items-center",
@@ -163,7 +167,7 @@ export function DataTable<TData, TValue>({
                           style={{
                             ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                             ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                            width: `var(--col-${cell.column.id}-size)`,
+                            width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                           }}
                           className={classNames(
                             "flex shrink-0 items-center overflow-hidden",

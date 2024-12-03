@@ -2822,5 +2822,6 @@
   "single_select": "단일 선택",
   "multi_select": "다중 선택",
   "group_meeting": "그룹 미팅",
+  "salesforce_ignore_guests": "예약에 추가된 게스트에 대한 새 레코드를 생성하지 않음",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
