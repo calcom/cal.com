@@ -22,6 +22,7 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
+  usePersistentColumnResizing,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -430,6 +431,8 @@ export function UserListTable() {
       return new Map();
     },
   });
+
+  usePersistentColumnResizing({ table, name: "UserListTable" });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
     tableContainerRef,
