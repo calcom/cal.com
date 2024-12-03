@@ -10,6 +10,9 @@ import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { SCOPES } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
+// We might need the below commented code in the future
+// Right now, if DWD is enabled, the install button is disabled and thus this endpoint is never hit but we should handle at backend as well.
+
 // async function getDomainWideDelegationForApp({
 //   user,
 //   appMetadata,

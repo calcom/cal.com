@@ -1,4 +1,4 @@
-# Setting up Domain-Wide Delegation for Google Calendar API
+## Setting up Domain-Wide Delegation for Google Calendar API
 
 Step 1: Create a Google Cloud Project
 
@@ -32,3 +32,8 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
     - Here, you'll authorize the service account's client ID(Unique ID) to access the Google Calendar API
     - Add the necessary API scopes for Google Calendar(Full access to Google Calendar)
         https://www.googleapis.com/auth/calendar
+
+## How Domain-Wide Delegation works
+- cal.com instance admin needs to create a workspace platform which requires Service Account Key.
+- After this, organization owner can create a domain-wide-delegation for that workspace platform and a domain of their choice.
+- No Credential table entry is created at the moment but the workspace platform's related apps will be considered as "installed" for the users with email matchind dwd domain. An in-memory credential like object is created for this purpose. It allows avoiding creation of thousands of records for all the members of the organization when dwd is enabled.

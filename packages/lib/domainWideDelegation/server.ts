@@ -4,7 +4,6 @@ import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_m
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
 interface DomainWideDelegation {
@@ -19,22 +18,16 @@ interface User {
   id: number;
 }
 
-const buildDomainWideDelegationCalendarCredential = ({
+const buildCommonUserCredential = ({
   domainWideDelegation,
   user,
 }: {
   domainWideDelegation: DomainWideDelegation;
   user: User;
 }) => {
-  log.debug("buildDomainWideDelegationCredential", safeStringify({ domainWideDelegation, user }));
-  if (domainWideDelegation.workspacePlatform.slug !== "google") {
-    return null;
-  }
   return {
     id: -1,
-    type: googleCalendarMetadata.type,
     delegatedToId: domainWideDelegation.id,
-    appId: googleCalendarMetadata.slug,
     userId: user.id,
     user: {
       email: user.email,
@@ -48,6 +41,28 @@ const buildDomainWideDelegationCalendarCredential = ({
   };
 };
 
+const buildDomainWideDelegationCalendarCredential = ({
+  domainWideDelegation,
+  user,
+}: {
+  domainWideDelegation: DomainWideDelegation;
+  user: User;
+}) => {
+  log.debug("buildDomainWideDelegationCredential", safeStringify({ domainWideDelegation, user }));
+  // TODO: Build for other platforms as well
+  if (domainWideDelegation.workspacePlatform.slug !== "google") {
+    log.warn(
+      `Only Google Platform is supported here, skipping ${domainWideDelegation.workspacePlatform.slug}`
+    );
+    return null;
+  }
+  return {
+    type: googleCalendarMetadata.type,
+    appId: googleCalendarMetadata.slug,
+    ...buildCommonUserCredential({ domainWideDelegation, user }),
+  };
+};
+
 const buildDomainWideDelegationConferencingCredential = ({
   domainWideDelegation,
   user,
@@ -55,26 +70,20 @@ const buildDomainWideDelegationConferencingCredential = ({
   domainWideDelegation: DomainWideDelegation;
   user: User;
 }) => {
+  // TODO: Build for other platforms as well
   if (domainWideDelegation.workspacePlatform.slug !== "google") {
+    log.warn(
+      `Only Google Platform is supported here, skipping ${domainWideDelegation.workspacePlatform.slug}`
+    );
     return null;
   }
   return {
-    id: -1,
     type: googleMeetMetadata.type,
-    delegatedToId: domainWideDelegation.id,
     appId: googleMeetMetadata.slug,
-    userId: user.id,
-    user: {
-      email: user.email,
-    },
-    key: {
-      access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
-    },
-    invalid: false,
-    teamId: null,
-    team: null,
+    ...buildCommonUserCredential({ domainWideDelegation, user }),
   };
 };
+
 export async function getAllDomainWideDelegationCredentialsForUser({
   user,
 }: {
@@ -93,18 +102,10 @@ export async function getAllDomainWideDelegationCredentialsForUser({
     return [];
   }
 
-  const workspacePlatform = await WorkspacePlatformRepository.findBySlug({
-    slug: domainWideDelegation.workspacePlatform.slug,
-  });
-
-  const domainWideDelegationCredentials = !!workspacePlatform
-    ? [
-        buildDomainWideDelegationCalendarCredential({ domainWideDelegation, user }),
-        buildDomainWideDelegationConferencingCredential({ domainWideDelegation, user }),
-      ]
-        .flat()
-        .filter((credential): credential is NonNullable<typeof credential> => credential !== null)
-    : [];
+  const domainWideDelegationCredentials = [
+    buildDomainWideDelegationCalendarCredential({ domainWideDelegation, user }),
+    buildDomainWideDelegationConferencingCredential({ domainWideDelegation, user }),
+  ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
   log.debug("Returned", { domainWideDelegationCredentials });
   return domainWideDelegationCredentials;

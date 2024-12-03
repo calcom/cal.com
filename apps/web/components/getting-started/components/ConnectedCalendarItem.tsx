@@ -14,7 +14,7 @@ interface IConnectedCalendarItem {
     userId?: number | undefined;
     integration?: string | undefined;
     externalId: string;
-    domainWideDelegationCredentialId?: string | null;
+    domainWideDelegationCredentialId: string | null;
   }[];
 }
 

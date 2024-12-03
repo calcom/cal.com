@@ -133,10 +133,6 @@ export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
   return ALL_APPS.find((app) => app.slug === slug);
 }
 
-export function getAppFromType(type: string): AppMeta | undefined {
-  return ALL_APPS.find((app) => app.type === type);
-}
-
 export function getAppFromLocationValue(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }

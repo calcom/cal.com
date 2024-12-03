@@ -17,7 +17,7 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
-  domainWideDelegationCredentialId?: string | null;
+  domainWideDelegationCredentialId: string | null;
 };
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const {
@@ -38,7 +38,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
-        ...(domainWideDelegationCredentialId && { domainWideDelegationCredentialId }),
+        domainWideDelegationCredentialId: domainWideDelegationCredentialId ?? null,
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
       };
@@ -49,7 +49,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ...body, credentialId }),
+          body: JSON.stringify(body),
         });
 
         if (!res.ok) {

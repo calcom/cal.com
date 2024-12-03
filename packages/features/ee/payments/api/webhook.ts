@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { getAllCredentials } from "bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
@@ -18,6 +17,8 @@ import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+import { getAllCredentials } from "../../../bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
