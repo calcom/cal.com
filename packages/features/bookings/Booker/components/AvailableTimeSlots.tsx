@@ -56,8 +56,6 @@ export const AvailableTimeSlots = ({
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  console.warn("LOG SCHEDULE", JSON.stringify(schedule));
-
   const onTimeSelect = (
     time: string,
     attendees: number,
@@ -93,6 +91,10 @@ export const AvailableTimeSlots = ({
 
   const isTherapy = therapyIds.includes(event.data?.id ?? 0);
   const slotsPerDay = useSlotsForAvailableDates(dates, isTherapy, schedule?.slots);
+
+  console.log("dates", dates);
+  console.log("scheduleSlots", schedule?.slots);
+  console.log("slotsPerDay", slotsPerDay);
 
   return (
     <>
