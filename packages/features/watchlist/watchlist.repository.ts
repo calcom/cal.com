@@ -23,4 +23,19 @@ export class WatchlistRepository implements IWatchlistRepository {
       throw err;
     }
   }
+
+  async getEmailDomainInWatchlist(emailDomain: string) {
+    try {
+      const domainInWatchWatchlist = await db.watchlist.findFirst({
+        where: {
+          type: WatchlistType.DOMAIN,
+          value: emailDomain,
+        },
+      });
+      return domainInWatchWatchlist;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }
