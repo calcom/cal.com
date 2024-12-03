@@ -279,7 +279,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       bookingId,
       booking,
       emailsEnabled,
-      platformClientId: platformClientParams?.platformClientId,
+      platformClientParams,
     });
   } else {
     evt.rejectionReason = rejectionReason;

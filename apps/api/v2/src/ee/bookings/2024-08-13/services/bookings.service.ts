@@ -364,7 +364,7 @@ export class BookingsService_2024_08_13 {
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
-    const oAuthParams = bookingBefore?.eventTypeId
+    const platformClientParams = bookingBefore?.eventTypeId
       ? await this.inputService.getOAuthClientParams(bookingBefore.eventTypeId)
       : undefined;
 
@@ -373,7 +373,7 @@ export class BookingsService_2024_08_13 {
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
-      platformClientId: oAuthParams?.platformClientId,
+      platformClientParams,
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
