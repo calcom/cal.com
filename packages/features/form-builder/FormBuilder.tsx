@@ -715,7 +715,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label || "") || t(field.defaultLabel || ""),
+            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
           }}
         />
       );
