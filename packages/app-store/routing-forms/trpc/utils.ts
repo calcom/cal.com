@@ -205,7 +205,7 @@ export async function onFormSubmission(
 }
 
 export const sendResponseEmail = async (
-  form: Pick<App_RoutingForms_Form, "id" | "name">,
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
   orderedResponses: OrderedResponses,
   toAddresses: string[]
 ) => {
