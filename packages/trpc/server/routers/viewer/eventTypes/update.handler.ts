@@ -504,12 +504,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-
-  if (deletedWebhooks) {
+  if (deletedWebhooks.length > 0) {
     await ctx.prisma.$transaction(
       deletedWebhooks.map((wh) =>
-        ctx.prisma.webhook.delete({
-          where: { id: wh.id },
+        ctx.prisma.webhook.deleteMany({
+          where: {
+            id: wh.id,
+            eventTypeId: id,
+          },
         })
       )
     );

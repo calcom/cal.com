@@ -45,7 +45,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     const webhooks = getValues("webhooks");
     const deletedWebhooks = getValues("deletedWebhooks");
 
-    const updatedDeletedWebhooks = [...deletedWebhooks, { id: webhookId }];
+    const updatedDeletedWebhooks = webhookId ? [...deletedWebhooks, { id: webhookId }] : deletedWebhooks;
     // Remove the webhook from the current list and add it to 'deletedWebhooks'
     setValue(
       "webhooks",
@@ -188,16 +188,17 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     }
                   />
                 )}
-                {webhooks.length ? (
-                  <>
-                    <div className="border-subtle mb-2 rounded-md border p-8">
-                      <Controller
-                        name="webhooks"
-                        defaultValue={webhooks}
-                        render={({ field: { value, onChange } }) => (
+                <>
+                  {/* Always render the Controller */}
+                  <Controller
+                    name="webhooks"
+                    defaultValue={webhooks}
+                    render={({ field: { value, onChange } }) => (
+                      <>
+                        {/* Conditionally Render Header */}
+                        {value?.length > 0 ? (
                           <>
-                            {/* Conditionally Render Header */}
-                            {value?.length > 0 && (
+                            <div className="border-subtle mb-2 rounded-md border p-8">
                               <div className="flex justify-between">
                                 <div>
                                   <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
@@ -205,9 +206,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                                     {t("add_webhook_description", { appName: APP_NAME })}
                                   </p>
                                 </div>
-                                {isChildrenManagedEventType &&
-                                !isManagedEventType &&
-                                webhooksDisableProps.isLocked ? (
+                                {isChildrenManagedEventType && webhooksDisableProps.isLocked ? (
                                   <Button StartIcon="lock" color="secondary" disabled>
                                     {t("locked_by_team_admin")}
                                   </Button>
@@ -215,11 +214,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                                   <NewWebhookButton />
                                 )}
                               </div>
-                            )}
-                            {/* Render Webhooks List or Empty Screen */}
-                            <div className="border-subtle my-8 rounded-md border">
-                              {value?.length > 0 ? (
-                                value.map((webhook, index) => (
+
+                              {/* Render Webhooks List */}
+                              <div className="border-subtle my-8 rounded-md border">
+                                {value.map((webhook, index) => (
                                   <EventTypeWebhookListItem
                                     key={webhook.id}
                                     webhook={webhook}
@@ -239,56 +237,42 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                                       handleDeleteWebhook(updatedWebhook.id);
                                     }}
                                   />
-                                ))
-                              ) : (
-                                <EmptyScreen
-                                  Icon="webhook"
-                                  headline={t("create_your_first_webhook")}
-                                  description={t("first_event_type_webhook_description")}
-                                  buttonRaw={
-                                    isChildrenManagedEventType && !isManagedEventType ? (
-                                      <Button StartIcon="lock" color="secondary" disabled>
-                                        {t("locked_by_team_admin")}
-                                      </Button>
-                                    ) : (
-                                      <NewWebhookButton />
-                                    )
-                                  }
-                                />
-                              )}
+                                ))}
+                              </div>
+
+                              <p className="text-default text-sm font-normal">
+                                <Trans i18nKey="edit_or_manage_webhooks">
+                                  If you wish to edit or manage your web hooks, please head over to &nbsp;
+                                  <Link
+                                    className="cursor-pointer font-semibold underline"
+                                    href="/settings/developer/webhooks">
+                                    webhooks settings
+                                  </Link>
+                                </Trans>
+                              </p>
                             </div>
                           </>
+                        ) : (
+                          // Render Empty Screen when there are no webhooks
+                          <EmptyScreen
+                            Icon="webhook"
+                            headline={t("create_your_first_webhook")}
+                            description={t("first_event_type_webhook_description")}
+                            buttonRaw={
+                              isChildrenManagedEventType && !isManagedEventType ? (
+                                <Button StartIcon="lock" color="secondary" disabled>
+                                  {t("locked_by_team_admin")}
+                                </Button>
+                              ) : (
+                                <NewWebhookButton />
+                              )
+                            }
+                          />
                         )}
-                      />
-
-                      <p className="text-default text-sm font-normal">
-                        <Trans i18nKey="edit_or_manage_webhooks">
-                          If you wish to edit or manage your web hooks, please head over to &nbsp;
-                          <Link
-                            className="cursor-pointer font-semibold underline"
-                            href="/settings/developer/webhooks">
-                            webhooks settings
-                          </Link>
-                        </Trans>
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <EmptyScreen
-                    Icon="webhook"
-                    headline={t("create_your_first_webhook")}
-                    description={t("first_event_type_webhook_description")}
-                    buttonRaw={
-                      isChildrenManagedEventType && !isManagedEventType ? (
-                        <Button StartIcon="lock" color="secondary" disabled>
-                          {t("locked_by_team_admin")}
-                        </Button>
-                      ) : (
-                        <NewWebhookButton />
-                      )
-                    }
+                      </>
+                    )}
                   />
-                )}
+                </>
               </>
             </div>
           </div>

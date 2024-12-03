@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { v4 } from "uuid";
 // eslint-disable-next-line no-restricted-imports
 import type { DeepMockProxy } from "vitest-mock-extended";
 
@@ -6,7 +7,7 @@ import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { _EventTypeModel } from "@calcom/prisma/zod";
+import { _EventTypeModel, _WebhookModel } from "@calcom/prisma/zod";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 
 interface handleChildrenEventTypesProps {
@@ -115,6 +116,7 @@ export default async function handleChildrenEventTypes({
   // bookingFields is expected to be filled by the _EventTypeModel but is null at create event
   const _ManagedEventTypeModel = _EventTypeModel.extend({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+    webhooks: _WebhookModel.array(),
   });
 
   const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
@@ -132,6 +134,7 @@ export default async function handleChildrenEventTypes({
   const unlockedEventTypeValues = allManagedEventTypePropsZod
     .pick(unlockedManagedEventTypeProps)
     .parse(eventType);
+
   // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
   const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
   const currentUserIds = children?.map((ch) => ch.owner.id);
@@ -154,6 +157,7 @@ export default async function handleChildrenEventTypes({
       userIds: newUserIds,
       teamName: oldEventType.team?.name ?? null,
     });
+
     // Create event types for new users added
     await prisma.$transaction(
       newUserIds.map((userId) => {
@@ -180,19 +184,16 @@ export default async function handleChildrenEventTypes({
             workflows: currentWorkflowIds && {
               create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
             },
+            webhooks: eventType.webhooks && {
+              createMany: {
+                data: eventType.webhooks?.map((wh) => ({ ...wh, id: v4(), eventTypeId: undefined })),
+              },
+            },
             /**
              * RR Segment isn't applicable for managed event types.
              */
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
-
-            // Reserved for future releases
-            /*
-            webhooks: eventType.webhooks && {
-              createMany: {
-                data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
-              },
-            },*/
           },
         });
       })
@@ -231,6 +232,8 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
+    //TODO:: When we're only making change in webhook, it doesn't trigger update for child events, and only makes change in the parent event. Fix that too.
+
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
@@ -243,6 +246,12 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...updatePayloadFiltered,
+            webhooks: eventType.webhooks && {
+              deleteMany: {}, // Deletes all webhooks associated with this eventType
+              createMany: {
+                data: eventType.webhooks?.map((wh) => ({ ...wh, id: v4(), eventTypeId: undefined })),
+              },
+            },
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
@@ -275,23 +284,6 @@ export default async function handleChildrenEventTypes({
         })
       );
     }
-
-    // Reserved for future releases
-    /**
-    const updatedOldWebhooks = await prisma.webhook.updateMany({
-      where: {
-        userId: {
-          in: oldUserIds,
-        },
-      },
-      data: {
-        ...eventType.webhooks,
-      },
-    });
-    console.log(
-      "handleChildrenEventTypes:updatedOldWebhooks",
-      JSON.stringify({ updatedOldWebhooks }, null, 2)
-    );*/
   }
 
   // Old users deleted
