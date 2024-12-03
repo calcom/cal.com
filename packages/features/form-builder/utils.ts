@@ -103,7 +103,7 @@ export const cpfMask = (value: string) => {
 
 export const nameMask = (value: string) => {
   if (!value) return { maskedName: "", isValid: false };
-  const onlyLetters = value.replace(/[^a-zA-ZÀ-úç\s'`]/g, "");
+  const onlyLetters = value.replace(/[^A-Za-zÀ-ÖØ-õø-ÿ˜'`¨~\s]/g, "");
 
   const testName = new RegExp(FULL_NAME_REGEX);
 
