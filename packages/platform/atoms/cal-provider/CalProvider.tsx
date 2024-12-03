@@ -67,11 +67,12 @@ export type CalProviderProps = {
   children?: ReactNode;
   clientId: string;
   accessToken?: string;
-  options: { refreshUrl?: string; apiUrl: string };
+  options: { refreshUrl?: string; apiUrl: string; readingDirection?: "ltr" | "rtl" };
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
   version?: API_VERSIONS_ENUM;
   organizationId?: number;
+  isEmbed?: boolean;
 } & i18nProps;
 
 /**
@@ -99,6 +100,7 @@ export function CalProvider({
   onTimezoneChange,
   version = VERSION_2024_06_14,
   organizationId,
+  isEmbed = false,
 }: CalProviderProps) {
   useEffect(() => {
     http.setVersionHeader(version);
@@ -113,6 +115,7 @@ export function CalProvider({
   return (
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
+        isEmbed={isEmbed}
         autoUpdateTimezone={autoUpdateTimezone}
         onTimezoneChange={onTimezoneChange}
         clientId={clientId}

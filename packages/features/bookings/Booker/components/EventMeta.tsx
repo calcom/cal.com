@@ -11,7 +11,9 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
@@ -28,6 +30,7 @@ export const EventMeta = ({
   isPending,
   isPlatform = true,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
@@ -48,6 +51,8 @@ export const EventMeta = ({
     | "recurringEvent"
     | "price"
     | "isDynamic"
+    | "fieldTranslations"
+    | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
   isPlatform?: boolean;
@@ -56,6 +61,7 @@ export const EventMeta = ({
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -75,6 +81,7 @@ export const EventMeta = ({
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
   );
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
@@ -101,6 +108,14 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
+  const userLocale = locale ?? navigator.language;
+  const translatedDescription = (event?.fieldTranslations ?? []).find(
+    (trans) =>
+      trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
+      i18nLocales.includes(trans.targetLocale) &&
+      // browser language looks like "en-US", "es-ES", "fr-FR", etc
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
+  )?.translatedText;
 
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
@@ -120,9 +135,9 @@ export const EventMeta = ({
             />
           )}
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
-          {event.description && (
+          {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">

@@ -4,10 +4,15 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
+import {
+  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinScheduledEmailsAndSMS,
+  sendRoundRobinUpdatedEmailsAndSMS,
+} from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -43,12 +48,14 @@ export const roundRobinManualReassignment = async ({
   orgId,
   reassignReason,
   reassignedById,
+  emailsEnabled = true,
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
   reassignReason?: string;
   reassignedById: number;
+  emailsEnabled?: boolean;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -170,6 +177,12 @@ export const roundRobinManualReassignment = async ({
       },
       select: bookingSelect,
     });
+
+    await AssignmentReasonRecorder.roundRobinReassignment({
+      bookingId,
+      reassignReason,
+      reassignById: reassignedById,
+    });
   } else if (currentRRHost) {
     // Update the round-robin host attendee
     await prisma.attendee.update({
@@ -282,24 +295,26 @@ export const roundRobinManualReassignment = async ({
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
-  await sendRoundRobinScheduledEmailsAndSMS({
-    calEvent: evtWithoutCancellationReason,
-    members: [
-      {
-        ...newUser,
-        name: newUser.name || "",
-        username: newUser.username || "",
-        timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
-        language: { translate: newUserT, locale: newUser.locale || "en" },
+  if (emailsEnabled) {
+    await sendRoundRobinScheduledEmailsAndSMS({
+      calEvent: evtWithoutCancellationReason,
+      members: [
+        {
+          ...newUser,
+          name: newUser.name || "",
+          username: newUser.username || "",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
+          language: { translate: newUserT, locale: newUser.locale || "en" },
+        },
+      ],
+      reassigned: {
+        name: newUser.name,
+        email: newUser.email,
+        reason: reassignReason,
+        byUser: originalOrganizer.name || undefined,
       },
-    ],
-    reassigned: {
-      name: newUser.name,
-      email: newUser.email,
-      reason: reassignReason,
-      byUser: originalOrganizer.name || undefined,
-    },
-  });
+    });
+  }
 
   // Send cancellation email to previous RR host
   const cancelledEvt = cloneDeep(evtWithAdditionalInfo);
@@ -310,7 +325,7 @@ export const roundRobinManualReassignment = async ({
     language: { translate: originalOrganizerT, locale: originalOrganizer.locale || "en" },
   };
 
-  if (previousRRHost) {
+  if (previousRRHost && emailsEnabled) {
     await sendRoundRobinCancelledEmailsAndSMS(
       cancelledEvt,
       [
@@ -328,6 +343,13 @@ export const roundRobinManualReassignment = async ({
   }
 
   if (hasOrganizerChanged) {
+    if (emailsEnabled) {
+      // send email with event updates to attendees
+      await sendRoundRobinUpdatedEmailsAndSMS({
+        calEvent: evtWithoutCancellationReason,
+      });
+    }
+
     // Handle changing workflows with organizer
     await handleWorkflowsUpdate({
       booking,

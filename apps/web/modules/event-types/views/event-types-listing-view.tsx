@@ -17,7 +17,7 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
-import { parseEventTypeColor } from "@calcom/lib";
+import { classNames, parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -201,11 +201,11 @@ const Item = ({
   );
 
   return (
-    <div className="relative flex-1 overflow-hidden pr-4 text-sm">
+    <div className={classNames(eventTypeColor && "-ml-3", "relative flex-1 overflow-hidden pr-4 text-sm")}>
       {eventTypeColor && (
         <div className="absolute h-full w-0.5" style={{ backgroundColor: eventTypeColor }} />
       )}
-      <div className="ml-3">
+      <div className={classNames(eventTypeColor && "ml-3")}>
         {readOnly ? (
           <div>
             {content()}

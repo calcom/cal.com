@@ -180,6 +180,12 @@ export default async function handleChildrenEventTypes({
             workflows: currentWorkflowIds && {
               create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
             },
+            /**
+             * RR Segment isn't applicable for managed event types.
+             */
+            rrSegmentQueryValue: undefined,
+            assignRRMembersUsingSegment: false,
+
             // Reserved for future releases
             /*
             webhooks: eventType.webhooks && {
@@ -225,7 +231,6 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    console.log({ unlockedFieldProps });
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {

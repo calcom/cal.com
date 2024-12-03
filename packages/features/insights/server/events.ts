@@ -12,6 +12,7 @@ type StatusAggregate = {
   rescheduled: number;
   cancelled: number;
   noShowHost: number;
+  noShowGuests: number;
   _all: number;
   uncompleted: number;
 };
@@ -73,20 +74,30 @@ class EventsInsights {
     const whereClause = buildSqlCondition(whereConditional);
 
     const data = await prisma.$queryRaw<
-      { periodStart: Date; bookingsCount: number; timeStatus: string; noShowHost: boolean }[]
+      {
+        periodStart: Date;
+        bookingsCount: number;
+        timeStatus: string;
+        noShowHost: boolean;
+        noShowGuests: number;
+      }[]
     >`
     SELECT
       "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
       "timeStatus",
       "noShowHost"
     FROM (
       SELECT
         DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
+        "a"."noShow" AS "isNoShowGuest",
         "timeStatus",
         "noShowHost"
       FROM
         "BookingTimeStatus"
+      JOIN
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatus"."id"
       WHERE
         "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
         AND ${Prisma.raw(whereClause)}
@@ -100,7 +111,7 @@ class EventsInsights {
   `;
 
     const aggregate: AggregateResult = {};
-    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost }) => {
+    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
       const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
       if (dayjs(periodStart).isAfter(endDate)) {
@@ -116,6 +127,7 @@ class EventsInsights {
           noShowHost: 0,
           _all: 0,
           uncompleted: 0,
+          noShowGuests: 0,
         };
       }
 
@@ -130,6 +142,9 @@ class EventsInsights {
       if (noShowHost) {
         aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
       }
+
+      // Track no-show guests explicitly
+      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
     });
 
     // Generate a complete list of expected date labels based on the timeline
@@ -160,6 +175,7 @@ class EventsInsights {
           rescheduled: 0,
           cancelled: 0,
           noShowHost: 0,
+          noShowGuests: 0,
           _all: 0,
           uncompleted: 0,
         };
@@ -167,6 +183,27 @@ class EventsInsights {
     });
 
     return aggregate;
+  };
+
+  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const bookings = await prisma.bookingTimeStatus.findMany({
+      where,
+      select: {
+        id: true,
+      },
+    });
+
+    const { _count: totalNoShowGuests } = await prisma.attendee.aggregate({
+      where: {
+        bookingId: {
+          in: bookings.map((booking) => booking.id),
+        },
+        noShow: true,
+      },
+      _count: true,
+    });
+
+    return totalNoShowGuests;
   };
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
