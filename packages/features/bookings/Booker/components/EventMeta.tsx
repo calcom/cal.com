@@ -11,7 +11,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import i18nConfigration from "../../../../../i18n.json";
