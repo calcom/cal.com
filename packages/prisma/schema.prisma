@@ -1671,6 +1671,9 @@ enum WatchlistType {
 
 enum WatchlistSeverity {
   LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
 model Watchlist {
