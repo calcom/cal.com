@@ -150,9 +150,15 @@ export class DomainWideDelegationRepository {
     return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
-  static async findFirstByDomain({ domain }: { domain: string }) {
-    return await prisma.domainWideDelegation.findFirst({
+  static async findAllByDomain({ domain }: { domain: string }) {
+    return await prisma.domainWideDelegation.findMany({
       where: { domain },
+    });
+  }
+
+  static async findFirstByOrganizationId({ organizationId }: { organizationId: number }) {
+    return await prisma.domainWideDelegation.findFirst({
+      where: { organizationId },
     });
   }
 
