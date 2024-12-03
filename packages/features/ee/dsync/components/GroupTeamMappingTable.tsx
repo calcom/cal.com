@@ -28,6 +28,7 @@ const GroupTeamMappingTable = () => {
     {
       id: "name",
       header: t("team"),
+      size: 200,
       cell: ({ row }) => {
         const { name } = row.original;
 
@@ -37,6 +38,7 @@ const GroupTeamMappingTable = () => {
     {
       id: "group",
       header: t("group_name"),
+      size: 200,
       cell: ({ row }) => {
         const { id, groupNames, directoryId } = row.original;
 

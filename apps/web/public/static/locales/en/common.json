@@ -2825,6 +2825,8 @@
   "disable_org_url_description": "Redirects {{orgSlug}}.cal.com to {{destination}}",
   "single_select": "Single Select",
   "multi_select": "Multi Select",
+  "group_meeting": "Group Meeting",
+  "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
   "generate_credentials_description": "Generate credentials to use with {{appName}} at",
   "provide_credentials": "Provide Credntials",
   "provide_client_id": "Enter Client ID",

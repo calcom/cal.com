@@ -2817,5 +2817,10 @@
   "rr_distribution_method_balanced_description": "Wir überwachen, wie viele Buchungen bei jedem Host eingegangen sind und vergleichen dies mit anderen. Hosts, die zu weit voraus sind, werden temporär deaktiviert, damit die Buchungen gleichmäßig verteilt werden.",
   "exclude_emails_that_contain": "E-Mails ausschließen, die ... enthalten",
   "exclude_emails_match_found_error_message": "Bitte geben Sie eine gültige Geschäfts-E-Mail-Adresse ein",
+  "disable_org_url_label": "Öffentliches Organisationsprofil deaktivieren und weiterleiten",
+  "disable_org_url_description": "Leitet {{orgSlug}}.cal.com zu {{destination}} weiter",
+  "single_select": "Einfachauswahl",
+  "multi_select": "Mehrfachauswahl",
+  "group_meeting": "Gruppenbesprechung",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
