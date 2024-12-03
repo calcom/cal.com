@@ -1,22 +1,23 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { doOnOrgDomain } from "playwright/lib/testUtils";
+import { v4 as uuid } from "uuid";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { CreateUsersFixture } from "../fixtures/users";
 import { test } from "../lib/fixtures";
 
-test.describe.configure({ mode: "serial" });
-
 async function setupOrgMember(users: CreateUsersFixture) {
+  const orgRequestedSlug = `example-${uuid()}`;
+
   const orgMember = await users.create(undefined, {
     hasTeam: true,
     isOrg: true,
     hasSubteam: true,
     isOrgVerified: true,
     isDnsSetup: true,
-    orgRequestedSlug: "example",
+    orgRequestedSlug,
     schedulingType: SchedulingType.ROUND_ROBIN,
   });
 

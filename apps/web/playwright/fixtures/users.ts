@@ -246,7 +246,7 @@ export const createUsersFixture = (
   const store = { users: [], trackedEmails: [], page, teams: [] } as {
     users: UserFixture[];
     trackedEmails: { email: string }[];
-    page: typeof page;
+    page: Page;
     teams: Team[];
   };
   return {
