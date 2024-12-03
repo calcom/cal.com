@@ -13,8 +13,6 @@ const MembersPage: React.FC = () => {
       title={t("organization_members")}
       description={t("organization_description")}
       withoutSeo
-      heading={t("organization_members")}
-      hideHeadingOnMobile
       subtitle={t("organization_description")}>
       <HeadSeo title={t("organization_members")} description={t("organization_description")} />
 
