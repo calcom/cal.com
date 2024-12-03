@@ -7,7 +7,7 @@ import { PriceIcon } from "@calcom/features/bookings/components/event-meta/Price
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
@@ -51,7 +51,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: markdownToSafeHTMLClient(eventType.descriptionAsSafeHTML || ""),
+              __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
             }}
           />
         )}

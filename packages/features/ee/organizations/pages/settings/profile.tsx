@@ -14,7 +14,7 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -146,7 +146,7 @@ const OrgProfileView = () => {
                   <div
                     className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{
-                      __html: markdownToSafeHTMLClient(currentOrganisation.bio || ""),
+                      __html: markdownToSafeHTML(currentOrganisation.bio || ""),
                     }}
                   />
                 </>

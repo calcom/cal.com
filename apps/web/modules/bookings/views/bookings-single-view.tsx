@@ -43,7 +43,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -675,7 +675,7 @@ export default function Success(props: PageProps) {
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 dangerouslySetInnerHTML={{
-                                  __html: markdownToSafeHTMLClient(label),
+                                  __html: markdownToSafeHTML(label),
                                 }}
                               />
                               <p
