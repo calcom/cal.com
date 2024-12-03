@@ -2817,5 +2817,10 @@
   "rr_distribution_method_balanced_description": "Monitoreremo quante prenotazioni sono state effettuate con ciascun host e le confronteremo con gli altri, disabilitando alcuni host che sono troppo avanti per garantire una distribuzione uniforme delle prenotazioni.",
   "exclude_emails_that_contain": "Escludi le email che contengono ...",
   "exclude_emails_match_found_error_message": "Inserisci un indirizzo email di lavoro valido",
+  "disable_org_url_label": "Disabilita il profilo pubblico dell'organizzazione e reindirizza",
+  "disable_org_url_description": "Reindirizza {{orgSlug}}.cal.com a {{destination}}",
+  "single_select": "Selezione singola",
+  "multi_select": "Selezione multipla",
+  "group_meeting": "Riunione di gruppo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
