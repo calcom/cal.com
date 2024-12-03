@@ -2822,5 +2822,6 @@
   "single_select": "Tək seçim",
   "multi_select": "Çoxlu seçim",
   "group_meeting": "Qrup görüşü",
+  "salesforce_ignore_guests": "Rezervasiyaya əlavə edilən qonaqlar üçün yeni qeydlər yaratma",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

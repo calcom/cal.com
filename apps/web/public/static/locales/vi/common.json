@@ -2822,5 +2822,6 @@
   "single_select": "Chọn một",
   "multi_select": "Chọn nhiều",
   "group_meeting": "Cuộc họp nhóm",
+  "salesforce_ignore_guests": "Không tạo bản ghi mới cho khách được thêm vào lịch hẹn",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

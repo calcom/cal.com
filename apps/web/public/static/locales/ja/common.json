@@ -2822,5 +2822,6 @@
   "single_select": "単一選択",
   "multi_select": "複数選択",
   "group_meeting": "グループミーティング",
+  "salesforce_ignore_guests": "予約に追加されたゲストの新規レコードを作成しない",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

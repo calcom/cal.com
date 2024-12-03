@@ -2822,5 +2822,6 @@
   "single_select": "Üksikvalik",
   "multi_select": "Mitmikvalik",
   "group_meeting": "Grupikohtumise",
+  "salesforce_ignore_guests": "Ära loo broneeringule lisatud külaliste jaoks uusi kirjeid",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
