@@ -24,6 +24,7 @@ export type EventTypeDescriptionProps = {
   className?: string;
   shortenDescription?: boolean;
   isPublic?: boolean;
+  totalBookings?: number;
 };
 
 export const EventTypeDescription = ({
@@ -31,6 +32,7 @@ export const EventTypeDescription = ({
   className,
   shortenDescription,
   isPublic,
+  totalBookings,
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
 
@@ -133,7 +135,7 @@ export const EventTypeDescription = ({
           <li>
             <Link href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}>
               <Badge variant="gray" startIcon="chart-bar">
-                <p>{t("event_type_insights", { numberOfBookings: 42 })} </p>
+                <p>{t("event_type_insights", { numberOfBookings: totalBookings })} </p>
               </Badge>
             </Link>
           </li>

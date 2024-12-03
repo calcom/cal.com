@@ -243,7 +243,7 @@ function EventTypeSingleLayout({
               </DropdownMenuItem>
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
-                  type="a"
+                  type="button"
                   StartIcon="chart-bar"
                   href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}>
                   {t("insights")}
