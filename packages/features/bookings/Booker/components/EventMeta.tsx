@@ -1,5 +1,4 @@
 import { m } from "framer-motion";
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -12,9 +11,9 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { locales as i18nLocales } from "@calcom/lib/i18n";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
@@ -31,6 +30,7 @@ export const EventMeta = ({
   isPending,
   isPlatform = true,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
@@ -61,8 +61,8 @@ export const EventMeta = ({
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
-  const session = useSession();
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -81,6 +81,7 @@ export const EventMeta = ({
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
   );
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
@@ -107,7 +108,7 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const userLocale = session.data?.user.locale ?? navigator.language;
+  const userLocale = locale ?? navigator.language;
   const translatedDescription = (event?.fieldTranslations ?? []).find(
     (trans) =>
       trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
