@@ -5,7 +5,11 @@ import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/works
 import { TRPCError } from "@calcom/trpc/server";
 
 import type { DomainWideDelegationUpdateSchema } from "./schema";
-import { handleDomainWideDelegationError, ensureNoServiceAccountKey } from "./utils";
+import {
+  ensureDomainWideDelegationNotAlreadyConfigured,
+  ensureNoServiceAccountKey,
+  handleDomainWideDelegationError,
+} from "./utils";
 
 export default async function handler({
   input,
@@ -25,6 +29,12 @@ export default async function handler({
     });
   }
 
+  await ensureDomainWideDelegationNotAlreadyConfigured({
+    domain,
+    currentOrganizationId: organizationId,
+    dwdBeingUpdatedId: id,
+  });
+
   try {
     const workspacePlatform = await WorkspacePlatformRepository.findBySlugIncludeSensitiveServiceAccountKey({
       slug: workspacePlatformSlug,
@@ -42,7 +52,6 @@ export default async function handler({
       data: {
         workspacePlatformId: workspacePlatform.id,
         domain,
-        enabled: true,
         organizationId,
       },
     });

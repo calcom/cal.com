@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -11,6 +12,42 @@ export class InvalidServiceAccountKeyError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "InvalidServiceAccountKeyError";
+  }
+}
+
+export async function ensureDomainWideDelegationNotAlreadyConfigured({
+  domain,
+  currentOrganizationId,
+  dwdBeingUpdatedId,
+}: {
+  domain: string;
+  currentOrganizationId: number;
+  dwdBeingUpdatedId: string | null;
+}) {
+  const allDelegationsForDomain = await DomainWideDelegationRepository.findAllByDomain({
+    domain,
+  });
+
+  const conflictingDelegationInCurrentOrg = allDelegationsForDomain.find(
+    (delegation) => delegation.organizationId === currentOrganizationId && delegation.id !== dwdBeingUpdatedId
+  );
+
+  if (conflictingDelegationInCurrentOrg) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Your organization already has domain-wide delegation for ${conflictingDelegationInCurrentOrg.domain}`,
+    });
+  }
+
+  const differentOrgEnabledDelegations = allDelegationsForDomain.filter(
+    (delegation) => delegation.organizationId !== currentOrganizationId && delegation.enabled
+  );
+
+  if (differentOrgEnabledDelegations.length > 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Domain ${domain} already has domain-wide delegation enabled in another organization`,
+    });
   }
 }
 

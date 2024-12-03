@@ -202,6 +202,7 @@ function DelegationFormFields({ workspacePlatforms }: { workspacePlatforms: Work
           const selectedPlatform = platformOptions.find((opt) => opt.value === value);
           return (
             <SelectField
+              required
               label={t("workspace_platform")}
               onChange={(option) => onChange(option?.value)}
               value={selectedPlatform}
@@ -251,7 +252,7 @@ function CreateEditDelegationDialog({
 function DomainWideDelegationList() {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: delegations, isLoading } = trpc.viewer.domainWideDelegation.list.useQuery();
+  const { data: delegations, isLoading, error } = trpc.viewer.domainWideDelegation.list.useQuery();
 
   const updateMutation = trpc.viewer.domainWideDelegation.update.useMutation({
     onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
@@ -261,7 +262,13 @@ function DomainWideDelegationList() {
   });
 
   const toggleEnabledMutation = trpc.viewer.domainWideDelegation.toggleEnabled.useMutation({
-    onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
+    onSuccess: ({ enabled }) => {
+      showToast(
+        enabled ? t("domain_wide_delegation_enabled") : t("domain_wide_delegation_disabled"),
+        "success"
+      );
+      utils.viewer.domainWideDelegation.list.invalidate();
+    },
     onError: (error) => {
       showToast(error.message, "error");
     },
@@ -305,6 +312,8 @@ function DomainWideDelegationList() {
   const { data: workspacePlatforms, isLoading: isLoadingWorkspacePlatforms } =
     trpc.viewer.domainWideDelegation.listWorkspacePlatforms.useQuery();
 
+  const enabledWorkspacePlatforms = workspacePlatforms?.filter((platform) => platform.enabled);
+
   const onEditClick = (delegation: DelegationItemProps["delegation"]) => {
     setCreateEditDialog({ isOpen: true, delegation });
   };
@@ -325,6 +334,10 @@ function DomainWideDelegationList() {
 
   if (isLoading || isLoadingWorkspacePlatforms) {
     return null;
+  }
+
+  if (error) {
+    return <div>{t(error.message)}</div>;
   }
 
   if (!delegations || !workspacePlatforms) {
@@ -349,7 +362,7 @@ function DomainWideDelegationList() {
         onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
         delegation={createEditDialog.delegation}
         onSubmit={handleSubmit}
-        workspacePlatforms={workspacePlatforms}
+        workspacePlatforms={enabledWorkspacePlatforms}
       />
       <Button type="button" color="secondary" StartIcon="plus" className="mt-6" onClick={onCreateClick}>
         {t("add_domain_wide_delegation")}

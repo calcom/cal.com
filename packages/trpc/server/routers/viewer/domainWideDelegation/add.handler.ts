@@ -6,7 +6,11 @@ import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/works
 import { TRPCError } from "@trpc/server";
 
 import type { DomainWideDelegationCreateSchema } from "./schema";
-import { ensureNoServiceAccountKey, handleDomainWideDelegationError } from "./utils";
+import {
+  ensureDomainWideDelegationNotAlreadyConfigured,
+  ensureNoServiceAccountKey,
+  handleDomainWideDelegationError,
+} from "./utils";
 
 export default async function handler({
   input,
@@ -38,21 +42,17 @@ export default async function handler({
       });
     }
 
-    const existingDelegationForDomain = await DomainWideDelegationRepository.findFirstByDomain({
+    await ensureDomainWideDelegationNotAlreadyConfigured({
       domain,
+      currentOrganizationId: organizationId,
+      dwdBeingUpdatedId: null,
     });
-
-    if (existingDelegationForDomain) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Domain ${domain} already has a domain-wide delegation`,
-      });
-    }
 
     const createdDelegation = await DomainWideDelegationRepository.create({
       workspacePlatformId: workspacePlatform.id,
       domain,
-      enabled: true,
+      // We don't want to enable by default because enabling requires some checks to be completed and it has a separate flow.
+      enabled: false,
       organizationId,
       serviceAccountKey: workspacePlatform.defaultServiceAccountKey,
     });

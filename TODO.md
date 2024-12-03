@@ -1,5 +1,10 @@
 ## Version 1.0
 ### Important
+  - [x] Creating DWD shouldn't immediately enable it. Enabling has separate check to confirm if it is actually configured in google workspace
+  - [x] Added check to avoid adding same domain for a workspace platform in another organization if it is already enabled in some other organization
+  - [x] Don't show dwd in menu for non-org-admin users - It errors with something_went_wrong right now
+  - [x] Don't allow disabled platform to be selected in the UI for creation.
+    - We have disabled coming the disabled platform to be coming into the list that effectively disables edit of existing dwd and creation of new dwd for that platform.
   - [x] Where should we show the user the client ID to enable domain wide delegation?
     - [x] It must be shown to the organization owner/admin only
     - [x] There could be multiple checkboxes per domain to enable domain wide delegation for a domain
@@ -7,9 +12,6 @@
     - Any domain can be added by a user
   - [x] Support multiple domains in DomainWideDelegation schema for an organization
     - [x] Use the domain as well to identify if the domain wide delegation is enabled
-  - [ ] Don't allow disabled platform to be selected in the UI for creation.
-    - We can restrict updating as well with that platform(i.e. show it in the list but not let it save)
-    - But we shouldn't stop showing it in the UI, otherwise it might get changed to some other platform due to Select's nature.
   - [x] Before enabling Domain-wide delegation, there should be a check to ensure that the clientID has been added to the Workspace Platform
   - [x] We should allow setting default conferencing app during onboarding
 
