@@ -152,14 +152,14 @@ function getHostsWithCalibration({
   // Helper function to calculate calibration for a new host
   function calculateCalibration(newHost: { userId: number; createdAt: Date }) {
     const existingBookingsBeforeAdded = existingBookings.filter(
-      (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
+      (booking) => booking.createdAt < newHost.createdAt
     );
     const hostsAddedBefore = hosts.filter(
-      (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
+      (host) => host.createdAt < newHost.createdAt
     );
 
     const calibration =
-      existingBookingsBeforeAdded.length && hostsAddedBefore.length
+      hostsAddedBefore.length > 0
         ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
         : 0;
     log.debug(
@@ -554,16 +554,6 @@ async function fetchAllDataNeededForCalculations<
                 noShow: false,
               },
             },
-            // not:true won't match null, thus we need to do an OR with null case separately(for bookings that might have null value for `noShowHost` as earlier it didn't have default false)
-            // https://github.com/calcom/cal.com/pull/15323#discussion_r1687728207
-            OR: [
-              {
-                noShowHost: false,
-              },
-              {
-                noShowHost: null,
-              },
-            ],
           },
           orderBy: {
             createdAt: "desc",

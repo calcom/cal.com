@@ -5,7 +5,7 @@ import Ajv from "ajv";
 import userResponseSchema from "../schemas/userResponseSchema.json";
 
 const ajv = new Ajv();
-const validateUserResponse = ajv.compile(userResponseSchema as any);
+const validateUserResponse = ajv.compile(userResponseSchema);
 
 @Injectable()
 export class UsersService {
