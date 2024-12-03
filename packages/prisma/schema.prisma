@@ -357,8 +357,8 @@ model User {
   reassignedBookings         Booking[]                    @relation("reassignByUser")
   createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
-  createdBlacklists          Blacklist[]                  @relation("CreatedBlacklists")
-  updatedBlacklists          Blacklist[]                  @relation("UpdatedBlacklists")
+  createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
+  updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
 
   @@unique([email])
   @@unique([email, username])
@@ -1662,23 +1662,23 @@ model EventTypeTranslation {
   @@index([eventTypeId, field, targetLocale])
 }
 
-enum BlacklistType {
+enum WatchlistType {
   EMAIL
   DOMAIN
   USERNAME
 }
 
-model Blacklist {
+model Watchlist {
   id          String        @id @unique @default(cuid())
-  type        BlacklistType
-  // The identifier of the blacklisted entity (email or domain)
+  type        WatchlistType
+  // The identifier of the Watchlisted entity (email or domain)
   value       String
   description String?
   createdAt   DateTime      @default(now())
-  createdBy   User          @relation("CreatedBlacklists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
   createdById Int
   updatedAt   DateTime      @updatedAt
-  updatedBy   User?         @relation("UpdatedBlacklists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
 
   @@unique([type, value])

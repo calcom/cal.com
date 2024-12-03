@@ -6,7 +6,7 @@ import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
 describe("isLockedOrBlocked", () => {
   beforeEach(async () => {
-    await prismock.blacklist.createMany({
+    await prismock.watchlist.createMany({
       data: [
         {
           type: "DOMAIN",
@@ -47,7 +47,7 @@ describe("isLockedOrBlocked", () => {
     expect(result).toBe(true);
   });
 
-  it("should return true if user email domain is blacklisted", async () => {
+  it("should return true if user email domain is watchlisted", async () => {
     const req = {
       userId: 123,
       user: {
@@ -60,7 +60,7 @@ describe("isLockedOrBlocked", () => {
     expect(result).toBe(true);
   });
 
-  it("should return false if user is not locked and email domain is not blacklisted", async () => {
+  it("should return false if user is not locked and email domain is not watchlisted", async () => {
     const req = {
       userId: 123,
       user: {

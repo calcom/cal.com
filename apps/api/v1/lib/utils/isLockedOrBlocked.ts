@@ -1,9 +1,9 @@
 import type { NextApiRequest } from "next";
 
-import { checkIfEmailInBlacklistController } from "@calcom/features/blacklist/operations/check-if-email-in-blacklist.controller";
+import { checkIfEmailInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 
 export async function isLockedOrBlocked(req: NextApiRequest) {
   const user = req.user;
   if (!user?.email) return false;
-  return user.locked || (await checkIfEmailInBlacklistController(user.email));
+  return user.locked || (await checkIfEmailInWatchlistController(user.email));
 }
