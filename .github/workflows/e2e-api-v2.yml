@@ -21,6 +21,7 @@ env:
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  REPLEXICA_API_KEY: ${{ secrets.CI_REPLEXICA_API_KEY }}
 jobs:
   e2e:
     timeout-minutes: 20
