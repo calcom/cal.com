@@ -5192,7 +5192,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.64, @calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.64":
+  version: 0.0.64
+  resolution: "@calcom/platform-libraries@npm:0.0.64"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 209f6c204b826bd8a5315eab2fcf85d0e99b4f95599be2c26aa63536d36ac49b3bb649f9ee525608778d9c9161a9bb2484db5784f80364cde0add1d9ebebf1c9
+  languageName: node
+  linkType: hard
+
+"@calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
