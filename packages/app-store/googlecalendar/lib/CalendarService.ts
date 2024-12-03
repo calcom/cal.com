@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
@@ -10,7 +9,6 @@ import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import type CalendarService from "@calcom/lib/CalendarService";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
   CREDENTIAL_SYNC_ENDPOINT,
@@ -503,7 +501,7 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
-  async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<EventBusyDate[] | null> {
+  async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null> {
     const { timeMin, timeMax, items } = args;
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     const calendarCache = await CalendarCache.init(null);
@@ -515,16 +513,90 @@ export default class GoogleCalendarService implements Calendar {
     }
     if (!freeBusyResult.calendars) return null;
 
-    const result = Object.values(freeBusyResult.calendars).reduce((c, i) => {
+    const result = Object.entries(freeBusyResult.calendars).reduce((c, [id, i]) => {
       i.busy?.forEach((busyTime) => {
         c.push({
+          id,
           start: busyTime.start || "",
           end: busyTime.end || "",
         });
       });
       return c;
-    }, [] as Prisma.PromiseReturnType<CalendarService["getAvailability"]>);
+    }, [] as (EventBusyDate & { id: string })[]);
+
     return result;
+  }
+
+  async getAvailabilityWithTimeZones(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+    const calendar = await this.authedCalendar();
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId);
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return [];
+    }
+
+    async function getCalIdsWithTimeZone() {
+      const cals = await getAllCalendars(calendar, ["id", "timeZone"]);
+      if (!cals.length) return [];
+
+      if (selectedCalendarIds.length !== 0) {
+        const selectedIdsSet = new Set(selectedCalendarIds);
+        return cals
+          .filter((cal) => cal.id && selectedIdsSet.has(cal.id))
+          .map((cal) => ({ id: cal.id || "", timeZone: cal.timeZone || undefined }));
+      }
+
+      return cals
+        .filter((cal) => cal.id)
+        .map((cal) => ({
+          id: cal.id || "",
+          timeZone: cal.timeZone || "",
+        }));
+    }
+
+    try {
+      const calIdsWithTimeZone = await getCalIdsWithTimeZone();
+      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => calIdWithTimeZone.id);
+
+      const originalStartDate = dayjs(dateFrom);
+      const originalEndDate = dayjs(dateTo);
+      const diff = originalEndDate.diff(originalStartDate, "days");
+      const freeBusyData = await this.getCacheOrFetchAvailability({
+        timeMin: dateFrom,
+        timeMax: dateTo,
+        items: calIds.map((id) => ({ id })),
+      });
+      if (!freeBusyData) throw new Error("No response from google calendar");
+
+      const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
+        let timeZone = "";
+        if (freeBusy.id) {
+          const calIdWithTimeZone = calIdsWithTimeZone.find(
+            (calIdWithTimeZone) => calIdWithTimeZone.id === freeBusy.id
+          );
+          timeZone = calIdWithTimeZone?.timeZone || "";
+        }
+        return {
+          start: freeBusy.start,
+          end: freeBusy.end,
+          timeZone,
+        };
+      });
+
+      return freeBusyDataWithTimeZone;
+    } catch (error) {
+      this.log.error(
+        "There was an error getting availability from google calendar: ",
+        safeStringify({ error, selectedCalendars })
+      );
+      throw error;
+    }
   }
 
   async getAvailability(

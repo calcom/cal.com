@@ -2,7 +2,7 @@ import type { Prisma, User } from "@prisma/client";
 
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import { getFullDayBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
@@ -189,11 +189,8 @@ function getHostsWithCalibration({
           booking.userId !== userId // attendee email check is missing here in case of fixed hosts
       );
 
-      const nrOfHostsCreatedBefore =
-        hosts.filter((host) => host.createdAt.getTime() <= oooEntry.start.getTime()).length || 1;
-
       // - 1 because the we need to exclude the current user
-      calibration += bookingsInTimeframe.length / (nrOfHostsCreatedBefore - 1);
+      calibration += bookingsInTimeframe.length / (hosts.length - 1);
     });
 
     oooCalibration.set(userId, calibration);
@@ -218,6 +215,7 @@ function getHostsWithCalibration({
     );
     // Map hosts with their respective calibration values
   }
+
   return hosts.map((host) => ({
     ...host,
     calibration:
@@ -340,10 +338,14 @@ function filterUsersBasedOnWeights<
       })
       .map((user) => user.id)
   );
+  console.log(`maxShortfall ${JSON.stringify(maxShortfall)}`);
+
+  console.log(`availableUsers ${JSON.stringify(availableUsers)}`);
 
   const remainingUsersAfterWeightFilter = availableUsers.filter((user) =>
     userIdsWithMaxShortfallAndWeight.has(user.id)
   );
+  console.log(`remainingUsersAfterWeightFilter ${JSON.stringify(availableUsers)}`);
 
   log.debug(
     "filterUsersBasedOnWeights",
@@ -386,7 +388,7 @@ async function getCurrentMonthCalendarBusyTimes(
 ): Promise<{ userId: number; busyTimes: EventBusyDate[] }[]> {
   return Promise.all(
     usersWithCredentials.map((user) =>
-      getBusyCalendarTimes(
+      getFullDayBusyCalendarTimes(
         user.credentials,
         startOfMonth.toISOString(),
         new Date().toISOString(),
