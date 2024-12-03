@@ -162,7 +162,11 @@ export class OAuthClientUsersController {
 
   @Post("/:userId/force-refresh")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Force refresh tokens" })
+  @ApiOperation({
+    summary: "Force refresh tokens",
+    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.
+    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
     @Param("userId") userId: number,
