@@ -38,7 +38,7 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
-import { CONFERENCING_APPS, GOOGLE_MEET, ZOOM, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -81,7 +81,7 @@ export class ConferencingController {
       default:
         throw new BadRequestException(
           "Invalid conferencing app, available apps are: ",
-          CONFERENCING_APPS.join(", ")
+          [GOOGLE_MEET].join(", ")
         );
     }
   }

@@ -101,6 +101,10 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
     );
   };
 
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+  };
+
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
       await router.push(`/availability/${schedule.id}`);
@@ -166,6 +170,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               description={t("default_schedules_bulk_description")}
               eventTypes={eventTypesQueryData?.eventTypes}
               isEventTypesFetching={isEventTypesFetching}
+              handleBulkEditDialogToggle={handleBulkEditDialogToggle}
             />
           )}
         </>

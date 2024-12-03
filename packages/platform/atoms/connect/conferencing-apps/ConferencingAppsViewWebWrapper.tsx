@@ -99,6 +99,14 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
+  const handleConnectDisconnectIntegrationMenuToggle = () => {
+    utils.viewer.integrations.invalidate();
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+  };
+
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,
     appLink,
@@ -186,6 +194,8 @@ export const ConferencingAppsViewWebWrapper = ({
                   isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
                   eventTypes={eventTypesQueryData?.eventTypes}
                   isEventTypesFetching={isEventTypesFetching}
+                  handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+                  handleBulkEditDialogToggle={handleBulkEditDialogToggle}
                 />
               );
             }}

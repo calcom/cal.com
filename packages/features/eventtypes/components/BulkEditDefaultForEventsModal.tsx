@@ -24,6 +24,7 @@ export function BulkEditDefaultForEventsModal({
   description: string;
   isEventTypesFetching?: boolean;
   eventTypes?: EventTypes;
+  handleBulkEditDialogToggle: () => void;
 }) {
   const { t } = useLocale();
   // const utils = trpc.useUtils();
@@ -89,7 +90,7 @@ export function BulkEditDefaultForEventsModal({
           <DialogFooter showDivider className="mt-10">
             <DialogClose
               onClick={() => {
-                // utils.viewer.getUsersDefaultConferencingApp.invalidate();
+                props.handleBulkEditDialogToggle();
               }}
             />
             <Button type="submit" color="primary" loading={props.isPending} disabled={isButtonDisabled}>

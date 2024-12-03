@@ -1,11 +1,13 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useReducer } from "react";
 
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { GOOGLE_MEET, ZOOM } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import {
@@ -24,10 +26,16 @@ import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
-import { useAtomsGetInstalledConferencingApps } from "./hooks/useAtomsGetInstalledConferencingApps";
+import {
+  useAtomsGetInstalledConferencingApps,
+  QUERY_KEY as atomsConferencingAppsQueryKey,
+} from "./hooks/useAtomsGetInstalledConferencingApps";
 import { useConnect } from "./hooks/useConnect";
 import { useDeleteCredential } from "./hooks/useDeleteCredential";
-import { useGetDefaultConferencingApp } from "./hooks/useGetDefaultConferencingApp";
+import {
+  useGetDefaultConferencingApp,
+  QUERY_KEY as defaultConferencingAppQueryKey,
+} from "./hooks/useGetDefaultConferencingApp";
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
 
 type ConferencingAppsViewPlatformWrapperProps = {
@@ -70,7 +78,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   disableToasts = false,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
-  // const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
@@ -104,7 +112,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       handleModelClose();
-      // utils.viewer.integrations.invalidate();
+      queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
       // utils.viewer.connectedCalendars.invalidate();
     },
     onError: () => {
@@ -113,23 +121,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
     },
   });
 
-  const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
-    onSuccess: () => {
-      return;
-    },
-    onError: () => {
-      return;
-    },
-  });
+  const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({});
 
-  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({
-    onSuccess: () => {
-      return;
-    },
-    onError: () => {
-      return;
-    },
-  });
+  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({});
 
   const handleRemoveApp = ({ app }: RemoveAppParams) => {
     !!app && deleteCredentialMutation.mutate(app);
@@ -143,7 +137,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     updateDefaultAppMutation.mutate(appSlug, {
       onSuccess: () => {
         showToast("Default app updated successfully", "success");
-        // utils.viewer.getUsersDefaultConferencingApp.invalidate();
+        queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
         onSuccessCallback();
       },
       onError: (error) => {
@@ -156,14 +150,31 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateEventTypesToDefaultLocation.mutate(eventTypeIds, {
       onSuccess: () => {
-        // utils.viewer.getUsersDefaultConferencingApp.invalidate();
+        queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
         callback();
       },
     });
   };
+  const handleConnectDisconnectIntegrationMenuToggle = () => {
+    queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
+  };
 
-  const { connect } = useConnect();
-  const AddConferencingButtonPlatform = () => {
+  const handleBulkEditDialogToggle = () => {
+    queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
+  };
+
+  const { connect } = useConnect({
+    onSuccess: () => {
+      showToast("app installed successfully", "success");
+      queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
+      showToast(`Error: unable to install app`, "error");
+    },
+  });
+
+  const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
@@ -172,21 +183,20 @@ export const ConferencingAppsViewPlatformWrapper = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" className="disabled:opacity-40">
-              {t("google meet")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" className="disabled:opacity-40" onClick={() => connect()}>
-              {t("zoom")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" className="disabled:opacity-40">
-              {t("cal video")}
-            </DropdownItem>
-          </DropdownMenuItem>
+          {installedApps && !installedApps.find((app) => app.slug == GOOGLE_MEET) && (
+            <DropdownMenuItem>
+              <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
+                {t("google_meet")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
+          {installedApps && !installedApps?.find((app) => app.slug == ZOOM) && (
+            <DropdownMenuItem>
+              <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
+                {t("zoom")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </Dropdown>
     );
@@ -197,7 +207,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
       <SettingsHeader
         title={title}
         description={description}
-        CTA={<AddConferencingButtonPlatform />}
+        CTA={<AddConferencingButtonPlatform installedApps={installedIntegrationsQuery.data?.items} />}
         borderInShellHeader={true}>
         <>
           <div className="bg-default w-full sm:mx-0 xl:mt-0">
@@ -213,14 +223,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
                         category: t("conferencing").toLowerCase(),
                       })}
                       description={t("no_category_apps_description_conferencing")}
-                      buttonRaw={
-                        <Button
-                          color="secondary"
-                          data-testid="connect-conferencing-apps"
-                          href="/apps/categories/conferencing">
-                          {t("connect_conference_apps")}
-                        </Button>
-                      }
+                      buttonRaw={<AddConferencingButtonPlatform installedApps={data?.items} />}
                     />
                   );
                 }
@@ -236,6 +239,10 @@ export const ConferencingAppsViewPlatformWrapper = ({
                     isBulkUpdateDefaultLocationPending={bulkUpdateEventTypesToDefaultLocation?.isPending}
                     eventTypes={eventTypesQuery?.eventTypes}
                     isEventTypesFetching={isEventTypesFetching}
+                    handleConnectDisconnectIntegrationMenuToggle={
+                      handleConnectDisconnectIntegrationMenuToggle
+                    }
+                    handleBulkEditDialogToggle={handleBulkEditDialogToggle}
                   />
                 );
               }}

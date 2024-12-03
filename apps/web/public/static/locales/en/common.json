@@ -2814,5 +2814,7 @@
   "rr_distribution_method_balanced_description": "We will monitor how many bookings have been made with each host and compare this with others, disabling some hosts that are too far ahead so bookings are evenly distributed.",
   "exclude_emails_that_contain" : "Exclude emails that contain ...",
   "exclude_emails_match_found_error_message" : "Please enter a valid work email address",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -68,6 +68,10 @@ export const AvailabilitySettingsWebWrapper = ({
     );
   };
 
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+  };
+
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
@@ -147,6 +151,7 @@ export const AvailabilitySettingsWebWrapper = ({
         isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
         eventTypes: eventTypesQueryData?.eventTypes,
         isEventTypesFetching,
+        handleBulkEditDialogToggle: handleBulkEditDialogToggle,
       }}
     />
   );

@@ -41,6 +41,8 @@ interface AppListProps {
   isBulkUpdateDefaultLocationPending: boolean;
   eventTypes?: EventTypes;
   isEventTypesFetching?: boolean;
+  handleConnectDisconnectIntegrationMenuToggle: () => void;
+  handleBulkEditDialogToggle: () => void;
 }
 
 export const AppList = ({
@@ -54,12 +56,13 @@ export const AppList = ({
   isBulkUpdateDefaultLocationPending,
   eventTypes,
   isEventTypesFetching,
+  handleConnectDisconnectIntegrationMenuToggle,
+  handleBulkEditDialogToggle,
 }: AppListProps) => {
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
-
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
     showToast("Default app updated successfully", "success");
@@ -128,6 +131,9 @@ export const AppList = ({
                     invalidCredentialIds={item.invalidCredentialIds}
                     handleDisconnect={handleDisconnect}
                     teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
+                    handleConnectDisconnectIntegrationMenuToggle={
+                      handleConnectDisconnectIntegrationMenuToggle
+                    }
                   />
                 </DropdownMenuContent>
               </Dropdown>
@@ -196,6 +202,7 @@ export const AppList = ({
           description={t("default_conferencing_bulk_description")}
           eventTypes={eventTypes}
           isEventTypesFetching={isEventTypesFetching}
+          handleBulkEditDialogToggle={handleBulkEditDialogToggle}
         />
       )}
     </>
@@ -211,14 +218,10 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   teamId?: number;
   app: App["slug"];
   handleDisconnect: HandleDisconnect;
+  handleConnectDisconnectIntegrationMenuToggle: () => void;
 }) {
   const { type, credentialId, isGlobal, installed, handleDisconnect, teamId, app } = props;
   const { t } = useLocale();
-
-  // const utils = trpc.useUtils();
-  const handleOpenChange = () => {
-    // utils.viewer.integrations.invalidate();
-  };
 
   if (credentialId || type === "stripe_payment" || isGlobal) {
     return (
@@ -250,7 +253,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           {t("install")}
         </Button>
       )}
-      onChanged={handleOpenChange}
+      onChanged={props.handleConnectDisconnectIntegrationMenuToggle}
     />
   );
 }

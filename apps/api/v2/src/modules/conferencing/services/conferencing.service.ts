@@ -4,7 +4,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { CONFERENCING_APPS } from "@calcom/platform-constants";
+import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
 import { userMetadata } from "@calcom/platform-libraries";
 import { handleDeleteCredential } from "@calcom/platform-libraries-1.2.3";
 
@@ -32,6 +32,7 @@ export class ConferencingService {
       throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
     }
     const credential = await this.conferencingRepository.findConferencingApp(userId, app);
+
     if (!credential) {
       throw new BadRequestException(`${app} not connected.`);
     }
@@ -45,7 +46,10 @@ export class ConferencingService {
   }
 
   async setDefaultConferencingApp(userId: number, app: string) {
-    await this.checkAppIsValidAndConnected(userId, app);
+    // cal-video is global, so we can skip this check
+    if (app !== CAL_VIDEO) {
+      await this.checkAppIsValidAndConnected(userId, app);
+    }
     const user = await this.usersRepository.setDefaultConferencingApp(userId, app);
     const metadata = user.metadata as { defaultConferencingApp?: { appSlug?: string } };
     if (metadata?.defaultConferencingApp?.appSlug !== app) {

@@ -92,6 +92,14 @@ const IntegrationsContainer = ({
     );
   };
 
+  const handleConnectDisconnectIntegrationMenuToggle = () => {
+    utils.viewer.integrations.invalidate();
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+  };
+
   // TODO: Refactor and reuse getAppCategories?
   const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
     calendar: "calendar",
@@ -159,6 +167,8 @@ const IntegrationsContainer = ({
               isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
               eventTypes={eventTypesQueryData?.eventTypes}
               isEventTypesFetching={isEventTypesFetching}
+              handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+              handleBulkEditDialogToggle={handleBulkEditDialogToggle}
             />
           </div>
         );
