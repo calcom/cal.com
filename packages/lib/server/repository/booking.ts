@@ -227,7 +227,6 @@ export class BookingRepository {
         }
       });
     }
-    console.log(`queueBookings ${JSON.stringify(queueBookings.map((booking) => booking.id))}`);
     return queueBookings;
   }
 
