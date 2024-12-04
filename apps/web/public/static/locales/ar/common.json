@@ -2817,5 +2817,11 @@
   "rr_distribution_method_balanced_description": "سنراقب عدد الحجوزات التي تمت مع كل مضيف ونقارنها مع الآخرين، مع تعطيل بعض المضيفين الذين تجاوزوا الحد بكثير لضمان توزيع الحجوزات بشكل متساوٍ.",
   "exclude_emails_that_contain": "استبعاد رسائل البريد الإلكتروني التي تحتوي على ...",
   "exclude_emails_match_found_error_message": "يرجى إدخال عنوان بريد إلكتروني صالح للعمل",
+  "disable_org_url_label": "تعطيل الملف التعريفي العام للمؤسسة وإعادة التوجيه",
+  "disable_org_url_description": "إعادة توجيه {{orgSlug}}.cal.com إلى {{destination}}",
+  "single_select": "اختيار فردي",
+  "multi_select": "اختيار متعدد",
+  "group_meeting": "اجتماع جماعي",
+  "salesforce_ignore_guests": "عدم إنشاء سجلات جديدة للضيوف المضافين إلى الحجز",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

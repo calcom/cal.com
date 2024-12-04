@@ -2817,5 +2817,11 @@
   "rr_distribution_method_balanced_description": "各ホストの予約数を監視し、他のホストと比較して予約数が多すぎるホストを一時的に無効にすることで、予約を均等に配分します。",
   "exclude_emails_that_contain": "...を含むメールアドレスを除外",
   "exclude_emails_match_found_error_message": "有効な勤務用メールアドレスを入力してください",
+  "disable_org_url_label": "組織の公開プロフィールを無効にしてリダイレクト",
+  "disable_org_url_description": "{{orgSlug}}.cal.comを{{destination}}にリダイレクトします",
+  "single_select": "単一選択",
+  "multi_select": "複数選択",
+  "group_meeting": "グループミーティング",
+  "salesforce_ignore_guests": "予約に追加されたゲストの新規レコードを作成しない",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
