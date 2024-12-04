@@ -2817,5 +2817,11 @@
   "rr_distribution_method_balanced_description": "Monitoreamos cuántas reservas se han realizado con cada anfitrión y las comparamos con otros, deshabilitando algunos anfitriones que están muy adelantados para que las reservas se distribuyan de manera uniforme.",
   "exclude_emails_that_contain": "Excluir correos electrónicos que contengan ...",
   "exclude_emails_match_found_error_message": "Por favor, ingresa una dirección de correo electrónico laboral válida",
+  "disable_org_url_label": "Deshabilitar perfil público de la organización y redireccionar",
+  "disable_org_url_description": "Redirecciona {{orgSlug}}.cal.com a {{destination}}",
+  "single_select": "Selección única",
+  "multi_select": "Selección múltiple",
+  "group_meeting": "Reunión grupal",
+  "salesforce_ignore_guests": "No crear nuevos registros para invitados agregados a la reserva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
