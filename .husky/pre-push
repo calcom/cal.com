@@ -15,5 +15,5 @@ if ! git diff --cached --quiet; then
   exit 1
 fi
 
-# Restore stashed changes if nothing went wrong
+# Restore stashed changes if nothing went wrong. Testing commit
 git stash pop -q
