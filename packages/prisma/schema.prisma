@@ -357,6 +357,8 @@ model User {
   reassignedBookings         Booking[]                    @relation("reassignByUser")
   createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
+  createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
+  updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
 
   @@unique([email])
   @@unique([email, username])
@@ -1659,4 +1661,27 @@ model EventTypeTranslation {
   @@unique([eventTypeId, field, targetLocale])
   @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@index([eventTypeId, field, targetLocale])
+}
+
+enum WatchlistType {
+  EMAIL
+  DOMAIN
+  USERNAME
+}
+
+model Watchlist {
+  id          String        @id @unique @default(cuid())
+  type        WatchlistType
+  // The identifier of the Watchlisted entity (email or domain)
+  value       String
+  description String?
+  createdAt   DateTime      @default(now())
+  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdById Int
+  updatedAt   DateTime      @updatedAt
+  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedById Int?
+
+  @@unique([type, value])
+  @@index([type, value])
 }
