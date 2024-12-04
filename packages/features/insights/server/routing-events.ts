@@ -247,6 +247,9 @@ class RoutingEventsInsights {
             user: {
               select: { id: true, name: true, email: true, avatarUrl: true },
             },
+            assignmentReason: {
+              select: { reasonString: true },
+            },
           },
         },
         createdAt: true,
@@ -584,6 +587,11 @@ class RoutingEventsInsights {
                 email: true,
               },
             },
+            assignmentReason: {
+              select: {
+                reasonString: true,
+              },
+            },
           },
         },
       },
@@ -612,6 +620,7 @@ class RoutingEventsInsights {
         "Attendee Name": response.routedToBooking?.attendees[0]?.name || "",
         "Attendee Email": response.routedToBooking?.attendees[0]?.email || "",
         "Attendee Timezone": response.routedToBooking?.attendees[0]?.timeZone || "",
+        "Assignment Reason": response.routedToBooking?.assignmentReason[0].reasonString || "",
         "Routed To Name": response.routedToBooking?.user?.name || "",
         "Routed To Email": response.routedToBooking?.user?.email || "",
       };
