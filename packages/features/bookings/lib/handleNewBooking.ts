@@ -1888,7 +1888,8 @@ async function handler(
       workflows,
       !isConfirmedByDefault,
       !!eventType.owner?.hideBranding,
-      evt.attendeeSeatId
+      evt.attendeeSeatId,
+      noEmail && Boolean(platformClientId)
     );
   }
 
