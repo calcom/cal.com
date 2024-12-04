@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "username": { "type": "string" },
+    "email": { "type": "string", "format": "email" },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "organizationId": { "type": "integer" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" }
+        },
+        "required": ["organizationId", "name", "slug"]
+      }
+    }
+  },
+  "required": ["id", "username", "email", "profiles"]
+}
