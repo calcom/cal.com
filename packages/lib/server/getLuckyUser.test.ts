@@ -46,6 +46,8 @@ it("can find lucky user with maximize availability", async () => {
       ],
     }),
   ];
+
+  CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
   // TODO: we may be able to use native prisma generics somehow?
@@ -97,6 +99,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     }),
   ];
 
+  CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
   // TODO: we may be able to use native prisma generics somehow?
@@ -275,6 +278,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -367,6 +371,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -464,6 +469,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -551,10 +557,6 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    const middleOfMonth = new Date(
-      Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 14, 12, 0, 0)
-    );
-
     const allRRHosts = [
       {
         user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
@@ -567,6 +569,8 @@ describe("maximize availability and weights", () => {
         createdAt: new Date(0),
       },
     ];
+
+    CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
       {
@@ -614,7 +618,7 @@ describe("maximize availability and weights", () => {
     ).resolves.toStrictEqual(users[1]);
   });
 
-  it("applies calibration when user has full day calendar events this month", async () => {
+  it("applies calibration when user had full day calendar events this month", async () => {
     const users: GetLuckyUserAvailableUsersType = [
       buildUser({
         id: 1,
@@ -643,10 +647,6 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    const middleOfMonth = new Date(
-      Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 14, 12, 0, 0)
-    );
-
     const allRRHosts = [
       {
         user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
@@ -660,11 +660,12 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes
+    CalendarManagerMock.getFullDayBusyCalendarTimes
       .mockResolvedValueOnce([
         {
-          start: dayjs().startOf("month").toDate(),
-          end: dayjs().startOf("month").add(1, "day").toDate(),
+          start: dayjs().utc().startOf("month").toDate(),
+          end: dayjs().utc().startOf("month").add(3, "day").toDate(),
+          timeZone: "UTC",
         },
       ])
       .mockResolvedValue([]);
@@ -755,6 +756,7 @@ describe("maximize availability and weights", () => {
       },
     ];
 
+    CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     // TODO: we may be able to use native prisma generics somehow?
@@ -1069,6 +1071,8 @@ describe("attribute weights and virtual queues", () => {
       },
       chosenRouteId: routeId,
     };
+
+    CalendarManagerMock.getFullDayBusyCalendarTimes.mockResolvedValue([]);
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     prismaMock.user.findMany.mockResolvedValue(users);

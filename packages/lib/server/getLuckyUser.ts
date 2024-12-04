@@ -3,6 +3,7 @@ import type { Prisma, User } from "@prisma/client";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { getFullDayBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
@@ -676,7 +677,7 @@ async function fetchAllDataNeededForCalculations<
     end: string | Date;
     timeZone: string;
   }) {
-    const timezoneOffset = new Date(busyTime.start).getTimezoneOffset() * 60000;
+    const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
     let start = new Date(new Date(busyTime.start).getTime() - timezoneOffset);
     const end = new Date(new Date(busyTime.end).getTime() - timezoneOffset);
 
@@ -694,7 +695,6 @@ async function fetchAllDataNeededForCalculations<
       .filter((busyTime) => {
         // make sure start date and end date is converted to 00:00 for full day busy events
         const { start, end } = adjustStartAndEndDateToTimeZone(busyTime);
-
         return end.getTime() < new Date().getTime() && isFullDayEvent(start, end);
       })
       .map((busyTime) => adjustStartAndEndDateToTimeZone(busyTime));
