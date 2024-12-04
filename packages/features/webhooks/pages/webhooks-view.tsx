@@ -15,18 +15,9 @@ import { Avatar, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@cal
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
-const SkeletonLoader = ({
-  title,
-  description,
-  borderInShellHeader,
-}: {
-  title: string;
-  description: string;
-  borderInShellHeader: boolean;
-}) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={borderInShellHeader} />
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -35,7 +26,7 @@ const SkeletonLoader = ({
   );
 };
 
-const WebhooksView = () => {
+export const WebhooksView = () => {
   const { t } = useLocale();
   const session = useSession();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
@@ -45,55 +36,19 @@ const WebhooksView = () => {
   });
 
   if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
-    );
+    return <SkeletonLoader />;
   }
 
   return (
-    <>
+    <SettingsHeader
+      title={t("webhooks")}
+      description={t("add_webhook_description", { appName: APP_NAME })}
+      CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
+      borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
       <div>
         <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
       </div>
-    </>
-  );
-};
-
-export const WebhooksViewAppDir = () => {
-  const { t } = useLocale();
-  const session = useSession();
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
-  const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    enabled: session.status === "authenticated",
-  });
-
-  if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
-    );
-  }
-
-  return (
-    <>
-      <SettingsHeader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : <></>}
-        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
-        <div>
-          <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
-        </div>
-      </SettingsHeader>
-    </>
+    </SettingsHeader>
   );
 };
 

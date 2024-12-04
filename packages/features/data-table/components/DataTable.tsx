@@ -4,7 +4,9 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo } from "react";
+// eslint-disable-next-line no-restricted-imports
+import kebabCase from "lodash/kebabCase";
+import { useMemo, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
@@ -14,7 +16,7 @@ export interface DataTableProps<TData, TValue> {
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
+  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
@@ -45,16 +47,32 @@ export function DataTable<TData, TValue>({
     overscan: 10,
   });
 
+  useEffect(() => {
+    if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+      const target = tableContainerRef.current;
+      // Right after the last row is rendered, tableContainer's scrollHeight is
+      // temporarily larger than the actual height of the table, so we need to
+      // wait for a short time before calling onScroll to ensure the scrollHeight
+      // is correct.
+      setTimeout(() => {
+        onScroll?.({ target });
+      }, 100);
+    }
+  }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
+
   const virtualRows = rowVirtualizer.getVirtualItems();
 
   const columnSizeVars = useMemo(() => {
     const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: number } = {};
+    const colSizes: { [key: string]: string } = {};
     for (let i = 0; i < headers.length; i++) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const header = headers[i]!;
-      colSizes[`--header-${header.id}-size`] = header.getSize();
-      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+      const isAutoWidth = header.column.columnDef.meta?.autoWidth;
+      colSizes[`--header-${kebabCase(header.id)}-size`] = isAutoWidth ? "auto" : `${header.getSize()}px`;
+      colSizes[`--col-${kebabCase(header.column.id)}-size`] = isAutoWidth
+        ? "auto"
+        : `${header.column.getSize()}px`;
     }
     return colSizes;
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
@@ -89,12 +107,12 @@ export function DataTable<TData, TValue>({
                       style={{
                         ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                         ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                        width: `var(--header-${kebabCase(header?.id)}-size)`,
                       }}
                       className={classNames(
                         "flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "sticky top-0 z-20"
+                        meta?.sticky && "bg-subtle sticky top-0 z-20"
                       )}>
                       <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
@@ -149,10 +167,10 @@ export function DataTable<TData, TValue>({
                           style={{
                             ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                             ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                            width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                           }}
                           className={classNames(
-                            "flex shrink-0 items-center overflow-auto",
+                            "flex shrink-0 items-center overflow-hidden",
                             variant === "compact" && "p-1.5",
                             meta?.sticky && "group-hover:bg-muted bg-default sticky"
                           )}>

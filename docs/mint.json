@@ -199,8 +199,16 @@
             "platform/atoms/payment-form"
           ]
         },
+        {
+          "group": "Guides",
+          "icon": "book",
+          "pages": [
+            "platform/guides/replacing-toasts",
+            "platform/guides/booking-fields",
+            "platform/guides/booking-redirects"
+          ]
+        },
         "platform/quickstart",
-        "platform/booking-redirects",
         "platform/faq"
       ]
     },

@@ -28,7 +28,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
@@ -49,6 +49,7 @@ export const roundRobinManualReassignment = async ({
   reassignReason,
   reassignedById,
   emailsEnabled = true,
+  platformClientParams,
 }: {
   bookingId: number;
   newUserId: number;
@@ -56,6 +57,7 @@ export const roundRobinManualReassignment = async ({
   reassignReason?: string;
   reassignedById: number;
   emailsEnabled?: boolean;
+  platformClientParams?: PlatformClientParams;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -264,6 +266,7 @@ export const roundRobinManualReassignment = async ({
       booking,
     }),
     location: bookingLocation,
+    ...(platformClientParams ? platformClientParams : {}),
   };
 
   const credentials = await prisma.credential.findMany({
