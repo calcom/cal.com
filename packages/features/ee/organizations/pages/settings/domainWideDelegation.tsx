@@ -312,7 +312,7 @@ function DomainWideDelegationList() {
   const { data: workspacePlatforms, isLoading: isLoadingWorkspacePlatforms } =
     trpc.viewer.domainWideDelegation.listWorkspacePlatforms.useQuery();
 
-  const enabledWorkspacePlatforms = workspacePlatforms?.filter((platform) => platform.enabled);
+  const enabledWorkspacePlatforms = workspacePlatforms?.filter((platform) => platform.enabled) || [];
 
   const onEditClick = (delegation: DelegationItemProps["delegation"]) => {
     setCreateEditDialog({ isOpen: true, delegation });
