@@ -233,7 +233,7 @@ function DataTableBody<TData>({
                     style={{
                       ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
                       ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                      width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                      width: `calc(var(--col-${cell.column.id}-size))`,
                     }}
                     data-sticky={Boolean(meta?.sticky)}
                     className={classNames(

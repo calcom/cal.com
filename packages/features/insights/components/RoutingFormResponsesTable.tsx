@@ -386,7 +386,6 @@ export function RoutingFormResponsesTable({
   const table = useReactTable<RoutingFormTableRow>({
     data: processedData,
     columns,
-    columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),

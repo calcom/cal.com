@@ -50,12 +50,10 @@ export function usePersistentColumnResizing<TData>({ table, name }: UsePersisten
       ...old,
       columnSizing: newColumnSizing,
     }));
-  }, [name, table]);
-
-  useEffect(() => {
     table.setOptions((prev) => ({
       ...prev,
+      columnResizeMode: "onChange",
       onColumnSizingChange,
     }));
-  }, [table, onColumnSizingChange]);
+  }, [name, table, onColumnSizingChange]);
 }
