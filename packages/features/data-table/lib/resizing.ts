@@ -28,19 +28,22 @@ function saveColumnSizing(name: string, columnSizing: ColumnSizingState) {
 const debouncedSaveColumnSizing = debounce(saveColumnSizing, 1000);
 
 export function usePersistentColumnResizing<TData>({ table, name }: UsePersistentColumnResizingProps<TData>) {
-  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+  const [_, setColumnSizing] = useState<ColumnSizingState>({});
 
   const onColumnSizingChange = useCallback(
     (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
-      const newColumnSizing = typeof updater === "function" ? updater(columnSizing) : updater;
-      debouncedSaveColumnSizing(name, newColumnSizing);
-      setColumnSizing(newColumnSizing);
-      table.setState((old) => ({
-        ...old,
-        columnSizing: newColumnSizing,
-      }));
+      table.setState((oldTableState) => {
+        const newColumnSizing = typeof updater === "function" ? updater(oldTableState.columnSizing) : updater;
+        debouncedSaveColumnSizing(name, newColumnSizing);
+        setColumnSizing(newColumnSizing);
+
+        return {
+          ...oldTableState,
+          columnSizing: newColumnSizing,
+        };
+      });
     },
-    [name, columnSizing, table]
+    [name, table]
   );
 
   useEffect(() => {
