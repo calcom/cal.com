@@ -240,7 +240,6 @@ function DataTableBody<TData>({
                       ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
                       width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                     }}
-                    data-sticky={Boolean(meta?.sticky)}
                     className={classNames(
                       "flex shrink-0 items-center overflow-hidden",
                       variant === "compact" && "p-1.5",
