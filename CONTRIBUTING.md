@@ -182,7 +182,6 @@ git checkout HEAD~1 yarn.lock
 git commit -m "Revert yarn.lock changes"
 ```
 
-_NB_: You may have to bypass the pre-commit hook with by appending `--no-verify` to the git commit
 If you've pushed the commit with the `yarn.lock`:
 
 1.  Correct the commit locally using the above method.
