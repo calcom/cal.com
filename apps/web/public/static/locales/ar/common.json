@@ -2822,5 +2822,6 @@
   "single_select": "اختيار فردي",
   "multi_select": "اختيار متعدد",
   "group_meeting": "اجتماع جماعي",
+  "salesforce_ignore_guests": "عدم إنشاء سجلات جديدة للضيوف المضافين إلى الحجز",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2822,5 +2822,6 @@
   "single_select": "Egyszeres kiválasztás",
   "multi_select": "Többszörös kiválasztás",
   "group_meeting": "Csoportos megbeszélés",
+  "salesforce_ignore_guests": "Ne hozzon létre új rekordokat a foglaláshoz hozzáadott vendégek számára",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

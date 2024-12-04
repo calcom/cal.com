@@ -2822,5 +2822,6 @@
   "single_select": "ជ្រើសរើសតែមួយ",
   "multi_select": "ជ្រើសរើសច្រើន",
   "group_meeting": "ការប្រជុំក្រុម",
+  "salesforce_ignore_guests": "កុំបង្កើតកំណត់ត្រាថ្មីសម្រាប់ភ្ញៀវដែលបានបន្ថែមទៅក្នុងការកក់",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
