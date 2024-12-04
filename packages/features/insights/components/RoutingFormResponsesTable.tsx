@@ -378,12 +378,17 @@ export function RoutingFormResponsesTable({
             filter: isTextOrEmail ? { type: "text" } : { type: "select" },
           },
           filterFn: (row, id, filterValue: FilterValue) => {
-            return dataTableFilter(
-              Array.isArray(row.original[id])
+            let cellValue: unknown;
+
+            if (Array.isArray(fieldHeader.options)) {
+              cellValue = Array.isArray(row.original[id])
                 ? row.original[id].map((item: FieldCellValue) => item.value)
-                : row.original[id].value,
-              filterValue
-            );
+                : row.original[id].value;
+            } else {
+              cellValue = row.original[id];
+            }
+
+            return dataTableFilter(cellValue, filterValue);
           },
         });
       }) ?? []),
