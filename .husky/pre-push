@@ -12,7 +12,7 @@ yarn app-store:build && git add packages/app-store/*.generated.*
 git stash -q --keep-index
 
 # Check for new file changes after running the above commands
-if ! git diff --cached --quiet; then
+if ! git diff --cached; then
   echo "Error: The build process modified files. Please commit the changes and try again."
   git stash pop -q
   exit 1
