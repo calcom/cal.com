@@ -1,0 +1,19 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+set -e
+
+yarn lint-staged
+yarn app-store:build && git add packages/app-store/*.generated.*
+
+git stash -q --keep-index
+
+# Check for new file changes after running the above commands
+if ! git diff --cached --quiet; then
+  echo "Error: The build process modified files. Please commit the changes and try again."
+  git stash pop -q
+  exit 1
+fi
+
+# Restore stashed changes if nothing went wrong
+git stash pop -q
