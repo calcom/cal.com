@@ -18,6 +18,7 @@ export const GOOGLE_MEET_TYPE = "google_video";
 export const GOOGLE_MEET_ID = "google-meet";
 
 export const ZOOM = "zoom";
+export const ZOOM_TYPE = "zoom_video";
 
 export const CAL_VIDEO = "daily-video";
 

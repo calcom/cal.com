@@ -6,6 +6,8 @@ import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { ZOOM, ZOOM_TYPE } from "@calcom/platform-constants";
+
 import stringify = require("qs-stringify");
 
 const zoomAppKeysSchema = z.object({
@@ -21,7 +23,7 @@ export class ZoomVideoService {
   constructor(private readonly config: ConfigService, private readonly appsRepository: AppsRepository) {}
 
   async getZoomAppKeys() {
-    const app = await this.appsRepository.getAppBySlug("zoom");
+    const app = await this.appsRepository.getAppBySlug(ZOOM);
 
     const { client_id, client_secret } = zoomAppKeysSchema.parse(app?.keys);
 
@@ -89,9 +91,9 @@ export class ZoomVideoService {
       throw new UnauthorizedException("Invalid Access token.");
     }
     const existingCredentialZoomVideo = await this.appsRepository.findAppCredintial({
-      type: "zoom_video",
+      type: ZOOM_TYPE,
       userId,
-      appId: "zoom",
+      appId: ZOOM,
     });
 
     const credentialIdsToDelete = existingCredentialZoomVideo.map((item) => item.id);
@@ -100,10 +102,10 @@ export class ZoomVideoService {
     }
 
     await this.appsRepository.createAppCredential(
-      "zoom_video",
+      ZOOM_TYPE,
       responseBody as unknown as Prisma.InputJsonObject,
       userId,
-      "zoom"
+      ZOOM
     );
 
     return { url: state.returnTo ?? "" };

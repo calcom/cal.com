@@ -7,7 +7,7 @@ import type { ApiResponse } from "@calcom/platform-types";
 import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
-export const QUERY_KEY = "get-default-conferencing-app";
+export const QUERY_KEY = "use-get-default-conferencing-app";
 
 type ResponseDataType =
   | {

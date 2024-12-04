@@ -22,6 +22,7 @@ type UpdateUsersDefaultConferencingAppParams = {
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };
+
 type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 

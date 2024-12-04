@@ -27,7 +27,6 @@ export function BulkEditDefaultForEventsModal({
   handleBulkEditDialogToggle: () => void;
 }) {
   const { t } = useLocale();
-  // const utils = trpc.useUtils();
 
   const form = useForm({
     resolver: zodResolver(BulkUpdateEventSchema),
