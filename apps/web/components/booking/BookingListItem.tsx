@@ -212,8 +212,9 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    ...(!isBookingInPast
-      ? [
+    ...(isBookingInPast
+      ? []
+      : [
           {
             id: "reschedule",
             icon: "clock" as const,
@@ -231,8 +232,7 @@ function BookingListItem(booking: BookingItemProps) {
               setIsOpenRescheduleDialog(true);
             },
           },
-        ]
-      : []),
+        ]),
     ...(isBookingReroutable(parsedBooking)
       ? [
           {
