@@ -35,9 +35,12 @@ type CredentialForCalendarService<T> = T extends null
       } | null;
     };
 
-export async function getCredentialForCalendarService<T extends { delegatedToId: string | null } | null>(
-  credential: T
-): Promise<CredentialForCalendarService<T>> {
+/**
+ * CalendarService needs delegatedTo to have serviceAccountKey for DWD Credential. It fetches that.
+ */
+export async function getCredentialForCalendarService<
+  T extends ({ delegatedToId?: string | null } & Record<string, unknown>) | null
+>(credential: T): Promise<CredentialForCalendarService<T>> {
   // Explicitly handle null case with type assertion
   if (credential === null) return null as CredentialForCalendarService<T>;
 
@@ -73,7 +76,7 @@ export async function getCredentialForCalendarService<T extends { delegatedToId:
   } as CredentialForCalendarService<T>;
 }
 
-export const getCalendarCredentials = async (credentials: Array<CredentialPayload>) => {
+export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
@@ -101,7 +104,7 @@ export const getConnectedCalendars = async (
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
-        const domainWideDelegationCredentialId = credential.delegatedToId;
+        const domainWideDelegationCredentialId = credential.delegatedToId ?? null;
         if (!calendar) {
           return {
             integration,

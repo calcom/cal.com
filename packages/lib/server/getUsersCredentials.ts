@@ -25,7 +25,10 @@ export async function getUsersCredentials(user: User) {
       id: user.id,
     },
   });
-  return [...credentials, ...domainWideDelegationCredentials];
+  return [
+    ...credentials.map((credential) => ({ ...credential, delegatedToId: null })),
+    ...domainWideDelegationCredentials,
+  ];
 }
 
 export async function getUsersCredentialsForCalendarService(user: User) {

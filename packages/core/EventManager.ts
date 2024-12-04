@@ -57,7 +57,7 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
-const delegatedCredentialFirst = <T extends { delegatedToId: string | null }>(a: T, b: T) => {
+const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
@@ -688,12 +688,10 @@ export default class EventManager {
             : this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential && destination.credentialId) {
             // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: destination.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: destination.credentialId,
             });
+
             if (credentialFromDB && credentialFromDB.appId) {
               credential = {
                 id: credentialFromDB.id,
@@ -879,11 +877,8 @@ export default class EventManager {
           )[0];
           if (!credential) {
             // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: reference.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: reference.credentialId,
             });
             if (credentialFromDB && credentialFromDB.appId) {
               credential = {

@@ -142,6 +142,7 @@ export async function getAllDomainWideDelegationCalendarCredentialsForUser({
   const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
   return domainWideDelegationCredentials.filter((credential) => credential.type.endsWith("_calendar"));
 }
+
 export async function getAllDomainWideDelegationConferencingCredentialsForUser({
   user,
 }: {

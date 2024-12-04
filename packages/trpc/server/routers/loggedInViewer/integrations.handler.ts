@@ -7,11 +7,11 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { withDelegatedToIdNullArray } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
@@ -124,8 +124,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
     userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
-      return teamApp.credentials ? teamApp.credentials.flat() : [];
+    const teamAppCredentials = userTeams.flatMap((teamApp) => {
+      return teamApp.credentials ? withDelegatedToIdNullArray(teamApp.credentials.flat()) : [];
     });
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;

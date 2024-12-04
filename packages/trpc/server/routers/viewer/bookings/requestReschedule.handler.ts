@@ -223,9 +223,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentialsForCalendarService(user);
+  const credentialsForCalendarService = await getUsersCredentialsForCalendarService(user);
   const credentialsMap = new Map();
-  credentials.forEach((credential) => {
+  credentialsForCalendarService.forEach((credential) => {
     credentialsMap.set(credential.type, credential);
   });
   const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
@@ -239,12 +239,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
       if (bookingRef.type.endsWith("_calendar")) {
         const calendar = await getCalendar(
-          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+          credentialsForCalendarService.find((cred) => cred.id === bookingRef?.credentialId) || null
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(
-          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          credentialsForCalendarService.find((cred) => cred?.id === bookingRef?.credentialId) || null,
           bookingRef.uid
         );
       }

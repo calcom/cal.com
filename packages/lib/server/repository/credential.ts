@@ -10,38 +10,66 @@ type CredentialCreateInput = {
   appId: string;
 };
 
+// Allows us to explicitly set delegatedToId to null instead of not setting it.
+// Once every credential from Credential table has delegatedToId:null available like this, we can make delegatedToId a required field instead of optional
+// It makes us avoid a scenario where on a DWD credential we accidentally forget to set delegatedToId and think of it as non-dwd credential due to that
+export const withDelegatedToIdNull = <T extends Record<string, unknown> | null>(credential: T) => {
+  type WithDelegatedCredential = T extends null
+    ? null
+    : T & {
+        delegatedToId: null;
+      };
+
+  if (!credential) return null as WithDelegatedCredential;
+  return {
+    ...credential,
+    delegatedToId: null,
+  } as WithDelegatedCredential;
+};
+
+export const withDelegatedToIdNullArray = <T extends Record<string, unknown>>(credentials: T[]) => {
+  return credentials.map(withDelegatedToIdNull).filter((credential) => !!credential) as (T & {
+    delegatedToId: null;
+  })[];
+};
+
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
-    return await prisma.credential.create({ data: { ...data } });
+    const credential = await prisma.credential.create({ data: { ...data } });
+    return withDelegatedToIdNull(credential);
   }
   static async findByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
-    return await prisma.credential.findFirst({
+    const credential = await prisma.credential.findFirst({
       where: {
         appId,
         userId,
       },
     });
+    return withDelegatedToIdNull(credential);
   }
 
   /**
    * Doesn't retrieve key field as that has credentials
    */
   static async findFirstByIdWithUser({ id }: { id: number }) {
-    return await prisma.credential.findFirst({ where: { id }, select: safeCredentialSelect });
+    const credential = await prisma.credential.findFirst({ where: { id }, select: safeCredentialSelect });
+    return withDelegatedToIdNull(credential);
   }
 
   /**
    * Includes 'key' field which is sensitive data.
    */
   static async findFirstByIdWithKeyAndUser({ id }: { id: number }) {
-    return await prisma.credential.findFirst({
+    const credential = await prisma.credential.findFirst({
       where: { id },
       select: { ...safeCredentialSelect, key: true },
     });
+    return withDelegatedToIdNull(credential);
   }
 
   static async findFirstByUserIdAndType({ userId, type }: { userId: number; type: string }) {
-    return await prisma.credential.findFirst({ where: { userId, type } });
+    const credential = await prisma.credential.findFirst({ where: { userId, type } });
+    return withDelegatedToIdNull(credential);
   }
 
   static async deleteById({ id }: { id: number }) {
@@ -54,12 +82,9 @@ export class CredentialRepository {
       select: credentialForCalendarServiceSelect,
     });
 
-    if (!dbCredential) return null;
-
-    const credentialForCalendarService = await getCredentialForCalendarService({
-      ...dbCredential,
-      delegatedToId: null,
-    });
+    const credentialForCalendarService = await getCredentialForCalendarService(
+      withDelegatedToIdNull(dbCredential)
+    );
     return credentialForCalendarService;
   }
 }

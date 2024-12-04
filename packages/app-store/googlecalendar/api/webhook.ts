@@ -25,19 +25,16 @@ async function postHandler(req: NextApiRequest) {
       message: `No selected calendar found for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   }
-  const { credential: dbCredential } = selectedCalendar;
-  if (!dbCredential)
+  const { credential } = selectedCalendar;
+  if (!credential)
     throw new HttpError({
       statusCode: 200,
       message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
-  const { selectedCalendars } = dbCredential;
+  const { selectedCalendars } = credential;
 
-  const credential = await getCredentialForCalendarService({
-    ...dbCredential,
-    delegatedToId: null,
-  });
-  const calendar = await getCalendar(credential);
+  const credentialForCalendarService = await getCredentialForCalendarService(credential);
+  const calendar = await getCalendar(credentialForCalendarService);
   await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };
 }

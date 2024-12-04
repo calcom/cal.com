@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 
 import { OrganizationRepository } from "./organization";
@@ -121,39 +120,6 @@ export class DomainWideDelegationRepository {
 
   static async findByUser({ user }: { user: { email: string } }) {
     return await this.findUniqueByOrganizationMemberEmail({ email: user.email });
-  }
-
-  static async findByUserIncludeSensitiveServiceAccountKey({
-    user,
-  }: {
-    user: {
-      email: string;
-    };
-  }) {
-    const log = repositoryLogger.getSubLogger({ prefix: ["findByUserIncludeSensitiveServiceAccountKey"] });
-    log.debug("called with", { user });
-    const organization = await OrganizationRepository.findByMemberEmailId({
-      email: user.email,
-    });
-
-    if (!organization) {
-      log.debug("No organization found for user", safeStringify(user));
-      return null;
-    }
-
-    const emailDomain = user.email.split("@")[1];
-    log.debug("organization found", safeStringify({ organizationId: organization.id }));
-    const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
-      where: {
-        organizationId_domain: {
-          organizationId: organization.id,
-          domain: emailDomain,
-        },
-      },
-      select: domainWideDelegationSelectIncludesServiceAccountKey,
-    });
-
-    return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
   static async findAllByDomain({ domain }: { domain: string }) {

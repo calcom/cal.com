@@ -2,11 +2,10 @@ import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { OriginalRescheduledBooking } from "../../handleNewBooking/types";
@@ -24,21 +23,16 @@ const lastAttendeeDeleteBooking = async (
 
     for (const reference of originalRescheduledBooking.references) {
       if (reference.credentialId) {
-        const credential = await getCredentialForCalendarService(
-          await prisma.credential.findUnique({
-            where: {
-              id: reference.credentialId,
-            },
-            select: credentialForCalendarServiceSelect,
-          })
-        );
+        const credentialForCalendarService = await CredentialRepository.findCredentialForCalendarServiceById({
+          id: reference.credentialId,
+        });
 
-        if (credential) {
+        if (credentialForCalendarService) {
           if (reference.type.includes("_video")) {
-            integrationsToDelete.push(deleteMeeting(credential, reference.uid));
+            integrationsToDelete.push(deleteMeeting(credentialForCalendarService, reference.uid));
           }
           if (reference.type.includes("_calendar") && originalBookingEvt) {
-            const calendar = await getCalendar(credential);
+            const calendar = await getCalendar(credentialForCalendarService);
             if (calendar) {
               integrationsToDelete.push(
                 calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)

@@ -52,13 +52,16 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  * credentials, this should also get globally available apps.
  */
 function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
+  const delegatedToPayloadForNonDwdCredential = {
+    delegatedToId: null,
+    delegatedTo: null,
+  };
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
     const appCredentials = credentials
       .filter((credential) => credential.appId === appMeta.slug)
       .map((credential) => ({
         ...credential,
-        delegatedToId: null,
-        delegatedTo: null,
+        ...delegatedToPayloadForNonDwdCredential,
       }));
 
     if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
@@ -80,8 +83,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         team: {
           name: "Global",
         },
-        delegatedToId: null,
-        delegatedTo: null,
+        ...delegatedToPayloadForNonDwdCredential,
       };
       logger.debug(
         `${appMeta.type} is a global app, injecting credential`,
@@ -90,7 +92,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
       appCredentials.push(credential);
     }
 
-    /** Check if app fhas location option AND add it if user has credentials for it */
+    /** Check if app has location option AND add it if user has credentials for it */
     if (appCredentials.length > 0 && appMeta?.appData?.location) {
       locationOption = {
         value: appMeta.appData.location.type,

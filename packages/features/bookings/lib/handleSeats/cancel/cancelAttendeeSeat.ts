@@ -1,5 +1,4 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -73,22 +72,20 @@ async function cancelAttendeeSeat(
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId) {
-        const dbCredential = await CredentialRepository.findCredentialForCalendarServiceById({
+        const credentialForCalendarService = await CredentialRepository.findCredentialForCalendarServiceById({
           id: reference.credentialId,
         });
 
-        const credential = await getCredentialForCalendarService(dbCredential);
-
-        if (credential) {
+        if (credentialForCalendarService) {
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
           };
           if (reference.type.includes("_video")) {
-            integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
+            integrationsToUpdate.push(updateMeeting(credentialForCalendarService, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
-            const calendar = await getCalendar(credential);
+            const calendar = await getCalendar(credentialForCalendarService);
             if (calendar) {
               integrationsToUpdate.push(
                 calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
