@@ -20,7 +20,6 @@ import {
   DataTablePagination,
   useColumnFilters,
   useFetchMoreOnBottomReached,
-  usePersistentColumnResizing,
   textFilter,
   isTextFilterValue,
 } from "@calcom/features/data-table";
@@ -434,8 +433,6 @@ export function UserListTable() {
     },
   });
 
-  usePersistentColumnResizing({ table, name: "UserListTable" });
-
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
     tableContainerRef,
     fetchNextPage,
@@ -502,6 +499,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={{ name: "UserListTable" }}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">

@@ -4,8 +4,9 @@ import debounce from "lodash/debounce";
 import { useState, useCallback, useEffect } from "react";
 
 type UsePersistentColumnResizingProps<TData> = {
+  enabled: boolean;
   table: Table<TData>;
-  name: string;
+  name?: string;
 };
 
 function getLocalStorageKey(name: string) {
@@ -27,7 +28,11 @@ function saveColumnSizing(name: string, columnSizing: ColumnSizingState) {
 
 const debouncedSaveColumnSizing = debounce(saveColumnSizing, 1000);
 
-export function usePersistentColumnResizing<TData>({ table, name }: UsePersistentColumnResizingProps<TData>) {
+export function usePersistentColumnResizing<TData>({
+  enabled,
+  table,
+  name,
+}: UsePersistentColumnResizingProps<TData>) {
   const [_, setColumnSizing] = useState<ColumnSizingState>({});
 
   const onColumnSizingChange = useCallback(
@@ -47,6 +52,8 @@ export function usePersistentColumnResizing<TData>({ table, name }: UsePersisten
   );
 
   useEffect(() => {
+    if (!enabled || !name) return;
+
     const newColumnSizing = loadColumnSizing(name);
     setColumnSizing(newColumnSizing);
     table.setState((old) => ({
@@ -58,5 +65,5 @@ export function usePersistentColumnResizing<TData>({ table, name }: UsePersisten
       columnResizeMode: "onChange",
       onColumnSizingChange,
     }));
-  }, [name, table, onColumnSizingChange]);
+  }, [enabled, name, table, onColumnSizingChange]);
 }

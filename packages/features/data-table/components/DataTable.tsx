@@ -11,6 +11,8 @@ import { useMemo, useEffect, memo } from "react";
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
+import { usePersistentColumnResizing } from "../lib/resizing";
+
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
@@ -21,6 +23,7 @@ export interface DataTableProps<TData, TValue> {
   variant?: "default" | "compact";
   "data-testid"?: string;
   children?: React.ReactNode;
+  enableColumnResizing?: { name: string };
 }
 export function DataTable<TData, TValue>({
   table,
@@ -30,6 +33,7 @@ export function DataTable<TData, TValue>({
   onRowMouseclick,
   onScroll,
   children,
+  enableColumnResizing,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
@@ -75,6 +79,12 @@ export function DataTable<TData, TValue>({
     return colSizes;
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
+  usePersistentColumnResizing({
+    enabled: Boolean(enableColumnResizing),
+    table,
+    name: enableColumnResizing?.name,
+  });
+
   return (
     <div
       className={classNames("grid", rest.className)}
@@ -96,11 +106,11 @@ export function DataTable<TData, TValue>({
           className="grid border-0"
           style={{
             ...columnSizeVars,
-            width: table.getTotalSize(),
+            ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
           <TableHeader className="sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="flex w-full">
+              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta;
                   return (
@@ -134,7 +144,7 @@ export function DataTable<TData, TValue>({
                           />
                         )}
                       </div>
-                      {header.column.getCanResize() && (
+                      {Boolean(enableColumnResizing) && header.column.getCanResize() && (
                         <div
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
