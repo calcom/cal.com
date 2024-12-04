@@ -144,6 +144,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
+  completedOnboarding?: boolean;
 };
 
 export type InputEventType = {
@@ -810,12 +811,22 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
+type TeamCreateReturnType = Awaited<ReturnType<typeof prismock.team.create>>;
+
+function assertNonNullableSlug<T extends { slug: string | null }>(
+  org: T
+): asserts org is T & { slug: string } {
+  if (org.slug === null) {
+    throw new Error("Slug cannot be null");
+  }
+}
+
 export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}) {
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -841,7 +852,7 @@ export async function createOrganization(orgData: {
       },
     });
   }
-
+  assertNonNullableSlug(org);
   return org;
 }
 
@@ -1234,6 +1245,7 @@ export function getOrganizer({
   metadata,
   smsLockState,
   bookingLimits,
+  completedOnboarding,
 }: {
   name: string;
   email: string;
@@ -1249,6 +1261,7 @@ export function getOrganizer({
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
   bookingLimits?: IntervalLimit;
+  completedOnboarding?: boolean;
 }) {
   return {
     ...TestData.users.example,
@@ -1267,6 +1280,7 @@ export function getOrganizer({
     metadata,
     smsLockState,
     bookingLimits,
+    completedOnboarding,
   };
 }
 

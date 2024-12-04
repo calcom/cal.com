@@ -355,6 +355,10 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
+  createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
+  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
+  createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
+  updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits Json?
@@ -470,20 +474,24 @@ model Team {
 }
 
 model OrganizationSettings {
-  id                            Int        @id @default(autoincrement())
-  organization                  Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId                Int        @unique
-  isOrganizationConfigured      Boolean    @default(false)
+  id                                  Int        @id @default(autoincrement())
+  organization                        Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId                      Int        @unique
+  isOrganizationConfigured            Boolean    @default(false)
   // It decides if new organization members can be auto-accepted or not
-  isOrganizationVerified        Boolean    @default(false)
-  orgAutoAcceptEmail            String
-  lockEventTypeCreationForUsers Boolean    @default(false)
-  adminGetsNoSlotsNotification  Boolean    @default(false)
+  isOrganizationVerified              Boolean    @default(false)
+  // It is a domain e.g "acme.com". Any email with this domain might be auto-accepted
+  // Also, it is the domain to which the organization profile is redirected.
+  orgAutoAcceptEmail                  String
+  lockEventTypeCreationForUsers       Boolean    @default(false)
+  adminGetsNoSlotsNotification        Boolean    @default(false)
   // It decides if instance ADMIN has reviewed the organization or not.
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
-  isAdminReviewed               Boolean    @default(false)
-  dSyncData                     DSyncData?
-  isAdminAPIEnabled             Boolean    @default(false)
+  isAdminReviewed                     Boolean    @default(false)
+  dSyncData                           DSyncData?
+  isAdminAPIEnabled                   Boolean    @default(false)
+  allowSEOIndexing                    Boolean    @default(false)
+  orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
 }
 
 enum MembershipRole {
@@ -1635,17 +1643,47 @@ enum EventTypeAutoTranslatedField {
 
 model EventTypeTranslation {
   id             String                       @id @default(cuid())
+  uid            String?
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
   sourceLang     String
   targetLang     String
+  sourceLocale   String
+  targetLocale   String
   translatedText String                       @db.Text
   createdAt      DateTime                     @default(now())
   createdBy      Int
   updatedAt      DateTime                     @updatedAt
   updatedBy      Int?
+  creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
+  updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  @@unique([eventTypeId, field, targetLang])
-  @@index([eventTypeId, field, targetLang])
+  @@unique([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@unique([eventTypeId, field, targetLocale])
+  @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
+  @@index([eventTypeId, field, targetLocale])
+}
+
+enum WatchlistType {
+  EMAIL
+  DOMAIN
+  USERNAME
+}
+
+model Watchlist {
+  id          String        @id @unique @default(cuid())
+  type        WatchlistType
+  // The identifier of the Watchlisted entity (email or domain)
+  value       String
+  description String?
+  createdAt   DateTime      @default(now())
+  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdById Int
+  updatedAt   DateTime      @updatedAt
+  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedById Int?
+
+  @@unique([type, value])
+  @@index([type, value])
 }
