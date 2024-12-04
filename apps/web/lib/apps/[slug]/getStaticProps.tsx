@@ -32,16 +32,6 @@ export const sourceSchema = z.object({
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
 
-  // if the slug is of type routing-forms then redirect
-  if (ctx.params.slug === "routing-forms") {
-    return {
-      redirect: {
-        destination: "/routing",
-        permanent: false,
-      },
-    };
-  }
-
   const appMeta = await getAppWithMetadata({
     slug: ctx.params?.slug,
   });
