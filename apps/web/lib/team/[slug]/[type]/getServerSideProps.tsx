@@ -14,8 +14,10 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 import {
+  BookerLayouts,
   EventTypeMetaDataSchema,
   bookerLayouts as bookerLayoutsSchema,
+  bookerLayoutOptions,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 
@@ -148,6 +150,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const firstUsersMetadata = userMetadataSchema.parse(usersInOrgContext[0].metadata || {});
+  const defaultEventBookerLayouts = {
+    enabledLayouts: [...bookerLayoutOptions],
+    defaultLayout: BookerLayouts.MONTH_VIEW,
+  } as BookerLayoutSettings;
 
   return {
     props: {
@@ -179,7 +185,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             : {}),
         },
         title: eventData.title,
-        users: users.map((user) => ({
+        users: usersInOrgContext.map((user) => ({
           ...user,
           metadata: undefined,
           bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
