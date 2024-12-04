@@ -1,7 +1,9 @@
 import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
+import type { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
@@ -36,6 +38,21 @@ export type TeamMember = {
   avatar: string;
   email: string;
   defaultScheduleId: number | null;
+};
+type Webhook = {
+  id?: string;
+  userId?: number | null;
+  teamId?: number | null;
+  eventTypeId: number;
+  subscriberUrl?: string; // Optional and must be a valid URL if present
+  eventTriggers?: Array<(typeof WEBHOOK_TRIGGER_EVENTS)[keyof typeof WEBHOOK_TRIGGER_EVENTS]>; // Enum array
+  active?: boolean;
+  payloadTemplate?: string | null;
+  appId?: string | null;
+  secret?: string | null;
+  platform?: boolean;
+  time?: number | null;
+  timeUnit?: (typeof TIME_UNIT)[keyof typeof TIME_UNIT] | null; // Enum
 };
 
 type EventLocation = {
@@ -145,6 +162,7 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  webhooks?: Webhook[];
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

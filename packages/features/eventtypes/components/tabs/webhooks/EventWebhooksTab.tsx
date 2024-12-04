@@ -81,19 +81,6 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     setCreateModalOpen(false); // Close modal
   };
 
-  //get rid of edit mutation
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
-    async onSuccess() {
-      setEditModalOpen(false);
-      showToast(t("webhook_updated_successfully"), "success");
-      await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
-    },
-    onError(error) {
-      showToast(`${error.message}`, "error");
-    },
-  });
-
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
     // Check for reserved subscriber URL
     if (

@@ -29,7 +29,7 @@ export default function EventTypeWebhookListItem({
   lastItem: boolean;
   onEditWebhook: (webhook: WebhookProps) => void;
   onToggleWebhook: (updatedWebhook: WebhookProps) => void;
-  onDeleteWebhook: () => void;
+  onDeleteWebhook: (updatedWebhook: WebhookProps) => void;
 }) {
   const { t } = useLocale();
 
