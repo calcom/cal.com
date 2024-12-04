@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
@@ -42,30 +41,12 @@ function getRoute(pages: string[]) {
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
 
-const paramsSchema = z.object({
-  pages: z.array(z.string()),
-});
-
 export async function getServerSideProps(
   context: GetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<any>> {
-  const { params, req } = context;
-
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const parsedParams = paramsSchema.safeParse(params);
-  if (!parsedParams.success) {
-    return {
-      notFound: true,
-    };
-  }
-
+  const { req } = context;
   const appName = "routing-forms";
-  const pages = parsedParams.data.pages;
+  const pages = ["forms"]; // set forms page to be the default one
   const route = getRoute(pages);
 
   if (route.notFound) {
@@ -73,10 +54,6 @@ export async function getServerSideProps(
   }
 
   if (route.getServerSideProps) {
-    // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
-    // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
-    // We can write some validation logic later on that ensures that [...appPages].tsx file exists
-    params.appPages = pages.slice(1);
     const session = await getServerSession({ req });
     const user = session?.user;
     const app = await getAppWithMetadata({ slug: appName });
@@ -109,7 +86,7 @@ export async function getServerSideProps(
     return {
       props: {
         appName,
-        appUrl: "/routing",
+        appUrl: "/apps/routing-forms",
         ...result.props,
       },
     };

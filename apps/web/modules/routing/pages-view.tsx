@@ -42,7 +42,8 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
   const params = useParamsWithFallback();
-  const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
+  const defaultPage = ["forms"];
+  const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? defaultPage;
 
   const route = getRoute(pages);
 
@@ -72,8 +73,10 @@ AppPage.isBookingPage = ({ router }) => {
 
 export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { pages } = useParamsWithFallback();
-  const route = getRoute(pages as string[]);
+  const { pages: paramsPages } = useParamsWithFallback();
+  const defaultPage = ["forms"];
+  const pages = paramsPages?.length ? (paramsPages as string[]) : defaultPage;
+  const route = getRoute(pages);
 
   if (route.notFound) {
     return null;
