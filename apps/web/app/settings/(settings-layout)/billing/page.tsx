@@ -13,9 +13,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  // FIXME: Refactor me once next-auth endpoint is migrated to App Router
   const session = await getServerSessionForAppDir();
-
   const t = await getFixedT(session?.user.locale || "en");
 
   return (

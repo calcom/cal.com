@@ -22,7 +22,6 @@ checkRoute "$APP_ROUTER_AUTH_ERROR_ENABLED" app/future/auth/error
 checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
 checkRoute "$APP_ROUTER_AUTH_OAUTH2_ENABLED" app/future/auth/oauth2
 checkRoute "$APP_ROUTER_WORKFLOWS_ENABLED" app/future/workflows
-checkRoute "$APP_ROUTER_SETTINGS_TEAMS_ENABLED" app/future/settings/teams
 checkRoute "$APP_ROUTER_GETTING_STARTED_STEP_ENABLED" app/future/getting-started
 checkRoute "$APP_ROUTER_APPS_ENABLED" app/future/apps
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
