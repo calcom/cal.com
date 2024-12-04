@@ -65,6 +65,7 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -339,14 +340,10 @@ function buildTroubleshooterData({
 }
 
 async function handler(
-  req: NextApiRequest & {
-    userId?: number | undefined;
-    platformClientId?: string;
-    platformRescheduleUrl?: string;
-    platformCancelUrl?: string;
-    platformBookingUrl?: string;
-    platformBookingLocation?: string;
-  },
+  req: NextApiRequest &
+    PlatformClientParams & {
+      userId?: number | undefined;
+    },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
@@ -1911,7 +1908,8 @@ async function handler(
       workflows,
       !isConfirmedByDefault,
       !!eventType.owner?.hideBranding,
-      evt.attendeeSeatId
+      evt.attendeeSeatId,
+      noEmail && Boolean(platformClientId)
     );
   }
 

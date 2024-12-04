@@ -58,28 +58,29 @@ async function getAttributeRoutingConfig(
     return data.route.attributeRoutingConfig ?? null;
   }
   const { routingFormResponseId, eventTypeId } = data;
-  const routingFormQuery = await prisma.app_RoutingForms_Form.findFirst({
+
+  const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findFirst({
     where: {
-      responses: {
-        some: {
-          id: routingFormResponseId,
+      id: routingFormResponseId,
+    },
+    include: {
+      form: {
+        select: {
+          routes: true,
         },
       },
     },
-    select: {
-      routes: true,
-    },
   });
-  if (!routingFormQuery || !routingFormQuery?.routes) return null;
-  const parsedRoutes = routesSchema.safeParse(routingFormQuery.routes);
+
+  if (!routingFormResponseQuery || !routingFormResponseQuery?.form.routes) return null;
+  const parsedRoutes = routesSchema.safeParse(routingFormResponseQuery?.form.routes);
 
   if (!parsedRoutes.success || !parsedRoutes.data) return null;
 
   // Find the route with the attributeRoutingConfig
-  // FIXME: There could be multiple routes with same action.eventTypeId, we should actually ensure we have the chosenRouteId in here and use that route.
   const route = parsedRoutes.data.find((route) => {
     if ("action" in route) {
-      return route.action.eventTypeId === eventTypeId;
+      return route.id === routingFormResponseQuery.chosenRouteId;
     }
   });
 
