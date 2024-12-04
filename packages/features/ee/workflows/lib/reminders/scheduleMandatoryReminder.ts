@@ -16,7 +16,8 @@ export async function scheduleMandatoryReminder(
   workflows: Workflow[],
   requiresConfirmation: boolean,
   hideBranding: boolean,
-  seatReferenceUid: string | undefined
+  seatReferenceUid: string | undefined,
+  isPlatformNoEmail = false
 ) {
   try {
     const hasExistingWorkflow = workflows.some((workflow) => {
@@ -36,6 +37,8 @@ export async function scheduleMandatoryReminder(
       try {
         const filteredAttendees =
           evt.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
+
+        if (isPlatformNoEmail) return;
 
         await scheduleEmailReminder({
           evt,
