@@ -20,6 +20,7 @@ import {
   bookerLayoutOptions,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
