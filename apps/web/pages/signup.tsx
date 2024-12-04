@@ -66,7 +66,7 @@ const FEATURES = [
   },
   {
     title: "Conecte seu calendário",
-    description: "Yinflow.Life lê a disponibilidade do seu calendário Google.",
+    description: "Sincronize sua agenda Google para atualizar dias ocupados e novos eventos.",
     icon: (
       <svg width={21} height={21} viewBox="0 0 21 21" fill="none" className="!important mb-2">
         <path
@@ -81,7 +81,7 @@ const FEATURES = [
   },
   {
     title: "Defina sua disponibilidade",
-    description: "Defina os horários que você quer que estejam disponíveis para agendamentos.",
+    description: "Gerencie os dias e horários de atendimento que deseja disponibilizar na Yinflow.Life.",
     icon: (
       <svg width={21} height={20} viewBox="0 0 21 20" fill="none" className="!important mb-2">
         <path
@@ -226,15 +226,15 @@ export default function Signup({ prepopulateFormValues, orgSlug, redirectUrl }: 
                 </defs>
               </svg>
               <p className="text-[42px] font-medium leading-none text-[#114559]">
-                Crie sua conta
-                <span className="text-[42px] font-medium leading-none text-[#06C6A9]"> Yinflow.Life</span>
+                Crie sua conta no
+                <span className="text-[42px] font-medium leading-none text-[#06C6A9]"> Painel do Profissional</span>
               </p>
-              <p className="mt-6 text-lg font-normal text-[#114559]">
-                <span className="text-lg font-medium text-[#114559]">Parabéns! </span>
-                Você passou no processo de admissão e já pode criar a sua conta na plataforma Yinflow.Life.
+              <p className="mt-6 text-lg font-normal text-[#114559]">Você recebeu um convite para criar a sua conta no
+                <span className="text-lg font-medium text-[#114559]"> Painel do Profissional </span>
+                Yinflow.Life.
               </p>
               <p className="mt-6 text-lg font-normal leading-5 text-[#114559]">
-                Cria a sua conta com o Google, com o mesmo e-mail utilizado nos passos anteriores.
+                Crie sua conta utilizando o mesmo e-mail Google informado nas etapas anteriores de admissão.
               </p>
             </div>
             {/* Already have an account & T&C */}
