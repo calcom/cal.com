@@ -2,6 +2,7 @@ import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -23,12 +24,14 @@ const lastAttendeeDeleteBooking = async (
 
     for (const reference of originalRescheduledBooking.references) {
       if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
-          },
-          select: credentialForCalendarServiceSelect,
-        });
+        const credential = await getCredentialForCalendarService(
+          await prisma.credential.findUnique({
+            where: {
+              id: reference.credentialId,
+            },
+            select: credentialForCalendarServiceSelect,
+          })
+        );
 
         if (credential) {
           if (reference.type.includes("_video")) {

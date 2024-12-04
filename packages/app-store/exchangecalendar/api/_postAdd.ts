@@ -34,7 +34,6 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     teamId: null,
     appId: "exchange",
     invalid: false,
-    delegatedToId: null,
   };
 
   try {

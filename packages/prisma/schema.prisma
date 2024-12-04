@@ -200,9 +200,6 @@ model Credential {
   CalendarCache        CalendarCache[]
   references           BookingReference[]
 
-  delegatedTo   DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
-  delegatedToId String?
-
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
@@ -1639,7 +1636,6 @@ model DomainWideDelegation {
   enabled        Boolean      @default(false)
   organizationId Int
   organization   Team         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  Credential     Credential[]
   domain         String
 
   selectedCalendars   SelectedCalendar[]

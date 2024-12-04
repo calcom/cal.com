@@ -18,7 +18,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsForCalendarService } from "@calcom/lib/server/getUsersCredentials";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -223,7 +223,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentials(user);
+  const credentials = await getUsersCredentialsForCalendarService(user);
   const credentialsMap = new Map();
   credentials.forEach((credential) => {
     credentialsMap.set(credential.type, credential);

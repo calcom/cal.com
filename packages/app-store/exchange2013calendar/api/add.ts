@@ -37,7 +37,6 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     teamId: null,
     appId: "exchange2013-calendar",
     invalid: false,
-    delegatedToId: null,
   };
 
   try {

@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
@@ -39,6 +39,12 @@ export type CredentialDataWithTeamName = CredentialPayload & {
   } | null;
 };
 
+type CredentialForCalendarServiceWithTeamName = CredentialForCalendarService & {
+  team?: {
+    name: string;
+  } | null;
+};
+
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
 /**
@@ -47,7 +53,13 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  */
 function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
-    const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
+    const appCredentials = credentials
+      .filter((credential) => credential.appId === appMeta.slug)
+      .map((credential) => ({
+        ...credential,
+        delegatedToId: null,
+        delegatedTo: null,
+      }));
 
     if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
 
@@ -69,6 +81,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
           name: "Global",
         },
         delegatedToId: null,
+        delegatedTo: null,
       };
       logger.debug(
         `${appMeta.type} is a global app, injecting credential`,
@@ -77,7 +90,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
       appCredentials.push(credential);
     }
 
-    /** Check if app has location option AND add it if user has credentials for it */
+    /** Check if app fhas location option AND add it if user has credentials for it */
     if (appCredentials.length > 0 && appMeta?.appData?.location) {
       locationOption = {
         value: appMeta.appData.location.type,
@@ -100,7 +113,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     });
 
     return reducedArray;
-  }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
+  }, [] as (App & { credential: CredentialForCalendarServiceWithTeamName; credentials: CredentialForCalendarServiceWithTeamName[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }

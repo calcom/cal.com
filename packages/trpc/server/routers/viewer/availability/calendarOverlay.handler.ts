@@ -44,7 +44,6 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       teamId: true,
       appId: true,
       invalid: true,
-      delegatedToId: true,
       user: {
         select: {
           email: true,

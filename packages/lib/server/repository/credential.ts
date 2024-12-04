@@ -1,5 +1,7 @@
+import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 type CredentialCreateInput = {
   type: string;
@@ -44,5 +46,20 @@ export class CredentialRepository {
 
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
+  }
+
+  static async findCredentialForCalendarServiceById({ id }: { id: number }) {
+    const dbCredential = await prisma.credential.findUnique({
+      where: { id },
+      select: credentialForCalendarServiceSelect,
+    });
+
+    if (!dbCredential) return null;
+
+    const credentialForCalendarService = await getCredentialForCalendarService({
+      ...dbCredential,
+      delegatedToId: null,
+    });
+    return credentialForCalendarService;
   }
 }

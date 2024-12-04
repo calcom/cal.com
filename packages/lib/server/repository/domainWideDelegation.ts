@@ -15,6 +15,8 @@ const serviceAccountKeySchema = z
   })
   .passthrough();
 
+export type ServiceAccountKey = z.infer<typeof serviceAccountKeySchema>;
+
 const repositoryLogger = logger.getSubLogger({ prefix: ["DomainWideDelegationRepository"] });
 const domainWideDelegationSafeSelect = {
   id: true,
@@ -115,6 +117,10 @@ export class DomainWideDelegationRepository {
     });
 
     return domainWideDelegation;
+  }
+
+  static async findByUser({ user }: { user: { email: string } }) {
+    return await this.findUniqueByOrganizationMemberEmail({ email: user.email });
   }
 
   static async findByUserIncludeSensitiveServiceAccountKey({

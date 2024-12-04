@@ -79,7 +79,7 @@ async function getHandler(req: CustomNextApiRequest) {
     select: { externalId: true },
   });
   // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(user.credentials);
+  const calendarCredentials = await getCalendarCredentials(user.credentials);
   // get all the connected integrations' calendars (from third party)
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
   const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);

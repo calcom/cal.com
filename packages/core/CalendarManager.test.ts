@@ -4,7 +4,7 @@ import { getCalendarCredentials } from "./CalendarManager";
 
 describe("CalendarManager tests", () => {
   describe("fn: getCalendarCredentials", () => {
-    it("should only return credentials for calendar apps", () => {
+    it("should only return credentials for calendar apps", async () => {
       const googleCalendarCredentials = {
         id: "1",
         appId: "google-calendar",
@@ -30,7 +30,7 @@ describe("CalendarManager tests", () => {
         },
       ];
 
-      const calendarCredentials = getCalendarCredentials(credentials);
+      const calendarCredentials = await getCalendarCredentials(credentials);
       expect(calendarCredentials).toHaveLength(1);
       expect(calendarCredentials[0].credential).toBe(googleCalendarCredentials);
     });

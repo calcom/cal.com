@@ -1,4 +1,5 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -7,10 +8,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -72,12 +73,11 @@ async function cancelAttendeeSeat(
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
-          },
-          select: credentialForCalendarServiceSelect,
+        const dbCredential = await CredentialRepository.findCredentialForCalendarServiceById({
+          id: reference.credentialId,
         });
+
+        const credential = await getCredentialForCalendarService(dbCredential);
 
         if (credential) {
           const updatedEvt = {

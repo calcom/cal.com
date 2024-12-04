@@ -1,10 +1,17 @@
 import type { z } from "zod";
 
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
+import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
 import type { DomainWideDelegationToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
+
+function hasServiceAccountKey<T extends { serviceAccountKey: ServiceAccountKey | null }>(
+  domainWideDelegation: T
+): domainWideDelegation is T & { serviceAccountKey: ServiceAccountKey } {
+  return domainWideDelegation.serviceAccountKey !== null;
+}
 
 const assertWorkspaceConfigured = async ({
   domainWideDelegationId,
@@ -13,10 +20,20 @@ const assertWorkspaceConfigured = async ({
   domainWideDelegationId: string;
   user: { id: number; email: string };
 }) => {
-  const domainWideDelegation = await DomainWideDelegationRepository.findById({ id: domainWideDelegationId });
+  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
+    {
+      id: domainWideDelegationId,
+    }
+  );
+
   if (!domainWideDelegation) {
     throw new Error("Domain wide delegation not found");
   }
+
+  if (!hasServiceAccountKey(domainWideDelegation)) {
+    throw new Error("Domain wide delegation doesn't have service account key");
+  }
+
   const isSuccessfullyConfigured = await checkIfSuccessfullyConfiguredInWorkspace({
     domainWideDelegation,
     user,

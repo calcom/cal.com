@@ -9,7 +9,7 @@ import { CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppErr
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { performance } from "@calcom/lib/server/perfObserver";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type {
   CalendarEvent,
   EventBusyDate,
@@ -23,8 +23,57 @@ import type { EventResult } from "@calcom/types/EventManager";
 import getCalendarsEvents from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
+type CredentialForCalendarService<T> = T extends null
+  ? null
+  : T & {
+      delegatedTo: {
+        serviceAccountKey: {
+          client_email: string;
+          private_key: string;
+          client_id: string;
+        };
+      } | null;
+    };
 
-export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
+export async function getCredentialForCalendarService<T extends { delegatedToId: string | null } | null>(
+  credential: T
+): Promise<CredentialForCalendarService<T>> {
+  // Explicitly handle null case with type assertion
+  if (credential === null) return null as CredentialForCalendarService<T>;
+
+  // When no delegatedToId, return with delegatedTo as null
+  if (!credential.delegatedToId) {
+    return {
+      ...credential,
+      delegatedTo: null,
+    } as CredentialForCalendarService<T>;
+  }
+
+  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
+    {
+      id: credential.delegatedToId,
+    }
+  );
+
+  if (!domainWideDelegation)
+    throw new Error(
+      `Credential with delegatedToId=${credential.delegatedToId} doesn't have a valid domain wide delegation`
+    );
+
+  if (!domainWideDelegation.serviceAccountKey)
+    throw new Error(
+      `Domain wide delegation ${domainWideDelegation.id} doesn't have a valid service account key`
+    );
+
+  return {
+    ...credential,
+    delegatedTo: {
+      serviceAccountKey: domainWideDelegation.serviceAccountKey,
+    },
+  } as CredentialForCalendarService<T>;
+}
+
+export const getCalendarCredentials = async (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
@@ -40,7 +89,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialPayload>) =>
 };
 
 export const getConnectedCalendars = async (
-  calendarCredentials: ReturnType<typeof getCalendarCredentials>,
+  calendarCredentials: Awaited<ReturnType<typeof getCalendarCredentials>>,
   selectedCalendars: { externalId: string }[],
   destinationCalendarExternalId?: string
 ) => {
@@ -136,7 +185,7 @@ export const getConnectedCalendars = async (
  * @returns App
  */
 const cleanIntegrationKeys = (
-  appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
+  appIntegration: Awaited<ReturnType<typeof getCalendarCredentials>>[number]["integration"] & {
     credentials?: Array<CredentialPayload>;
     credential: CredentialPayload;
   }
@@ -144,68 +193,6 @@ const cleanIntegrationKeys = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { credentials, credential, ...rest } = appIntegration;
   return rest;
-};
-
-// here I will fetch the page json file.
-export const getCachedResults = async (
-  withCredentials: CredentialPayload[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[]
-): Promise<EventBusyDate[][]> => {
-  const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
-  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
-  performance.mark("getBusyCalendarTimesStart");
-  const results = calendars.map(async (c, i) => {
-    /** Filter out nulls */
-    if (!c) return [];
-    /** We rely on the index so we can match credentials with calendars */
-    const { type, appId } = calendarCredentials[i];
-    /** We just pass the calendars that matched the credential type,
-     * TODO: Migrate credential type or appId
-     */
-    const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
-    if (!passedSelectedCalendars.length) return [];
-    /** We extract external Ids so we don't cache too much */
-    const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** If we don't then we actually fetch external calendars (which can be very slow) */
-    performance.mark("eventBusyDatesStart");
-    const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
-    performance.mark("eventBusyDatesEnd");
-    performance.measure(
-      `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
-      "eventBusyDatesStart",
-      "eventBusyDatesEnd"
-    );
-
-    return eventBusyDates.map((a: object) => ({ ...a, source: `${appId}` }));
-  });
-  const awaitedResults = await Promise.all(results);
-  performance.mark("getBusyCalendarTimesEnd");
-  performance.measure(
-    `getBusyCalendarTimes took $1 for creds ${calendarCredentials.map((cred) => cred.id)}`,
-    "getBusyCalendarTimesStart",
-    "getBusyCalendarTimesEnd"
-  );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return awaitedResults as any;
-};
-
-/**
- * Get months between given dates
- * @returns ["2023-04", "2024-05"]
- */
-const getMonths = (dateFrom: string, dateTo: string): string[] => {
-  const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-  for (
-    let i = 1;
-    dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
-    dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
-    i++
-  ) {
-    months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
-  }
-  return months;
 };
 
 export const getBusyCalendarTimes = async (
@@ -216,7 +203,6 @@ export const getBusyCalendarTimes = async (
   selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
-  // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
@@ -235,7 +221,8 @@ export const createEvent = async (
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const credentialForCalendarService = await getCredentialForCalendarService(credential);
+  const calendar = await getCalendar(credentialForCalendarService);
   let success = true;
   let calError: string | undefined = undefined;
 
@@ -321,7 +308,8 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const credentialForCalendarService = await getCredentialForCalendarService(credential);
+  const calendar = await getCalendar(credentialForCalendarService);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
@@ -404,7 +392,8 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const calendar = await getCalendar(credential);
+  const credentialForCalendarService = await getCredentialForCalendarService(credential);
+  const calendar = await getCalendar(credentialForCalendarService);
   log.debug(
     "Deleting calendar event",
     safeStringify({
