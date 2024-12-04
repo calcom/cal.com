@@ -127,7 +127,7 @@ export function DataTable<TData, TValue>({
                         meta?.sticky && "sticky top-0 z-20"
                       )}>
                       <div
-                        className="flex h-full w-full items-center"
+                        className="flex h-full w-full items-center overflow-hidden"
                         onClick={header.column.getToggleSortingHandler()}>
                         {header.isPlaceholder
                           ? null
