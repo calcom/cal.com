@@ -16,14 +16,14 @@ type ConferencingAppsViewWebWrapperProps = {
   add: string;
 };
 
-type UpdateUsersDefaultConferencingAppParams = {
+export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };
 
-type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
 const SkeletonLoader = () => {

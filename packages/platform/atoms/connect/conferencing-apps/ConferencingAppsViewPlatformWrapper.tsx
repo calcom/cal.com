@@ -24,6 +24,10 @@ import {
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
+import type {
+  BulkUpdatParams,
+  UpdateUsersDefaultConferencingAppParams,
+} from "./ConferencingAppsViewWebWrapper";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import {
@@ -44,13 +48,6 @@ type ConferencingAppsViewPlatformWrapperProps = {
   onErrorReturnTo?: string;
 };
 
-type UpdateUsersDefaultConferencingAppParams = {
-  appSlug: string;
-  appLink?: string;
-  onSuccessCallback: () => void;
-  onErrorCallback: () => void;
-};
-type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
 
 const SkeletonLoader = () => {
@@ -98,7 +95,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     updateModal({ isOpen: false, credentialId: null, app: null });
   };
 
-  const handleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => {
+  const handleDisconnect = (credentialId: number, app: App["slug"]) => {
     updateModal({ isOpen: true, credentialId, app });
   };
 
