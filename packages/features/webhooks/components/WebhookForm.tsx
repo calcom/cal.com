@@ -346,6 +346,7 @@ const WebhookForm = (props: {
         </Button>
         <Button
           type="submit"
+          data-testid="create_webhook"
           disabled={!formMethods.formState.isDirty && !changeSecret}
           loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
