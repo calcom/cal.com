@@ -1,4 +1,3 @@
-import type { Webhook } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,6 +11,7 @@ import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
 
@@ -20,7 +20,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
-  const { getValues, setValue, register } = formMethods;
+  const { getValues, setValue } = formMethods;
   const { data: webhooks, isPending } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
@@ -32,10 +32,12 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
 
-  const handleUpdateWebhook = (updatedWebhook: Partial<Webhook>) => {
+  const handleUpdateWebhook = (
+    updatedWebhook: Partial<Omit<Webhook, "eventTypeId"> & { eventTypeId: number }>
+  ) => {
     const currentWebhooks = getValues("webhooks") || [];
     const updatedWebhooks = [...currentWebhooks];
-    const index = currentWebhooks.findIndex((webhook) => webhook.id === webhookToEdit.id);
+    const index = currentWebhooks.findIndex((webhook) => webhook.id === webhookToEdit?.id);
     updatedWebhooks[index] = { ...updatedWebhooks[index], ...updatedWebhook };
     setValue("webhooks", updatedWebhooks, { shouldDirty: true });
     setEditModalOpen(false);
@@ -45,11 +47,12 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     const webhooks = getValues("webhooks");
     const deletedWebhooks = getValues("deletedWebhooks");
 
-    const updatedDeletedWebhooks = webhookId ? [...deletedWebhooks, { id: webhookId }] : deletedWebhooks;
+    const updatedDeletedWebhooks =
+      deletedWebhooks && webhookId ? [...deletedWebhooks, { id: webhookId }] : deletedWebhooks;
     // Remove the webhook from the current list and add it to 'deletedWebhooks'
     setValue(
       "webhooks",
-      webhooks.filter((wh) => wh.id !== webhookId),
+      webhooks?.filter((wh) => wh.id !== webhookId),
       { shouldDirty: true }
     );
     setValue("deletedWebhooks", updatedDeletedWebhooks, { shouldDirty: true });
@@ -75,6 +78,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     const currentWebhooks = getValues("webhooks") || [];
     const newWebhook = {
       ...values,
+      eventTypeId: 1,
       id: Date.now().toString(), // Generate temporary ID for new webhook
     };
     setValue("webhooks", [...currentWebhooks, newWebhook], { shouldDirty: true });
@@ -87,7 +91,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       subscriberUrlReserved({
         subscriberUrl: values.subscriberUrl,
         id: values.id,
-        webhooks: getValues("webhooks"), // Use the current form state
+        webhooks: getValues("webhooks") as Webhook[], // Use the current form state
         eventTypeId: eventType.id,
       })
     ) {
@@ -204,7 +208,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
                               {/* Render Webhooks List */}
                               <div className="border-subtle my-8 rounded-md border">
-                                {value.map((webhook, index) => (
+                                {value.map((webhook: Webhook, index: number) => (
                                   <EventTypeWebhookListItem
                                     key={webhook.id}
                                     webhook={webhook}

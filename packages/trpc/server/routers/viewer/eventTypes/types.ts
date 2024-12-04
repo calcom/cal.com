@@ -20,7 +20,7 @@ export const eventTypeWebhookInputSchema = z.object({
   subscriberUrl: z.string().url().optional(),
   eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
   active: z.boolean().optional(),
-  payloadTemplate: z.string().nullable(),
+  payloadTemplate: z.string().nullable().optional(),
   appId: z.string().nullish(),
   secret: z.string().nullish(),
   platform: z.boolean().optional(),

@@ -21,7 +21,7 @@ export type WebhookFormData = {
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
-  payloadTemplate: string | undefined | null;
+  payloadTemplate?: string | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
 };
@@ -143,7 +143,9 @@ const WebhookForm = (props: {
   return (
     <Form
       form={formMethods}
-      handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
+      handleSubmit={(values) => {
+        props.onSubmit({ ...values, changeSecret, newSecret });
+      }}>
       <div className="border-subtle border-x p-6">
         <Controller
           name="subscriberUrl"

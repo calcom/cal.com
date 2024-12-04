@@ -3,9 +3,9 @@ import type { z } from "zod";
 import type { EventLocationType } from "@calcom/core/location";
 import type { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import type { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -39,20 +39,25 @@ export type TeamMember = {
   email: string;
   defaultScheduleId: number | null;
 };
+
 type Webhook = {
   id?: string;
   userId?: number | null;
   teamId?: number | null;
   eventTypeId: number;
   subscriberUrl?: string; // Optional and must be a valid URL if present
-  eventTriggers?: Array<(typeof WEBHOOK_TRIGGER_EVENTS)[keyof typeof WEBHOOK_TRIGGER_EVENTS]>; // Enum array
+  eventTriggers?: WebhookTriggerEvents[];
   active?: boolean;
   payloadTemplate?: string | null;
   appId?: string | null;
   secret?: string | null;
   platform?: boolean;
   time?: number | null;
-  timeUnit?: (typeof TIME_UNIT)[keyof typeof TIME_UNIT] | null; // Enum
+  timeUnit?: (typeof TIME_UNIT)[number] | null;
+};
+
+type DeletedWebhooks = {
+  id: string;
 };
 
 type EventLocation = {
@@ -163,6 +168,7 @@ export type FormValues = {
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
   webhooks?: Webhook[];
+  deletedWebhooks?: DeletedWebhooks[];
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
