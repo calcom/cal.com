@@ -107,7 +107,7 @@ export async function getAllDomainWideDelegationCredentialsForUser({
     buildDomainWideDelegationConferencingCredential({ domainWideDelegation, user }),
   ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
-  log.debug("Returned", { domainWideDelegationCredentials });
+  log.debug("Returned", safeStringify({ domainWideDelegationCredentials }));
   return domainWideDelegationCredentials;
 }
 
