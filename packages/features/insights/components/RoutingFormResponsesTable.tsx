@@ -45,6 +45,7 @@ import {
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
+import { ClearFilters } from "../filters/ClearFilters";
 import { DateSelect } from "../filters/DateSelect";
 import { RoutingDownload } from "../filters/Download";
 import { RoutingFormFilterList } from "../filters/RoutingFormFilterList";
@@ -538,11 +539,12 @@ export function RoutingFormResponsesTable({
         isPending={isFetching && !data}>
         <div className="header mb-4">
           <div className="flex flex-wrap items-start gap-2">
-            <DataTableFilters.AddFilterButton table={table} />
             <TeamAndSelfList omitOrg={true} className="mb-0" />
+            <DataTableFilters.AddFilterButton table={table} />
             <UserListInTeam showOnlyWhenSelectedInContext={false} />
             <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
             <DataTableFilters.ActiveFilters table={table} />
+            <ClearFilters />
             <DateSelect />
             <RoutingDownload />
             <DataTableFilters.ColumnVisibilityButton table={table} />

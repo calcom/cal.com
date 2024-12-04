@@ -128,7 +128,7 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const [state, setState] = useFiltersState();
+  const { state, setState } = useFiltersState();
 
   const activeFilters = state.activeFilters;
   const filterableColumns = useFilterableColumns(table, omit);
@@ -221,7 +221,7 @@ interface ActiveFiltersProps<TData> {
 }
 
 function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
-  const [state, setState] = useFiltersState();
+  const { state, setState } = useFiltersState();
 
   const filterableColumns = useFilterableColumns(table);
 

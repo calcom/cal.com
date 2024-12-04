@@ -97,7 +97,7 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
       </ButtonGroup> */}
       <div className="flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-between">
         {showRoutingFilters ? <RoutingDownload /> : <Download />}
-        <DateSelect />
+        <DateSelect className="me-2 ms-2" />
       </div>
     </div>
   );

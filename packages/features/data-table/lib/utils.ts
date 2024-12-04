@@ -1,7 +1,7 @@
 "use client";
 
 import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { z } from "zod";
 
 import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
@@ -13,17 +13,22 @@ export const dataTableFiltersSchema = z.object({
 });
 
 export function useFiltersState() {
-  return useQueryStates({
+  const [state, setState] = useQueryStates({
     activeFilters: parseAsArrayOf(parseAsJson(dataTableFiltersSchema.parse)).withDefault([]),
   });
+  const clear = useCallback(() => {
+    setState({ activeFilters: [] });
+  }, [setState]);
+
+  return { state, setState, clear };
 }
 
-export type FiltersSearchState = ReturnType<typeof useFiltersState>[0];
-export type SetFiltersSearchState = ReturnType<typeof useFiltersState>[1];
+export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];
+export type SetFiltersSearchState = ReturnType<typeof useFiltersState>["setState"];
 export type ActiveFilter = z.infer<typeof dataTableFiltersSchema>;
 
 export function useColumnFilters() {
-  const [state] = useFiltersState();
+  const { state } = useFiltersState();
   return useMemo(
     () =>
       (state.activeFilters || [])

@@ -42,7 +42,7 @@ export const UserListInTeam = ({
       title={t("people")}
       options={userListOptions}
       selectedValue={selectedMemberUserId}
-      onChange={(value) => setConfigFilters({ selectedMemberUserId: Number(value) })}
+      onChange={(value) => setConfigFilters({ selectedMemberUserId: value === null ? null : Number(value) })}
       buttonIcon={<Icon name="users" className="mr-2 h-4 w-4" />}
       placeholder={t("search")}
       testId="people-filter"
