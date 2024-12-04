@@ -3,7 +3,10 @@
 
 set -e
 
+echo "Info: Running lint-staged"
 yarn lint-staged
+
+echo "Info: Running app-store:build"
 yarn app-store:build && git add packages/app-store/*.generated.*
 
 git stash -q --keep-index
