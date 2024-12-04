@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
+import type { GetServerSidePropsContext } from "next";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
@@ -13,8 +13,7 @@ import { ssrInit } from "@server/lib/ssr";
 type AppPageType = {
   getServerSideProps?: AppGetServerSideProps;
   // A component than can accept any properties
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) &
+  default: ((props: unknown) => JSX.Element) &
     Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
 };
 
@@ -41,9 +40,7 @@ function getRoute(pages: string[]) {
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
 
-export async function getServerSideProps(
-  context: GetServerSidePropsContext
-): Promise<GetServerSidePropsResult<any>> {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
   const appName = "routing-forms";
   const pages = ["forms"]; // set forms page to be the default one
@@ -97,4 +94,4 @@ export async function getServerSideProps(
       },
     };
   }
-}
+};

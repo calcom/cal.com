@@ -11,8 +11,7 @@ import type { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSi
 type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) &
+  default: ((props: unknown) => JSX.Element) &
     Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
 };
 
@@ -71,8 +70,7 @@ AppPage.isBookingPage = ({ router }) => {
   return !!isBookingPage;
 };
 
-export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+export const GetFormLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
   const { pages: paramsPages } = useParamsWithFallback();
   const defaultPage = ["forms"];
   const pages = paramsPages?.length ? (paramsPages as string[]) : defaultPage;
