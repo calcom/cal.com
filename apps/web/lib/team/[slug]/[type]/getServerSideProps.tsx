@@ -69,6 +69,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
         },
       },
+      logoUrl: true,
       name: true,
       slug: true,
       eventTypes: {
@@ -106,6 +107,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // to speed up this call.
   const usernameList = getUsernameList(teamSlug);
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const name = team.parent?.name ?? team.name ?? null;
   const usersInOrgContext = await UserRepository.findUsersByUsername({
     usernameList,
     orgSlug: team.parent?.slug || null,
@@ -152,17 +154,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
           orgSlug,
           teamSlug: team.slug ?? null,
-          name: team.parent?.name ?? team.name ?? null,
+          name,
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-        profile: team.parent
-          ? {
-              image: getPlaceholderAvatar(team.parent?.logoUrl, team.parent?.name),
-              name: team.parent?.name ?? null,
-              username: orgSlug ?? null,
-            }
-          : null,
+        profile: {
+          image: team.parent
+            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+            : getPlaceholderAvatar(team.logoUrl, team.name),
+          name,
+          username: orgSlug ?? null,
+        },
         title: eventData.title,
         users: usersInOrgContext.map((user) => ({
           ...user,
