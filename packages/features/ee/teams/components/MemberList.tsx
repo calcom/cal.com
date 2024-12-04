@@ -45,6 +45,7 @@ import {
   DialogFooter,
   Dropdown,
   DropdownItem,
+  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -283,6 +284,7 @@ export default function MemberList(props: Props) {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -305,6 +307,7 @@ export default function MemberList(props: Props) {
         accessorFn: (data) => data.email,
         enableHiding: false,
         header: `Member (${totalDBRowCount})`,
+        size: 250,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
           const memberName =
@@ -344,6 +347,7 @@ export default function MemberList(props: Props) {
         id: "role",
         accessorFn: (data) => data.role,
         header: "Role",
+        size: 100,
         cell: ({ row, table }) => {
           const { role, accepted } = row.original;
           return (
@@ -387,6 +391,10 @@ export default function MemberList(props: Props) {
       },
       {
         id: "actions",
+        size: 80,
+        meta: {
+          sticky: { position: "right" },
+        },
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
@@ -454,99 +462,8 @@ export default function MemberList(props: Props) {
                             StartIcon="ellipsis"
                           />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              onClick={() =>
-                                dispatch({
-                                  type: "EDIT_USER_SHEET",
-                                  payload: {
-                                    user,
-                                    showModal: true,
-                                  },
-                                })
-                              }
-                              StartIcon="pencil">
-                              {t("edit")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                          {impersonationMode && (
-                            <>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "SET_IMPERSONATE_ID",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="lock">
-                                  {t("impersonate")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                            </>
-                          )}
-                          {resendInvitation && (
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() => {
-                                  resendInvitationMutation.mutate({
-                                    teamId: props.team?.id,
-                                    email: user.email,
-                                    language: i18n.language,
-                                  });
-                                }}
-                                StartIcon="send">
-                                {t("resend_invitation")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              onClick={() =>
-                                dispatch({
-                                  type: "SET_DELETE_ID",
-                                  payload: {
-                                    user,
-                                    showModal: true,
-                                  },
-                                })
-                              }
-                              color="destructive"
-                              StartIcon="user-x">
-                              {t("remove")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </Dropdown>
-                    )}
-                  </ButtonGroup>
-                  <div className="flex md:hidden">
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild>
-                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            disabled={!user.accepted}
-                            href={!user.accepted ? undefined : `/${user.username}`}
-                            target="_blank"
-                            type="button"
-                            StartIcon="external-link">
-                            {t("view_public_page")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                        {editMode && (
-                          <>
+                        <DropdownMenuPortal>
+                          <DropdownMenuContent>
                             <DropdownMenuItem>
                               <DropdownItem
                                 type="button"
@@ -563,10 +480,46 @@ export default function MemberList(props: Props) {
                                 {t("edit")}
                               </DropdownItem>
                             </DropdownMenuItem>
+                            {impersonationMode && (
+                              <>
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "SET_IMPERSONATE_ID",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="lock">
+                                    {t("impersonate")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {resendInvitation && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() => {
+                                    resendInvitationMutation.mutate({
+                                      teamId: props.team?.id,
+                                      email: user.email,
+                                      language: i18n.language,
+                                    });
+                                  }}
+                                  StartIcon="send">
+                                  {t("resend_invitation")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>
                               <DropdownItem
                                 type="button"
-                                color="destructive"
                                 onClick={() =>
                                   dispatch({
                                     type: "SET_DELETE_ID",
@@ -576,13 +529,72 @@ export default function MemberList(props: Props) {
                                     },
                                   })
                                 }
+                                color="destructive"
                                 StartIcon="user-x">
                                 {t("remove")}
                               </DropdownItem>
                             </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
+                          </DropdownMenuContent>
+                        </DropdownMenuPortal>
+                      </Dropdown>
+                    )}
+                  </ButtonGroup>
+                  <div className="flex md:hidden">
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem className="outline-none">
+                            <DropdownItem
+                              disabled={!user.accepted}
+                              href={!user.accepted ? undefined : `/${user.username}`}
+                              target="_blank"
+                              type="button"
+                              StartIcon="external-link">
+                              {t("view_public_page")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                          {editMode && (
+                            <>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "EDIT_USER_SHEET",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="pencil">
+                                  {t("edit")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  color="destructive"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "SET_DELETE_ID",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="user-x">
+                                  {t("remove")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenuPortal>
                     </Dropdown>
                   </div>
                 </div>
@@ -662,19 +674,21 @@ export default function MemberList(props: Props) {
         </DataTableToolbar.Root>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
+          <DataTableSelectionBar.Root className="justify-center">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {numberOfSelectedRows >= 2 && (
-              <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                Group Meeting
-              </Button>
+              <DataTableSelectionBar.Button
+                onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                icon="handshake">
+                {t("group_meeting")}
+              </DataTableSelectionBar.Button>
             )}
             <EventTypesList table={table} teamId={props.team.id} />
             <DeleteBulkTeamMembers

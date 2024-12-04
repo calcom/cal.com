@@ -237,6 +237,10 @@ const emptyResponseEventsByStatus = {
     count: 0,
     deltaPrevious: 0,
   },
+  no_show_guest: {
+    count: 0,
+    deltaPrevious: 0,
+  },
   csat: {
     count: 0,
     deltaPrevious: 0,
@@ -305,16 +309,20 @@ export const insightsRouter = router({
       countGroupedByStatus,
       totalRatingsAggregate,
       totalCSAT,
+      totalNoShowGuests,
       lastPeriodCountGroupedByStatus,
       lastPeriodTotalRatingsAggregate,
       lastPeriodTotalCSAT,
+      lastPeriodTotalNoShowGuests,
     ] = await Promise.all([
       EventsInsights.countGroupedByStatus(baseWhereCondition),
       EventsInsights.getAverageRating(baseWhereCondition),
       EventsInsights.getTotalCSAT(baseWhereCondition),
+      EventsInsights.getTotalNoShowGuests(baseWhereCondition),
       EventsInsights.countGroupedByStatus(lastPeriodBaseCondition),
       EventsInsights.getAverageRating(lastPeriodBaseCondition),
       EventsInsights.getTotalCSAT(lastPeriodBaseCondition),
+      EventsInsights.getTotalNoShowGuests(lastPeriodBaseCondition),
     ]);
 
     const baseBookingsCount = countGroupedByStatus["_all"];
@@ -361,6 +369,10 @@ export const insightsRouter = router({
         count: totalNoShow,
         deltaPrevious: EventsInsights.getPercentage(totalNoShow, lastPeriodTotalNoShow),
       },
+      no_show_guest: {
+        count: totalNoShowGuests,
+        deltaPrevious: EventsInsights.getPercentage(totalNoShowGuests, lastPeriodTotalNoShowGuests),
+      },
       rating: {
         count: averageRating,
         deltaPrevious: EventsInsights.getPercentage(averageRating, lastPeriodAverageRating),
@@ -380,6 +392,7 @@ export const insightsRouter = router({
       result.rescheduled.count === 0 &&
       result.cancelled.count === 0 &&
       result.no_show.count === 0 &&
+      result.no_show_guest.count === 0 &&
       result.rating.count === 0
     ) {
       return emptyResponseEventsByStatus;
@@ -483,6 +496,7 @@ export const insightsRouter = router({
           Rescheduled: 0,
           Cancelled: 0,
           "No-Show (Host)": 0,
+          "No-Show (Guest)": 0,
         };
 
         const countsForDateRange = countsByStatus[formattedDate];
@@ -493,6 +507,7 @@ export const insightsRouter = router({
           EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
           EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
           EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
         }
         return EventData;
       });

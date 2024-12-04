@@ -2817,5 +2817,11 @@
   "rr_distribution_method_balanced_description": "System będzie monitorować liczbę rezerwacji przypisanych do każdego gospodarza i porównywać ją z innymi, dezaktywując tymczasowo gospodarzy z większą liczbą spotkań, aby zapewnić równomierną dystrybucję.",
   "exclude_emails_that_contain": "Wyklucz e-maile, które zawierają ...",
   "exclude_emails_match_found_error_message": "Proszę wprowadzić prawidłowy adres e-mail służbowy",
+  "disable_org_url_label": "Wyłącz publiczny profil organizacji i przekierowanie",
+  "disable_org_url_description": "Przekierowuje {{orgSlug}}.cal.com na {{destination}}",
+  "single_select": "Pojedynczy wybór",
+  "multi_select": "Wielokrotny wybór",
+  "group_meeting": "Spotkanie grupowe",
+  "salesforce_ignore_guests": "Nie twórz nowych rekordów dla gości dodanych do rezerwacji",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1,5 +1,4 @@
 import { m } from "framer-motion";
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -12,9 +11,10 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { locales as i18nLocales } from "@calcom/lib/i18n";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
@@ -31,6 +31,7 @@ export const EventMeta = ({
   isPending,
   isPlatform = true,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
@@ -61,8 +62,8 @@ export const EventMeta = ({
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
-  const session = useSession();
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -81,6 +82,7 @@ export const EventMeta = ({
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
   );
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
@@ -107,7 +109,7 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const userLocale = session.data?.user.locale ?? navigator.language;
+  const userLocale = locale ?? navigator.language;
   const translatedDescription = (event?.fieldTranslations ?? []).find(
     (trans) =>
       trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
@@ -136,7 +138,11 @@ export const EventMeta = ({
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTML(translatedDescription ?? event.description),
+                }}
+              />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
@@ -175,7 +181,7 @@ export const EventMeta = ({
                 <>{timezone}</>
               ) : (
                 <span
-                  className={`current-timezone before:bg-subtle -mt-[2px] flex h-6 min-w-32 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}>
                   <TimezoneSelect

@@ -2817,5 +2817,11 @@
   "rr_distribution_method_balanced_description": "Budeme sledovať počet rezervácií u každého hostiteľa a porovnávať ich s ostatnými. Hostiteľov, ktorí majú príliš veľa rezervácií, dočasne deaktivujeme, aby boli stretnutia distribuované rovnomerne.",
   "exclude_emails_that_contain": "Vylúčiť e-maily, ktoré obsahujú...",
   "exclude_emails_match_found_error_message": "Zadajte platnú pracovnú e-mailovú adresu",
+  "disable_org_url_label": "Zakázať verejný profil organizácie a presmerovanie",
+  "disable_org_url_description": "Presmeruje {{orgSlug}}.cal.com na {{destination}}",
+  "single_select": "Jednoduchý výber",
+  "multi_select": "Viacnásobný výber",
+  "group_meeting": "Skupinové stretnutie",
+  "salesforce_ignore_guests": "Nevytvárať nové záznamy pre hostí pridaných do rezervácie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
