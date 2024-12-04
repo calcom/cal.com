@@ -12,10 +12,16 @@ interface BookerSeoProps {
   hideBranding?: boolean;
   isSEOIndexable?: boolean;
   isTeamEvent?: boolean;
-  eventData?: Pick<
-    NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-    "profile" | "title" | "users" | "hidden"
-  >;
+  eventData?: Omit<
+    Pick<NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>, "profile" | "title" | "users" | "hidden">,
+    "profile"
+  > & {
+    profile: {
+      image: string | undefined;
+      name: string | null;
+      username: string | null;
+    };
+  };
   entity: {
     fromRedirectOfNonOrgLink: boolean;
     orgSlug?: string | null;

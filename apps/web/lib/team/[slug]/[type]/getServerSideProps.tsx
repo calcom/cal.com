@@ -13,14 +13,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
-import {
-  BookerLayouts,
-  EventTypeMetaDataSchema,
-  bookerLayouts as bookerLayoutsSchema,
-  bookerLayoutOptions,
-  userMetadata as userMetadataSchema,
-} from "@calcom/prisma/zod-utils";
-import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
@@ -101,6 +94,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  if (!team || !team.eventTypes?.[0]) {
+    return {
+      notFound: true,
+    } as const;
+  }
+
   // INFO: This code was pulled from getPublicEvent and used here.
   // Calling the tRPC fetch to get the public event data is incredibly slow
   // for large teams and we don't want to add it back. Future refactors will happen
@@ -109,14 +108,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const usersInOrgContext = await UserRepository.findUsersByUsername({
     usernameList,
-    orgSlug,
+    orgSlug: team.parent?.slug || null,
   });
-
-  if (!team || !team.eventTypes?.[0]) {
-    return {
-      notFound: true,
-    } as const;
-  }
 
   const eventData = team.eventTypes[0];
   const eventTypeId = eventData.id;
@@ -150,12 +143,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const firstUsersMetadata = userMetadataSchema.parse(usersInOrgContext[0].metadata || {});
-  const defaultEventBookerLayouts = {
-    enabledLayouts: [...bookerLayoutOptions],
-    defaultLayout: BookerLayouts.MONTH_VIEW,
-  } as BookerLayoutSettings;
-
   return {
     props: {
       eventData: {
@@ -170,13 +157,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
         profile: {
-          weekStart: usersInOrgContext[0].weekStart,
-          brandColor: usersInOrgContext[0].brandColor,
-          darkBrandColor: usersInOrgContext[0].darkBrandColor,
-          theme: null,
-          bookerLayouts: bookerLayoutsSchema.parse(
-            firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
-          ),
           ...(team.parent
             ? {
                 image: getPlaceholderAvatar(team.parent?.logoUrl, team.parent?.name),
