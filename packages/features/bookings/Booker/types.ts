@@ -90,7 +90,7 @@ export interface BookerProps {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
-  areInstantMeetingParametersSet?: boolean;
+  areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
 }
 
