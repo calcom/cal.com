@@ -102,7 +102,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Calling the tRPC fetch to get the public event data is incredibly slow
   // for large teams and we don't want to add it back. Future refactors will happen
   // to speed up this call.
-  const usernameList = getUsernameList(username);
+  const usernameList = getUsernameList(teamSlug);
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const usersInOrgContext = await UserRepository.findUsersByUsername({
     usernameList,
