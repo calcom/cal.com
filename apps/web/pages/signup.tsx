@@ -226,7 +226,7 @@ export default function Signup({ prepopulateFormValues, orgSlug, redirectUrl }: 
                 </defs>
               </svg>
               <p className="text-[42px] font-medium leading-none text-[#114559]">
-                Crie sua conta no <br>
+                Crie sua conta no <br> 
                 <span className="text-[42px] font-medium leading-none text-[#06C6A9]"> Painel do Profissional</span>
               </p>
               <p className="mt-6 text-lg font-normal text-[#114559]">Você recebeu um convite para criar a sua conta no
