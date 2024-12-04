@@ -591,7 +591,7 @@ export async function seedRoutingFormResponses(
         teamId: teamId,
       },
     },
-    take: 250, // Limit to 250 responses
+    take: 1000, // Limit to 1000 responses
     select: {
       id: true,
       uid: true,
@@ -610,11 +610,18 @@ export async function seedRoutingFormResponses(
     const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
     const selectedSkills = shuffledOptions.slice(0, numSkills);
 
+    // Generate a random date within the last 30 days
+    const randomDate = dayjs()
+      .subtract(Math.floor(Math.random() * 30), "days")
+      .subtract(Math.floor(Math.random() * 24), "hours")
+      .subtract(Math.floor(Math.random() * 60), "minutes");
+
     // Create the form response with the routedToBookingUid field set
     const response = await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: seededForm.id,
         formFillerId: randomUUID(),
+        createdAt: randomDate.toDate(),
         response: {
           [seededForm.formFieldFilled.id]: {
             label: "skills",
@@ -631,14 +638,17 @@ export async function seedRoutingFormResponses(
       },
       data: {
         routedFromRoutingFormReponse: { connect: { id: response.id } },
+        startTime: randomDate.toDate(),
+        endTime: randomDate.add(1, "hour").toDate(),
+        createdAt: randomDate.toDate(),
       },
     });
 
-    // Create some responses without a booking
     await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: seededForm.id,
         formFillerId: randomUUID(),
+        createdAt: randomDate.subtract(2, "hour").toDate(),
         response: {
           [seededForm.formFieldFilled.id]: {
             label: "skills",
