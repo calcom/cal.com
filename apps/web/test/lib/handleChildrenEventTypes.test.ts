@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { Prisma } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
@@ -477,6 +478,60 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
+    });
+  });
+  describe("Webhooks", () => {
+    it("creates webhooks for new and existing assigned members", async () => {
+      const date = new Date();
+      const {
+        schedulingType: _schedulingType,
+        id: _id,
+        teamId: _teamId,
+        locations: _locations,
+        timeZone: _timeZone,
+        parentId: _parentId,
+        userId: _userId,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+        webhooks: [
+          {
+            id: "test-id",
+            eventTypeId: 1,
+            subscriberUrl: "https://example.com",
+            active: true,
+            eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+            secret: null,
+            createdAt: date,
+            platform: false,
+            scheduledTriggers: [],
+          },
+        ],
+      });
+      prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [
+          { hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 5, name: "", email: "", eventTypeSlugs: [] } },
+        ],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      expect(prismaMock.eventType.create).toHaveBeenCalled();
+      const { profileId, ...rest } = evType;
     });
   });
 });
