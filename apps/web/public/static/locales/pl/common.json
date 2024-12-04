@@ -2822,5 +2822,6 @@
   "single_select": "Pojedynczy wybór",
   "multi_select": "Wielokrotny wybór",
   "group_meeting": "Spotkanie grupowe",
+  "salesforce_ignore_guests": "Nie twórz nowych rekordów dla gości dodanych do rezerwacji",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

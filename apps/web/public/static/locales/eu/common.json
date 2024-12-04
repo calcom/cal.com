@@ -2822,5 +2822,6 @@
   "single_select": "Hautapen bakarra",
   "multi_select": "Hautapen anitza",
   "group_meeting": "Talde bilera",
+  "salesforce_ignore_guests": "Ez sortu erregistro berririk erreserbara gehitutako gonbidatuentzat",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

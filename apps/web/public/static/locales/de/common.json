@@ -2822,5 +2822,6 @@
   "single_select": "Einfachauswahl",
   "multi_select": "Mehrfachauswahl",
   "group_meeting": "Gruppenbesprechung",
+  "salesforce_ignore_guests": "Keine neuen Datensätze für Gäste erstellen, die zur Buchung hinzugefügt wurden",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
