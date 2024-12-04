@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { forwardRef, useState, useMemo } from "react";
+import { forwardRef, useState, useMemo, useCallback } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -133,11 +133,14 @@ function AddFilterButtonComponent<TData>(
   const activeFilters = state.activeFilters;
   const filterableColumns = useFilterableColumns(table, omit);
 
-  const handleAddFilter = (columnId: string) => {
-    if (!activeFilters?.some((filter) => filter.f === columnId)) {
-      setState({ activeFilters: [...activeFilters, { f: columnId, v: [] }] });
-    }
-  };
+  const handleAddFilter = useCallback(
+    (columnId: string) => {
+      if (!activeFilters?.some((filter) => filter.f === columnId)) {
+        setState({ activeFilters: [...activeFilters, { f: columnId, v: undefined }] });
+      }
+    },
+    [activeFilters]
+  );
 
   return (
     <div className="flex items-center space-x-2">
@@ -241,13 +244,7 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0" align="start">
-              <FilterOptions
-                column={column}
-                filter={filter}
-                state={state}
-                setState={setState}
-                table={table}
-              />
+              <FilterOptions column={column} />
             </PopoverContent>
           </Popover>
         );

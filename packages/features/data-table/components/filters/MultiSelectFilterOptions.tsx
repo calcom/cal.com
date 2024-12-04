@@ -12,22 +12,17 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { FilterableColumn, SelectFilterValue } from "../../lib/types";
+import type { FilterableColumn } from "../../lib/types";
+import { useFilterValue, useFiltersState } from "../../lib/utils";
 
 export type MultiSelectFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "select" }>;
-  filterValue?: SelectFilterValue;
-  setFilterValue: (value: SelectFilterValue) => void;
-  removeFilter: (columnId: string) => void;
 };
 
-export function MultiSelectFilterOptions({
-  column,
-  filterValue,
-  setFilterValue,
-  removeFilter,
-}: MultiSelectFilterOptionsProps) {
+export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsProps) {
   const { t } = useLocale();
+  const filterValue = useFilterValue(column.id);
+  const { updateFilter, removeFilter } = useFiltersState();
 
   return (
     <Command>
@@ -46,7 +41,7 @@ export function MultiSelectFilterOptions({
                 const newFilterValue = filterValue?.includes(optionValue)
                   ? filterValue?.filter((value) => value !== optionValue)
                   : [...(filterValue || []), optionValue];
-                setFilterValue(newFilterValue);
+                updateFilter(column.id, newFilterValue);
               }}>
               <div
                 className={classNames(

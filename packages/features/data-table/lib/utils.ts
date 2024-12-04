@@ -7,9 +7,9 @@ import { z } from "zod";
 import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
 import { ZFilterValue } from "./types";
 
-export const dataTableFiltersSchema = z.object({
+const dataTableFiltersSchema = z.object({
   f: z.string(),
-  v: ZFilterValue,
+  v: z.union([ZFilterValue, z.undefined()]),
 });
 
 export function useFiltersState() {
@@ -20,34 +20,60 @@ export function useFiltersState() {
     setState({ activeFilters: [] });
   }, [setState]);
 
-  return { state, setState, clear };
+  const updateFilter = useCallback(
+    (columnId: string, value: FilterValue) => {
+      setState({
+        activeFilters: state.activeFilters.map((item) =>
+          item.f === columnId ? { ...item, v: value } : item
+        ),
+      });
+    },
+    [state.activeFilters]
+  );
+
+  const removeFilter = useCallback(
+    (columnId: string) => {
+      setState({ activeFilters: (state.activeFilters || []).filter((filter) => filter.f !== columnId) });
+    },
+    [state.activeFilters]
+  );
+
+  return { state, setState, clear, updateFilter, removeFilter };
+}
+
+export function useFilterValue(columnId: string) {
+  const { state } = useFiltersState();
+  return useMemo(
+    () => state.activeFilters.find((filter) => filter.f === columnId)?.v,
+    [state.activeFilters, columnId]
+  );
 }
 
 export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];
 export type SetFiltersSearchState = ReturnType<typeof useFiltersState>["setState"];
-export type ActiveFilter = z.infer<typeof dataTableFiltersSchema>;
 
 export function useColumnFilters() {
   const { state } = useFiltersState();
-  return useMemo(
-    () =>
-      (state.activeFilters || [])
-        .filter((filter) => typeof filter === "object" && filter && "f" in filter && "v" in filter)
-        .map((filter) => ({
-          id: filter.f,
-          value: filter.v,
-        }))
-        .filter((filter) => {
-          // The empty arrays in `filtersSearchState` keep the filter UI component,
-          // but we do not send them to the actual query.
-          // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
-          if (Array.isArray(filter.value) && filter.value.length === 0) {
-            return false;
-          }
-          return true;
-        }),
-    [state]
-  );
+  return useMemo(() => {
+    return (state.activeFilters || [])
+      .filter(
+        (filter) =>
+          typeof filter === "object" && filter && "f" in filter && "v" in filter && filter.v !== undefined
+      )
+      .map((filter) => ({
+        id: filter.f,
+        value: filter.v,
+      }))
+      .filter((filter) => {
+        // The empty arrays in `filtersSearchState` keep the filter UI component,
+        // but we do not send them to the actual query.
+        // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
+        if (Array.isArray(filter.value) && filter.value.length === 0) {
+          return false;
+        }
+        return true;
+      });
+  }, [state]);
 }
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
