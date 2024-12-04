@@ -232,7 +232,7 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    //TODO:: When we're only making change in webhook, it doesn't trigger update for child events, and only makes change in the parent event. Fix that too.
+    
 
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
