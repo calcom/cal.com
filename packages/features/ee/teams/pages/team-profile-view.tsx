@@ -175,7 +175,8 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio ?? null)) }}
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
                 />
               </>
             )}

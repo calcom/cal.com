@@ -72,6 +72,7 @@ function SingleAppPage(props: PageProps) {
       //   privacy="https://zoom.us/privacy"
       body={
         <>
+          {/* eslint-disable-next-line react/no-danger */}
           <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(source.content) }} />
         </>
       }

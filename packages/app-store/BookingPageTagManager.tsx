@@ -137,6 +137,9 @@ export default function BookingPageTagManager({
               src={parseValue(script.src)}
               id={`${appId}-${index}`}
               key={`${appId}-${index}`}
+              // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+              // And we don't want it to error here anyways
+              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
                 __html: parseValue(script.content) || "",
               }}
