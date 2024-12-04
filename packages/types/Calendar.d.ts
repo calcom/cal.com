@@ -265,7 +265,7 @@ export interface Calendar {
   ): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
-  getAvailabilityWithTimeZones(
+  getAvailabilityWithTimeZones?(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
