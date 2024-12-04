@@ -5,11 +5,19 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  bookerLayouts as bookerLayoutsSchema,
+  userMetadata as userMetadataSchema,
+} from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
@@ -57,6 +65,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           slug: true,
           name: true,
           bannerUrl: true,
+          logoUrl: true,
           organizationSettings: {
             select: {
               allowSEOIndexing: true,
@@ -72,10 +81,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          title: true,
           isInstantEvent: true,
           schedulingType: true,
           metadata: true,
           length: true,
+          hidden: true,
         },
       },
       isOrganization: true,
@@ -85,6 +96,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
     },
+  });
+
+  // INFO: This code was pulled from getPublicEvent and used here.
+  // Calling the tRPC fetch to get the public event data is incredibly slow
+  // for large teams and we don't want to add it back. Future refactors will happen
+  // to speed up this call.
+  const usernameList = getUsernameList(username);
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
+    usernameList,
+    orgSlug,
   });
 
   if (!team || !team.eventTypes?.[0]) {
@@ -118,20 +140,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const publicEventData = await ssr.viewer.public.event.fetch({
-    username: teamSlug,
-    eventSlug: meetingSlug,
-    org: orgSlug,
-    fromRedirectOfNonOrgLink,
-    isTeamEvent: true,
-  });
 
-  if (!publicEventData) {
+  if (!eventData) {
     return {
       notFound: true,
     } as const;
   }
+
+  const firstUsersMetadata = userMetadataSchema.parse(usersInOrgContext[0].metadata || {});
 
   return {
     props: {
@@ -146,10 +162,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-        profile: publicEventData.profile,
-        title: publicEventData.title,
-        users: publicEventData.users,
-        hidden: publicEventData.hidden,
+        profile: {
+          weekStart: usersInOrgContext[0].weekStart,
+          brandColor: usersInOrgContext[0].brandColor,
+          darkBrandColor: usersInOrgContext[0].darkBrandColor,
+          theme: null,
+          bookerLayouts: bookerLayoutsSchema.parse(
+            firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
+          ),
+          ...(team.parent
+            ? {
+                image: getPlaceholderAvatar(team.parent?.logoUrl, team.parent?.name),
+                name: team.parent?.name,
+                username: orgSlug,
+              }
+            : {}),
+        },
+        title: eventData.title,
+        users: users.map((user) => ({
+          ...user,
+          metadata: undefined,
+          bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
+        })),
+        hidden: eventData.hidden,
       },
       booking,
       user: teamSlug,
