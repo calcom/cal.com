@@ -26,6 +26,7 @@ import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Badge,
@@ -355,7 +356,17 @@ export function RoutingFormResponsesTable({
       }),
 
       ...((headers?.fields || []).map((fieldHeader) => {
-        const isTextOrEmail = fieldHeader.type === "text" || fieldHeader.type === "email";
+        const isText = [
+          RoutingFormFieldType.TEXT,
+          RoutingFormFieldType.EMAIL,
+          RoutingFormFieldType.PHONE,
+          RoutingFormFieldType.TEXTAREA,
+        ].includes(fieldHeader.type as RoutingFormFieldType);
+
+        const isNumber = fieldHeader.type === RoutingFormFieldType.NUMBER;
+
+        const filterType = isText ? "text" : isNumber ? "number" : "select";
+
         return columnHelper.accessor(fieldHeader.id, {
           id: fieldHeader.id,
           header: convertToTitleCase(fieldHeader.label),
@@ -364,7 +375,7 @@ export function RoutingFormResponsesTable({
             const values = info.getValue();
             return (
               <div className="max-w-[200px]">
-                {isTextOrEmail ? (
+                {isText || isNumber ? (
                   <span>{values}</span>
                 ) : (
                   <ResponseValueCell
@@ -376,7 +387,7 @@ export function RoutingFormResponsesTable({
             );
           },
           meta: {
-            filter: isTextOrEmail ? { type: "text" } : { type: "select" },
+            filter: { type: filterType },
           },
           filterFn: (row, id, filterValue: FilterValue) => {
             let cellValue: unknown;

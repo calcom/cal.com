@@ -4,8 +4,14 @@ import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
 import { useMemo, useCallback } from "react";
 import { z } from "zod";
 
-import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
-import { ZFilterValue } from "./types";
+import type {
+  SelectFilterValue,
+  TextFilterValue,
+  FilterValue,
+  NumberFilterValue,
+  ColumnFilter,
+} from "./types";
+import { ZFilterValue, ZNumberFilterValue, ZSelectFilterValue, ZTextFilterValue } from "./types";
 
 const dataTableFiltersSchema = z.object({
   f: z.string(),
@@ -41,18 +47,23 @@ export function useFiltersState() {
   return { state, setState, clear, updateFilter, removeFilter };
 }
 
-export function useFilterValue(columnId: string) {
+export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
   const { state } = useFiltersState();
-  return useMemo(
-    () => state.activeFilters.find((filter) => filter.f === columnId)?.v,
-    [state.activeFilters, columnId]
-  );
+  return useMemo(() => {
+    const value = state.activeFilters.find((filter) => filter.f === columnId)?.v;
+    if (schema && value) {
+      try {
+        return schema.parse(value);
+      } catch {}
+    }
+    return undefined;
+  }, [state.activeFilters, columnId, schema]);
 }
 
 export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];
 export type SetFiltersSearchState = ReturnType<typeof useFiltersState>["setState"];
 
-export function useColumnFilters() {
+export function useColumnFilters(): ColumnFilter[] {
   const { state } = useFiltersState();
   return useMemo(() => {
     return (state.activeFilters || [])
@@ -60,15 +71,20 @@ export function useColumnFilters() {
         (filter) =>
           typeof filter === "object" && filter && "f" in filter && "v" in filter && filter.v !== undefined
       )
-      .map((filter) => ({
-        id: filter.f,
-        value: filter.v,
-      }))
+      .map((filter) => {
+        const parsedValue = ZFilterValue.safeParse(filter.v);
+        if (!parsedValue.success) return null;
+        return {
+          id: filter.f,
+          value: parsedValue.data,
+        };
+      })
+      .filter((filter): filter is ColumnFilter => filter !== null)
       .filter((filter) => {
         // The empty arrays in `filtersSearchState` keep the filter UI component,
         // but we do not send them to the actual query.
         // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
-        if (Array.isArray(filter.value) && filter.value.length === 0) {
+        if (isSelectFilterValue(filter.value) && filter.value.length === 0) {
           return false;
         }
         return true;
@@ -104,12 +120,7 @@ export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => 
 };
 
 export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilterValue => {
-  return (
-    typeof filterValue === "object" &&
-    filterValue !== null &&
-    "type" in filterValue &&
-    filterValue.type === "text"
-  );
+  return ZTextFilterValue.safeParse(filterValue).success;
 };
 
 export const selectFilter = (cellValue: unknown | undefined, filterValue: SelectFilterValue) => {
@@ -122,7 +133,34 @@ export const selectFilter = (cellValue: unknown | undefined, filterValue: Select
 };
 
 export const isSelectFilterValue = (filterValue: unknown): filterValue is SelectFilterValue => {
-  return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
+  return ZSelectFilterValue.safeParse(filterValue).success;
+};
+
+export const numberFilter = (cellValue: unknown, filterValue: NumberFilterValue) => {
+  if (typeof cellValue !== "number") {
+    return false;
+  }
+
+  switch (filterValue.data.operator) {
+    case "eq":
+      return cellValue === filterValue.data.operand;
+    case "neq":
+      return cellValue !== filterValue.data.operand;
+    case "gt":
+      return cellValue > filterValue.data.operand;
+    case "gte":
+      return cellValue >= filterValue.data.operand;
+    case "lt":
+      return cellValue < filterValue.data.operand;
+    case "lte":
+      return cellValue <= filterValue.data.operand;
+  }
+
+  return false;
+};
+
+export const isNumberFilterValue = (filterValue: unknown): filterValue is NumberFilterValue => {
+  return ZNumberFilterValue.safeParse(filterValue).success;
 };
 
 export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
@@ -130,6 +168,8 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
     return selectFilter(cellValue, filterValue);
   } else if (isTextFilterValue(filterValue)) {
     return textFilter(cellValue, filterValue);
+  } else if (isNumberFilterValue(filterValue)) {
+    return numberFilter(cellValue, filterValue);
   }
   return false;
 };

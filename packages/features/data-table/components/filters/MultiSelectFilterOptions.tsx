@@ -13,6 +13,7 @@ import {
 } from "@calcom/ui";
 
 import type { FilterableColumn } from "../../lib/types";
+import { ZSelectFilterValue } from "../../lib/types";
 import { useFilterValue, useFiltersState } from "../../lib/utils";
 
 export type MultiSelectFilterOptionsProps = {
@@ -21,7 +22,7 @@ export type MultiSelectFilterOptionsProps = {
 
 export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsProps) {
   const { t } = useLocale();
-  const filterValue = useFilterValue(column.id);
+  const filterValue = useFilterValue(column.id, ZSelectFilterValue);
   const { updateFilter, removeFilter } = useFiltersState();
 
   return (

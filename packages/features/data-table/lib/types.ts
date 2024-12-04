@@ -29,12 +29,33 @@ export const ZTextFilterValue = z.object({
 
 export type TextFilterValue = z.infer<typeof ZTextFilterValue>;
 
-export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue]);
+export const ZNumberFilterOperator = z.enum([
+  "eq", // =
+  "neq", // !=
+  "gt", // >
+  "gte", // >=
+  "lt", // <
+  "lte", // <=
+]);
+
+export type NumberFilterOperator = z.infer<typeof ZNumberFilterOperator>;
+
+export const ZNumberFilterValue = z.object({
+  type: z.literal("number"),
+  data: z.object({
+    operator: ZNumberFilterOperator,
+    operand: z.number(),
+  }),
+});
+
+export type NumberFilterValue = z.infer<typeof ZNumberFilterValue>;
+
+export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue, ZNumberFilterValue]);
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
 
 export type ColumnFilterMeta = {
-  type?: "select" | "text";
+  type?: "select" | "text" | "number";
   icon?: IconName;
 };
 
@@ -49,6 +70,10 @@ export type FilterableColumn = {
     }
   | {
       type: "text";
+      icon?: IconName;
+    }
+  | {
+      type: "number";
       icon?: IconName;
     }
 );

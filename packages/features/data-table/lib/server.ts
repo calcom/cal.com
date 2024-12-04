@@ -1,5 +1,5 @@
 import type { FilterValue } from "./types";
-import { isSelectFilterValue, isTextFilterValue } from "./utils";
+import { isSelectFilterValue, isTextFilterValue, isNumberFilterValue } from "./utils";
 
 type makeWhereClauseProps = {
   columnName: string;
@@ -83,6 +83,56 @@ export function makeWhereClause(props: makeWhereClauseProps) {
             },
           },
         };
+      default:
+        throw new Error(`Invalid operator for text filter: ${operator}`);
+    }
+  } else if (isNumberFilterValue(filterValue)) {
+    const { operator, operand } = filterValue.data;
+    switch (operator) {
+      case "eq":
+        return {
+          [columnName]: {
+            ...jsonPathObj,
+            equals: operand,
+          },
+        };
+      case "neq":
+        return {
+          [columnName]: {
+            ...jsonPathObj,
+            not: operand,
+          },
+        };
+      case "gt":
+        return {
+          [columnName]: {
+            ...jsonPathObj,
+            gt: operand,
+          },
+        };
+      case "gte":
+        return {
+          [columnName]: {
+            ...jsonPathObj,
+            gte: operand,
+          },
+        };
+      case "lt":
+        return {
+          [columnName]: {
+            ...jsonPathObj,
+            lt: operand,
+          },
+        };
+      case "lte":
+        return {
+          [columnName]: {
+            ...jsonPathObj,
+            lte: operand,
+          },
+        };
+      default:
+        throw new Error(`Invalid operator for number filter: ${operator}`);
     }
   }
   return {};

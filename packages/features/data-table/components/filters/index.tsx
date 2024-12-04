@@ -201,7 +201,7 @@ function useFilterableColumns<TData>(table: Table<TData>, omit?: string[]) {
               ...base,
               options: column.getFacetedUniqueValues(),
             };
-          } else if (type === "text") {
+          } else {
             return {
               ...base,
             };
@@ -223,6 +223,12 @@ interface ActiveFiltersProps<TData> {
   table: Table<TData>;
 }
 
+const filterIcons = {
+  text: "file-text",
+  number: "binary",
+  select: "layers",
+} as const;
+
 function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
   const { state, setState } = useFiltersState();
 
@@ -233,7 +239,7 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
       {state.activeFilters.map((filter) => {
         const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
-        const icon = column.icon || (column.type === "text" ? "file-text" : "layers");
+        const icon = column.icon || filterIcons[column.type];
         return (
           <Popover key={column.id}>
             <PopoverTrigger asChild>
