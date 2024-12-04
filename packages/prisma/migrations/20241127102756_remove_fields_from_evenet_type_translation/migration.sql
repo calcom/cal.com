@@ -11,11 +11,6 @@
 
 -- Copy data
 UPDATE "EventTypeTranslation" SET 
-  "sourceLocale" = "sourceLang",
-  "targetLocale" = "targetLang";
-
--- Copy data
-UPDATE "EventTypeTranslation" SET 
   "uid" = "id";
 
 -- DropIndex
