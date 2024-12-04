@@ -24,7 +24,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     }
   }
 
-  async getEmailDomainInWatchlist(emailDomain: string) {
+  async getFreeEmailDomainInWatchlist(emailDomain: string) {
     try {
       const domainInWatchWatchlist = await db.watchlist.findFirst({
         where: {
