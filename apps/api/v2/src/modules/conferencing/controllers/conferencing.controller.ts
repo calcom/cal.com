@@ -93,16 +93,18 @@ export class ConferencingController {
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
-    @Param("app") app: string
+    @Param("app") app: string,
+    @Query("returnTo") returnTo?: string,
+    @Query("onErrorReturnTo") onErrorReturnTo?: string
   ): Promise<GetConferencingAppsOauthUrlResponseDto> {
     let credential;
     const origin = req.headers.origin;
     const accessToken = authorization.replace("Bearer ", "");
 
     const state: OAuthCallbackState = {
-      onErrorReturnTo: origin,
+      returnTo: returnTo ?? origin,
+      onErrorReturnTo: onErrorReturnTo ?? origin,
       fromApp: false,
-      returnTo: origin,
       accessToken,
     };
 

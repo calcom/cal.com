@@ -7,14 +7,23 @@ import type { App } from "@calcom/types/App";
 
 import http from "../../../lib/http";
 
-export const useGetOauthAuthUrl = () => {
+export type UseGetOauthAuthUrlProps = {
+  returnTo?: string;
+  onErrorReturnTo?: string;
+};
+
+export const useGetOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
   return useQuery({
     queryKey: ["get-zoom-auth-url"],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
       return http
-        ?.get<ApiResponse<{ url: string }>>(`conferencing/${ZOOM}/oauth/auth-url`)
+        ?.get<ApiResponse<{ url: string }>>(
+          `conferencing/${ZOOM}/oauth/auth-url${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}${
+            onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
+          }`
+        )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
             return responseBody.data.url;
@@ -29,6 +38,8 @@ export const useGetOauthAuthUrl = () => {
 export type UseConnectGoogleMeetProps = {
   onSuccess?: (res: ApiResponse) => void;
   onError?: (err: ApiErrorResponse) => void;
+  returnTo?: string;
+  onErrorReturnTo?: string;
 };
 
 export const useConnectNonOauthApp = (
@@ -57,8 +68,8 @@ export const useConnectNonOauthApp = (
   });
 };
 
-export const useConnect = (props: UseConnectGoogleMeetProps) => {
-  const { refetch } = useGetOauthAuthUrl();
+export const useConnect = ({ returnTo, onErrorReturnTo, ...props }: UseConnectGoogleMeetProps) => {
+  const { refetch } = useGetOauthAuthUrl({ returnTo, onErrorReturnTo });
   const connectNonOauthApp = useConnectNonOauthApp(props);
 
   const connect = async (app: App["slug"]) => {

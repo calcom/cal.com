@@ -43,6 +43,8 @@ type ConferencingAppsViewPlatformWrapperProps = {
   description: string;
   add: string;
   disableToasts?: boolean;
+  returnTo?: string;
+  onErrorReturnTo?: string;
 };
 
 type UpdateUsersDefaultConferencingAppParams = {
@@ -76,6 +78,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
   description,
   add,
   disableToasts = false,
+  returnTo,
+  onErrorReturnTo,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -113,7 +117,6 @@ export const ConferencingAppsViewPlatformWrapper = ({
       showToast(t("app_removed_successfully"), "success");
       handleModelClose();
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
-      // utils.viewer.connectedCalendars.invalidate();
     },
     onError: () => {
       showToast(t("error_removing_app"), "error");
@@ -155,6 +158,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
       },
     });
   };
+
   const handleConnectDisconnectIntegrationMenuToggle = () => {
     queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
   };
@@ -172,6 +176,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
       showToast(`Error: unable to install app`, "error");
     },
+    returnTo,
+    onErrorReturnTo,
   });
 
   const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {

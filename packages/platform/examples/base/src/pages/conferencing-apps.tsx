@@ -1,14 +1,14 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 import { ConferencingAppsSettings } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function ConferencingApps(props: { calUsername: string; calEmail: string }) {
-  const router = useRouter();
+  const pathname = usePathname();
+  const callbackUri = `${window.location.origin}${pathname}`;
 
   return (
     <main
@@ -19,6 +19,8 @@ export default function ConferencingApps(props: { calUsername: string; calEmail:
           title="Conferencing"
           description="Add your favourite video conferencing apps for your meetings"
           add="add"
+          returnTo={callbackUri}
+          onErrorReturnTo={callbackUri}
         />
       </div>
     </main>
