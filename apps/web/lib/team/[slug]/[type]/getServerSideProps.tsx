@@ -156,15 +156,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-        profile: {
-          ...(team.parent
-            ? {
-                image: getPlaceholderAvatar(team.parent?.logoUrl, team.parent?.name),
-                name: team.parent?.name,
-                username: orgSlug,
-              }
-            : {}),
-        },
+        profile: team.parent
+          ? {
+              image: getPlaceholderAvatar(team.parent?.logoUrl, team.parent?.name),
+              name: team.parent?.name ?? null,
+              username: orgSlug ?? null,
+            }
+          : null,
         title: eventData.title,
         users: usersInOrgContext.map((user) => ({
           ...user,

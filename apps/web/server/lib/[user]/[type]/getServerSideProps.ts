@@ -17,10 +17,20 @@ import { RedirectType } from "@calcom/prisma/client";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 type Props = {
-  eventData: Pick<
-    NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-    "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
-  >;
+  eventData: Omit<
+    Pick<
+      NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
+      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
+    >,
+    "profile"
+  > & {
+    profile: {
+      image: string | undefined;
+      name: string | null;
+      username: string | null;
+    };
+  };
+
   booking?: GetBookingType;
   rescheduleUid: string | null;
   bookingUid: string | null;
@@ -143,7 +153,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         ...eventData.metadata,
         multipleDuration: [15, 30, 45, 60, 90],
       },
-      profile: eventData.profile,
+      profile: {
+        image: eventData.profile.image,
+        name: eventData.profile.name ?? null,
+        username: eventData.profile.username ?? null,
+      },
       title: eventData.title,
       users: eventData.users,
       hidden: eventData.hidden,
@@ -235,7 +249,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       length: eventData.length,
       metadata: eventData.metadata,
-      profile: eventData.profile,
+      profile: {
+        image: eventData.profile.image,
+        name: eventData.profile.name ?? null,
+        username: eventData.profile.username ?? null,
+      },
       title: eventData.title,
       users: eventData.users,
       hidden: eventData.hidden,
