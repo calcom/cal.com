@@ -125,8 +125,7 @@ const AddCertificate = () => {
       </div>
       <fieldset className="mt-4">
         <p className="text-default mt-2 font-sans text-sm font-normal">
-          Fique tranquilo! Nós não iremos armazenar a sua senha. Ela será utilizada somente para integrar à
-          plataforma de emissão de notas fiscais e será excluída automaticamente em seguida.
+          Não se preocupe. Sua senha não será armazenada em nosso sistema. Ela será usada apenas para integração com a plataforma de emissão de notas fiscais.
         </p>
       </fieldset>
       <Button
