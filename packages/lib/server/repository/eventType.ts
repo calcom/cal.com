@@ -680,6 +680,8 @@ export class EventTypeRepository {
                 id: true,
                 name: true,
                 email: true,
+                selectedCalendars: true,
+                credentials: true,
               },
             },
             weight: true,
