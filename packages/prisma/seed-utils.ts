@@ -450,6 +450,9 @@ export async function seedRoutingForms(
     formFieldManager: {
       id: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
     },
+    formFieldRating: {
+      id: "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729",
+    },
   };
 
   const form = await prisma.app_RoutingForms_Form.findUnique({
@@ -566,6 +569,12 @@ export async function seedRoutingForms(
           label: "Manager",
           required: true,
         },
+        {
+          id: seededForm.formFieldRating.id,
+          type: "number",
+          label: "Rating",
+          required: true,
+        },
       ],
       team: {
         connect: {
@@ -597,6 +606,9 @@ type SeededForm = {
     id: string;
   };
   formFieldManager: {
+    id: string;
+  };
+  formFieldRating: {
     id: string;
   };
 };
@@ -653,6 +665,10 @@ export async function seedRoutingFormResponses(
             label: "Manager",
             value: faker.person.fullName(),
           },
+          [seededForm.formFieldRating.id]: {
+            label: "Rating",
+            value: Math.floor(Math.random() * 5) + 1,
+          },
         },
       },
     });
@@ -684,6 +700,10 @@ export async function seedRoutingFormResponses(
           [seededForm.formFieldManager.id]: {
             label: "Manager",
             value: faker.person.fullName(),
+          },
+          [seededForm.formFieldRating.id]: {
+            label: "Rating",
+            value: Math.floor(Math.random() * 5) + 1,
           },
         },
       },
