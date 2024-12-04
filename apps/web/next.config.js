@@ -521,6 +521,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/apps/routing-forms/:path*",
+        destination: "/routing/:path*",
+        permanent: false,
+      },
+      {
         source: "/auth/signup",
         destination: "/signup",
         permanent: true,
