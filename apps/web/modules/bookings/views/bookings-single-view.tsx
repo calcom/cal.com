@@ -674,6 +674,7 @@ export default function Success(props: PageProps) {
                             <>
                               <div
                                 className="text-emphasis mt-4 font-medium"
+                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
