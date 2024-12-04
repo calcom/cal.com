@@ -127,7 +127,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
-  if (booking?.endTime && booking?.endTime < new Date()) {
+  const isBookingInPast = new Date(booking.endTime) < new Date();
+  if (isBookingInPast) {
     return {
       redirect: {
         destination: eventUrl,
