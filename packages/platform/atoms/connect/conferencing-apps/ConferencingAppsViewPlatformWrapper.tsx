@@ -39,9 +39,6 @@ import {
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
 
 type ConferencingAppsViewPlatformWrapperProps = {
-  title: string;
-  description: string;
-  add: string;
   disableToasts?: boolean;
   returnTo?: string;
   onErrorReturnTo?: string;
@@ -74,9 +71,6 @@ type ModalState = {
 };
 
 export const ConferencingAppsViewPlatformWrapper = ({
-  title,
-  description,
-  add,
   disableToasts = false,
   returnTo,
   onErrorReturnTo,
@@ -185,7 +179,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
       <Dropdown>
         <DropdownMenuTrigger asChild>
           <Button color="secondary" StartIcon="plus">
-            {add}
+            {t("add")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -211,8 +205,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
   return (
     <AtomsWrapper>
       <SettingsHeader
-        title={title}
-        description={description}
+        title={t("conferencing")}
+        description={t("conferencing_description")}
         CTA={<AddConferencingButtonPlatform installedApps={installedIntegrationsQuery.data?.items} />}
         borderInShellHeader={true}>
         <>
