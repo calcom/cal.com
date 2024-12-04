@@ -116,7 +116,7 @@ export default async function handleChildrenEventTypes({
   // bookingFields is expected to be filled by the _EventTypeModel but is null at create event
   const _ManagedEventTypeModel = _EventTypeModel.extend({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
-    webhooks: _WebhookModel.array(),
+    webhooks: _WebhookModel.array().optional(),
   });
 
   const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
