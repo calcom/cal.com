@@ -37,6 +37,10 @@ export function usePersistentColumnResizing<TData>({
 
   const onColumnSizingChange = useCallback(
     (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
+      // `!name` is checked already in the `useEffect` hook,
+      // but TS doesn't know that, and this won't happen.
+      if (!name) return;
+
       table.setState((oldTableState) => {
         const newColumnSizing = typeof updater === "function" ? updater(oldTableState.columnSizing) : updater;
         debouncedSaveColumnSizing(name, newColumnSizing);
