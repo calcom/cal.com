@@ -314,7 +314,7 @@ export function RoutingFormResponsesTable({
     });
   }, [flatData, headers, isHeadersLoading]);
 
-  const statusOrder = {
+  const statusOrder: Record<BookingStatus, number> = {
     [BookingStatus.ACCEPTED]: 1,
     [BookingStatus.PENDING]: 2,
     [BookingStatus.AWAITING_HOST]: 3,
@@ -362,9 +362,12 @@ export function RoutingFormResponsesTable({
           </div>
         ),
         sortingFn: (rowA, rowB) => {
-          const statusA = rowA.original.routedToBooking?.status || "";
-          const statusB = rowB.original.routedToBooking?.status || "";
-          return (statusOrder[statusA] || 999) - (statusOrder[statusB] || 999);
+          const statusA = rowA.original.routedToBooking?.status;
+          const statusB = rowB.original.routedToBooking?.status;
+          // Default to highest number (5) + 1 for null/undefined values to sort them last
+          const orderA = statusA ? statusOrder[statusA] : 6;
+          const orderB = statusB ? statusOrder[statusB] : 6;
+          return orderA - orderB;
         },
       }),
       columnHelper.accessor("routedToBooking", {
