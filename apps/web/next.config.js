@@ -521,8 +521,8 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/apps/routing-forms/:path*",
-        destination: "/routing/:path*",
+        source: "/apps/routing-forms/forms",
+        destination: "/routing",
         permanent: false,
       },
       {

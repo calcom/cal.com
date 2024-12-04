@@ -41,9 +41,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  // redirect /apps/routing-forms to /routing && /apps/routing-forms/:slug to /routing/:slug
-  if (url.pathname.startsWith("/apps/routing-forms")) {
-    const redirectPathName = url.pathname.replace(/^\/apps\/routing-forms($|\/)/, "/routing/");
+  // redirect /apps/routing-forms/forms to /routing
+
+  if (url.pathname.startsWith("/apps/routing-forms/forms")) {
+    const redirectPathName = url.pathname.replace(/^\/apps\/routing-forms\/forms$/, "/routing");
     const nextUrl = url.clone();
     nextUrl.pathname = redirectPathName;
     return NextResponse.redirect(nextUrl, { headers: requestHeaders });
@@ -171,7 +172,7 @@ export const config = {
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
-    "/apps/routing-forms/:path*",
+    "/apps/routing-forms/forms",
     "/event-types",
     "/future/event-types/",
     "/settings/admin/:path*",
