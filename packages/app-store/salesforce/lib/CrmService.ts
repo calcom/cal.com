@@ -394,7 +394,7 @@ export default class SalesforceCRMService implements CRM {
 
     if (!records.length) records = results.records as ContactRecord[];
 
-    if ((includeOwner || forRoundRobinSkip) && !this.attendeeHasFreeEmailDomain(emails[0])) {
+    if ((includeOwner || forRoundRobinSkip) && !this.shouldSkipAttendeeIfFreeEmailDomain(emails[0])) {
       const ownerIds: Set<string> = new Set();
       if (accountOwnerId) {
         ownerIds.add(accountOwnerId);
@@ -1132,7 +1132,7 @@ export default class SalesforceCRMService implements CRM {
     return companyValue;
   }
 
-  private attendeeHasFreeEmailDomain(attendeeEmail: string) {
+  private shouldSkipAttendeeIfFreeEmailDomain(attendeeEmail: string) {
     const appOptions = this.getAppOptions();
     if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
 
