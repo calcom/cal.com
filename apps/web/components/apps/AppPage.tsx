@@ -247,7 +247,7 @@ export const AppPage = ({
               <DisconnectIntegration
                 buttonProps={{ color: "secondary" }}
                 label={t("disconnect")}
-                credentialId={existingCredentials[0].id}
+                credentialId={Number(existingCredentials[0].id)}
                 teamId={existingCredentials[0].teamId}
                 onSuccess={() => appDbQuery.refetch()}
               />

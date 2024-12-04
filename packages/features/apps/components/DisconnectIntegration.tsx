@@ -9,7 +9,7 @@ import { DisconnectIntegrationComponent, showToast } from "@calcom/ui";
 
 export default function DisconnectIntegration(props: {
   credentialId: number;
-  teamId?: number;
+  teamId?: number | null;
   label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;

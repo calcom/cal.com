@@ -1,8 +1,8 @@
-import type { Credential } from "@prisma/client";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Button,
   Dropdown,
@@ -16,12 +16,17 @@ import {
   showToast,
 } from "@calcom/ui";
 
-interface MultiDisconnectIntegrationProps {
-  credentials: Credential[];
+import type { inferRouterOutputs } from "@trpc/server";
+
+type RouterOutput = inferRouterOutputs<AppRouter>;
+type Credentials = RouterOutput["viewer"]["appCredentialsByType"]["credentials"];
+
+interface Props {
+  credentials: Credentials;
   onSuccess?: () => void;
 }
 
-export function MultiDisconnectIntegration({ credentials, onSuccess }: MultiDisconnectIntegrationProps) {
+export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [credentialToDelete, setCredentialToDelete] = useState<{
