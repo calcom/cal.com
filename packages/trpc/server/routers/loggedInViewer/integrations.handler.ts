@@ -7,11 +7,11 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { withDelegatedToIdNullArray } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
@@ -53,6 +53,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     extendsFeature,
     teamId,
     sortByMostPopular,
+    sortByInstalledFirst,
     appId,
   } = input;
   let credentials = await getUsersCredentials(user);
@@ -123,8 +124,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
     userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
-      return teamApp.credentials ? teamApp.credentials.flat() : [];
+    const teamAppCredentials = userTeams.flatMap((teamApp) => {
+      return teamApp.credentials ? withDelegatedToIdNullArray(teamApp.credentials.flat()) : [];
     });
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
@@ -137,6 +138,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
+
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
@@ -243,6 +245,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const aCount = installCountPerApp[a.slug] || 0;
       const bCount = installCountPerApp[b.slug] || 0;
       return bCount - aCount;
+    });
+  }
+
+  if (sortByInstalledFirst) {
+    apps.sort((a, b) => {
+      return (a.isInstalled ? 0 : 1) - (b.isInstalled ? 0 : 1);
     });
   }
 

@@ -3,6 +3,7 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -43,7 +44,7 @@ const handleDeleteCredential = async ({
   credentialId: number;
   teamId?: number;
 }) => {
-  const credential = await prisma.credential.findFirst({
+  const dbCredential = await prisma.credential.findFirst({
     where: {
       id: credentialId,
       ...(teamId ? { teamId } : { userId }),
@@ -60,9 +61,11 @@ const handleDeleteCredential = async ({
     },
   });
 
-  if (!credential) {
+  if (!dbCredential) {
     throw new Error("Credential not found");
   }
+
+  const credential = await getCredentialForCalendarService(dbCredential);
 
   const eventTypes = await prisma.eventType.findMany({
     where: {

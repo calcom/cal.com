@@ -3,6 +3,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import { buildCredentialPayloadForCalendar } from "../buildCredentialPayloadForCalendar";
+
 type SelectedCalendarCreateInput = {
   credentialId: number;
   userId: number;
@@ -19,6 +21,11 @@ export class SelectedCalendarRepository {
     });
   }
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    const credentialPayload = buildCredentialPayloadForCalendar({
+      credentialId: data.credentialId ?? null,
+      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId ?? null,
+    });
+
     return await prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
@@ -27,8 +34,14 @@ export class SelectedCalendarRepository {
           externalId: data.externalId,
         },
       },
-      create: { ...data },
-      update: { ...data },
+      create: {
+        ...data,
+        ...credentialPayload,
+      },
+      update: {
+        ...data,
+        ...credentialPayload,
+      },
     });
   }
   /** Retrieve calendars that need to be watched */

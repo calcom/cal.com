@@ -3,6 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
+import { getAllDomainWideDelegationConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -27,7 +28,7 @@ export async function getLocationGroupedOptions(
 
   // don't default to {}, when you do TS no longer determines the right types.
   let idToSearchObject: Prisma.CredentialWhereInput;
-
+  let user = null;
   if ("teamId" in userOrTeamId) {
     const teamId = userOrTeamId.teamId;
     // See if the team event belongs to an org
@@ -52,9 +53,14 @@ export async function getLocationGroupedOptions(
     }
   } else {
     idToSearchObject = { userId: userOrTeamId.userId };
+    user = await prisma.user.findFirst({
+      where: {
+        id: userOrTeamId.userId,
+      },
+    });
   }
 
-  const credentials = await prisma.credential.findMany({
+  let credentials = await prisma.credential.findMany({
     where: {
       ...idToSearchObject,
       app: {
@@ -72,6 +78,15 @@ export async function getLocationGroupedOptions(
       },
     },
   });
+
+  if (user) {
+    const domainWideDelegationCredentials = await getAllDomainWideDelegationConferencingCredentialsForUser({
+      user,
+    });
+
+    // We only add dwd credentials if the request for location options is for a user because DWD Credential is applicable to Users only.  
+    credentials = [...credentials, ...domainWideDelegationCredentials];
+  }
 
   const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
 

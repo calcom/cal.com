@@ -777,4 +777,16 @@ export const bookingSeatDataSchema = z.object({
   responses: bookingResponses,
 });
 
+export const serviceAccountKeySchema = z
+  .object({
+    type: z.string(),
+    client_id: z.string(),
+    client_email: z.string(),
+    private_key: z.string(),
+  })
+  // There could be more properties available here by the Workspace platform(e.g. Google), we don't want to loose them but don't need them also at the moment
+  .passthrough();
+
+export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
+
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();

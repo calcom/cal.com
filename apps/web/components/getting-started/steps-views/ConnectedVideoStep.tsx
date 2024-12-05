@@ -17,7 +17,16 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
+
+    /**
+     * Both props together sort by most popular first, then by installed first.
+     * So, installed apps are always shown at the top, followed by remaining apps sorted by descending popularity.
+     *
+     * This is done because there could be not so popular app already installed by the admin(e.g. through Domain-Wide Delegation)
+     * and we want to show it at the top so that user can set it as default if he wants to.
+     */
     sortByMostPopular: true,
+    sortByInstalledFirst: true,
   });
   const { data } = useMeQuery();
   const { t } = useLocale();

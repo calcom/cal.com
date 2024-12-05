@@ -1,3 +1,4 @@
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -31,10 +32,14 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
     },
   });
 
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
+    user: { id: user.id, email: user.email },
+  });
+
   // For app pages need to return which teams the user can install the app on
   // return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
   return {
-    credentials,
+    credentials: [...credentials, ...domainWideDelegationCredentials],
     userAdminTeams: userAdminTeamsIds,
   };
 };

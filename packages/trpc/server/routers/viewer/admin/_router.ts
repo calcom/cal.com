@@ -6,7 +6,15 @@ import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
+import {
+  workspacePlatformCreateSchema,
+  workspacePlatformUpdateSchema,
+  workspacePlatformUpdateServiceAccountSchema,
+  workspacePlatformToggleEnabledSchema,
+} from "./workspacePlatform/schema";
+
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
+
 
 const NAMESPACE = "admin";
 
@@ -62,4 +70,43 @@ export const adminRouter = router({
       );
       return handler(opts);
     }),
+  workspacePlatform: router({
+    list: authedAdminProcedure.query(async () => {
+      const handler = await importHandler(
+        namespaced("workspacePlatforms.list"),
+        () => import("./workspacePlatform/list.handler")
+      );
+      return handler();
+    }),
+    add: authedAdminProcedure.input(workspacePlatformCreateSchema).mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("workspacePlatforms.add"),
+        () => import("./workspacePlatform/add.handler")
+      );
+      return handler(opts);
+    }),
+    update: authedAdminProcedure.input(workspacePlatformUpdateSchema).mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("workspacePlatforms.update"),
+        () => import("./workspacePlatform/update.handler")
+      );
+      return handler(opts);
+    }),
+    updateServiceAccount: authedAdminProcedure
+      .input(workspacePlatformUpdateServiceAccountSchema)
+      .mutation(async (opts) => {
+        const handler = await importHandler(
+          namespaced("workspacePlatforms.updateServiceAccount"),
+          () => import("./workspacePlatform/updateServiceAccount.handler")
+        );
+        return handler(opts);
+      }),
+    toggleEnabled: authedAdminProcedure.input(workspacePlatformToggleEnabledSchema).mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("workspacePlatforms.toggleEnabled"),
+        () => import("./workspacePlatform/toggleEnabled.handler")
+      );
+      return handler(opts);
+    }),
+  }),
 });

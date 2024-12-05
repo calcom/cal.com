@@ -1,5 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -11,6 +12,7 @@ type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
   selectedCalendars: SessionUser["selectedCalendars"];
+  email: SessionUser["email"];
 };
 
 type SetDestinationCalendarOptions = {
@@ -28,9 +30,10 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-  const credentialId = allCals.find(
+  const calendar = allCals.find(
     (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
-  )?.credentialId;
+  );
+  const { credentialId, domainWideDelegationCredentialId } = calendar || {};
 
   if (!credentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
@@ -58,20 +61,22 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     where = { eventTypeId };
   } else where = { userId: user.id };
 
-  await prisma.destinationCalendar.upsert({
+  await DestinationCalendarRepository.upsert({
     where,
     update: {
       integration,
       externalId,
-      credentialId,
       primaryEmail,
+      credentialId,
+      domainWideDelegationCredentialId,
     },
     create: {
       ...where,
       integration,
       externalId,
-      credentialId,
       primaryEmail,
+      credentialId,
+      domainWideDelegationCredentialId,
     },
   });
 };

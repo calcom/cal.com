@@ -15,6 +15,7 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -149,7 +150,7 @@ const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType
 };
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
-  return await prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where,
     select: {
       ...availabilityUserSelect,
@@ -158,6 +159,14 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
       },
     },
   });
+  if (!user) return user;
+  const { credentials, ...restUser } = user;
+  return {
+    ...restUser,
+    credentials: credentials.concat(
+      await getAllDomainWideDelegationCalendarCredentialsForUser({ user: restUser })
+    ),
+  };
 };
 
 type GetUser = Awaited<ReturnType<typeof getUser>>;

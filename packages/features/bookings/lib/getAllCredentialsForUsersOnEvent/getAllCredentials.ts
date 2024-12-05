@@ -1,23 +1,26 @@
 import type z from "zod";
 
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+export type EventType = {
+  userId?: number | null;
+  team?: { id: number | null; parentId: number | null } | null;
+  parentId?: number | null;
+  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+} | null;
+
 /**
  * Gets credentials from the user, team, and org if applicable
  *
  */
 export const getAllCredentials = async (
-  user: { id: number; username: string | null; credentials: CredentialPayload[] },
-  eventType: {
-    userId?: number | null;
-    team?: { id: number | null; parentId: number | null } | null;
-    parentId?: number | null;
-    metadata: z.infer<typeof EventTypeMetaDataSchema>;
-  } | null
+  user: { id: number; username: string | null; email: string; credentials: CredentialPayload[] },
+  eventType: EventType
 ) => {
   let allCredentials = user.credentials;
 
@@ -117,5 +120,11 @@ export const getAllCredentials = async (
     }
   });
 
-  return allCredentials;
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
+    user: {
+      email: user.email,
+      id: user.id,
+    },
+  });
+  return allCredentials.concat(domainWideDelegationCredentials);
 };
