@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Nous surveillerons le nombre de réservations effectuées avec chaque hôte et le comparerons avec les autres, en désactivant certains hôtes trop en avance pour que les réservations soient réparties équitablement.",
   "exclude_emails_that_contain": "Exclure les e-mails contenant ...",
   "exclude_emails_match_found_error_message": "Veuillez entrer une adresse e-mail professionnelle valide",
+  "search_columns": "Rechercher dans les colonnes",
+  "search_options": "Options de recherche",
   "disable_org_url_label": "Désactiver le profil public de l'organisation et rediriger",
   "disable_org_url_description": "Redirige {{orgSlug}}.cal.com vers {{destination}}",
   "single_select": "Sélection unique",

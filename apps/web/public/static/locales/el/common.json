@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Θα παρακολουθούμε πόσες κρατήσεις έχουν γίνει με κάθε διοργανωτή και θα τις συγκρίνουμε με άλλους, απενεργοποιώντας κάποιους διοργανωτές που έχουν προχωρήσει πολύ μπροστά ώστε οι κρατήσεις να κατανέμονται ομοιόμορφα.",
   "exclude_emails_that_contain": "Εξαίρεση email που περιέχουν ...",
   "exclude_emails_match_found_error_message": "Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email εργασίας",
+  "search_columns": "Αναζήτηση στηλών",
+  "search_options": "Επιλογές αναζήτησης",
   "disable_org_url_label": "Απενεργοποίηση δημόσιου προφίλ οργανισμού και ανακατεύθυνση",
   "disable_org_url_description": "Ανακατευθύνει το {{orgSlug}}.cal.com στο {{destination}}",
   "single_select": "Μονή επιλογή",

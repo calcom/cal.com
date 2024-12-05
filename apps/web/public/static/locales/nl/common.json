@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "We monitoren hoeveel boekingen er bij elke host zijn gemaakt en vergelijken dit met anderen. Hosts die te ver voorlopen worden tijdelijk uitgeschakeld zodat boekingen gelijkmatig worden verdeeld.",
   "exclude_emails_that_contain": "E-mailadressen uitsluiten die ... bevatten",
   "exclude_emails_match_found_error_message": "Voer een geldig zakelijk e-mailadres in",
+  "search_columns": "Kolommen zoeken",
+  "search_options": "Zoekopties",
   "disable_org_url_label": "Openbaar organisatieprofiel uitschakelen en doorverwijzen",
   "disable_org_url_description": "Verwijst {{orgSlug}}.cal.com door naar {{destination}}",
   "single_select": "Enkele selectie",

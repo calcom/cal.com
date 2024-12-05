@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Hər bir təşkilatçı ilə neçə bron edildiyini izləyəcəyik və bunu digərləri ilə müqayisə edəcəyik, çox irəlidə olan bəzi təşkilatçıları deaktiv edərək bronların bərabər paylanmasını təmin edəcəyik.",
   "exclude_emails_that_contain": "Tərkibində olan e-poçtları istisna et...",
   "exclude_emails_match_found_error_message": "Zəhmət olmasa düzgün iş e-poçt ünvanı daxil edin",
+  "search_columns": "Sütunlarda axtar",
+  "search_options": "Axtarış seçimləri",
   "disable_org_url_label": "İctimai təşkilat profilini deaktiv edin və yönləndirin",
   "disable_org_url_description": "{{orgSlug}}.cal.com ünvanını {{destination}} ünvanına yönləndirir",
   "single_select": "Tək seçim",

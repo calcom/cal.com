@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "各ホストの予約数を監視し、他のホストと比較して予約数が多すぎるホストを一時的に無効にすることで、予約を均等に配分します。",
   "exclude_emails_that_contain": "...を含むメールアドレスを除外",
   "exclude_emails_match_found_error_message": "有効な勤務用メールアドレスを入力してください",
+  "search_columns": "列を検索",
+  "search_options": "検索オプション",
   "disable_org_url_label": "組織の公開プロフィールを無効にしてリダイレクト",
   "disable_org_url_description": "{{orgSlug}}.cal.comを{{destination}}にリダイレクトします",
   "single_select": "単一選択",
