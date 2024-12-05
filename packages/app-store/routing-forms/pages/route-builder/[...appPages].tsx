@@ -13,7 +13,7 @@ import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -167,6 +167,9 @@ const buildEventsData = ({
     });
 
     group.eventTypes.forEach((eventType) => {
+      if (eventType.teamId && eventType.schedulingType === SchedulingType.MANAGED) {
+        return;
+      }
       const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
       const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
 

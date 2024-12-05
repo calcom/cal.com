@@ -14,7 +14,7 @@ export class UpdateManagedUserInput {
   name?: string;
 
   @IsOptional()
-  @IsIn(["12", "24"])
+  @IsIn([12, 24])
   @ApiProperty({ example: 12, enum: [12, 24], description: "Must be 12 or 24" })
   timeFormat?: TimeFormat;
 

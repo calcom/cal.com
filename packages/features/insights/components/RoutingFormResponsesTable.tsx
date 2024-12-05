@@ -25,11 +25,12 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  HoverCardPortal,
   Table,
-  TableHeader,
   TableBody,
   TableCell,
   TableHead,
+  TableHeader,
   TableRow,
 } from "@calcom/ui";
 import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
@@ -118,15 +119,17 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
             <HoverCardTrigger>
               <Badge variant="gray">+{value.length - 2}</Badge>
             </HoverCardTrigger>
-            <HoverCardContent side="bottom" align="start" className="w-fit">
-              <div className="flex flex-col gap-1">
-                {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                    {v}
-                  </span>
-                ))}
-              </div>
-            </HoverCardContent>
+            <HoverCardPortal>
+              <HoverCardContent side="bottom" align="start" className="w-fit">
+                <div className="flex flex-col gap-1">
+                  {value.slice(2).map((v: string, i: number) => (
+                    <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              </HoverCardContent>
+            </HoverCardPortal>
           </HoverCard>
         </>
       ) : (
@@ -184,32 +187,34 @@ function BookingAtCell({
           </Link>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-            <div>
-              <p className="text-sm font-medium">{booking.user.name}</p>
-              <p className="group/booking_status_email text-subtle flex items-center text-xs">
-                <span className="truncate">{booking.user.email}</span>
-                <button
-                  className="invisible ml-2 group-hover/booking_status_email:visible"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyToClipboard(booking.user?.email ?? "");
-                  }}>
-                  <Icon name="copy" />
-                </button>
-              </p>
+      <HoverCardPortal>
+        <HoverCardContent>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+              <div>
+                <p className="text-sm font-medium">{booking.user.name}</p>
+                <p className="group/booking_status_email text-subtle flex items-center text-xs">
+                  <span className="truncate">{booking.user.email}</span>
+                  <button
+                    className="invisible ml-2 group-hover/booking_status_email:visible"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      copyToClipboard(booking.user?.email ?? "");
+                    }}>
+                    <Icon name="copy" />
+                  </button>
+                </p>
+              </div>
+            </div>
+            <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
+              <span>Status:</span>
+              <BookingStatusBadge booking={booking} />
             </div>
           </div>
-          <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
-            <span>Status:</span>
-            <BookingStatusBadge booking={booking} />
-          </div>
-        </div>
-      </HoverCardContent>
+        </HoverCardContent>
+      </HoverCardPortal>
     </HoverCard>
   );
 }
@@ -278,40 +283,6 @@ export function RoutingFormResponsesTable({
   const totalDBRowCount = data?.pages?.[0]?.total ?? 0;
   const totalFetched = flatData.length;
 
-  const mergedHeaders = useMemo(() => {
-    if (!headers) return [];
-
-    // Group headers by label
-    const headersByLabel = headers.reduce(
-      (acc, header) => {
-        if (!acc[header.label]) {
-          acc[header.label] = {
-            id: header.id,
-            label: header.label,
-            options: [], // Initialize as empty array
-          };
-        }
-
-        // Only merge options if they exist
-        if (header.options?.length) {
-          acc[header.label].options = [...acc[header.label].options, ...header.options];
-        }
-
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          id: string;
-          label: string;
-          options: { id: string | null; label: string }[];
-        }
-      >
-    );
-
-    return Object.values(headersByLabel);
-  }, [headers]);
-
   const processedData = useMemo(() => {
     if (isHeadersLoading) return [];
     return flatData.map((response) => {
@@ -323,40 +294,25 @@ export function RoutingFormResponsesTable({
         routedToBooking: response.routedToBooking,
       };
 
-      // Group responses by header label
-      // NOTE: this is a HACK to group responses by label and not ID. Some how a client has duplicate headers in a form and we need to merge them
-      // We will revert this code when we have merged these on a DB level.
-      // These fields can also have different types, select,multiselect,text etc... so can provide weird results.
-      const valuesByLabel: Record<string, any[]> = {};
-
       Object.entries(response.response).forEach(([fieldId, field]) => {
         const header = headers?.find((h) => h.id === fieldId);
-        if (!header) return;
 
-        if (!valuesByLabel[header.label]) {
-          valuesByLabel[header.label] = [];
-        }
-
-        if (header.options) {
+        if (header?.options) {
           if (Array.isArray(field.value)) {
+            // Map the IDs to their corresponding labels for array values
             const labels = field.value.map((id) => {
-              const option = header.options?.find((opt) => opt?.id?.toLowerCase() === id.toLowerCase());
+              const option = header.options?.find((opt) => opt.id === id);
               return option?.label ?? id;
             });
-            valuesByLabel[header.label].push(...labels);
+            row[fieldId] = labels;
           } else {
+            // Handle single value case
             const option = header.options?.find((opt) => opt.id === field.value);
-            valuesByLabel[header.label].push(option?.label ?? field.value);
+            row[fieldId] = option?.label ?? field.value;
           }
         } else {
-          valuesByLabel[header.label].push(field.value);
+          row[fieldId] = field.value;
         }
-      });
-
-      // Add merged values to row
-      Object.entries(valuesByLabel).forEach(([label, values]) => {
-        const uniqueValues = Array.from(new Set(values)).filter(Boolean);
-        row[label] = uniqueValues;
       });
 
       return row;
@@ -377,9 +333,9 @@ export function RoutingFormResponsesTable({
         },
       }),
 
-      ...(mergedHeaders?.map((header) => {
-        return columnHelper.accessor(header.label, {
-          id: header.label,
+      ...(headers?.map((header) => {
+        return columnHelper.accessor(header.id, {
+          id: header.id,
           header: header.label,
           size: 200,
           cell: (info) => {
@@ -417,6 +373,19 @@ export function RoutingFormResponsesTable({
             />
           </div>
         ),
+      }),
+      columnHelper.accessor("routedToBooking", {
+        id: "assignmentReason",
+        header: t("routing_form_insights_assignment_reason"),
+        size: 250,
+        cell: (info) => {
+          const assignmentReason = info.getValue()?.assignmentReason;
+          return (
+            <div className="max-w-[250px]">
+              {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
+            </div>
+          );
+        },
       }),
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
