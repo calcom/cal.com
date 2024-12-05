@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Figyelemmel kísérjük, hogy hány foglalás történt az egyes házigazdákkal, és összehasonlítjuk másokkal, letiltva azokat a házigazdákat, akik túl sok foglalással rendelkeznek, így a foglalások egyenletesen oszlanak el.",
   "exclude_emails_that_contain": "Zárja ki azokat az e-maileket, amelyek tartalmazzák ...",
   "exclude_emails_match_found_error_message": "Kérjük, adjon meg egy érvényes munkahelyi e-mail címet",
+  "search_columns": "Oszlopok keresése",
+  "search_options": "Keresési beállítások",
   "disable_org_url_label": "Nyilvános szervezeti profil és átirányítás kikapcsolása",
   "disable_org_url_description": "Átirányítja a {{orgSlug}}.cal.com címet a {{destination}} címre",
   "single_select": "Egyszeres kiválasztás",
