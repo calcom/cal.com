@@ -18,6 +18,7 @@ import {
   Badge,
   Switch,
   InfoBadge,
+  EmptyScreen,
 } from "@calcom/ui";
 
 interface DelegationItemProps {
@@ -88,7 +89,7 @@ function DelegationListItemActions({
 function DelegationListItem({ delegation, toggleDelegation, onEdit, onDelete }: DelegationItemProps) {
   const { t } = useLocale();
   return (
-    <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
+    <li className="border-subtle bg-default divide-subtle flex flex-col divide-y border">
       <div className="flex items-center justify-between space-x-2 p-4">
         <div className="flex flex-col items-start">
           <div className="flex items-center space-x-2">
@@ -332,6 +333,14 @@ function DomainWideDelegationList() {
     setCreateEditDialog({ isOpen: false, delegation: null });
   };
 
+  const AddDwDButton = () => {
+    return (
+      <Button type="button" color="secondary" StartIcon="plus" className="mt-6" onClick={onCreateClick}>
+        {t("add_domain_wide_delegation")}
+      </Button>
+    );
+  };
+
   if (isLoading || isLoadingWorkspacePlatforms) {
     return null;
   }
@@ -346,17 +355,31 @@ function DomainWideDelegationList() {
 
   return (
     <div>
-      <ul className="space-y-2">
-        {delegations.map((delegation) => (
-          <DelegationListItem
-            key={delegation.id}
-            delegation={delegation}
-            toggleDelegation={toggleDelegation}
-            onEdit={onEditClick}
-            onDelete={onDelete}
-          />
-        ))}
-      </ul>
+      {!!delegations?.length ? (
+        <>
+          <ul className="space-y-2 [&>*:last-child]:rounded-b-xl">
+            {delegations.map((delegation) => (
+              <DelegationListItem
+                key={delegation.id}
+                delegation={delegation}
+                toggleDelegation={toggleDelegation}
+                onEdit={onEditClick}
+                onDelete={onDelete}
+              />
+            ))}
+          </ul>
+          <AddDwDButton />
+        </>
+      ) : (
+        <EmptyScreen
+          Icon="link"
+          headline={t("add_domain_wide_delegation")}
+          description={t("domain_wide_delegation_description")}
+          className="rounded-b-lg rounded-t-none border-t-0"
+          buttonRaw={<AddDwDButton />}
+        />
+      )}
+
       <CreateEditDelegationDialog
         isOpen={createEditDialog.isOpen}
         onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
@@ -364,17 +387,10 @@ function DomainWideDelegationList() {
         onSubmit={handleSubmit}
         workspacePlatforms={enabledWorkspacePlatforms}
       />
-      <Button type="button" color="secondary" StartIcon="plus" className="mt-6" onClick={onCreateClick}>
-        {t("add_domain_wide_delegation")}
-      </Button>
     </div>
   );
 }
 
 export default function DomainWideDelegationListPage() {
-  return (
-    <div className="py-8">
-      <DomainWideDelegationList />
-    </div>
-  );
+  return <DomainWideDelegationList />;
 }

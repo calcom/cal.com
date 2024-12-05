@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -86,6 +87,11 @@ export class DomainWideDelegationRepository {
   }
 
   static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
+    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
+    if (!domainWideDelegationEnabled) {
+      return null;
+    }
+
     const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSelectIncludesServiceAccountKey,
@@ -95,6 +101,11 @@ export class DomainWideDelegationRepository {
   }
 
   static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
+    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
+    if (!domainWideDelegationEnabled) {
+      return null;
+    }
+
     const log = repositoryLogger.getSubLogger({ prefix: ["findUniqueByOrganizationMemberEmail"] });
     log.debug("called with", { email });
     const organization = await OrganizationRepository.findByMemberEmail({ email });
@@ -124,6 +135,11 @@ export class DomainWideDelegationRepository {
       email: string;
     };
   }) {
+    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
+    if (!domainWideDelegationEnabled) {
+      return null;
+    }
+
     const log = repositoryLogger.getSubLogger({ prefix: ["findByUserIncludeSensitiveServiceAccountKey"] });
     log.debug("called with", { user });
     const organization = await OrganizationRepository.findByMemberEmailId({
@@ -157,6 +173,11 @@ export class DomainWideDelegationRepository {
   }
 
   static async findFirstByOrganizationId({ organizationId }: { organizationId: number }) {
+    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
+    if (!domainWideDelegationEnabled) {
+      return null;
+    }
+
     return await prisma.domainWideDelegation.findFirst({
       where: { organizationId },
     });

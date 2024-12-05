@@ -131,6 +131,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "organizations", href: "/settings/admin/organizations" },
       { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
+      { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
     ],
   },
 ];
@@ -218,7 +219,7 @@ const useTabs = () => {
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, flags]);
 
   return processTabsMemod;
 };

@@ -15,7 +15,10 @@ const Page = async () => {
   const t = await getFixedT(session?.user.locale || "en");
 
   return (
-    <SettingsHeader title={t("domain_wide_delegation")} description={t("domain_wide_delegation_description")}>
+    <SettingsHeader
+      borderInShellHeader
+      title={t("domain_wide_delegation")}
+      description={t("domain_wide_delegation_description")}>
       <DomainWideDelegationList />
     </SettingsHeader>
   );
