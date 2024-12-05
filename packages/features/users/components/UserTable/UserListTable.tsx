@@ -22,6 +22,8 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
+  isSelectFilterValue,
+  selectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -34,7 +36,7 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, Checkbox, showToast } from "@calcom/ui";
+import { Avatar, Badge, Checkbox, showToast } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -174,8 +176,9 @@ export function UserListTable() {
           id: attribute.id,
           header: attribute.name,
           meta: {
-            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
+            filter: { type: attribute.type.toLowerCase() === "text" ? "text" : "select" },
           },
+          size: 120,
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -197,10 +200,13 @@ export function UserListTable() {
 
             if (isTextFilterValue(filterValue)) {
               return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+            } else if (isSelectFilterValue(filterValue)) {
+              return selectFilter(
+                attributeValues.map((attr) => attr.value),
+                filterValue
+              );
             }
-
-            if (attributeValues.length === 0) return false;
-            return attributeValues.some((attr) => filterValue.includes(attr.value));
+            return false;
           },
         })) as ColumnDef<UserTableUser>[]) ?? []
       );
@@ -280,6 +286,7 @@ export function UserListTable() {
         id: "role",
         accessorFn: (data) => data.role,
         header: "Role",
+        size: 100,
         cell: ({ row, table }) => {
           const { role, username } = row.original;
           return (
@@ -307,7 +314,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
-        size: 200,
+        size: 140,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -514,7 +521,7 @@ export function UserListTable() {
                 {t("download")}
               </DataTableToolbar.CTA>
               {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.AddFilterButton table={table} omit={["member"]} />
               <DataTableFilters.ColumnVisibilityButton table={table} />
               {adminOrOwner && (
                 <DataTableToolbar.CTA
@@ -546,22 +553,24 @@ export function UserListTable() {
         </div>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
+          <DataTableSelectionBar.Root className="justify-center">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
               <>
                 <TeamListBulkAction table={table} />
                 {numberOfSelectedRows >= 2 && (
-                  <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                    Group Meeting
-                  </Button>
+                  <DataTableSelectionBar.Button
+                    onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                    icon="handshake">
+                    {t("group_meeting")}
+                  </DataTableSelectionBar.Button>
                 )}
                 <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 <EventTypesList table={table} orgTeams={teams} />

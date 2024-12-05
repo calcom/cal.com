@@ -207,7 +207,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("add_entry_ooo").click();
 
-    await page.locator('[id="date"]').click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22", true);
 
@@ -247,7 +247,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("add_entry_ooo").click();
 
-    await page.locator('[id="date"]').click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -258,7 +258,7 @@ test.describe("Out of office", () => {
     // add another entry
     await page.getByTestId("add_entry_ooo").click();
 
-    await page.locator('[id="date"]').click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "11", "24");
 
@@ -277,7 +277,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("add_entry_ooo").click();
 
-    await page.locator('[id="date"]').click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -288,7 +288,7 @@ test.describe("Out of office", () => {
     // add another entry
     await page.getByTestId("add_entry_ooo").click();
 
-    await page.locator('[id="date"]').click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -305,9 +305,6 @@ async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
 }
 
 async function selectToAndFromDates(page: Page, fromDate: string, toDate: string, isRangeInPast = false) {
-  // deselects by default selected range start day
-  await page.locator(`button[name="day"].rdp-day_range_start`).click();
-
   const month = isRangeInPast ? "previous" : "next";
 
   await page.locator(`button[name="${month}-month"]`).click();

@@ -3,6 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ZColumnFilter } from "@calcom/features/data-table";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -236,6 +237,10 @@ const emptyResponseEventsByStatus = {
     count: 0,
     deltaPrevious: 0,
   },
+  no_show_guest: {
+    count: 0,
+    deltaPrevious: 0,
+  },
   csat: {
     count: 0,
     deltaPrevious: 0,
@@ -304,16 +309,20 @@ export const insightsRouter = router({
       countGroupedByStatus,
       totalRatingsAggregate,
       totalCSAT,
+      totalNoShowGuests,
       lastPeriodCountGroupedByStatus,
       lastPeriodTotalRatingsAggregate,
       lastPeriodTotalCSAT,
+      lastPeriodTotalNoShowGuests,
     ] = await Promise.all([
       EventsInsights.countGroupedByStatus(baseWhereCondition),
       EventsInsights.getAverageRating(baseWhereCondition),
       EventsInsights.getTotalCSAT(baseWhereCondition),
+      EventsInsights.getTotalNoShowGuests(baseWhereCondition),
       EventsInsights.countGroupedByStatus(lastPeriodBaseCondition),
       EventsInsights.getAverageRating(lastPeriodBaseCondition),
       EventsInsights.getTotalCSAT(lastPeriodBaseCondition),
+      EventsInsights.getTotalNoShowGuests(lastPeriodBaseCondition),
     ]);
 
     const baseBookingsCount = countGroupedByStatus["_all"];
@@ -360,6 +369,10 @@ export const insightsRouter = router({
         count: totalNoShow,
         deltaPrevious: EventsInsights.getPercentage(totalNoShow, lastPeriodTotalNoShow),
       },
+      no_show_guest: {
+        count: totalNoShowGuests,
+        deltaPrevious: EventsInsights.getPercentage(totalNoShowGuests, lastPeriodTotalNoShowGuests),
+      },
       rating: {
         count: averageRating,
         deltaPrevious: EventsInsights.getPercentage(averageRating, lastPeriodAverageRating),
@@ -379,6 +392,7 @@ export const insightsRouter = router({
       result.rescheduled.count === 0 &&
       result.cancelled.count === 0 &&
       result.no_show.count === 0 &&
+      result.no_show_guest.count === 0 &&
       result.rating.count === 0
     ) {
       return emptyResponseEventsByStatus;
@@ -482,6 +496,7 @@ export const insightsRouter = router({
           Rescheduled: 0,
           Cancelled: 0,
           "No-Show (Host)": 0,
+          "No-Show (Guest)": 0,
         };
 
         const countsForDateRange = countsByStatus[formattedDate];
@@ -492,6 +507,7 @@ export const insightsRouter = router({
           EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
           EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
           EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
         }
         return EventData;
       });
@@ -1581,13 +1597,7 @@ export const insightsRouter = router({
         routingFormId: z.string().optional(),
         cursor: z.number().optional(),
         limit: z.number().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
+        columnFilters: z.array(ZColumnFilter),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1602,8 +1612,7 @@ export const insightsRouter = router({
         cursor: input.cursor,
         userId: input.userId ?? null,
         limit: input.limit,
-        bookingStatus: input.bookingStatus ?? null,
-        fieldFilter: input.fieldFilter ?? null,
+        columnFilters: input.columnFilters,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
@@ -1636,12 +1645,16 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormHeaders({
+      const fields = await RoutingEventsInsights.getRoutingFormHeaders({
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
       });
+
+      return {
+        fields: fields || [],
+      };
     }),
   rawRoutingData: userBelongsToTeamProcedure
     .input(
