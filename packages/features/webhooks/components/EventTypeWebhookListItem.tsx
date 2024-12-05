@@ -17,6 +17,7 @@ type WebhookProps = {
 export default function EventTypeWebhookListItem({
   webhook,
   index,
+  childEventType = false,
   canEditWebhook = true,
   lastItem,
   onEditWebhook,
@@ -25,6 +26,7 @@ export default function EventTypeWebhookListItem({
 }: {
   webhook: WebhookProps;
   index: number;
+  childEventType: boolean;
   canEditWebhook?: boolean;
   lastItem: boolean;
   onEditWebhook: (webhook: WebhookProps) => void;
@@ -42,9 +44,11 @@ export default function EventTypeWebhookListItem({
               {webhook.subscriberUrl}
             </p>
           </Tooltip>
-          <Badge variant="gray" className="ml-2">
-            {t("readonly")}
-          </Badge>
+          {!canEditWebhook && (
+            <Badge variant="gray" className="ml-2">
+              {t("readonly")}
+            </Badge>
+          )}
         </div>
         <Tooltip content={t("triggers_when")}>
           <div className="flex w-4/5 flex-wrap">
@@ -72,25 +76,28 @@ export default function EventTypeWebhookListItem({
           }}
         />
 
-        {/* Edit Button */}
-        <Button
-          className="hidden lg:flex"
-          color="secondary"
-          disabled={!canEditWebhook}
-          onClick={() => onEditWebhook(webhook)}
-          data-testid={`webhook-edit-button-${webhook.id}`}>
-          {t("edit")}
-        </Button>
+        {/* Edit & Delete Buttons */}
+        {!childEventType && (
+          <>
+            <Button
+              className="hidden lg:flex"
+              color="secondary"
+              disabled={!canEditWebhook}
+              onClick={() => onEditWebhook(webhook)}
+              data-testid={`webhook-edit-button-${webhook.id}`}>
+              {t("edit")}
+            </Button>
 
-        {/* Delete Button */}
-        <Button
-          className="hidden lg:flex"
-          color="destructive"
-          StartIcon="trash"
-          variant="icon"
-          disabled={!canEditWebhook}
-          onClick={() => onDeleteWebhook(webhook)}
-        />
+            <Button
+              className="hidden lg:flex"
+              color="destructive"
+              StartIcon="trash"
+              variant="icon"
+              disabled={!canEditWebhook}
+              onClick={() => onDeleteWebhook(webhook)}
+            />
+          </>
+        )}
       </div>
     </div>
   );

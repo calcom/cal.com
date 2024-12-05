@@ -58,6 +58,7 @@ type Webhook = {
 
 type DeletedWebhooks = {
   id: string;
+  subscriberUrl: string;
 };
 
 type EventLocation = {

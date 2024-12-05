@@ -43,12 +43,18 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     setEditModalOpen(false);
   };
 
-  const handleDeleteWebhook = (webhookId: string) => {
+  const handleDeleteWebhook = ({
+    webhookId,
+    subscriberUrl,
+  }: {
+    webhookId: string;
+    subscriberUrl: string;
+  }) => {
     const webhooks = getValues("webhooks");
     const deletedWebhooks = getValues("deletedWebhooks");
 
     const updatedDeletedWebhooks =
-      deletedWebhooks && webhookId ? [...deletedWebhooks, { id: webhookId }] : deletedWebhooks;
+      deletedWebhooks && webhookId ? [...deletedWebhooks, { id: webhookId, subscriberUrl }] : deletedWebhooks;
     // Remove the webhook from the current list and add it to 'deletedWebhooks'
     setValue(
       "webhooks",
@@ -211,6 +217,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                                 {value.map((webhook: Webhook, index: number) => (
                                   <EventTypeWebhookListItem
                                     key={webhook.id}
+                                    childEventType={isChildrenManagedEventType}
                                     webhook={webhook}
                                     lastItem={value.length === index + 1}
                                     index={index}
@@ -225,7 +232,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                                       onChange(updatedWebhooks);
                                     }}
                                     onDeleteWebhook={(updatedWebhook) => {
-                                      handleDeleteWebhook(updatedWebhook.id);
+                                      handleDeleteWebhook({
+                                        webhookId: updatedWebhook.id,
+                                        subscriberUrl: updatedWebhook.subscriberUrl,
+                                      });
                                     }}
                                   />
                                 ))}

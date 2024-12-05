@@ -35,7 +35,9 @@ interface handleChildrenEventTypesProps {
       }[]
     | undefined;
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
-  updatedValues: Prisma.EventTypeUpdateInput;
+  updatedValues: Prisma.EventTypeUpdateInput & {
+    deletedWebhooks?: { id: string; subscriberUrl: string }[]; // Array of objects with `id`
+  };
 }
 
 const sendAllSlugReplacementEmails = async (
@@ -232,10 +234,99 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    
 
-    // Update event types for old users
-    const oldEventTypes = await prisma.$transaction(
+    // single call isntead of .map, much more efficient!
+    const oldUserEventTypes = await prisma.eventType.findMany({
+      where: {
+        parentId,
+        userId: {
+          in: oldUserIds,
+        },
+      },
+      select: {
+        webhooks: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            subscriberUrl: true,
+          },
+        },
+      },
+    });
+
+    // Flatten oldUserEventTypes.webhooks to create a single array of all webhooks
+    const allOldWebhooks = oldUserEventTypes
+      .filter((et): et is NonNullable<typeof et> => et !== null && et.webhooks !== null) // Filter out null results
+      .flatMap((et) => et.webhooks);
+
+    if (updatedValues.deletedWebhooks && updatedValues.deletedWebhooks.length > 0) {
+      const deletedSubscriberUrls = updatedValues.deletedWebhooks.map((webhook) => webhook.subscriberUrl);
+
+      const matchingDeletedWebhookIds = allOldWebhooks
+        .filter((oldWebhook) => deletedSubscriberUrls.includes(oldWebhook.subscriberUrl))
+        .map((oldWebhook) => oldWebhook.id);
+
+      await prisma.webhook.deleteMany({
+        where: {
+          id: {
+            in: matchingDeletedWebhookIds,
+          },
+          eventType: {
+            parentId,
+          },
+        },
+      });
+    }
+
+    // Compare against eventType.webhooks and collect matching webhook IDs
+    const matchingWebhookIds = allOldWebhooks
+      .filter((oldWebhook) =>
+        eventType.webhooks.some((currentWebhook) => oldWebhook.subscriberUrl === currentWebhook.subscriberUrl)
+      )
+      .map((match) => match.id); // Extract matching webhook IDs
+
+    if (matchingWebhookIds.length > 0) {
+      await prisma.webhook.deleteMany({
+        where: {
+          id: {
+            in: matchingWebhookIds, // Match all the IDs in the array
+          },
+        },
+      });
+    }
+    const updatedOldUserEventType = await prisma.eventType.findMany({
+      where: {
+        parentId,
+        userId: {
+          in: oldUserIds,
+        },
+      },
+      select: {
+        webhooks: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            subscriberUrl: true,
+          },
+        },
+      },
+    });
+    // Get the subscriber URLs of existing webhooks
+    const updatedOldWebhooks = updatedOldUserEventType
+      .filter((et) => et?.webhooks?.length) // Ensure event type has webhooks
+      .flatMap((et) => et.webhooks); // Flatten all webhooks into a single array
+    const existingSubscriberUrls = updatedOldWebhooks.map((webhook) => webhook.subscriberUrl); // Access subscriberUrl of each webhook
+
+    // Filter out webhooks from the eventType.webhooks that don't already exist OR we just deleted
+    const deletedSubscriberUrls =
+      updatedValues.deletedWebhooks?.map((webhook) => webhook.subscriberUrl) || [];
+    const webhooksToCreate = eventType.webhooks.filter(
+      (wh) =>
+        !existingSubscriberUrls.includes(wh.subscriberUrl) &&
+        !deletedSubscriberUrls.includes(wh.subscriberUrl)
+    );
+
+    const oldEventTypes = await Promise.all(
       oldUserIds.map((userId) => {
         return prisma.eventType.update({
           where: {
@@ -246,17 +337,20 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...updatePayloadFiltered,
-            webhooks: eventType.webhooks && {
-              deleteMany: {}, // Deletes all webhooks associated with this eventType
+            webhooks: {
               createMany: {
-                data: eventType.webhooks?.map((wh) => ({ ...wh, id: v4(), eventTypeId: undefined })),
+                data: webhooksToCreate.map((wh) => ({
+                  ...wh,
+                  id: v4(), // Generate a unique ID for each webhook
+                  eventTypeId: undefined, // Leave eventTypeId undefined to ensure it's not associated with the parent
+                })),
               },
             },
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
                 : {
-                    deleteMany: {},
+                    deleteMany: {}, // Handle hashed links as required
                   },
           },
         });

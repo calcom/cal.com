@@ -30,6 +30,7 @@ export const eventTypeWebhookInputSchema = z.object({
 
 const deletedWebhookSchema = z.object({
   id: z.string(),
+  subscriberUrl: z.string(),
 });
 
 const aiPhoneCallConfig = z

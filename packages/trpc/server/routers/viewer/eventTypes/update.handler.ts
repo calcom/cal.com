@@ -533,19 +533,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       return acc;
     }, [] as Array<{ id: string; subscriberUrl: string }>);
 
-    await ctx.prisma.$transaction([
-      ctx.prisma.webhook.createMany({
-        data: webhooksForInserts,
-      }),
+    await ctx.prisma.webhook.createMany({
+      data: webhooksForInserts,
+    });
 
-      // Update existing webhooks
-      ...webhooksForUpdates.map((wh) =>
-        ctx.prisma.webhook.update({
+    for (const wh of webhooksForUpdates) {
+      try {
+        await ctx.prisma.webhook.update({
           where: { id: wh.id },
           data: wh,
-        })
-      ),
-    ]);
+        });
+      } catch (e) {
+        logger.debug((e as Error)?.message);
+      }
+    }
   }
 
   // Logic for updating `fieldTranslations`
@@ -580,42 +581,43 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data,
       select: updatedEventTypeSelect,
     });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2002") {
-        // instead of throwing a 500 error, catch the conflict and throw a 400 error.
-        throw new TRPCError({ message: "error_event_type_url_duplicate", code: "BAD_REQUEST" });
+    const updatedValues: {
+      [key: string]: any; // Allows dynamic keys
+      deletedWebhooks?: {
+        id: string;
+        subscriberUrl: string;
+      }[]; // Explicitly add the `deletedWebhooks` property
+    } = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // @ts-expect-error Element implicitly has any type
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+    updatedValues.deletedWebhooks = deletedWebhooks || [];
+    // Handling updates to children event types (managed events types)
+    await updateChildrenEventTypes({
+      eventTypeId: id,
+      currentUserId: ctx.user.id,
+      oldEventType: eventType,
+      updatedEventType,
+      children,
+      profileId: ctx.user.profile.id,
+      prisma: ctx.prisma,
+      updatedValues,
+    });
+
+    const res = ctx.res as NextApiResponse;
+    if (typeof res?.revalidate !== "undefined") {
+      try {
+        await res?.revalidate(`/${ctx.user.username}/${updatedEventType.slug}`);
+      } catch (e) {
+        // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
+        logger.debug((e as Error)?.message);
       }
     }
-    throw e;
-  }
-  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
-    if (value !== undefined) {
-      // @ts-expect-error Element implicitly has any type
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-  // Handling updates to children event types (managed events types)
-  await updateChildrenEventTypes({
-    eventTypeId: id,
-    currentUserId: ctx.user.id,
-    oldEventType: eventType,
-    updatedEventType,
-    children,
-    profileId: ctx.user.profile.id,
-    prisma: ctx.prisma,
-    updatedValues,
-  });
-
-  const res = ctx.res as NextApiResponse;
-  if (typeof res?.revalidate !== "undefined") {
-    try {
-      await res?.revalidate(`/${ctx.user.username}/${updatedEventType.slug}`);
-    } catch (e) {
-      // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
-      logger.debug((e as Error)?.message);
-    }
+  } catch (e) {
+    logger.debug((e as Error)?.message);
   }
   return { eventType };
 };
