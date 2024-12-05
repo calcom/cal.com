@@ -144,6 +144,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
+  completedOnboarding?: boolean;
 };
 
 export type InputEventType = {
@@ -810,12 +811,22 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
+type TeamCreateReturnType = Awaited<ReturnType<typeof prismock.team.create>>;
+
+function assertNonNullableSlug<T extends { slug: string | null }>(
+  org: T
+): asserts org is T & { slug: string } {
+  if (org.slug === null) {
+    throw new Error("Slug cannot be null");
+  }
+}
+
 export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}) {
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -841,7 +852,7 @@ export async function createOrganization(orgData: {
       },
     });
   }
-
+  assertNonNullableSlug(org);
   return org;
 }
 
@@ -1233,6 +1244,7 @@ export function getOrganizer({
   organizationId,
   metadata,
   smsLockState,
+  completedOnboarding,
 }: {
   name: string;
   email: string;
@@ -1247,6 +1259,7 @@ export function getOrganizer({
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
+  completedOnboarding?: boolean;
 }) {
   return {
     ...TestData.users.example,
@@ -1264,11 +1277,15 @@ export function getOrganizer({
     profiles: [],
     metadata,
     smsLockState,
+    completedOnboarding,
   };
 }
 
 export function getScenarioData(
   {
+    /**
+     * organizer has no special meaning. It is a regular user. It is supposed to be deprecated along with `usersApartFromOrganizer` and we should introduce a new `users` field instead
+     */
     organizer,
     eventTypes,
     usersApartFromOrganizer = [],

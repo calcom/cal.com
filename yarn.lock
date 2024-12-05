@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.63"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.69"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4147,6 +4147,7 @@ __metadata:
     "@calcom/ui": "*"
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
+    "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
@@ -4154,7 +4155,6 @@ __metadata:
     lexical: ^0.9.0
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
-    react-virtual: ^2.10.4
     stripe-event-types: ^3.1.0
     web-push: ^3.6.7
     zustand: ^4.3.2
@@ -4492,14 +4492,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.63":
-  version: 0.0.63
-  resolution: "@calcom/platform-libraries@npm:0.0.63"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.69":
+  version: 0.0.69
+  resolution: "@calcom/platform-libraries@npm:0.0.69"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: bb567ad7330a41717c9744ec4c4d6a90d8a585bca8c90b6dacf30f4bd3a97cb5572ce42df698cf1c3711b25222635b7483fd925dfa6f1df83b774d0fd2857099
+  checksum: c7b1309b3f2b6b7a94d1f760be3bcd57a325395432249446774456f8c87efb1b1eea380606992fa3fa6d3692409fe4880c7c89ef53ba09ef3a9cad487d9ef6ae
   languageName: node
   linkType: hard
 
@@ -4946,7 +4946,6 @@ __metadata:
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
-    react-virtual: ^2.10.4
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -15285,10 +15284,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-virtual@npm:^3.10.9":
+  version: 3.10.9
+  resolution: "@tanstack/react-virtual@npm:3.10.9"
+  dependencies:
+    "@tanstack/virtual-core": 3.10.9
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: a6c90118d0b084aedf0a2b02bc718df5cc1e594fb60d1dededf8a393d3e519e574e2ba67bb7adcaf8b4d6b206f6a10b37166f006bc7e50ad566475323d545b8c
+  languageName: node
+  linkType: hard
+
 "@tanstack/table-core@npm:8.9.3":
   version: 8.9.3
   resolution: "@tanstack/table-core@npm:8.9.3"
   checksum: 52c7e57daaa3160450fb0bde702ec0b8aab159e2b19efd1012e03b3e167acc52839f5b39578cc8bf96e91346719f400d0435a5191384c168d9477da82f276c38
+  languageName: node
+  linkType: hard
+
+"@tanstack/virtual-core@npm:3.10.9":
+  version: 3.10.9
+  resolution: "@tanstack/virtual-core@npm:3.10.9"
+  checksum: df1c673040e3700ba12774ef1fec775f84342e80fb5f1586096a1ed347ee9d35b6db6829e665fed86fa3f08e86235a68bbd331fd5aedec4314c2a565384199ba
   languageName: node
   linkType: hard
 
@@ -38100,7 +38118,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtual@npm:^2.10.4, react-virtual@npm:^2.8.2":
+"react-virtual@npm:^2.8.2":
   version: 2.10.4
   resolution: "react-virtual@npm:2.10.4"
   dependencies:
