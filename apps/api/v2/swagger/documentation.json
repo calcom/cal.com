@@ -4060,12 +4060,48 @@
             }
           },
           {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Id of the event-type, if this is provided no other parameter is required",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "usernames",
             "required": false,
             "in": "query",
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "ID of the user you want the get the event-types of, username is not needed when using this parameter",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgSlug",
+            "required": false,
+            "in": "query",
+            "description": "slug of the user's organization if he is in one, orgId is not required if using this parameter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": false,
+            "in": "query",
+            "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -5005,6 +5041,20 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "slotFormat",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5028,13 +5078,31 @@
                             "type": "array",
                             "items": {
                               "type": "object",
-                              "properties": {
-                                "time": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "example": "2024-09-25T08:00:00.000Z"
+                              "oneOf": [
+                                {
+                                  "properties": {
+                                    "time": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    }
+                                  }
+                                },
+                                {
+                                  "properties": {
+                                    "startTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    },
+                                    "endTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:30:00.000Z"
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           }
                         }
@@ -5055,13 +5123,12 @@
                         ],
                         "2024-09-26": [
                           {
-                            "time": "2024-09-26T08:00:00.000Z"
+                            "startTime": "2024-09-26T08:00:00.000Z",
+                            "endTime": "2024-09-26T08:30:00.000Z"
                           },
                           {
-                            "time": "2024-09-26T08:15:00.000Z"
-                          },
-                          {
-                            "time": "2024-09-26T08:30:00.000Z"
+                            "startTime": "2024-09-26T08:15:00.000Z",
+                            "endTime": "2024-09-26T08:45:00.000Z"
                           }
                         ]
                       }
