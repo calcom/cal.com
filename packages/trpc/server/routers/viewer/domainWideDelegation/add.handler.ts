@@ -48,7 +48,9 @@ export default async function handler({
       dwdBeingUpdatedId: null,
     });
 
-    const createdDelegation = await DomainWideDelegation.init(user.id, organizationId).create({
+    const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
+
+    const createdDelegation = await domainWideDelegationRepository.create({
       workspacePlatformId: workspacePlatform.id,
       domain,
       // We don't want to enable by default because enabling requires some checks to be completed and it has a separate flow.

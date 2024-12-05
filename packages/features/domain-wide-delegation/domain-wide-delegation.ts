@@ -1,6 +1,8 @@
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import prisma from "@calcom/prisma";
 
+import { MockDomainWideDelegationRepository } from "./mock-domain-wide-delegation.repository";
+
 export class DomainWideDelegation {
   static async checkIfDwDIsEnabled(userId: number, teamId: number | null) {
     if (!teamId) {

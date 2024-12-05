@@ -11,7 +11,7 @@ const assertWorkspaceConfigured = async ({
   user,
 }: {
   domainWideDelegationId: string;
-  user: { id: number; email: string };
+  user: { id: number; email: string; organizationId: number | null };
 }) => {
   const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, user.organizationId);
   const domainWideDelegation = await domainWideDelegationRepository.findById({ id: domainWideDelegationId });
