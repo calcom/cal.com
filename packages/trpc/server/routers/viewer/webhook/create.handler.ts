@@ -47,8 +47,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         metadata: true,
       },
     });
+
     if (parentManagedEvt?.parentId) {
-      const isLocked = !!EventTypeMetaDataSchema.parse(parentManagedEvt.metadata)?.managedEventConfig
+      const isLocked = !EventTypeMetaDataSchema.parse(parentManagedEvt.metadata)?.managedEventConfig
         ?.unlockedFields?.webhooks;
       if (isLocked) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
