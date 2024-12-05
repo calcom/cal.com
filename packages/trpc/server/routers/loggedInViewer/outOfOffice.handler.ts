@@ -108,7 +108,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
   });
 
-  if (isDuplicateOutOfOfficeEntry) {
+  if (isDuplicateOutOfOfficeEntry && isDuplicateOutOfOfficeEntry?.uuid !== input.uuid) {
     throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
   }
 
