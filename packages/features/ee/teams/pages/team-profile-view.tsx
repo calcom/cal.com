@@ -60,18 +60,9 @@ const teamProfileFormSchema = z.object({
 
 type FormValues = z.infer<typeof teamProfileFormSchema>;
 
-const SkeletonLoader = ({
-  isAppDir,
-  title,
-  description,
-}: {
-  isAppDir?: boolean;
-  title: string;
-  description: string;
-}) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -87,7 +78,7 @@ const SkeletonLoader = ({
   );
 };
 
-const ProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const ProfileView = () => {
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
   const { t } = useLocale();
@@ -165,17 +156,11 @@ const ProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   }
 
   if (isPending) {
-    return (
-      <SkeletonLoader isAppDir={isAppDir} title={t("profile")} description={t("profile_team_description")} />
-    );
+    return <SkeletonLoader />;
   }
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta title={t("profile")} description={t("profile_team_description")} borderInShellHeader={true} />
-      ) : null}
-
       {isAdmin ? (
         <TeamProfileForm team={team} />
       ) : (
@@ -190,7 +175,8 @@ const ProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio ?? null)) }}
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
                 />
               </>
             )}

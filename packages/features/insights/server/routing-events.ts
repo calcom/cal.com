@@ -61,6 +61,13 @@ class RoutingEventsInsights {
       }),
     };
 
+    if (teamIds.length === 0 && !routingFormId) {
+      if (!organizationId) {
+        throw new Error("Organization ID is required");
+      }
+      formsWhereCondition.teamId = organizationId;
+    }
+
     return formsWhereCondition;
   }
 
@@ -247,6 +254,9 @@ class RoutingEventsInsights {
             user: {
               select: { id: true, name: true, email: true, avatarUrl: true },
             },
+            assignmentReason: {
+              select: { reasonString: true },
+            },
           },
         },
         createdAt: true,
@@ -341,7 +351,7 @@ class RoutingEventsInsights {
       }[]
     >`
       WITH form_fields AS (
-        SELECT 
+        SELECT
           f.id as form_id,
           f.name as form_name,
           field->>'id' as field_id,
@@ -355,10 +365,10 @@ class RoutingEventsInsights {
         ${whereClause}
       ),
       response_stats AS (
-        SELECT 
+        SELECT
           r."formId",
           key as field_id,
-          CASE 
+          CASE
             WHEN jsonb_typeof(value->'value') = 'array' THEN
               v.value_item
             ELSE
@@ -368,8 +378,8 @@ class RoutingEventsInsights {
         FROM "App_RoutingForms_FormResponse" r
         CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
         LEFT JOIN LATERAL jsonb_array_elements_text(
-          CASE 
-            WHEN jsonb_typeof(value->'value') = 'array' 
+          CASE
+            WHEN jsonb_typeof(value->'value') = 'array'
             THEN value->'value'
             ELSE NULL
           END
@@ -377,7 +387,7 @@ class RoutingEventsInsights {
         WHERE r."routedToBookingUid" IS NULL
         GROUP BY r."formId", key, selected_option
       )
-      SELECT 
+      SELECT
         ff.form_id as "formId",
         ff.form_name as "formName",
         ff.field_id as "fieldId",
@@ -386,9 +396,9 @@ class RoutingEventsInsights {
         ff.option_label as "optionLabel",
         COALESCE(rs.response_count, 0)::integer as count
       FROM form_fields ff
-      LEFT JOIN response_stats rs ON 
-        rs."formId" = ff.form_id AND 
-        rs.field_id = ff.field_id AND 
+      LEFT JOIN response_stats rs ON
+        rs."formId" = ff.form_id AND
+        rs.field_id = ff.field_id AND
         rs.selected_option = ff.option_id
       WHERE ff.option_id IS NOT NULL
       ORDER BY count DESC`;
@@ -584,6 +594,11 @@ class RoutingEventsInsights {
                 email: true,
               },
             },
+            assignmentReason: {
+              select: {
+                reasonString: true,
+              },
+            },
           },
         },
       },
@@ -612,6 +627,7 @@ class RoutingEventsInsights {
         "Attendee Name": response.routedToBooking?.attendees[0]?.name || "",
         "Attendee Email": response.routedToBooking?.attendees[0]?.email || "",
         "Attendee Timezone": response.routedToBooking?.attendees[0]?.timeZone || "",
+        "Assignment Reason": response.routedToBooking?.assignmentReason[0].reasonString || "",
         "Routed To Name": response.routedToBooking?.user?.name || "",
         "Routed To Email": response.routedToBooking?.user?.email || "",
       };

@@ -39,6 +39,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const sendNoShowAttendeeDataField = getAppData("sendNoShowAttendeeDataField") ?? "";
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
+  const ignoreGuests = getAppData("ignoreGuests") ?? false;
 
   const { t } = useLocale();
 
@@ -54,6 +55,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const fieldTypeOptions = [
     { label: t("text"), value: SalesforceFieldType.TEXT },
     { label: t("date"), value: SalesforceFieldType.DATE },
+    { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -131,6 +133,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 setCreateEventOnSelectedOption(e);
                 setAppData("createEventOn", e.value);
               }
+            }}
+          />
+        </div>
+        <div className="mb-4">
+          <Switch
+            label={t("salesforce_ignore_guests")}
+            labelOnLeading
+            checked={ignoreGuests}
+            onCheckedChange={(checked) => {
+              setAppData("ignoreGuests", checked);
             }}
           />
         </div>

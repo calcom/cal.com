@@ -428,6 +428,7 @@ export class EventTypeRepository {
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
+      instantMeetingParameters: true,
       aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
@@ -449,7 +450,8 @@ export class EventTypeRepository {
       fieldTranslations: {
         select: {
           translatedText: true,
-          targetLang: true,
+          targetLocale: true,
+          field: true,
         },
       },
       recurringEvent: true,
@@ -466,6 +468,8 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,

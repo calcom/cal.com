@@ -12,20 +12,20 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
-  DataTable,
-  useFetchMoreOnBottomReached,
   Badge,
   Avatar,
   Icon,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  HoverCardPortal,
   Table,
   TableBody,
   TableCell,
@@ -87,10 +87,10 @@ function BookedByCell({
   rowId: number;
 }) {
   const cellId = useId();
-  if (!attendees || attendees.length === 0) return null;
+  if (!attendees || attendees.length === 0) return <div className="min-w-[200px]" />;
 
   return (
-    <div className="flex w-[200px] flex-wrap gap-1">
+    <div className="flex min-w-[200px] flex-wrap gap-1">
       {attendees.map((attendee) => (
         <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
           <Badge variant="gray" className="whitespace-nowrap">
@@ -119,15 +119,17 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
             <HoverCardTrigger>
               <Badge variant="gray">+{value.length - 2}</Badge>
             </HoverCardTrigger>
-            <HoverCardContent side="bottom" align="start" className="w-fit">
-              <div className="flex flex-col gap-1">
-                {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                    {v}
-                  </span>
-                ))}
-              </div>
-            </HoverCardContent>
+            <HoverCardPortal>
+              <HoverCardContent side="bottom" align="start" className="w-fit">
+                <div className="flex flex-col gap-1">
+                  {value.slice(2).map((v: string, i: number) => (
+                    <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              </HoverCardContent>
+            </HoverCardPortal>
           </HoverCard>
         </>
       ) : (
@@ -141,7 +143,24 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   );
 }
 
-function BookingStatusCell({
+function BookingStatusBadge({ booking }: { booking: RoutingFormResponse["routedToBooking"] }) {
+  let badgeVariant: BadgeProps["variant"] = "success";
+
+  if (!booking) return null;
+
+  switch (booking.status) {
+    case BookingStatus.REJECTED:
+    case BookingStatus.AWAITING_HOST:
+    case BookingStatus.PENDING:
+    case BookingStatus.CANCELLED:
+      badgeVariant = "warning";
+      break;
+  }
+
+  return <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>;
+}
+
+function BookingAtCell({
   booking,
   rowId,
   copyToClipboard,
@@ -155,23 +174,7 @@ function BookingStatusCell({
   const cellId = useId();
 
   if (!booking || !booking.user) {
-    return (
-      <div className="w-[250px]">
-        <Badge variant="error" className="ml-6" key={`${cellId}-no-booking-${rowId}`}>
-          {t("no_booking")}
-        </Badge>
-      </div>
-    );
-  }
-
-  let badgeVariant: BadgeProps["variant"] = "success";
-  switch (booking.status) {
-    case BookingStatus.REJECTED:
-    case BookingStatus.AWAITING_HOST:
-    case BookingStatus.PENDING:
-    case BookingStatus.CANCELLED:
-      badgeVariant = "warning";
-      break;
+    return <div className="w-[250px]" />;
   }
 
   return (
@@ -180,43 +183,49 @@ function BookingStatusCell({
         <div className="flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
           <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
           <Link href={`/booking/${booking.uid}`}>
-            <Badge variant={badgeVariant}>{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
+            <Badge variant="gray">{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
           </Link>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-            <div>
-              <p className="text-sm font-medium">{booking.user.name}</p>
-              <p className="group/booking_status_email text-subtle flex items-center text-xs">
-                <span className="truncate">{booking.user.email}</span>
-                <button
-                  className="invisible ml-2 group-hover/booking_status_email:visible"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyToClipboard(booking.user?.email ?? "");
-                  }}>
-                  <Icon name="copy" />
-                </button>
-              </p>
+      <HoverCardPortal>
+        <HoverCardContent>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+              <div>
+                <p className="text-sm font-medium">{booking.user.name}</p>
+                <p className="group/booking_status_email text-subtle flex items-center text-xs">
+                  <span className="truncate">{booking.user.email}</span>
+                  <button
+                    className="invisible ml-2 group-hover/booking_status_email:visible"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      copyToClipboard(booking.user?.email ?? "");
+                    }}>
+                    <Icon name="copy" />
+                  </button>
+                </p>
+              </div>
+            </div>
+            <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
+              <span>Status:</span>
+              <BookingStatusBadge booking={booking} />
             </div>
           </div>
-          <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
-            <span>Status:</span>
-            <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>
-          </div>
-        </div>
-      </HoverCardContent>
+        </HoverCardContent>
+      </HoverCardPortal>
     </HoverCard>
   );
 }
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-export function RoutingFormResponsesTable() {
+export function RoutingFormResponsesTable({
+  children,
+}: {
+  children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
+}) {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -247,7 +256,7 @@ export function RoutingFormResponsesTable() {
       }
     );
 
-  const { data, fetchNextPage, isFetching, hasNextPage } =
+  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId: selectedTeamId,
@@ -258,7 +267,7 @@ export function RoutingFormResponsesTable() {
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
-        limit: 10,
+        limit: 30,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -342,11 +351,21 @@ export function RoutingFormResponsesTable() {
       }) ?? []),
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
+        header: t("routing_form_insights_booking_status"),
+        size: 250,
+        cell: (info) => (
+          <div className="max-w-[250px]">
+            <BookingStatusBadge booking={info.getValue()} />
+          </div>
+        ),
+      }),
+      columnHelper.accessor("routedToBooking", {
+        id: "bookingAt",
         header: t("routing_form_insights_booking_at"),
         size: 250,
         cell: (info) => (
           <div className="max-w-[250px]">
-            <BookingStatusCell
+            <BookingAtCell
               booking={info.getValue()}
               rowId={info.row.original.id}
               copyToClipboard={copyToClipboard}
@@ -355,12 +374,27 @@ export function RoutingFormResponsesTable() {
           </div>
         ),
       }),
+      columnHelper.accessor("routedToBooking", {
+        id: "assignmentReason",
+        header: t("routing_form_insights_assignment_reason"),
+        size: 250,
+        cell: (info) => {
+          const assignmentReason = info.getValue()?.assignmentReason;
+          return (
+            <div className="max-w-[250px]">
+              {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
+            </div>
+          );
+        },
+      }),
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
         header: t("routing_form_insights_submitted_at"),
         size: 250,
         cell: (info) => (
-          <div className="max-w-[250px]">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</div>
+          <div className="whitespace-nowrap">
+            <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
+          </div>
         ),
       }),
     ],
@@ -386,10 +420,10 @@ export function RoutingFormResponsesTable() {
     totalDBRowCount
   );
 
-  if (isHeadersLoading || (isFetching && !data)) {
+  if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
     return (
       <div
-        className="grid h-[75dvh]"
+        className="grid h-[85dvh]"
         style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
         <div
           className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
@@ -442,8 +476,9 @@ export function RoutingFormResponsesTable() {
             fetchMoreOnBottomReached(e.target as HTMLDivElement);
           }
         }}
-        isPending={isFetching && !data}
-      />
+        isPending={isFetching && !data}>
+        {typeof children === "function" ? children(table) : children}
+      </DataTable>
     </div>
   );
 }
