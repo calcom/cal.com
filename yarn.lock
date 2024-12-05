@@ -15303,6 +15303,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/virtual-core@npm:3.10.9":
+  version: 3.10.9
+  resolution: "@tanstack/virtual-core@npm:3.10.9"
+  checksum: df1c673040e3700ba12774ef1fec775f84342e80fb5f1586096a1ed347ee9d35b6db6829e665fed86fa3f08e86235a68bbd331fd5aedec4314c2a565384199ba
+  languageName: node
+  linkType: hard
+
 "@tediousjs/connection-string@npm:^0.5.0":
   version: 0.5.0
   resolution: "@tediousjs/connection-string@npm:0.5.0"
