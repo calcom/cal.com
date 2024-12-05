@@ -36,7 +36,8 @@ export const getCalendarsEventsWithTimezones = async (
       .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
     if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
-    const eventBusyDates = await c.getAvailabilityWithTimeZones?.(dateFrom, dateTo, passedSelectedCalendars);
+    const eventBusyDates =
+      (await c.getAvailabilityWithTimeZones?.(dateFrom, dateTo, passedSelectedCalendars)) || [];
 
     return eventBusyDates;
   });
