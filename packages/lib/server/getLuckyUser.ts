@@ -672,32 +672,23 @@ async function fetchAllDataNeededForCalculations<
     }),
   ]);
 
-  function adjustStartAndEndDateToTimeZone(busyTime: {
-    start: string | Date;
-    end: string | Date;
-    timeZone: string;
-  }) {
-    const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
-    let start = new Date(new Date(busyTime.start).getTime() - timezoneOffset);
-    const end = new Date(new Date(busyTime.end).getTime() - timezoneOffset);
-
-    // needed for full day busy events that started the month before
-    const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
-    if (start < earliestStartTime) start = earliestStartTime;
-
-    return { start, end };
-  }
-
   const userFullDayBusyTimes = new Map<number, { start: Date; end: Date }[]>();
 
   currentMonthUserBusyTimes.forEach((userBusyTime) => {
     const fullDayBusyTimes = userBusyTime.busyTimes
       .filter((busyTime) => {
         // make sure start date and end date is converted to 00:00 for full day busy events
-        const { start, end } = adjustStartAndEndDateToTimeZone(busyTime);
+        const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
+        let start = new Date(new Date(busyTime.start).getTime() - timezoneOffset);
+        const end = new Date(new Date(busyTime.end).getTime() - timezoneOffset);
+
+        // needed for full day busy events that started the month before
+        const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
+        if (start < earliestStartTime) start = earliestStartTime;
+
         return end.getTime() < new Date().getTime() && isFullDayEvent(start, end);
       })
-      .map((busyTime) => adjustStartAndEndDateToTimeZone(busyTime));
+      .map((busyTime) => ({ start: new Date(busyTime.start), end: new Date(busyTime.end) }));
 
     userFullDayBusyTimes.set(userBusyTime.userId, fullDayBusyTimes);
   });
