@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Pratićemo broj zakazanih sastanaka kod svakog domaćina i upoređivati ga sa ostalima, privremeno onemogućavajući domaćine koji imaju previše sastanaka kako bi distribucija bila ravnomerna.",
   "exclude_emails_that_contain": "Isključi e-poruke koje sadrže ...",
   "exclude_emails_match_found_error_message": "Molimo unesite važeću poslovnu e-mail adresu",
+  "search_columns": "Pretraži kolone",
+  "search_options": "Opcije pretrage",
   "disable_org_url_label": "Onemogući javni profil organizacije i preusmeravanje",
   "disable_org_url_description": "Preusmerava {{orgSlug}}.cal.com na {{destination}}",
   "single_select": "Jednostruki izbor",

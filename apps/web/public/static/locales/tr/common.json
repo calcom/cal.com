@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Her ev sahibiyle yapılan rezervasyon sayısını takip edip diğerleriyle karşılaştıracağız ve rezervasyonların eşit dağılımını sağlamak için çok ileri giden bazı ev sahiplerini devre dışı bırakacağız.",
   "exclude_emails_that_contain": "... içeren e-postaları hariç tut",
   "exclude_emails_match_found_error_message": "Lütfen geçerli bir iş e-posta adresi girin",
+  "search_columns": "Sütunlarda ara",
+  "search_options": "Arama seçenekleri",
   "disable_org_url_label": "Genel kurum profilini devre dışı bırak ve yönlendir",
   "disable_org_url_description": "{{orgSlug}}.cal.com adresini {{destination}} adresine yönlendirir",
   "single_select": "Tekli Seçim",

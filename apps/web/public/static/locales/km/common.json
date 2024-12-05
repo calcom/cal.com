@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "យើងនឹងតាមដានចំនួនការកក់ដែលបានធ្វើឡើងជាមួយម្ចាស់នីមួយៗ និងប្រៀបធៀបជាមួយអ្នកផ្សេងទៀត ដោយបិទម្ចាស់មួយចំនួនដែលមានការកក់ច្រើនពេកដើម្បីឱ្យការកក់ត្រូវបានចែកចាយស្មើៗគ្នា។",
   "exclude_emails_that_contain": "ច្រានចោលអ៊ីមែលដែលមាន ...",
   "exclude_emails_match_found_error_message": "សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលការងារដែលមានសុពលភាព",
+  "search_columns": "ស្វែងរកជួរឈរ",
+  "search_options": "ជម្រើសស្វែងរក",
   "disable_org_url_label": "បិទទម្រង់សាធារណៈរបស់ស្ថាប័ន និងបញ្ជូនបន្ត",
   "disable_org_url_description": "បញ្ជូនបន្តពី {{orgSlug}}.cal.com ទៅកាន់ {{destination}}",
   "single_select": "ជ្រើសរើសតែមួយ",
