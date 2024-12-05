@@ -219,7 +219,7 @@ const useTabs = () => {
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, flags]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user]);
 
   return processTabsMemod;
 };
