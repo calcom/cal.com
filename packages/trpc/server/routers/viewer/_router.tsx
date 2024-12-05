@@ -45,6 +45,7 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     timezones: timezonesRouter,
     organizations: viewerOrganizationsRouter,
+    domainWideDelegation: domainWideDelegationRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
     slots: slotsRouter,
@@ -64,7 +65,6 @@ export const viewerRouter = mergeRouters(
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
     attributes: attributesRouter,
-    domainWideDelegation: domainWideDelegationRouter,
     highPerf: highPerfRouter,
     routingForms: routingFormsRouter,
   })

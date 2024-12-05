@@ -12,7 +12,6 @@ import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Button,
   Form,
-  Meta,
   Switch,
   showToast,
   Dialog,
@@ -24,9 +23,6 @@ import {
   Table,
   DropdownActions,
 } from "@calcom/ui";
-
-import PageWrapper from "@components/PageWrapper";
-import { getLayout } from "@components/auth/layouts/AdminLayout";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
@@ -76,10 +72,6 @@ const WorkspacePlatformsPage = () => {
 
   return (
     <>
-      <Meta
-        title="Workspace platforms"
-        description="Manage workspace platforms that can be used for domain-wide delegation"
-      />
       <PageContent
         workspacePlatforms={workspacePlatforms}
         onAdd={handleAdd}
@@ -444,8 +436,5 @@ function CreateUpdatePlatformDialog({
   }
   return <CreatePlatformDialog isOpen={isOpen} onOpenChange={onOpenChange} />;
 }
-
-WorkspacePlatformsPage.getLayout = getLayout;
-WorkspacePlatformsPage.PageWrapper = PageWrapper;
 
 export default WorkspacePlatformsPage;
