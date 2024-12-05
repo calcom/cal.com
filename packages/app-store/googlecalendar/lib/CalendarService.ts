@@ -635,7 +635,7 @@ export default class GoogleCalendarService implements Calendar {
         });
         if (!freeBusyData) throw new Error("No response from google calendar");
 
-        return freeBusyData;
+        return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
       } else {
         const busyData = [];
 
@@ -658,7 +658,7 @@ export default class GoogleCalendarService implements Calendar {
           startDate = endDate.add(1, "minutes");
           endDate = startDate.add(90, "days");
         }
-        return busyData;
+        return busyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
       }
     } catch (error) {
       this.log.error(
