@@ -13,7 +13,11 @@ const mapUserToOption = (user: User) => ({
   icon: <Avatar alt={`${user.name} avatar`} imageSrc={user.avatarUrl} size="sm" className="mr-2" />,
 });
 
-export const UserListInTeam = () => {
+export const UserListInTeam = ({
+  showOnlyWhenSelectedInContext = true,
+}: {
+  showOnlyWhenSelectedInContext?: boolean;
+}) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
@@ -23,7 +27,11 @@ export const UserListInTeam = () => {
     isAll: !!isAll,
   });
 
-  if (!selectedFilter?.includes("user") || !selectedTeamId || !isSuccess || data?.length === 0) {
+  if (showOnlyWhenSelectedInContext && !selectedFilter?.includes("user")) {
+    return null;
+  }
+
+  if (!selectedTeamId || !isSuccess || data?.length === 0) {
     return null;
   }
 
@@ -34,7 +42,7 @@ export const UserListInTeam = () => {
       title={t("people")}
       options={userListOptions}
       selectedValue={selectedMemberUserId}
-      onChange={(value) => setConfigFilters({ selectedMemberUserId: Number(value) })}
+      onChange={(value) => setConfigFilters({ selectedMemberUserId: value === null ? null : Number(value) })}
       buttonIcon={<Icon name="users" className="mr-2 h-4 w-4" />}
       placeholder={t("search")}
       testId="people-filter"

@@ -12,7 +12,13 @@ import { AnimatedPopover, Avatar, Divider, Icon } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
-export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
+export const TeamAndSelfList = ({
+  omitOrg = false,
+  className = "",
+}: {
+  omitOrg?: boolean;
+  className?: string;
+}) => {
   const { t } = useLocale();
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
@@ -81,7 +87,7 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
   const text = getTextPopover();
 
   return (
-    <AnimatedPopover text={text}>
+    <AnimatedPopover text={text} popoverTriggerClassNames={className}>
       <FilterCheckboxFieldsContainer>
         {isSuccess && data?.length > 0 && data[0].isOrg && (
           <FilterCheckboxField
