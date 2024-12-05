@@ -3,7 +3,10 @@ import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIf
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
-type EventType = Pick<getEventTypeResponse, "metadata" | "requiresConfirmation">;
+type EventType = Pick<
+  getEventTypeResponse,
+  "metadata" | "requiresConfirmation" | "requiresConfirmationForFreeEmail"
+>;
 type PaymentAppData = { price: number };
 
 export async function getRequiresConfirmationFlags({
@@ -45,7 +48,7 @@ async function determineRequiresConfirmation(
   eventType: EventType,
   bookingStartTime: string,
   bookerEmail: string
-): boolean {
+): Promise<boolean> {
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
   const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
