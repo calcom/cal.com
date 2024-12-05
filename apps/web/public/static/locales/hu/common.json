@@ -2794,6 +2794,7 @@
   "routing_form_insights_booking_status": "Foglalás állapota",
   "routing_form_insights_booking_at": "Foglalás időpontja",
   "routing_form_insights_submitted_at": "Beküldés időpontja",
+  "routing_form_insights_assignment_reason": "Hozzárendelés oka",
   "access_denied": "Hozzáférés megtagadva",
   "salesforce_route_to_owner": "A kapcsolattartó tulajdonosa lesz a round robin házigazda, ha elérhető",
   "salesforce_do_not_route_to_owner": "A kapcsolattartó tulajdonosa nem lesz kötelező (továbbra is lehet házigazda, ha megfelel a tulajdonságoknak és a round robin kritériumoknak)",
@@ -2822,5 +2823,6 @@
   "single_select": "Egyszeres kiválasztás",
   "multi_select": "Többszörös kiválasztás",
   "group_meeting": "Csoportos megbeszélés",
+  "salesforce_ignore_guests": "Ne hozzon létre új rekordokat a foglaláshoz hozzáadott vendégek számára",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
