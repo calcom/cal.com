@@ -24,10 +24,10 @@ import { withNextAuth } from "test/utils/withNextAuth";
 
 import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
-describe("EventTypes WebhooksController (e2e)", () => {
+describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "event-types-webhook-controller-e2e@api.com";
-  const otherUserEmail = "other-event-types-webhook-controller-e2e@api.com";
+  const userEmail = "oauth-client-webhook-controller-e2e@api.com";
+  const otherUserEmail = "other-oauth-client-webhook-controller-e2e@api.com";
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
   let oAuthClient: PlatformOAuthClient;

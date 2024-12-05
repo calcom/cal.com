@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.62"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.69"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3699,6 +3699,10 @@ __metadata:
     vite-plugin-dts: ^3.7.3
     vite-plugin-inspect: ^0.8.4
     vite-plugin-node-polyfills: ^0.22.0
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-awesome-query-builder: ^5.1.2
+    react-dom: ^18.0.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -4143,6 +4147,7 @@ __metadata:
     "@calcom/ui": "*"
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
+    "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
@@ -4150,7 +4155,6 @@ __metadata:
     lexical: ^0.9.0
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
-    react-virtual: ^2.10.4
     stripe-event-types: ^3.1.0
     web-push: ^3.6.7
     zustand: ^4.3.2
@@ -4488,14 +4492,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.62":
-  version: 0.0.62
-  resolution: "@calcom/platform-libraries@npm:0.0.62"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.69":
+  version: 0.0.69
+  resolution: "@calcom/platform-libraries@npm:0.0.69"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 4bbc739fd5846529aa014ec0809078839a952580bb53e4fdfaf0a7418055836564ee4811b527abc211cba7b983b2f4bb8598a0a0ca184b03999b81f9ffd74693
+  checksum: c7b1309b3f2b6b7a94d1f760be3bcd57a325395432249446774456f8c87efb1b1eea380606992fa3fa6d3692409fe4880c7c89ef53ba09ef3a9cad487d9ef6ae
   languageName: node
   linkType: hard
 
@@ -4942,7 +4946,6 @@ __metadata:
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
-    react-virtual: ^2.10.4
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -15278,6 +15281,18 @@ __metadata:
     react: ">=16"
     react-dom: ">=16"
   checksum: a71fbbc608bb11b79ecd2b1a838fad2fc4140f9eb1a25bd44b6b1b4c6acd52741b5745e3e022390c642c284d0d528249360e322c0dbc3d34fea031611c207a7d
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-virtual@npm:^3.10.9":
+  version: 3.10.9
+  resolution: "@tanstack/react-virtual@npm:3.10.9"
+  dependencies:
+    "@tanstack/virtual-core": 3.10.9
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: a6c90118d0b084aedf0a2b02bc718df5cc1e594fb60d1dededf8a393d3e519e574e2ba67bb7adcaf8b4d6b206f6a10b37166f006bc7e50ad566475323d545b8c
   languageName: node
   linkType: hard
 
@@ -38096,7 +38111,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtual@npm:^2.10.4, react-virtual@npm:^2.8.2":
+"react-virtual@npm:^2.8.2":
   version: 2.10.4
   resolution: "react-virtual@npm:2.10.4"
   dependencies:

@@ -6,7 +6,6 @@ import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, useMeta, showToast } from "@calcom/ui";
@@ -93,7 +92,7 @@ function EditAttributeHeader(props: { isPending: boolean }) {
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
-            <h1 className="text-emphasis">{meta.title || "Attribute"}</h1>
+            <h1 className="text-emphasis">{meta.title || t("attribute")}</h1>
             {watchedTitle && (
               <>
                 <span className="text-subtle">/</span> <span className="text-emphasis">{watchedTitle}</span>
@@ -102,15 +101,11 @@ function EditAttributeHeader(props: { isPending: boolean }) {
           </div>
         </div>
         <Button type="submit" data-testid="create-attribute-button" loading={props.isPending}>
-          Save
+          {t("save")}
         </Button>
       </div>
     </>
   );
-}
-
-export function getLayout(page: React.ReactElement) {
-  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 export default CreateAttributesPage;

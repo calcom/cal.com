@@ -30,6 +30,7 @@ import {
   ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiBadRequestResponse as DocsBadRequestResponse,
   ApiHeader as DocsHeader,
+  ApiOperation,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
@@ -39,7 +40,6 @@ import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
   path: "/v2/oauth/:clientId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("OAuth")
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
@@ -115,13 +115,18 @@ export class OAuthFlowController {
   @Post("/refresh")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @DocsTags("Managed users")
+  @DocsTags("Platform / Managed Users")
   @DocsHeader({
     name: X_CAL_SECRET_KEY,
     description: "OAuth client secret key.",
     required: true,
   })
-  async refreshAccessToken(
+  @ApiOperation({
+    summary: "Refresh managed user tokens",
+    description: `If managed user access token is expired then get a new one using this endpoint. Each access token is valid for 60 minutes and 
+    each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
+  })
+  async refreshTokens(
     @Param("clientId") clientId: string,
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput

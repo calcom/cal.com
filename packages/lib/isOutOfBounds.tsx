@@ -245,7 +245,7 @@ export function isTimeViolatingFutureLimit({
   const dateInSystemTz = dayjs(time);
   if (periodLimits.endOfRollingPeriodEndDayInBookerTz) {
     const isAfterRollingEndDay = dateInSystemTz.isAfter(periodLimits.endOfRollingPeriodEndDayInBookerTz);
-    log.debug("rollingEndDayCheck", {
+    log.silly("rollingEndDayCheck", {
       formattedDate: dateInSystemTz.format(),
       isAfterRollingEndDay,
       endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
@@ -256,7 +256,7 @@ export function isTimeViolatingFutureLimit({
   if (periodLimits.startOfRangeStartDayInEventTz && periodLimits.endOfRangeEndDayInEventTz) {
     const isBeforeRangeStart = dateInSystemTz.isBefore(periodLimits.startOfRangeStartDayInEventTz);
     const isAfterRangeEnd = dateInSystemTz.isAfter(periodLimits.endOfRangeEndDayInEventTz);
-    log.debug("rangeCheck", {
+    log.silly("rangeCheck", {
       formattedDate: dateInSystemTz.format(),
       isAfterRangeEnd,
       isBeforeRangeStart,

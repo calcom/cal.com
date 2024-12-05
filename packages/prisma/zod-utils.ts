@@ -276,11 +276,23 @@ export const requiredCustomInputSchema = z.union([
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
+const PlatformClientParamsSchema = z.object({
+  platformClientId: z.string().optional(),
+  platformRescheduleUrl: z.string().nullable().optional(),
+  platformCancelUrl: z.string().nullable().optional(),
+  platformBookingUrl: z.string().nullable().optional(),
+  platformBookingLocation: z.string().optional(),
+});
+
+export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
+
 export const bookingConfirmPatchBodySchema = z.object({
   bookingId: z.number(),
   confirmed: z.boolean(),
   recurringEventId: z.string().optional(),
   reason: z.string().optional(),
+  emailsEnabled: z.boolean().default(true),
+  platformClientParams: PlatformClientParamsSchema.optional(),
 });
 
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType

@@ -12,10 +12,11 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { locales as i18nLocales } from "@calcom/lib/i18n";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
@@ -32,6 +33,8 @@ const getTranslatedField = (
   field: EventTypeAutoTranslatedField,
   userLocale: string
 ) => {
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
+
   return translations?.find(
     (trans) =>
       trans.field === field &&
@@ -45,6 +48,7 @@ export const EventMeta = ({
   isPending,
   isPlatform = true,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
@@ -75,8 +79,8 @@ export const EventMeta = ({
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
-  const session = useSession();
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -121,7 +125,7 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const userLocale = session.data?.user.locale ?? navigator.language;
+  const userLocale = locale ?? navigator.language;
   const translatedDescription = getTranslatedField(
     event?.fieldTranslations ?? [],
     EventTypeAutoTranslatedField.DESCRIPTION,
@@ -155,7 +159,12 @@ export const EventMeta = ({
           </EventTitle>
           {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
+              <div
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTML(translatedDescription ?? event.description),
+                }}
+              />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
