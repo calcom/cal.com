@@ -2,7 +2,7 @@ import CalendarManagerMock from "../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi } from "vitest";
+import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
@@ -17,6 +17,10 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
   default: {},
 }));
 vi.mock("@calcom/ui", () => ({}));
+
+beforeAll(() => {
+  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
 
 it("can find lucky user with maximize availability", async () => {
   const users: GetLuckyUserAvailableUsersType = [
@@ -535,25 +539,14 @@ describe("maximize availability and weights", () => {
         username: "test1",
         name: "Test User 1",
         email: "test1@example.com",
-        bookings: [
-          {
-            createdAt: new Date("2022-01-25T05:30:00.000Z"),
-          },
-          {
-            createdAt: new Date("2022-01-25T06:30:00.000Z"),
-          },
-        ],
+        bookings: [],
       }),
       buildUser({
         id: 2,
         username: "test2",
         name: "Test User 2",
         email: "test2@example.com",
-        bookings: [
-          {
-            createdAt: new Date("2022-01-25T04:30:00.000Z"),
-          },
-        ],
+        bookings: [],
       }),
     ];
 
@@ -589,18 +582,24 @@ describe("maximize availability and weights", () => {
       },
     ]);
 
-    // bookings of current month, all of these happened during OOO time
-    // user 1 will get a calibration of 2
+    // bookings of current month
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
         id: 4,
-        userId: 2,
-        createdAt: dayjs().subtract(7, "days").toDate(),
+        userId: 1,
+        createdAt: dayjs().subtract(2, "days").toDate(),
       }),
+      // happened during OOO of userId 1
+      buildBooking({
+        id: 4,
+        userId: 2,
+        createdAt: dayjs().subtract(6, "days").toDate(),
+      }),
+      // happened during OOO of userId 1
       buildBooking({
         id: 5,
         userId: 2,
-        createdAt: dayjs().subtract(6, "days").toDate(),
+        createdAt: dayjs().subtract(7, "days").toDate(),
       }),
     ]);
 
@@ -615,7 +614,7 @@ describe("maximize availability and weights", () => {
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]);
+    ).resolves.toStrictEqual(users[1]); // user[1] has one more bookings, but user[0] has calibration 2
   });
 
   it("applies calibration when user had full day calendar events this month", async () => {
@@ -681,16 +680,21 @@ describe("maximize availability and weights", () => {
       },
     ]);
 
-    // bookings of current month, all of these happened during full day calendar event
-    // user 1 will get a calibration of 2
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
-        id: 4,
+        id: 1,
+        userId: 1,
+        createdAt: dayjs().startOf("month").add(10, "day").toDate(),
+      }),
+      // happend during OOO
+      buildBooking({
+        id: 2,
         userId: 2,
         createdAt: dayjs().startOf("month").add(5, "hour").toDate(),
       }),
+      // happend during OOO
       buildBooking({
-        id: 5,
+        id: 3,
         userId: 2,
         createdAt: dayjs().startOf("month").add(20, "hour").toDate(),
       }),
@@ -707,7 +711,7 @@ describe("maximize availability and weights", () => {
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]);
+    ).resolves.toStrictEqual(users[1]); // user[1] has one more booking, but user[0] has calibration 2
   });
 
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
