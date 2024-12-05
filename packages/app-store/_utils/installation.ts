@@ -5,7 +5,7 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-export async function assertNotInstalled(slug: string, userId: number) {
+export async function checkInstalled(slug: string, userId: number) {
   const alreadyInstalled = await CredentialRepository.findByAppIdAndUserId({ appId: slug, userId });
   if (alreadyInstalled) {
     throw new HttpError({ statusCode: 422, message: "Already installed" });

@@ -4,7 +4,7 @@ import { defaultResponder } from "@calcom/lib/server";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import { assertNotInstalled, createDefaultInstallation } from "../../_utils/installation";
+import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
 import appConfig from "../config.json";
 
 export async function getHandler(req: NextApiRequest) {
@@ -15,7 +15,7 @@ export async function getHandler(req: NextApiRequest) {
   const teamId = req.query.teamId ? Number(req.query.teamId) : undefined;
   const returnTo = req.query?.returnTo;
 
-  await assertNotInstalled(slug, session.user.id);
+  await checkInstalled(slug, session.user.id);
   await createDefaultInstallation({
     appType,
     user: session.user,
