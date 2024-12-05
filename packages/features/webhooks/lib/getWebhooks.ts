@@ -21,13 +21,13 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
 
   const managedChildEventType = await prisma.eventType.findFirst({
     where: {
-      id: eventTypeId, // Replace with the current eventTypeId
+      id: eventTypeId,
       parentId: {
-        not: null, // Ensure it is a child event by checking that it has a parentId
+        not: null,
       },
     },
     select: {
-      parentId: true, // Retrieve the parentId (the eventTypeId of the parent event)
+      parentId: true,
     },
   });
 
