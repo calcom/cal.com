@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "אנחנו נעקוב אחר מספר ההזמנות שנקבעו עם כל מארח ונשווה זאת לאחרים, תוך השבתה זמנית של מארחים שקיבלו יותר מדי הזמנות כדי להבטיח חלוקה שווה",
   "exclude_emails_that_contain": "הוצא כתובות דוא\"ל המכילות...",
   "exclude_emails_match_found_error_message": "אנא הזן כתובת דוא\"ל עבודה תקינה",
+  "search_columns": "חיפוש עמודות",
+  "search_options": "אפשרויות חיפוש",
   "disable_org_url_label": "השבת פרופיל ארגוני ציבורי והפנה מחדש",
   "disable_org_url_description": "מפנה מחדש את {{orgSlug}}.cal.com אל {{destination}}",
   "single_select": "בחירה בודדת",

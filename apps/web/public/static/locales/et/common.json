@@ -2818,6 +2818,8 @@
   "rr_distribution_method_balanced_description": "Jälgime, kui palju broneeringuid on tehtud iga võõrustajaga ja võrdleme seda teistega, keelates mõned võõrustajad, kes on liiga kaugel ees, et broneeringud oleksid ühtlaselt jaotatud.",
   "exclude_emails_that_contain": "Välista e-kirjad, mis sisaldavad ...",
   "exclude_emails_match_found_error_message": "Palun sisestage kehtiv tööalane e-posti aadress",
+  "search_columns": "Otsi veerge",
+  "search_options": "Otsingusuvandid",
   "disable_org_url_label": "Keela avalik organisatsiooni profiil ja suuna ümber",
   "disable_org_url_description": "Suunab {{orgSlug}}.cal.com ümber aadressile {{destination}}",
   "single_select": "Üksikvalik",
