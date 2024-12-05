@@ -674,6 +674,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   customInputs: true,
   disableGuests: true,
   requiresConfirmation: true,
+  requiresConfirmationForFreeEmail: true,
   requiresConfirmationWillBlockSlot: true,
   eventName: true,
   metadata: true,
