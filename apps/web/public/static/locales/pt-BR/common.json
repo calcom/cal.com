@@ -2794,6 +2794,7 @@
   "routing_form_insights_booking_status": "Status do Agendamento",
   "routing_form_insights_booking_at": "Agendado em",
   "routing_form_insights_submitted_at": "Enviado em",
+  "routing_form_insights_assignment_reason": "Motivo da atribuição",
   "access_denied": "Acesso negado",
   "salesforce_route_to_owner": "O proprietário do contato será o anfitrião do Round Robin se disponível",
   "salesforce_do_not_route_to_owner": "O proprietário do contato não será forçado (ainda pode ser anfitrião se corresponder aos atributos e critérios do Round Robin)",
