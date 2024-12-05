@@ -2794,6 +2794,7 @@
   "routing_form_insights_booking_status": "Statut de la réservation",
   "routing_form_insights_booking_at": "Réservé le",
   "routing_form_insights_submitted_at": "Soumis le",
+  "routing_form_insights_assignment_reason": "Motif d'attribution",
   "access_denied": "Accès refusé",
   "salesforce_route_to_owner": "Le propriétaire du contact sera l'hôte Round Robin si disponible",
   "salesforce_do_not_route_to_owner": "Le propriétaire du contact ne sera pas forcé (peut toujours être l'hôte si cela correspond aux attributs et aux critères Round Robin)",
@@ -2817,5 +2818,11 @@
   "rr_distribution_method_balanced_description": "Nous surveillerons le nombre de réservations effectuées avec chaque hôte et le comparerons avec les autres, en désactivant certains hôtes trop en avance pour que les réservations soient réparties équitablement.",
   "exclude_emails_that_contain": "Exclure les e-mails contenant ...",
   "exclude_emails_match_found_error_message": "Veuillez entrer une adresse e-mail professionnelle valide",
+  "disable_org_url_label": "Désactiver le profil public de l'organisation et rediriger",
+  "disable_org_url_description": "Redirige {{orgSlug}}.cal.com vers {{destination}}",
+  "single_select": "Sélection unique",
+  "multi_select": "Sélection multiple",
+  "group_meeting": "Réunion de groupe",
+  "salesforce_ignore_guests": "Ne pas créer de nouveaux enregistrements pour les invités ajoutés à la réservation",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

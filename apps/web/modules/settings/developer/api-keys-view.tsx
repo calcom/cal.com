@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
@@ -19,18 +19,9 @@ import {
   SkeletonText,
 } from "@calcom/ui";
 
-const SkeletonLoader = ({
-  title,
-  description,
-  isAppDir,
-}: {
-  title: string;
-  description: string;
-  isAppDir?: boolean;
-}) => {
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -39,7 +30,29 @@ const SkeletonLoader = ({
   );
 };
 
-const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
+export const apiKeyModalRef = {
+  current: null as null | ((show: boolean) => void),
+};
+export const apiKeyToEditRef = {
+  current: null as null | ((apiKey: (TApiKeys & { neverExpires?: boolean }) | undefined) => void),
+};
+
+export const NewApiKeyButton = () => {
+  const { t } = useLocale();
+  return (
+    <Button
+      color="secondary"
+      StartIcon="plus"
+      onClick={() => {
+        apiKeyModalRef.current?.(true);
+        apiKeyToEditRef.current?.(undefined);
+      }}>
+      {t("add")}
+    </Button>
+  );
+};
+
+const ApiKeysView = () => {
   const { t } = useLocale();
 
   const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
@@ -49,24 +62,18 @@ const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
     undefined
   );
 
-  const NewApiKeyButton = () => {
-    return (
-      <Button
-        color="secondary"
-        StartIcon="plus"
-        onClick={() => {
-          setApiKeyToEdit(undefined);
-          setApiKeyModal(true);
-        }}>
-        {t("add")}
-      </Button>
-    );
-  };
+  useEffect(() => {
+    apiKeyModalRef.current = setApiKeyModal;
+    apiKeyToEditRef.current = setApiKeyToEdit;
+    return () => {
+      apiKeyModalRef.current = null;
+      apiKeyToEditRef.current = null;
+    };
+  }, []);
 
   if (isPending || !data) {
     return (
       <SkeletonLoader
-        isAppDir={isAppDir}
         title={t("api_keys")}
         description={t("create_first_api_key_description", { appName: APP_NAME })}
       />
@@ -75,14 +82,6 @@ const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta
-          title={t("api_keys")}
-          description={t("create_first_api_key_description", { appName: APP_NAME })}
-          CTA={<NewApiKeyButton />}
-          borderInShellHeader={true}
-        />
-      ) : null}
       <LicenseRequired>
         <div>
           {data?.length ? (
