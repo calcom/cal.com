@@ -10,5 +10,5 @@ export const checkIfFreeEmailDomain = async (email: string) => {
 
   // Check if email domain is in the watchlist
   const watchlistRepository = new WatchlistRepository();
-  return await !!watchlistRepository.getFreeEmailDomainInWatchlist(emailDomain);
+  return !!(await watchlistRepository.getFreeEmailDomainInWatchlist(emailDomain));
 };
