@@ -166,12 +166,11 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                               key={webhook.id}
                               webhook={webhook}
                               lastItem={webhooks.length === index + 1}
-                              canEditWebhook={!isChildrenManagedEventType}
                               onEditWebhook={() => {
                                 setEditModalOpen(true);
                                 setWebhookToEdit(webhook);
                               }}
-                              readOnly={isChildrenManagedEventType}
+                              readOnly={isChildrenManagedEventType && webhook.eventTypeId !== eventType.id}
                             />
                           );
                         })}

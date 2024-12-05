@@ -29,7 +29,6 @@ type WebhookProps = {
 
 export default function EventTypeWebhookListItem(props: {
   webhook: WebhookProps;
-  canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
   readOnly?: boolean;
@@ -37,7 +36,6 @@ export default function EventTypeWebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { webhook } = props;
-  const canEditWebhook = props.canEditWebhook ?? true;
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
@@ -104,7 +102,6 @@ export default function EventTypeWebhookListItem(props: {
           <Switch
             defaultChecked={webhook.active}
             data-testid="webhook-switch"
-            disabled={!canEditWebhook}
             onCheckedChange={() =>
               toggleWebhook.mutate({
                 id: webhook.id,
