@@ -738,7 +738,7 @@ async function handler(
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
+  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,
     bookingStartTime: reqBody.start,
     userId,

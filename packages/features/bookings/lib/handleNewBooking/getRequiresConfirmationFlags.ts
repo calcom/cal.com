@@ -6,7 +6,7 @@ import type { getEventTypeResponse } from "./getEventTypesFromDB";
 type EventType = Pick<getEventTypeResponse, "metadata" | "requiresConfirmation">;
 type PaymentAppData = { price: number };
 
-export function getRequiresConfirmationFlags({
+export async function getRequiresConfirmationFlags({
   eventType,
   bookingStartTime,
   userId,
@@ -21,7 +21,7 @@ export function getRequiresConfirmationFlags({
   originalRescheduledBookingOrganizerId: number | undefined;
   bookerEmail: string;
 }) {
-  const requiresConfirmation = determineRequiresConfirmation(eventType, bookingStartTime, bookerEmail);
+  const requiresConfirmation = await determineRequiresConfirmation(eventType, bookingStartTime, bookerEmail);
   const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBookingOrganizerId);
   const isConfirmedByDefault = determineIsConfirmedByDefault(
     requiresConfirmation,
@@ -41,7 +41,7 @@ export function getRequiresConfirmationFlags({
   };
 }
 
-function determineRequiresConfirmation(
+async function determineRequiresConfirmation(
   eventType: EventType,
   bookingStartTime: string,
   bookerEmail: string
@@ -51,7 +51,7 @@ function determineRequiresConfirmation(
   const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
 
   if (requiresConfirmationForFreeEmail) {
-    requiresConfirmation = checkIfFreeEmailDomain(bookerEmail);
+    requiresConfirmation = await checkIfFreeEmailDomain(bookerEmail);
   }
 
   if (rcThreshold) {
