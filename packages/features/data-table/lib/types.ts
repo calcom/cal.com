@@ -84,3 +84,9 @@ export const ZColumnFilter = z.object({
 });
 
 export type ColumnFilter = z.infer<typeof ZColumnFilter>;
+
+export type ExternalFilter = {
+  key: string;
+  titleKey: string;
+  component: () => React.ReactNode;
+};

@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
-import type { FilterValue } from "@calcom/features/data-table";
+import type { FilterValue, ExternalFilter } from "@calcom/features/data-table";
 import {
   DataTable,
   DataTableFilters,
@@ -21,6 +21,7 @@ import {
   selectFilter,
   dataTableFilter,
   convertToTitleCase,
+  useExternalFiltersState,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -491,6 +492,24 @@ export function RoutingFormResponsesTable({
     totalDBRowCount
   );
 
+  const { removeExternalFilter } = useExternalFiltersState();
+
+  const externalFilters = useMemo<ExternalFilter[]>(
+    () => [
+      {
+        key: "memberUserId",
+        titleKey: "people",
+        component: () => (
+          <UserListInTeam
+            showOnlyWhenSelectedInContext={false}
+            onClear={() => removeExternalFilter("memberUserId")}
+          />
+        ),
+      },
+    ],
+    [removeExternalFilter]
+  );
+
   if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
     return (
       <div
@@ -551,10 +570,9 @@ export function RoutingFormResponsesTable({
         <div className="header mb-4">
           <div className="flex flex-wrap items-start gap-2">
             <TeamAndSelfList omitOrg={true} className="mb-0" />
-            <DataTableFilters.AddFilterButton table={table} />
-            <UserListInTeam showOnlyWhenSelectedInContext={false} />
+            <DataTableFilters.AddFilterButton table={table} externalFilters={externalFilters} />
             <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
-            <DataTableFilters.ActiveFilters table={table} />
+            <DataTableFilters.ActiveFilters table={table} externalFilters={externalFilters} />
             <ClearFilters />
             <DateSelect />
             <RoutingDownload />

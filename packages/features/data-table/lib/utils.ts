@@ -1,6 +1,6 @@
 "use client";
 
-import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
+import { parseAsString, parseAsArrayOf, parseAsJson, useQueryStates, useQueryState } from "nuqs";
 import { useMemo, useCallback } from "react";
 import { z } from "zod";
 
@@ -58,6 +58,20 @@ export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
     }
     return undefined;
   }, [state.activeFilters, columnId, schema]);
+}
+
+export function useExternalFiltersState() {
+  const [externalFiltersState, setExternalFiltersState] = useQueryState(
+    "ef",
+    parseAsArrayOf(parseAsString).withDefault([])
+  );
+  const removeExternalFilter = useCallback(
+    (key: string) => {
+      setExternalFiltersState((prev) => prev.filter((f) => f !== key));
+    },
+    [setExternalFiltersState]
+  );
+  return { externalFiltersState, setExternalFiltersState, removeExternalFilter };
 }
 
 export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];

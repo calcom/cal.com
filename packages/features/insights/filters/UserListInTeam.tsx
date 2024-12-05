@@ -15,8 +15,10 @@ const mapUserToOption = (user: User) => ({
 
 export const UserListInTeam = ({
   showOnlyWhenSelectedInContext = true,
+  onClear,
 }: {
   showOnlyWhenSelectedInContext?: boolean;
+  onClear?: () => void;
 }) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
@@ -42,7 +44,12 @@ export const UserListInTeam = ({
       title={t("people")}
       options={userListOptions}
       selectedValue={selectedMemberUserId}
-      onChange={(value) => setConfigFilters({ selectedMemberUserId: value === null ? null : Number(value) })}
+      onChange={(value) => {
+        setConfigFilters({ selectedMemberUserId: value === null ? null : Number(value) });
+        if (value === null) {
+          onClear?.();
+        }
+      }}
       buttonIcon={<Icon name="users" className="mr-2 h-4 w-4" />}
       placeholder={t("search")}
       testId="people-filter"

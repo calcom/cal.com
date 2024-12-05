@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { forwardRef, useState, useMemo, useCallback } from "react";
+import { forwardRef, useState, useMemo, useCallback, Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,8 +22,8 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { FilterableColumn } from "../../lib/types";
-import { convertToTitleCase, useFiltersState } from "../../lib/utils";
+import type { FilterableColumn, ExternalFilter } from "../../lib/types";
+import { convertToTitleCase, useFiltersState, useExternalFiltersState } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -121,14 +121,16 @@ const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <T
 interface AddFilterButtonProps<TData> {
   table: Table<TData>;
   omit?: string[];
+  externalFilters?: ExternalFilter[];
 }
 
 function AddFilterButtonComponent<TData>(
-  { table, omit }: AddFilterButtonProps<TData>,
+  { table, omit, externalFilters }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
   const { state, setState } = useFiltersState();
+  const { externalFiltersState, setExternalFiltersState } = useExternalFiltersState();
 
   const activeFilters = state.activeFilters;
   const filterableColumns = useFilterableColumns(table, omit);
@@ -139,7 +141,7 @@ function AddFilterButtonComponent<TData>(
         setState({ activeFilters: [...activeFilters, { f: columnId, v: undefined }] });
       }
     },
-    [activeFilters]
+    [activeFilters, setState]
   );
 
   return (
@@ -167,6 +169,16 @@ function AddFilterButtonComponent<TData>(
                   </CommandItem>
                 );
               })}
+              {(externalFilters || [])
+                .filter((filter) => !externalFiltersState.includes(filter.key))
+                .map((filter, index) => (
+                  <CommandItem
+                    key={index}
+                    onSelect={() => setExternalFiltersState((prev) => [...prev, filter.key])}
+                    className="px-4 py-2">
+                    {t(filter.titleKey)}
+                  </CommandItem>
+                ))}
             </CommandList>
           </Command>
         </PopoverContent>
@@ -221,6 +233,7 @@ const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
 // Add the new ActiveFilters component
 interface ActiveFiltersProps<TData> {
   table: Table<TData>;
+  externalFilters?: ExternalFilter[];
 }
 
 const filterIcons = {
@@ -229,10 +242,10 @@ const filterIcons = {
   select: "layers",
 } as const;
 
-function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
-  const { state, setState } = useFiltersState();
-
+function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TData>) {
+  const { state } = useFiltersState();
   const filterableColumns = useFilterableColumns(table);
+  const { externalFiltersState } = useExternalFiltersState();
 
   return (
     <>
@@ -254,6 +267,11 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
             </PopoverContent>
           </Popover>
         );
+      })}
+      {(externalFiltersState || []).map((key) => {
+        const filter = externalFilters?.find((filter) => filter.key === key);
+        if (!filter) return null;
+        return <Fragment key={key}>{filter.component()}</Fragment>;
       })}
     </>
   );
