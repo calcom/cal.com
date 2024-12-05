@@ -12,6 +12,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
