@@ -256,14 +256,14 @@ export default async function handleChildrenEventTypes({
 
     // Flatten oldUserEventTypes.webhooks to create a single array of all webhooks
     const allOldWebhooks = oldUserEventTypes
-      .filter((et): et is NonNullable<typeof et> => et !== null && et.webhooks !== null) // Filter out null results
+      ?.filter((et): et is NonNullable<typeof et> => et !== null && et.webhooks !== null) // Filter out null results
       .flatMap((et) => et.webhooks);
 
     if (updatedValues.deletedWebhooks && updatedValues.deletedWebhooks.length > 0) {
       const deletedSubscriberUrls = updatedValues.deletedWebhooks.map((webhook) => webhook.subscriberUrl);
 
       const matchingDeletedWebhookIds = allOldWebhooks
-        .filter((oldWebhook) => deletedSubscriberUrls.includes(oldWebhook.subscriberUrl))
+        ?.filter((oldWebhook) => deletedSubscriberUrls.includes(oldWebhook.subscriberUrl))
         .map((oldWebhook) => oldWebhook.id);
 
       await prisma.webhook.deleteMany({
@@ -280,7 +280,7 @@ export default async function handleChildrenEventTypes({
 
     // Compare against eventType.webhooks and collect matching webhook IDs
     const matchingWebhookIds = allOldWebhooks
-      .filter((oldWebhook) =>
+      ?.filter((oldWebhook) =>
         eventType.webhooks.some((currentWebhook) => oldWebhook.subscriberUrl === currentWebhook.subscriberUrl)
       )
       .map((match) => match.id); // Extract matching webhook IDs
@@ -320,7 +320,7 @@ export default async function handleChildrenEventTypes({
     // Filter out webhooks from the eventType.webhooks that don't already exist OR we just deleted
     const deletedSubscriberUrls =
       updatedValues.deletedWebhooks?.map((webhook) => webhook.subscriberUrl) || [];
-    const webhooksToCreate = eventType.webhooks.filter(
+    const webhooksToCreate = eventType.webhooks?.filter(
       (wh) =>
         !existingSubscriberUrls.includes(wh.subscriberUrl) &&
         !deletedSubscriberUrls.includes(wh.subscriberUrl)
