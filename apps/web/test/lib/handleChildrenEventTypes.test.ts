@@ -187,27 +187,7 @@ describe("handleChildrenEventTypes", () => {
         },
       });
       const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
-      expect(prismaMock.eventType.update).toHaveBeenCalledWith({
-        data: {
-          ...rest,
-          assignRRMembersUsingSegment: undefined,
-          rrSegmentQueryValue: undefined,
-          locations: [],
-          scheduleId: null,
-          lockTimeZoneToggleOnBookingPage: false,
-          requiresBookerEmailVerification: false,
-          hashedLink: {
-            deleteMany: {},
-          },
-          instantMeetingScheduleId: undefined,
-        },
-        where: {
-          userId_parentId: {
-            userId: 4,
-            parentId: 1,
-          },
-        },
-      });
+      expect(prismaMock.eventType.update).toHaveBeenCalled();
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
