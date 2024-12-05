@@ -715,6 +715,13 @@ export default class GoogleCalendarService implements Calendar {
     const data = await this.fetchAvailability(parsedArgs);
     await this.setAvailabilityInCache(parsedArgs, data);
   }
+
+  // It would error if the domain wide delegation is not set up correctly
+  async testDomainWideDelegationSetup() {
+    const calendar = await this.authedCalendar();
+    const cals = await calendar.calendarList.list({ fields: "items(id)" });
+    return !!cals.data.items;
+  }
 }
 
 class MyGoogleAuth extends google.auth.OAuth2 {

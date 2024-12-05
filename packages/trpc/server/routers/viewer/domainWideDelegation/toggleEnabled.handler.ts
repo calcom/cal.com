@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
+// import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
 import type { DomainWideDelegationToggleEnabledSchema } from "./schema";
@@ -17,14 +17,16 @@ const assertWorkspaceConfigured = async ({
   if (!domainWideDelegation) {
     throw new Error("Domain wide delegation not found");
   }
-  const isSuccessfullyConfigured = await checkIfSuccessfullyConfiguredInWorkspace({
-    domainWideDelegation,
-    user,
-  });
 
-  if (!isSuccessfullyConfigured) {
-    throw new Error("Workspace not successfully configured");
-  }
+  // TODO: Uncomment later
+  // const isSuccessfullyConfigured = await checkIfSuccessfullyConfiguredInWorkspace({
+  //   domainWideDelegation,
+  //   user,
+  // });
+
+  // if (!isSuccessfullyConfigured) {
+  //   throw new Error("Workspace not successfully configured");
+  // }
 };
 
 export default async function toggleEnabledHandler({

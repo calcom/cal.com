@@ -3,7 +3,6 @@ import z from "zod";
 
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 
 import { OrganizationRepository } from "./organization";
@@ -15,6 +14,8 @@ const serviceAccountKeySchema = z
     client_id: z.string(),
   })
   .passthrough();
+
+export type ServiceAccountKey = z.infer<typeof serviceAccountKeySchema>;
 
 const repositoryLogger = logger.getSubLogger({ prefix: ["DomainWideDelegationRepository"] });
 const domainWideDelegationSafeSelect = {
@@ -128,42 +129,8 @@ export class DomainWideDelegationRepository {
     return domainWideDelegation;
   }
 
-  static async findByUserIncludeSensitiveServiceAccountKey({
-    user,
-  }: {
-    user: {
-      email: string;
-    };
-  }) {
-    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
-    if (!domainWideDelegationEnabled) {
-      return null;
-    }
-
-    const log = repositoryLogger.getSubLogger({ prefix: ["findByUserIncludeSensitiveServiceAccountKey"] });
-    log.debug("called with", { user });
-    const organization = await OrganizationRepository.findByMemberEmailId({
-      email: user.email,
-    });
-
-    if (!organization) {
-      log.debug("No organization found for user", safeStringify(user));
-      return null;
-    }
-
-    const emailDomain = user.email.split("@")[1];
-    log.debug("organization found", safeStringify({ organizationId: organization.id }));
-    const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
-      where: {
-        organizationId_domain: {
-          organizationId: organization.id,
-          domain: emailDomain,
-        },
-      },
-      select: domainWideDelegationSelectIncludesServiceAccountKey,
-    });
-
-    return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
+  static async findByUser({ user }: { user: { email: string } }) {
+    return await this.findUniqueByOrganizationMemberEmail({ email: user.email });
   }
 
   static async findAllByDomain({ domain }: { domain: string }) {
