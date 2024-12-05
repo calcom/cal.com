@@ -172,43 +172,49 @@ export function UserListTable() {
         return [];
       }
       return (
-        (attributes?.map((attribute) => ({
-          id: attribute.id,
-          header: attribute.name,
-          meta: {
-            filter: { type: attribute.type.toLowerCase() === "text" ? "text" : "select" },
-          },
-          size: 120,
-          accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
-          cell: ({ row }) => {
-            const attributeValues = row.original.attributes.filter(
-              (attr) => attr.attributeId === attribute.id
-            );
-            if (attributeValues.length === 0) return null;
-            return (
-              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
-              </div>
-            );
-          },
-          filterFn: (row, id, filterValue) => {
-            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+        (attributes?.map((attribute) => {
+          const isNumber = attribute.type === "NUMBER";
+          const isText = attribute.type === "TEXT";
+          const filterType = isNumber ? "number" : isText ? "text" : "select";
 
-            if (isTextFilterValue(filterValue)) {
-              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-            } else if (isSelectFilterValue(filterValue)) {
-              return selectFilter(
-                attributeValues.map((attr) => attr.value),
-                filterValue
+          return {
+            id: attribute.id,
+            header: attribute.name,
+            meta: {
+              filter: { type: filterType },
+            },
+            size: 120,
+            accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
+            cell: ({ row }) => {
+              const attributeValues = row.original.attributes.filter(
+                (attr) => attr.attributeId === attribute.id
               );
-            }
-            return false;
-          },
-        })) as ColumnDef<UserTableUser>[]) ?? []
+              if (attributeValues.length === 0) return null;
+              return (
+                <div className={classNames(isNumber ? "flex w-full justify-center" : "")}>
+                  {attributeValues.map((attributeValue, index) => (
+                    <Badge key={index} variant="gray" className="mr-1">
+                      {attributeValue.value}
+                    </Badge>
+                  ))}
+                </div>
+              );
+            },
+            filterFn: (row, id, filterValue) => {
+              const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+
+              if (isTextFilterValue(filterValue)) {
+                return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+              } else if (isSelectFilterValue(filterValue)) {
+                return selectFilter(
+                  attributeValues.map((attr) => attr.value),
+                  filterValue
+                );
+              }
+              return false;
+            },
+          };
+        }) as ColumnDef<UserTableUser>[]) ?? []
       );
     };
     const cols: ColumnDef<UserTableUser>[] = [

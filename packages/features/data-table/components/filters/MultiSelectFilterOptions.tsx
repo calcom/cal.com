@@ -14,7 +14,7 @@ import {
 
 import type { FilterableColumn } from "../../lib/types";
 import { ZSelectFilterValue } from "../../lib/types";
-import { useFilterValue, useFiltersState } from "../../lib/utils";
+import { useFiltersState, useFilterValue } from "../../lib/utils";
 
 export type MultiSelectFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "select" }>;

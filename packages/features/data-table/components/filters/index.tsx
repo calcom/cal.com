@@ -129,16 +129,15 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { state, setState } = useFiltersState();
+  const { state: activeFilters, setState } = useFiltersState();
   const { externalFiltersState, setExternalFiltersState } = useExternalFiltersState();
 
-  const activeFilters = state.activeFilters;
   const filterableColumns = useFilterableColumns(table, omit);
 
   const handleAddFilter = useCallback(
     (columnId: string) => {
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
-        setState({ activeFilters: [...activeFilters, { f: columnId, v: undefined }] });
+        setState([...activeFilters, { f: columnId, v: undefined }]);
       }
     },
     [activeFilters, setState]
@@ -243,13 +242,13 @@ const filterIcons = {
 } as const;
 
 function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TData>) {
-  const { state } = useFiltersState();
+  const { state: activeFilters } = useFiltersState();
   const filterableColumns = useFilterableColumns(table);
   const { externalFiltersState } = useExternalFiltersState();
 
   return (
     <>
-      {state.activeFilters.map((filter) => {
+      {activeFilters.map((filter) => {
         const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
         const icon = column.icon || filterIcons[column.type];

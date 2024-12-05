@@ -10,7 +10,7 @@ import { useFilterContext } from "../context/provider";
 export const ClearFilters = () => {
   const { t } = useLocale();
   const { clearFilters, filter } = useFilterContext();
-  const { state, clear: clearFiltersState } = useFiltersState();
+  const { state: activeFilters, clear: clearFiltersState } = useFiltersState();
 
   const clear = () => {
     // clear filters from the filter context
@@ -25,7 +25,7 @@ export const ClearFilters = () => {
   const isFilterSelected =
     initialConfig?.teamId !== selectedTeamId ||
     initialConfig?.userId !== selectedMemberUserId ||
-    state.activeFilters?.length > 0;
+    activeFilters?.length > 0;
 
   if (!isFilterSelected) {
     return null;
