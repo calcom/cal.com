@@ -174,12 +174,12 @@ test.describe("Bookings", () => {
       });
       const booking = await bookingFixture.self();
       await adminUser.apiLogin();
+      const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
-      const webhookReceiver = await webhooks.createReceiver();
       await firstGuest.click();
       await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
       await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
