@@ -80,7 +80,6 @@ export type NewCalendarEventType = {
   location?: string | null;
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
-  delegatedToId?: string | null;
 };
 
 export type CalendarEventType = {
@@ -269,8 +268,6 @@ export interface Calendar {
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
-
-  testDomainWideDelegationSetup?(): Promise<boolean>;
 
   watchCalendar?(options: { calendarId: string }): Promise<unknown>;
 
