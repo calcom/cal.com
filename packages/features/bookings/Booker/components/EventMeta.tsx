@@ -1,5 +1,4 @@
 import { m } from "framer-motion";
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
