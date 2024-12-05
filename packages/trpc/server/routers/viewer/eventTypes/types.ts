@@ -1,8 +1,6 @@
 import { z } from "zod";
 
 import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
-import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
-import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
   customInputSchema,
@@ -11,27 +9,6 @@ import {
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-
-export const eventTypeWebhookInputSchema = z.object({
-  id: z.string().optional(),
-  userId: z.number().nullish(),
-  teamId: z.number().nullish(),
-  eventTypeId: z.number(),
-  subscriberUrl: z.string().url().optional(),
-  eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
-  active: z.boolean().optional(),
-  payloadTemplate: z.string().nullable().optional(),
-  appId: z.string().nullish(),
-  secret: z.string().nullish(),
-  platform: z.boolean().optional(),
-  time: z.number().nullish(),
-  timeUnit: z.enum(TIME_UNIT).nullish(),
-});
-
-const deletedWebhookSchema = z.object({
-  id: z.string(),
-  subscriberUrl: z.string(),
-});
 
 const aiPhoneCallConfig = z
   .object({
@@ -93,8 +70,6 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     bookingFields: eventTypeBookingFields,
     assignRRMembersUsingSegment: z.boolean().optional(),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
-    webhooks: z.array(eventTypeWebhookInputSchema).optional(),
-    deletedWebhooks: z.array(deletedWebhookSchema).optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);

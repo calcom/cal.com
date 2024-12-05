@@ -19,6 +19,20 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   const orgId = options.orgId ?? 0;
   const oAuthClientId = options.oAuthClientId ?? "";
 
+  const managedChildEventType = await prisma.eventType.findFirst({
+    where: {
+      id: eventTypeId, // Replace with the current eventTypeId
+      parentId: {
+        not: null, // Ensure it is a child event by checking that it has a parentId
+      },
+    },
+    select: {
+      parentId: true, // Retrieve the parentId (the eventTypeId of the parent event)
+    },
+  });
+
+  const managedParentEventTypeId = managedChildEventType?.parentId ?? 0;
+  console.log({ managedParentEventTypeId });
   // if we have userId and teamId it is a managed event type and should trigger for team and user
   const allWebhooks = await prisma.webhook.findMany({
     where: {
@@ -31,6 +45,9 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
         },
         {
           eventTypeId,
+        },
+        {
+          eventTypeId: managedParentEventTypeId,
         },
         {
           teamId: {

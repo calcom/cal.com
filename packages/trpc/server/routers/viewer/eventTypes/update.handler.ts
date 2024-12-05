@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
-import { v4 } from "uuid";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
@@ -80,8 +79,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     description: newDescription,
-    webhooks,
-    deletedWebhooks,
     ...rest
   } = input;
 
@@ -120,11 +117,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       workflows: {
         select: {
           workflowId: true,
-        },
-      },
-      webhooks: {
-        select: {
-          id: true,
         },
       },
       team: {
@@ -504,51 +496,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (deletedWebhooks && deletedWebhooks.length > 0) {
-    await ctx.prisma.$transaction(
-      deletedWebhooks
-        .filter((wh) => wh?.id)
-        .map((wh) =>
-          ctx.prisma.webhook.deleteMany({
-            where: {
-              id: wh.id,
-              eventTypeId: id,
-            },
-          })
-        )
-    );
-  }
-
-  if (webhooks && webhooks.length > 0) {
-    const webhooksForUpdates = webhooks.filter((wh) => wh.id);
-    const webhooksForInserts = webhooks.reduce((acc, wh) => {
-      const subscriberUrl = wh.subscriberUrl || "";
-      if (!wh.id) {
-        acc.push({
-          ...wh,
-          subscriberUrl,
-          id: v4(), // Generate a unique ID
-        });
-      }
-      return acc;
-    }, [] as Array<{ id: string; subscriberUrl: string }>);
-
-    await ctx.prisma.webhook.createMany({
-      data: webhooksForInserts,
-    });
-
-    for (const wh of webhooksForUpdates) {
-      try {
-        await ctx.prisma.webhook.update({
-          where: { id: wh.id },
-          data: wh,
-        });
-      } catch (e) {
-        logger.debug((e as Error)?.message);
-      }
-    }
-  }
-
   // Logic for updating `fieldTranslations`
   // user has no description translations OR user is changing the description
   const descriptionTranslationsNeeded =
@@ -581,43 +528,43 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data,
       select: updatedEventTypeSelect,
     });
-    const updatedValues: {
-      [key: string]: any; // Allows dynamic keys
-      deletedWebhooks?: {
-        id: string;
-        subscriberUrl: string;
-      }[]; // Explicitly add the `deletedWebhooks` property
-    } = Object.entries(data).reduce((acc, [key, value]) => {
-      if (value !== undefined) {
-        // @ts-expect-error Element implicitly has any type
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
-    updatedValues.deletedWebhooks = deletedWebhooks || [];
-    // Handling updates to children event types (managed events types)
-    await updateChildrenEventTypes({
-      eventTypeId: id,
-      currentUserId: ctx.user.id,
-      oldEventType: eventType,
-      updatedEventType,
-      children,
-      profileId: ctx.user.profile.id,
-      prisma: ctx.prisma,
-      updatedValues,
-    });
-
-    const res = ctx.res as NextApiResponse;
-    if (typeof res?.revalidate !== "undefined") {
-      try {
-        await res?.revalidate(`/${ctx.user.username}/${updatedEventType.slug}`);
-      } catch (e) {
-        // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
-        logger.debug((e as Error)?.message);
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2002") {
+        // instead of throwing a 500 error, catch the conflict and throw a 400 error.
+        throw new TRPCError({ message: "error_event_type_url_duplicate", code: "BAD_REQUEST" });
       }
     }
-  } catch (e) {
-    logger.debug((e as Error)?.message);
+    throw e;
+  }
+  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      // @ts-expect-error Element implicitly has any type
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+
+  // Handling updates to children event types (managed events types)
+  await updateChildrenEventTypes({
+    eventTypeId: id,
+    currentUserId: ctx.user.id,
+    oldEventType: eventType,
+    updatedEventType,
+    children,
+    profileId: ctx.user.profile.id,
+    prisma: ctx.prisma,
+    updatedValues,
+  });
+
+  const res = ctx.res as NextApiResponse;
+  if (typeof res?.revalidate !== "undefined") {
+    try {
+      await res?.revalidate(`/${ctx.user.username}/${updatedEventType.slug}`);
+    } catch (e) {
+      // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
+      logger.debug((e as Error)?.message);
+    }
   }
   return { eventType };
 };

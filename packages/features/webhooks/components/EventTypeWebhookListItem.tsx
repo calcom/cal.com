@@ -1,7 +1,20 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { Badge, Button, Switch, Tooltip } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import {
+  Badge,
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  showToast,
+  Switch,
+  Tooltip,
+} from "@calcom/ui";
 
 type WebhookProps = {
   id: string;
@@ -14,29 +27,51 @@ type WebhookProps = {
   teamId: number | null;
 };
 
-export default function EventTypeWebhookListItem({
-  webhook,
-  index,
-  childEventType = false,
-  canEditWebhook = true,
-  lastItem,
-  onEditWebhook,
-  onToggleWebhook,
-  onDeleteWebhook,
-}: {
+export default function EventTypeWebhookListItem(props: {
   webhook: WebhookProps;
-  index: number;
-  childEventType: boolean;
   canEditWebhook?: boolean;
+  onEditWebhook: () => void;
   lastItem: boolean;
-  onEditWebhook: (webhook: WebhookProps) => void;
-  onToggleWebhook: (updatedWebhook: WebhookProps) => void;
-  onDeleteWebhook: (updatedWebhook: WebhookProps) => void;
+  readOnly?: boolean;
 }) {
   const { t } = useLocale();
+  const utils = trpc.useUtils();
+  const { webhook } = props;
+  const canEditWebhook = props.canEditWebhook ?? true;
+
+  const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
+    async onSuccess() {
+      showToast(t("webhook_removed_successfully"), "success");
+      await utils.viewer.webhook.getByViewer.invalidate();
+      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.eventTypes.get.invalidate();
+    },
+  });
+  const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
+    async onSuccess(data) {
+      // TODO: Better success message
+      showToast(t(data?.active ? "enabled" : "disabled"), "success");
+      await utils.viewer.webhook.getByViewer.invalidate();
+      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.eventTypes.get.invalidate();
+    },
+  });
+
+  const onDeleteWebhook = () => {
+    // TODO: Confimation dialog before deleting
+    deleteWebhook.mutate({
+      id: webhook.id,
+      eventTypeId: webhook.eventTypeId || undefined,
+      teamId: webhook.teamId || undefined,
+    });
+  };
 
   return (
-    <div className={classNames("flex w-full justify-between p-4", lastItem ? "" : "border-subtle border-b")}>
+    <div
+      className={classNames(
+        "flex w-full justify-between p-4",
+        props.lastItem ? "" : "border-subtle border-b"
+      )}>
       <div className="w-full truncate">
         <div className="flex">
           <Tooltip content={webhook.subscriberUrl}>
@@ -44,8 +79,8 @@ export default function EventTypeWebhookListItem({
               {webhook.subscriberUrl}
             </p>
           </Tooltip>
-          {!canEditWebhook && (
-            <Badge variant="gray" className="ml-2">
+          {!!props.readOnly && (
+            <Badge variant="gray" className="ml-2 ">
               {t("readonly")}
             </Badge>
           )}
@@ -64,41 +99,59 @@ export default function EventTypeWebhookListItem({
           </div>
         </Tooltip>
       </div>
+      {!props.readOnly && (
+        <div className="ml-2 flex items-center space-x-4">
+          <Switch
+            defaultChecked={webhook.active}
+            data-testid="webhook-switch"
+            disabled={!canEditWebhook}
+            onCheckedChange={() =>
+              toggleWebhook.mutate({
+                id: webhook.id,
+                active: !webhook.active,
+                payloadTemplate: webhook.payloadTemplate,
+                eventTypeId: webhook.eventTypeId || undefined,
+              })
+            }
+          />
 
-      <div className="ml-2 flex items-center space-x-4">
-        {/* Active Toggle */}
-        <Switch
-          checked={webhook.active}
-          data-testid={`webhook-switch-${webhook.id}`}
-          disabled={!canEditWebhook}
-          onCheckedChange={(active) => {
-            onToggleWebhook({ ...webhook, active });
-          }}
-        />
+          <Button
+            className="hidden lg:flex"
+            color="secondary"
+            onClick={props.onEditWebhook}
+            data-testid="webhook-edit-button">
+            {t("edit")}
+          </Button>
 
-        {/* Edit & Delete Buttons */}
-        {!childEventType && (
-          <>
-            <Button
-              className="hidden lg:flex"
-              color="secondary"
-              disabled={!canEditWebhook}
-              onClick={() => onEditWebhook(webhook)}
-              data-testid={`webhook-edit-button-${webhook.id}`}>
-              {t("edit")}
-            </Button>
+          <Button
+            className="hidden lg:flex"
+            color="destructive"
+            StartIcon="trash"
+            variant="icon"
+            onClick={onDeleteWebhook}
+          />
 
-            <Button
-              className="hidden lg:flex"
-              color="destructive"
-              StartIcon="trash"
-              variant="icon"
-              disabled={!canEditWebhook}
-              onClick={() => onDeleteWebhook(webhook)}
-            />
-          </>
-        )}
-      </div>
+          <Dropdown>
+            <DropdownMenuTrigger asChild>
+              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
+                  {t("edit")}
+                </DropdownItem>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem>
+                <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                  {t("delete")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Dropdown>
+        </div>
+      )}
     </div>
   );
 }
