@@ -11,10 +11,10 @@ import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui";
 
 enum PageType {
-  ORG = "org",
-  TEAM = "team",
-  USER = "user",
-  OTHER = "other",
+  ORG = "ORG",
+  TEAM = "TEAM",
+  USER = "USER",
+  OTHER = "OTHER",
 }
 
 function getPageInfo(pathname: string, host: string) {
