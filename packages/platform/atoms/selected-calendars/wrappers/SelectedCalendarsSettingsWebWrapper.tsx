@@ -58,7 +58,8 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                           connectedCalendar.primary?.email ?? connectedCalendar.integration.description
                         }
                         className="border-subtle mt-4 rounded-lg border"
-                        actions={!connectedCalendar.domainWideDelegationCredentialId && (
+                        actions={
+                          !connectedCalendar.domainWideDelegationCredentialId && (
                             <div className="flex w-32 justify-end">
                               <DisconnectIntegration
                                 credentialId={connectedCalendar.credentialId}
@@ -86,7 +87,9 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === props.destinationCalendarId}
                                     credentialId={cal.credentialId}
-                                    domainWideDelegationCredentialId={connectedCalendar.domainWideDelegationCredentialId}
+                                    domainWideDelegationCredentialId={
+                                      connectedCalendar.domainWideDelegationCredentialId
+                                    }
                                   />
                                 ))}
                               </ul>
@@ -114,9 +117,9 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                         !connectedCalendar.domainWideDelegationCredentialId && (
                           <div className="flex w-32 justify-end">
                             <DisconnectIntegration
-                            credentialId={connectedCalendar.credentialId}
-                            trashIcon
-                            onSuccess={props.onChanged}
+                              credentialId={connectedCalendar.credentialId}
+                              trashIcon
+                              onSuccess={props.onChanged}
                               buttonProps={{ className: "border border-default" }}
                             />
                           </div>

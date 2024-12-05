@@ -13,7 +13,6 @@ import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cach
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDomainWideDelegationClientIdNotAuthorizedError,
-  CalendarAppDomainWideDelegationNotSetupError,
   CalendarAppDomainWideDelegationInvalidGrantError,
   CalendarAppDomainWideDelegationError,
 } from "@calcom/lib/CalendarAppError";
@@ -28,7 +27,6 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import prisma from "@calcom/prisma";
 import type {
@@ -38,7 +36,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -65,10 +63,10 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
   private log: typeof logger;
-  private credential: CredentialPayload;
+  private credential: CredentialForCalendarService;
   private myGoogleAuth!: MyGoogleAuth;
   private oAuthManagerInstance!: OAuthManager;
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialForCalendarService) {
     this.integrationName = "google_calendar";
     this.credential = credential;
     this.auth = this.initGoogleAuth(credential);
@@ -86,7 +84,7 @@ export default class GoogleCalendarService implements Calendar {
     return this.myGoogleAuth;
   }
 
-  private initGoogleAuth = (credential: CredentialPayload) => {
+  private initGoogleAuth = (credential: CredentialForCalendarService) => {
     const currentTokenObject = getTokenObjectFromCredential(credential);
     const auth = new OAuthManager({
       // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
@@ -170,101 +168,81 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  private getAuthedCalendarFromDomainWideDelegation = async ({
-    forceEnableDomainWideDelegation,
+  private getAuthedCalendarFromDwd = async ({
+    domainWideDelegation,
+    emailToImpersonate,
   }: {
-    forceEnableDomainWideDelegation?: boolean;
+    emailToImpersonate: string;
+    domainWideDelegation: {
+      serviceAccountKey: {
+        client_email: string;
+        client_id: string;
+        private_key: string;
+      };
+    };
   }) => {
-    if (!this.credential.delegatedToId) return null;
+    const serviceAccountClientEmail = domainWideDelegation.serviceAccountKey.client_email;
+    const serviceAccountClientId = domainWideDelegation.serviceAccountKey.client_id;
+    const serviceAccountPrivateKey = domainWideDelegation.serviceAccountKey.private_key;
 
-    //TODO: Compute it once and save it
-    const domainWideDelegation =
-      await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({
-        id: this.credential.delegatedToId,
-      });
+    const authClient = new JWT({
+      email: serviceAccountClientEmail,
+      key: serviceAccountPrivateKey,
+      scopes: ["https://www.googleapis.com/auth/calendar"],
+      subject: emailToImpersonate,
+    });
 
-    if (this.credential.delegatedToId && !domainWideDelegation) {
-      this.log.error(
-        "CalendarAppDomainWideDelegationNotSetupError",
-        safeStringify({
-          domainWideDelegation,
-        })
-      );
-      throw new CalendarAppDomainWideDelegationNotSetupError(
-        "Credential needs domain wide delegation to be setup and enabled"
-      );
-    }
+    try {
+      await authClient.authorize();
+    } catch (error) {
+      this.log.error("Error authorizing domain wide delegation", JSON.stringify(error));
 
-    if (domainWideDelegation?.serviceAccountKey) {
-      const emailToImpersonate = this.credential.user?.email;
-      if (!emailToImpersonate) {
-        this.log.error("No email to impersonate found for domain wide delegation");
-        return null;
+      if ((error as any).response?.data?.error === "unauthorized_client") {
+        throw new CalendarAppDomainWideDelegationClientIdNotAuthorizedError(
+          "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
+        );
       }
 
-      const authClient = new JWT({
-        email: domainWideDelegation.serviceAccountKey.client_email,
-        key: domainWideDelegation.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
-        subject: emailToImpersonate,
-      });
-
-      try {
-        await authClient.authorize();
-      } catch (error) {
-        this.log.error("Error authorizing domain wide delegation", JSON.stringify(error));
-
-        if ((error as any).response?.data?.error === "unauthorized_client") {
-          throw new CalendarAppDomainWideDelegationClientIdNotAuthorizedError(
-            "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
-          );
-        }
-
-        if ((error as any).response?.data?.error === "invalid_grant") {
-          throw new CalendarAppDomainWideDelegationInvalidGrantError(
-            "User might not exist in Google Workspace"
-          );
-        }
-
-        // Catch all error
-        throw new CalendarAppDomainWideDelegationError("Error authorizing domain wide delegation");
+      if ((error as any).response?.data?.error === "invalid_grant") {
+        throw new CalendarAppDomainWideDelegationInvalidGrantError(
+          "User might not exist in Google Workspace"
+        );
       }
 
-      this.log.debug(
-        "Using domain wide delegation with service account email",
-        safeStringify({
-          serviceAccountEmail: domainWideDelegation?.serviceAccountKey?.client_email,
-          clientId: domainWideDelegation?.serviceAccountKey?.client_id,
-          emailToImpersonate,
-        })
-      );
-      return google.calendar({
-        version: "v3",
-        auth: authClient,
-      });
+      // Catch all error
+      throw new CalendarAppDomainWideDelegationError("Error authorizing domain wide delegation");
     }
+
     this.log.debug(
-      "Not using domain wide delegation, using default OAuth2 client for Google Calendar",
+      "Using domain wide delegation with service account email",
       safeStringify({
-        domainWideDelegation,
-        credential: {
-          id: this.credential.id,
-          userId: this.credential.userId,
-          teamId: this.credential.teamId,
-        },
+        serviceAccountClientEmail,
+        serviceAccountClientId,
+        emailToImpersonate,
       })
     );
-    return null;
+    return google.calendar({
+      version: "v3",
+      auth: authClient,
+    });
   };
 
-  public authedCalendar = async ({
-    forceEnableDomainWideDelegation = false,
-  }: { forceEnableDomainWideDelegation?: boolean } = {}) => {
-    const authedCalendarFromDomainWideDelegation = await this.getAuthedCalendarFromDomainWideDelegation({
-      forceEnableDomainWideDelegation,
-    });
-    if (authedCalendarFromDomainWideDelegation) {
-      return authedCalendarFromDomainWideDelegation;
+  public authedCalendar = async () => {
+    let dwdAuthedCalendar;
+
+    if (this.credential.delegatedTo) {
+      if (!this.credential.user?.email) {
+        this.log.error("No email to impersonate found for domain wide delegation");
+      } else {
+        dwdAuthedCalendar = await this.getAuthedCalendarFromDwd({
+          domainWideDelegation: this.credential.delegatedTo,
+          emailToImpersonate: this.credential.user.email,
+        });
+      }
+    }
+
+    if (dwdAuthedCalendar) {
+      return dwdAuthedCalendar;
     }
 
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
@@ -741,7 +719,7 @@ export default class GoogleCalendarService implements Calendar {
 
   // It would error if the domain wide delegation is not set up correctly
   async testDomainWideDelegationSetup() {
-    const calendar = await this.authedCalendar({ forceEnableDomainWideDelegation: true });
+    const calendar = await this.authedCalendar();
     const cals = await calendar.calendarList.list({ fields: "items(id)" });
     return !!cals.data.items;
   }

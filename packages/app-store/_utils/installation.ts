@@ -29,7 +29,6 @@ type InstallationArgs = {
   subscriptionId?: string | null;
   paymentStatus?: string | null;
   billingCycleStart?: number | null;
-  delegatedToId?: string;
 };
 
 export async function createDefaultInstallation({
@@ -41,7 +40,6 @@ export async function createDefaultInstallation({
   billingCycleStart,
   paymentStatus,
   subscriptionId,
-  delegatedToId,
 }: InstallationArgs) {
   const installation = await prisma.credential.create({
     data: {
@@ -52,7 +50,6 @@ export async function createDefaultInstallation({
       subscriptionId,
       paymentStatus,
       billingCycleStart,
-      delegatedToId,
     },
   });
   if (!installation) {

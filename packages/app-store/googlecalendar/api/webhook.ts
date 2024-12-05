@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -31,7 +32,9 @@ async function postHandler(req: NextApiRequest) {
       message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   const { selectedCalendars } = credential;
-  const calendar = await getCalendar(credential);
+
+  const credentialForCalendarService = await getCredentialForCalendarService(credential);
+  const calendar = await getCalendar(credentialForCalendarService);
   await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };
 }

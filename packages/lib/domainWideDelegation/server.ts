@@ -3,6 +3,7 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
@@ -11,6 +12,10 @@ interface DomainWideDelegation {
   workspacePlatform: {
     slug: string;
   };
+}
+
+interface DomainWideDelegationWithSensitiveServiceAccountKey extends DomainWideDelegation {
+  serviceAccountKey: ServiceAccountKey;
 }
 
 interface User {
@@ -63,6 +68,25 @@ const buildDomainWideDelegationCalendarCredential = ({
   };
 };
 
+const buildDomainWideDelegationCalendarCredentialWithServiceAccountKey = ({
+  domainWideDelegation,
+  user,
+}: {
+  domainWideDelegation: DomainWideDelegationWithSensitiveServiceAccountKey;
+  user: User;
+}) => {
+  const credential = buildDomainWideDelegationCalendarCredential({ domainWideDelegation, user });
+  if (!credential) {
+    return null;
+  }
+  return {
+    ...credential,
+    delegatedTo: {
+      serviceAccountKey: domainWideDelegation.serviceAccountKey,
+    },
+  };
+};
+
 const buildDomainWideDelegationConferencingCredential = ({
   domainWideDelegation,
   user,
@@ -91,12 +115,11 @@ export async function getAllDomainWideDelegationCredentialsForUser({
 }) {
   log.debug("called with", { user });
 
-  const domainWideDelegation =
-    await DomainWideDelegationRepository.findByUserIncludeSensitiveServiceAccountKey({
-      user: {
-        email: user.email,
-      },
-    });
+  const domainWideDelegation = await DomainWideDelegationRepository.findByUser({
+    user: {
+      email: user.email,
+    },
+  });
 
   if (!domainWideDelegation || !domainWideDelegation.enabled) {
     return [];
@@ -119,6 +142,7 @@ export async function getAllDomainWideDelegationCalendarCredentialsForUser({
   const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
   return domainWideDelegationCredentials.filter((credential) => credential.type.endsWith("_calendar"));
 }
+
 export async function getAllDomainWideDelegationConferencingCredentialsForUser({
   user,
 }: {
@@ -137,19 +161,27 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   domainWideDelegation,
   user,
 }: {
-  domainWideDelegation: DomainWideDelegation;
+  domainWideDelegation: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) {
-  if (domainWideDelegation.workspacePlatform.slug === "google") {
-    const googleCalendar = await getCalendar(
-      buildDomainWideDelegationCalendarCredential({ domainWideDelegation, user })
+  if (domainWideDelegation.workspacePlatform.slug !== "google") {
+    log.warn(
+      `Only Google Platform is supported here, skipping ${domainWideDelegation.workspacePlatform.slug}`
     );
-    if (!googleCalendar) {
-      throw new Error("Google Calendar App not found");
-    }
-    return await googleCalendar?.testDomainWideDelegationSetup?.();
+    return false;
   }
-  return false;
+
+  const credential = buildDomainWideDelegationCalendarCredentialWithServiceAccountKey({
+    domainWideDelegation,
+    user,
+  });
+
+  const googleCalendar = await getCalendar(credential);
+
+  if (!googleCalendar) {
+    throw new Error("Google Calendar App not found");
+  }
+  return await googleCalendar?.testDomainWideDelegationSetup?.();
 }
 
 export async function getAllDomainWideDelegationCredentialsForUserByAppType({

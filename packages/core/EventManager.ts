@@ -18,6 +18,7 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -56,7 +57,7 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
-const delegatedCredentialFirst = <T extends { delegatedToId: string | null }>(a: T, b: T) => {
+const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
@@ -446,7 +447,6 @@ export default class EventManager {
             meetingUrl: true,
             externalCalendarId: true,
             credentialId: true,
-            delegatedToId: true,
           },
         },
         destinationCalendar: true,
@@ -688,12 +688,10 @@ export default class EventManager {
             : this.calendarCredentials.find((c) => c.id === destination.credentialId);
           if (!credential && destination.credentialId) {
             // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: destination.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: destination.credentialId,
             });
+
             if (credentialFromDB && credentialFromDB.appId) {
               credential = {
                 id: credentialFromDB.id,
@@ -879,11 +877,8 @@ export default class EventManager {
           )[0];
           if (!credential) {
             // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: reference.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: reference.credentialId,
             });
             if (credentialFromDB && credentialFromDB.appId) {
               credential = {
@@ -915,13 +910,11 @@ export default class EventManager {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
 
         if (oldCalendarEvent?.credentialId) {
-          const calendarCredential = await prisma.credential.findUnique({
-            where: {
+          const credentialForCalendarService =
+            await CredentialRepository.findCredentialForCalendarServiceById({
               id: oldCalendarEvent.credentialId,
-            },
-            select: credentialForCalendarServiceSelect,
-          });
-          const calendar = await getCalendar(calendarCredential);
+            });
+          const calendar = await getCalendar(credentialForCalendarService);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }

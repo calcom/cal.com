@@ -1,5 +1,14 @@
 ## Version 1.0
 ### Important
+  - [ ] Add a feature flag to enable/disable domain-wide delegation
+    - Disabling
+      - should remove settings/organizations/domain-wide-delegation link from UI
+      - No DWD credential should be considered
+  - Tests
+    - [ ] Booking Scenario Tests that would verify that correct payload is given to CalendarService when DWD is enabled
+    - [ ] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.
+    - [ ] setDestinationCalendar.handler.ts tests to verify that when DWD is enabled it still correctly sets the destination calendar. 
+    - [ ] getConnectedDestinationCalendars tests.
   - [x] Creating DWD shouldn't immediately enable it. Enabling has separate check to confirm if it is actually configured in google workspace
   - [x] Added check to avoid adding same domain for a workspace platform in another organization if it is already enabled in some other organization
   - [x] Don't show dwd in menu for non-org-admin users - It errors with something_went_wrong right now
@@ -22,16 +31,14 @@
 ### To discuss
   - 
     
-### Security Testing
-- [ ] Because a single credential controls all the emails calendars, can someone not authorized trick us into giving access to some other organization's calendars?
-  - [ ] We need to really make sure that service account key is NEVER exposed
-    - [x] We don't even let the admin user see the added service account key.
-    - [ ] We intend to implement Workload Identity Federation in the future.
-    
+### Security
+  - [x] We don't let any one user see the added service account key from UI.
+  - [ ] We intend to implement Workload Identity Federation in the future.
+  
 ### Testing 
-- [ ] Inviting a new user. 
+- [x] Inviting a new user. 
   - Verified that Google Calendar is shown pre-installed. 
-  - How about Google Meet?
+  - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
 - [x] Troubleshooter
 
 ### Documentation

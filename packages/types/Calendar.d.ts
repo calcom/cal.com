@@ -15,7 +15,7 @@ import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { Frequency } from "@calcom/prisma/zod-utils";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
 
@@ -286,7 +286,7 @@ export interface Calendar {
  */
 type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 
-export type CalendarClass = Class<Calendar, [CredentialPayload]>;
+export type CalendarClass = Class<Calendar, [CredentialForCalendarService]>;
 
 export type SelectedCalendar = Pick<
   _SelectedCalendar,
