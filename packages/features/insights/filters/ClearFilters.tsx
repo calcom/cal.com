@@ -10,7 +10,7 @@ import { useFilterContext } from "../context/provider";
 export const ClearFilters = () => {
   const { t } = useLocale();
   const { clearFilters, filter } = useFilterContext();
-  const { state: activeFilters, clear: clearFiltersState } = useFiltersState();
+  const { activeFilters, clear: clearFiltersState } = useFiltersState();
 
   const clear = () => {
     // clear filters from the filter context

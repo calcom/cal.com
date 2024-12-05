@@ -1,3 +1,5 @@
+"use client";
+
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -1,3 +1,5 @@
+"use client";
+
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {

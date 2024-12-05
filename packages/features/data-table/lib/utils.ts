@@ -19,33 +19,33 @@ const dataTableFiltersSchema = z.object({
 });
 
 export function useFiltersState() {
-  const [state, setState] = useQueryState(
+  const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(dataTableFiltersSchema.parse)).withDefault([])
   );
   const clear = useCallback(() => {
-    setState([]);
-  }, [setState]);
+    setActiveFilters([]);
+  }, [setActiveFilters]);
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
-      setState((prev) => {
+      setActiveFilters((prev) => {
         return prev.map((item) => (item.f === columnId ? { ...item, v: value } : item));
       });
     },
-    [setState]
+    [setActiveFilters]
   );
 
   const removeFilter = useCallback(
     (columnId: string) => {
-      setState((prev) => prev.filter((filter) => filter.f !== columnId));
+      setActiveFilters((prev) => prev.filter((filter) => filter.f !== columnId));
     },
-    [setState]
+    [setActiveFilters]
   );
 
   return {
-    state,
-    setState,
+    activeFilters,
+    setActiveFilters,
     clear,
     updateFilter,
     removeFilter,
@@ -53,16 +53,16 @@ export function useFiltersState() {
 }
 
 export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
-  const { state } = useFiltersState();
+  const { activeFilters } = useFiltersState();
   return useMemo(() => {
-    const value = state.find((filter) => filter.f === columnId)?.v;
+    const value = activeFilters.find((filter) => filter.f === columnId)?.v;
     if (schema && value) {
       try {
         return schema.parse(value);
       } catch {}
     }
     return undefined;
-  }, [state, columnId, schema]);
+  }, [activeFilters, columnId, schema]);
 }
 
 export function useExternalFiltersState() {
@@ -83,9 +83,9 @@ export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];
 export type SetFiltersSearchState = ReturnType<typeof useFiltersState>["setState"];
 
 export function useColumnFilters(): ColumnFilter[] {
-  const { state } = useFiltersState();
+  const { activeFilters } = useFiltersState();
   return useMemo(() => {
-    return (state || [])
+    return (activeFilters || [])
       .filter(
         (filter) =>
           typeof filter === "object" && filter && "f" in filter && "v" in filter && filter.v !== undefined
@@ -108,7 +108,7 @@ export function useColumnFilters(): ColumnFilter[] {
         }
         return true;
       });
-  }, [state]);
+  }, [activeFilters]);
 }
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
