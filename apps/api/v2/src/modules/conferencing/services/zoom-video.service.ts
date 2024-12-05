@@ -90,7 +90,7 @@ export class ZoomVideoService {
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
     }
-    const existingCredentialZoomVideo = await this.appsRepository.findAppCredintial({
+    const existingCredentialZoomVideo = await this.appsRepository.findAppCredential({
       type: ZOOM_TYPE,
       userId,
       appId: ZOOM,

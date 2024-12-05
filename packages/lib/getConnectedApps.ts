@@ -21,7 +21,7 @@ export async function getConnectedApps({
   prisma,
   input,
 }: {
-  user: Pick<User, "id" | "name"> & { avatar: string };
+  user: Pick<User, "id" | "name" | "avatarUrl"> & { avatar?: string };
   prisma: PrismaClient;
   input: TIntegrationsInputSchema;
 }) {
@@ -146,7 +146,7 @@ export async function getConnectedApps({
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
         name: user.name,
-        avatar: user.avatar,
+        avatar: user?.avatar ?? user?.avatarUrl,
       };
 
       // We need to know if app is payment type

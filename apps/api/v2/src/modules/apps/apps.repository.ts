@@ -42,7 +42,7 @@ export class AppsRepository {
     });
   }
 
-  async findAppCredintial({
+  async findAppCredential({
     type,
     appId,
     userId,

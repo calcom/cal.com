@@ -327,7 +327,7 @@ export class EventTypesAtomService {
     return bulkUpdateEventsToDefaultLocation({
       eventTypeIds,
       user,
-      prisma: this.dbRead.prisma as unknown as PrismaClient,
+      prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
   }
 }

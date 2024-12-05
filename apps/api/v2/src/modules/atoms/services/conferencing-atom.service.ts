@@ -12,7 +12,7 @@ export class ConferencingAtomsService {
 
   constructor(private readonly dbWrite: PrismaWriteService) {}
 
-  async getConferencingApps(user: UserWithProfile): ConnectedApps {
+  async getConferencingApps(user: UserWithProfile): Promise<ConnectedApps> {
     return getConnectedApps({
       user,
       input: {
