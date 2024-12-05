@@ -19,6 +19,8 @@ import {
   Switch,
   InfoBadge,
   EmptyScreen,
+  SkeletonContainer,
+  SkeletonText,
 } from "@calcom/ui";
 
 interface DelegationItemProps {
@@ -49,6 +51,17 @@ function getWorkspacePlatformOptions(workspacePlatforms: WorkspacePlatform[]) {
     label: platform.name,
   }));
 }
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 function DelegationListItemActions({
   delegation,
@@ -342,7 +355,7 @@ function DomainWideDelegationList() {
   };
 
   if (isLoading || isLoadingWorkspacePlatforms) {
-    return null;
+    return <SkeletonLoader />;
   }
 
   if (error) {

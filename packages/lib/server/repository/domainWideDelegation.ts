@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
+import type { IDomainWideDelegationRepository } from "@calcom/features/domain-wide-delegation/domain-wide-delegation-repository.interface";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -38,7 +39,7 @@ const domainWideDelegationSelectIncludesServiceAccountKey = {
   serviceAccountKey: true,
 };
 
-export class DomainWideDelegationRepository {
+export class DomainWideDelegationRepository implements IDomainWideDelegationRepository {
   private static withParsedServiceAccountKey<T extends { serviceAccountKey: Prisma.JsonValue } | null>(
     domainWideDelegation: T
   ) {
@@ -88,11 +89,6 @@ export class DomainWideDelegationRepository {
   }
 
   static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
-    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
-    if (!domainWideDelegationEnabled) {
-      return null;
-    }
-
     const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSelectIncludesServiceAccountKey,
@@ -102,11 +98,6 @@ export class DomainWideDelegationRepository {
   }
 
   static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
-    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
-    if (!domainWideDelegationEnabled) {
-      return null;
-    }
-
     const log = repositoryLogger.getSubLogger({ prefix: ["findUniqueByOrganizationMemberEmail"] });
     log.debug("called with", { email });
     const organization = await OrganizationRepository.findByMemberEmail({ email });
