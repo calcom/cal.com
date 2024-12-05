@@ -31,7 +31,7 @@ import type {
 } from "@calcom/platform-libraries";
 import { getClientSecretFromPayment } from "@calcom/platform-libraries";
 import { getBulkEventTypes, bulkUpdateEventsToDefaultLocation } from "@calcom/platform-libraries-1.2.3";
-import { PrismaClient } from "@calcom/prisma/client";
+import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;

@@ -15,7 +15,6 @@ export const bulkUpdateEventsToDefaultLocation = async ({
   user: Pick<User, "id" | "metadata">;
   prisma: PrismaClient;
 }) => {
-  // const { eventTypeIds } = input;
   const defaultApp = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
 
   if (!defaultApp) {

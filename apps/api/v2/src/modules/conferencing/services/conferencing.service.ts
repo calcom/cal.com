@@ -1,5 +1,5 @@
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.respository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
@@ -14,8 +14,7 @@ export class ConferencingService {
 
   constructor(
     private readonly conferencingRepository: ConferencingRepository,
-    private readonly usersRepository: UsersRepository,
-    private readonly credentialsRepository: CredentialsRepository
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async getConferencingApps(userId: number) {
@@ -39,10 +38,13 @@ export class ConferencingService {
     return credential;
   }
 
-  async disconnectConferencingApp(userId: number, app: string) {
-    const credential = await this.checkAppIsValidAndConnected(userId, app);
-    const user = await this.usersRepository.findById(userId);
-    return handleDeleteCredential({ userId, userMetadata: user?.metadata, credentialId: credential.id });
+  async disconnectConferencingApp(user: UserWithProfile, app: string) {
+    const credential = await this.checkAppIsValidAndConnected(user.id, app);
+    return handleDeleteCredential({
+      userId: user.id,
+      userMetadata: user?.metadata,
+      credentialId: credential.id,
+    });
   }
 
   async setDefaultConferencingApp(userId: number, app: string) {

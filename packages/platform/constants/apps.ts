@@ -22,7 +22,7 @@ export const ZOOM_TYPE = "zoom_video";
 
 export const CAL_VIDEO = "daily-video";
 
-export const CONFERENCING_APPS = [GOOGLE_MEET, ZOOM, CAL_VIDEO];
+export const CONFERENCING_APPS = [GOOGLE_MEET, ZOOM];
 export const APPS_TYPE_ID_MAPPING = {
   [GOOGLE_CALENDAR_TYPE]: GOOGLE_CALENDAR_ID,
   [OFFICE_365_CALENDAR_TYPE]: OFFICE_365_CALENDAR_ID,

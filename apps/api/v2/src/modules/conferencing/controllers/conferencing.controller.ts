@@ -17,6 +17,7 @@ import { ConferencingService } from "@/modules/conferencing/services/conferencin
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Get,
@@ -71,10 +72,9 @@ export class ConferencingController {
     @GetUser("id") userId: number,
     @Param("app") app: string
   ): Promise<ConferencingAppOutputResponseDto> {
-    let credential;
     switch (app) {
       case GOOGLE_MEET:
-        credential = await this.googleMeetService.connectGoogleMeetApp(userId);
+        const credential = await this.googleMeetService.connectGoogleMeetApp(userId);
 
         return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
 
@@ -199,10 +199,10 @@ export class ConferencingController {
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Disconnect your conferencing application" })
   async disconnect(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Param("app") app: string
   ): Promise<DisconnectConferencingAppOutputResponseDto> {
-    await this.conferencingService.disconnectConferencingApp(userId, app);
+    await this.conferencingService.disconnectConferencingApp(user, app);
     return { status: SUCCESS_STATUS };
   }
 }
