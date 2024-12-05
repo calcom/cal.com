@@ -313,7 +313,7 @@ export default async function handleChildrenEventTypes({
     });
     // Get the subscriber URLs of existing webhooks
     const updatedOldWebhooks = updatedOldUserEventType
-      .filter((et) => et?.webhooks?.length) // Ensure event type has webhooks
+      ?.filter((et) => et?.webhooks?.length) // Ensure event type has webhooks
       .flatMap((et) => et.webhooks); // Flatten all webhooks into a single array
     const existingSubscriberUrls = updatedOldWebhooks.map((webhook) => webhook.subscriberUrl); // Access subscriberUrl of each webhook
 
