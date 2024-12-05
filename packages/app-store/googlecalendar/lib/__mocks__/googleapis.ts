@@ -19,7 +19,22 @@ const setCredentialsMock = vi.fn();
 googleapisMock.google = {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  calendar: vi.fn().mockReturnValue({}),
+  calendar: vi.fn().mockReturnValue({
+    channels: {
+      stop: vi.fn().mockResolvedValue(undefined),
+    },
+    events: {
+      watch: vi.fn().mockResolvedValue({
+        data: {
+          kind: "api#channel",
+          id: "mock-channel-id",
+          resourceId: "mock-resource-id",
+          resourceUri: "mock-resource-uri",
+          expiration: "1111111111",
+        },
+      }),
+    },
+  }),
   auth: {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore

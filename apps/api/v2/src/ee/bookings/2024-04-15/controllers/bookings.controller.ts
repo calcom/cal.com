@@ -333,7 +333,7 @@ export class BookingsController_2024_04_15 {
   }
 
   private async getOAuthClientsParams(clientId: string): Promise<OAuthRequestParams> {
-    const res = DEFAULT_PLATFORM_PARAMS;
+    const res = { ...DEFAULT_PLATFORM_PARAMS };
     try {
       const client = await this.oAuthClientRepository.getOAuthClient(clientId);
       // fetch oAuthClient from db and use data stored in db to set these values

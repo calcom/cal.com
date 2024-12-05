@@ -13,6 +13,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   title: true,
   requiresConfirmation: true,
   requiresConfirmationWillBlockSlot: true,
+  autoTranslateDescriptionEnabled: true,
   position: true,
   offsetStart: true,
   profileId: true,
@@ -44,6 +45,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   successRedirectUrl: true,
   isInstantEvent: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
+  instantMeetingParameters: true,
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
@@ -57,4 +59,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   durationLimits: true,
   eventTypeColor: true,
   hideCalendarEventDetails: true,
+  rrSegmentQueryValue: true,
+  assignRRMembersUsingSegment: true,
+  maxLeadThreshold: true,
 });

@@ -9,7 +9,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -106,7 +105,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await GoogleRepository.createSelectedCalendar({
+      await GoogleRepository.upsertSelectedCalendar({
         credentialId: gcalCredential.id,
         externalId: selectedCalendarWhereUnique.externalId,
         userId: selectedCalendarWhereUnique.userId,
