@@ -576,12 +576,10 @@ export default class GoogleCalendarService implements Calendar {
 
       const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
         let timeZone = "";
-        if (freeBusy.id) {
-          const calIdWithTimeZone = calIdsWithTimeZone.find(
-            (calIdWithTimeZone) => calIdWithTimeZone.id === freeBusy.id
-          );
-          timeZone = calIdWithTimeZone?.timeZone || "";
-        }
+        const calIdWithTimeZone = calIdsWithTimeZone.find(
+          (calIdWithTimeZone) => calIdWithTimeZone.id === freeBusy.id
+        );
+        timeZone = calIdWithTimeZone?.timeZone || "";
         return {
           start: freeBusy.start,
           end: freeBusy.end,

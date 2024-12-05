@@ -199,7 +199,7 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
   return months;
 };
 
-export const getFullDayBusyCalendarTimes = async (
+export const getBusyCalendarTimesWithTimeZones = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,

@@ -2,7 +2,7 @@ import type { Prisma, User } from "@prisma/client";
 
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
-import { getFullDayBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import { getBusyCalendarTimesWithTimeZones } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
@@ -385,7 +385,7 @@ async function getCurrentMonthCalendarBusyTimes(
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone: string })[] }[]> {
   return Promise.all(
     usersWithCredentials.map((user) =>
-      getFullDayBusyCalendarTimes(
+      getBusyCalendarTimesWithTimeZones(
         user.credentials,
         startOfMonth.toISOString(),
         new Date().toISOString(),
