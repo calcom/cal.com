@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import type { IconName } from "@calcom/ui/components/icon/icon-names";
-
 export const ZTextFilterOperator = z.enum([
   "equals",
   "notEquals",
@@ -33,29 +31,9 @@ export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue]);
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
 
-export type ColumnFilterMeta = {
-  type?: "select" | "text";
-  icon?: IconName;
-};
-
 export type FilterableColumn = {
   id: string;
   title: string;
-} & (
-  | {
-      type: "select";
-      icon?: IconName;
-      options: Map<string | { label: string; value: string }, number>;
-    }
-  | {
-      type: "text";
-      icon?: IconName;
-    }
-);
-
-export const ZColumnFilter = z.object({
-  id: z.string(),
-  value: ZFilterValue,
-});
-
-export type ColumnFilter = z.infer<typeof ZColumnFilter>;
+  filterType: "text" | "select";
+  options: Map<string, number>;
+};
