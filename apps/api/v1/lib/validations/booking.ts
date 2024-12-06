@@ -23,6 +23,7 @@ const schemaBookingBaseBodyParams = Booking.pick({
   status: true,
   rescheduledBy: true,
   cancelledBy: true,
+  createdAt: true,
 }).partial();
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
