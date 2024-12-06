@@ -185,14 +185,6 @@ export default async function handleChildrenEventTypes({
              */
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
-
-            // Reserved for future releases
-            /*
-            webhooks: eventType.webhooks && {
-              createMany: {
-                data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
-              },
-            },*/
           },
         });
       })
@@ -275,23 +267,6 @@ export default async function handleChildrenEventTypes({
         })
       );
     }
-
-    // Reserved for future releases
-    /**
-    const updatedOldWebhooks = await prisma.webhook.updateMany({
-      where: {
-        userId: {
-          in: oldUserIds,
-        },
-      },
-      data: {
-        ...eventType.webhooks,
-      },
-    });
-    console.log(
-      "handleChildrenEventTypes:updatedOldWebhooks",
-      JSON.stringify({ updatedOldWebhooks }, null, 2)
-    );*/
   }
 
   // Old users deleted

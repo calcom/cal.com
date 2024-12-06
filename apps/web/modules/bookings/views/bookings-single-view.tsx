@@ -43,6 +43,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -673,8 +674,9 @@ export default function Success(props: PageProps) {
                             <>
                               <div
                                 className="text-emphasis mt-4 font-medium"
+                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
-                                  __html: label,
+                                  __html: markdownToSafeHTML(label),
                                 }}
                               />
                               <p
@@ -727,7 +729,7 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings && (
+                              {!props.recurringBookings && !isBookingInPast && (
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
