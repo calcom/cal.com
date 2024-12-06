@@ -570,7 +570,7 @@ model BookingReference {
 
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
   credentialId                     Int?
-  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
   domainWideDelegationCredentialId String?
 
   @@index([bookingId])
