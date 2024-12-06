@@ -314,6 +314,7 @@ export const FormBuilder = function FormBuilder({
             } else {
               const field: RhfFormField = {
                 ...data,
+                name: data.name || data.label || "",
                 type,
                 sources: [
                   {
@@ -507,6 +508,7 @@ function FieldEditDialog({
 
   const variantsConfig = fieldForm.watch("variantsConfig");
   const fieldIdentifier = fieldForm.watch("name");
+  const fieldLabel = fieldForm.watch("label");
   const [isEditing, setIsEditing] = useState(false);
   const isFieldDisabled =
     fieldForm.getValues("editable") === "system" || fieldForm.getValues("editable") === "system-but-optional";
@@ -555,13 +557,6 @@ function FieldEditDialog({
                           placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                           containerClassName="mt-6"
                           label={t("label")}
-                          onChange={(e) => {
-                            if (!isFieldDisabled) {
-                              fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
-                                shouldDirty: true,
-                              });
-                            }
-                          }}
                         />
                       )}
                     </div>
@@ -630,7 +625,7 @@ function FieldEditDialog({
                     />
                     {!isEditing ? (
                       <FormFieldIdentifier
-                        fieldIdentifier={fieldIdentifier}
+                        fieldIdentifier={fieldIdentifier || fieldLabel}
                         setIsEditing={setIsEditing}
                         disabled={isFieldDisabled}
                       />
@@ -651,6 +646,7 @@ function FieldEditDialog({
                           }}
                           disabled={isFieldDisabled}
                           label={t("identifier")}
+                          value={fieldIdentifier || fieldLabel || ""}
                         />
                         <CheckboxField
                           description={t("disable_input_if_prefilled")}
@@ -803,6 +799,7 @@ function VariantFields({
 
   const defaultVariant = fieldTypeConfigVariantsConfig.defaultVariant;
   const fieldIdentifier = fieldForm.watch("name");
+  const fieldLabel = fieldForm.watch("label");
   const [isEditing, setIsEditing] = useState(false);
   const variantNames = Object.keys(variantsConfig.variants);
   const otherVariants = variantNames.filter((v) => v !== defaultVariant);
@@ -859,16 +856,10 @@ function VariantFields({
               )}
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
+                value={f.label || ""}
                 placeholder={t(appUiFieldConfig?.defaultLabel || "")}
                 containerClassName="mt-6"
                 label={t("label")}
-                onChange={(e) => {
-                  if (!isFieldDisabled) {
-                    fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
-                      shouldDirty: true,
-                    });
-                  }
-                }}
               />
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.placeholder`)}
@@ -898,7 +889,7 @@ function VariantFields({
               />
               {!isEditing ? (
                 <FormFieldIdentifier
-                  fieldIdentifier={fieldIdentifier}
+                  fieldIdentifier={fieldIdentifier || fieldLabel}
                   setIsEditing={setIsEditing}
                   disabled={isFieldDisabled}
                 />
@@ -910,6 +901,7 @@ function VariantFields({
                     containerClassName="mt-6"
                     disabled={isFieldDisabled}
                     label={t("identifier")}
+                    value={fieldIdentifier || fieldLabel || ""}
                   />
                   <CheckboxField
                     description={t("disable_input_if_prefilled")}

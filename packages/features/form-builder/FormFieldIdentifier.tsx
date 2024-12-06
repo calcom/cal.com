@@ -32,7 +32,7 @@ const FormFieldIdentifier = ({
           {!disabled && (
             <Tooltip content={t("edit_identifier")}>
               <button onClick={() => setIsEditing(true)}>
-                <Icon name="pencil" className="h-4 w-4" />
+                <Icon name="square-pen" className="h-4 w-4" />
               </button>
             </Tooltip>
           )}
