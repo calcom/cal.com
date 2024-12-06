@@ -3,8 +3,8 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import type { UpdateDefaultConferencingAppParams } from "@calcom/features/apps/components/AppList";
-import { AppList } from "@calcom/features/apps/components/AppList";
+import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -31,7 +31,7 @@ import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 interface IntegrationsContainerProps {
   variant?: AppCategories;
   exclude?: AppCategories[];
-  handleDisconnect: (credentialId: number) => void;
+  handleDisconnect: HandleDisconnect;
 }
 
 const IntegrationsContainer = ({
@@ -54,17 +54,25 @@ const IntegrationsContainer = ({
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
-  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
+  const handleUpdateUserDefaultConferencingApp = ({
+    appSlug,
+    onSuccessCallback,
+    onErrorCallback,
+  }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(
       { appSlug },
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
           utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
+          onSuccessCallback();
         },
         onError: (error) => {
           showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
         },
       }
     );
@@ -82,6 +90,14 @@ const IntegrationsContainer = ({
         },
       }
     );
+  };
+
+  const handleConnectDisconnectIntegrationMenuToggle = () => {
+    utils.viewer.integrations.invalidate();
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
   };
 
   // TODO: Refactor and reuse getAppCategories?
@@ -146,9 +162,13 @@ const IntegrationsContainer = ({
               data={data}
               variant={variant}
               defaultConferencingApp={defaultConferencingApp}
-              handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+              handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
               handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
               isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+              eventTypes={eventTypesQueryData?.eventTypes}
+              isEventTypesFetching={isEventTypesFetching}
+              handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+              handleBulkEditDialogToggle={handleBulkEditDialogToggle}
             />
           </div>
         );
@@ -187,7 +207,7 @@ export default function InstalledApps(props: PageProps) {
     updateData({ isOpen: false, credentialId: null });
   };
 
-  const handleDisconnect = (credentialId: number, teamId?: number) => {
+  const handleDisconnect = (credentialId: number, app: string, teamId?: number) => {
     updateData({ isOpen: true, credentialId, teamId });
   };
 

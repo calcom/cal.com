@@ -264,6 +264,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           );
           emailContent = emailRatingTemplate({
             isEditingMode: true,
+            locale: reminder.booking.user?.locale || "en",
             action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
