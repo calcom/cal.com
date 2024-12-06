@@ -1,7 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AdminOrgTable from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -13,9 +13,10 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
 
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getFixedT(locale ?? "en");
   return (
     <SettingsHeader title={t("organizations")} description={t("orgs_page_description")}>
       <LicenseRequired>

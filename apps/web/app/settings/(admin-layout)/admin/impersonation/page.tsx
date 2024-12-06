@@ -1,7 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import ImpersonationView from "~/settings/admin/impersonation-view";
@@ -13,9 +13,10 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
 
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getFixedT(locale ?? "en");
   return (
     <SettingsHeader title={t("admin")} description={t("impersonation")}>
       <ImpersonationView />

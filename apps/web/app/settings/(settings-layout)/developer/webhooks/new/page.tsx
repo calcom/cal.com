@@ -1,6 +1,6 @@
 import { getFixedT, _generateMetadata } from "app/_utils";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { NewWebhookView } from "@calcom/features/webhooks/pages/webhook-new-view";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -12,9 +12,10 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
 
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getFixedT(locale ?? "en");
 
   return (
     <SettingsHeader
