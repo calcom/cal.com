@@ -67,10 +67,15 @@ export const PaymentFormComponent = (
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
 
+  const paymentElementOptions = {
+    layout: "accordion",
+    onChange: (_) => onPaymentElementChange(), // Listen for state changes
+  };
+
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>
       <div>
-        <PaymentElement onChange={() => onPaymentElementChange()} />
+        <PaymentElement id="payment-element" options={paymentElementOptions} />
       </div>
       {paymentOption === "HOLD" && (
         <div className="bg-info mb-5 mt-2 rounded-md p-3">
