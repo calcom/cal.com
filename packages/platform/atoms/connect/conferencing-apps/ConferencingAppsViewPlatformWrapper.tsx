@@ -107,7 +107,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       handleModelClose();
-      queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [atomsConferencingAppsQueryKey],
+      });
+      queryClient.resetQueries({
+        queryKey: [defaultConferencingAppQueryKey],
+      });
     },
     onError: () => {
       showToast(t("error_removing_app"), "error");
