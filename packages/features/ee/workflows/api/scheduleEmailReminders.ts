@@ -240,6 +240,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
           emailContent = emailReminderTemplate(
             false,
+            reminder.booking.user?.locale || "en",
             reminder.workflowStep.action,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             reminder.booking.startTime.toISOString() || "",
@@ -366,6 +367,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         emailContent = emailReminderTemplate(
           false,
+          reminder.booking.user?.locale || "en",
           WorkflowActions.EMAIL_ATTENDEE,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           reminder.booking.startTime.toISOString() || "",

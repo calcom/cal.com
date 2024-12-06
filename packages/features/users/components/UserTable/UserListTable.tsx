@@ -1,13 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -185,11 +179,14 @@ export function UserListTable() {
             if (attributeValues.length === 0) return null;
             return (
               <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
+                {attributeValues.map((attributeValue, index) => {
+                  const isAGroupOption = attributeValue.contains?.length > 0;
+                  return (
+                    <Badge key={index} variant={isAGroupOption ? "orange" : "gray"} className="mr-1">
+                      {attributeValue.value}
+                    </Badge>
+                  );
+                })}
               </div>
             );
           },
@@ -405,8 +402,6 @@ export function UserListTable() {
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
-    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,

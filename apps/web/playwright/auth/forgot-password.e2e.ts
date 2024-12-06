@@ -5,11 +5,10 @@ import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "../lib/future-legacy-routes";
 
 test.afterEach(({ users }) => users.deleteAll());
 
-testBothFutureAndLegacyRoutes.describe("Forgot password", async () => {
+test.describe("Forgot password", async () => {
   test("Can reset forgotten password", async ({ page, users }) => {
     const user = await users.create();
 

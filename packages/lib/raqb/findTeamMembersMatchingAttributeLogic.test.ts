@@ -7,14 +7,13 @@ import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
 } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+// import { EmailField } from "@calcom/ui";
+import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
 
-// import { EmailField } from "@calcom/ui";
-import * as getAttributesModule from "./getAttributes";
-
-vi.mock("./getAttributes");
+vi.mock("@calcom/lib/service/attribute/server/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
@@ -32,18 +31,27 @@ function mockAttributesScenario({
 }) {
   vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
   vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
-    teamMembersWithAttributeOptionValuePerAttribute.map((member) => ({
-      ...member,
-      attributes: Object.fromEntries(
-        Object.entries(member.attributes).map(([attributeId, value]) => {
-          return [
-            attributeId,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-            { value, type: attributes.find((attribute) => attribute.id === attributeId)?.type! },
-          ];
-        })
-      ),
-    }))
+    teamMembersWithAttributeOptionValuePerAttribute.map((member) => {
+      return {
+        ...member,
+        attributes: Object.fromEntries(
+          Object.entries(member.attributes).map(([attributeId, value]) => {
+            return [
+              attributeId,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+              {
+                attributeOption:
+                  value instanceof Array
+                    ? value.map((value) => ({ value, isGroup: false, contains: [] }))
+                    : { value, isGroup: false, contains: [] },
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                type: attributes.find((attribute) => attribute.id === attributeId)!.type,
+              },
+            ];
+          })
+        ),
+      };
+    })
   );
 }
 
@@ -639,8 +647,6 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: failingAttributesQueryValue,
         teamId: 1,
-        attributesQueryValue: failingAttributesQueryValue,
-        fallbackAttributesQueryValue: failingAttributesQueryValue,
       });
 
       expect(checkedFallback).toEqual(true);
