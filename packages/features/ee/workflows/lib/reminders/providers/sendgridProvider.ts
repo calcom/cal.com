@@ -43,6 +43,7 @@ export function sendSendgridMail(
   mailData: Partial<MailData>,
   addData: { sender?: string | null; includeCalendarEvent?: boolean }
 ) {
+  console.log(mailData.html);
   assertSendgrid();
 
   if (testMode) {

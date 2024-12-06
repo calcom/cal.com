@@ -238,9 +238,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
             ).text.length === 0;
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
-          const location =
-            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl ||
-            reminder.booking.location;
           emailContent = emailReminderTemplate(
             false,
             reminder.booking.user?.locale || "en",
@@ -250,7 +247,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             reminder.booking.endTime.toISOString() || "",
             reminder.booking.eventType?.title || "",
             timeZone || "",
-            location || "",
+            reminder.booking.location || "",
+            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
             attendeeName || "",
             name || "",
             !!reminder.booking.user?.hideBranding
@@ -378,6 +376,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
           timeZone || "",
+          reminder.booking.location || "",
+          bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
           attendeeName || "",
           name || "",
           !!reminder.booking.user?.hideBranding

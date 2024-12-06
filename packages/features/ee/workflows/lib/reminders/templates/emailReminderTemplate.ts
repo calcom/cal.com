@@ -1,3 +1,4 @@
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -13,6 +14,7 @@ const emailReminderTemplate = (
   eventName?: string,
   timeZone?: string,
   location?: string,
+  meetingUrl?: string,
   otherPerson?: string,
   name?: string,
   isBrandingDisabled?: boolean
@@ -21,12 +23,13 @@ const emailReminderTemplate = (
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 
   let eventDate = "";
+  let locationString = `${guessEventLocationType(location)?.label || location} ${meetingUrl}`;
 
   if (isEditingMode) {
     endTime = "{EVENT_END_TIME}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    location = "{LOCATION}";
+    locationString = "{LOCATION} {MEETING_URL}";
     otherPerson = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = `{EVENT_DATE_${dateTimeFormat}}`;
@@ -48,7 +51,7 @@ const emailReminderTemplate = (
 
   const attendeeHtml = `<div><strong class="editor-text-bold">Attendees: </strong></div>You & ${otherPerson}<br><br>`;
 
-  const locationHtml = `<div><strong class="editor-text-bold">Location: </strong></div>${location}<br><br>`;
+  const locationHtml = `<div><strong class="editor-text-bold">Location: </strong></div>${locationString}<br><br>`;
 
   const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
