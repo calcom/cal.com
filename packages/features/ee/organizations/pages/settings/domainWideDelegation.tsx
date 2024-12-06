@@ -276,12 +276,14 @@ function DomainWideDelegationList() {
   });
 
   const toggleEnabledMutation = trpc.viewer.domainWideDelegation.toggleEnabled.useMutation({
-    onSuccess: ({ enabled }) => {
-      showToast(
-        enabled ? t("domain_wide_delegation_enabled") : t("domain_wide_delegation_disabled"),
-        "success"
-      );
-      utils.viewer.domainWideDelegation.list.invalidate();
+    onSuccess: (data) => {
+      if (data) {
+        showToast(
+          data.enabled ? t("domain_wide_delegation_enabled") : t("domain_wide_delegation_disabled"),
+          "success"
+        );
+        utils.viewer.domainWideDelegation.list.invalidate();
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -371,15 +373,18 @@ function DomainWideDelegationList() {
       {!!delegations?.length ? (
         <>
           <ul className="space-y-2 [&>*:last-child]:rounded-b-xl">
-            {delegations.map((delegation) => (
-              <DelegationListItem
-                key={delegation.id}
-                delegation={delegation}
-                toggleDelegation={toggleDelegation}
-                onEdit={onEditClick}
-                onDelete={onDelete}
-              />
-            ))}
+            {delegations.map(
+              (delegation) =>
+                delegation && (
+                  <DelegationListItem
+                    key={delegation.id}
+                    delegation={delegation}
+                    toggleDelegation={toggleDelegation}
+                    onEdit={onEditClick}
+                    onDelete={onDelete}
+                  />
+                )
+            )}
           </ul>
           <AddDwDButton />
         </>
