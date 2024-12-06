@@ -3,7 +3,7 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import { AppList } from "@calcom/features/apps/components/AppList";
+import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -31,7 +31,7 @@ import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 interface IntegrationsContainerProps {
   variant?: AppCategories;
   exclude?: AppCategories[];
-  handleDisconnect: (credentialId: number) => void;
+  handleDisconnect: HandleDisconnect;
 }
 
 const IntegrationsContainer = ({
@@ -207,7 +207,7 @@ export default function InstalledApps(props: PageProps) {
     updateData({ isOpen: false, credentialId: null });
   };
 
-  const handleDisconnect = (credentialId: number, teamId?: number) => {
+  const handleDisconnect = (credentialId: number, app: string, teamId?: number) => {
     updateData({ isOpen: true, credentialId, teamId });
   };
 

@@ -28,7 +28,7 @@ import {
   showToast,
 } from "@calcom/ui";
 
-type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
+export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
 interface AppListProps {
   variant?: AppCategories;
