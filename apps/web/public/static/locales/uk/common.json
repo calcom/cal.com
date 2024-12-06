@@ -2830,5 +2830,9 @@
   "multi_select": "Множинний вибір",
   "group_meeting": "Групова зустріч",
   "salesforce_ignore_guests": "Не створювати нові записи для гостей, доданих до бронювання",
+  "lock_attribute_for_assignment": "Заблокувати для призначення",
+  "lock_attribute_for_assignment_description": "Блокування дозволить призначення лише через синхронізацію каталогів",
+  "attribute_edited_successfully": "Атрибут успішно відредаговано",
+  "new_group_option": "Новий варіант групи",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

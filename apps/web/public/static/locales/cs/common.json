@@ -2830,5 +2830,9 @@
   "multi_select": "Více výběrů",
   "group_meeting": "Skupinová schůzka",
   "salesforce_ignore_guests": "Nevytvářet nové záznamy pro hosty přidané do rezervace",
+  "lock_attribute_for_assignment": "Uzamknout pro přiřazení",
+  "lock_attribute_for_assignment_description": "Uzamčení umožní přiřazení pouze prostřednictvím Directory Sync",
+  "attribute_edited_successfully": "Atribut byl úspěšně upraven",
+  "new_group_option": "Nová možnost skupiny",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

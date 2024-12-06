@@ -2830,5 +2830,9 @@
   "multi_select": "Flervalg",
   "group_meeting": "Gruppemøte",
   "salesforce_ignore_guests": "Ikke opprett nye poster for gjester som legges til i bookingen",
+  "lock_attribute_for_assignment": "Lås for tildeling",
+  "lock_attribute_for_assignment_description": "Låsing vil kun tillate tildelinger fra Katalogsynkronisering",
+  "attribute_edited_successfully": "Attributt redigert",
+  "new_group_option": "Nytt gruppealternativ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

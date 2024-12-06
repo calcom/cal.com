@@ -2830,5 +2830,9 @@
   "multi_select": "בחירה מרובה",
   "group_meeting": "פגישה קבוצתית",
   "salesforce_ignore_guests": "אל תיצור רשומות חדשות עבור אורחים שנוספו להזמנה",
+  "lock_attribute_for_assignment": "נעילה להקצאה",
+  "lock_attribute_for_assignment_description": "נעילה תאפשר הקצאות רק מסנכרון הספרייה",
+  "attribute_edited_successfully": "המאפיין נערך בהצלחה",
+  "new_group_option": "אפשרות קבוצה חדשה",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

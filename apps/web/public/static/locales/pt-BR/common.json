@@ -2830,5 +2830,9 @@
   "multi_select": "Seleção múltipla",
   "group_meeting": "Reunião em grupo",
   "salesforce_ignore_guests": "Não criar novos registros para convidados adicionados ao agendamento",
+  "lock_attribute_for_assignment": "Bloquear para atribuição",
+  "lock_attribute_for_assignment_description": "O bloqueio permitirá apenas atribuições do Directory Sync",
+  "attribute_edited_successfully": "Atributo editado com sucesso",
+  "new_group_option": "Nova opção de grupo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
