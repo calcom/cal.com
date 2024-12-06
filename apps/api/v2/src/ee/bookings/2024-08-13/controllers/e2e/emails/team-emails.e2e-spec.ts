@@ -34,6 +34,7 @@ import {
   OrganizerCancelledEmail,
   AttendeeCancelledEmail,
   OrganizerReassignedEmail,
+  AttendeeUpdatedEmail,
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
@@ -61,9 +62,11 @@ jest
 jest
   .spyOn(OrganizerCancelledEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
-
 jest
   .spyOn(OrganizerReassignedEmail.prototype, "getHtml")
+  .mockImplementation(() => Promise.resolve("<p>email</p>"));
+jest
+  .spyOn(AttendeeUpdatedEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
 type EmailSetup = {
@@ -681,6 +684,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(responseBody.data).toBeDefined();
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
             emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
           });
       });
@@ -697,6 +701,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerReassignedEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
           });
       });
     });
@@ -898,6 +903,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(responseBody.data).toBeDefined();
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
             emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
           });
       });
@@ -914,6 +920,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerReassignedEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
           });
       });
     });

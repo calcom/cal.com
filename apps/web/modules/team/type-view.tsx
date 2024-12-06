@@ -34,8 +34,10 @@ function Type({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
+  const { profile, users, hidden, title } = eventData;
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -45,8 +47,19 @@ function Type({
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
         isTeamEvent
+        eventData={
+          profile && users && title && hidden !== undefined
+            ? {
+                profile,
+                users,
+                title,
+                hidden,
+              }
+            : undefined
+        }
         entity={eventData.entity}
         bookingData={booking}
+        isSEOIndexable={isSEOIndexable}
       />
       <Booker
         username={user}

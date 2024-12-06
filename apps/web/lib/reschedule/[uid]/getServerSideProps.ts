@@ -115,6 +115,28 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
+  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
+
+  const enrichedBookingUser = booking.user
+    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    : null;
+
+  const eventUrl = await buildEventUrlFromBooking({
+    eventType,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    profileEnrichedBookingUser: enrichedBookingUser,
+  });
+
+  const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
+  if (isBookingInPast) {
+    return {
+      redirect: {
+        destination: eventUrl,
+        permanent: false,
+      },
+    };
+  }
+
   // if booking event type is for a seated event and no seat reference uid is provided, throw not found
   if (booking?.eventType?.seatsPerTimeSlot && !maybeSeatReferenceUid) {
     const userId = session?.user?.id;
@@ -141,18 +163,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       };
     }
   }
-
-  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
-
-  const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
-    : null;
-
-  const eventUrl = await buildEventUrlFromBooking({
-    eventType,
-    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
-    profileEnrichedBookingUser: enrichedBookingUser,
-  });
 
   const destinationUrlSearchParams = new URLSearchParams();
 

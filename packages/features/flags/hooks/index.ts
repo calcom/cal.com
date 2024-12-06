@@ -22,8 +22,6 @@ if (process.env.NEXT_PUBLIC_IS_E2E) {
 }
 
 export function useFlags(): Partial<AppFlags> {
-  const query = trpc.viewer.features.map.useQuery(undefined, {
-    initialData,
-  });
-  return query.data ?? {};
+  const query = trpc.viewer.features.map.useQuery();
+  return query.data ?? initialData;
 }

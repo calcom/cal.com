@@ -814,7 +814,7 @@ export const EventAdvancedTab = ({
       />
       {isRoundRobinEventType && (
         <Controller
-          name="roundRobinReschedule"
+          name="rescheduleWithSameRoundRobinHost"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
               labelClassName={classNames("text-sm", customClassNames?.roundRobinReschedule?.label)}
