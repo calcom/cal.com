@@ -238,13 +238,7 @@ export async function getBusyTimes(params: {
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(
-      username,
-      credentials,
-      startTime,
-      endTime,
-      selectedCalendars
-    );
+    const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
       `Connected Calendars get took ${
