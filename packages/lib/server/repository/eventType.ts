@@ -466,6 +466,7 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       durationLimits: true,
       assignAllTeamMembers: true,
       assignRRMembersUsingSegment: true,
