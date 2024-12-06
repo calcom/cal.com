@@ -162,7 +162,7 @@ export default function Bookings() {
           <HorizontalTabs tabs={tabs} />
           <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
         </div>
-        <FiltersContainer isFiltersVisible={isFiltersVisible} />
+        <FiltersContainer isFiltersVisible={isFiltersVisible || user?.isTeamAdminOrOwner} />
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
             {query.status === "error" && (
