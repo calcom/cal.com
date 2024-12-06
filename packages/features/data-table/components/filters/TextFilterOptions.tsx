@@ -7,7 +7,7 @@ import { Form, Input, Select, Button } from "@calcom/ui";
 
 import type { FilterableColumn, TextFilterOperator } from "../../lib/types";
 import { ZTextFilterValue } from "../../lib/types";
-import { useFilterValue, useFiltersState } from "../../lib/utils";
+import { useFilterValue, useDataTable } from "../../lib/utils";
 
 export type TextFilterOperatorOption = {
   label: string;
@@ -37,7 +37,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
   const { t } = useLocale();
   const textFilterOperatorOptions = useTextFilterOperatorOptions();
   const filterValue = useFilterValue(column.id, ZTextFilterValue);
-  const { updateFilter, removeFilter } = useFiltersState();
+  const { updateFilter, removeFilter } = useDataTable();
 
   const form = useForm({
     defaultValues: {

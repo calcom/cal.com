@@ -1,9 +1,9 @@
 "use client";
 
-import { parseAsString, parseAsArrayOf, parseAsJson, useQueryState } from "nuqs";
-import { useMemo, useCallback } from "react";
-import { z } from "zod";
+import { useMemo, useContext } from "react";
+import type { z } from "zod";
 
+import { DataTableContext } from "./context";
 import type {
   SelectFilterValue,
   TextFilterValue,
@@ -13,47 +13,16 @@ import type {
 } from "./types";
 import { ZFilterValue, ZNumberFilterValue, ZSelectFilterValue, ZTextFilterValue } from "./types";
 
-const dataTableFiltersSchema = z.object({
-  f: z.string(),
-  v: ZFilterValue.optional(),
-});
-
-export function useFiltersState() {
-  const [activeFilters, setActiveFilters] = useQueryState(
-    "activeFilters",
-    parseAsArrayOf(parseAsJson(dataTableFiltersSchema.parse)).withDefault([])
-  );
-  const clear = useCallback(() => {
-    setActiveFilters([]);
-  }, [setActiveFilters]);
-
-  const updateFilter = useCallback(
-    (columnId: string, value: FilterValue) => {
-      setActiveFilters((prev) => {
-        return prev.map((item) => (item.f === columnId ? { ...item, v: value } : item));
-      });
-    },
-    [setActiveFilters]
-  );
-
-  const removeFilter = useCallback(
-    (columnId: string) => {
-      setActiveFilters((prev) => prev.filter((filter) => filter.f !== columnId));
-    },
-    [setActiveFilters]
-  );
-
-  return {
-    activeFilters,
-    setActiveFilters,
-    clear,
-    updateFilter,
-    removeFilter,
-  };
+export function useDataTable() {
+  const context = useContext(DataTableContext);
+  if (!context) {
+    throw new Error("useDataTable must be used within a FiltersStateProvider");
+  }
+  return context;
 }
 
 export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
-  const { activeFilters } = useFiltersState();
+  const { activeFilters } = useDataTable();
   return useMemo(() => {
     const value = activeFilters.find((filter) => filter.f === columnId)?.v;
     if (schema && value) {
@@ -65,25 +34,8 @@ export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
   }, [activeFilters, columnId, schema]);
 }
 
-export function useExternalFiltersState() {
-  const [externalFiltersState, setExternalFiltersState] = useQueryState(
-    "ef",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
-  const removeExternalFilter = useCallback(
-    (key: string) => {
-      setExternalFiltersState((prev) => prev.filter((f) => f !== key));
-    },
-    [setExternalFiltersState]
-  );
-  return { externalFiltersState, setExternalFiltersState, removeExternalFilter };
-}
-
-export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];
-export type SetFiltersSearchState = ReturnType<typeof useFiltersState>["setState"];
-
 export function useColumnFilters(): ColumnFilter[] {
-  const { activeFilters } = useFiltersState();
+  const { activeFilters } = useDataTable();
   return useMemo(() => {
     return (activeFilters || [])
       .filter(

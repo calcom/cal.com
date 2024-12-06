@@ -16,7 +16,7 @@ import {
 
 import type { FilterableColumn } from "../../lib/types";
 import { ZSelectFilterValue } from "../../lib/types";
-import { useFiltersState, useFilterValue } from "../../lib/utils";
+import { useDataTable, useFilterValue } from "../../lib/utils";
 
 export type MultiSelectFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "select" }>;
@@ -25,7 +25,7 @@ export type MultiSelectFilterOptionsProps = {
 export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsProps) {
   const { t } = useLocale();
   const filterValue = useFilterValue(column.id, ZSelectFilterValue);
-  const { updateFilter, removeFilter } = useFiltersState();
+  const { updateFilter, removeFilter } = useDataTable();
 
   return (
     <Command>

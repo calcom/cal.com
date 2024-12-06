@@ -13,6 +13,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
 import {
+  DataTableProvider,
   DataTable,
   DataTableToolbar,
   DataTableFilters,
@@ -105,6 +106,14 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
+  return (
+    <DataTableProvider>
+      <UserListTableContent />
+    </DataTableProvider>
+  );
+}
+
+function UserListTableContent() {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -173,7 +182,7 @@ export function UserListTable() {
       }
       return (
         (attributes?.map((attribute) => {
-          const isNumber = attribute.type === "NUMBER";
+          const isNumber = false; // attribute.type === "NUMBER";
           const isText = attribute.type === "TEXT";
           const filterType = isNumber ? "number" : isText ? "text" : "select";
 

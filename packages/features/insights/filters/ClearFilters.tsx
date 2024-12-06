@@ -1,4 +1,4 @@
-import { useFiltersState } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Button, Tooltip } from "@calcom/ui";
 
@@ -10,14 +10,14 @@ import { useFilterContext } from "../context/provider";
 export const ClearFilters = () => {
   const { t } = useLocale();
   const { clearFilters, filter } = useFilterContext();
-  const { activeFilters, clear: clearFiltersState } = useFiltersState();
+  const { activeFilters, clearAll } = useDataTable();
 
   const clear = () => {
     // clear filters from the filter context
     clearFilters();
 
     // clear filters from the data table state
-    clearFiltersState();
+    clearAll();
   };
 
   const { initialConfig, selectedTeamId, selectedMemberUserId } = filter;

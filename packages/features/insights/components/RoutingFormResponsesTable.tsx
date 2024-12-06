@@ -14,6 +14,7 @@ import { useRef, useMemo, useId } from "react";
 import dayjs from "@calcom/dayjs";
 import type { FilterValue, ExternalFilter } from "@calcom/features/data-table";
 import {
+  DataTableProvider,
   DataTable,
   DataTableFilters,
   useFetchMoreOnBottomReached,
@@ -21,7 +22,7 @@ import {
   selectFilter,
   dataTableFilter,
   convertToTitleCase,
-  useExternalFiltersState,
+  useDataTable,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -243,7 +244,15 @@ function BookingAtCell({
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-export function RoutingFormResponsesTable({
+export function RoutingFormResponsesTable() {
+  return (
+    <DataTableProvider>
+      <RoutingFormResponsesTableContent />
+    </DataTableProvider>
+  );
+}
+
+export function RoutingFormResponsesTableContent({
   children,
 }: {
   children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
@@ -492,7 +501,7 @@ export function RoutingFormResponsesTable({
     totalDBRowCount
   );
 
-  const { removeExternalFilter } = useExternalFiltersState();
+  const { removeDisplayedExternalFilter } = useDataTable();
 
   const externalFilters = useMemo<ExternalFilter[]>(
     () => [
@@ -502,12 +511,12 @@ export function RoutingFormResponsesTable({
         component: () => (
           <UserListInTeam
             showOnlyWhenSelectedInContext={false}
-            onClear={() => removeExternalFilter("memberUserId")}
+            onClear={() => removeDisplayedExternalFilter("memberUserId")}
           />
         ),
       },
     ],
-    [removeExternalFilter]
+    [removeDisplayedExternalFilter]
   );
 
   if (isHeadersLoading || ((isFetching || isLoading) && !data)) {

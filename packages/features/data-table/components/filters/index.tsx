@@ -23,7 +23,7 @@ import {
 } from "@calcom/ui";
 
 import type { FilterableColumn, ExternalFilter } from "../../lib/types";
-import { convertToTitleCase, useFiltersState, useExternalFiltersState } from "../../lib/utils";
+import { convertToTitleCase, useDataTable } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -129,8 +129,8 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { activeFilters, setActiveFilters } = useFiltersState();
-  const { externalFiltersState, setExternalFiltersState } = useExternalFiltersState();
+  const { activeFilters, setActiveFilters, displayedExternalFilters, setDisplayedExternalFilters } =
+    useDataTable();
 
   const filterableColumns = useFilterableColumns(table, omit);
 
@@ -169,11 +169,11 @@ function AddFilterButtonComponent<TData>(
                 );
               })}
               {(externalFilters || [])
-                .filter((filter) => !externalFiltersState.includes(filter.key))
+                .filter((filter) => !displayedExternalFilters.includes(filter.key))
                 .map((filter, index) => (
                   <CommandItem
                     key={index}
-                    onSelect={() => setExternalFiltersState((prev) => [...prev, filter.key])}
+                    onSelect={() => setDisplayedExternalFilters((prev) => [...prev, filter.key])}
                     className="px-4 py-2">
                     {t(filter.titleKey)}
                   </CommandItem>
@@ -242,9 +242,8 @@ const filterIcons = {
 } as const;
 
 function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TData>) {
-  const { activeFilters } = useFiltersState();
+  const { activeFilters, displayedExternalFilters } = useDataTable();
   const filterableColumns = useFilterableColumns(table);
-  const { externalFiltersState } = useExternalFiltersState();
 
   return (
     <>
@@ -267,7 +266,7 @@ function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TDa
           </Popover>
         );
       })}
-      {(externalFiltersState || []).map((key) => {
+      {(displayedExternalFilters || []).map((key) => {
         const filter = externalFilters?.find((filter) => filter.key === key);
         if (!filter) return null;
         return <Fragment key={key}>{filter.component()}</Fragment>;

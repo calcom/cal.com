@@ -22,6 +22,7 @@ export interface DataTableProps<TData, TValue> {
   "data-testid"?: string;
   children?: React.ReactNode;
 }
+
 export function DataTable<TData, TValue>({
   table,
   tableContainerRef,

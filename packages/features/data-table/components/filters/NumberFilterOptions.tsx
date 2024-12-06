@@ -7,7 +7,7 @@ import { Form, Input, Select, Button } from "@calcom/ui";
 
 import type { FilterableColumn, NumberFilterOperator } from "../../lib/types";
 import { ZNumberFilterValue } from "../../lib/types";
-import { useFilterValue, useFiltersState } from "../../lib/utils";
+import { useFilterValue, useDataTable } from "../../lib/utils";
 
 export type NumberFilterOperatorOption = {
   label: string;
@@ -34,7 +34,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
   const { t } = useLocale();
   const numberFilterOperatorOptions = useNumberFilterOperatorOptions();
   const filterValue = useFilterValue(column.id, ZNumberFilterValue);
-  const { updateFilter, removeFilter } = useFiltersState();
+  const { updateFilter, removeFilter } = useDataTable();
 
   const form = useForm({
     defaultValues: {
