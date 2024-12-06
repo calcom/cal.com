@@ -98,10 +98,10 @@ const tabs: VerticalTabItemProps[] = [
         name: "admin_api",
         href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
       },
-      {
-        name: "domain_wide_delegation",
-        href: "/settings/organizations/domain-wide-delegation",
-      },
+      // {
+      //   name: "domain_wide_delegation",
+      //   href: "/settings/organizations/domain-wide-delegation",
+      // },
     ],
   },
   {
