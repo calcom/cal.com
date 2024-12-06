@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventType } from "@prisma/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -11,13 +12,10 @@ import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 
-export const useCreateEventType = (
-  onSuccessMutation: (eventType: EventType) => void,
-  onErrorMutation: (message: string) => void
-) => {
-  const utils = trpc.useUtils();
-  const { t } = useLocale();
-  const form = useForm<z.infer<typeof createEventTypeInput>>({
+export type CreateEventTypeFormValues = z.infer<typeof createEventTypeInput>;
+
+export const useCreateEventTypeForm = () => {
+  const form = useForm<CreateEventTypeFormValues>({
     defaultValues: {
       length: 15,
     },
@@ -35,12 +33,26 @@ export const useCreateEventType = (
     }
   }, [schedulingTypeWatch]);
 
+  return { form, isManagedEventType };
+};
+
+export const useCreateEventType = (
+  onSuccessMutation: (eventType: EventType) => void,
+  onErrorMutation: (message: string) => void
+) => {
+  const utils = trpc.useUtils();
+  const { t } = useLocale();
+  const { form, isManagedEventType } = useCreateEventTypeForm();
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       onSuccessMutation(eventType);
 
       await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
         group: { teamId: eventType.teamId, parentId: eventType.parentId },
+        searchQuery: debouncedSearchTerm,
         limit: 10,
       });
 

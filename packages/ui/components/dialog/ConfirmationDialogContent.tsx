@@ -4,7 +4,7 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
 type ConfirmBtnType =
@@ -64,7 +64,7 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             )}
           </div>
         )}
-        <div>
+        <div className="w-full">
           <DialogPrimitive.Title className="font-cal text-emphasis mt-2 text-xl">
             {title}
           </DialogPrimitive.Title>

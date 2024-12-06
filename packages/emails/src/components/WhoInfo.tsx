@@ -5,7 +5,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => (
+export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => (
   <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
     {name} - {role} {phoneNumber}
     {!isSmsCalEmail(email) && (

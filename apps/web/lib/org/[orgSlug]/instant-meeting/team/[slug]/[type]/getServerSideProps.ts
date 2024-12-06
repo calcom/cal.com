@@ -56,6 +56,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       entity: eventData.entity,
+      eventTypeId: eventData.id,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,
         queryDuration,
