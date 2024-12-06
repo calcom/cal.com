@@ -66,8 +66,41 @@ class MyDocument extends Document<Props> {
           <script
             nonce={nonce}
             id="newLocale"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
-              __html: `window.calNewLocale = "${newLocale}";`,
+              __html: `
+              window.calNewLocale = "${newLocale}";
+              (function applyTheme() {
+                try {
+                  const appTheme = localStorage.getItem('app-theme');
+                  if (!appTheme) return;
+
+                  let bookingTheme, username;
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('booking-theme:')) {
+                      bookingTheme = localStorage.getItem(key);
+                      username = key.split("booking-theme:")[1];
+                      break;
+                    }
+                  }
+
+                  const onReady = () => {
+                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
+
+                    if (document.body) {
+                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
+                    } else {
+                      requestAnimationFrame(onReady);
+                    }
+                  };
+
+                  requestAnimationFrame(onReady);
+                } catch (e) {
+                  console.error('Error applying theme:', e);
+                }
+              })();
+            `,
             }}
           />
           <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />

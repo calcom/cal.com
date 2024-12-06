@@ -1,14 +1,25 @@
-import { z } from "zod";
+import type { InputLocation_2024_06_14 } from "@calcom/platform-types";
+import { type Integration_2024_06_14 } from "@calcom/platform-types";
 
-import { type CreateEventTypeInput_2024_06_14, type Integration_2024_06_14 } from "@calcom/platform-types";
+import type {
+  AttendeeAddressLocation,
+  AttendeeDefinedLocation,
+  AttendeePhoneLocation,
+  OrganizerAddressLocation,
+  OrganizerIntegrationLocation,
+  OrganizerLinkLocation,
+  OrganizerPhoneLocation,
+} from "../internal/locations";
 
-const integrationsMapping: Record<Integration_2024_06_14, "integrations:daily"> = {
+const apiToInternalintegrationsMapping: Record<
+  Integration_2024_06_14,
+  "integrations:daily" | "integrations:google:meet"
+> = {
   "cal-video": "integrations:daily",
+  "google-meet": "integrations:google:meet",
 };
 
-export function transformLocationsApiToInternal(
-  inputLocations: CreateEventTypeInput_2024_06_14["locations"]
-) {
+export function transformLocationsApiToInternal(inputLocations: InputLocation_2024_06_14[] | undefined) {
   if (!inputLocations) {
     return [];
   }
@@ -21,58 +32,30 @@ export function transformLocationsApiToInternal(
           type: "inPerson",
           address: location.address,
           displayLocationPublicly: location.public,
-        } satisfies InPersonLocation;
+        } satisfies OrganizerAddressLocation;
+      case "attendeeAddress":
+        return { type: "attendeeInPerson" } satisfies AttendeeAddressLocation;
       case "link":
         return {
           type: "link",
           link: location.link,
           displayLocationPublicly: location.public,
-        } satisfies LinkLocation;
+        } satisfies OrganizerLinkLocation;
       case "integration":
-        const integrationLabel = integrationsMapping[location.integration];
-        return { type: integrationLabel } satisfies IntegrationLocation;
+        const integrationLabel = apiToInternalintegrationsMapping[location.integration];
+        return { type: integrationLabel } satisfies OrganizerIntegrationLocation;
       case "phone":
         return {
           type: "userPhone",
           hostPhoneNumber: location.phone,
           displayLocationPublicly: location.public,
-        } satisfies UserPhoneLocation;
+        } satisfies OrganizerPhoneLocation;
+      case "attendeePhone":
+        return { type: "phone" } satisfies AttendeePhoneLocation;
+      case "attendeeDefined":
+        return { type: "somewhereElse" } satisfies AttendeeDefinedLocation;
       default:
-        throw new Error(`Unsupported location type '${type}'`);
+        throw new Error(`Unsupported input location type '${type}'`);
     }
   });
 }
-
-const integrationsMappingSchema = {
-  "cal-video": z.literal("integrations:daily"),
-};
-
-const InPersonSchema = z.object({
-  type: z.literal("inPerson"),
-  address: z.string(),
-  displayLocationPublicly: z.boolean().default(false),
-});
-
-const LinkSchema = z.object({
-  type: z.literal("link"),
-  link: z.string().url(),
-  displayLocationPublicly: z.boolean().default(false),
-});
-
-const IntegrationSchema = z.object({
-  type: z.union([integrationsMappingSchema["cal-video"], integrationsMappingSchema["cal-video"]]),
-});
-
-const UserPhoneSchema = z.object({
-  type: z.literal("userPhone"),
-  hostPhoneNumber: z.string(),
-  displayLocationPublicly: z.boolean().default(false),
-});
-
-type InPersonLocation = z.infer<typeof InPersonSchema>;
-type LinkLocation = z.infer<typeof LinkSchema>;
-export type IntegrationLocation = z.infer<typeof IntegrationSchema>;
-type UserPhoneLocation = z.infer<typeof UserPhoneSchema>;
-
-const TransformedLocationSchema = z.union([InPersonSchema, LinkSchema, IntegrationSchema, UserPhoneSchema]);
-export const TransformedLocationsSchema = z.array(TransformedLocationSchema);

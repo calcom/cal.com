@@ -1,4 +1,4 @@
-import { Icon } from "../..";
+import { Icon } from "../icon";
 
 export type ArrowButtonProps = {
   arrowDirection: "up" | "down";

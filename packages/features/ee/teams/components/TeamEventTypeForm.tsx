@@ -1,47 +1,45 @@
-import type { EventType } from "@prisma/client";
 import type { ReactNode } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
+import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import { Form, TextField, Tooltip } from "@calcom/ui";
 import { Alert, RadioGroup as RadioArea } from "@calcom/ui";
 
 type props = {
   isTeamAdminOrOwner: boolean;
+  teamSlug?: string | null;
   teamId: number;
+  isPending: boolean;
+  urlPrefix?: string;
+  form: UseFormReturn<CreateEventTypeFormValues>;
+  handleSubmit: (values: CreateEventTypeFormValues) => void;
+  isManagedEventType: boolean;
   SubmitButton: (isPending: boolean) => ReactNode;
-  onSuccessMutation: (eventType: EventType) => void;
-  onErrorMutation: (message: string) => void;
 };
 export const TeamEventTypeForm = ({
   isTeamAdminOrOwner,
+  teamSlug,
   teamId,
+  form,
+  urlPrefix,
+  isPending,
+  handleSubmit,
+  isManagedEventType,
   SubmitButton,
-  onSuccessMutation,
-  onErrorMutation,
 }: props) => {
-  const { t } = useLocale();
-  const orgBranding = useOrgBranding();
-  const { data: team } = trpc.viewer.teams.getMinimal.useQuery(
-    { teamId, isOrg: false },
-    { enabled: !!teamId }
-  );
-  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
+  const isPlatform = useIsPlatform();
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
+  const { t } = useLocale();
+
   const { register, setValue, formState } = form;
 
   return (
-    <Form
-      form={form}
-      handleSubmit={(values) => {
-        createMutation.mutate(values);
-      }}>
+    <Form form={form} handleSubmit={handleSubmit}>
       <div className="mt-3 space-y-6 pb-11">
         <TextField
           type="hidden"
@@ -64,14 +62,16 @@ export const TeamEventTypeForm = ({
         {urlPrefix && urlPrefix.length >= 21 ? (
           <div>
             <TextField
-              label={`${t("url")}: ${urlPrefix}`}
+              label={isPlatform ? "Slug" : `${t("url")}: ${urlPrefix}`}
               required
               addOnLeading={
-                <Tooltip content={!isManagedEventType ? `team/${team?.slug}` : t("username_placeholder")}>
-                  <span className="max-w-24 md:max-w-56">
-                    /{!isManagedEventType ? `team/${team?.slug}` : t("username_placeholder")}/
-                  </span>
-                </Tooltip>
+                !isPlatform ? (
+                  <Tooltip content={!isManagedEventType ? `team/${teamSlug}` : t("username_placeholder")}>
+                    <span className="max-w-24 md:max-w-56">
+                      /{!isManagedEventType ? `team/${teamSlug}` : t("username_placeholder")}/
+                    </span>
+                  </Tooltip>
+                ) : undefined
               }
               {...register("slug")}
               onChange={(e) => {
@@ -79,31 +79,33 @@ export const TeamEventTypeForm = ({
               }}
             />
 
-            {isManagedEventType && (
+            {isManagedEventType && !isPlatform && (
               <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
             )}
           </div>
         ) : (
           <div>
             <TextField
-              label={t("url")}
+              label={isPlatform ? "Slug" : t("url")}
               required
               addOnLeading={
-                <Tooltip
-                  content={`${urlPrefix}/${
-                    !isManagedEventType ? `team/${team?.slug}` : t("username_placeholder")
-                  }/`}>
-                  <span className="max-w-24 md:max-w-56">
-                    {urlPrefix}/{!isManagedEventType ? `team/${team?.slug}` : t("username_placeholder")}/
-                  </span>
-                </Tooltip>
+                !isPlatform ? (
+                  <Tooltip
+                    content={`${urlPrefix}/${
+                      !isManagedEventType ? `team/${teamSlug}` : t("username_placeholder")
+                    }/`}>
+                    <span className="max-w-24 md:max-w-56">
+                      {urlPrefix}/{!isManagedEventType ? `team/${teamSlug}` : t("username_placeholder")}/
+                    </span>
+                  </Tooltip>
+                ) : undefined
               }
               {...register("slug")}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
               }}
             />
-            {isManagedEventType && (
+            {isManagedEventType && !isPlatform && (
               <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
             )}
           </div>
@@ -150,7 +152,7 @@ export const TeamEventTypeForm = ({
           </RadioArea.Group>
         </div>
       </div>
-      {SubmitButton(createMutation.isPending)}
+      {SubmitButton(isPending)}
     </Form>
   );
 };
