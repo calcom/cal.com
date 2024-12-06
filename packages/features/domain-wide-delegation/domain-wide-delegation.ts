@@ -19,6 +19,7 @@ export class DomainWideDelegation {
       where: {
         userId: userId,
         teamId: teamId,
+        accepted: true,
       },
     });
 
