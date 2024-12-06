@@ -363,12 +363,17 @@ export class BookingsService_2024_08_13 {
 
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
+    const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+    const platformClientParams = bookingBefore?.eventTypeId
+      ? await this.inputService.getOAuthClientParams(bookingBefore.eventTypeId)
+      : undefined;
 
     await handleMarkNoShow({
       bookingUid,
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
+      platformClientParams,
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
@@ -423,7 +428,11 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const emailsEnabled = booking.eventTypeId ? await this.getEmailsEnabled(booking.eventTypeId) : true;
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
     const profile = this.usersService.getUserMainProfile(requestUser);
 
@@ -431,6 +440,7 @@ export class BookingsService_2024_08_13 {
       bookingId: booking.id,
       orgId: profile?.organizationId || null,
       emailsEnabled,
+      platformClientParams,
     });
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
@@ -439,12 +449,6 @@ export class BookingsService_2024_08_13 {
     }
 
     return this.outputService.getOutputReassignedBooking(reassigned);
-  }
-
-  async getEmailsEnabled(eventTypeId: number) {
-    const oAuthParams = await this.inputService.getOAuthClientParams(eventTypeId);
-    const emailsEnabled = oAuthParams ? oAuthParams.arePlatformEmailsEnabled : true;
-    return emailsEnabled;
   }
 
   async reassignBookingToUser(
@@ -463,7 +467,11 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`User with id=${newUserId} was not found in the database`);
     }
 
-    const emailsEnabled = booking.eventTypeId ? await this.getEmailsEnabled(booking.eventTypeId) : true;
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
     const profile = this.usersService.getUserMainProfile(user);
 
@@ -474,6 +482,7 @@ export class BookingsService_2024_08_13 {
       reassignReason: body.reason,
       reassignedById,
       emailsEnabled,
+      platformClientParams,
     });
 
     return this.outputService.getOutputReassignedBooking(reassigned);
@@ -485,7 +494,11 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const emailsEnabled = booking.eventTypeId ? await this.getEmailsEnabled(booking.eventTypeId) : true;
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
     await confirmBookingHandler({
       ctx: {
@@ -496,6 +509,7 @@ export class BookingsService_2024_08_13 {
         confirmed: true,
         recurringEventId: booking.recurringEventId,
         emailsEnabled,
+        platformClientParams,
       },
     });
 
@@ -508,7 +522,11 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const emailsEnabled = booking.eventTypeId ? await this.getEmailsEnabled(booking.eventTypeId) : true;
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
     await confirmBookingHandler({
       ctx: {
@@ -520,6 +538,7 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId,
         reason,
         emailsEnabled,
+        platformClientParams,
       },
     });
 

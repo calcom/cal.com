@@ -804,6 +804,17 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
 
+    // First check if an account has the same website as the email domain of the attendee
+    const accountQuery = await conn.query(
+      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%'`
+    );
+
+    if (accountQuery.records.length > 0) {
+      const account = accountQuery.records[0] as { Id: string };
+      return account.Id;
+    }
+
+    // Fallback to querying which account the majority of contacts are under
     const response = await conn.query(
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
