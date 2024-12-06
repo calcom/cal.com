@@ -74,6 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
             }}
@@ -105,6 +106,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
             }}

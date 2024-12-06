@@ -17,7 +17,7 @@ import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitat
 import MemberList from "../components/MemberList";
 import TeamInviteList from "../components/TeamInviteList";
 
-const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const MembersView = () => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
@@ -62,9 +62,6 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
-      ) : null}
       {!isPending && (
         <>
           <div>
