@@ -5,8 +5,7 @@ import { BadRequestException, InternalServerErrorException, Logger } from "@nest
 import { Injectable } from "@nestjs/common";
 
 import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
-import { userMetadata } from "@calcom/platform-libraries";
-import { handleDeleteCredential } from "@calcom/platform-libraries-1.2.3";
+import { userMetadata, handleDeleteCredential } from "@calcom/platform-libraries";
 
 @Injectable()
 export class ConferencingService {

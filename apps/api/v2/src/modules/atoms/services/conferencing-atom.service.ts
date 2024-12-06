@@ -3,7 +3,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { getConnectedApps, ConnectedApps } from "@calcom/platform-libraries-1.2.3";
+import { getConnectedApps, ConnectedApps } from "@calcom/platform-libraries";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()

@@ -19,6 +19,9 @@ import {
   getAppFromSlug,
   MembershipRole,
   EventTypeMetaDataSchema,
+  getClientSecretFromPayment,
+  getBulkEventTypes,
+  bulkUpdateEventsToDefaultLocation,
 } from "@calcom/platform-libraries";
 import type {
   App,
@@ -29,8 +32,6 @@ import type {
   TDependencyData,
   CredentialPayload,
 } from "@calcom/platform-libraries";
-import { getClientSecretFromPayment } from "@calcom/platform-libraries";
-import { getBulkEventTypes, bulkUpdateEventsToDefaultLocation } from "@calcom/platform-libraries-1.2.3";
 import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {

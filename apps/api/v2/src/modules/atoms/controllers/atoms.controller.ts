@@ -24,7 +24,7 @@ import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } fr
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { UpdateEventTypeReturn } from "@calcom/platform-libraries";
-import { ConnectedApps } from "@calcom/platform-libraries-1.2.3";
+import { ConnectedApps } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 /*
