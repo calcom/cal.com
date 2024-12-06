@@ -2040,6 +2040,10 @@
   "workflows_unlocked_for_members_description": "Members will be able to add their personal workflows to this event type.  Members will be able to see the active team workflows but will not be able to edit any workflow settings.",
   "workflows_locked_by_team_admins_description": "You will be able to see the active team workflows but will not be able to edit any workflow settings or add your personal workflows to this event type.",
   "workflows_unlocked_by_team_admins_description": "You will be able to enable/disable personal workflows on this event type. You will be able to see the active team workflows but will not be able to edit any team workflow settings.",
+  "webhooks_locked_for_members_description": "Members can not add their personal webhooks to this event type. Members will be able to see the active webhooks but will not be able to edit any webhook settings.",
+  "webhooks_unlocked_for_members_description": "Members will be able to add their personal webhooks to this event type. Members will be able to see the active webhooks but will not be able to edit any webhook settings.",
+  "webhooks_locked_by_team_admins_description": "You are able to see the active managed webhooks but will not be able to edit any webhook settings or add your personal webhooks to this event type.",
+  "webhooks_unlocked_by_team_admins_description": "You can add webhooks to this event type. You are able to see the active managed webhooks but will not be able to edit them.",
   "locked_by_team_admin": "Locked by team admin",
   "app_not_connected": "You have not connected a {{appName}} account.",
   "connect_now": "Connect now",
@@ -2822,6 +2826,8 @@
   "rr_distribution_method_balanced_description": "We will monitor how many bookings have been made with each host and compare this with others, disabling some hosts that are too far ahead so bookings are evenly distributed.",
   "exclude_emails_that_contain": "Exclude emails that contain ...",
   "exclude_emails_match_found_error_message": "Please enter a valid work email address",
+  "search_columns": "Search columns",
+  "search_options": "Search options",
   "disable_org_url_label": "Disable public organization profile and redirect",
   "disable_org_url_description": "Redirects {{orgSlug}}.cal.com to {{destination}}",
   "single_select": "Single Select",
@@ -2830,4 +2836,3 @@
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
-
