@@ -68,9 +68,14 @@ interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
   travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
+  revalidatePage: GeneralQueryViewProps["revalidatePage"];
 }
 
-const GeneralQueryView = () => {
+type GeneralQueryViewProps = {
+  revalidatePage: () => Promise<void>;
+};
+
+const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   const { t } = useLocale();
 
   const { data: user, isPending } = trpc.viewer.me.useQuery();
@@ -82,10 +87,17 @@ const GeneralQueryView = () => {
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return <GeneralView user={user} travelSchedules={travelSchedules || []} localeProp={user.locale} />;
+  return (
+    <GeneralView
+      user={user}
+      travelSchedules={travelSchedules || []}
+      localeProp={user.locale}
+      revalidatePage={revalidatePage}
+    />
+  );
 };
 
-const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) => {
+const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const {
     t,
@@ -104,7 +116,9 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
 
       if (res.locale) {
         window.calNewLocale = res.locale;
+        document.cookie = `calNewLocale=${res.locale}; path=/`;
       }
+      await revalidatePage();
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
@@ -166,7 +180,11 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
   const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
     !!user.allowDynamicBooking
   );
-  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(!!user.allowSEOIndexing);
+  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(
+    user.organizationSettings?.allowSEOIndexing === false
+      ? !!user.organizationSettings?.allowSEOIndexing
+      : !!user.allowSEOIndexing
+  );
   const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
     !!user.receiveMonthlyDigestEmail
   );
@@ -177,7 +195,7 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
     <div>
       <Form
         form={formMethods}
-        handleSubmit={(values) => {
+        handleSubmit={async (values) => {
           setIsUpdateBtnLoading(true);
           mutation.mutate({
             ...values,
@@ -222,7 +240,11 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
             )}
           />
           {!watchedTzSchedules.length ? (
-            <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
+            <Button
+              color="secondary"
+              className="mt-2"
+              StartIcon="calendar"
+              onClick={() => setIsTZScheduleOpen(true)}>
               {t("schedule_timezone_change")}
             </Button>
           ) : (
@@ -297,7 +319,7 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
               </>
             )}
           />
-          <div className="text-gray text-default mt-2 flex items-center text-sm">
+          <div className="text-gray text-subtle mt-2 flex items-center text-xs">
             {t("timeformat_profile_hint")}
           </div>
           <Controller
@@ -341,10 +363,11 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
       />
 
       <SettingsToggle
+        data-testid="my-seo-indexing-switch"
         toggleSwitchAtTheEnd={true}
         title={t("seo_indexing")}
         description={t("allow_seo_indexing")}
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
         checked={isAllowSEOIndexingChecked}
         onCheckedChange={(checked) => {
           setIsAllowSEOIndexingChecked(checked);

@@ -1,11 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
-import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
@@ -13,6 +12,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
@@ -26,21 +26,21 @@ import {
   transformApiEventTypeForAtom,
   transformApiTeamEventTypeForAtom,
 } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
+import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
+import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
+import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
+import {
+  useGetBookingForReschedule,
+  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+} from "../hooks/bookings/useGetBookingForReschedule";
+import { useHandleBookEvent } from "../hooks/bookings/useHandleBookEvent";
 import { useEventType } from "../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
-import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
-import { useCreateBooking } from "../hooks/useCreateBooking";
-import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
-import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
-import {
-  useGetBookingForReschedule,
-  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
-} from "../hooks/useGetBookingForReschedule";
-import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
@@ -75,14 +75,18 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
+  view?: VIEW_TYPE;
+  metadata?: Record<string, string>;
 };
 
-type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+type VIEW_TYPE = keyof typeof BookerLayouts;
+
+export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
 };
 
-type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
@@ -91,6 +95,9 @@ type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
+  const { view = "MONTH_VIEW" } = props;
+  const layout = BookerLayouts[view];
+
   const { clientId } = useAtomsContext();
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
@@ -101,6 +108,11 @@ export const BookerPlatformWrapper = (
   const bookingData = useBookerStore((state) => state.bookingData);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
+
+  const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
+    Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
+  );
+
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
@@ -115,7 +127,10 @@ export const BookerPlatformWrapper = (
     return "";
   }, [props.username]);
 
-  setSelectedDuration(props.duration ?? null);
+  useEffect(() => {
+    setSelectedDuration(props.duration ?? null);
+  }, [props.duration]);
+
   setOrg(props.entity?.orgSlug ?? null);
 
   const isDynamic = useMemo(() => {
@@ -138,7 +153,7 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.defaultFormValues)
             : undefined,
       };
     }
@@ -147,7 +162,10 @@ export const BookerPlatformWrapper = (
       isSuccess,
       isError,
       isPending,
-      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+      data:
+        data && data.length > 0
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues)
+          : undefined,
     };
   }, [
     props.isTeamEvent,
@@ -175,7 +193,7 @@ export const BookerPlatformWrapper = (
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
-    layout: bookerLayout.defaultLayout,
+    layout: layout,
     org: props.entity?.orgSlug,
     username,
     bookingData,
@@ -232,7 +250,7 @@ export const BookerPlatformWrapper = (
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.timeZone,
+    timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     ...(props.isTeamEvent
@@ -302,12 +320,9 @@ export const BookerPlatformWrapper = (
   });
 
   const slots = useSlots(event);
-  const [calendarSettingsOverlay] = useOverlayCalendarStore(
-    (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
-    shallow
-  );
+
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
-    enabled: !!calendarSettingsOverlay,
+    enabled: hasSession,
   });
   const calendars = connectedCalendars as ConnectedDestinationCalendars;
 
@@ -315,32 +330,45 @@ export const BookerPlatformWrapper = (
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
-  const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
-    dateFrom: selectedDate,
-    dateTo: selectedDate,
-    calendarsToLoad: Array.from(set).map((item) => ({
+  const [latestCalendarsToLoad, setLatestCalendarsToLoad] = useState(
+    Array.from(set).map((item) => ({
       credentialId: item.credentialId,
       externalId: item.externalId,
-    })),
+    }))
+  );
+  const { data: overlayBusyDates } = useCalendarsBusyTimes({
+    loggedInUsersTz: timezone,
+    dateFrom: selectedDate,
+    dateTo: selectedDate,
+    calendarsToLoad: latestCalendarsToLoad,
     onError: () => {
       clearSet();
     },
-    enabled: Boolean(
-      hasSession && set.size > 0 && localStorage?.getItem("overlayCalendarSwitchDefault") === "true"
-    ),
+    enabled: Boolean(hasSession && isOverlayCalendarEnabled && latestCalendarsToLoad?.length > 0),
   });
 
   const handleBookEvent = useHandleBookEvent({
     event,
     bookingForm: bookerForm.bookingForm,
     hashedLink: props.hashedLink,
-    metadata: {},
+    metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
   });
+
+  const onOverlaySwitchStateChange = useCallback(
+    (state: boolean) => {
+      setIsOverlayCalendarEnabled(state);
+      if (state) {
+        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
+      } else {
+        localStorage?.removeItem("overlayCalendarSwitchDefault");
+      }
+    },
+    [setIsOverlayCalendarEnabled]
+  );
 
   useEffect(() => {
     // reset booker whenever it's unmounted
@@ -365,8 +393,15 @@ export const BookerPlatformWrapper = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
+      localStorage?.removeItem("overlayCalendarSwitchDefault");
+    }
+    setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
+  }, [view, isOverlayCalendarEnabled]);
+
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
@@ -397,9 +432,7 @@ export const BookerPlatformWrapper = (
         onClickOverlayContinue={function (): void {
           throw new Error("Function not implemented.");
         }}
-        onOverlaySwitchStateChange={function (): void {
-          throw new Error("Function not implemented.");
-        }}
+        onOverlaySwitchStateChange={onOverlaySwitchStateChange}
         extraOptions={extraOptions ?? {}}
         bookings={{
           handleBookEvent: () => {
@@ -423,10 +456,12 @@ export const BookerPlatformWrapper = (
         slots={slots}
         calendars={{
           overlayBusyDates: overlayBusyDates?.data,
-          isOverlayCalendarEnabled: false,
+          isOverlayCalendarEnabled: isOverlayCalendarEnabled,
           connectedCalendars: calendars?.connectedCalendars || [],
           loadingConnectedCalendar: fetchingConnectedCalendars,
-          onToggleCalendar: () => {
+          onToggleCalendar: (data) => {
+            const calendarsToLoad = Array.from(data ?? []);
+            setLatestCalendarsToLoad(calendarsToLoad);
             return;
           },
         }}

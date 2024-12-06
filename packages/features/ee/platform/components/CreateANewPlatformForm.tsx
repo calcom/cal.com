@@ -5,6 +5,7 @@ import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { uuid } from "short-uuid";
 
 import { deriveOrgNameFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
 import { deriveSlugFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
@@ -65,11 +66,13 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
     onError: (err) => {
       if (err.message === "organization_url_taken") {
         newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+        setServerErrorMessage(err.message);
       } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
         newOrganizationFormMethods.setError("slug", {
           type: "custom",
           message: t("problem_registering_domain"),
         });
+        setServerErrorMessage(err.message);
       } else {
         setServerErrorMessage(err.message);
       }
@@ -87,7 +90,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
             setServerErrorMessage(null);
             createOrganizationMutation.mutate({
               ...v,
-              slug: `${v.name.toLocaleLowerCase()}_platform`,
+              slug: `${v.name.toLocaleLowerCase()}-platform-${uuid().substring(0, 20)}`,
             });
           }
         }}>

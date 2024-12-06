@@ -89,13 +89,17 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
-            <h1>{eventTypeSlug}</h1>
             <Booker
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {
                 setBookingTitle(data.data.title ?? "");
-                router.push(`/${data.data.uid}`);
+                if (data.data.paymentRequired) {
+                  router.push(`/payment/${data.data.paymentUid}`);
+                } else {
+                  router.push(`/${data.data.uid}`);
+                }
               }}
+              metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
               customClassNames={{
                 bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",

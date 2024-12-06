@@ -1,13 +1,23 @@
-import type { BookerProps } from "@calcom/features/bookings/Booker";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
-import type { UserField, SystemField } from "@calcom/lib/event-types/transformers";
+import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
-  transformApiEventTypeLocations,
-  transformApiEventTypeBookingFields,
+  transformLocationsApiToInternal,
+  transformBookingFieldsApiToInternal,
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
+  transformRecurrenceApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import type { EventTypeOutput_2024_06_14, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import type {
+  CustomFieldOutput_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+  InputLocation_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
 import {
   bookerLayoutOptions,
   BookerLayouts,
@@ -16,11 +26,14 @@ import {
   eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
 
+import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
+
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
+  const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
@@ -38,7 +51,7 @@ export function transformApiEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, defaultFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -88,14 +101,16 @@ export function transformApiEventTypeForAtom(
         upId: `usr-${user.id}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, ...rest } = eventType;
+  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -112,7 +127,7 @@ export function transformApiTeamEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, defaultFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -173,6 +188,7 @@ export function transformApiTeamEventTypeForAtom(
         upId: `usr-${host.userId}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
@@ -184,7 +200,9 @@ function isDefaultEvent(eventSlug: string) {
 }
 
 function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
-  const transformed = transformApiEventTypeLocations(locations);
+  const transformed = transformLocationsApiToInternal(
+    locations.filter((location) => isAtomSupportedLocation(location))
+  );
 
   const withPrivateHidden = transformed.map((location) => {
     const { displayLocationPublicly, type } = location;
@@ -209,134 +227,77 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
   return withPrivateHidden;
 }
 
-function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
-  const transformedBookingFields: (SystemField | UserField)[] =
-    transformApiEventTypeBookingFields(bookingFields);
+function isAtomSupportedLocation(
+  location: EventTypeOutput_2024_06_14["locations"][number]
+): location is InputLocation_2024_06_14 {
+  const supportedIntegrations = ["cal-video", "google-meet"];
 
-  // These fields should be added before other user fields
+  return (
+    location.type === "address" ||
+    location.type === "attendeeAddress" ||
+    location.type === "link" ||
+    location.type === "phone" ||
+    location.type === "attendeePhone" ||
+    location.type === "attendeeDefined" ||
+    (location.type === "integration" && supportedIntegrations.includes(location.integration))
+  );
+}
+
+function getBookingFields(
+  bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+) {
+  // note(Lauris): the peculiar thing about returning atom booking fields using v2 event type is that v2 event type has more possible
+  // booking field outputs than inputs due to default system fields that cant be passed as inputs, which is why we take v2 from response
+  // only the custom fields and default editable fields aka fields that can be passed as inputs for event type booking fields.
+  const customFields: (SystemField | CustomField)[] = bookingFields
+    ? transformBookingFieldsApiToInternal(
+        bookingFields.filter((field) => isCustomField(field) || isDefaultEditableField(field))
+      )
+    : [];
+
+  const customFieldsWithoutNameEmail = customFields.filter(
+    (field) => field.type !== "name" && field.type !== "email"
+  );
+  const customNameField = customFields?.find((field) => field.type === "name");
+  const customEmailField = customFields?.find((field) => field.type === "email");
+
   const systemBeforeFields: SystemField[] = [
-    {
-      type: "name",
-      // This is the `name` of the main field
-      name: "name",
-      editable: "system",
-      // This Label is used in Email only as of now.
-      defaultLabel: "your_name",
-      required: true,
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "email_address",
-      type: "email",
-      name: "email",
-      required: true,
-      editable: "system",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "location",
-      type: "radioInput",
-      name: "location",
-      editable: "system",
-      hideWhenJustOneOption: true,
-      required: false,
-      getOptionsAt: "locations",
-      optionsInputs: {
-        attendeeInPerson: {
-          type: "address",
-          required: true,
-          placeholder: "",
-        },
-        phone: {
-          type: "phone",
-          required: true,
-          placeholder: "",
-        },
-      },
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
+    customNameField || systemBeforeFieldName,
+    customEmailField || systemBeforeFieldEmail,
+    systemBeforeFieldLocation,
   ];
 
-  // These fields should be added after other user fields
-  const systemAfterFields: SystemField[] = [
-    {
-      defaultLabel: "reason_for_reschedule",
-      type: "textarea",
-      editable: "system-but-optional",
-      name: "rescheduleReason",
-      defaultPlaceholder: "reschedule_placeholder",
-      required: false,
-      views: [
-        {
-          id: "reschedule",
-          label: "Reschedule View",
-        },
-      ],
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
+  const systemAfterFields: SystemField[] = [systemAfterFieldRescheduleReason];
+
+  const transformedBookingFields: (SystemField | CustomField)[] = [
+    ...systemBeforeFields,
+    ...customFieldsWithoutNameEmail,
+    ...systemAfterFields,
   ];
 
-  const missingSystemBeforeFields: SystemField[] = [];
-
-  for (const field of systemBeforeFields) {
-    const existingBookingFieldIndex = transformedBookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemBeforeFields.push(field);
-    } else {
-      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-      transformedBookingFields[existingBookingFieldIndex] = {
-        ...field,
-        ...transformedBookingFields[existingBookingFieldIndex],
-      };
+  // note(Lauris): in web app booking form values can be passed as url query params, but booker atom does not accept booking field values via url,
+  // so defaultFormValues act as a way to prefill booking form fields, and if the field in database has disableOnPrefill=true and value passed then its read only.
+  const defaultFormValuesKeys = defaultFormValues ? Object.keys(defaultFormValues) : [];
+  if (defaultFormValuesKeys.length) {
+    for (const field of transformedBookingFields) {
+      if (defaultFormValuesKeys.includes(field.name) && field.disableOnPrefill) {
+        field.editable = "user-readonly";
+      }
     }
   }
 
-  transformedBookingFields.push(...missingSystemBeforeFields);
-
-  const missingSystemAfterFields: SystemField[] = [];
-  for (const field of systemAfterFields) {
-    const existingBookingFieldIndex = transformedBookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemAfterFields.push(field);
-    } else {
-      transformedBookingFields[existingBookingFieldIndex] = {
-        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-        ...field,
-        ...transformedBookingFields[existingBookingFieldIndex],
-      };
-    }
-  }
-
-  transformedBookingFields.push(...missingSystemAfterFields);
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
+}
+
+function isCustomField(
+  field: EventTypeOutput_2024_06_14["bookingFields"][number]
+): field is CustomFieldOutput_2024_06_14 {
+  return field.type !== "unknown" && !field.isDefault;
+}
+
+function isDefaultEditableField(
+  field: EventTypeOutput_2024_06_14["bookingFields"][number]
+): field is NameDefaultFieldOutput_2024_06_14 | EmailDefaultFieldOutput_2024_06_14 {
+  return field.type === "name" || field.type === "email";
 }

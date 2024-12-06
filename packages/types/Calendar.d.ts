@@ -1,6 +1,11 @@
-import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar } from "@prisma/client";
+import type {
+  BookingSeat,
+  DestinationCalendar,
+  Prisma,
+  SelectedCalendar as _SelectedCalendar,
+} from "@prisma/client";
 import type { Dayjs } from "dayjs";
-import type { calendar_v3 } from "googleapis";
+import type { calendar_v3 } from "@googleapis/calendar";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 import type z from "zod";
@@ -189,6 +194,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  hideCalendarEventDetails?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
@@ -210,6 +216,7 @@ export interface CalendarEvent {
   platformRescheduleUrl?: string | null;
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
+  oneTimePassword?: string | null;
 }
 
 export interface EntryPoint {
@@ -229,7 +236,7 @@ export interface AdditionalInformation {
   hangoutLink?: string;
 }
 
-export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
+export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
@@ -257,7 +264,13 @@ export interface Calendar {
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]>;
 
+  fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
+
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
+
+  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
+
+  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
 }
 
 /**
@@ -266,3 +279,8 @@ export interface Calendar {
 type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 
 export type CalendarClass = Class<Calendar, [CredentialPayload]>;
+
+export type SelectedCalendar = Pick<
+  _SelectedCalendar,
+  "userId" | "integration" | "externalId" | "credentialId"
+>;

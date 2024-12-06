@@ -34,7 +34,10 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const saveWorkflow = async () => {
+    const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
     await page.getByTestId("save-workflow").click();
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
   };
 
   const assertListCount = async (count: number) => {

@@ -51,7 +51,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     code,
   };
-  const server_location = location === "us" ? "com" : location;
+
+  let server_location;
+
+  if (location === "us") {
+    server_location = "com";
+  } else if (location === "au") {
+    server_location = "com.au";
+  } else {
+    server_location = location;
+  }
 
   const query = stringify(params);
 

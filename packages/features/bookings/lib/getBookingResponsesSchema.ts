@@ -162,13 +162,29 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          // Email RegExp to validate if the input is a valid email
-          if (!bookingField.hidden && !emailSchema.safeParse(value).success) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: m("email_validation_error"),
-            });
+          if (!bookingField.hidden) {
+            // Email RegExp to validate if the input is a valid email
+            if (!emailSchema.safeParse(value).success) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("email_validation_error"),
+              });
+            }
+
+            // validate the excluded emails
+            const bookerEmail = value;
+            const excludedEmails =
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+
+            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            if (match) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("exclude_emails_match_found_error_message"),
+              });
+            }
           }
+
           continue;
         }
 
@@ -217,7 +233,18 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (bookingField.type === "checkbox" || bookingField.type === "multiselect") {
+        if (bookingField.type === "multiselect") {
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+          if (!stringSchema.array().safeParse(value).success) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+          }
+          continue;
+        }
+
+        if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
           }
@@ -225,7 +252,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!(await phoneSchema.safeParseAsync(value)).success) {
+          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           continue;

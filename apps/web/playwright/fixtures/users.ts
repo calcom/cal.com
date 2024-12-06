@@ -1,4 +1,4 @@
-import type { Page, WorkerInfo } from "@playwright/test";
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
@@ -28,6 +28,8 @@ export function hashPassword(password: string) {
 }
 
 type UserFixture = ReturnType<typeof createUserFixture>;
+
+export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
 
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
@@ -94,6 +96,7 @@ const createTeamEventType = async (
     teamEventLength?: number;
     seatsPerTimeSlot?: number;
     managedEventUnlockedFields?: Record<string, boolean>;
+    assignAllTeamMembers?: boolean;
   }
 ) => {
   return await prisma.eventType.create({
@@ -138,6 +141,7 @@ const createTeamEventType = async (
               },
             }
           : undefined,
+      assignAllTeamMembers: scenario?.assignAllTeamMembers,
     },
   });
 };
@@ -153,6 +157,8 @@ const createTeamAndAddUser = async (
     isDnsSetup,
     index,
     orgRequestedSlug,
+    schedulingType,
+    assignAllTeamMembersForSubTeamEvents,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -163,6 +169,8 @@ const createTeamAndAddUser = async (
     organizationId?: number | null;
     index?: number;
     orgRequestedSlug?: string;
+    schedulingType?: SchedulingType;
+    assignAllTeamMembersForSubTeamEvents?: boolean;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -189,7 +197,10 @@ const createTeamAndAddUser = async (
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
-    await createTeamEventType(user, team);
+    await createTeamEventType(user, team, {
+      schedulingType: schedulingType,
+      assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
+    });
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
@@ -235,7 +246,7 @@ export const createUsersFixture = (
   const store = { users: [], trackedEmails: [], page, teams: [] } as {
     users: UserFixture[];
     trackedEmails: { email: string }[];
-    page: typeof page;
+    page: Page;
     teams: Team[];
   };
   return {
@@ -278,6 +289,8 @@ export const createUsersFixture = (
         addManagedEventToTeamMates?: boolean;
         managedEventUnlockedFields?: Record<string, boolean>;
         orgRequestedSlug?: string;
+        assignAllTeamMembers?: boolean;
+        assignAllTeamMembersForSubTeamEvents?: boolean;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -292,6 +305,12 @@ export const createUsersFixture = (
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
         { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        {
+          title: "Multiple duration",
+          slug: "multiple-duration",
+          length: 30,
+          metadata: { multipleDuration: [30, 60, 90] },
+        },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
@@ -372,7 +391,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://google.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -526,6 +545,8 @@ export const createUsersFixture = (
               hasSubteam: scenario.hasSubteam,
               organizationId: opts?.organizationId,
               orgRequestedSlug: scenario.orgRequestedSlug,
+              schedulingType: scenario.schedulingType,
+              assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
             },
             workerInfo
           );
@@ -573,8 +594,6 @@ export const createUsersFixture = (
               await updateChildrenEventTypes({
                 eventTypeId: teamEvent.id,
                 currentUserId: user.id,
-                hashedLink: "",
-                connectedLink: null,
                 oldEventType: {
                   team: null,
                 },
@@ -732,6 +751,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     self,
     apiLogin: async (password?: string) =>
       apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    /** Don't forget to close context at the end */
+    apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     /**
      * @deprecated use apiLogin instead
      */
@@ -1014,10 +1041,11 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  await signInLocator.click();
 
   // waiting for specific login request to resolve
-  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  const responsePromise = page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  await signInLocator.click();
+  await responsePromise;
 }
 
 export async function apiLogin(

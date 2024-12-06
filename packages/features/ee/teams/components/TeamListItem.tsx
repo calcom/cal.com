@@ -9,6 +9,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -51,6 +52,7 @@ export default function TeamListItem(props: Props) {
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
   const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
+  const refreshData = useRefreshData();
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: (_data, variables) => {
@@ -64,7 +66,7 @@ export default function TeamListItem(props: Props) {
       const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
       // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
       if (variables.accept && (isSubTeamOfDifferentOrg || isDifferentOrg)) {
-        window.location.reload();
+        refreshData();
       }
     },
   });
