@@ -17,7 +17,6 @@ import {
   DropdownMenuItem,
   Icon,
   showToast,
-  useMeta,
 } from "@calcom/ui";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";

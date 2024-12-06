@@ -283,6 +283,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     attributeId: value.attributeId,
                     value: value.value,
                     slug: value.slug,
+                    contains: value.contains,
+                    isGroup: value.isGroup,
                   }));
                   newAttributes.push(...newAttributeValues);
                 } else {
@@ -292,6 +294,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     attributeId: foundAttributeInCache?.id ?? "-1",
                     value: selectedAttributeOptions[0],
                     slug: slugify(selectedAttributeOptions[0]),
+                    contains: [],
+                    isGroup: false,
                   });
                 }
 

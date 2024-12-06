@@ -674,6 +674,7 @@ export default function Success(props: PageProps) {
                             <>
                               <div
                                 className="text-emphasis mt-4 font-medium"
+                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
@@ -728,7 +729,7 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings && (
+                              {!props.recurringBookings && !isBookingInPast && (
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
