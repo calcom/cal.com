@@ -5,6 +5,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
@@ -51,7 +56,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
-      parent: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          logoUrl: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
+      logoUrl: true,
       name: true,
       slug: true,
       eventTypes: {
@@ -60,10 +78,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          title: true,
           isInstantEvent: true,
           schedulingType: true,
           metadata: true,
           length: true,
+          hidden: true,
+        },
+      },
+      isOrganization: true,
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
         },
       },
     },
@@ -74,6 +100,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     } as const;
   }
+
+  // INFO: This code was pulled from getPublicEvent and used here.
+  // Calling the tRPC fetch to get the public event data is incredibly slow
+  // for large teams and we don't want to add it back. Future refactors will happen
+  // to speed up this call.
+  const usernameList = getUsernameList(teamSlug);
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const name = team.parent?.name ?? team.name ?? null;
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
+    usernameList,
+    orgSlug: team.parent?.slug || null,
+  });
 
   const eventData = team.eventTypes[0];
   const eventTypeId = eventData.id;
@@ -89,6 +127,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
     "@calcom/web/lib/getTeamMemberEmailFromCrm"
   );
+  const {
+    email: teamMemberEmail,
+    recordType: crmOwnerRecordType,
+    crmAppSlug,
+  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+    query,
+    eventData,
+  });
+
+  const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  if (!eventData) {
+    return {
+      notFound: true,
+    } as const;
+  }
+
   return {
     props: {
       eventData: {
@@ -96,12 +152,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
-          orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+          orgSlug,
           teamSlug: team.slug ?? null,
-          name: team.parent?.name ?? team.name ?? null,
+          name,
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+        profile: {
+          image: team.parent
+            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+            : getPlaceholderAvatar(team.logoUrl, team.name),
+          name,
+          username: orgSlug ?? null,
+        },
+        title: eventData.title,
+        users: usersInOrgContext.map((user) => ({
+          ...user,
+          metadata: undefined,
+          bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
+        })),
+        hidden: eventData.hidden,
       },
       booking,
       user: teamSlug,
@@ -112,10 +182,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query,
-        eventData,
-      }),
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
+      isSEOIndexable: allowSEOIndexing,
     },
   };
 };

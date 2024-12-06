@@ -180,13 +180,11 @@ export default async function handleChildrenEventTypes({
             workflows: currentWorkflowIds && {
               create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
             },
-            // Reserved for future releases
-            /*
-            webhooks: eventType.webhooks && {
-              createMany: {
-                data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
-              },
-            },*/
+            /**
+             * RR Segment isn't applicable for managed event types.
+             */
+            rrSegmentQueryValue: undefined,
+            assignRRMembersUsingSegment: false,
           },
         });
       })
@@ -269,23 +267,6 @@ export default async function handleChildrenEventTypes({
         })
       );
     }
-
-    // Reserved for future releases
-    /**
-    const updatedOldWebhooks = await prisma.webhook.updateMany({
-      where: {
-        userId: {
-          in: oldUserIds,
-        },
-      },
-      data: {
-        ...eventType.webhooks,
-      },
-    });
-    console.log(
-      "handleChildrenEventTypes:updatedOldWebhooks",
-      JSON.stringify({ updatedOldWebhooks }, null, 2)
-    );*/
   }
 
   // Old users deleted

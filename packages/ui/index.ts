@@ -152,7 +152,6 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable";
 export { WizardLayout } from "./layouts/WizardLayout";
-export * from "./components/data-table";
 export * from "./components/sheet";
 export * from "./components/table";
 export * from "./components/popover";
@@ -170,7 +169,7 @@ export {
   CommandShortcut,
 } from "./components/command";
 
-export { HoverCard, HoverCardTrigger, HoverCardContent } from "./components/hover-card";
+export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardPortal } from "./components/hover-card";
 
 export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";

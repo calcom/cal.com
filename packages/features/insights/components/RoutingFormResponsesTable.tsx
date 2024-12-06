@@ -12,20 +12,20 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
-  DataTable,
-  useFetchMoreOnBottomReached,
   Badge,
   Avatar,
   Icon,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  HoverCardPortal,
   Table,
   TableBody,
   TableCell,
@@ -119,15 +119,17 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
             <HoverCardTrigger>
               <Badge variant="gray">+{value.length - 2}</Badge>
             </HoverCardTrigger>
-            <HoverCardContent side="bottom" align="start" className="w-fit">
-              <div className="flex flex-col gap-1">
-                {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                    {v}
-                  </span>
-                ))}
-              </div>
-            </HoverCardContent>
+            <HoverCardPortal>
+              <HoverCardContent side="bottom" align="start" className="w-fit">
+                <div className="flex flex-col gap-1">
+                  {value.slice(2).map((v: string, i: number) => (
+                    <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              </HoverCardContent>
+            </HoverCardPortal>
           </HoverCard>
         </>
       ) : (
@@ -185,32 +187,34 @@ function BookingAtCell({
           </Link>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-            <div>
-              <p className="text-sm font-medium">{booking.user.name}</p>
-              <p className="group/booking_status_email text-subtle flex items-center text-xs">
-                <span className="truncate">{booking.user.email}</span>
-                <button
-                  className="invisible ml-2 group-hover/booking_status_email:visible"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyToClipboard(booking.user?.email ?? "");
-                  }}>
-                  <Icon name="copy" />
-                </button>
-              </p>
+      <HoverCardPortal>
+        <HoverCardContent>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+              <div>
+                <p className="text-sm font-medium">{booking.user.name}</p>
+                <p className="group/booking_status_email text-subtle flex items-center text-xs">
+                  <span className="truncate">{booking.user.email}</span>
+                  <button
+                    className="invisible ml-2 group-hover/booking_status_email:visible"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      copyToClipboard(booking.user?.email ?? "");
+                    }}>
+                    <Icon name="copy" />
+                  </button>
+                </p>
+              </div>
+            </div>
+            <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
+              <span>Status:</span>
+              <BookingStatusBadge booking={booking} />
             </div>
           </div>
-          <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
-            <span>Status:</span>
-            <BookingStatusBadge booking={booking} />
-          </div>
-        </div>
-      </HoverCardContent>
+        </HoverCardContent>
+      </HoverCardPortal>
     </HoverCard>
   );
 }
@@ -252,7 +256,7 @@ export function RoutingFormResponsesTable({
       }
     );
 
-  const { data, fetchNextPage, isFetching, hasNextPage } =
+  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId: selectedTeamId,
@@ -263,7 +267,7 @@ export function RoutingFormResponsesTable({
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
-        limit: 10,
+        limit: 30,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -370,6 +374,19 @@ export function RoutingFormResponsesTable({
           </div>
         ),
       }),
+      columnHelper.accessor("routedToBooking", {
+        id: "assignmentReason",
+        header: t("routing_form_insights_assignment_reason"),
+        size: 250,
+        cell: (info) => {
+          const assignmentReason = info.getValue()?.assignmentReason;
+          return (
+            <div className="max-w-[250px]">
+              {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
+            </div>
+          );
+        },
+      }),
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
         header: t("routing_form_insights_submitted_at"),
@@ -403,10 +420,10 @@ export function RoutingFormResponsesTable({
     totalDBRowCount
   );
 
-  if (isHeadersLoading || (isFetching && !data)) {
+  if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
     return (
       <div
-        className="grid h-[75dvh]"
+        className="grid h-[85dvh]"
         style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
         <div
           className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"

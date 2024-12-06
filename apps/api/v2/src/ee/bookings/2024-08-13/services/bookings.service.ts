@@ -10,6 +10,7 @@ import { UsersRepository, UserWithProfile } from "@/modules/users/users.reposito
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
+import { z } from "zod";
 
 import {
   handleNewBooking,
@@ -38,12 +39,21 @@ import {
   CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+import { EventType } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
   uid: string;
   start: string;
 };
+
+const eventTypeBookingFieldSchema = z.object({
+  name: z.string(),
+  required: z.boolean(),
+  editable: z.string(),
+});
+
+const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
 
 @Injectable()
 export class BookingsService_2024_08_13 {
@@ -70,6 +80,8 @@ export class BookingsService_2024_08_13 {
       const isRecurring = !!eventType?.recurringEvent;
       const isSeated = !!eventType?.seatsPerTimeSlot;
 
+      await this.hasRequiredBookingFieldsResponses(body, eventType);
+
       if (isRecurring && isSeated) {
         return await this.createRecurringSeatedBooking(request, body);
       }
@@ -89,6 +101,28 @@ export class BookingsService_2024_08_13 {
       }
       throw error;
     }
+  }
+
+  async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
+    const bookingFields = body.bookingFieldsResponses;
+    if (!bookingFields || !eventType || !eventType.bookingFields) {
+      return true;
+    }
+
+    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee
+    const eventTypeBookingFields = eventTypeBookingFieldsSchema
+      .parse(eventType.bookingFields)
+      .filter((field) => !field.editable.startsWith("system"));
+
+    for (const field of eventTypeBookingFields) {
+      if (field.required && !(field.name in bookingFields)) {
+        throw new BadRequestException(`
+          Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses.
+          You can fetch the event type with ID ${eventType.id} to see the required fields.`);
+      }
+    }
+
+    return true;
   }
 
   async createInstantBooking(request: Request, body: CreateInstantBookingInput_2024_08_13) {
@@ -329,12 +363,17 @@ export class BookingsService_2024_08_13 {
 
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
+    const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+    const platformClientParams = bookingBefore?.eventTypeId
+      ? await this.inputService.getOAuthClientParams(bookingBefore.eventTypeId)
+      : undefined;
 
     await handleMarkNoShow({
       bookingUid,
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
+      platformClientParams,
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
@@ -389,11 +428,19 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
     const profile = this.usersService.getUserMainProfile(requestUser);
 
     await roundRobinReassignment({
       bookingId: booking.id,
       orgId: profile?.organizationId || null,
+      emailsEnabled,
+      platformClientParams,
     });
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
@@ -420,6 +467,12 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`User with id=${newUserId} was not found in the database`);
     }
 
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
     const profile = this.usersService.getUserMainProfile(user);
 
     const reassigned = await roundRobinManualReassignment({
@@ -428,6 +481,8 @@ export class BookingsService_2024_08_13 {
       orgId: profile?.organizationId || null,
       reassignReason: body.reason,
       reassignedById,
+      emailsEnabled,
+      platformClientParams,
     });
 
     return this.outputService.getOutputReassignedBooking(reassigned);
@@ -439,6 +494,12 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
     await confirmBookingHandler({
       ctx: {
         user: requestUser,
@@ -447,6 +508,8 @@ export class BookingsService_2024_08_13 {
         bookingId: booking.id,
         confirmed: true,
         recurringEventId: booking.recurringEventId,
+        emailsEnabled,
+        platformClientParams,
       },
     });
 
@@ -459,6 +522,12 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    const platformClientParams = booking.eventTypeId
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
     await confirmBookingHandler({
       ctx: {
         user: requestUser,
@@ -468,6 +537,8 @@ export class BookingsService_2024_08_13 {
         confirmed: false,
         recurringEventId: booking.recurringEventId,
         reason,
+        emailsEnabled,
+        platformClientParams,
       },
     });
 

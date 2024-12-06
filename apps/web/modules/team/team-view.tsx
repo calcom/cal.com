@@ -34,6 +34,7 @@ function TeamPage({
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
+  isSEOIndexable,
 }: PageProps) {
   useTheme(team.theme);
   const router = useRouter();
@@ -191,6 +192,10 @@ function TeamPage({
             image: profileImageSrc,
           },
         }}
+        nextSeoProps={{
+          nofollow: !isSEOIndexable,
+          noindex: !isSEOIndexable,
+        }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
@@ -205,6 +210,7 @@ function TeamPage({
             <>
               <div
                 className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
