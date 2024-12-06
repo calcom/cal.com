@@ -4195,7 +4195,7 @@ __metadata:
   dependencies:
     "@calcom/prisma": "*"
     "@calcom/types": "*"
-    googleapis: ^84.0.0
+    "@googleapis/calendar": ^9.7.9
   languageName: unknown
   linkType: soft
 
@@ -4205,7 +4205,6 @@ __metadata:
   dependencies:
     "@calcom/prisma": "*"
     "@calcom/types": "*"
-    googleapis: ^84.0.0
   languageName: unknown
   linkType: soft
 
@@ -5016,6 +5015,9 @@ __metadata:
     "@dub/analytics": ^0.0.15
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
+    "@googleapis/admin": ^23.0.0
+    "@googleapis/calendar": ^9.7.9
+    "@googleapis/oauth2": ^1.0.7
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
     "@microsoft/microsoft-graph-types-beta": 0.15.0-preview
@@ -5084,7 +5086,7 @@ __metadata:
     entities: ^4.4.0
     env-cmd: ^10.1.0
     eslint-config-next: ^13.2.1
-    googleapis: ^84.0.0
+    google-auth-library: ^9.15.0
     gray-matter: ^4.0.3
     handlebars: ^4.7.7
     ical.js: ^1.4.0
@@ -6590,6 +6592,33 @@ __metadata:
   dependencies:
     googleapis-common: ^7.0.0
   checksum: 894250d05213a5ca308460a1c0d997f28fa1939504bb66338457ecb9f8e590cc8f66667c8eb4dbf88965362009bb3cec4afb300de2e5ce94589919ee64a87e7f
+  languageName: node
+  linkType: hard
+
+"@googleapis/admin@npm:^23.0.0":
+  version: 23.0.0
+  resolution: "@googleapis/admin@npm:23.0.0"
+  dependencies:
+    googleapis-common: ^7.0.0
+  checksum: 385ec58507646c4ccbee7309cfbfbe3c6dcb8879ed8b8510d95b3877f2b4eb5340472e68dae8402cf90415cc636b9f64c3353faf63ec8d6ac88388a53a26290c
+  languageName: node
+  linkType: hard
+
+"@googleapis/calendar@npm:^9.7.9":
+  version: 9.7.9
+  resolution: "@googleapis/calendar@npm:9.7.9"
+  dependencies:
+    googleapis-common: ^7.0.0
+  checksum: f767e1d897b038a9ebada71dcb4fc3564813769299025877fb574c0716cb2cebfc4b5d88f8fbcfbc9ccc73c3eb7448ac0c20ceb94df4239dc0bd0f902657db9f
+  languageName: node
+  linkType: hard
+
+"@googleapis/oauth2@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@googleapis/oauth2@npm:1.0.7"
+  dependencies:
+    googleapis-common: ^7.0.0
+  checksum: e99227439409aff14f228d4cfb5316e284072fe51ab7b65e16c02d0b90e7e9c67cbc1c4d7a502aff7bf992410478fc5c29f06ad4f180e7d8923690e9c344f6de
   languageName: node
   linkType: hard
 
@@ -25579,9 +25608,9 @@ __metadata:
   linkType: hard
 
 "fast-text-encoding@npm:^1.0.0":
-  version: 1.0.3
-  resolution: "fast-text-encoding@npm:1.0.3"
-  checksum: 3e51365896f06d0dcab128092d095a0037d274deec419fecbd2388bc236d7b387610e0c72f920c6126e00c885ab096fbfaa3645712f5b98f721bef6b064916a8
+  version: 1.0.6
+  resolution: "fast-text-encoding@npm:1.0.6"
+  checksum: 9d58f694314b3283e785bf61954902536da228607ad246905e30256f9ab8331f780ac987e7222c9f5eafd04168d07e12b8054c85cedb76a2c05af0e82387a903
   languageName: node
   linkType: hard
 
@@ -26593,15 +26622,15 @@ __metadata:
   linkType: hard
 
 "gaxios@npm:^4.0.0":
-  version: 4.3.2
-  resolution: "gaxios@npm:4.3.2"
+  version: 4.3.3
+  resolution: "gaxios@npm:4.3.3"
   dependencies:
     abort-controller: ^3.0.0
     extend: ^3.0.2
     https-proxy-agent: ^5.0.0
     is-stream: ^2.0.0
-    node-fetch: ^2.6.1
-  checksum: 1305fc6a4b9f888a7424ed160084d1f253a54bec04b4986ecb7929d8aa52382e737fc65feb03f0b0b47c524575286d765806d829868ec49fd383a1be8a973870
+    node-fetch: ^2.6.7
+  checksum: 0b72a00875404e2c3d7aca9f32535e931d7b0ebb850dc92fafc1685b99a109b04205c63e4637a2d0d9a261ac50adf83f7d33435f73e256dcca32564ef9358fee
   languageName: node
   linkType: hard
 
@@ -27216,14 +27245,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-p12-pem@npm:^3.1.3":
-  version: 3.1.3
-  resolution: "google-p12-pem@npm:3.1.3"
+"google-auth-library@npm:^9.15.0":
+  version: 9.15.0
+  resolution: "google-auth-library@npm:9.15.0"
   dependencies:
-    node-forge: ^1.0.0
+    base64-js: ^1.3.0
+    ecdsa-sig-formatter: ^1.0.11
+    gaxios: ^6.1.1
+    gcp-metadata: ^6.1.0
+    gtoken: ^7.0.0
+    jws: ^4.0.0
+  checksum: 7ff63ff755ce43601a1780cfbe6d8b523792bfd2b653a27180e41735b9f0ba5689668eb8b079c915300041e412ec00b7635b5c26e0f2139fecacb346b6f9f12f
+  languageName: node
+  linkType: hard
+
+"google-p12-pem@npm:^3.1.3":
+  version: 3.1.4
+  resolution: "google-p12-pem@npm:3.1.4"
+  dependencies:
+    node-forge: ^1.3.1
   bin:
     gp12-pem: build/src/bin/gp12-pem.js
-  checksum: 8628f2bf9b4c9b3bfc7220906c15af2b306e2ef30c7c398327a9cff9d4a12285f104545f00c46b716dd23966615f446d7e5efde44d590f9483d345be78ea115e
+  checksum: 72ce13b9536c69f21584cb7477ed4c34674325639a5dac42e8d774b78d367cb196ae7d37a52bba868235205760df353ac678a5e1756a4f4ded82e16d29d6cbb1
   languageName: node
   linkType: hard
 
@@ -33871,7 +33914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-forge@npm:1.3.1, node-forge@npm:^1.0.0":
+"node-forge@npm:1.3.1, node-forge@npm:^1.3.1":
   version: 1.3.1
   resolution: "node-forge@npm:1.3.1"
   checksum: 08fb072d3d670599c89a1704b3e9c649ff1b998256737f0e06fbd1a5bf41cae4457ccaee32d95052d80bbafd9ffe01284e078c8071f0267dc9744e51c5ed42a9

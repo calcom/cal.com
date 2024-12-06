@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import { Avatar, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Avatar, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
@@ -26,7 +26,7 @@ const SkeletonLoader = () => {
   );
 };
 
-export const WebhooksView = () => {
+const WebhooksView = () => {
   const { t } = useLocale();
   const session = useSession();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;

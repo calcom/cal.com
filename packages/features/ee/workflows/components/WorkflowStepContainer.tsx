@@ -81,7 +81,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
 
   const { step, form, reload, setReload, teamId } = props;
@@ -145,13 +145,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           whatsappReminderTemplate(true, action, timeFormat)
         );
       } else {
-        const reminderBodyTemplate = emailReminderTemplate(true, action, timeFormat).emailBody;
+        const reminderBodyTemplate = emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
       }
     }
     if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
       const subjectTemplate = emailReminderTemplate(
         true,
+        i18n.language,
         form.getValues(`steps.${step.stepNumber - 1}.action`),
         timeFormat
       ).emailSubject;
@@ -525,6 +526,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 } else {
                                   const emailReminderBody = emailReminderTemplate(
                                     true,
+                                    i18n.language,
                                     val.value,
                                     timeFormat
                                   );
@@ -832,11 +834,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               } else {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  emailReminderTemplate(true, action, timeFormat).emailBody
+                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody
                                 );
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.emailSubject`,
-                                  emailReminderTemplate(true, action, timeFormat).emailSubject
+                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailSubject
                                 );
                               }
                             } else if (val.value === WorkflowTemplates.RATING) {
