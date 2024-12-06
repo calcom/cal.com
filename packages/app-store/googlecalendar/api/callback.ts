@@ -7,6 +7,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { getAllCalendars, updateProfilePhoto } from "@calcom/lib/google";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { GoogleRepository } from "@calcom/lib/server/repository/google";
 import { Prisma } from "@calcom/prisma/client";
@@ -85,6 +86,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       key,
       userId: req.session.user.id,
     });
+    await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
 
     // If we still don't have a primary calendar skip creating the selected calendar.
     // It can be toggled on later.
@@ -110,6 +112,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         externalId: selectedCalendarWhereUnique.externalId,
         userId: selectedCalendarWhereUnique.userId,
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -159,7 +162,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await GoogleRepository.createGoogleMeetsCredential({ userId: req.session.user.id });
+  const newGoogleMeetCredential = await GoogleRepository.createGoogleMeetsCredential({
+    userId: req.session.user.id,
+  });
+  await BookingReferenceRepository.reconnectWithNewCredential(newGoogleMeetCredential.id);
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
