@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/lever",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Hire smarter, faster, and more efficiently with Lever's applicant tracking system (ATS) with candidate relationship management capabilities."
+}
