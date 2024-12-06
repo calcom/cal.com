@@ -247,7 +247,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                             placeholder="Add to group"
                             options={groupOptionsSelectFieldOptions}
                             value={groupOptionsSelectFieldSelectedValue}
-                            onChange={(chosenGroupOptions) => {
+                            onChange={(chosenGroupOptions: typeof groupOptionsSelectFieldOptions) => {
                               // subOption is the option that is being added to groups
                               const subOption = nonGroupOption;
                               const optionsUpdate = getGroupOptionUpdate({
