@@ -205,6 +205,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
             noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
+            attendeeTimezone: reminder.booking.attendees[0].timeZone,
+            eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
+              reminder.booking.attendees[0].timeZone
+            ),
+            eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
+              reminder.booking.attendees[0].timeZone
+            ),
           };
           const emailLocale = locale || "en";
           const emailSubject = customTemplate(
@@ -233,6 +240,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
           emailContent = emailReminderTemplate(
             false,
+            reminder.booking.user?.locale || "en",
             reminder.workflowStep.action,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             reminder.booking.startTime.toISOString() || "",
@@ -359,6 +367,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         emailContent = emailReminderTemplate(
           false,
+          reminder.booking.user?.locale || "en",
           WorkflowActions.EMAIL_ATTENDEE,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           reminder.booking.startTime.toISOString() || "",

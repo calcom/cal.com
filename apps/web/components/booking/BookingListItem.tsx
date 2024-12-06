@@ -132,6 +132,7 @@ function BookingListItem(booking: BookingItemProps) {
   });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
@@ -211,23 +212,27 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    {
-      id: "reschedule",
-      icon: "clock" as const,
-      label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-      }`,
-    },
-    {
-      id: "reschedule_request",
-      icon: "send" as const,
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      onClick: () => {
-        setIsOpenRescheduleDialog(true);
-      },
-    },
+    ...(isBookingInPast
+      ? []
+      : [
+          {
+            id: "reschedule",
+            icon: "clock" as const,
+            label: t("reschedule_booking"),
+            href: `/reschedule/${booking.uid}${
+              booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+            }`,
+          },
+          {
+            id: "reschedule_request",
+            icon: "send" as const,
+            iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+            label: t("send_reschedule_request"),
+            onClick: () => {
+              setIsOpenRescheduleDialog(true);
+            },
+          },
+        ]),
     ...(isBookingReroutable(parsedBooking)
       ? [
           {
@@ -269,7 +274,7 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
-  if (isBookingInPast) {
+  if (isBookingInPast || isOngoing) {
     editBookingActions.push({
       id: "no_show",
       label: t("mark_as_no_show"),
@@ -429,12 +434,14 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
-      <ReassignDialog
-        isOpenDialog={isOpenReassignDialog}
-        setIsOpenDialog={setIsOpenReassignDialog}
-        bookingId={booking.id}
-        teamId={booking.eventType?.team?.id || 0}
-      />
+      {isOpenReassignDialog && (
+        <ReassignDialog
+          isOpenDialog={isOpenReassignDialog}
+          setIsOpenDialog={setIsOpenReassignDialog}
+          bookingId={booking.id}
+          teamId={booking.eventType?.team?.id || 0}
+        />
+      )}
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}

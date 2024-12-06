@@ -168,7 +168,8 @@ export const handleSeatsEventTypeOnBooking = async (
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
         return (
-          a.email === seatAttendee?.attendee?.email || a.phoneNumber === seatAttendee?.attendee?.phoneNumber
+          a.email === seatAttendee?.attendee?.email ||
+          (a.phoneNumber && a.phoneNumber === seatAttendee?.attendee?.phoneNumber)
         );
       });
       bookingInfo["attendees"] = attendee ? [attendee] : [];

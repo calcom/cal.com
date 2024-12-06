@@ -23,7 +23,7 @@ import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
-import { ZGetRoundRobinHostsToReassignInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
+import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
@@ -192,15 +192,13 @@ export const viewerTeamsRouter = router({
       );
       return handler(opts);
     }),
-  getRoundRobinHostsToReassign: authedProcedure
-    .input(ZGetRoundRobinHostsToReassignInputSchema)
-    .query(async (opts) => {
-      const handler = await importHandler(
-        namespaced("getRoundRobinHostsToReassign"),
-        () => import("./roundRobin/getRoundRobinHostsToReasign.handler")
-      );
-      return handler(opts);
-    }),
+  getRoundRobinHostsToReassign: authedProcedure.input(ZGetRoundRobinHostsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getRoundRobinHostsToReassign"),
+      () => import("./roundRobin/getRoundRobinHostsToReasign.handler")
+    );
+    return handler(opts);
+  }),
   checkIfMembershipExists: authedProcedure
     .input(ZCheckIfMembershipExistsInputSchema)
     .mutation(async (opts) => {

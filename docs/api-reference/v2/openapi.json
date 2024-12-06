@@ -342,6 +342,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "summary": "Force refresh tokens",
+        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.\n    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
         "parameters": [
           {
             "name": "userId",
@@ -360,6 +361,55 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshTokens",
+        "summary": "Refresh managed user tokens",
+        "description": "If managed user access token is expired then get a new one using this endpoint. Each access token is valid for 60 minutes and \n    each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1901,7 +1951,7 @@
     "/v2/organizations/{orgId}/teams/me": {
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
-        "summary": "Get team membership for user",
+        "summary": "Get teams membership for user",
         "parameters": [
           {
             "name": "orgId",
@@ -2288,6 +2338,35 @@
           }
         },
         "tags": ["Orgs / Teams / Memberships"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
+        "summary": "Get schedules of a team member",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Schedules", "Orgs / Teams / Users / Schedules"]
       }
     },
     "/v2/organizations/{orgId}/users": {
@@ -2834,7 +2913,7 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
               "enum": ["asc", "desc"],
               "type": "string"
@@ -2948,16 +3027,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -2977,6 +3046,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -2996,16 +3066,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -3070,6 +3130,222 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MarkAbsentBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/reassign": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_reassignBooking",
+        "summary": "Automatically reassign booking to a new host",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/reassign/{userId}": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
+        "summary": "Reassign a booking to a specific user",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReassignToUserBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/confirm": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_confirmBooking",
+        "summary": "Confirm booking that requires a confirmation",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/decline": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_declineBooking",
+        "summary": "Decline booking that requires a confirmation",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclineBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
                 }
               }
             }
@@ -3574,12 +3850,48 @@
             }
           },
           {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Id of the event-type, if this is provided no other parameter is required",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "usernames",
             "required": false,
             "in": "query",
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "ID of the user you want the get the event-types of, username is not needed when using this parameter",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgSlug",
+            "required": false,
+            "in": "query",
+            "description": "slug of the user's organization if he is in one, orgId is not required if using this parameter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": false,
+            "in": "query",
+            "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3979,140 +4291,6 @@
           }
         },
         "tags": ["Me"]
-      }
-    },
-    "/v2/oauth/{clientId}/authorize": {
-      "post": {
-        "operationId": "OAuthFlowController_authorize",
-        "summary": "Authorize an OAuth client",
-        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OAuthAuthorizeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
-          },
-          "400": {
-            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
-          }
-        },
-        "tags": ["OAuth"]
-      }
-    },
-    "/v2/oauth/{clientId}/exchange": {
-      "post": {
-        "operationId": "OAuthFlowController_exchange",
-        "summary": "Exchange authorization code for access tokens",
-        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully exchanged authorization code for access and refresh tokens.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
-          }
-        },
-        "tags": ["OAuth"]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshAccessToken",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "description": "OAuth client secret key.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth", "Managed users"]
       }
     },
     "/v2/schedules": {
@@ -4609,6 +4787,17 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "slotFormat",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": ["range", "time"],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4632,13 +4821,31 @@
                             "type": "array",
                             "items": {
                               "type": "object",
-                              "properties": {
-                                "time": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "example": "2024-09-25T08:00:00.000Z"
+                              "oneOf": [
+                                {
+                                  "properties": {
+                                    "time": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    }
+                                  }
+                                },
+                                {
+                                  "properties": {
+                                    "startTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    },
+                                    "endTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:30:00.000Z"
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           }
                         }
@@ -4659,13 +4866,12 @@
                         ],
                         "2024-09-26": [
                           {
-                            "time": "2024-09-26T08:00:00.000Z"
+                            "startTime": "2024-09-26T08:00:00.000Z",
+                            "endTime": "2024-09-26T08:30:00.000Z"
                           },
                           {
-                            "time": "2024-09-26T08:15:00.000Z"
-                          },
-                          {
-                            "time": "2024-09-26T08:30:00.000Z"
+                            "startTime": "2024-09-26T08:15:00.000Z",
+                            "endTime": "2024-09-26T08:45:00.000Z"
                           }
                         ]
                       }
@@ -4765,6 +4971,35 @@
         "tags": ["Stripe"]
       }
     },
+    "/v2/stripe/check/{teamId}": {
+      "get": {
+        "operationId": "StripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stripe"]
+      }
+    },
     "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
@@ -4816,7 +5051,8 @@
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
-        "summary": "Get all webooks (paginated)",
+        "summary": "Get all webooks",
+        "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
           {
             "name": "take",
@@ -5096,7 +5332,7 @@
           "timeZone": {
             "type": "string",
             "example": "America/New_York",
-            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked."
+            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked.\n      It will default to Europe/London if not passed."
           },
           "locale": {
             "enum": [
@@ -5177,6 +5413,9 @@
           },
           "data": {
             "$ref": "#/components/schemas/CreateManagedUserData"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -5446,24 +5685,6 @@
           }
         }
       },
-      "OAuthAuthorizeInput": {
-        "type": "object",
-        "properties": {
-          "redirectUri": {
-            "type": "string"
-          }
-        },
-        "required": ["redirectUri"]
-      },
-      "ExchangeAuthorizationCodeInput": {
-        "type": "object",
-        "properties": {
-          "clientSecret": {
-            "type": "string"
-          }
-        },
-        "required": ["clientSecret"]
-      },
       "RefreshTokenInput": {
         "type": "object",
         "properties": {
@@ -5474,7 +5695,7 @@
         },
         "required": ["refreshToken"]
       },
-      "AddressLocation_2024_06_14": {
+      "InputAddressLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -5492,7 +5713,7 @@
         },
         "required": ["type", "address", "public"]
       },
-      "LinkLocation_2024_06_14": {
+      "InputLinkLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -5510,7 +5731,7 @@
         },
         "required": ["type", "link", "public"]
       },
-      "IntegrationLocation_2024_06_14": {
+      "InputIntegrationLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -5521,12 +5742,12 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video"]
+            "enum": ["cal-video", "google-meet"]
           }
         },
         "required": ["type", "integration"]
       },
-      "PhoneLocation_2024_06_14": {
+      "InputPhoneLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -5565,6 +5786,10 @@
           },
           "placeholder": {
             "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder"]
@@ -5592,6 +5817,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 1234 Main St"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder"]
@@ -5619,6 +5848,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Enter text here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder"]
@@ -5646,6 +5879,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., 100"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder"]
@@ -5673,6 +5910,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., Detailed description here..."
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder"]
@@ -5707,6 +5948,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder", "options"]
@@ -5737,6 +5982,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "options"]
@@ -5764,6 +6013,10 @@
           "placeholder": {
             "type": "string",
             "example": "e.g., example@example.com"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder"]
@@ -5794,6 +6047,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "options"]
@@ -5824,6 +6081,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           }
         },
         "required": ["type", "slug", "label", "required", "options"]
@@ -5847,6 +6108,9 @@
           },
           "required": {
             "type": "boolean"
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": ["type", "slug", "label", "required"]
@@ -5867,7 +6131,7 @@
           "rolling": {
             "type": "boolean",
             "example": true,
-            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
+            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
           }
         },
         "required": ["type", "value"]
@@ -5888,7 +6152,7 @@
           "rolling": {
             "type": "boolean",
             "example": true,
-            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
+            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
           }
         },
         "required": ["type", "value"]
@@ -6050,6 +6314,39 @@
         },
         "required": ["seatsPerTimeSlot", "showAttendeeInfo", "showAvailabilityCount"]
       },
+      "InputAttendeeAddressLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          }
+        },
+        "required": ["type"]
+      },
+      "InputAttendeePhoneLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          }
+        },
+        "required": ["type"]
+      },
+      "InputAttendeeDefinedLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          }
+        },
+        "required": ["type"]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6104,6 +6401,14 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -6122,16 +6427,25 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -6316,11 +6630,235 @@
             "type": "boolean"
           }
         },
-        "required": ["lengthInMinutes", "title", "slug"]
+        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
+      },
+      "OutputAddressLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone",
+              "attendeeAddress",
+              "attendeePhone",
+              "attendeeDefined"
+            ],
+            "example": "address",
+            "description": "only allowed value for type is `address`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": ["type", "address", "public"]
+      },
+      "OutputLinkLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone",
+              "attendeeAddress",
+              "attendeePhone",
+              "attendeeDefined"
+            ],
+            "example": "link",
+            "description": "only allowed value for type is `link`"
+          },
+          "link": {
+            "type": "string",
+            "example": "https://customvideo.com/join/123456"
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": ["type", "link", "public"]
+      },
+      "OutputIntegrationLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone",
+              "attendeeAddress",
+              "attendeePhone",
+              "attendeeDefined",
+              "conferencing",
+              "unknown"
+            ],
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campsite-conferencing",
+              "campfire-video",
+              "around-video"
+            ],
+            "example": "cal-video"
+          },
+          "link": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": ["type", "integration"]
+      },
+      "OutputPhoneLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone",
+              "attendeeAddress",
+              "attendeePhone",
+              "attendeeDefined"
+            ],
+            "example": "phone",
+            "description": "only allowed value for type is `phone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": ["type", "phone", "public"]
+      },
+      "OutputConferencingLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone",
+              "attendeeAddress",
+              "attendeePhone",
+              "attendeeDefined",
+              "conferencing",
+              "unknown"
+            ],
+            "example": "conferencing",
+            "description": "only allowed value for type is `conferencing`"
+          }
+        },
+        "required": ["type"]
+      },
+      "OutputUnknownLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone",
+              "attendeeAddress",
+              "attendeePhone",
+              "attendeeDefined",
+              "conferencing",
+              "unknown"
+            ],
+            "example": "unknown",
+            "description": "only allowed value for type is `unknown`"
+          },
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": ["type", "location"]
       },
       "EmailDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "email",
+            "description": "only allowed value for type is `email`",
+            "default": "email"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6331,19 +6869,46 @@
             "type": "string",
             "default": "email"
           },
-          "type": {
-            "type": "string",
-            "default": "email"
-          },
           "required": {
             "type": "boolean"
           }
         },
-        "required": ["isDefault", "slug", "type", "required"]
+        "required": ["type", "isDefault", "slug", "required"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "name",
+            "description": "only allowed value for type is `name`",
+            "default": "name"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
@@ -6354,15 +6919,11 @@
             "type": "string",
             "default": "name"
           },
-          "type": {
-            "type": "string",
-            "default": "name"
-          },
           "required": {
             "type": "boolean"
           }
         },
-        "required": ["isDefault", "slug", "type", "required"]
+        "required": ["type", "isDefault", "slug", "required"]
       },
       "LocationDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -6375,7 +6936,8 @@
           },
           "slug": {
             "type": "string",
-            "default": "location"
+            "default": "location",
+            "description": "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place."
           },
           "type": {
             "type": "string",
@@ -6485,6 +7047,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6516,6 +7080,10 @@
             "type": "string",
             "example": "e.g., 1234 Main St"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6531,6 +7099,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6558,6 +7128,9 @@
           "required": {
             "type": "boolean"
           },
+          "disableOnPrefill": {
+            "type": "boolean"
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6573,6 +7146,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6607,6 +7182,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6622,6 +7201,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6653,6 +7234,10 @@
             "type": "string",
             "example": "e.g., example@example.com"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6668,6 +7253,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6702,6 +7289,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6717,6 +7308,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6748,6 +7341,10 @@
             "type": "string",
             "example": "e.g., 100"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6763,6 +7360,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6792,6 +7391,10 @@
           "placeholder": {
             "type": "string"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6807,6 +7410,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6841,6 +7446,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6856,6 +7465,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6894,6 +7505,10 @@
               "type": "string"
             }
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6909,6 +7524,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6940,6 +7557,10 @@
             "type": "string",
             "example": "e.g., Detailed description here..."
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -6955,6 +7576,8 @@
           "type": {
             "type": "string",
             "enum": [
+              "name",
+              "email",
               "phone",
               "address",
               "text",
@@ -6986,6 +7609,10 @@
             "type": "string",
             "example": "e.g., Enter text here"
           },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -7006,6 +7633,14 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -7023,16 +7658,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputAddressLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputLinkLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputIntegrationLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
                 }
               ]
             }
@@ -7223,6 +7864,7 @@
         "required": [
           "id",
           "lengthInMinutes",
+          "lengthInMinutesOptions",
           "title",
           "slug",
           "description",
@@ -7320,6 +7962,14 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -7338,16 +7988,25 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -7531,7 +8190,8 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           }
-        }
+        },
+        "required": ["lengthInMinutesOptions"]
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -8578,6 +9238,14 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -8596,16 +9264,25 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -8803,7 +9480,7 @@
             "description": "If true, all current and future team members will be assigned to this event type"
           }
         },
-        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug", "schedulingType", "hosts"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
@@ -8865,6 +9542,15 @@
             "minimum": 1,
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 1
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -8882,16 +9568,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputAddressLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputLinkLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputIntegrationLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
                 }
               ]
             }
@@ -9250,6 +9942,14 @@
             "type": "number",
             "example": 60
           },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -9268,16 +9968,25 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
                 }
               ]
             }
@@ -9471,7 +10180,8 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        }
+        },
+        "required": ["lengthInMinutesOptions"]
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -9511,6 +10221,24 @@
         },
         "required": ["status", "data"]
       },
+      "MembershipUserOutputDto": {
+        "type": "object",
+        "properties": {
+          "avatarUrl": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": ["email"]
+      },
       "OrgTeamMembershipOutputDto": {
         "type": "object",
         "properties": {
@@ -9532,9 +10260,12 @@
           },
           "disableImpersonation": {
             "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
           }
         },
-        "required": ["role", "id", "userId", "teamId", "accepted"]
+        "required": ["role", "id", "userId", "teamId", "accepted", "user"]
       },
       "OrgTeamMembershipsOutputResponseDto": {
         "type": "object",
@@ -10061,7 +10792,8 @@
               "RECORDING_TRANSCRIPTION_GENERATED",
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+              "FORM_SUBMITTED_NO_EVENT"
             ]
           },
           "active": {
@@ -10127,7 +10859,8 @@
               "RECORDING_TRANSCRIPTION_GENERATED",
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+              "FORM_SUBMITTED_NO_EVENT"
             ]
           },
           "active": {
@@ -10847,6 +11580,11 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
           "eventTypeId": {
             "type": "number",
             "description": "The ID of the event type that is booked.",
@@ -10878,6 +11616,13 @@
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -10887,7 +11632,7 @@
             }
           }
         },
-        "required": ["start", "eventTypeId", "attendee"]
+        "required": ["start", "lengthInMinutes", "eventTypeId", "attendee"]
       },
       "CreateInstantBookingInput_2024_08_13": {
         "type": "object",
@@ -10896,6 +11641,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -10928,6 +11678,13 @@
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           },
           "bookingFieldsResponses": {
             "type": "object",
@@ -10942,7 +11699,7 @@
             "example": true
           }
         },
-        "required": ["start", "eventTypeId", "attendee", "instant"]
+        "required": ["start", "lengthInMinutes", "eventTypeId", "attendee", "instant"]
       },
       "CreateRecurringBookingInput_2024_08_13": {
         "type": "object",
@@ -10951,6 +11708,11 @@
             "type": "string",
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "eventTypeId": {
             "type": "number",
@@ -10973,20 +11735,60 @@
               "type": "string"
             }
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
           "location": {
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
+          },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurrenceCount": {
+            "type": "number",
+            "description": "The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than\n    event type recurrence count",
+            "example": 5
           }
         },
-        "required": ["start", "eventTypeId", "attendee"]
+        "required": ["start", "lengthInMinutes", "eventTypeId", "attendee"]
+      },
+      "BookingHost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "jane100"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          }
+        },
+        "required": ["id", "name", "username", "timeZone"]
       },
       "EventType": {
         "type": "object",
@@ -11024,12 +11826,12 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
             "type": "string",
-            "enum": ["cancelled", "accepted", "rejected", "pending", "rescheduled"],
+            "enum": ["cancelled", "accepted", "rejected", "pending"],
             "example": "accepted"
           },
           "cancellationReason": {
@@ -11065,6 +11867,30 @@
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -11077,6 +11903,94 @@
             "items": {
               "type": "string"
             }
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "attendees"
+        ]
+      },
+      "RecurringBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingHost"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["cancelled", "accepted", "rejected", "pending"],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "meetingUrl": {
             "type": "string",
@@ -11092,12 +12006,39 @@
             "type": "boolean",
             "example": true
           },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          },
+          "guests": {
+            "example": ["guest1@example.com", "guest2@example.com"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "bookingFieldsResponses": {
             "type": "object",
             "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
           }
         },
         "required": [
@@ -11112,24 +12053,109 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "absentHost",
+          "createdAt",
           "attendees",
-          "absentHost"
+          "recurringBookingUid"
         ]
       },
-      "RecurringBookingOutput_2024_08_13": {
+      "SeatedAttendee": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": ["name", "timeZone", "absent", "seatUid"]
+      },
+      "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "id": {
             "type": "number",
-            "example": 456
+            "example": 123
           },
           "uid": {
             "type": "string",
-            "example": "recurring_uid_123"
+            "example": "booking_uid_123"
           },
           "title": {
             "type": "string",
-            "example": "Recurring meeting"
+            "example": "Consultation"
           },
           "description": {
             "type": "string",
@@ -11138,25 +12164,25 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
             "type": "string",
             "enum": ["cancelled", "accepted", "rejected", "pending"],
-            "example": "pending"
+            "example": "accepted"
           },
           "cancellationReason": {
             "type": "string",
-            "example": "Event was cancelled"
+            "example": "User requested cancellation"
           },
           "reschedulingReason": {
             "type": "string",
-            "example": "Event was rescheduled"
+            "example": "User rescheduled the event"
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_recurring_uid_123"
+            "example": "previous_uid_123"
           },
           "start": {
             "type": "string",
@@ -11168,7 +12194,7 @@
           },
           "duration": {
             "type": "number",
-            "example": 30
+            "example": 60
           },
           "eventTypeId": {
             "type": "number",
@@ -11179,23 +12205,6 @@
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
-          "recurringBookingUid": {
-            "type": "string",
-            "example": "recurring_uid_987"
-          },
-          "attendees": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Attendee"
-            }
-          },
-          "guests": {
-            "example": ["guest3@example.com", "guest4@example.com"],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "meetingUrl": {
             "type": "string",
             "description": "Deprecated - rely on 'location' field instead.",
@@ -11204,17 +12213,30 @@
           },
           "location": {
             "type": "string",
-            "example": "https://example.com/recurring-meeting"
+            "example": "https://example.com/meeting"
           },
           "absentHost": {
             "type": "boolean",
-            "example": false
+            "example": true
           },
-          "bookingFieldsResponses": {
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
             "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
-              "customField": "customValue"
+              "key": "value"
+            }
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
             }
           }
         },
@@ -11230,9 +12252,131 @@
           "duration",
           "eventTypeId",
           "eventType",
-          "recurringBookingUid",
+          "absentHost",
+          "createdAt",
+          "seatUid",
+          "attendees"
+        ]
+      },
+      "CreateRecurringSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingHost"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["cancelled", "accepted", "rejected", "pending"],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "seatUid",
           "attendees",
-          "absentHost"
+          "recurringBookingUid"
         ]
       },
       "CreateBookingOutput_2024_08_13": {
@@ -11253,12 +12397,248 @@
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
                 }
+              },
+              {
+                "$ref": "#/components/schemas/CreateSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateRecurringSeatedBookingOutput_2024_08_13"
+                }
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or an array of RecurringBookingOutput objects"
           }
         },
         "required": ["status", "data"]
+      },
+      "GetSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingHost"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["cancelled", "accepted", "rejected", "pending"],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "attendees"
+        ]
+      },
+      "GetRecurringSeatedBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "uid": {
+            "type": "string",
+            "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingHost"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["cancelled", "accepted", "rejected", "pending"],
+            "example": "accepted"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User rescheduled the event"
+          },
+          "rescheduledFromUid": {
+            "type": "string",
+            "example": "previous_uid_123"
+          },
+          "start": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "end": {
+            "type": "string",
+            "example": "2024-08-13T16:30:00Z"
+          },
+          "duration": {
+            "type": "number",
+            "example": 60
+          },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "example": "https://example.com/meeting"
+          },
+          "absentHost": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedAttendee"
+            }
+          },
+          "recurringBookingUid": {
+            "type": "string",
+            "example": "recurring_uid_987"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "title",
+          "description",
+          "hosts",
+          "status",
+          "start",
+          "end",
+          "duration",
+          "eventTypeId",
+          "eventType",
+          "absentHost",
+          "createdAt",
+          "attendees",
+          "recurringBookingUid"
+        ]
       },
       "GetBookingOutput_2024_08_13": {
         "type": "object",
@@ -11280,6 +12660,18 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               }
             ],
@@ -11308,6 +12700,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                },
+                {
+                  "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+                },
+                {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               ]
             },
@@ -11318,22 +12716,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "RescheduleBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "start": {
-            "type": "string",
-            "description": "Start time in ISO 8601 format for the new booking",
-            "example": "2024-08-13T10:00:00Z"
-          },
-          "reschedulingReason": {
-            "type": "string",
-            "example": "User requested reschedule",
-            "description": "Reason for rescheduling the booking"
-          }
-        },
-        "required": ["start"]
       },
       "RescheduleBookingOutput_2024_08_13": {
         "type": "object",
@@ -11350,22 +12732,18 @@
               },
               {
                 "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/CreateSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/CreateRecurringSeatedBookingOutput_2024_08_13"
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or a RecurringBookingOutput object"
           }
         },
         "required": ["status", "data"]
-      },
-      "CancelBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "cancellationReason": {
-            "type": "string",
-            "example": "User requested cancellation"
-          }
-        },
-        "required": ["cancellationReason"]
       },
       "CancelBookingOutput_2024_08_13": {
         "type": "object",
@@ -11387,6 +12765,18 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               }
             ],
@@ -11440,6 +12830,68 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "ReassignedToDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 123
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com"
+          }
+        },
+        "required": ["id", "name", "email"]
+      },
+      "ReassignBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+              }
+            ],
+            "description": "Booking data, which can be either a ReassignAutoBookingOutput object or a ReassignManualBookingOutput object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "ReassignToUserBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Host has to take another call",
+            "description": "Reason for reassigning the booking"
+          }
+        }
+      },
+      "DeclineBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Host has to take another call",
+            "description": "Reason for declining a booking that requires a confirmation"
+          }
+        }
       },
       "ReserveSlotInput": {
         "type": "object",

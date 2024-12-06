@@ -10,10 +10,10 @@ import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { IconName } from "../..";
-import { Icon } from "../..";
-import type { ButtonProps } from "../../components/button";
-import { Button } from "../../components/button";
+import type { ButtonProps } from "../button";
+import { Button } from "../button";
+import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
@@ -99,7 +99,16 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   (
-    { children, title, Icon: icon, enableOverflow, forceOverlayWhenNoModal, type = "creation", preventCloseOnOutsideClick, ...props },
+    {
+      children,
+      title,
+      Icon: icon,
+      enableOverflow,
+      forceOverlayWhenNoModal,
+      type = "creation",
+      preventCloseOnOutsideClick,
+      ...props
+    },
     forwardedRef
   ) => {
     const isPlatform = useIsPlatform();

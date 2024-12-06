@@ -5,6 +5,7 @@ import type {
   DefaultFieldOutput_2024_06_14,
   CustomFieldOutput_2024_06_14,
 } from "@calcom/platform-types";
+import type { OutputUnknownBookingField_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/outputs/booking-fields.output";
 
 export function transformBookingFieldsInternalToApi(
   databaseBookingFields: (SystemField | CustomField)[]
@@ -17,186 +18,201 @@ export function transformBookingFieldsInternalToApi(
     (field): field is CustomField => field.editable === "user"
   );
 
-  const responseDefaultFields: DefaultFieldOutput_2024_06_14[] = defaultFields.map((field) => {
-    switch (field.name) {
-      case "name":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-          label: field.label,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "email":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-          label: field.label,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "location":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-        };
-      case "rescheduleReason":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-        };
-      case "title":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-        };
-      case "notes":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-        };
-      case "guests":
-        return {
-          isDefault: true,
-          type: field.type,
-          slug: field.name,
-          required: field.required,
-        };
-      default:
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        throw new Error(`Unsupported default booking field '${field.name}'.`);
-    }
-  });
+  const responseDefaultFields: (DefaultFieldOutput_2024_06_14 | OutputUnknownBookingField_2024_06_14)[] =
+    defaultFields.map((field) => {
+      switch (field.name) {
+        case "name":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "email":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "location":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+          };
+        case "rescheduleReason":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+          };
+        case "title":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+          };
+        case "notes":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+          };
+        case "guests":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+          };
+        case "attendeePhoneNumber":
+          return {
+            isDefault: true,
+            type: field.type,
+            slug: field.name,
+            required: field.required,
+          };
+        default:
+          return {
+            type: "unknown",
+            slug: "unknown",
+            bookingField: JSON.stringify(field),
+          };
+      }
+    });
 
-  const responseCustomFields: CustomFieldOutput_2024_06_14[] = customFields.map((field) => {
-    switch (field.type) {
-      case "phone":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "address":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "text":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "number":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "textarea":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "multiemail":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "boolean":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "select":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          placeholder: field.placeholder,
-          options: field.options ? field.options.map((option) => option.value) : [],
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "multiselect":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          options: field.options ? field.options?.map((option) => option.value) : [],
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "checkbox":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          options: field.options ? field.options?.map((option) => option.value) : [],
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      case "radio":
-        return {
-          isDefault: false,
-          type: field.type,
-          slug: field.name,
-          label: field.label,
-          required: field.required,
-          options: field.options ? field.options?.map((option) => option.value) : [],
-          disableOnPrefill: field.disableOnPrefill,
-        };
-      default:
-        throw new Error(`Unsupported booking field type '${field.type}'.`);
-    }
-  });
+  const responseCustomFields: (CustomFieldOutput_2024_06_14 | OutputUnknownBookingField_2024_06_14)[] =
+    customFields.map((field) => {
+      switch (field.type) {
+        case "phone":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "address":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "text":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "number":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "textarea":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "multiemail":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "boolean":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "select":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            placeholder: field.placeholder,
+            options: field.options ? field.options.map((option) => option.value) : [],
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "multiselect":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            options: field.options ? field.options?.map((option) => option.value) : [],
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "checkbox":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            options: field.options ? field.options?.map((option) => option.value) : [],
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        case "radio":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: field.required,
+            options: field.options ? field.options?.map((option) => option.value) : [],
+            disableOnPrefill: field.disableOnPrefill,
+          };
+        default:
+          return {
+            type: "unknown",
+            slug: "unknown",
+            bookingField: JSON.stringify(field),
+          };
+      }
+    });
 
   return [...responseDefaultFields, ...responseCustomFields];
 }
@@ -316,6 +332,12 @@ const NameSystemFieldSchema = SystemFieldSchema.extend({
     .optional(),
 });
 
+const PhoneSystemFieldSchema = SystemFieldSchema.extend({
+  name: z.literal("attendeePhoneNumber"),
+  type: z.literal("phone"),
+  required: z.boolean(),
+});
+
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("email"),
   type: z.literal("email"),
@@ -359,10 +381,12 @@ type LocationReasonSystemField = z.infer<typeof LocationReasonSystemFieldSchema>
 type TitleSystemField = z.infer<typeof TitleSystemFieldSchema>;
 type NotesSystemField = z.infer<typeof NotesSystemFieldSchema>;
 type GuestsSystemField = z.infer<typeof GuestsSystemFieldSchema>;
+type PhoneSystemField = z.infer<typeof PhoneSystemFieldSchema>;
 
 export type SystemField =
   | NameSystemField
   | EmailSystemField
+  | PhoneSystemField
   | RescheduleReasonSystemField
   | LocationReasonSystemField
   | TitleSystemField
@@ -374,6 +398,7 @@ export type CustomField = z.infer<typeof CustomFieldsSchema>;
 const SystemFieldsSchema = z.union([
   NameSystemFieldSchema,
   EmailSystemFieldSchema,
+  PhoneSystemFieldSchema,
   LocationReasonSystemFieldSchema,
   RescheduleReasonSystemFieldSchema,
   TitleSystemFieldSchema,
@@ -381,7 +406,8 @@ const SystemFieldsSchema = z.union([
   GuestsSystemFieldSchema,
 ]);
 
-export const BookingFieldsSchema = z.array(z.union([CustomFieldsSchema, SystemFieldsSchema]));
+export const BookingFieldSchema = z.union([CustomFieldsSchema, SystemFieldsSchema]);
+export const BookingFieldsSchema = z.array(BookingFieldSchema);
 
 export const systemBeforeFieldName: NameSystemField = {
   type: "name",

@@ -142,11 +142,21 @@ export class UsersRepository {
     });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-      },
+      where:
+        orgId || orgSlug
+          ? {
+              profiles: {
+                some: {
+                  organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+                  username: username,
+                },
+              },
+            }
+          : {
+              username,
+            },
     });
   }
 
