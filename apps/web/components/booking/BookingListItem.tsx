@@ -1,3 +1,4 @@
+import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -44,6 +45,8 @@ import {
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
+
+import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -562,6 +565,11 @@ function BookingListItem(booking: BookingItemProps) {
                   <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                     {booking.eventType.team.name}
                   </Badge>
+                )}
+                {booking?.assignmentReason.length > 0 && (
+                  <div>
+                    <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+                  </div>
                 )}
                 {booking.paid && !booking.payment[0] ? (
                   <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
@@ -1201,6 +1209,22 @@ const DisplayAttendees = ({
           )}
         </>
       )}
+    </div>
+  );
+};
+
+const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: AssignmentReason }) => {
+  const { t } = useLocale();
+  const badgeTitle = assignmentReasonBadgeTitleMap(assignmentReason.reasonEnum);
+  return (
+    <div>
+      <Tooltip content={<p>{assignmentReason.reasonString}</p>}>
+        <div>
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="gray" onClick={undefined}>
+            {t(badgeTitle)}
+          </Badge>
+        </div>
+      </Tooltip>
     </div>
   );
 };
