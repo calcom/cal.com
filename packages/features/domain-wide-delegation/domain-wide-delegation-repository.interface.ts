@@ -20,7 +20,7 @@ export interface IDomainWideDelegationRepository {
     organizationId: number;
     workspacePlatformId: number;
     serviceAccountKey: Exclude<Prisma.JsonValue, null>;
-  }): Promise<DomainWideDelegationSafeSelect>;
+  }): Promise<DomainWideDelegationSafeSelect | null>;
 
   findById(args: { id: string }): Promise<DomainWideDelegationSafeSelect | null>;
 
@@ -34,10 +34,6 @@ export interface IDomainWideDelegationRepository {
 
   findByUser(args: { user: { email: string } }): Promise<DomainWideDelegationSafeSelect | null>;
 
-  findAllByDomain(args: { domain: string }): Promise<DomainWideDelegationSafeSelect[]>;
-
-  findFirstByOrganizationId(args: { organizationId: number }): Promise<DomainWideDelegationSafeSelect | null>;
-
   updateById(args: {
     id: string;
     data: Partial<{
@@ -46,7 +42,7 @@ export interface IDomainWideDelegationRepository {
       enabled: boolean;
       organizationId: number;
     }>;
-  }): Promise<DomainWideDelegationSafeSelect>;
+  }): Promise<DomainWideDelegationSafeSelect | null>;
 
   deleteById(args: { id: string }): Promise<any>;
 

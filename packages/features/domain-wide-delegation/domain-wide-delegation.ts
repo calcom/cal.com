@@ -29,9 +29,9 @@ export class DomainWideDelegation {
     const domainWideDelegationEnabled = await this.checkIfDwDIsEnabled(userId, teamId);
 
     if (!domainWideDelegationEnabled) {
-      return MockDomainWideDelegationRepository;
+      return new MockDomainWideDelegationRepository();
     }
 
-    return DomainWideDelegationRepository;
+    return new DomainWideDelegationRepository();
   }
 }

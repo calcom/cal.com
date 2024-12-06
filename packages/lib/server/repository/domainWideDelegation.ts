@@ -54,7 +54,7 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
     };
   }
 
-  static async create(data: {
+  async create(data: {
     domain: string;
     enabled: boolean;
     organizationId: number;
@@ -81,14 +81,14 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
     });
   }
 
-  static async findById({ id }: { id: string }) {
+  async findById({ id }: { id: string }) {
     return await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSafeSelect,
     });
   }
 
-  static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
+  async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
     const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSelectIncludesServiceAccountKey,
@@ -97,7 +97,7 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
     return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
-  static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
+  async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
     const log = repositoryLogger.getSubLogger({ prefix: ["findUniqueByOrganizationMemberEmail"] });
     log.debug("called with", { email });
     const organization = await OrganizationRepository.findByMemberEmail({ email });
@@ -120,13 +120,14 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
     return domainWideDelegation;
   }
 
-  static async findByUser({ user }: { user: { email: string } }) {
+  async findByUser({ user }: { user: { email: string } }) {
     return await this.findUniqueByOrganizationMemberEmail({ email: user.email });
   }
 
   static async findAllByDomain({ domain }: { domain: string }) {
     return await prisma.domainWideDelegation.findMany({
       where: { domain },
+      select: domainWideDelegationSafeSelect,
     });
   }
 
@@ -138,10 +139,11 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
 
     return await prisma.domainWideDelegation.findFirst({
       where: { organizationId },
+      select: domainWideDelegationSafeSelect,
     });
   }
 
-  static async updateById({
+  async updateById({
     id,
     data,
   }: {
@@ -177,13 +179,13 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
     });
   }
 
-  static async deleteById({ id }: { id: string }) {
+  async deleteById({ id }: { id: string }) {
     return await prisma.domainWideDelegation.delete({
       where: { id },
     });
   }
 
-  static async findDelegationsWithServiceAccount({ organizationId }: { organizationId: number }) {
+  async findDelegationsWithServiceAccount({ organizationId }: { organizationId: number }) {
     return await prisma.domainWideDelegation.findMany({
       where: { organizationId },
       select: {
