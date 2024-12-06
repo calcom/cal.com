@@ -1,8 +1,7 @@
 import { getFixedT } from "app/_utils";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import Link from "next/link";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import {
   getOrgDomainConfigFromHostname,
   subdomainSuffix,
@@ -19,9 +18,7 @@ enum PageType {
 
 function getPageInfo(pathname: string, host: string) {
   const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({ hostname: host });
-
   const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
-
   if (!routerUsername || (isValidOrgDomain && currentOrgDomain)) {
     return {
       username: currentOrgDomain ?? "",
@@ -49,14 +46,14 @@ function getPageInfo(pathname: string, host: string) {
 }
 
 async function NotFound() {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const cookiesList = cookies();
+  const locale = cookiesList.get("calNewLocale")?.value ?? "en";
+  const t = await getFixedT(locale);
   const headersList = headers();
-  const host = headersList.get("host") || "";
-  const pathname = headersList.get("x-pathname") || "";
+  const host = headersList.get("x-forwarded-host") ?? "";
+  const pathname = headersList.get("x-pathname") ?? "";
 
   const { username, pageType, url } = getPageInfo(pathname, host);
-
   const isSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isSuccessPage;
   const isInsights = pathname?.startsWith("/insights");
@@ -119,7 +116,7 @@ async function NotFound() {
             <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
           ) : IS_CALCOM ? (
             <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)} <strong className="text-blue-500">{username}</strong>{" "}
+              {t(`404_the_${pageType.toLowerCase()}`)} <strong className="text-blue-500">{username}</strong>
               {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
             </a>
           ) : (
