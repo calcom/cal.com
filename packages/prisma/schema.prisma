@@ -568,10 +568,10 @@ model BookingReference {
   externalCalendarId         String?
   deleted                    Boolean?
 
-  credential    Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  credentialId  Int?
-  delegatedTo   DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
-  delegatedToId String?
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId                     Int?
+  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
 
   @@index([bookingId])
   @@index([type])

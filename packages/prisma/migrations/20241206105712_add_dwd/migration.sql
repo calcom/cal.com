@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "BookingReference" ADD COLUMN     "delegatedToId" TEXT;
+ALTER TABLE "BookingReference" ADD COLUMN     "domainWideDelegationCredentialId" TEXT;
 
 -- AlterTable
 ALTER TABLE "DestinationCalendar" ADD COLUMN     "domainWideDelegationCredentialId" TEXT;
@@ -45,7 +45,7 @@ CREATE UNIQUE INDEX "WorkspacePlatform_slug_key" ON "WorkspacePlatform"("slug");
 ALTER TABLE "DestinationCalendar" ADD CONSTRAINT "DestinationCalendar_domainWideDelegationCredentialId_fkey" FOREIGN KEY ("domainWideDelegationCredentialId") REFERENCES "DomainWideDelegation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BookingReference" ADD CONSTRAINT "BookingReference_delegatedToId_fkey" FOREIGN KEY ("delegatedToId") REFERENCES "DomainWideDelegation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BookingReference" ADD CONSTRAINT "BookingReference_domainWideDelegationCredentialId_fkey" FOREIGN KEY ("domainWideDelegationCredentialId") REFERENCES "DomainWideDelegation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SelectedCalendar" ADD CONSTRAINT "SelectedCalendar_domainWideDelegationCredentialId_fkey" FOREIGN KEY ("domainWideDelegationCredentialId") REFERENCES "DomainWideDelegation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
