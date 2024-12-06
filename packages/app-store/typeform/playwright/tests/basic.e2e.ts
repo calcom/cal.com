@@ -19,7 +19,8 @@ const installApps = async (page: Page, users: Fixtures["users"]) => {
   await user.apiLogin();
   await page.goto(`/apps/typeform`);
   await page.click('[data-testid="install-app-button"]');
-  (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
+  await page.waitForSelector('[data-testid="install-app-button-personal"]');
+  await page.click('[data-testid="install-app-button-personal"]');
   await page.waitForURL((url) => url.pathname === `/apps/typeform/how-to-use`);
 };
 
