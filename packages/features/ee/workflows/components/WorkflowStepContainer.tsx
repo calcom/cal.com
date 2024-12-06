@@ -137,12 +137,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       if (isSMSAction(action)) {
         form.setValue(
           `steps.${step.stepNumber - 1}.reminderBody`,
-          smsReminderTemplate(true, action, timeFormat)
+          smsReminderTemplate(true, i18n.language, action, timeFormat)
         );
       } else if (isWhatsappAction(action)) {
         form.setValue(
           `steps.${step.stepNumber - 1}.reminderBody`,
-          whatsappReminderTemplate(true, action, timeFormat)
+          whatsappReminderTemplate(true, i18n.language, action, timeFormat)
         );
       } else {
         const reminderBodyTemplate = emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody;
@@ -159,7 +159,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
     }
   } else if (step && isWhatsappAction(step.action)) {
-    const templateBody = getWhatsappTemplateForAction(step.action, step.template, timeFormat);
+    const templateBody = getWhatsappTemplateForAction(step.action, i18n.language, step.template, timeFormat);
     form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, templateBody);
   }
 
@@ -516,12 +516,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 if (isSMSAction(val.value)) {
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.reminderBody`,
-                                    smsReminderTemplate(true, val.value, timeFormat)
+                                    smsReminderTemplate(true, i18n.language, val.value, timeFormat)
                                   );
                                 } else if (isWhatsappAction(val.value)) {
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.reminderBody`,
-                                    whatsappReminderTemplate(true, val.value, timeFormat)
+                                    whatsappReminderTemplate(true, i18n.language, val.value, timeFormat)
                                   );
                                 } else {
                                   const emailReminderBody = emailReminderTemplate(
@@ -824,12 +824,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  whatsappReminderTemplate(true, action, timeFormat)
+                                  whatsappReminderTemplate(true, i18n.language, action, timeFormat)
                                 );
                               } else if (isSMSAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  smsReminderTemplate(true, action, timeFormat)
+                                  smsReminderTemplate(true, i18n.language, action, timeFormat)
                                 );
                               } else {
                                 form.setValue(
@@ -844,17 +844,27 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else if (val.value === WorkflowTemplates.RATING) {
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.reminderBody`,
-                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailBody
+                                emailRatingTemplate({
+                                  isEditingMode: true,
+                                  locale: i18n.language,
+                                  action,
+                                  timeFormat,
+                                }).emailBody
                               );
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.emailSubject`,
-                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailSubject
+                                emailRatingTemplate({
+                                  isEditingMode: true,
+                                  locale: i18n.language,
+                                  action,
+                                  timeFormat,
+                                }).emailSubject
                               );
                             } else {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  getWhatsappTemplateForAction(action, val.value, timeFormat)
+                                  getWhatsappTemplateForAction(action, i18n.language, val.value, timeFormat)
                                 );
                               } else {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
