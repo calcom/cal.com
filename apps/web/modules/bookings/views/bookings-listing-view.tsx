@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -73,11 +73,17 @@ const querySchema = z.object({
 
 export default function Bookings() {
   const params = useParamsWithFallback();
-  const { data: filterQuery } = useFilterQuery();
+  const { data: filterQuery, pushItemToKey } = useFilterQuery();
   const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+  useEffect(() => {
+    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
+      setIsFiltersVisible(true);
+      pushItemToKey("userIds", user?.id);
+    }
+  }, [user, filterQuery.status]);
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
