@@ -132,7 +132,7 @@ export class ConferencingController {
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined
   ): Promise<{ url: string }> {
-    const decodedCallbackState: OAuthCallbackState = JSON.parse(JSON.parse(state));
+    const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
       const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
       if (error) {

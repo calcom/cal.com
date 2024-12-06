@@ -45,7 +45,7 @@ export class ZoomVideoService {
       response_type: "code",
       client_id,
       redirect_uri: this.redirectUri,
-      state: JSON.stringify(state),
+      state: state,
     };
 
     const query = stringify(params);
