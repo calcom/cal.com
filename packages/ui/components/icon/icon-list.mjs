@@ -119,6 +119,7 @@ export const lucideIconList = new Set([
   "sun",
   "sunrise",
   "sunset",
+  "tags",
   "terminal",
   "trash-2",
   "trash",
@@ -135,4 +136,6 @@ export const lucideIconList = new Set([
   "webhook",
   "x",
   "zap",
+  "waypoints",
+  "chevrons-down-up",
 ]);

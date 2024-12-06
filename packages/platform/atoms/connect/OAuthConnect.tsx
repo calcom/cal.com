@@ -25,6 +25,7 @@ export type OAuthConnectProps = {
   tooltip?: ReactNode;
   tooltipSide?: "top" | "bottom" | "left" | "right";
   isClickable?: boolean;
+  onSuccess?: () => void;
 };
 
 export const OAuthConnect: FC<
@@ -44,6 +45,7 @@ export const OAuthConnect: FC<
   tooltip,
   tooltipSide = "bottom",
   isClickable,
+  onSuccess,
 }) => {
   const { connect } = useConnect(calendar, redir);
   const { allowConnect, checked } = useCheck({
@@ -73,8 +75,12 @@ export const OAuthConnect: FC<
           tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance={calendar} />}
           tooltipSide={tooltipSide}
           tooltipOffset={10}
+          tooltipClassName="p-0 text-inherit bg-inherit"
           className={cn("", !isDisabled && "cursor-pointer", className)}
-          onClick={() => connect()}>
+          onClick={() => {
+            connect();
+            onSuccess?.();
+          }}>
           {displayedLabel}
         </Button>
       </AtomsWrapper>

@@ -1,20 +1,10 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-const ensureAppDir = async (page: Page) => {
-  const dataNextJsRouter = await page.evaluate(() =>
-    window.document.documentElement.getAttribute("data-nextjs-router")
-  );
-
-  expect(dataNextJsRouter).toEqual("app");
-};
-
-testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
+test.describe("apps/ A/B tests", () => {
   test("should render the /apps/installed/[category]", async ({ page, users }) => {
     const user = await users.create();
 
@@ -23,10 +13,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
     await page.goto("/apps/installed/messaging");
 
     const locator = page.getByRole("heading", { name: "Messaging" });
-
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
 
     await expect(locator).toBeVisible();
   });
@@ -40,10 +26,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByRole("heading", { name: "Telegram" });
 
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
-
     await expect(locator).toBeVisible();
   });
 
@@ -55,10 +37,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
     await page.goto("/apps/apple-calendar/setup");
 
     const locator = page.getByRole("heading", { name: "Connect to Apple Server" });
-
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
 
     await expect(locator).toBeVisible();
   });
@@ -72,10 +50,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByTestId("app-store-category-messaging");
 
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
-
     await expect(locator).toBeVisible();
   });
 
@@ -87,10 +61,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
     await page.goto("/apps/categories/messaging");
 
     const locator = page.getByText(/messaging apps/i);
-
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
 
     await expect(locator).toBeVisible();
   });
@@ -104,10 +74,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByTestId("horizontal-tab-upcoming");
 
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
-
     await expect(locator).toHaveClass(/bg-emphasis/);
   });
 
@@ -119,10 +85,6 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
     await page.goto("/getting-started/connected-calendar");
 
     const locator = page.getByText("Apple Calendar");
-
-    if (routeVariant === "future") {
-      await ensureAppDir(page);
-    }
 
     await expect(locator).toBeVisible();
   });
