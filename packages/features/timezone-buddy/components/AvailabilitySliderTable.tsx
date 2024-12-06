@@ -95,6 +95,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "member",
         accessorFn: (data) => data.username,
         header: "Member",
+        size: 200,
         cell: ({ row }) => {
           const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
@@ -125,6 +126,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "timezone",
         accessorFn: (data) => data.timeZone,
         header: "Timezone",
+        size: 160,
         cell: ({ row }) => {
           const { timeZone } = row.original;
           const timeRaw = dayjs().tz(timeZone);
@@ -146,6 +148,9 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       },
       {
         id: "slider",
+        meta: {
+          autoWidth: true,
+        },
         header: () => {
           return (
             <div className="flex items-center space-x-2">
