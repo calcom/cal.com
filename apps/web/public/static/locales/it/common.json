@@ -2830,6 +2830,8 @@
   "multi_select": "Selezione multipla",
   "group_meeting": "Riunione di gruppo",
   "salesforce_ignore_guests": "Non creare nuovi record per gli ospiti aggiunti alla prenotazione",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Blocca per assegnazione",
   "lock_attribute_for_assignment_description": "Il blocco consentirà solo le assegnazioni da Directory Sync",
   "attribute_edited_successfully": "Attributo modificato con successo",

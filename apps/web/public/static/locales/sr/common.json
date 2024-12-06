@@ -2830,6 +2830,8 @@
   "multi_select": "Višestruki izbor",
   "group_meeting": "Grupni sastanak",
   "salesforce_ignore_guests": "Ne kreiraj nove zapise za goste dodate u rezervaciju",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Zaključaj za dodelu",
   "lock_attribute_for_assignment_description": "Zaključavanje će dozvoliti dodele samo iz Directory Sync-a",
   "attribute_edited_successfully": "Atribut je uspešno izmenjen",

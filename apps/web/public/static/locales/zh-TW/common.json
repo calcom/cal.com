@@ -2830,6 +2830,8 @@
   "multi_select": "多選",
   "group_meeting": "群組會議",
   "salesforce_ignore_guests": "不為預約中新增的來賓建立新記錄",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "鎖定以進行指派",
   "lock_attribute_for_assignment_description": "鎖定後將僅允許從目錄同步進行指派",
   "attribute_edited_successfully": "屬性編輯成功",

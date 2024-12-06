@@ -2830,6 +2830,8 @@
   "multi_select": "Více výběrů",
   "group_meeting": "Skupinová schůzka",
   "salesforce_ignore_guests": "Nevytvářet nové záznamy pro hosty přidané do rezervace",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Uzamknout pro přiřazení",
   "lock_attribute_for_assignment_description": "Uzamčení umožní přiřazení pouze prostřednictvím Directory Sync",
   "attribute_edited_successfully": "Atribut byl úspěšně upraven",

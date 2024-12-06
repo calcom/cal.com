@@ -2830,6 +2830,8 @@
   "multi_select": "Множинний вибір",
   "group_meeting": "Групова зустріч",
   "salesforce_ignore_guests": "Не створювати нові записи для гостей, доданих до бронювання",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Заблокувати для призначення",
   "lock_attribute_for_assignment_description": "Блокування дозволить призначення лише через синхронізацію каталогів",
   "attribute_edited_successfully": "Атрибут успішно відредаговано",

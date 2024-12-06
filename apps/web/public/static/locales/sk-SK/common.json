@@ -2830,6 +2830,8 @@
   "multi_select": "Viacnásobný výber",
   "group_meeting": "Skupinové stretnutie",
   "salesforce_ignore_guests": "Nevytvárať nové záznamy pre hostí pridaných do rezervácie",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Uzamknúť pre priradenie",
   "lock_attribute_for_assignment_description": "Uzamknutie umožní priradenia iba zo synchronizácie adresára",
   "attribute_edited_successfully": "Atribút bol úspešne upravený",

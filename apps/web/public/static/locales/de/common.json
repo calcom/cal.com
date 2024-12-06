@@ -2830,6 +2830,8 @@
   "multi_select": "Mehrfachauswahl",
   "group_meeting": "Gruppenbesprechung",
   "salesforce_ignore_guests": "Keine neuen Datensätze für Gäste erstellen, die zur Buchung hinzugefügt wurden",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Für Zuweisung sperren",
   "lock_attribute_for_assignment_description": "Die Sperrung erlaubt Zuweisungen nur über die Verzeichnissynchronisierung",
   "attribute_edited_successfully": "Attribut erfolgreich bearbeitet",

@@ -2830,6 +2830,8 @@
   "multi_select": "Çoklu Seçim",
   "group_meeting": "Grup Toplantısı",
   "salesforce_ignore_guests": "Rezervasyona eklenen misafirler için yeni kayıt oluşturma",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
   "lock_attribute_for_assignment": "Atama için kilitle",
   "lock_attribute_for_assignment_description": "Kilitleme, yalnızca Dizin Senkronizasyonundan atamalara izin verecektir",
   "attribute_edited_successfully": "Öznitelik başarıyla düzenlendi",
