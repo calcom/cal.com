@@ -40,6 +40,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
           name: "members",
           href: `/settings/organizations/${orgBranding.slug}/members`,
           icon: "building",
+          moreOnMobile: true,
         } satisfies NavigationItemType,
       ]
     : []),
@@ -90,17 +91,20 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     href: "/apps/routing-forms/forms",
     icon: "file-text",
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    moreOnMobile: true,
   },
   {
     name: "workflows",
     href: "/workflows",
     icon: "zap",
+    moreOnMobile: true,
   },
   {
     name: "insights",
     href: "/insights",
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    moreOnMobile: true,
     child: [
       {
         name: "bookings",
@@ -150,36 +154,27 @@ const platformNavigationItems: NavigationItemType[] = [
     name: "Billing",
     href: "/settings/platform/billing",
     icon: "credit-card",
+    moreOnMobile: true,
   },
   {
     name: "Members",
     href: "/settings/platform/members",
     icon: "users",
+    moreOnMobile: true,
   },
 ];
 
 const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   return useMemo(() => {
-    const navigationType = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
-    const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
-    const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-      !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems
-    ).reduce<Record<string, NavigationItemType[]>>(
-      (items, item, index) => {
-        // We filter out the "more" separator in` desktop navigation
-        if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-        // Items for mobile bottom navigation
-        if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-          items.mobileNavigationBottomItems.push(item);
-        } // Items for the "more" menu in mobile navigation
-        else {
-          items.mobileNavigationMoreItems.push(item);
-        }
-        return items;
-      },
-      { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const mobileNavigationBottomItems = items.filter(
+      (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
+    );
+    const mobileNavigationMoreItems = items.filter(
+      (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
     );
 
     return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };

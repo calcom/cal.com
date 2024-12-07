@@ -1,5 +1,6 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
@@ -11,6 +12,16 @@ interface BookerSeoProps {
   hideBranding?: boolean;
   isSEOIndexable?: boolean;
   isTeamEvent?: boolean;
+  eventData?: Omit<
+    Pick<NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>, "profile" | "title" | "users" | "hidden">,
+    "profile"
+  > & {
+    profile: {
+      image: string | undefined;
+      name: string | null;
+      username: string | null;
+    };
+  };
   entity: {
     fromRedirectOfNonOrgLink: boolean;
     orgSlug?: string | null;
@@ -30,9 +41,10 @@ export const BookerSeo = (props: BookerSeoProps) => {
     entity,
     isSEOIndexable,
     bookingData,
+    eventData,
   } = props;
   const { t } = useLocale();
-  const { data: event } = trpc.viewer.public.event.useQuery(
+  const { data: _event } = trpc.viewer.public.event.useQuery(
     {
       username,
       eventSlug,
@@ -40,8 +52,9 @@ export const BookerSeo = (props: BookerSeoProps) => {
       org: entity.orgSlug ?? null,
       fromRedirectOfNonOrgLink: entity.fromRedirectOfNonOrgLink,
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, enabled: !eventData }
   );
+  const event = eventData ?? _event;
 
   const profileName = event?.profile.name ?? "";
   const profileImage = event?.profile.image;

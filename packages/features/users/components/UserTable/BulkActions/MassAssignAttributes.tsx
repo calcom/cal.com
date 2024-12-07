@@ -3,6 +3,7 @@ import type { ColumnFiltersState } from "@tanstack/react-table";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -282,6 +283,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     attributeId: value.attributeId,
                     value: value.value,
                     slug: value.slug,
+                    contains: value.contains,
+                    isGroup: value.isGroup,
                   }));
                   newAttributes.push(...newAttributeValues);
                 } else {
@@ -291,6 +294,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     attributeId: foundAttributeInCache?.id ?? "-1",
                     value: selectedAttributeOptions[0],
                     slug: slugify(selectedAttributeOptions[0]),
+                    contains: [],
+                    isGroup: false,
                   });
                 }
 
@@ -329,7 +334,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
         }
       }}>
       <PopoverTrigger asChild>
-        <Button StartIcon="map-pin">{t("add_attributes")}</Button>
+        <DataTableSelectionBar.Button icon="tags">{t("add_attributes")}</DataTableSelectionBar.Button>
       </PopoverTrigger>
       {/* We dont really use shadows much - but its needed here  */}
       <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>

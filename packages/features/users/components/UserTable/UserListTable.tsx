@@ -1,13 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -34,7 +28,7 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, Checkbox, showToast } from "@calcom/ui";
+import { Avatar, Badge, Checkbox, showToast } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -176,6 +170,7 @@ export function UserListTable() {
           meta: {
             filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
           },
+          size: 120,
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -184,11 +179,14 @@ export function UserListTable() {
             if (attributeValues.length === 0) return null;
             return (
               <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
+                {attributeValues.map((attributeValue, index) => {
+                  const isAGroupOption = attributeValue.contains?.length > 0;
+                  return (
+                    <Badge key={index} variant={isAGroupOption ? "orange" : "gray"} className="mr-1">
+                      {attributeValue.value}
+                    </Badge>
+                  );
+                })}
               </div>
             );
           },
@@ -280,6 +278,7 @@ export function UserListTable() {
         id: "role",
         accessorFn: (data) => data.role,
         header: "Role",
+        size: 100,
         cell: ({ row, table }) => {
           const { role, username } = row.original;
           return (
@@ -307,7 +306,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
-        size: 200,
+        size: 140,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -403,8 +402,6 @@ export function UserListTable() {
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
-    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,
@@ -546,22 +543,24 @@ export function UserListTable() {
         </div>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
+          <DataTableSelectionBar.Root className="justify-center">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
               <>
                 <TeamListBulkAction table={table} />
                 {numberOfSelectedRows >= 2 && (
-                  <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                    Group Meeting
-                  </Button>
+                  <DataTableSelectionBar.Button
+                    onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                    icon="handshake">
+                    {t("group_meeting")}
+                  </DataTableSelectionBar.Button>
                 )}
                 <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 <EventTypesList table={table} orgTeams={teams} />

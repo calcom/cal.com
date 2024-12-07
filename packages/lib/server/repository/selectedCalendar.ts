@@ -12,7 +12,7 @@ type SelectedCalendarCreateInput = {
 };
 
 export class SelectedCalendarRepository {
-  static async create(data: SelectedCalendarCreateInput) {
+  static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     return await prisma.selectedCalendar.create({
       data: {
         ...data,

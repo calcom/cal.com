@@ -83,6 +83,9 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
   const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
@@ -96,6 +99,10 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         },
       }
     );
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
   };
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
@@ -161,6 +168,9 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               setOpen={setBulkUpdateModal}
               bulkUpdateFunction={bulkUpdateFunction}
               description={t("default_schedules_bulk_description")}
+              eventTypes={eventTypesQueryData?.eventTypes}
+              isEventTypesFetching={isEventTypesFetching}
+              handleBulkEditDialogToggle={handleBulkEditDialogToggle}
             />
           )}
         </>

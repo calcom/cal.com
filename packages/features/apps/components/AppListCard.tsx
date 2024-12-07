@@ -37,7 +37,8 @@ export type AppListCardProps = {
 const schema = z.object({ hl: z.string().optional() });
 
 function AppListCardPlatformWrapper(props: AppListCardProps) {
-  return <AppListCardComponent {...props} />;
+  const logo = `https://app.cal.com${props.logo}`;
+  return <AppListCardComponent {...props} logo={logo} />;
 }
 function AppListCardWebWrapper(props: AppListCardProps) {
   const { slug, shouldHighlight } = props;
