@@ -6,6 +6,7 @@ import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/sche
 import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
 import type { DateRange } from "./date-ranges";
+import { UserRepository } from "./server/repository/user";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -223,19 +224,26 @@ function buildSlotsWithDateRanges({
     }
   });
 
-  // Show out of office dates even if not in dateRanges
   if (datesOutOfOffice) {
-    Object.keys(datesOutOfOffice).forEach((date) => {
+    Object.keys(datesOutOfOffice).forEach(async (date) => {
       const dateOutOfOffice = datesOutOfOffice[date];
       const slotTime = dayjs(date).tz(timeZone).startOf("day");
 
       const { toUser, fromUser, reason, emoji } = dateOutOfOffice;
 
+      const enrichedToUser = toUser ? await UserRepository.enrichUserWithItsProfile({ user: toUser }) : null;
+
       const oooSlot = {
         time: slotTime,
         away: true,
         ...(fromUser && { fromUser }),
-        ...(toUser && { toUser }),
+        ...(enrichedToUser && {
+          toUser: {
+            id: enrichedToUser.id,
+            username: enrichedToUser.username,
+            displayName: enrichedToUser.displayName,
+          },
+        }),
         ...(reason && { reason }),
         ...(emoji && { emoji }),
       };
