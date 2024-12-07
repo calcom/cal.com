@@ -21,6 +21,7 @@ export interface UserTableUser {
     attributeId: string;
     value: string;
     slug: string;
+    contains: string[];
   }[];
 }
 
