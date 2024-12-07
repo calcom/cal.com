@@ -9,7 +9,7 @@ const FormFieldIdentifier = ({
   setIsEditing,
   disabled,
 }: {
-  fieldIdentifier: string | null;
+  fieldIdentifier?: string;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
   disabled?: boolean;
 }) => {

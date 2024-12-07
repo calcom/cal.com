@@ -2,7 +2,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import TurndownService from "turndown";
 import type { z } from "zod";
 import { ZodError } from "zod";
 
@@ -427,29 +426,12 @@ function Options({
     </div>
   );
 }
-function customTurndown(html: string | TurndownService.Node): string {
-  const turndownService = new TurndownService();
-  turndownService.addRule("ignoreAnchorTag", {
-    filter: "a",
-    replacement: function (content) {
-      return content;
-    },
-  });
-  turndownService.addRule("ignoreParagraphTag", {
-    filter: "p",
-    replacement: function (content) {
-      return content;
-    },
-  });
-
-  const result = turndownService.turndown(html);
-
-  return result.toLowerCase();
-}
 
 const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+  fieldForm.setValue("name", "checkbox", { shouldDirty: true });
+
   return (
     <div className="mt-6">
       <Label>{t("label")}</Label>
@@ -457,9 +439,6 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
         getText={() => md.render(fieldForm.getValues("label") || "")}
         setText={(value: string) => {
           fieldForm.setValue("label", turndown(value), { shouldDirty: true });
-          fieldForm.setValue("name", getFieldIdentifier(customTurndown(value)), {
-            shouldDirty: true,
-          });
         }}
         excludedToolbarItems={["blockType", "bold", "italic"]}
         disableLists
