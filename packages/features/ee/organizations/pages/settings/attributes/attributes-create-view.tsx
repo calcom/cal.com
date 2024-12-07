@@ -43,6 +43,7 @@ function CreateAttributesPage() {
             mutation.mutate({
               name: values.attrName,
               type: values.type,
+              isLocked: values.isLocked,
               options: Array.from(uniqueAttributes).map((value) => ({ value })),
             });
           }}
