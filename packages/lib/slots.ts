@@ -185,7 +185,6 @@ function buildSlotsWithDateRanges({
   }
 
   dateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
@@ -207,8 +206,7 @@ function buildSlotsWithDateRanges({
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
-      const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
-      let slotData: {
+      const slotData: {
         time: Dayjs;
         userIds?: number[];
         away?: boolean;
@@ -220,23 +218,37 @@ function buildSlotsWithDateRanges({
         time: slotStartTime,
       };
 
-      if (dateOutOfOfficeExists) {
-        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
-
-        slotData = {
-          time: slotStartTime,
-          away: true,
-          ...(fromUser && { fromUser }),
-          ...(toUser && { toUser }),
-          ...(reason && { reason }),
-          ...(emoji && { emoji }),
-        };
-      }
-
       slots.push(slotData);
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });
+
+  // Show out of office dates even if not in dateRanges
+  if (datesOutOfOffice) {
+    Object.keys(datesOutOfOffice).forEach((date) => {
+      const dateOutOfOffice = datesOutOfOffice[date];
+      const slotTime = dayjs(date).tz(timeZone).startOf("day");
+
+      const { toUser, fromUser, reason, emoji } = dateOutOfOffice;
+
+      const oooSlot = {
+        time: slotTime,
+        away: true,
+        ...(fromUser && { fromUser }),
+        ...(toUser && { toUser }),
+        ...(reason && { reason }),
+        ...(emoji && { emoji }),
+      };
+
+      // Find the correct position to insert the out of office slot
+      const insertIndex = slots.findIndex((slot) => slot.time.isAfter(slotTime));
+      if (insertIndex === -1) {
+        slots.push(oooSlot);
+      } else {
+        slots.splice(insertIndex, 0, oooSlot);
+      }
+    });
+  }
 
   return slots;
 }
