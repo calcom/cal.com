@@ -1,7 +1,7 @@
 import type { Payment } from "@prisma/client";
 import type { EventType } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type { StripeElementLocale, StripeElements } from "@stripe/stripe-js";
+import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
@@ -69,8 +69,8 @@ export const PaymentFormComponent = (
 
   const paymentElementOptions = {
     layout: "accordion",
-    onChange: (_) => onPaymentElementChange(), // Listen for state changes
-  };
+    onChange: () => onPaymentElementChange(),
+  } as StripePaymentElementOptions;
 
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>
