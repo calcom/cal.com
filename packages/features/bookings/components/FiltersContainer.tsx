@@ -26,6 +26,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
           <TeamsFilter />
           <Tooltip content={t("remove_filters")}>
             <Button
+              data-testid="btn_bookings_list_remove_filters"
               color="secondary"
               type="button"
               onClick={() => {
