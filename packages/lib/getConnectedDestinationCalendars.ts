@@ -259,7 +259,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
         user,
         connectedCalendars,
         onboarding,
-        eventTypeId,
       }));
   } else {
     /* There are connected calendars and a destination calendar */

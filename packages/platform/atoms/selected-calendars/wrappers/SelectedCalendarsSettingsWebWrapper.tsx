@@ -33,7 +33,7 @@ type SelectedCalendarsSettingsWebWrapperProps = {
 export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSettingsWebWrapperProps) => {
   const { t } = useLocale();
   const {
-    scope,
+    scope = SelectedCalendarSettingsScope.User,
     setScope = () => {
       return;
     },

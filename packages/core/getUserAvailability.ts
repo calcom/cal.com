@@ -289,10 +289,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const selectedCalendars = eventType?.useEventLevelSelectedCalendars
     ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
-  console.log({
-    useEventLevelSelectedCalendars: eventType?.useEventLevelSelectedCalendars,
-    selectedCalendars,
-  });
+
   const busyTimes = await monitorCallbackAsync(getBusyTimes, {
     credentials: user.credentials,
     startTime: getBusyTimesStart,

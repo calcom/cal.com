@@ -74,6 +74,28 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   isPlatformManaged: true,
 });
 
+type UserWithNotToBeUsedSelectedCalendars<TCalendarProps, TUserProps> = TUserProps & {
+  selectedCalendars: TCalendarProps[];
+};
+
+export function enrichWithSelectedCalendars<
+  TCalendar extends {
+    eventTypeId: number | null;
+  },
+  TUser extends {
+    id: number;
+    selectedCalendars: TCalendar[];
+  }
+>(user: UserWithNotToBeUsedSelectedCalendars<TCalendar, TUser>) {
+  // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
+  const { selectedCalendars, ...restUser } = user;
+  return {
+    ...restUser,
+    allSelectedCalendars: selectedCalendars,
+    userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+  };
+}
+
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
@@ -756,15 +778,12 @@ export class UserRepository {
         selectedCalendars: true,
       },
     });
+
     if (!user) {
       return null;
     }
-    const { selectedCalendars, ...restUser } = user;
-    return {
-      ...restUser,
-      userLevelSelectedCalendars: selectedCalendars.filter((calendar) => calendar.eventTypeId === null),
-      allSelectedCalendars: selectedCalendars,
-    };
+
+    return enrichWithSelectedCalendars(user);
   }
 
   static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
@@ -783,11 +802,7 @@ export class UserRepository {
       return null;
     }
 
-    const { selectedCalendars, ...restUser } = user;
-    return {
-      ...restUser,
-      userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
-      allSelectedCalendars: selectedCalendars,
-    };
+    const userWithSelectedCalendars = enrichWithSelectedCalendars(user);
+    return userWithSelectedCalendars;
   }
 }

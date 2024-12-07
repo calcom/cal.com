@@ -28,8 +28,8 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { eventTypeSelectForBookingPage } from "@calcom/lib/server/eventTypeSelect";
+import { UserRepository, enrichWithSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
@@ -163,7 +163,7 @@ export async function getEventType(
       id: eventTypeId,
     },
     select: {
-      ...eventTypeSelect,
+      ...eventTypeSelectForBookingPage,
       team: {
         select: {
           id: true,
@@ -211,7 +211,6 @@ export async function getEventType(
           user: {
             select: {
               credentials: { select: credentialForCalendarServiceSelect },
-              selectedCalendars: true,
               ...availabilityUserSelect,
             },
           },
@@ -234,7 +233,6 @@ export async function getEventType(
       users: {
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
-          selectedCalendars: true,
           ...availabilityUserSelect,
         },
       },
@@ -245,25 +243,17 @@ export async function getEventType(
     return null;
   }
 
-  const hosts = eventType.hosts.map((host) => ({
+  const hostsWithSelectedCalendars = eventType.hosts.map((host) => ({
     ...host,
-    user: {
-      ...host.user,
-      allSelectedCalendars: host.user.selectedCalendars,
-      userLevelSelectedCalendars: host.user.selectedCalendars.filter((calendar) => !calendar.eventTypeId),
-    },
+    user: enrichWithSelectedCalendars(host.user),
   }));
 
-  const users = eventType.users.map((user) => ({
-    ...user,
-    allSelectedCalendars: user.selectedCalendars,
-    userLevelSelectedCalendars: user.selectedCalendars.filter((calendar) => !calendar.eventTypeId),
-  }));
+  const usersWithSelectedCalendars = eventType.users.map((user) => enrichWithSelectedCalendars(user));
 
   return {
     ...eventType,
-    hosts,
-    users,
+    hosts: hostsWithSelectedCalendars,
+    users: usersWithSelectedCalendars,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
   };
@@ -300,7 +290,8 @@ export async function getDynamicEventType(
       },
     },
   });
-  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  const usersWithSelectedCalendars = users.map((user) => enrichWithSelectedCalendars(user));
+  const isDynamicAllowed = !usersWithSelectedCalendars.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({
       message: "Some of the users in this group do not allow dynamic booking",
@@ -308,7 +299,7 @@ export async function getDynamicEventType(
     });
   }
   return Object.assign({}, dynamicEventType, {
-    users,
+    users: usersWithSelectedCalendars,
   });
 }
 
@@ -317,9 +308,9 @@ export async function getRegularOrDynamicEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
-  return isDynamicBooking
-    ? await getDynamicEventType(input, organizationDetails)
-    : await getEventType(input, organizationDetails);
+  const dynamicEventTypePromise = await getDynamicEventType(input, organizationDetails);
+  const regularEventTypePromise = await getEventType(input, organizationDetails);
+  return isDynamicBooking ? dynamicEventTypePromise : regularEventTypePromise;
 }
 
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({

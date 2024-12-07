@@ -1,5 +1,6 @@
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
+import { enrichWithSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -34,7 +35,15 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
       },
     },
   });
-  const member = members?.find((m) => m.userId === input.memberId);
+
+  const membersWithSelectedCalendars = members.map((m) => {
+    return {
+      ...m,
+      user: enrichWithSelectedCalendars(m.user),
+    };
+  });
+
+  const member = membersWithSelectedCalendars?.find((m) => m.id === input.memberId);
   if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
   if (!member.user.username)
     throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });

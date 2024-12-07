@@ -117,7 +117,6 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
 
 type CalendarSettingsProps = {
   eventType: EventAdvancedTabProps["eventType"];
-  displayDestinationCalendarSelector: boolean;
   customClassNames?: EventAdvancedTabCustomClassNames;
   calendarsQuery: EventAdvancedTabProps["calendarsQuery"];
   eventNameLocked: {
@@ -167,7 +166,9 @@ function DestinationCalendarSettings({
   userEmail,
   isTeamEventType,
   showToast,
-}: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType">) {
+}: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType"> & {
+  displayDestinationCalendarSelector: boolean;
+}) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(

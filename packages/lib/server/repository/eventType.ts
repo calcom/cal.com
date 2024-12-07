@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -12,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
+import { enrichWithSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
@@ -719,7 +721,10 @@ export class EventTypeRepository {
     const eventType = await prisma.eventType.findUnique({
       where: { id },
       select: {
-        ...eventTypeSelect,
+        id: true,
+        useEventLevelSelectedCalendars: true,
+        seatsPerTimeSlot: true,
+        bookingLimits: true,
         parent: {
           select: {
             team: {
@@ -744,6 +749,7 @@ export class EventTypeRepository {
               select: {
                 email: true,
                 id: true,
+                selectedCalendars: true,
               },
             },
             schedule: {
@@ -762,12 +768,12 @@ export class EventTypeRepository {
             },
           },
         },
-        selectedCalendars: {
-          select: {
-            externalId: true,
-            integration: true,
-          },
-        },
+        durationLimits: true,
+        assignAllTeamMembers: true,
+        schedulingType: true,
+        timeZone: true,
+        length: true,
+        metadata: true,
         schedule: {
           select: {
             id: true,
@@ -792,11 +798,17 @@ export class EventTypeRepository {
         },
       },
     });
+
     if (!eventType) {
       return eventType;
     }
+
     return {
       ...eventType,
+      hosts: eventType.hosts.map((host) => ({
+        ...host,
+        user: enrichWithSelectedCalendars(host.user),
+      })),
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     };
   }
