@@ -8,7 +8,7 @@ import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("AI Translation - Event Type @test", () => {
+test.describe("AI Translation - Event Type", () => {
   test("Toggle should not be clickable for free plan members", async ({ page, users, bookingPage }) => {
     await loginUser(users);
     await page.goto("/event-types");
