@@ -31,4 +31,5 @@ export const ENDPOINTS = [
   "oAuth",
   "attributes",
   "routingForms",
+  "domainWideDelegation",
 ] as const;
