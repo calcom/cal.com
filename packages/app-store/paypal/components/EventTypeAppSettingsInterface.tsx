@@ -5,6 +5,7 @@ import {
   currencySymbols,
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
+import type { CurrencyOption } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
@@ -94,7 +95,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           value={selectedCurrency}
           className="text-black"
           defaultValue={selectedCurrency}
-          onChange={(e) => {
+          onChange={(e?: CurrencyOption) => {
             if (e) {
               setSelectedCurrency(e);
               setCurrencySymbol(currencySymbols[e.value]);
@@ -118,7 +119,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           options={paymentOptions.map((option) => {
             return { ...option, label: t(option.label) || option.label };
           })}
-          onChange={(input) => {
+          onChange={(input?: Option) => {
             if (input) setAppData("paymentOption", input.value);
           }}
           className="mb-1 h-[38px] w-full"

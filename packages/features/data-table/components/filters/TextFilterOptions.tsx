@@ -75,7 +75,7 @@ export function TextFilterOptions({
                   options={textFilterOperatorOptions}
                   value={value}
                   isSearchable={false}
-                  onChange={(event) => {
+                  onChange={(event: TextFilterOperatorOption) => {
                     if (event) {
                       form.setValue("operatorOption", { ...event }, { shouldDirty: true });
                     }

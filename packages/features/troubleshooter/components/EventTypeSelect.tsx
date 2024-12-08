@@ -61,7 +61,7 @@ export function EventTypeSelect() {
       options={options}
       isDisabled={isPending || options.length === 0}
       value={options.find((option) => option.value === selectedEventType?.slug) || options[0]}
-      onChange={(option) => {
+      onChange={(option: (typeof options)[0]) => {
         if (!option) return;
         setSelectedEventType({
           slug: option.value,

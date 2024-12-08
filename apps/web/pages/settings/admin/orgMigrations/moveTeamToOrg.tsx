@@ -125,7 +125,7 @@ export default function MoveTeamToOrg() {
                 <SelectField
                   containerClassName="mb-0"
                   label="Move users"
-                  onChange={(option) => {
+                  onChange={(option: (typeof moveUsersOptions)[0]) => {
                     onChange(option?.value === "true");
                   }}
                   value={moveUsersOptions.find((opt) => opt.value === value)}

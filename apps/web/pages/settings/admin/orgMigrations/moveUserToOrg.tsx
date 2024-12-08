@@ -132,7 +132,7 @@ export default function MoveUserToOrg() {
               <SelectField
                 label="Role"
                 options={roles}
-                onChange={(option) => {
+                onChange={(option: (typeof roles)[0]) => {
                   if (!option) return;
                   onChange(option.value);
                 }}
@@ -162,7 +162,7 @@ export default function MoveUserToOrg() {
               <SelectField
                 label="Move Teams"
                 className="mb-0"
-                onChange={(option) => {
+                onChange={(option: (typeof moveTeamsOptions)[0]) => {
                   if (!option) return;
                   onChange(option.value === "true");
                 }}

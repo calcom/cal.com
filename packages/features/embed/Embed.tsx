@@ -882,7 +882,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       )}>
                       <div className="mb-2">Position of button</div>
                       <Select
-                        onChange={(position) => {
+                        onChange={(position: (typeof FloatingPopupPositionOptions)[0]) => {
                           setPreviewState((previewState) => {
                             return {
                               ...previewState,
@@ -961,7 +961,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             Control: ThemeSelectControl,
                             IndicatorSeparator: () => null,
                           }}
-                          onChange={(option) => {
+                          onChange={(option?: { value: string }) => {
                             if (!option) {
                               return;
                             }
@@ -1042,7 +1042,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         <Select
                           className="w-full"
                           defaultValue={layoutOptions[0]}
-                          onChange={(option) => {
+                          onChange={(option?: { value: string }) => {
                             if (!option) {
                               return;
                             }
