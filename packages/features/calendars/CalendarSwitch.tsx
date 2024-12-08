@@ -17,9 +17,12 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
+  eventTypeId: number | null;
+  disabled?: boolean;
 };
+
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
+  const { title, externalId, type, isChecked, name, credentialId, eventTypeId, disabled } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -30,6 +33,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         externalId: externalId,
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
+        eventTypeId: String(eventTypeId),
       };
 
       if (isOn) {
@@ -72,7 +76,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         <Switch
           id={externalId}
           checked={checkedInternal}
-          disabled={mutation.isPending}
+          disabled={disabled || mutation.isPending}
           onCheckedChange={async (isOn: boolean) => {
             setCheckedInternal(isOn);
             await mutation.mutate({ isOn });

@@ -3,6 +3,14 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+type SelectedCalendarCreateInput = {
+  credentialId: number;
+  userId: number;
+  externalId: string;
+  integration: string;
+  eventTypeId?: number;
+};
+
 export class SelectedCalendarRepository {
   static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     return await prisma.selectedCalendar.create({
@@ -19,6 +27,7 @@ export class SelectedCalendarRepository {
           integration: data.integration,
           externalId: data.externalId,
         },
+        eventTypeId: data.eventTypeId || null,
       },
       create: { ...data },
       update: { ...data },
@@ -90,6 +99,7 @@ export class SelectedCalendarRepository {
           externalId: data.externalId,
           integration: data.integration,
         },
+        eventTypeId: data.eventTypeId ?? null,
       },
     });
   }

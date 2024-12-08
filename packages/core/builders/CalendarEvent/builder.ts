@@ -28,7 +28,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
   },
 });
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
 interface ICalendarEventBuilder {
   calendarEvent: CalendarEventClass;

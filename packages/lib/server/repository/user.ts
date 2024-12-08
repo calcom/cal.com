@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -72,6 +73,28 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   metadata: true,
   isPlatformManaged: true,
 });
+
+type UserWithNotToBeUsedSelectedCalendars<TCalendarProps, TUserProps> = TUserProps & {
+  selectedCalendars: TCalendarProps[];
+};
+
+export function enrichWithSelectedCalendars<
+  TCalendar extends {
+    eventTypeId: number | null;
+  },
+  TUser extends {
+    id: number;
+    selectedCalendars: TCalendar[];
+  }
+>(user: UserWithNotToBeUsedSelectedCalendars<TCalendar, TUser>) {
+  // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
+  const { selectedCalendars, ...restUser } = user;
+  return {
+    ...restUser,
+    allSelectedCalendars: selectedCalendars,
+    userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+  };
+}
 
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
@@ -742,7 +765,7 @@ export class UserRepository {
     });
   }
   static async findUserWithCredentials({ id }: { id: number }) {
-    return await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         id,
       },
@@ -755,5 +778,31 @@ export class UserRepository {
         selectedCalendars: true,
       },
     });
+
+    if (!user) {
+      return null;
+    }
+
+    return enrichWithSelectedCalendars(user);
+  }
+
+  static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
+    const user = await prisma.user.findFirst({
+      where,
+      select: {
+        ...availabilityUserSelect,
+        selectedCalendars: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const userWithSelectedCalendars = enrichWithSelectedCalendars(user);
+    return userWithSelectedCalendars;
   }
 }

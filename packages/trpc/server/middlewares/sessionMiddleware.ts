@@ -57,6 +57,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       movedToProfileId: true,
       selectedCalendars: {
         select: {
+          eventTypeId: true,
           externalId: true,
           integration: true,
         },

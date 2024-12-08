@@ -61,6 +61,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
               type={integrationType}
               isChecked={calendar.isSelected}
               isLastItemInList={i === calendars.length - 1}
+              eventTypeId={null}
             />
           ))}
         </ul>
