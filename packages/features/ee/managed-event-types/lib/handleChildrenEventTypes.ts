@@ -247,7 +247,7 @@ export default async function handleChildrenEventTypes({
           },
         });
 
-        const metadata = EventTypeMetaDataSchema.parse(existingEventType.metadata || {});
+        const metadata = EventTypeMetaDataSchema.parse(existingEventType?.metadata || {});
 
         return prisma.eventType.update({
           where: {
