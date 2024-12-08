@@ -5384,6 +5384,157 @@
         ]
       }
     },
+    "/v2/teams": {
+      "post": {
+        "operationId": "TeamsController_createTeam",
+        "summary": "Create a team",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams"
+        ]
+      },
+      "get": {
+        "operationId": "TeamsController_getTeams",
+        "summary": "Get teams",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}": {
+      "get": {
+        "operationId": "TeamsController_getTeam",
+        "summary": "Get a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams"
+        ]
+      },
+      "patch": {
+        "operationId": "TeamsController_updateTeam",
+        "summary": "Update a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrgTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams"
+        ]
+      },
+      "delete": {
+        "operationId": "TeamsController_deleteTeam",
+        "summary": "Delete a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams"
+        ]
+      }
+    },
     "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
@@ -9148,10 +9299,10 @@
       "OrgTeamOutputDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "parentId": {
             "type": "number"
           },
-          "parentId": {
+          "id": {
             "type": "number"
           },
           "name": {
@@ -12225,6 +12376,235 @@
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateTeamInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          },
+          "autoAcceptCreator": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "TeamOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isOrganization": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean",
+            "default": false
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "CreateTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetTeamsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamOutputDto"
           }
         },
         "required": [
