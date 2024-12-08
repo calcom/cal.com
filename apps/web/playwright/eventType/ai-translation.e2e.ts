@@ -57,7 +57,8 @@ test.describe("AI Translation - Event Type @test", () => {
     await pro.apiLogin();
     await page.goto("/event-types");
     await createNewEventType(page, { eventTitle: "5 min", eventDescription: "A quick 5 minute chat." });
-    await bookingPage.checkAITranslation();
+    expect(await bookingPage.getAITranslationToggleDisabled()).toBe(false);
+    await bookingPage.toggleAITranslation();
     await bookingPage.updateEventType();
   });
 });
