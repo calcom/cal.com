@@ -42,7 +42,7 @@ type EventDetailCustomBlock = {
 
 type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
-interface EventMetaProps {
+interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;
   icon?: IconName;
   iconUrl?: string;
@@ -51,7 +51,6 @@ interface EventMetaProps {
   // applying in dark mode.
   highlight?: boolean;
   contentClassName?: string;
-  className?: string;
   isDark?: boolean;
 }
 
@@ -79,6 +78,7 @@ export const EventMetaBlock = ({
   contentClassName,
   className,
   isDark,
+  ...rest
 }: EventMetaProps) => {
   if (!React.Children.count(children)) return null;
 
@@ -88,7 +88,8 @@ export const EventMetaBlock = ({
         "flex items-start justify-start text-sm",
         highlight ? "text-emphasis" : "text-text",
         className
-      )}>
+      )}
+      {...rest}>
       {iconUrl ? (
         <img
           src={iconUrl}
