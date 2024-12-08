@@ -880,7 +880,8 @@ type CustomUserOptsKeys =
   | "organizationId"
   | "twoFactorEnabled"
   | "disableImpersonation"
-  | "role";
+  | "role"
+  | "identityProvider";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -946,6 +947,7 @@ const createUser = (
             },
           }
         : undefined,
+    identityProvider: opts?.identityProvider,
   };
 
   function getOrganizationRelatedProps({
