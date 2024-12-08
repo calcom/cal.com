@@ -1,12 +1,12 @@
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 const handler: AppDeclarativeHandler = {
-  appType: appConfig.type,
-  variant: appConfig.variant,
-  slug: appConfig.slug,
+  appType: metadata.type,
+  variant: metadata.variant,
+  slug: metadata.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
   createCredential: async ({ user, appType, slug, teamId }) => {

@@ -12,7 +12,7 @@ import { Prisma } from "@calcom/prisma/client";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
@@ -41,14 +41,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  const appKeys = await getAppKeysFromSlug(config.slug);
+  const appKeys = await getAppKeysFromSlug(metadata.slug);
   const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
 
   const params = {
     client_id,
     grant_type: "authorization_code",
     client_secret,
-    redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
+    redirect_uri: `${WEBAPP_URL}/api/integrations/${metadata.slug}/callback`,
     code,
   };
 
@@ -104,15 +104,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (primaryCalendar.uid) {
     const credential = await prisma.credential.create({
       data: {
-        type: config.type,
+        type: metadata.type,
         key,
         userId: req.session.user.id,
-        appId: config.slug,
+        appId: metadata.slug,
       },
     });
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
-      integration: config.type,
+      integration: metadata.type,
       externalId: primaryCalendar.uid,
     };
     // Wrapping in a try/catch to reduce chance of race conditions-
@@ -132,7 +132,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
           res.redirect(
             getSafeRedirectUrl(state?.returnTo) ??
-              getInstalledAppPath({ variant: "calendar", slug: config.slug })
+              getInstalledAppPath({ variant: "calendar", slug: metadata.slug })
           );
           return;
         }
@@ -143,7 +143,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       res.redirect(
         `${
           getSafeRedirectUrl(state?.onErrorReturnTo) ??
-          getInstalledAppPath({ variant: config.variant, slug: config.slug })
+          getInstalledAppPath({ variant: metadata.variant, slug: metadata.slug })
         }?error=${errorMessage}`
       );
       return;
@@ -151,7 +151,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: metadata.variant, slug: metadata.slug })
   );
 }
 
