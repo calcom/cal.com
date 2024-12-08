@@ -213,6 +213,12 @@ function UsersTableBare() {
                     <DropdownActions
                       actions={[
                         {
+                          id: "investigate",
+                          label: "Investigate",
+                          href: `/settings/admin/users/${user.id}/investigate`,
+                          icon: "eye",
+                        },
+                        {
                           id: "edit",
                           label: "Edit",
                           href: `/settings/admin/users/${user.id}/edit`,
