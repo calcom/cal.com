@@ -283,6 +283,10 @@ export async function getBookings({
         },
       },
     },
+    assignmentReason: {
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    },
   };
 
   const [
@@ -506,5 +510,6 @@ export async function getBookings({
       };
     })
   );
+  console.log("🚀 ~ bookings:", bookings);
   return { bookings, recurringInfo };
 }
