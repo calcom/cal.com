@@ -228,6 +228,7 @@ test.describe("Bookings", () => {
       page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
       page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
       page.goto(`/bookings/upcoming`),
+      page.waitForTimeout(2000),
       page.waitForURL(`**\/upcoming?status=upcoming&userIds=${firstUser.id}`),
     ]);
 
