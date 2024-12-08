@@ -37,15 +37,15 @@ async function processTranslations({
     );
 
     // Filter out null translations and their corresponding locales
-    const validTranslations = translations
-      .map((translatedText, index) => ({
-        translatedText,
+    const validTranslations: Array<{
+      translatedText: string;
+      targetLocale: (typeof SUPPORTED_LOCALES)[number];
+    }> = translations
+      .filter((trans) => trans !== null)
+      .map((trans, index) => ({
+        translatedText: trans,
         targetLocale: targetLocales[index],
-      }))
-      .filter(
-        (item): item is { translatedText: string; targetLocale: (typeof SUPPORTED_LOCALES)[number] } =>
-          item.translatedText !== null
-      );
+      }));
 
     if (validTranslations.length > 0) {
       const translationData = validTranslations.map(({ translatedText, targetLocale }) => ({
