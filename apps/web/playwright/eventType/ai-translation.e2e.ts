@@ -44,7 +44,7 @@ test.describe("AI Translation - Event Type", () => {
     expect(await bookingPage.getAITranslationToggleDisabled()).toBe(false);
   });
 
-  test("Enable the AI translation and test in booking page", async ({
+  test("Enable the AI translation and test in browser in Korean (ko-KR)", async ({
     page,
     orgs,
     users,
@@ -65,7 +65,7 @@ test.describe("AI Translation - Event Type", () => {
     await bookingPage.toggleAITranslation();
     await bookingPage.updateEventType();
 
-    await user.logout();
+    await user.logout(); // logging out because user locale overrides the browser locale otherwise
     await context.setExtraHTTPHeaders({
       "Accept-Language": "ko-KR",
     });
