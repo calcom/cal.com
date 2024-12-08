@@ -152,6 +152,7 @@ export const EventSetupTab = (
                 }}
                 disabled={!orgId}
                 tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+                data-testid="ai_translation_toggle"
               />
             </div>
           )}
