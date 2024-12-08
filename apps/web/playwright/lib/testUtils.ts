@@ -163,11 +163,16 @@ export async function localize(locale: string) {
   };
 }
 
-export const createNewEventType = async (page: Page, args: { eventTitle: string }) => {
+export const createNewEventType = async (
+  page: Page,
+  args: { eventTitle: string; eventDescription?: string }
+) => {
   await page.click("[data-testid=new-event-type]");
-  const eventTitle = args.eventTitle;
-  await page.fill("[name=title]", eventTitle);
+  await page.fill("[name=title]", args.eventTitle);
   await page.fill("[name=length]", "10");
+  if (args.eventDescription) {
+    await page.fill("[data-testid=editor-input]", args.eventDescription);
+  }
   await page.click("[type=submit]");
 
   await page.waitForURL((url) => {
