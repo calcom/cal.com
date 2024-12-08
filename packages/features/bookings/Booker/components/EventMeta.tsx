@@ -127,14 +127,12 @@ export const EventMeta = ({
       )}
       {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          {!isPlatform && (
-            <EventMembers
-              schedulingType={event.schedulingType}
-              users={event.users}
-              profile={event.profile}
-              entity={event.entity}
-            />
-          )}
+          <EventMembers
+            schedulingType={event.schedulingType}
+            users={event.users}
+            profile={event.profile}
+            entity={event.entity}
+          />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">

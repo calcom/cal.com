@@ -77,6 +77,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
+  bannerUrl?: string;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -95,7 +96,7 @@ export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomPro
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW" } = props;
+  const { view = "MONTH_VIEW", bannerUrl } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -482,6 +483,7 @@ export const BookerPlatformWrapper = (
         bookerForm={bookerForm}
         event={event}
         schedule={schedule}
+        orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
         bookerLayout={bookerLayout}
         verifyCode={undefined}
         isPlatform
