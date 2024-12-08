@@ -209,6 +209,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         meta: {
           sticky: {
@@ -352,6 +353,8 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        enableSorting: false,
+        enableResizing: false,
         size: 80,
         meta: {
           sticky: { position: "right" },
@@ -389,6 +392,7 @@ export function UserListTable() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
+    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
@@ -490,6 +494,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={{ name: "UserListTable" }}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">
