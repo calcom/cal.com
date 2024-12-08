@@ -355,6 +355,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
+  createdAttributeToUsers    AttributeToUser[]            @relation("createdBy")
+  updatedAttributeToUsers    AttributeToUser[]            @relation("updatedBy")
   createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
@@ -369,6 +371,7 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+
 }
 
 model NotificationsSubscriptions {
@@ -1500,6 +1503,9 @@ model DSyncData {
   organizationId   Int?                    @unique
   org              OrganizationSettings?   @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
   teamGroupMapping DSyncTeamGroupMapping[]
+
+  createdAttributeToUsers AttributeToUser[] @relation("createdByDSync")
+  updatedAttributeToUsers AttributeToUser[] @relation("updatedByDSync")
 }
 
 model DSyncTeamGroupMapping {
@@ -1581,6 +1587,12 @@ model AttributeOption {
   attributeId   String
   value         String
   slug          String
+  isGroup       Boolean           @default(false)
+  // It is a list of AttributeOptions ids that are contained in the group option
+  // You could think of a person having the group option to actually have all the options in the contains list.
+  // We are not using relation here because it would be a many to many relation because a group option can contain many non-group options and a non-group option can be contained in many group options
+  // Such a relation would require its own table to be managed and we don't need it for now.
+  contains      String[]
   assignedUsers AttributeToUser[]
 }
 
@@ -1603,6 +1615,7 @@ model Attribute {
   updatedAt        DateTime          @updatedAt
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
+  isLocked         Boolean           @default(false)
 }
 
 model AttributeToUser {
@@ -1613,7 +1626,21 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
+  
   weight            Int?
+  
+  // We don't intentionally delete assignments on deletion of a user/directory sync
+  createdAt         DateTime          @default(now())
+  createdById       Int?
+  createdBy         User?             @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByDSyncId  String?
+  createdByDSync    DSyncData?        @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
+  
+  updatedAt         DateTime?         @updatedAt
+  updatedBy         User?             @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById       Int?
+  updatedByDSyncId  String?
+  updatedByDSync    DSyncData?        @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
 }
@@ -1640,13 +1667,10 @@ enum EventTypeAutoTranslatedField {
 }
 
 model EventTypeTranslation {
-  id             String                       @id @default(cuid())
-  uid            String?
+  uid            String                       @id @default(cuid())
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
-  sourceLang     String
-  targetLang     String
   sourceLocale   String
   targetLocale   String
   translatedText String                       @db.Text
@@ -1657,9 +1681,7 @@ model EventTypeTranslation {
   creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
   updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  @@unique([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@unique([eventTypeId, field, targetLocale])
-  @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@index([eventTypeId, field, targetLocale])
 }
 

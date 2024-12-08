@@ -5,6 +5,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 
 const emailReminderTemplate = (
   isEditingMode: boolean,
+  locale: string,
   action?: WorkflowActions,
   timeFormat?: TimeFormat,
   startTime?: string,
@@ -28,9 +29,9 @@ const emailReminderTemplate = (
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = `{EVENT_DATE_${dateTimeFormat}}`;
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).format(dateTimeFormat);
+    eventDate = dayjs(startTime).tz(timeZone).locale(locale).format(dateTimeFormat);
 
-    endTime = dayjs(endTime).tz(timeZone).format(currentTimeFormat);
+    endTime = dayjs(endTime).tz(timeZone).locale(locale).format(currentTimeFormat);
   }
 
   const emailSubject = `Reminder: ${eventName} - ${eventDate}`;

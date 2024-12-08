@@ -15,3 +15,4 @@ export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calc
 export { Shell } from "./src/components/ui/shell";
 export { AddMembersWithSwitchWebWrapper } from "./add-members-switch/AddMembersWithSwitchWebWrapper";
 export { AddMembersWithSwitchPlatformWrapper } from "./add-members-switch/AddMembersWithSwitchPlatformWrapper";
+export { markdownToSafeHTML } from "./lib/markdownToSafeHTML";
