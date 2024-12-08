@@ -1,6 +1,6 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/profile";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -11,8 +11,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
+  const t = await getFixedT(locale ?? "en");
 
   return (
     <SettingsHeader

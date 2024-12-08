@@ -1,7 +1,7 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import LegacyPage from "@calcom/features/ee/organizations/pages/members";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
@@ -13,8 +13,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
+  const t = await getFixedT(locale ?? "en");
 
   return (
     <SettingsHeader title={t("organization_members")} description={t("organization_description")}>
