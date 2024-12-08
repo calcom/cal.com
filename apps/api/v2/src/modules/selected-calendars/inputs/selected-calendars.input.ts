@@ -1,4 +1,4 @@
-import { IsInt, IsString } from "class-validator";
+import { IsInt, IsString, IsOptional } from "class-validator";
 
 export class SelectedCalendarsInputDto {
   @IsString()
@@ -9,6 +9,10 @@ export class SelectedCalendarsInputDto {
 
   @IsInt()
   readonly credentialId!: number;
+
+  @IsInt()
+  @IsOptional()
+  readonly defaultReminder?: number;
 }
 
 export class SelectedCalendarsQueryParamsInputDto {

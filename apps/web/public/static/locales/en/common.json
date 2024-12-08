@@ -2840,5 +2840,6 @@
   "lock_attribute_for_assignment_description": "Locking would only allow assignments from Directory Sync",
   "attribute_edited_successfully": "Attribute edited successfully",
   "new_group_option": "New group option",
+  "reminder_has_been_saved": "Reminder has been updated",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

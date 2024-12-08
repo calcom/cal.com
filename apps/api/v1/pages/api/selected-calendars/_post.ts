@@ -39,6 +39,9 @@ import {
  *               externalId:
  *                 type: string
  *                 description: The external ID of the integration
+ *               defaultReminder:
+ *                 type: int
+ *                 description: The default reminder
  *     tags:
  *     - selected-calendars
  *     responses:
