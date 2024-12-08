@@ -37,11 +37,8 @@ async function processTranslations({
     );
 
     // Filter out null translations and their corresponding locales
-    const validTranslations: Array<{
-      translatedText: string;
-      targetLocale: (typeof SUPPORTED_LOCALES)[number];
-    }> = translations
-      .filter((trans) => trans !== null)
+    const validTranslations = translations
+      .filter((trans): trans is string => trans !== null)
       .map((trans, index) => ({
         translatedText: trans,
         targetLocale: targetLocales[index],
