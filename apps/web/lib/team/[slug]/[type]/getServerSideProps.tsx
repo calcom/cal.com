@@ -53,6 +53,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...getSlugOrRequestedSlug(teamSlug),
       parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
     },
+    orderBy: {
+      slug: { sort: "asc", nulls: "last" },
+    },
     select: {
       id: true,
       hideBranding: true,
