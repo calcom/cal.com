@@ -35,7 +35,8 @@ test.describe("check non-oAuth link-based conferencing apps using the new flow",
     const user = await users.create();
     await user.apiLogin();
     const eventTypes = await user.getUserEventsAsOwner();
-    const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 1);
+    const filteredEventTypes = eventTypes.filter((eventType) => !eventType.requiresConfirmation);
+    const eventTypeIds = filteredEventTypes.map((item) => item.id).filter((item, index) => index < 1);
     await appsPage.installConferencingAppNewFlow(APP, eventTypeIds);
     await appsPage.verifyConferencingAppNew(APP, eventTypeIds);
   });
