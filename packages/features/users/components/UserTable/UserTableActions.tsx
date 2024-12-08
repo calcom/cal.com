@@ -53,7 +53,7 @@ export function TableActions({
   const orgId = session?.user?.org?.id;
 
   return (
-    <>
+    <div className="flex w-full justify-center">
       <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
         <Tooltip content={t("view_public_page")}>
           <Button
@@ -212,6 +212,6 @@ export function TableActions({
           </DropdownMenuPortal>
         </Dropdown>
       </div>
-    </>
+    </div>
   );
 }

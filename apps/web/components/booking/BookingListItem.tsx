@@ -212,23 +212,27 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    {
-      id: "reschedule",
-      icon: "clock" as const,
-      label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-      }`,
-    },
-    {
-      id: "reschedule_request",
-      icon: "send" as const,
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      onClick: () => {
-        setIsOpenRescheduleDialog(true);
-      },
-    },
+    ...(isBookingInPast
+      ? []
+      : [
+          {
+            id: "reschedule",
+            icon: "clock" as const,
+            label: t("reschedule_booking"),
+            href: `/reschedule/${booking.uid}${
+              booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+            }`,
+          },
+          {
+            id: "reschedule_request",
+            icon: "send" as const,
+            iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+            label: t("send_reschedule_request"),
+            onClick: () => {
+              setIsOpenRescheduleDialog(true);
+            },
+          },
+        ]),
     ...(isBookingReroutable(parsedBooking)
       ? [
           {

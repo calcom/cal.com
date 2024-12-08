@@ -67,5 +67,10 @@
     "tailwind-merge": "^1.13.2",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.6"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-awesome-query-builder": "^5.1.2",
+    "react-dom": "^18.0.0 || ^19.0.0"
   }
 }
