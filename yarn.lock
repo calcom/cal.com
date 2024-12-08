@@ -5010,6 +5010,7 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
+    "@crabnebula/taurify-api": ^0.1.0
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
@@ -5524,6 +5525,13 @@ __metadata:
   version: 1.6.0
   resolution: "@colors/colors@npm:1.6.0"
   checksum: aa209963e0c3218e80a4a20553ba8c0fbb6fa13140540b4e5f97923790be06801fc90172c1114fc8b7e888b3d012b67298cde6b9e81521361becfaee400c662f
+  languageName: node
+  linkType: hard
+
+"@crabnebula/taurify-api@npm:^0.1.0":
+  version: 0.1.7
+  resolution: "@crabnebula/taurify-api@npm:0.1.7"
+  checksum: 9a081ade046ee935748c780517e6259b780f980d47fa5966fa0ba554cd6057a256b749aa38c6333fee7bdf3871322bcf0b23b6b0929389baf0f142959e98059f
   languageName: node
   linkType: hard
 
