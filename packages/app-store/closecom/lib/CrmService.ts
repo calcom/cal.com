@@ -9,9 +9,23 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, CrmEvent, Contact } from "@calcom/types/CrmService";
 
-const apiKeySchema = z.object({
-  encrypted: z.string(),
-});
+// Schema that supports both OAuth and API key credentials
+const credentialSchema = z
+  .object({
+    encrypted: z.string().optional(),
+    access_token: z.string().optional(),
+    refresh_token: z.string().optional(),
+    expires_at: z.number().optional(),
+  })
+  .refine(
+    (data) => {
+      // Either encrypted (API key) or access_token (OAuth) must be present
+      return !!data.encrypted || !!data.access_token;
+    },
+    {
+      message: "Either API key or OAuth credentials must be provided",
+    }
+  );
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -27,10 +41,7 @@ const calComCustomActivityFields: CloseComFieldOptions = [
 
 /**
  * Authentication
- * Close.com requires Basic Auth for any request to their APIs, which is far from
- * ideal considering that such a strategy requires generating an API Key by the
- * user and input it in our system. A Setup page was created when trying to install
- * Close.com App in order to instruct how to create such resource and to obtain it.
+ * Close.com provides OAuth for authentication.
  *
  * Meeting creation
  * Close.com does not expose a "Meeting" API, it may be available in the future.
@@ -55,17 +66,30 @@ export default class CloseComCRMService implements CRM {
     this.integrationName = "closecom_other_calendar";
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
-    const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
+    const parsedKey = credentialSchema.safeParse(credential.key);
 
-    let decrypted;
-    if (parsedCredentialKey.success) {
-      decrypted = symmetricDecrypt(parsedCredentialKey.data.encrypted, CALENDSO_ENCRYPTION_KEY);
+    if (!parsedKey.success) {
+      throw new Error(
+        `Invalid credentials for userId ${credential.userId} and appId ${credential.appId}: ${parsedKey.error}`
+      );
+    }
+
+    // Initialize CloseCom client based on credential type
+    if (parsedKey.data.encrypted) {
+      // API key authentication
+      const decrypted = symmetricDecrypt(parsedKey.data.encrypted, CALENDSO_ENCRYPTION_KEY);
       const { api_key } = JSON.parse(decrypted);
       this.closeCom = new CloseCom(api_key);
+    } else if (parsedKey.data.access_token) {
+      // OAuth authentication
+      this.closeCom = new CloseCom(parsedKey.data.access_token, {
+        refresh_token: parsedKey.data.refresh_token,
+        expires_at: parsedKey.data.expires_at,
+        isOAuth: true,
+        userId: credential.userId!,
+      });
     } else {
-      throw Error(
-        `No API Key found for userId ${credential.userId} and appId ${credential.appId}: ${parsedCredentialKey.error}`
-      );
+      throw new Error("No valid authentication method found");
     }
   }
 
