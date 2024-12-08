@@ -5,6 +5,7 @@ import type { TFunction } from "next-i18next";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -210,6 +211,7 @@ const OnboardingPage = (props: PageProps) => {
           </div>
         </div>
       </div>
+      <Toaster position="bottom-right" />
     </div>
   );
 };
