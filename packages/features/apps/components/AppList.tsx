@@ -7,12 +7,16 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import type {
+  BulkUpdatParams,
+  EventTypes,
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc";
+import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import {
   Alert,
@@ -27,17 +31,21 @@ import {
   Icon,
 } from "@calcom/ui";
 
-export type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
+export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
 interface AppListProps {
   variant?: AppCategories;
   data: RouterOutputs["viewer"]["integrations"];
-  handleDisconnect: (credentialId: number) => void;
+  handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
-  handleUpdateDefaultConferencingApp: (params: UpdateDefaultConferencingAppParams) => void;
+  handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
+  eventTypes?: EventTypes;
+  isEventTypesFetching?: boolean;
+  handleConnectDisconnectIntegrationMenuToggle: () => void;
+  handleBulkEditDialogToggle: () => void;
 }
 
 export const AppList = ({
@@ -46,9 +54,13 @@ export const AppList = ({
   variant,
   listClassName,
   defaultConferencingApp,
-  handleUpdateDefaultConferencingApp,
+  handleUpdateUserDefaultConferencingApp,
   handleBulkUpdateDefaultLocation,
   isBulkUpdateDefaultLocationPending,
+  eventTypes,
+  isEventTypesFetching,
+  handleConnectDisconnectIntegrationMenuToggle,
+  handleBulkEditDialogToggle,
 }: AppListProps) => {
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
@@ -150,9 +162,12 @@ export const AppList = ({
                           if (locationType?.linkType === "static") {
                             setLocationType({ ...locationType, slug: appSlug });
                           } else {
-                            handleUpdateDefaultConferencingApp({
+                            handleUpdateUserDefaultConferencingApp({
                               appSlug,
-                              callback: () => setBulkUpdateModal(true),
+                              onSuccessCallback: () => setBulkUpdateModal(true),
+                              onErrorCallback: () => {
+                                return;
+                              },
                             });
                           }
                         }}>
@@ -163,11 +178,15 @@ export const AppList = ({
                   <ConnectOrDisconnectIntegrationMenuItem
                     credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                     type={item.type}
+                    app={item.slug}
                     isGlobal={item.isGlobal}
                     installed
                     invalidCredentialIds={item.invalidCredentialIds}
                     handleDisconnect={handleDisconnect}
                     teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
+                    handleConnectDisconnectIntegrationMenuToggle={
+                      handleConnectDisconnectIntegrationMenuToggle
+                    }
                   />
                 </DropdownMenuContent>
               </Dropdown>
@@ -231,6 +250,7 @@ export const AppList = ({
           locationType={locationType}
           setLocationType={() => setLocationType(undefined)}
           onSuccess={onSuccessCallback}
+          handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
         />
       )}
 
@@ -241,6 +261,9 @@ export const AppList = ({
           setOpen={setBulkUpdateModal}
           isPending={isBulkUpdateDefaultLocationPending}
           description={t("default_conferencing_bulk_description")}
+          eventTypes={eventTypes}
+          isEventTypesFetching={isEventTypesFetching}
+          handleBulkEditDialogToggle={handleBulkEditDialogToggle}
         />
       )}
     </>
@@ -254,22 +277,19 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   installed?: boolean;
   invalidCredentialIds?: number[];
   teamId?: number;
-  handleDisconnect: (credentialId: number, teamId?: number) => void;
+  app: App["slug"];
+  handleDisconnect: HandleDisconnect;
+  handleConnectDisconnectIntegrationMenuToggle: () => void;
 }) {
-  const { type, credentialId, isGlobal, installed, handleDisconnect, teamId } = props;
+  const { type, credentialId, isGlobal, installed, handleDisconnect, teamId, app } = props;
   const { t } = useLocale();
-
-  const utils = trpc.useUtils();
-  const handleOpenChange = () => {
-    utils.viewer.integrations.invalidate();
-  };
 
   if (credentialId || type === "stripe_payment" || isGlobal) {
     return (
       <DropdownMenuItem>
         <DropdownItem
           color="destructive"
-          onClick={() => handleDisconnect(credentialId, teamId)}
+          onClick={() => handleDisconnect(credentialId, app, teamId)}
           disabled={isGlobal}
           StartIcon="trash">
           {t("remove_app")}
@@ -294,7 +314,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           {t("install")}
         </Button>
       )}
-      onChanged={handleOpenChange}
+      onChanged={props.handleConnectDisconnectIntegrationMenuToggle}
     />
   );
 }

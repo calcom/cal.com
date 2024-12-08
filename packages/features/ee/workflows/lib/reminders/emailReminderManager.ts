@@ -198,6 +198,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   } else if (template === WorkflowTemplates.RATING) {
     emailContent = emailRatingTemplate({
       isEditingMode: true,
+      locale: evt.organizer.language.locale,
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,

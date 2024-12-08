@@ -50,6 +50,9 @@ export const AvailabilitySettingsWebWrapper = ({
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
   const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
@@ -63,6 +66,10 @@ export const AvailabilitySettingsWebWrapper = ({
         },
       }
     );
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
   };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
@@ -142,6 +149,9 @@ export const AvailabilitySettingsWebWrapper = ({
         setIsOpen: setIsBulkUpdateModalOpen,
         save: bulkUpdateFunction,
         isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
+        eventTypes: eventTypesQueryData?.eventTypes,
+        isEventTypesFetching,
+        handleBulkEditDialogToggle: handleBulkEditDialogToggle,
       }}
     />
   );

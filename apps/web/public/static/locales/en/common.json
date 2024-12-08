@@ -2040,6 +2040,10 @@
   "workflows_unlocked_for_members_description": "Members will be able to add their personal workflows to this event type.  Members will be able to see the active team workflows but will not be able to edit any workflow settings.",
   "workflows_locked_by_team_admins_description": "You will be able to see the active team workflows but will not be able to edit any workflow settings or add your personal workflows to this event type.",
   "workflows_unlocked_by_team_admins_description": "You will be able to enable/disable personal workflows on this event type. You will be able to see the active team workflows but will not be able to edit any team workflow settings.",
+  "webhooks_locked_for_members_description": "Members can not add their personal webhooks to this event type. Members will be able to see the active webhooks but will not be able to edit any webhook settings.",
+  "webhooks_unlocked_for_members_description": "Members will be able to add their personal webhooks to this event type. Members will be able to see the active webhooks but will not be able to edit any webhook settings.",
+  "webhooks_locked_by_team_admins_description": "You are able to see the active managed webhooks but will not be able to edit any webhook settings or add your personal webhooks to this event type.",
+  "webhooks_unlocked_by_team_admins_description": "You can add webhooks to this event type. You are able to see the active managed webhooks but will not be able to edit them.",
   "locked_by_team_admin": "Locked by team admin",
   "app_not_connected": "You have not connected a {{appName}} account.",
   "connect_now": "Connect now",
@@ -2830,10 +2834,15 @@
   "multi_select": "Multi Select",
   "group_meeting": "Group Meeting",
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Lock for assignment",
+  "lock_attribute_for_assignment_description": "Locking would only allow assignments from Directory Sync",
+  "attribute_edited_successfully": "Attribute edited successfully",
+  "new_group_option": "New group option",
   "generate_credentials_description": "Generate credentials to use with {{appName}} at",
   "provide_credentials": "Provide Credntials",
   "provide_client_id": "Enter Client ID",
   "provide_client_secret": "Enter Client Secret",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
-

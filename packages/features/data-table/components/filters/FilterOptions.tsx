@@ -35,7 +35,7 @@ export function FilterOptions<TData>({ column, filter, state, setState, table }:
     table.getColumn(columnId)?.setFilterValue(undefined);
   };
 
-  if (column.type === "text") {
+  if (column.filterType === "text") {
     return (
       <TextFilterOptions
         column={column}
@@ -44,7 +44,7 @@ export function FilterOptions<TData>({ column, filter, state, setState, table }:
         removeFilter={removeFilter}
       />
     );
-  } else if (column.type === "select") {
+  } else if (column.filterType === "select") {
     return (
       <MultiSelectFilterOptions
         column={column}
