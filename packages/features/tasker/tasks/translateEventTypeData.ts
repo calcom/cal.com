@@ -56,12 +56,12 @@ async function processTranslations({
         userId,
       }));
 
-      const upsertMant =
+      const upsertMany =
         field === EventTypeAutoTranslatedField.DESCRIPTION
           ? EventTypeTranslationRepository.upsertManyDescriptionTranslations
           : EventTypeTranslationRepository.upsertManyTitleTranslations;
 
-      await upsertMant(translationData);
+      await upsertMany(translationData);
     }
   } catch (error) {
     logger.error(`Failed to process ${field} translations:`, error);
