@@ -1,7 +1,6 @@
-import type { Payment } from "@prisma/client";
-import type { EventType } from "@prisma/client";
+import type { EventType, Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type { StripeElementLocale, StripeElements } from "@stripe/stripe-js";
+import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
@@ -63,6 +62,10 @@ export const PaymentFormComponent = (
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
 
+  const paymentElementOptions = {
+    layout: "accordion",
+  } as StripePaymentElementOptions;
+
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
@@ -70,7 +73,7 @@ export const PaymentFormComponent = (
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>
       <div>
-        <PaymentElement onChange={() => onPaymentElementChange()} />
+        <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
       </div>
       {paymentOption === "HOLD" && (
         <div className="bg-info mb-5 mt-2 rounded-md p-3">

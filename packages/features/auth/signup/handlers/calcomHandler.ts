@@ -109,7 +109,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (req.usernameStatus.statusCode === 402) {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
       customer: customer.id,
       line_items: [
         {
