@@ -1,4 +1,8 @@
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import type { UseScheduleWithCacheArgs } from "./useSchedule";
 
@@ -13,8 +17,13 @@ export const useTimesForSchedule = ({
   dayCount,
   prefetchNextMonth,
 }: UseTimesForScheduleProps): [string, string] => {
-  const now = dayjs();
-  const monthDayjs = month ? dayjs(month) : now;
+  // setting the initial start time w.r.t selected time zone.
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  const selectedTimeZone = useTimePreferences().timezone;
+  const now = dayjs().tz(selectedTimeZone);
+  const monthDayjs = month ? dayjs.tz(month, "YYYY-MM", selectedTimeZone) : now;
+
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
