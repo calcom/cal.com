@@ -2830,5 +2830,11 @@
   "multi_select": "Wielokrotny wybór",
   "group_meeting": "Spotkanie grupowe",
   "salesforce_ignore_guests": "Nie twórz nowych rekordów dla gości dodanych do rezerwacji",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Zablokuj do przypisania",
+  "lock_attribute_for_assignment_description": "Blokada pozwoli na przypisania tylko z Directory Sync",
+  "attribute_edited_successfully": "Atrybut został pomyślnie edytowany",
+  "new_group_option": "Nowa opcja grupy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

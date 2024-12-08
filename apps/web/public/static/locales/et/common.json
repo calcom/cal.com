@@ -2830,5 +2830,11 @@
   "multi_select": "Mitmikvalik",
   "group_meeting": "Grupikohtumise",
   "salesforce_ignore_guests": "Ära loo broneeringule lisatud külaliste jaoks uusi kirjeid",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Lukusta määramiseks",
+  "lock_attribute_for_assignment_description": "Lukustamine lubab määramisi ainult Directory Sync kaudu",
+  "attribute_edited_successfully": "Atribuut edukalt muudetud",
+  "new_group_option": "Uus grupi valik",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

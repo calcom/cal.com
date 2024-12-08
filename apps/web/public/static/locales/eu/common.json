@@ -2830,5 +2830,11 @@
   "multi_select": "Hautapen anitza",
   "group_meeting": "Talde bilera",
   "salesforce_ignore_guests": "Ez sortu erregistro berririk erreserbara gehitutako gonbidatuentzat",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Blokeatu esleipenerako",
+  "lock_attribute_for_assignment_description": "Blokeatzeak Directory Sync-etik datozen esleipenak soilik baimenduko ditu",
+  "attribute_edited_successfully": "Atributua behar bezala editatu da",
+  "new_group_option": "Talde aukera berria",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
