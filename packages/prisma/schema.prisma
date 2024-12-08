@@ -362,6 +362,9 @@ model User {
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])

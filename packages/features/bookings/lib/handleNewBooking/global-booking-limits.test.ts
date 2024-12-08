@@ -15,6 +15,7 @@ import { describe, expect, vi, beforeAll } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 // Local test runs sometime gets too slow
@@ -35,6 +36,15 @@ const organizer = getOrganizer({
   id: 101,
   schedules: [TestData.schedules.IstWorkHours],
 });
+
+const organizerWithBookingLimits = (bookingLimits: IntervalLimit) =>
+  getOrganizer({
+    name: "Organizer",
+    email: "organizer@example.com",
+    id: 101,
+    schedules: [TestData.schedules.IstWorkHours],
+    bookingLimits,
+  });
 
 const otherTeamMembers = [
   {
@@ -563,6 +573,335 @@ describe(
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
+      });
+    });
+
+    describe("Individual Booking Limits", () => {
+      test(`Booking limits per day`, async ({}) => {
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: eventLength,
+                length: eventLength,
+                schedulingType: null,
+                userId: 101,
+              },
+              {
+                id: 2,
+                slotInterval: eventLength,
+                length: eventLength,
+                schedulingType: null,
+                userId: 101,
+              },
+            ],
+            bookings: [],
+            organizer: organizerWithBookingLimits({ PER_DAY: 1 }),
+          })
+        );
+
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-07T04:30:00.000Z`,
+            end: `2024-08-07T05:00:00.000Z`,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req1 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData1,
+        });
+
+        const createdBooking = await handleNewBooking(req1);
+
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-07T08:00:00.000Z`,
+            end: `2024-08-07T08:30:00.000Z`,
+            eventTypeId: 2,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req2 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData2,
+        });
+
+        // this is the second booking of this day for user 101, limit reached
+        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+      });
+      test(`Booking limits per week`, async ({}) => {
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: eventLength,
+                length: eventLength,
+                schedulingType: null,
+                userId: 101,
+              },
+              {
+                id: 2,
+                slotInterval: eventLength,
+                length: eventLength,
+                schedulingType: null,
+                userId: 101,
+              },
+            ],
+            bookings: [
+              {
+                eventTypeId: 2,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-05T03:30:00.000Z`,
+                endTime: `2024-08-05T04:00:00.000Z`,
+              },
+              {
+                eventTypeId: 1,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-07T04:30:00.000Z`,
+                endTime: `2024-08-07T05:00:00.000Z`,
+              },
+            ],
+            organizer: organizerWithBookingLimits({ PER_WEEK: 3 }),
+          })
+        );
+
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-08T04:00:00.000Z`,
+            end: `2024-08-08T04:30:00.000Z`,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req1 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData1,
+        });
+
+        const createdBooking = await handleNewBooking(req1);
+
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-09T04:00:00.000Z`,
+            end: `2024-08-09T04:30:00.000Z`,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req2 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData2,
+        });
+
+        // this is the fourth booking of this week for user 101, limit reached
+        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+      });
+      test(`Booking limits per month`, async ({}) => {
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: eventLength,
+                length: eventLength,
+                schedulingType: null,
+                userId: 101,
+              },
+              {
+                id: 2,
+                slotInterval: eventLength,
+                length: eventLength,
+                schedulingType: null,
+                userId: 101,
+              },
+            ],
+            bookings: [
+              {
+                eventTypeId: 1,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-03T03:30:00.000Z`,
+                endTime: `2024-08-03T04:00:00.000Z`,
+              },
+              {
+                eventTypeId: 2,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-22T03:30:00.000Z`,
+                endTime: `2024-08-22T04:00:00.000Z`,
+              },
+            ],
+            organizer: organizerWithBookingLimits({ PER_MONTH: 3 }),
+          })
+        );
+
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-29T04:30:00.000Z`,
+            end: `2024-08-29T05:00:00.000Z`,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req1 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData1,
+        });
+
+        const createdBooking = await handleNewBooking(req1);
+
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-25T04:00:00.000Z`,
+            end: `2024-08-25T04:30:00.000Z`,
+            eventTypeId: 2,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req2 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData2,
+        });
+
+        // this is the fourth booking of this month for user 101, limit reached
+        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+      });
+      test(`Booking limits per year`, async ({}) => {
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                schedulingType: null,
+              },
+              {
+                id: 2,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                schedulingType: null,
+              },
+            ],
+            bookings: [
+              {
+                eventTypeId: 1,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-02-03T03:30:00.000Z`,
+                endTime: `2024-08-03T04:00:00.000Z`,
+              },
+            ],
+            organizer: organizerWithBookingLimits({ PER_YEAR: 2 }),
+          })
+        );
+
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-08-29T04:30:00.000Z`,
+            end: `2024-08-29T05:00:00.000Z`,
+            eventTypeId: 2,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req1 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData1,
+        });
+
+        const createdBooking = await handleNewBooking(req1);
+
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            start: `2024-11-25T04:00:00.000Z`,
+            end: `2024-11-25T04:30:00.000Z`,
+            eventTypeId: 2,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req: req2 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData2,
+        });
+
+        // this is the third booking of this year for user 101, limit reached
+        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
       });
     });
   },
