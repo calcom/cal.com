@@ -2548,7 +2548,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOrganizationUsersOutput"
+                  "$ref": "#/components/schemas/GetOrganizationUsersResponseDTO"
                 }
               }
             }
@@ -4177,30 +4177,12 @@
             }
           },
           {
-            "name": "eventTypeId",
-            "required": false,
-            "in": "query",
-            "description": "Id of the event-type, if this is provided no other parameter is required",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "usernames",
             "required": false,
             "in": "query",
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": false,
-            "in": "query",
-            "description": "ID of the user you want the get the event-types of, username is not needed when using this parameter",
-            "schema": {
-              "type": "number"
             }
           },
           {
@@ -9784,7 +9766,38 @@
           "status"
         ]
       },
-      "GetUserOutput": {
+      "ProfileOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The ID of the profile of user",
+            "example": 1
+          },
+          "organizationId": {
+            "type": "number",
+            "description": "The ID of the organization of user",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "description": "The IDof the user",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "The username of the user within the organization context",
+            "example": "john_doe"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "userId"
+        ]
+      },
+      "GetOrgUsersWithProfileOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -9908,6 +9921,14 @@
             "nullable": true,
             "description": "The ID of the user who invited this user",
             "example": 1
+          },
+          "profile": {
+            "description": "organization user profile, contains user data within the organizaton context",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileOutput"
+              }
+            ]
           }
         },
         "required": [
@@ -9916,10 +9937,11 @@
           "timeZone",
           "weekStart",
           "hideBranding",
-          "createdDate"
+          "createdDate",
+          "profile"
         ]
       },
-      "GetOrganizationUsersOutput": {
+      "GetOrganizationUsersResponseDTO": {
         "type": "object",
         "properties": {
           "status": {
@@ -9933,7 +9955,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/GetUserOutput"
+              "$ref": "#/components/schemas/GetOrgUsersWithProfileOutput"
             }
           }
         },
@@ -10042,7 +10064,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/GetUserOutput"
+            "$ref": "#/components/schemas/GetOrgUsersWithProfileOutput"
           }
         },
         "required": [
