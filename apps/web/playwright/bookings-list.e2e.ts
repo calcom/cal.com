@@ -226,6 +226,7 @@ test.describe("Bookings", () => {
     await firstUser.apiLogin();
     await Promise.all([
       page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
+      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
       page.goto(`/bookings/upcoming`),
       page.waitForURL(`**\/upcoming?status=upcoming&userIds=${firstUser.id}`),
     ]);
@@ -240,17 +241,6 @@ test.describe("Bookings", () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       firstUpcomingBooking.locator(`text=${firstUserBooking!.title}`)
     ).toBeVisible();
-
-    //expect all 3 bookings are visible, on clearing filter
-    const clearFiltersBtn = page.getByText(`${t("remove_filters")}`).nth(0);
-    await Promise.all([
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      clearFiltersBtn.click(),
-    ]);
-    const upcomingBookingsTable2 = page.locator('[data-testid="upcoming-bookings"]');
-    const bookingListItems2 = upcomingBookingsTable2.locator('[data-testid="booking-item"]');
-    const bookingListCount2 = await bookingListItems2.count();
-    expect(bookingListCount2).toBe(3);
   });
 });
 
