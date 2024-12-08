@@ -76,7 +76,7 @@ export default class Office365CalendarService implements Calendar {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
-            scope: "User.Read Calendars.Read Calendars.ReadWrite",
+            scope: "User.Read Calendars.Read Calendars.ReadWrite Calendars.ReadWrite.Shared",
             client_id,
             refresh_token: refreshToken,
             grant_type: "refresh_token",

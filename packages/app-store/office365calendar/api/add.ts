@@ -6,7 +6,7 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
+const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "Calendars.ReadWrite.Shared", "offline_access"];
 
 let client_id = "";
 
