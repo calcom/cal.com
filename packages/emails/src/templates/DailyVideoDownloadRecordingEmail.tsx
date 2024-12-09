@@ -53,7 +53,7 @@ export const DailyVideoDownloadRecordingEmail = (
         <>{props.language("download_your_recording")}</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <>{props.language("hi_user_name", { name: props.name })},</>
+        <>{props.language("hi_user_name", { name: decodeHTML(props.name) })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "40px" }}>
         <>{props.language("recording_from_your_recent_call", { appName: APP_NAME })}</>

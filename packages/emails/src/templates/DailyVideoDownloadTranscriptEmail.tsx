@@ -52,7 +52,7 @@ export const DailyVideoDownloadTranscriptEmail = (
         <>{props.language("download_your_transcripts")}</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <>{props.language("hi_user_name", { name: props.name })},</>
+        <>{props.language("hi_user_name", { name: decodeHTML(props.name) })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "40px" }}>
         <>{props.language("transcript_from_previous_call", { appName: APP_NAME })}</>
