@@ -422,7 +422,6 @@ async function selectDateAndCreateOOO(
   expectedStatusCode = 200
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="day"].rdp-day_range_start`).click();
   await page.locator(`button[name="next-month"]`).click();
   await page.locator(`button[name="day"]:has-text("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:has-text("${toDate}")`).nth(0).click();
