@@ -194,11 +194,21 @@
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
-            "platform/atoms/calendar-settings"
+            "platform/atoms/event-type",
+            "platform/atoms/calendar-settings",
+            "platform/atoms/payment-form"
+          ]
+        },
+        {
+          "group": "Guides",
+          "icon": "book",
+          "pages": [
+            "platform/guides/replacing-toasts",
+            "platform/guides/booking-fields",
+            "platform/guides/booking-redirects"
           ]
         },
         "platform/quickstart",
-        "platform/booking-redirects",
         "platform/faq"
       ]
     },

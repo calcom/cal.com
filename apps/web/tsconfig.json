@@ -9,6 +9,7 @@
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/repository/*": ["@calcom/lib/server/repository/*"],
       "@calcom/ui/*": ["../../packages/ui/components/*"]
     },
     "plugins": [
@@ -30,7 +31,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "../../packages/features/bookings/lib/getBookingInfo.ts",
-    "../../packages/features/bookings/lib/getUserBooking.ts"
+    "../../packages/features/bookings/lib/getUserBooking.ts",
+    "../../packages/features/Segment.tsx"
   ],
   "exclude": ["node_modules"]
 }

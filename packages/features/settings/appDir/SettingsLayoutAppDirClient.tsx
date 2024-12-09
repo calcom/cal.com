@@ -79,10 +79,6 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/general",
       },
       {
-        name: "members",
-        href: "/settings/organizations/members",
-      },
-      {
         name: "privacy",
         href: "/settings/organizations/privacy",
       },
@@ -103,6 +99,10 @@ const tabs: VerticalTabItemProps[] = [
         name: "admin_api",
         href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
       },
+      // {
+      //   name: "domain_wide_delegation",
+      //   href: "/settings/organizations/domain-wide-delegation",
+      // },
     ],
   },
   {
@@ -131,6 +131,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "organizations", href: "/settings/admin/organizations" },
       { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
+      { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
     ],
   },
 ];
@@ -140,6 +141,9 @@ tabs.find((tab) => {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
+  }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_your_org", href: "/settings/organizations/new" });
   }
   if (tab.name === "admin" && IS_CALCOM) {
     tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
@@ -230,7 +234,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
         name="arrow-left"
         className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
       />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
+      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -342,7 +346,7 @@ const TeamListCollapsible = () => {
                   />
                   <VerticalTabItem
                     name={t("event_types_page_title")}
-                    href={`/event-types?teamIds=${team.id}`}
+                    href={`/event-types?teamId=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
@@ -669,6 +673,7 @@ export type SettingsLayoutProps = {
   children: React.ReactNode;
   currentOrg: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
   otherTeams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>> | null;
+  containerClassName?: string;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayoutAppDirClient({
@@ -720,7 +725,8 @@ export default function SettingsLayoutAppDirClient({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
+        <div
+          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>

@@ -12,6 +12,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
@@ -249,7 +250,7 @@ export const BookerPlatformWrapper = (
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.timeZone,
+    timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     ...(props.isTeamEvent
@@ -336,7 +337,7 @@ export const BookerPlatformWrapper = (
     }))
   );
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
+    loggedInUsersTz: timezone,
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: latestCalendarsToLoad,
@@ -361,9 +362,9 @@ export const BookerPlatformWrapper = (
     (state: boolean) => {
       setIsOverlayCalendarEnabled(state);
       if (state) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
+        localStorage?.removeItem("overlayCalendarSwitchDefault");
       }
     },
     [setIsOverlayCalendarEnabled]
@@ -394,7 +395,7 @@ export const BookerPlatformWrapper = (
 
   useEffect(() => {
     if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
-      localStorage.removeItem("overlayCalendarSwitchDefault");
+      localStorage?.removeItem("overlayCalendarSwitchDefault");
     }
     setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
   }, [view, isOverlayCalendarEnabled]);

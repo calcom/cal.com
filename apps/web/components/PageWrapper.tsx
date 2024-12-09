@@ -40,6 +40,8 @@ function PageWrapper(props: AppProps) {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
     pageStatus = "500";
+  } else if (router.pathname === "/403") {
+    pageStatus = "403";
   }
 
   // On client side don't let nonce creep into DOM
@@ -79,6 +81,9 @@ function PageWrapper(props: AppProps) {
       <Script
         nonce={nonce}
         id="page-status"
+        // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+        // And we don't want it to error here anyways
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
 

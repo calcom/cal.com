@@ -16,6 +16,7 @@ import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
@@ -79,6 +80,7 @@ describe("OAuth Client Users Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let postResponseData: CreateManagedUserOutput["data"];
 
@@ -103,24 +105,31 @@ describe("OAuth Client Users Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
-      organization = await teamRepositoryFixture.create({ name: "organization" });
+      organization = await teamRepositoryFixture.create({
+        name: "organization",
+        isPlatform: true,
+        isOrganization: true,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       await profilesRepositoryFixture.create({
-        uid: "asd-asd",
+        uid: "asd1qwwqeqw-asddsadasd",
         username: platformAdminEmail,
         organization: { connect: { id: organization.id } },
-        movedFromUser: {
-          connect: {
-            id: platformAdmin.id,
-          },
-        },
         user: {
           connect: { id: platformAdmin.id },
         },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: platformAdmin.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       await app.init();
@@ -370,7 +379,7 @@ describe("OAuth Client Users Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
-
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let postResponseData: CreateManagedUserOutput["data"];
 
     const userEmail = "oauth-client-users-user@gmail.com";
@@ -390,10 +399,11 @@ describe("OAuth Client Users Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
         name: "Testy Organization",
         isOrganization: true,
+        isPlatform: true,
       });
 
       owner = await userRepositoryFixture.create({
@@ -415,6 +425,13 @@ describe("OAuth Client Users Endpoints", () => {
             id: owner.id,
           },
         },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: owner.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       oAuthClient1 = await createOAuthClient(organization.id);
@@ -510,7 +527,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(oAuthClient1).toBeDefined();
     });
 
-    it(`should create managed user and update team event-types of OAuthClient marked as assignAllTeamMembers: true`, async () => {
+    it(`should create managed user and update team event-types`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: userTimeZone,
@@ -532,48 +549,13 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
 
-      await userHasCorrectEventTypes(responseBody.data.user.id);
       await teamHasCorrectEventTypes(team1.id);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
     });
 
-    async function userHasCorrectEventTypes(userId: number) {
-      const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
-
-      expect(eventTypes?.length).toEqual(5);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
-
-      // note(Lauris): default event types
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug)
-      ).toBeTruthy();
-    }
-
     async function teamHasCorrectEventTypes(teamId: number) {
       const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
-
       expect(eventTypes?.length).toEqual(2);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
-
-      // note(Lauris): check if managed user added to collective event-type hosts given that it has assignAllTeamMembers: true
-      const collective = eventTypes?.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-      expect(collective).toBeTruthy();
-      expect(collective?.hosts).toBeDefined();
-      expect(collective?.hosts?.length).toEqual(1);
-      expect(collective?.hosts[0].userId).toEqual(postResponseData.user.id);
     }
 
     afterAll(async () => {

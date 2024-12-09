@@ -37,7 +37,7 @@ export const PlatformBillingCard = ({
         </h1>
         <p className="pb-5 pt-3 text-base">{description}</p>
         <h1 className="text-3xl font-semibold">
-          {pricing && (
+          {pricing !== undefined && (
             <>
               US${pricing} <span className="text-sm">per month</span>
             </>
@@ -50,7 +50,7 @@ export const PlatformBillingCard = ({
             loading={isLoading}
             onClick={handleSubscribe}
             className="flex w-[100%] items-center justify-center">
-            {pricing ? "Subscribe" : "Schedule a time"}
+            {pricing !== undefined ? "Subscribe" : "Schedule a time"}
           </Button>
         </div>
       )}
