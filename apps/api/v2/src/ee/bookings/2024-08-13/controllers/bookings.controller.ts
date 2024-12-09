@@ -53,6 +53,7 @@ import {
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
+  DeclineBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -190,7 +191,12 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/cancel")
   @UseGuards(BookingUidGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Cancel a booking" })
+  @ApiOperation({
+    summary: "Cancel a booking",
+    description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
+    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call
+    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
+  })
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
@@ -275,6 +281,53 @@ export class BookingsController_2024_08_13 {
       reassignedById,
       body
     );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
+
+  @Post("/:bookingUid/confirm")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Confirm booking that requires a confirmation" })
+  async confirmBooking(
+    @Param("bookingUid") bookingUid: string,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.confirmBooking(bookingUid, user);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
+
+  @Post("/:bookingUid/decline")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Decline booking that requires a confirmation" })
+  async declineBooking(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: DeclineBookingInput_2024_08_13,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.declineBooking(bookingUid, user, body.reason);
 
     return {
       status: SUCCESS_STATUS,

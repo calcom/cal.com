@@ -213,7 +213,7 @@ export class WorkflowRepository {
           position: "desc",
         },
         {
-          id: "asc",
+          id: "desc",
         },
       ],
     });
@@ -267,7 +267,7 @@ export class WorkflowRepository {
         where,
         include: includedFields,
         orderBy: {
-          id: "asc",
+          id: "desc",
         },
       });
 

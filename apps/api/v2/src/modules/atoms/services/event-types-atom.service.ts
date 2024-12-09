@@ -19,6 +19,9 @@ import {
   getAppFromSlug,
   MembershipRole,
   EventTypeMetaDataSchema,
+  getClientSecretFromPayment,
+  getBulkEventTypes,
+  bulkUpdateEventsToDefaultLocation,
 } from "@calcom/platform-libraries";
 import type {
   App,
@@ -29,8 +32,7 @@ import type {
   TDependencyData,
   CredentialPayload,
 } from "@calcom/platform-libraries";
-import { getClientSecretFromPayment } from "@calcom/platform-libraries";
-import { PrismaClient } from "@calcom/prisma/client";
+import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -79,6 +81,10 @@ export class EventTypesAtomService {
     }
 
     return eventType;
+  }
+
+  async getUserEventTypes(userId: number) {
+    return getBulkEventTypes(userId);
   }
 
   async updateTeamEventType(
@@ -316,5 +322,13 @@ export class EventTypesAtomService {
       clientSecret: getClientSecretFromPayment(payment),
       profile,
     };
+  }
+
+  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[]) {
+    return bulkUpdateEventsToDefaultLocation({
+      eventTypeIds,
+      user,
+      prisma: this.dbWrite.prisma as unknown as PrismaClient,
+    });
   }
 }

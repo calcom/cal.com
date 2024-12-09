@@ -34,6 +34,8 @@ type StoreInitializeType = {
   isInstantMeeting?: boolean;
   timeZone?: string | null;
   teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
 };
 
 type SeatedEventData = {
@@ -155,6 +157,8 @@ export type BookerStore = {
   setTimeZone: (timeZone: string | null) => void;
   
   teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
 };
 
 /**
@@ -266,6 +270,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     isInstantMeeting,
     timeZone = null,
     teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -280,7 +286,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().layout === layout &&
       get().timeZone === timeZone &&
       get().rescheduledBy === rescheduledBy &&
-      get().teamMemberEmail
+      get().teamMemberEmail === teamMemberEmail &&
+      get().crmOwnerRecordType === crmOwnerRecordType &&
+      get().crmAppSlug
     )
       return;
     set({
@@ -301,6 +309,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         selectedDateInStore ||
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
       teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -391,6 +401,8 @@ export const useInitializeBookerStore = ({
   isInstantMeeting,
   timeZone = null,
   teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -410,6 +422,8 @@ export const useInitializeBookerStore = ({
       isInstantMeeting,
       timeZone,
       teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
     });
   }, [
     initializeStore,
@@ -428,5 +442,7 @@ export const useInitializeBookerStore = ({
     isInstantMeeting,
     timeZone,
     teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
   ]);
 };

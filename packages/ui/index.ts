@@ -15,6 +15,7 @@ export { Button, LinkIconButton, buttonClasses } from "./components/button";
 export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export { EditableHeading } from "./components/editable-heading";
+export { FilterSelect } from "./components/filter-select";
 export {
   Checkbox,
   CheckboxField,
@@ -151,7 +152,6 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable";
 export { WizardLayout } from "./layouts/WizardLayout";
-export * from "./components/data-table";
 export * from "./components/sheet";
 export * from "./components/table";
 export * from "./components/popover";
@@ -168,6 +168,8 @@ export {
   CommandSeparator,
   CommandShortcut,
 } from "./components/command";
+
+export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardPortal } from "./components/hover-card";
 
 export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";

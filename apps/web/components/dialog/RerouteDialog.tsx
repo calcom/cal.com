@@ -775,9 +775,9 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   >([]);
 
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
-        setTeamMembersMatchingAttributeLogic(data.result);
+        setTeamMembersMatchingAttributeLogic(data.result ? data.result.users : data.result);
       },
     });
 

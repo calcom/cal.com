@@ -104,8 +104,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       ? currentlyEditingOutOfOfficeEntry
       : {
           dateRange: {
-            startDate: dayjs().utc().startOf("d").toDate(),
-            endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
+            startDate: dayjs().startOf("d").toDate(),
+            endDate: dayjs().startOf("d").add(2, "d").toDate(),
           },
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
@@ -162,6 +162,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   control={control}
                   render={({ field: { onChange, value } }) => (
                     <DateRangePicker
+                      minDate={null}
                       dates={{ startDate: value.startDate, endDate: value.endDate }}
                       onDatesChange={(values) => {
                         onChange(values);

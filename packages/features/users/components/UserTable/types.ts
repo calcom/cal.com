@@ -10,6 +10,7 @@ export interface UserTableUser {
   accepted: boolean;
   disableImpersonation: boolean;
   completedOnboarding: boolean;
+  lastActiveAt: string;
   teams: {
     id: number;
     name: string;
@@ -20,6 +21,7 @@ export interface UserTableUser {
     attributeId: string;
     value: string;
     slug: string;
+    contains: string[];
   }[];
 }
 
