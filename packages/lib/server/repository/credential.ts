@@ -67,6 +67,15 @@ export class CredentialRepository {
     return withDelegatedToIdNull(credential);
   }
 
+  static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
+    return await prisma.credential.findFirst({
+      where: {
+        appId,
+        userId,
+      },
+    });
+  }
+
   static async findFirstByUserIdAndType({ userId, type }: { userId: number; type: string }) {
     const credential = await prisma.credential.findFirst({ where: { userId, type } });
     return withDelegatedToIdNull(credential);

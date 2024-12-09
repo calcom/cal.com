@@ -168,6 +168,8 @@ const useTabs = () => {
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   const isOrgAdminOrOwner =
     orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
+  // const flags = useFlags();
+  // console.log("flags", flags);
 
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {

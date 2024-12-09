@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { workspacePlatformUpdateSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
+
 export default async function updateHandler({
   input,
 }: {
@@ -26,4 +27,3 @@ export default async function updateHandler({
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to update workspace platform" });
   }
 }
-  

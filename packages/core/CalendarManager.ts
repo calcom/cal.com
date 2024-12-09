@@ -51,8 +51,8 @@ export async function getCredentialForCalendarService<
       delegatedTo: null,
     } as CredentialForCalendarService<T>;
   }
-
-  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
+  const domainWideDelegationRepository = new DomainWideDelegationRepository();
+  const domainWideDelegation = await domainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
     {
       id: credential.delegatedToId,
     }

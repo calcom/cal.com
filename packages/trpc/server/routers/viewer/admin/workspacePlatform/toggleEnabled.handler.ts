@@ -4,6 +4,7 @@ import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/works
 
 import type { workspacePlatformToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
+
 export default async function toggleEnabledHandler({
   input,
 }: {

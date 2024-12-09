@@ -1,9 +1,10 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAllDomainWideDelegationCredentialsForUserByAppSlug } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
-import { getAllDomainWideDelegationCredentialsForUserByAppSlug } from "@calcom/lib/domainWideDelegation/server";
+
 type QueryForDependenciesOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -26,10 +27,13 @@ export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDepend
         },
       });
 
-      const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUserByAppSlug({ user: ctx.user, appSlug: appId });
-      const appInstalled = !!dbCredential || !!domainWideDelegationCredentials.length
+      const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUserByAppSlug({
+        user: ctx.user,
+        appSlug: appId,
+      });
+      const appInstalled = !!dbCredential || !!domainWideDelegationCredentials.length;
 
-      const app =  getAppFromSlug(dependency);
+      const app = getAppFromSlug(dependency);
 
       dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
     })

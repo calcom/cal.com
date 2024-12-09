@@ -1,8 +1,8 @@
 import type { z } from "zod";
 
+import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
-import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
 import type { DomainWideDelegationToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
@@ -18,9 +18,10 @@ const assertWorkspaceConfigured = async ({
   user,
 }: {
   domainWideDelegationId: string;
-  user: { id: number; email: string };
+  user: { id: number; email: string; organizationId: number | null };
 }) => {
-  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
+  const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, user.organizationId);
+  const domainWideDelegation = await domainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
     {
       id: domainWideDelegationId,
     }
@@ -48,16 +49,24 @@ export default async function toggleEnabledHandler({
   ctx,
   input,
 }: {
-  ctx: { user: { id: number; email: string } };
+  ctx: { user: { id: number; email: string; organizationId: number | null } };
   input: z.infer<typeof DomainWideDelegationToggleEnabledSchema>;
 }) {
   const { user: loggedInUser } = ctx;
 
   if (input.enabled) {
-    await assertWorkspaceConfigured({ domainWideDelegationId: input.id, user: loggedInUser });
+    await assertWorkspaceConfigured({
+      domainWideDelegationId: input.id,
+      user: loggedInUser,
+    });
   }
 
-  const updatedDomainWideDelegation = await DomainWideDelegationRepository.updateById({
+  const domainWideDelegationRepository = await DomainWideDelegation.init(
+    loggedInUser.id,
+    loggedInUser.organizationId
+  );
+
+  const updatedDomainWideDelegation = await domainWideDelegationRepository.updateById({
     id: input.id,
     data: {
       enabled: input.enabled,

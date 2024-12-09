@@ -4,12 +4,16 @@ import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
+import {
+  getTeamMembersWithAttributeOptionValuePerAttribute,
+  getAttributesForTeam,
+} from "@calcom/lib/service/attribute/server/getAttributes";
+import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 
 import { RaqbLogicResult } from "./evaluateRaqbLogic";
-import { getTeamMembersWithAttributeOptionValuePerAttribute, getAttributesForTeam } from "./getAttributes";
 import jsonLogic from "./jsonLogic";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
-import type { Attribute, AttributesQueryValue } from "./types";
+import type { AttributesQueryValue } from "./types";
 
 const {
   getAttributesData: getAttributes,

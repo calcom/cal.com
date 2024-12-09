@@ -40,7 +40,7 @@ const handleDeleteCredential = async ({
   teamId,
 }: {
   userId: number;
-  userMetadata: Prisma.JsonValue;
+  userMetadata?: Prisma.JsonValue;
   credentialId: number;
   teamId?: number;
 }) => {

@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
+import type { IDomainWideDelegationRepository } from "@calcom/features/domain-wide-delegation/domain-wide-delegation-repository.interface";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
@@ -37,7 +39,7 @@ const domainWideDelegationSelectIncludesServiceAccountKey = {
   serviceAccountKey: true,
 };
 
-export class DomainWideDelegationRepository {
+export class DomainWideDelegationRepository implements IDomainWideDelegationRepository {
   private static withParsedServiceAccountKey<T extends { serviceAccountKey: Prisma.JsonValue } | null>(
     domainWideDelegation: T
   ) {
@@ -52,7 +54,7 @@ export class DomainWideDelegationRepository {
     };
   }
 
-  static async create(data: {
+  async create(data: {
     domain: string;
     enabled: boolean;
     organizationId: number;
@@ -79,14 +81,14 @@ export class DomainWideDelegationRepository {
     });
   }
 
-  static async findById({ id }: { id: string }) {
+  async findById({ id }: { id: string }) {
     return await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSafeSelect,
     });
   }
 
-  static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
+  async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
     const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
       where: { id },
       select: domainWideDelegationSelectIncludesServiceAccountKey,
@@ -95,7 +97,7 @@ export class DomainWideDelegationRepository {
     return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
-  static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
+  async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
     const log = repositoryLogger.getSubLogger({ prefix: ["findUniqueByOrganizationMemberEmail"] });
     log.debug("called with", { email });
     const organization = await OrganizationRepository.findByMemberEmail({ email });
@@ -118,23 +120,30 @@ export class DomainWideDelegationRepository {
     return domainWideDelegation;
   }
 
-  static async findByUser({ user }: { user: { email: string } }) {
+  async findByUser({ user }: { user: { email: string } }) {
     return await this.findUniqueByOrganizationMemberEmail({ email: user.email });
   }
 
   static async findAllByDomain({ domain }: { domain: string }) {
     return await prisma.domainWideDelegation.findMany({
       where: { domain },
+      select: domainWideDelegationSafeSelect,
     });
   }
 
   static async findFirstByOrganizationId({ organizationId }: { organizationId: number }) {
+    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
+    if (!domainWideDelegationEnabled) {
+      return null;
+    }
+
     return await prisma.domainWideDelegation.findFirst({
       where: { organizationId },
+      select: domainWideDelegationSafeSelect,
     });
   }
 
-  static async updateById({
+  async updateById({
     id,
     data,
   }: {
@@ -170,13 +179,13 @@ export class DomainWideDelegationRepository {
     });
   }
 
-  static async deleteById({ id }: { id: string }) {
+  async deleteById({ id }: { id: string }) {
     return await prisma.domainWideDelegation.delete({
       where: { id },
     });
   }
 
-  static async findDelegationsWithServiceAccount({ organizationId }: { organizationId: number }) {
+  async findDelegationsWithServiceAccount({ organizationId }: { organizationId: number }) {
     return await prisma.domainWideDelegation.findMany({
       where: { organizationId },
       select: {

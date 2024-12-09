@@ -6,15 +6,13 @@ import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
+import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import {
   workspacePlatformCreateSchema,
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-
-import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
-
 
 const NAMESPACE = "admin";
 

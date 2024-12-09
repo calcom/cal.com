@@ -92,9 +92,12 @@ export const handleDomainWideDelegationError = (error: unknown) => {
   });
 };
 
-export const ensureNoServiceAccountKey = <T extends { id: string; serviceAccountKey?: unknown }>(
+export const ensureNoServiceAccountKey = <T extends { id: string; serviceAccountKey?: unknown } | null>(
   domainWideDelegation: T
 ) => {
+  if (!domainWideDelegation) {
+    return null;
+  }
   const { serviceAccountKey: _1, ...rest } = domainWideDelegation;
   return {
     ...rest,

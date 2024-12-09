@@ -32,4 +32,5 @@ export const ENDPOINTS = [
   "attributes",
   "domainWideDelegation",
   "routingForms",
+  "domainWideDelegation",
 ] as const;

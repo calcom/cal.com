@@ -114,8 +114,11 @@ export async function getAllDomainWideDelegationCredentialsForUser({
   user: { email: string; id: number };
 }) {
   log.debug("called with", { user });
-
-  const domainWideDelegation = await DomainWideDelegationRepository.findByUser({
+  // We access the repository without checking for feature flag here.
+  // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
+  // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
+  const domainWideDelegationRepository = new DomainWideDelegationRepository();
+  const domainWideDelegation = await domainWideDelegationRepository.findByUser({
     user: {
       email: user.email,
     },
@@ -191,7 +194,9 @@ export async function getAllDomainWideDelegationCredentialsForUserByAppType({
   user: User;
   appType: string;
 }) {
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
+    user,
+  });
   return domainWideDelegationCredentials.filter((credential) => credential.type === appType);
 }
 

@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
+import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
 import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
@@ -48,7 +48,9 @@ export default async function handler({
       dwdBeingUpdatedId: null,
     });
 
-    const createdDelegation = await DomainWideDelegationRepository.create({
+    const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
+
+    const createdDelegation = await domainWideDelegationRepository.create({
       workspacePlatformId: workspacePlatform.id,
       domain,
       // We don't want to enable by default because enabling requires some checks to be completed and it has a separate flow.

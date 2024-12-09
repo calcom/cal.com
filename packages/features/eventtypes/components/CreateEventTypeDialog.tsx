@@ -116,7 +116,6 @@ export default function CreateEventTypeDialog({
       name="new"
       clearQueryParamsOnClose={[
         "eventPage",
-        "teamId",
         "type",
         "description",
         "title",

@@ -1,4 +1,4 @@
-import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
+import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
 import type { PrismaClient } from "@calcom/prisma";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 
@@ -16,8 +16,9 @@ export default async function handler({
   if (!organizationId) {
     throw new Error("You must be in an organization to list domain wide delegations");
   }
+  const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
 
-  const domainWideDelegations = await DomainWideDelegationRepository.findDelegationsWithServiceAccount({
+  const domainWideDelegations = await domainWideDelegationRepository.findDelegationsWithServiceAccount({
     organizationId,
   });
 

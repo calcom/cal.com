@@ -5,15 +5,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 
 import { buildCredentialPayloadForCalendar } from "../buildCredentialPayloadForCalendar";
 
-type SelectedCalendarCreateInput = {
-  credentialId: number;
-  userId: number;
-  externalId: string;
-  integration: string;
-};
-
 export class SelectedCalendarRepository {
-  static async create(data: SelectedCalendarCreateInput) {
+  static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     return await prisma.selectedCalendar.create({
       data: {
         ...data,
