@@ -2042,6 +2042,10 @@ checksums:
     workflows_unlocked_for_members_description: edb59754bf0d771666984d01fcffbaa7
     workflows_locked_by_team_admins_description: 8bfac6f17bbd494bb130c00ae5fcd4de
     workflows_unlocked_by_team_admins_description: 457e6dd5da3072aa2fb1f84232bd2dbf
+    webhooks_locked_for_members_description: 9b2935a9a3850d82f3165adfe6f84c21
+    webhooks_unlocked_for_members_description: f5b5d7cd9110c935a64623a79b6da02b
+    webhooks_locked_by_team_admins_description: 9ff386c2b6ded47b1a0092d9af1175b8
+    webhooks_unlocked_by_team_admins_description: 41bd9c0d1d1393ee54eff5e4f1f84c29
     locked_by_team_admin: 539128c9579f340b95d58abbfa0880ef
     app_not_connected: 25c979da79e9f983e6f5e62dcd1c47bb
     connect_now: ca98ba0375aad91861c150bbc0fff9ec
