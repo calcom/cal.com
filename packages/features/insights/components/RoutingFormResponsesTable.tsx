@@ -396,13 +396,11 @@ export function RoutingFormResponsesTableContent({
           cell: (info) => {
             const values = info.getValue();
             const result = isSelect ? ZResponseValues.safeParse(values) : null;
-            return (
-              <div className="max-w-[200px]">
-                {isSelect && result?.success ? (
-                  <ResponseValueCell values={result.data} rowId={info.row.original.id} />
-                ) : (
-                  <span>{values}</span>
-                )}
+            return isSelect && result?.success ? (
+              <ResponseValueCell values={result.data} rowId={info.row.original.id} />
+            ) : (
+              <div className="truncate">
+                <span title={values}>{values}</span>
               </div>
             );
           },
