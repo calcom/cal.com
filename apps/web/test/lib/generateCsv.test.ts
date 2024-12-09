@@ -52,7 +52,7 @@ function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   } as unknown as Table<UserTableUser>;
 }
 
-describe("generate Csv for Org Users Table @test", () => {
+describe("generate Csv for Org Users Table", () => {
   const orgDomain = "https://acme.cal.com";
   const mockAttributeIds = ["attr1", "attr2"];
   const mockUser: UserTableUser = {
