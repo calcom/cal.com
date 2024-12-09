@@ -59,14 +59,16 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                         }
                         className="border-subtle mt-4 rounded-lg border"
                         actions={
-                          <div className="flex w-32 justify-end">
-                            <DisconnectIntegration
-                              credentialId={connectedCalendar.credentialId}
-                              trashIcon
-                              onSuccess={props.onChanged}
-                              buttonProps={{ className: "border border-default" }}
-                            />
-                          </div>
+                          !connectedCalendar.domainWideDelegationCredentialId && (
+                            <div className="flex w-32 justify-end">
+                              <DisconnectIntegration
+                                credentialId={connectedCalendar.credentialId}
+                                trashIcon
+                                onSuccess={props.onChanged}
+                                buttonProps={{ className: "border border-default" }}
+                              />
+                            </div>
+                          )
                         }>
                         <div className="border-subtle border-t">
                           {!fromOnboarding && (
@@ -85,6 +87,9 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === props.destinationCalendarId}
                                     credentialId={cal.credentialId}
+                                    domainWideDelegationCredentialId={
+                                      connectedCalendar.domainWideDelegationCredentialId
+                                    }
                                   />
                                 ))}
                               </ul>
@@ -104,19 +109,21 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                           <Link href={`/apps/${connectedCalendar.integration.slug}`}>
                             {connectedCalendar.integration.name}
                           </Link>
-                          : {t("calendar_error")}
+                          : {connectedCalendar.error?.message || t("calendar_error")}
                         </span>
                       }
                       iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                       actions={
-                        <div className="flex w-32 justify-end">
-                          <DisconnectIntegration
-                            credentialId={connectedCalendar.credentialId}
-                            trashIcon
-                            onSuccess={props.onChanged}
-                            buttonProps={{ className: "border border-default" }}
-                          />
-                        </div>
+                        !connectedCalendar.domainWideDelegationCredentialId && (
+                          <div className="flex w-32 justify-end">
+                            <DisconnectIntegration
+                              credentialId={connectedCalendar.credentialId}
+                              trashIcon
+                              onSuccess={props.onChanged}
+                              buttonProps={{ className: "border border-default" }}
+                            />
+                          </div>
+                        )
                       }
                     />
                   );

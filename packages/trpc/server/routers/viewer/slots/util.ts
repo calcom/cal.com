@@ -22,6 +22,7 @@ import { shouldIgnoreContactOwner, isRerouting } from "@calcom/lib/bookings/rout
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import {
   isTimeOutOfBounds,
   calculatePeriodLimits,
@@ -411,6 +412,35 @@ export function getUsersWithCredentialsConsideringContactOwner({
   );
 
   return contactOwnerAndFixedHosts;
+}
+
+async function getEnrichedUsersWithCredentialsConsideringContactOwner({
+  contactOwnerEmail,
+  hosts,
+}: {
+  contactOwnerEmail: string | null | undefined;
+  hosts: {
+    isFixed?: boolean;
+    user: GetAvailabilityUser;
+  }[];
+}) {
+  const hostsWithContactOwner = getUsersWithCredentialsConsideringContactOwner({
+    contactOwnerEmail,
+    hosts,
+  });
+
+  const hostsWithDwdCredentials = await Promise.all(
+    hostsWithContactOwner.map(async (host) => {
+      const dwdCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
+        user: host,
+      });
+      return {
+        ...host,
+        credentials: [...host.credentials, ...dwdCredentials],
+      };
+    })
+  );
+  return hostsWithDwdCredentials;
 }
 
 const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
@@ -849,7 +879,7 @@ async function getExistingBookings(
       in: "ACCEPTED"[];
     };
   },
-  usersWithCredentials: ReturnType<typeof getUsersWithCredentialsConsideringContactOwner>,
+  usersWithCredentials: Awaited<ReturnType<typeof getEnrichedUsersWithCredentialsConsideringContactOwner>>,
   allUserIds: number[]
 ) {
   const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
@@ -1060,10 +1090,13 @@ const calculateHostsAndAvailabilities = async ({
     hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
-  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
-    contactOwnerEmail,
-    hosts,
-  });
+  const usersWithCredentials = await monitorCallbackAsync(
+    getEnrichedUsersWithCredentialsConsideringContactOwner,
+    {
+      contactOwnerEmail,
+      hosts,
+    }
+  );
 
   loggerWithEventDetails.debug("Using users", {
     usersWithCredentials: usersWithCredentials.map((user) => user.email),

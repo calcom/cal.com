@@ -1,10 +1,12 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-export type UserWithCalendars = Pick<User, "id"> & {
+export type UserWithCalendars = Pick<User, "id" | "email"> & {
   selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration">[];
   destinationCalendar: DestinationCalendar | null;
 };
@@ -27,8 +29,13 @@ export async function getConnectedDestinationCalendars(
     select: credentialForCalendarServiceSelect,
   });
 
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
+    user,
+  });
+  const allCredentials = [...userCredentials, ...domainWideDelegationCredentials];
+
   // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(userCredentials);
+  const calendarCredentials = getCalendarCredentials(allCredentials);
 
   // get all the connected integrations' calendars (from third party)
   const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
@@ -60,6 +67,7 @@ export async function getConnectedDestinationCalendars(
       integration = "",
       externalId = "",
       credentialId,
+      domainWideDelegationCredentialId,
       email: primaryEmail,
     } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
@@ -75,13 +83,20 @@ export async function getConnectedDestinationCalendars(
         };
       }
     }
+
     user.destinationCalendar = await prisma.destinationCalendar.create({
       data: {
         userId: user.id,
         integration,
         externalId,
-        credentialId,
         primaryEmail,
+        ...(!isDomainWideDelegationCredential({ credentialId })
+          ? {
+              credentialId,
+            }
+          : {
+              domainWideDelegationCredentialId,
+            }),
       },
     });
   } else {

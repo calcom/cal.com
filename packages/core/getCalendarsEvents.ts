@@ -6,6 +6,8 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { getCredentialForCalendarService } from "./CalendarManager";
+
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
@@ -18,7 +20,15 @@ const getCalendarsEvents = async (
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
 
-  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
+  // There might not be many credentials as one credential means one Integration(like Google Calendar, Outlook Calendar, etc.)
+  // So, it is okay to do getCredentialForCalendarService for all of them, separately here
+  const credentialsForCalendarService = await Promise.all(
+    calendarCredentials.map((credential) => getCredentialForCalendarService(credential))
+  );
+
+  const calendars = await Promise.all(
+    credentialsForCalendarService.map((credential) => getCalendar(credential))
+  );
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */

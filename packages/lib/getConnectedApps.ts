@@ -5,13 +5,13 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { withDelegatedToIdNullArray } from "@calcom/lib/server/repository/credential";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import type { TIntegrationsInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/integrations.schema";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
@@ -21,7 +21,7 @@ export async function getConnectedApps({
   prisma,
   input,
 }: {
-  user: Pick<User, "id" | "name" | "avatarUrl"> & { avatar?: string };
+  user: Pick<User, "id" | "name" | "avatarUrl" | "email"> & { avatar?: string };
   prisma: PrismaClient;
   input: TIntegrationsInputSchema;
 }) {
@@ -33,6 +33,7 @@ export async function getConnectedApps({
     extendsFeature,
     teamId,
     sortByMostPopular,
+    sortByInstalledFirst,
     appId,
   } = input;
   let credentials = await getUsersCredentials(user);
@@ -103,8 +104,8 @@ export async function getConnectedApps({
 
     userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
-      return teamApp.credentials ? teamApp.credentials.flat() : [];
+    const teamAppCredentials = userTeams.flatMap((teamApp) => {
+      return teamApp.credentials ? withDelegatedToIdNullArray(teamApp.credentials.flat()) : [];
     });
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
@@ -223,6 +224,12 @@ export async function getConnectedApps({
       const aCount = installCountPerApp[a.slug] || 0;
       const bCount = installCountPerApp[b.slug] || 0;
       return bCount - aCount;
+    });
+  }
+
+  if (sortByInstalledFirst) {
+    apps.sort((a, b) => {
+      return (a.isInstalled ? 0 : 1) - (b.isInstalled ? 0 : 1);
     });
   }
 

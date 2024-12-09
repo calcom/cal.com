@@ -162,6 +162,7 @@ test("Calendar can be watched and unwatched", async () => {
     userId: 1,
     integration: "google_calendar",
     externalId: "example@cal.com",
+    domainWideDelegationCredentialId: null,
     credentialId: 1,
     domainWideDelegationCredentialId: null,
     googleChannelId: null,

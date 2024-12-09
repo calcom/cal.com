@@ -99,10 +99,10 @@ const tabs: VerticalTabItemProps[] = [
         name: "admin_api",
         href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
       },
-      // {
-      //   name: "domain_wide_delegation",
-      //   href: "/settings/organizations/domain-wide-delegation",
-      // },
+      {
+        name: "domain_wide_delegation",
+        href: "/settings/organizations/domain-wide-delegation",
+      },
     ],
   },
   {
@@ -153,7 +153,14 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "directory_sync"];
+const organizationAdminKeys = [
+  "privacy",
+  "billing",
+  "OAuth Clients",
+  "SSO",
+  "directory_sync",
+  "domain_wide_delegation",
+];
 
 const useTabs = () => {
   const session = useSession();

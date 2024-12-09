@@ -18,6 +18,7 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -54,6 +55,10 @@ interface AppOptions {
 
 const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
+};
+
+const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
+  return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -106,7 +111,6 @@ export default class EventManager {
   videoCredentials: CredentialPayload[];
   crmCredentials: CredentialPayload[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
-
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -124,7 +128,9 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       //see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      .sort(latestCredentialFirst);
+      .sort(latestCredentialFirst)
+      .sort(delegatedCredentialFirst);
+
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
@@ -238,7 +244,8 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId: result?.credentialId || undefined,
+        credentialId: result?.credentialId !== -1 ? result?.credentialId ?? undefined : undefined,
+        delegatedToId: result?.delegatedToId || undefined,
       };
     });
 
@@ -328,8 +335,10 @@ export default class EventManager {
     const calendarCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
       this.calendarCredentials,
-      credentialType
+      credentialType,
+      reference.delegatedToId
     );
+
     if (calendarCredential) {
       await deleteEvent({
         credential: calendarCredential,
@@ -358,8 +367,12 @@ export default class EventManager {
   private async getCredentialAndWarnIfNotFound(
     credentialId: number | null | undefined,
     credentials: CredentialPayload[],
-    type: string
+    type: string,
+    delegatedToId?: string | null
   ) {
+    if (delegatedToId) {
+      return this.calendarCredentials.find((cred) => cred.delegatedToId === delegatedToId);
+    }
     const credential = credentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
@@ -624,6 +637,7 @@ export default class EventManager {
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
+    console.log("createAllCalendarEvents.this.calendarCredentials", this.calendarCredentials);
 
     const fallbackToFirstCalendarInTheList = async () => {
       /**
@@ -633,7 +647,10 @@ export default class EventManager {
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event", safeStringify({ createdEvent }));
+        log.silly(
+          "Created Calendar event using credential",
+          safeStringify({ credentialId: credential.id, createdEvent })
+        );
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -663,16 +680,18 @@ export default class EventManager {
       for (const destination of destinationCalendars) {
         if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
-        if (destination.credentialId) {
-          let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
-          if (!credential) {
+        if (destination.credentialId || destination.domainWideDelegationCredentialId) {
+          let credential = destination.domainWideDelegationCredentialId
+            ? this.calendarCredentials.find(
+                (c) => c.delegatedToId === destination.domainWideDelegationCredentialId
+              )
+            : this.calendarCredentials.find((c) => c.id === destination.credentialId);
+          if (!credential && destination.credentialId) {
             // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: destination.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: destination.credentialId,
             });
+
             if (credentialFromDB && credentialFromDB.appId) {
               credential = {
                 id: credentialFromDB.id,
@@ -683,6 +702,7 @@ export default class EventManager {
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
                 user: credentialFromDB.user,
+                delegatedToId: credentialFromDB.delegatedToId,
               };
             }
           }
@@ -857,11 +877,8 @@ export default class EventManager {
           )[0];
           if (!credential) {
             // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: reference.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: reference.credentialId,
             });
             if (credentialFromDB && credentialFromDB.appId) {
               credential = {
@@ -873,6 +890,7 @@ export default class EventManager {
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
                 user: credentialFromDB.user,
+                delegatedToId: credentialFromDB.delegatedToId,
               };
             }
           }
@@ -892,13 +910,11 @@ export default class EventManager {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
 
         if (oldCalendarEvent?.credentialId) {
-          const calendarCredential = await prisma.credential.findUnique({
-            where: {
+          const credentialForCalendarService =
+            await CredentialRepository.findCredentialForCalendarServiceById({
               id: oldCalendarEvent.credentialId,
-            },
-            select: credentialForCalendarServiceSelect,
-          });
-          const calendar = await getCalendar(calendarCredential);
+            });
+          const calendar = await getCalendar(credentialForCalendarService);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }

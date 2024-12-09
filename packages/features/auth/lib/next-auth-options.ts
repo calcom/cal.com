@@ -651,6 +651,7 @@ export const getOptions = ({
           const gCalService = new GoogleCalendarService({
             ...gcalCredential,
             user: null,
+            delegatedTo: null,
           });
 
           if (

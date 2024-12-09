@@ -7,10 +7,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -72,23 +72,20 @@ async function cancelAttendeeSeat(
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
-          },
-          select: credentialForCalendarServiceSelect,
+        const credentialForCalendarService = await CredentialRepository.findCredentialForCalendarServiceById({
+          id: reference.credentialId,
         });
 
-        if (credential) {
+        if (credentialForCalendarService) {
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
           };
           if (reference.type.includes("_video")) {
-            integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
+            integrationsToUpdate.push(updateMeeting(credentialForCalendarService, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
-            const calendar = await getCalendar(credential);
+            const calendar = await getCalendar(credentialForCalendarService);
             if (calendar) {
               integrationsToUpdate.push(
                 calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
