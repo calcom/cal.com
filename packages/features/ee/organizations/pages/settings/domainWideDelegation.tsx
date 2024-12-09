@@ -218,7 +218,7 @@ function DelegationFormFields({ workspacePlatforms }: { workspacePlatforms: Work
             <SelectField
               required
               label={t("workspace_platform")}
-              onChange={(option) => onChange(option?.value)}
+              onChange={(option: (typeof platformOptions)[0]) => onChange(option?.value)}
               value={selectedPlatform}
               options={platformOptions}
             />
