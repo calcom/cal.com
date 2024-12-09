@@ -512,6 +512,5 @@ export async function getBookings({
       };
     })
   );
-  console.log("🚀 ~ bookings:", bookings);
   return { bookings, recurringInfo };
 }
