@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.63",
+  "version": "1.0.70",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
     "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
@@ -69,9 +69,7 @@
     "tailwindcss-animate": "^1.0.6"
   },
   "peerDependencies": {
-    "typescript": ">=5.4.5",
-    "react": "^18.0.0 || ^19.0.0",
-    "react-awesome-query-builder": "^5.1.2",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react": ">=18.0.0",
+    "typescript": ">=5.4.5"
   }
 }
