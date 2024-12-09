@@ -322,6 +322,12 @@ export default async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
+  if (process.env.LEVER_CLIENT_ID && process.env.LEVER_CLIENT_SECRET) {
+    await createApp("lever", "lever", ["other"], "lever_other", {
+      client_id: process.env.LEVER_CLIENT_ID,
+      client_secret: process.env.LEVER_CLIENT_SECRET,
+    });
+  }
   if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
     await createApp("salesforce", "salesforce", ["crm"], "salesforce_other_calendar", {
       consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
