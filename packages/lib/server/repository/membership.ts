@@ -1,11 +1,13 @@
-import { prisma } from "@calcom/prisma";
+import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
+import { enrichWithSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
@@ -230,5 +232,30 @@ export class MembershipRepository {
         teamId,
       },
     });
+  }
+
+  static async findByTeamIdForAvailability({ teamId }: { teamId: number }) {
+    const memberships = await prisma.membership.findMany({
+      where: { teamId },
+      include: {
+        user: {
+          select: {
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            }, // needed for getUserAvailability
+            ...availabilityUserSelect,
+          },
+        },
+      },
+    });
+
+    const membershipsWithSelectedCalendars = memberships.map((m) => {
+      return {
+        ...m,
+        user: enrichWithSelectedCalendars(m.user),
+      };
+    });
+
+    return membershipsWithSelectedCalendars;
   }
 }

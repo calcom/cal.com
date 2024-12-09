@@ -111,6 +111,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   calendarsQuery: {
     data?: RouterOutputs["viewer"]["connectedCalendars"];
     isPending: boolean;
+    error: unknown;
   };
   showBookerLayoutSelector: boolean;
 };
@@ -118,7 +119,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
 type CalendarSettingsProps = {
   eventType: EventAdvancedTabProps["eventType"];
   customClassNames?: EventAdvancedTabCustomClassNames;
-  calendarsQuery: EventAdvancedTabProps["calendarsQuery"];
+  calendarsQuery: NonNullable<EventAdvancedTabProps["calendarsQuery"]>;
   eventNameLocked: {
     disabled: boolean;
     LockedIcon: false | JSX.Element;
@@ -132,240 +133,255 @@ type CalendarSettingsProps = {
   isChildrenManagedEventType: boolean;
 };
 
-function DestinationCalendarSettingsSkeleton() {
-  return (
-    <div className="border-subtle space-y-6 rounded-lg border p-6">
-      <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
-        <div className="flex w-full flex-col">
-          <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-          <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
-          <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
-        </div>
-        <div className="w-full">
-          <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-          <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <div className="h-6 w-64 animate-pulse rounded-md bg-gray-200" />
-        <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
-        <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
-      </div>
-    </div>
-  );
-}
-
-function DestinationCalendarSettings({
-  displayDestinationCalendarSelector,
-  customClassNames,
-  calendarsQuery,
-  eventNameLocked,
-  eventNamePlaceholder,
-  setShowEventNameTip,
-  verifiedSecondaryEmails,
-  userEmail,
-  isTeamEventType,
-  showToast,
-}: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType"> & {
-  displayDestinationCalendarSelector: boolean;
-}) {
-  const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
-  const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
-    formMethods.getValues("useEventTypeDestinationCalendarEmail")
-  );
-  const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
-  return (
-    <div className="border-subtle space-y-6 rounded-lg border p-6">
-      <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
-        {displayDestinationCalendarSelector && (
-          <div
-            className={classNames("flex w-full flex-col", customClassNames?.destinationCalendar?.container)}>
-            <Label
+const destinationCalendar = {
+  DestinationCalendarSettings({
+    showConnectedCalendarSettings,
+    customClassNames,
+    calendarsQuery,
+    eventNameLocked,
+    eventNamePlaceholder,
+    setShowEventNameTip,
+    verifiedSecondaryEmails,
+    userEmail,
+    isTeamEventType,
+    showToast,
+  }: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType"> & {
+    showConnectedCalendarSettings: boolean;
+  }) {
+    const { t } = useLocale();
+    const formMethods = useFormContext<FormValues>();
+    const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
+      formMethods.getValues("useEventTypeDestinationCalendarEmail")
+    );
+    const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
+    return (
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+          {showConnectedCalendarSettings && (
+            <div
               className={classNames(
-                "text-emphasis mb-0 font-medium",
-                customClassNames?.destinationCalendar?.label
+                "flex w-full flex-col",
+                customClassNames?.destinationCalendar?.container
               )}>
-              {t("add_to_calendar")}
-            </Label>
-            <Controller
-              name="destinationCalendar"
-              render={({ field: { onChange, value } }) => (
-                <DestinationCalendarSelector
-                  value={value ? value.externalId : undefined}
-                  onChange={onChange}
-                  hidePlaceholder
-                  hideAdvancedText
-                  calendarsQueryData={calendarsQuery.data}
-                  customClassNames={customClassNames?.destinationCalendar}
-                />
-              )}
-            />
-            <p className="text-subtle text-sm">{t("select_which_cal")}</p>
-          </div>
-        )}
-        <div className={classNames("w-full", customClassNames?.eventName?.container)}>
-          <TextField
-            label={t("event_name_in_calendar")}
-            labelClassName={customClassNames?.eventName?.label}
-            addOnClassname={customClassNames?.eventName?.addOn}
-            className={customClassNames?.eventName?.input}
-            type="text"
-            {...eventNameLocked}
-            placeholder={eventNamePlaceholder}
-            {...formMethods.register("eventName")}
-            addOnSuffix={
-              <Button
-                color="minimal"
-                size="sm"
-                aria-label="edit custom name"
-                className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                onClick={() => setShowEventNameTip((old) => !old)}>
-                <Icon name="pencil" className="h-4 w-4" />
-              </Button>
-            }
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        {displayDestinationCalendarSelector && (
-          <div className={classNames("w-full", customClassNames?.addToCalendarEmailOrganizer?.container)}>
-            <Switch
-              tooltip={t("if_enabled_email_address_as_organizer")}
-              label={
-                <>
-                  {t("display_add_to_calendar_organizer")}
-                  <Icon
-                    name="info"
-                    className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+              <Label
+                className={classNames(
+                  "text-emphasis mb-0 font-medium",
+                  customClassNames?.destinationCalendar?.label
+                )}>
+                {t("add_to_calendar")}
+              </Label>
+              <Controller
+                name="destinationCalendar"
+                render={({ field: { onChange, value } }) => (
+                  <DestinationCalendarSelector
+                    value={value ? value.externalId : undefined}
+                    onChange={onChange}
+                    hidePlaceholder
+                    hideAdvancedText
+                    calendarsQueryData={calendarsQuery.data}
+                    customClassNames={customClassNames?.destinationCalendar}
                   />
-                </>
+                )}
+              />
+              <p className="text-subtle text-sm">{t("select_which_cal")}</p>
+            </div>
+          )}
+          <div className={classNames("w-full", customClassNames?.eventName?.container)}>
+            <TextField
+              label={t("event_name_in_calendar")}
+              labelClassName={customClassNames?.eventName?.label}
+              addOnClassname={customClassNames?.eventName?.addOn}
+              className={customClassNames?.eventName?.input}
+              type="text"
+              {...eventNameLocked}
+              placeholder={eventNamePlaceholder}
+              {...formMethods.register("eventName")}
+              addOnSuffix={
+                <Button
+                  color="minimal"
+                  size="sm"
+                  aria-label="edit custom name"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                  onClick={() => setShowEventNameTip((old) => !old)}>
+                  <Icon name="pencil" className="h-4 w-4" />
+                </Button>
               }
-              checked={useEventTypeDestinationCalendarEmail}
-              onCheckedChange={(val) => {
-                setUseEventTypeDestinationCalendarEmail(val);
-                formMethods.setValue("useEventTypeDestinationCalendarEmail", val, {
-                  shouldDirty: true,
-                });
-                if (val) {
-                  showToast(t("reconnect_calendar_to_use"), "warning");
-                }
-              }}
             />
           </div>
-        )}
-        {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && !isTeamEventType && (
-          <div className={cx("flex w-full flex-col", displayDestinationCalendarSelector && "pl-11")}>
-            <SelectField
-              placeholder={
-                selectedSecondaryEmailId === -1 && (
-                  <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                    <Badge variant="blue">{t("default")}</Badge> {userEmail}
-                  </span>
-                )
-              }
-              className={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.select}
-              containerClassName={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.container}
-              onChange={(option) =>
-                formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
-              }
-              value={verifiedSecondaryEmails.find(
-                (secondaryEmail) =>
-                  selectedSecondaryEmailId !== -1 && secondaryEmail.value === selectedSecondaryEmailId
-              )}
-              options={verifiedSecondaryEmails}
-            />
-            <p
-              className={classNames(
-                "text-subtle mt-2 text-sm",
-                customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.displayEmailLabel
-              )}>
-              {t("display_email_as_organizer")}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CalendarSettingsSkeleton() {
-  return (
-    <div>
-      <DestinationCalendarSettingsSkeleton />
-      <SelectedCalendarsSettingsWebWrapperSkeleton />
-    </div>
-  );
-}
-
-function CalendarSettings({
-  eventType,
-  calendarsQuery,
-  verifiedSecondaryEmails,
-  userEmail,
-  isTeamEventType,
-  isChildrenManagedEventType,
-  customClassNames,
-  eventNameLocked,
-  eventNamePlaceholder,
-  setShowEventNameTip,
-  showToast,
-}: CalendarSettingsProps) {
-  const formMethods = useFormContext<FormValues>();
-  const displayDestinationCalendarSelector =
-    !!calendarsQuery.data?.connectedCalendars?.length && (!isTeamEventType || isChildrenManagedEventType);
-
-  return (
-    <div>
-      {/**
-       * Only display calendar selector if user has connected calendars AND if it's not
-       * a team event. Since we don't have logic to handle each attendee calendar (for now).
-       * This will fallback to each user selected destination calendar.
-       */}
-      <DestinationCalendarSettings
-        verifiedSecondaryEmails={verifiedSecondaryEmails}
-        userEmail={userEmail}
-        isTeamEventType={isTeamEventType}
-        calendarsQuery={calendarsQuery}
-        eventNameLocked={eventNameLocked}
-        eventNamePlaceholder={eventNamePlaceholder}
-        setShowEventNameTip={setShowEventNameTip}
-        showToast={showToast}
-        displayDestinationCalendarSelector={displayDestinationCalendarSelector}
-        customClassNames={customClassNames}
-      />
-      <div>
-        {displayDestinationCalendarSelector && (
-          <div className="mt-4">
-            <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-              <SelectedCalendarsSettingsWebWrapper
-                eventTypeId={eventType.id}
-                disabledScope={SelectedCalendarSettingsScope.User}
-                disableConnectionModification={true}
-                scope={
-                  formMethods.getValues("useEventLevelSelectedCalendars")
-                    ? SelectedCalendarSettingsScope.EventType
-                    : SelectedCalendarSettingsScope.User
+        </div>
+        <div className="space-y-2">
+          {showConnectedCalendarSettings && (
+            <div className={classNames("w-full", customClassNames?.addToCalendarEmailOrganizer?.container)}>
+              <Switch
+                tooltip={t("if_enabled_email_address_as_organizer")}
+                label={
+                  <>
+                    {t("display_add_to_calendar_organizer")}
+                    <Icon
+                      name="info"
+                      className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+                    />
+                  </>
                 }
-                setScope={(scope) => {
-                  if (scope === SelectedCalendarSettingsScope.EventType) {
-                    formMethods.setValue("useEventLevelSelectedCalendars", true, { shouldDirty: true });
-                  } else {
-                    formMethods.setValue("useEventLevelSelectedCalendars", false, { shouldDirty: true });
+                checked={useEventTypeDestinationCalendarEmail}
+                onCheckedChange={(val) => {
+                  setUseEventTypeDestinationCalendarEmail(val);
+                  formMethods.setValue("useEventTypeDestinationCalendarEmail", val, {
+                    shouldDirty: true,
+                  });
+                  if (val) {
+                    showToast(t("reconnect_calendar_to_use"), "warning");
                   }
                 }}
-                onChanged={() => {
-                  // Refresh calendar data when calendars are changed
-                  // calendarsQueryData?.refetch();
-                }}
               />
-            </Suspense>
-          </div>
-        )}
+            </div>
+          )}
+          {!useEventTypeDestinationCalendarEmail &&
+            verifiedSecondaryEmails.length > 0 &&
+            !isTeamEventType && (
+              <div className={cx("flex w-full flex-col", showConnectedCalendarSettings && "pl-11")}>
+                <SelectField
+                  placeholder={
+                    selectedSecondaryEmailId === -1 && (
+                      <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
+                        <Badge variant="blue">{t("default")}</Badge> {userEmail}
+                      </span>
+                    )
+                  }
+                  className={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.select}
+                  containerClassName={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.container}
+                  onChange={(option) =>
+                    formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
+                  }
+                  value={verifiedSecondaryEmails.find(
+                    (secondaryEmail) =>
+                      selectedSecondaryEmailId !== -1 && secondaryEmail.value === selectedSecondaryEmailId
+                  )}
+                  options={verifiedSecondaryEmails}
+                />
+                <p
+                  className={classNames(
+                    "text-subtle mt-2 text-sm",
+                    customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.displayEmailLabel
+                  )}>
+                  {t("display_email_as_organizer")}
+                </p>
+              </div>
+            )}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+  DestinationCalendarSettingsSkeleton() {
+    return (
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+          <div className="flex w-full flex-col">
+            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
+            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
+            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+          </div>
+          <div className="w-full">
+            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
+            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="h-6 w-64 animate-pulse rounded-md bg-gray-200" />
+          <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
+          <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+        </div>
+      </div>
+    );
+  },
+};
+
+const calendar = {
+  CalendarSettingsSkeleton() {
+    return (
+      <div>
+        <destinationCalendar.DestinationCalendarSettingsSkeleton />
+        <SelectedCalendarsSettingsWebWrapperSkeleton />
+      </div>
+    );
+  },
+
+  CalendarSettings({
+    eventType,
+    calendarsQuery,
+    verifiedSecondaryEmails,
+    userEmail,
+    isTeamEventType,
+    isChildrenManagedEventType,
+    customClassNames,
+    eventNameLocked,
+    eventNamePlaceholder,
+    setShowEventNameTip,
+    showToast,
+  }: CalendarSettingsProps) {
+    const formMethods = useFormContext<FormValues>();
+    /**
+     * Only display calendar selector if user has connected calendars AND if it's not
+     * a team event. Since we don't have logic to handle each attendee calendar (for now).
+     */
+
+    const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
+    const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
+    const showConnectedCalendarSettings =
+      !!calendarsQuery.data?.connectedCalendars.length && isConnectedCalendarSettingsApplicable;
+
+    const selectedCalendarSettingsScope = formMethods.getValues("useEventLevelSelectedCalendars")
+      ? SelectedCalendarSettingsScope.EventType
+      : SelectedCalendarSettingsScope.User;
+
+    if (isConnectedCalendarSettingsLoading && isConnectedCalendarSettingsApplicable) {
+      return <calendar.CalendarSettingsSkeleton />;
+    }
+
+    return (
+      <div>
+        <destinationCalendar.DestinationCalendarSettings
+          verifiedSecondaryEmails={verifiedSecondaryEmails}
+          userEmail={userEmail}
+          isTeamEventType={isTeamEventType}
+          calendarsQuery={calendarsQuery}
+          eventNameLocked={eventNameLocked}
+          eventNamePlaceholder={eventNamePlaceholder}
+          setShowEventNameTip={setShowEventNameTip}
+          showToast={showToast}
+          showConnectedCalendarSettings={showConnectedCalendarSettings}
+          customClassNames={customClassNames}
+        />
+        <div>
+          {isConnectedCalendarSettingsApplicable
+            ? showConnectedCalendarSettings && (
+                <div className="mt-4">
+                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
+                    <SelectedCalendarsSettingsWebWrapper
+                      eventTypeId={eventType.id}
+                      disabledScope={SelectedCalendarSettingsScope.User}
+                      disableConnectionModification={true}
+                      scope={selectedCalendarSettingsScope}
+                      setScope={(scope) => {
+                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                          shouldDirty: true,
+                        });
+                      }}
+                      onChanged={() => {
+                        // Refresh calendar data when calendars are changed
+                        // calendarsQueryData?.refetch();
+                      }}
+                    />
+                  </Suspense>
+                </div>
+              )
+            : null}
+        </div>
+      </div>
+    );
+  },
+};
 
 export const EventAdvancedTab = ({
   eventType,
@@ -479,8 +495,6 @@ export const EventAdvancedTab = ({
     }
   );
 
-  const isDestinationCalendarSettingLoading = calendarsQuery.isPending;
-
   let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
@@ -506,23 +520,19 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      {!isDestinationCalendarSettingLoading ? (
-        <CalendarSettings
-          verifiedSecondaryEmails={verifiedSecondaryEmails}
-          userEmail={userEmail}
-          calendarsQuery={calendarsQuery}
-          isTeamEventType={!!team}
-          isChildrenManagedEventType={isChildrenManagedEventType}
-          customClassNames={customClassNames}
-          eventNameLocked={eventNameLocked}
-          eventNamePlaceholder={eventNamePlaceholder}
-          setShowEventNameTip={setShowEventNameTip}
-          showToast={showToast}
-          eventType={eventType}
-        />
-      ) : (
-        <CalendarSettingsSkeleton />
-      )}
+      <calendar.CalendarSettings
+        verifiedSecondaryEmails={verifiedSecondaryEmails}
+        userEmail={userEmail}
+        calendarsQuery={calendarsQuery}
+        isTeamEventType={!!team}
+        isChildrenManagedEventType={isChildrenManagedEventType}
+        customClassNames={customClassNames}
+        eventNameLocked={eventNameLocked}
+        eventNamePlaceholder={eventNamePlaceholder}
+        setShowEventNameTip={setShowEventNameTip}
+        showToast={showToast}
+        eventType={eventType}
+      />
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings

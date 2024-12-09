@@ -40,7 +40,6 @@ const user: User & { credentials: CredentialPayload[] } = {
   id: 0,
   startTime: 0,
   endTime: 0,
-  // selectedCalendars: [],
   allSelectedCalendars: [],
   userLevelSelectedCalendars: [],
   schedules: [],

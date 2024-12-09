@@ -203,6 +203,10 @@ async function ensureSelectedCalendarIsInDb({
   });
 }
 
+/**
+ * Fetches the calendars for the authenticated user or the event-type if provided
+ * It also takes care of updating the destination calendar in some edge cases
+ */
 export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   user,
   onboarding,

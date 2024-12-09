@@ -18,7 +18,7 @@ export enum SelectedCalendarSettingsScope {
 }
 
 type SelectedCalendarsSettingsWebWrapperProps = {
-  onChanged: () => unknown | Promise<unknown>;
+  onChanged?: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
   isPending?: boolean;

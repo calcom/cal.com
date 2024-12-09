@@ -21,6 +21,12 @@ export type ICalendarSwitchProps = {
   disabled?: boolean;
 };
 
+type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
+
+type EventCalendarSwitchProps = ICalendarSwitchProps & {
+  eventTypeId: number;
+};
+
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const { title, externalId, type, isChecked, name, credentialId, eventTypeId, disabled } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
@@ -97,6 +103,14 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       )}
     </div>
   );
+};
+
+export const UserCalendarSwitch = (props: UserCalendarSwitchProps) => {
+  return <CalendarSwitch {...props} eventTypeId={null} />;
+};
+
+export const EventCalendarSwitch = (props: EventCalendarSwitchProps) => {
+  return <CalendarSwitch {...props} />;
 };
 
 export { CalendarSwitch };

@@ -2,16 +2,17 @@ import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
-import { eventTypeSelect } from "../eventTypeSelect";
+import { eventTypeSelect, eventTypeSelectForBookingPage } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 import { enrichWithSelectedCalendars } from "./user";
 
@@ -810,6 +811,108 @@ export class EventTypeRepository {
         user: enrichWithSelectedCalendars(host.user),
       })),
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    };
+  }
+
+  static async findForSlots({ id }: { id: number }) {
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        ...eventTypeSelectForBookingPage,
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        },
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                date: true,
+                startTime: true,
+                endTime: true,
+                days: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            date: true,
+            startTime: true,
+            endTime: true,
+            days: true,
+          },
+        },
+        hosts: {
+          select: {
+            isFixed: true,
+            createdAt: true,
+            user: {
+              select: {
+                credentials: { select: credentialForCalendarServiceSelect },
+                ...availabilityUserSelect,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        users: {
+          select: {
+            credentials: { select: credentialForCalendarServiceSelect },
+            ...availabilityUserSelect,
+          },
+        },
+      },
+    });
+
+    if (!eventType) {
+      return eventType;
+    }
+
+    const hostsWithSelectedCalendars = eventType.hosts.map((host) => ({
+      ...host,
+      user: enrichWithSelectedCalendars(host.user),
+    }));
+
+    const usersWithSelectedCalendars = eventType.users.map((user) => enrichWithSelectedCalendars(user));
+
+    return {
+      ...eventType,
+      hosts: hostsWithSelectedCalendars,
+      users: usersWithSelectedCalendars,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
     };
   }
 
