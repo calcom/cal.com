@@ -4,8 +4,6 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
-import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
-
 @Injectable()
 export class OrganizationsTeamsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -16,14 +14,6 @@ export class OrganizationsTeamsRepository {
         id: teamId,
         isOrganization: false,
         parentId: organizationId,
-      },
-    });
-  }
-
-  async findTeamById(teamId: number) {
-    return this.dbRead.prisma.team.findUnique({
-      where: {
-        id: teamId,
       },
     });
   }
@@ -104,70 +94,5 @@ export class OrganizationsTeamsRepository {
       skip,
       take,
     });
-  }
-
-  async getTeamMembersIds(teamId: number) {
-    const team = await this.dbRead.prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      include: {
-        members: true,
-      },
-    });
-    if (!team) {
-      return [];
-    }
-
-    return team.members.map((member) => member.userId);
-  }
-
-  async getUserTeamsById(userId: number) {
-    const userTeams = await this.dbRead.prisma.team.findMany({
-      where: {
-        members: {
-          some: {
-            userId,
-            accepted: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-        name: true,
-        logoUrl: true,
-        members: {
-          where: {
-            userId,
-          },
-          select: {
-            role: true,
-          },
-        },
-        parent: {
-          select: {
-            id: true,
-            credentials: {
-              select: credentialForCalendarServiceSelect,
-            },
-            name: true,
-            logoUrl: true,
-            members: {
-              where: {
-                userId,
-              },
-              select: {
-                role: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return userTeams;
   }
 }
