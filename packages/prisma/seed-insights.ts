@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
@@ -83,6 +84,23 @@ const shuffle = (
 
   return booking;
 };
+
+async function createAttendees(bookings: any[]) {
+  for (const booking of bookings) {
+    await prisma.attendee.createMany({
+      data: Array(Math.floor(Math.random() * 4))
+        .fill(null)
+        .map(() => {
+          return {
+            bookingId: booking.id,
+            timeZone: faker.location.timeZone(),
+            email: faker.internet.email(),
+            name: faker.person.fullName(),
+          };
+        }),
+    });
+  }
+}
 
 const prisma = new PrismaClient();
 async function main() {
@@ -257,6 +275,8 @@ async function main() {
       ),
     ],
   });
+
+  await createAttendees(await prisma.booking.findMany());
 
   // Find owner of the organization
   const owner = orgMembers.find((m) => m.role === "OWNER" || m.role === "ADMIN");

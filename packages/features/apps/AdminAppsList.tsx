@@ -158,7 +158,7 @@ const AdminAppsList = ({
     <form
       {...rest}
       className={
-        classNames?.form ?? "max-w-80 bg-default mb-4 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+        classNames?.form ?? "bg-default mb-4 max-w-80 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
       }
       onSubmit={(e) => {
         e.preventDefault();
