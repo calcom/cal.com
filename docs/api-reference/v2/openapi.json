@@ -3961,30 +3961,12 @@
             }
           },
           {
-            "name": "eventTypeId",
-            "required": false,
-            "in": "query",
-            "description": "Id of the event-type, if this is provided no other parameter is required",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "usernames",
             "required": false,
             "in": "query",
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": false,
-            "in": "query",
-            "description": "ID of the user you want the get the event-types of, username is not needed when using this parameter",
-            "schema": {
-              "type": "number"
             }
           },
           {
