@@ -2830,5 +2830,11 @@
   "multi_select": "Meervoudige selectie",
   "group_meeting": "Groepsbijeenkomst",
   "salesforce_ignore_guests": "Maak geen nieuwe records aan voor gasten die aan de boeking zijn toegevoegd",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Vergrendelen voor toewijzing",
+  "lock_attribute_for_assignment_description": "Vergrendeling staat alleen toewijzingen toe via Directory Sync",
+  "attribute_edited_successfully": "Attribuut succesvol bewerkt",
+  "new_group_option": "Nieuwe groepsoptie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

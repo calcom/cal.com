@@ -2830,5 +2830,11 @@
   "multi_select": "Chọn nhiều",
   "group_meeting": "Cuộc họp nhóm",
   "salesforce_ignore_guests": "Không tạo bản ghi mới cho khách được thêm vào lịch hẹn",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Khóa để gán",
+  "lock_attribute_for_assignment_description": "Khóa sẽ chỉ cho phép gán từ Đồng bộ hóa thư mục",
+  "attribute_edited_successfully": "Đã chỉnh sửa thuộc tính thành công",
+  "new_group_option": "Tùy chọn nhóm mới",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

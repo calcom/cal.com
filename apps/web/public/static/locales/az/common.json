@@ -2830,5 +2830,11 @@
   "multi_select": "Çoxlu seçim",
   "group_meeting": "Qrup görüşü",
   "salesforce_ignore_guests": "Rezervasiyaya əlavə edilən qonaqlar üçün yeni qeydlər yaratma",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Təyinat üçün kilidlə",
+  "lock_attribute_for_assignment_description": "Kilid yalnız Directory Sync-dən təyinatlara icazə verəcək",
+  "attribute_edited_successfully": "Atribut uğurla redaktə edildi",
+  "new_group_option": "Yeni qrup seçimi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

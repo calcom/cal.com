@@ -2830,5 +2830,11 @@
   "multi_select": "Višestruki izbor",
   "group_meeting": "Grupni sastanak",
   "salesforce_ignore_guests": "Ne kreiraj nove zapise za goste dodate u rezervaciju",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Zaključaj za dodelu",
+  "lock_attribute_for_assignment_description": "Zaključavanje će dozvoliti dodele samo iz Directory Sync-a",
+  "attribute_edited_successfully": "Atribut je uspešno izmenjen",
+  "new_group_option": "Nova opcija grupe",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

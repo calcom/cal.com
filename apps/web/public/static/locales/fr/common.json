@@ -2830,5 +2830,11 @@
   "multi_select": "Sélection multiple",
   "group_meeting": "Réunion de groupe",
   "salesforce_ignore_guests": "Ne pas créer de nouveaux enregistrements pour les invités ajoutés à la réservation",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Verrouiller pour l'attribution",
+  "lock_attribute_for_assignment_description": "Le verrouillage n'autorisera que les attributions depuis la synchronisation d'annuaire",
+  "attribute_edited_successfully": "Attribut modifié avec succès",
+  "new_group_option": "Nouvelle option de groupe",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

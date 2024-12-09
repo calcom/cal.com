@@ -2830,5 +2830,11 @@
   "multi_select": "Többszörös kiválasztás",
   "group_meeting": "Csoportos megbeszélés",
   "salesforce_ignore_guests": "Ne hozzon létre új rekordokat a foglaláshoz hozzáadott vendégek számára",
+  "google_meet": "Google Meet",
+  "zoom": "Zoom",
+  "lock_attribute_for_assignment": "Zárolás hozzárendeléshez",
+  "lock_attribute_for_assignment_description": "A zárolás csak a Directory Sync-ből érkező hozzárendeléseket engedélyezi",
+  "attribute_edited_successfully": "Az attribútum sikeresen módosítva",
+  "new_group_option": "Új csoportbeállítás",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
