@@ -249,7 +249,7 @@ export default async function handleChildrenEventTypes({
 
         const metadata = EventTypeMetaDataSchema.parse(existingEventType?.metadata || {});
 
-        return prisma.eventType.update({
+        return await prisma.eventType.update({
           where: {
             userId_parentId: {
               userId,
