@@ -59,13 +59,13 @@ test.describe("AI Translation - Event Type", () => {
       roleInOrganization: MembershipRole.MEMBER,
     });
     await user.apiLogin();
-    await page.goto("/event-types");
+    await page.goto("/event-types?noTeam");
     await createNewEventType(page, { eventTitle: "5 min", eventDescription: "A quick 5 minute chat." });
     expect(await bookingPage.getAITranslationToggleDisabled()).toBe(false);
     await bookingPage.toggleAITranslation();
     await bookingPage.updateEventType();
 
-    await user.logout(); // logging out because user locale overrides the browser locale otherwise
+    // await user.logout(); // logging out because user locale overrides the browser locale otherwise
     await context.setExtraHTTPHeaders({
       "Accept-Language": "ko-KR",
     });
@@ -75,7 +75,7 @@ test.describe("AI Translation - Event Type", () => {
         page,
       },
       async () => {
-        await page.goto("/5-min");
+        await page.goto(`/${user.username}/5-min`);
         await expect(page.locator('[data-testid="event-meta-description"] p')).toHaveText("빠른 5분 대화.");
       }
     );
