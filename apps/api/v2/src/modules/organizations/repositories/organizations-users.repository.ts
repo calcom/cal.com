@@ -24,6 +24,13 @@ export class OrganizationsUsersRepository {
         ...this.filterOnOrgMembership(orgId),
         ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
       },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
       skip,
       take,
     });
@@ -35,6 +42,13 @@ export class OrganizationsUsersRepository {
         username,
         ...this.filterOnOrgMembership(orgId),
       },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
     });
   }
 
@@ -43,6 +57,13 @@ export class OrganizationsUsersRepository {
       where: {
         email,
         ...this.filterOnOrgMembership(orgId),
+      },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
       },
     });
   }
@@ -62,6 +83,13 @@ export class OrganizationsUsersRepository {
         organizationId: orgId,
       },
       data: updateUserBody,
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
     });
   }
 
@@ -70,6 +98,13 @@ export class OrganizationsUsersRepository {
       where: {
         id: userId,
         organizationId: orgId,
+      },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
       },
     });
   }

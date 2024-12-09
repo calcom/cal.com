@@ -1,60 +1,51 @@
 "use client";
 
 import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
-import { useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import { z } from "zod";
 
-import type { SelectFilterValue, TextFilterValue, FilterValue } from "./types";
-import { ZFilterValue } from "./types";
+import type { SelectFilterValue, TextFilterValue } from "./types";
+import { ZSelectFilterValue, ZTextFilterValue } from "./types";
 
-export const dataTableFiltersSchema = z.object({
+const filterSchema = z.object({
   f: z.string(),
-  v: ZFilterValue,
+  v: z.union([ZSelectFilterValue, ZTextFilterValue]),
 });
 
-export function useFiltersState() {
-  const [state, setState] = useQueryStates({
-    activeFilters: parseAsArrayOf(parseAsJson(dataTableFiltersSchema.parse)).withDefault([]),
-  });
-  const clear = useCallback(() => {
-    setState({ activeFilters: [] });
-  }, [setState]);
+export const filtersSearchParams = {
+  activeFilters: parseAsArrayOf(parseAsJson(filterSchema.parse)).withDefault([]),
+};
 
-  return { state, setState, clear };
+export function useFiltersSearchState() {
+  return useQueryStates(filtersSearchParams);
 }
-
-export type FiltersSearchState = ReturnType<typeof useFiltersState>["state"];
-export type SetFiltersSearchState = ReturnType<typeof useFiltersState>["setState"];
-export type ActiveFilter = z.infer<typeof dataTableFiltersSchema>;
 
 export function useColumnFilters() {
-  const { state } = useFiltersState();
-  return useMemo(
-    () =>
-      (state.activeFilters || [])
-        .filter((filter) => typeof filter === "object" && filter && "f" in filter && "v" in filter)
-        .map((filter) => ({
-          id: filter.f,
-          value: filter.v,
-        }))
-        .filter((filter) => {
-          // The empty arrays in `filtersSearchState` keep the filter UI component,
-          // but we do not send them to the actual query.
-          // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
-          if (Array.isArray(filter.value) && filter.value.length === 0) {
-            return false;
-          }
-          return true;
-        }),
-    [state]
-  );
+  const [filtersSearchState] = useFiltersSearchState();
+  const columnFilters = useMemo(() => {
+    return (filtersSearchState.activeFilters || [])
+      .map((filter) => ({
+        id: filter.f,
+        value: filter.v,
+      }))
+      .filter((filter) => {
+        // The empty arrays in `filtersSearchState` keep the filter UI component,
+        // but we do not send them to the actual query.
+        // Otherwise, { value: [] } would result in nothing being returned.
+        if (Array.isArray(filter.value) && filter.value.length === 0) {
+          return false;
+        }
+        return true;
+      });
+  }, [filtersSearchState.activeFilters]);
+  return columnFilters;
 }
 
-export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
-  if (typeof cellValue !== "string") {
-    return false;
-  }
+export type FiltersSearchState = ReturnType<typeof useFiltersSearchState>[0];
+export type SetFiltersSearchState = ReturnType<typeof useFiltersSearchState>[1];
+export type ActiveFilter = NonNullable<FiltersSearchState["activeFilters"]>[number];
 
+export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
   switch (filterValue.data.operator) {
     case "equals":
       return cellValue.toLowerCase() === (filterValue.data.operand || "").toLowerCase();
@@ -86,28 +77,6 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
   );
 };
 
-export const selectFilter = (cellValue: unknown | undefined, filterValue: SelectFilterValue) => {
-  const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
-  if (!cellValueArray.every((value) => typeof value === "string")) {
-    return false;
-  }
-
-  return filterValue.length === 0 ? true : cellValueArray.some((v) => filterValue.includes(v));
-};
-
 export const isSelectFilterValue = (filterValue: unknown): filterValue is SelectFilterValue => {
   return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
-};
-
-export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
-  if (isSelectFilterValue(filterValue)) {
-    return selectFilter(cellValue, filterValue);
-  } else if (isTextFilterValue(filterValue)) {
-    return textFilter(cellValue, filterValue);
-  }
-  return false;
-};
-
-export const convertToTitleCase = (str: string) => {
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
 };

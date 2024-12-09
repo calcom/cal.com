@@ -1,13 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -22,8 +16,6 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
-  isSelectFilterValue,
-  selectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -176,7 +168,7 @@ export function UserListTable() {
           id: attribute.id,
           header: attribute.name,
           meta: {
-            filter: { type: attribute.type.toLowerCase() === "text" ? "text" : "select" },
+            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
           },
           size: 120,
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
@@ -187,11 +179,14 @@ export function UserListTable() {
             if (attributeValues.length === 0) return null;
             return (
               <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
+                {attributeValues.map((attributeValue, index) => {
+                  const isAGroupOption = attributeValue.contains?.length > 0;
+                  return (
+                    <Badge key={index} variant={isAGroupOption ? "orange" : "gray"} className="mr-1">
+                      {attributeValue.value}
+                    </Badge>
+                  );
+                })}
               </div>
             );
           },
@@ -200,13 +195,10 @@ export function UserListTable() {
 
             if (isTextFilterValue(filterValue)) {
               return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-            } else if (isSelectFilterValue(filterValue)) {
-              return selectFilter(
-                attributeValues.map((attr) => attr.value),
-                filterValue
-              );
             }
-            return false;
+
+            if (attributeValues.length === 0) return false;
+            return attributeValues.some((attr) => filterValue.includes(attr.value));
           },
         })) as ColumnDef<UserTableUser>[]) ?? []
       );
@@ -217,6 +209,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         meta: {
           sticky: {
@@ -360,6 +353,8 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        enableSorting: false,
+        enableResizing: false,
         size: 80,
         meta: {
           sticky: { position: "right" },
@@ -397,6 +392,7 @@ export function UserListTable() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
+    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
@@ -410,8 +406,6 @@ export function UserListTable() {
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
-    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,
@@ -500,6 +494,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={{ name: "UserListTable" }}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">
@@ -521,7 +516,7 @@ export function UserListTable() {
                 {t("download")}
               </DataTableToolbar.CTA>
               {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.AddFilterButton table={table} omit={["member"]} />
+              <DataTableFilters.FilterButton table={table} omit={["member"]} />
               <DataTableFilters.ColumnVisibilityButton table={table} />
               {adminOrOwner && (
                 <DataTableToolbar.CTA

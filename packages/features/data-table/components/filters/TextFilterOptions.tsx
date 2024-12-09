@@ -26,7 +26,7 @@ const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
 };
 
 export type TextFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "text" }>;
+  column: FilterableColumn;
   filterValue?: TextFilterValue;
   setFilterValue: (value: TextFilterValue) => void;
   removeFilter: (columnId: string) => void;
