@@ -2548,7 +2548,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOrganizationUsersOutput"
+                  "$ref": "#/components/schemas/GetOrganizationUsersResponseDTO"
                 }
               }
             }
@@ -3862,9 +3862,104 @@
         ]
       }
     },
+    "/v2/conferencing/{app}/oauth/auth-url": {
+      "get": {
+        "operationId": "ConferencingController_redirect",
+        "summary": "Get oauth conferencing app auth url",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing/{app}/oauth/callback": {
+      "get": {
+        "operationId": "ConferencingController_save",
+        "summary": "conferencing apps oauths callback",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
     "/v2/conferencing": {
       "get": {
-        "operationId": "ConferencingController_listConferencingApps",
+        "operationId": "ConferencingController_listInstalledConferencingApps",
         "summary": "List your conferencing applications",
         "parameters": [],
         "responses": {
@@ -3915,6 +4010,28 @@
         ]
       }
     },
+    "/v2/conferencing/default": {
+      "get": {
+        "operationId": "ConferencingController_getDefault",
+        "summary": "Get your default conferencing application",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Conferencing"
+        ]
+      }
+    },
     "/v2/conferencing/{app}/disconnect": {
       "delete": {
         "operationId": "ConferencingController_disconnect",
@@ -3935,7 +4052,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
                 }
               }
             }
@@ -4066,6 +4183,24 @@
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgSlug",
+            "required": false,
+            "in": "query",
+            "description": "slug of the user's organization if he is in one, orgId is not required if using this parameter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": false,
+            "in": "query",
+            "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -5005,6 +5140,20 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "slotFormat",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5028,13 +5177,31 @@
                             "type": "array",
                             "items": {
                               "type": "object",
-                              "properties": {
-                                "time": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "example": "2024-09-25T08:00:00.000Z"
+                              "oneOf": [
+                                {
+                                  "properties": {
+                                    "time": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    }
+                                  }
+                                },
+                                {
+                                  "properties": {
+                                    "startTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:00:00.000Z"
+                                    },
+                                    "endTime": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2024-09-25T08:30:00.000Z"
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           }
                         }
@@ -5055,13 +5222,12 @@
                         ],
                         "2024-09-26": [
                           {
-                            "time": "2024-09-26T08:00:00.000Z"
+                            "startTime": "2024-09-26T08:00:00.000Z",
+                            "endTime": "2024-09-26T08:30:00.000Z"
                           },
                           {
-                            "time": "2024-09-26T08:15:00.000Z"
-                          },
-                          {
-                            "time": "2024-09-26T08:30:00.000Z"
+                            "startTime": "2024-09-26T08:15:00.000Z",
+                            "endTime": "2024-09-26T08:45:00.000Z"
                           }
                         ]
                       }
@@ -6534,7 +6700,7 @@
           "rolling": {
             "type": "boolean",
             "example": true,
-            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
+            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
           }
         },
         "required": [
@@ -6562,7 +6728,7 @@
           "rolling": {
             "type": "boolean",
             "example": true,
-            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
+            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
           }
         },
         "required": [
@@ -9600,7 +9766,38 @@
           "status"
         ]
       },
-      "GetUserOutput": {
+      "ProfileOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The ID of the profile of user",
+            "example": 1
+          },
+          "organizationId": {
+            "type": "number",
+            "description": "The ID of the organization of user",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "description": "The IDof the user",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "The username of the user within the organization context",
+            "example": "john_doe"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "userId"
+        ]
+      },
+      "GetOrgUsersWithProfileOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -9724,6 +9921,14 @@
             "nullable": true,
             "description": "The ID of the user who invited this user",
             "example": 1
+          },
+          "profile": {
+            "description": "organization user profile, contains user data within the organizaton context",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileOutput"
+              }
+            ]
           }
         },
         "required": [
@@ -9732,10 +9937,11 @@
           "timeZone",
           "weekStart",
           "hideBranding",
-          "createdDate"
+          "createdDate",
+          "profile"
         ]
       },
-      "GetOrganizationUsersOutput": {
+      "GetOrganizationUsersResponseDTO": {
         "type": "object",
         "properties": {
           "status": {
@@ -9749,7 +9955,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/GetUserOutput"
+              "$ref": "#/components/schemas/GetOrgUsersWithProfileOutput"
             }
           }
         },
@@ -9858,7 +10064,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/GetUserOutput"
+            "$ref": "#/components/schemas/GetOrgUsersWithProfileOutput"
           }
         },
         "required": [
@@ -13450,7 +13656,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -13571,7 +13777,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -13737,7 +13943,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -13853,7 +14059,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/BookingHost"
             }
           },
           "status": {
@@ -14659,6 +14865,22 @@
           "data"
         ]
       },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "ConferencingAppsOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -14683,6 +14905,52 @@
         ]
       },
       "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DefaultConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "appSlug": {
+            "type": "string"
+          },
+          "appLink": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DisconnectConferencingAppOutputResponseDto": {
         "type": "object",
         "properties": {
           "status": {
