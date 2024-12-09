@@ -227,6 +227,8 @@ class RoutingEventsInsights {
 
     if (fieldFilters.length > 0) {
       responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => {
+        // NOTE: We cannot perform case-insensitive search on `response` column,
+        // until we normalize this table, use raw sql, or filter at the application level.
         return makeWhereClause({
           columnName: "response",
           filterValue: fieldFilter.value,

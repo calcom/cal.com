@@ -23,7 +23,8 @@ export interface DataTableProps<TData, TValue> {
   variant?: "default" | "compact";
   "data-testid"?: string;
   children?: React.ReactNode;
-  enableColumnResizing?: { name: string };
+  name?: string;
+  enableColumnResizing?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -34,6 +35,7 @@ export function DataTable<TData, TValue>({
   onRowMouseclick,
   onScroll,
   children,
+  name,
   enableColumnResizing,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
@@ -81,9 +83,9 @@ export function DataTable<TData, TValue>({
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing),
+    enabled: Boolean(name && enableColumnResizing),
     table,
-    name: enableColumnResizing?.name,
+    name,
   });
 
   return (

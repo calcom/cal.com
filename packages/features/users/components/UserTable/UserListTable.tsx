@@ -176,7 +176,12 @@ function UserListTableContent() {
       }
       return (
         (attributes?.map((attribute) => {
-          const isNumber = false; // attribute.type === "NUMBER";
+          // TODO: We need to normalize AttributeOption table first
+          // so that we can have `number_value` column for numeric operations.
+          // Currently, `value` column is used for both text and number attributes.
+          //
+          // const isNumber = attribute.type === "NUMBER";
+          const isNumber = false;
           const isText = attribute.type === "TEXT";
           const filterType = isNumber ? "number" : isText ? "text" : "select";
 
@@ -511,7 +516,8 @@ function UserListTableContent() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
-        enableColumnResizing={{ name: "UserListTable" }}
+        name="UserListTable"
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">

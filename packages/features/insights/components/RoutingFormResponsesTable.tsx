@@ -123,9 +123,7 @@ function BookedByCell({
   );
 }
 
-type ResponseValue = { label: string; value: string };
-
-function ResponseValueCell({ values, rowId }: { values: ResponseValue[]; rowId: number }) {
+function ResponseValueCell({ values, rowId }: { values: string[]; rowId: number }) {
   const cellId = useId();
   if (values.length === 0) return <div className="h-6 w-[200px]" />;
 
@@ -133,9 +131,9 @@ function ResponseValueCell({ values, rowId }: { values: ResponseValue[]; rowId: 
     <CellWithOverflowX className="flex w-[200px] gap-1">
       {values.length > 2 ? (
         <>
-          {values.slice(0, 2).map((value: ResponseValue, i: number) => (
+          {values.slice(0, 2).map((value, i: number) => (
             <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-              {value.label}
+              {value}
             </Badge>
           ))}
           <HoverCard>
@@ -145,9 +143,9 @@ function ResponseValueCell({ values, rowId }: { values: ResponseValue[]; rowId: 
             <HoverCardPortal>
               <HoverCardContent side="bottom" align="start" className="w-fit">
                 <div className="flex flex-col gap-1">
-                  {values.slice(2).map((value: ResponseValue, i: number) => (
+                  {values.slice(2).map((value, i: number) => (
                     <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                      {value.label}
+                      {value}
                     </span>
                   ))}
                 </div>
@@ -156,9 +154,9 @@ function ResponseValueCell({ values, rowId }: { values: ResponseValue[]; rowId: 
           </HoverCard>
         </>
       ) : (
-        values.map((value: ResponseValue, i: number) => (
+        values.map((value, i: number) => (
           <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-            {value.label}
+            {value}
           </Badge>
         ))
       )}
@@ -375,7 +373,11 @@ export function RoutingFormResponsesTableContent({
 
         const isNumber = fieldHeader.type === RoutingFormFieldType.NUMBER;
 
-        const filterType = isText ? "text" : isNumber ? "number" : "select";
+        const isSelect =
+          fieldHeader.type === RoutingFormFieldType.SINGLE_SELECT ||
+          fieldHeader.type === RoutingFormFieldType.MULTI_SELECT;
+
+        const filterType = isSelect ? "select" : isNumber ? "number" : "text";
 
         return columnHelper.accessor(fieldHeader.id, {
           id: fieldHeader.id,
@@ -385,13 +387,13 @@ export function RoutingFormResponsesTableContent({
             const values = info.getValue();
             return (
               <div className="max-w-[200px]">
-                {isText || isNumber ? (
-                  <span>{values}</span>
-                ) : (
+                {isSelect ? (
                   <ResponseValueCell
                     values={Array.isArray(values) ? values : [values]}
                     rowId={info.row.original.id}
                   />
+                ) : (
+                  <span>{values}</span>
                 )}
               </div>
             );
@@ -588,6 +590,8 @@ export function RoutingFormResponsesTableContent({
             fetchMoreOnBottomReached(e.target as HTMLDivElement);
           }
         }}
+        name="RoutingFormResponsesTable"
+        enableColumnResizing={true}
         isPending={isFetching && !data}>
         <div className="header mb-4">
           <div className="flex flex-wrap items-start gap-2">
