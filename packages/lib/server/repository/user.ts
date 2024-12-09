@@ -83,6 +83,12 @@ type UserWithSelectedCalendars<TCalendar, TUser> = Omit<TUser, "selectedCalendar
   userLevelSelectedCalendars: TCalendar[];
 };
 
+function getUserLevelSelectedCalendars<TCalendar extends { eventTypeId: number | null }>(
+  selectedCalendars: TCalendar[]
+) {
+  return selectedCalendars.filter((selectedCalendar) => !selectedCalendar.eventTypeId);
+}
+
 export function enrichWithSelectedCalendars<
   TCalendar extends {
     eventTypeId: number | null;
@@ -809,5 +815,115 @@ export class UserRepository {
 
     const userWithSelectedCalendars = enrichWithSelectedCalendars(user);
     return userWithSelectedCalendars;
+  }
+
+  static async findUnlockedUserForSession({ userId }: { userId: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+        // Locked users can't login
+        locked: false,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        bio: true,
+        avatarUrl: true,
+        timeZone: true,
+        weekStart: true,
+        startTime: true,
+        endTime: true,
+        defaultScheduleId: true,
+        bufferTime: true,
+        theme: true,
+        appTheme: true,
+        createdDate: true,
+        hideBranding: true,
+        twoFactorEnabled: true,
+        disableImpersonation: true,
+        identityProvider: true,
+        identityProviderId: true,
+        brandColor: true,
+        darkBrandColor: true,
+        movedToProfileId: true,
+        selectedCalendars: {
+          select: {
+            eventTypeId: true,
+            externalId: true,
+            integration: true,
+          },
+        },
+        completedOnboarding: true,
+        destinationCalendar: true,
+        locale: true,
+        timeFormat: true,
+        trialEndsAt: true,
+        metadata: true,
+        role: true,
+        allowDynamicBooking: true,
+        allowSEOIndexing: true,
+        receiveMonthlyDigestEmail: true,
+        profiles: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return enrichWithSelectedCalendars(user);
+  }
+
+  static async getUserStats({ userId }: { userId: number }) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        _count: {
+          select: {
+            bookings: true,
+            // We only need user level selected calendars
+            selectedCalendars: {
+              where: {
+                eventTypeId: null,
+              },
+            },
+            teams: true,
+            eventTypes: true,
+          },
+        },
+        teams: {
+          select: {
+            team: {
+              select: {
+                eventTypes: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const { _count, ...restUser } = user;
+    const { selectedCalendars, ...restCount } = _count;
+    return {
+      ...restUser,
+      _count: {
+        ...restCount,
+        userLevelSelectedCalendars: selectedCalendars,
+      },
+    };
   }
 }

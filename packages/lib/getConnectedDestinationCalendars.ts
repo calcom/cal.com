@@ -14,7 +14,8 @@ type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCal
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
 export type UserWithCalendars = Pick<User, "id"> & {
-  selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
+  allSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
+  userLevelSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
   destinationCalendar: DestinationCalendar | null;
 };
 
@@ -229,15 +230,18 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  const eventTypeSelectedCalendars = user.selectedCalendars.filter(
+  console.log(JSON.stringify({ userFromSession: user }, null, 2));
+  const eventTypeSelectedCalendars = user.allSelectedCalendars.filter(
     (selectedCalendar) => selectedCalendar.eventTypeId === eventTypeId
   );
 
-  const userSelectedCalendars = user.selectedCalendars.filter(
-    (selectedCalendar) => !selectedCalendar.eventTypeId
-  );
+  const userSelectedCalendars = user.userLevelSelectedCalendars;
 
-  log.debug({ eventTypeSelectedCalendars, userSelectedCalendars, allUserCalendars: user.selectedCalendars });
+  log.debug({
+    eventTypeSelectedCalendars,
+    userSelectedCalendars,
+    allSelectedCalendars: user.allSelectedCalendars,
+  });
 
   const selectedCalendars = eventTypeId ? eventTypeSelectedCalendars : userSelectedCalendars;
 
