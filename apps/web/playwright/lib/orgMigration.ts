@@ -179,122 +179,6 @@ export async function removeUserFromOrg({ targetOrgId, userId }: { targetOrgId: 
   log.debug(`orgId:${targetOrgId} attached to userId:${userId}`);
 }
 
-/**
- * Make sure that the migration is idempotent
- */
-export async function moveTeamToOrg({
-  targetOrg,
-  teamId,
-  moveMembers,
-}: {
-  targetOrg: { id: number; teamSlug: string };
-  teamId: number;
-  moveMembers?: boolean;
-}) {
-  const possibleOrg = await getTeamOrThrowError(targetOrg.id);
-  const { oldTeamSlug, updatedTeam } = await dbMoveTeamToOrg({ teamId, targetOrg });
-
-  const teamMetadata = teamMetadataSchema.parse(possibleOrg?.metadata);
-
-  if (!possibleOrg.isOrganization) {
-    throw new Error(`${targetOrg.id} is not an Org`);
-  }
-
-  const targetOrganization = possibleOrg;
-  const orgMetadata = teamMetadata;
-  await addTeamRedirect({
-    oldTeamSlug,
-    teamSlug: updatedTeam.slug,
-    orgSlug: targetOrganization.slug || orgMetadata?.requestedSlug || null,
-  });
-  await setOrgSlugIfNotSet({ slug: targetOrganization.slug }, orgMetadata, targetOrg.id);
-  if (moveMembers) {
-    for (const membership of updatedTeam.members) {
-      await moveUserToOrg({
-        user: {
-          id: membership.userId,
-        },
-        targetOrg: {
-          id: targetOrg.id,
-          membership: {
-            role: membership.role,
-            accepted: membership.accepted,
-          },
-        },
-        shouldMoveTeams: false,
-      });
-    }
-  }
-  log.debug(`Successfully moved team ${teamId} to org ${targetOrg.id}`);
-}
-
-/**
- * Make sure that the migration is idempotent
- */
-export async function removeTeamFromOrg({ targetOrgId, teamId }: { targetOrgId: number; teamId: number }) {
-  const removedTeam = await dbRemoveTeamFromOrg({ teamId });
-  await removeTeamRedirect(removedTeam.slug);
-  for (const membership of removedTeam.members) {
-    await removeUserFromOrg({
-      userId: membership.userId,
-      targetOrgId,
-    });
-  }
-  log.debug(`Successfully removed team ${teamId} from org ${targetOrgId}`);
-}
-
-async function dbMoveTeamToOrg({
-  teamId,
-  targetOrg,
-}: {
-  teamId: number;
-  targetOrg: {
-    id: number;
-    teamSlug: string;
-  };
-}) {
-  const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
-    include: {
-      members: true,
-    },
-  });
-
-  if (!team) {
-    throw new HttpError({
-      statusCode: 400,
-      message: `Team with id: ${teamId} not found`,
-    });
-  }
-
-  const teamMetadata = teamMetadataSchema.parse(team?.metadata);
-  const oldTeamSlug = teamMetadata?.migratedToOrgFrom?.teamSlug || team.slug;
-
-  const updatedTeam = await prisma.team.update({
-    where: {
-      id: teamId,
-    },
-    data: {
-      slug: targetOrg.teamSlug,
-      parentId: targetOrg.id,
-      metadata: {
-        ...teamMetadata,
-        migratedToOrgFrom: {
-          teamSlug: team.slug,
-          lastMigrationTime: new Date().toISOString(),
-        },
-      },
-    },
-    include: {
-      members: true,
-    },
-  });
-
-  return { oldTeamSlug, updatedTeam };
-}
-
 async function getUniqueUserThatDoesntBelongToOrg(
   userName: string | undefined,
   userId: number | undefined,
@@ -491,53 +375,6 @@ async function addRedirect({
   }
 }
 
-async function addTeamRedirect({
-  oldTeamSlug,
-  teamSlug,
-  orgSlug,
-}: {
-  oldTeamSlug: string | null;
-  teamSlug: string | null;
-  orgSlug: string | null;
-}) {
-  if (!oldTeamSlug) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "No oldSlug for team. Not adding the redirect",
-    });
-  }
-  if (!teamSlug) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "No slug for team. Not adding the redirect",
-    });
-  }
-  if (!orgSlug) {
-    log.warn(`No slug for org. Not adding the redirect`);
-    return;
-  }
-  const orgUrlPrefix = getOrgFullOrigin(orgSlug);
-
-  await prisma.tempOrgRedirect.upsert({
-    where: {
-      from_type_fromOrgId: {
-        type: RedirectType.Team,
-        from: oldTeamSlug,
-        fromOrgId: 0,
-      },
-    },
-    create: {
-      type: RedirectType.Team,
-      from: oldTeamSlug,
-      fromOrgId: 0,
-      toUrl: `${orgUrlPrefix}/${teamSlug}`,
-    },
-    update: {
-      toUrl: `${orgUrlPrefix}/${teamSlug}`,
-    },
-  });
-}
-
 async function updateMembership({
   targetOrgId,
   userToMoveToOrg,
@@ -696,24 +533,6 @@ async function setOrgSlug({ targetOrgId, targetSlug }: { targetOrgId: number; ta
     },
     data: {
       slug: targetSlug,
-    },
-  });
-}
-
-async function removeTeamRedirect(teamSlug: string | null) {
-  if (!teamSlug) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "No slug for team. Not removing the redirect",
-    });
-    return;
-  }
-
-  await prisma.tempOrgRedirect.deleteMany({
-    where: {
-      type: RedirectType.Team,
-      from: teamSlug,
-      fromOrgId: 0,
     },
   });
 }
