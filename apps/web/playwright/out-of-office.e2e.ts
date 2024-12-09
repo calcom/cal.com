@@ -198,6 +198,104 @@ test.describe("Out of office", () => {
     await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
 
+  test("User can create Entry for past", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[data-testid="date-range"]').click();
+
+    await selectToAndFromDates(page, "13", "22", true);
+
+    // send request
+    await saveAndWaitForResponse(page);
+
+    const ooo = await prisma.outOfOfficeEntry.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        start: true,
+        end: true,
+      },
+      take: 1,
+    });
+
+    const latestEntry = ooo[0];
+
+    const currentDate = dayjs();
+    const fromDate = dayjs(latestEntry.start);
+    const toDate = dayjs(latestEntry.end);
+
+    expect(toDate.isBefore(currentDate)).toBe(true);
+    expect(fromDate.isBefore(currentDate)).toBe(true);
+  });
+
+  test("User can create overriding entries", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[data-testid="date-range"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    // add another entry
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[data-testid="date-range"]').click();
+
+    await selectToAndFromDates(page, "11", "24");
+
+    // send request
+    await saveAndWaitForResponse(page);
+
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toHaveCount(2);
+  });
+
+  test("User cannot create duplicate entries", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+
+    await user.apiLogin();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[data-testid="date-range"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page);
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    // add another entry
+    await page.getByTestId("add_entry_ooo").click();
+
+    await page.locator('[data-testid="date-range"]').click();
+
+    await selectToAndFromDates(page, "13", "22");
+
+    // send request
+    await saveAndWaitForResponse(page, 409);
+  });
+
   test("User can create separate out of office entries for consecutive dates", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     await user.apiLogin();
@@ -206,7 +304,7 @@ test.describe("Out of office", () => {
     await page.waitForLoadState();
 
     const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[id="date"]');
+    const dateButton = await page.locator('[data-testid="date-range"]');
 
     //Creates 2 OOO entries:
     //First OOO is created on Next month 1st - 3rd
@@ -219,30 +317,6 @@ test.describe("Out of office", () => {
     await clickUntilDialogVisible(addOOOButton, dateButton);
     await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "6");
-    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
-  });
-
-  test("User can create overlapping out of office entries", async ({ page, users }) => {
-    const user = await users.create({ name: "userOne" });
-    await user.apiLogin();
-
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
-
-    const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[id="date"]');
-
-    //Creates 2 OOO entries:
-    //First OOO is created on Next month 1st - 5th
-    await clickUntilDialogVisible(addOOOButton, dateButton);
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "1", "5");
-    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
-
-    //Second OOO is created on Next month 3rd - 8th
-    await clickUntilDialogVisible(addOOOButton, dateButton);
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "3", "8");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
   });
 
@@ -264,7 +338,7 @@ test.describe("Out of office", () => {
     await page.waitForLoadState();
 
     const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[id="date"]');
+    const dateButton = await page.locator('[data-testid="date-range"]');
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
     await clickUntilDialogVisible(addOOOButton, dateButton);
@@ -303,7 +377,7 @@ test.describe("Out of office", () => {
     await page.waitForLoadState();
 
     const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[id="date"]');
+    const dateButton = await page.locator('[data-testid="date-range"]');
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
     await clickUntilDialogVisible(addOOOButton, dateButton);
@@ -322,34 +396,6 @@ test.describe("Out of office", () => {
     await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
     await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
   });
-
-  test("User cannot create duplicate out of office entries, .i.e. for same start and/or end dates", async ({
-    page,
-    users,
-  }) => {
-    const t = await localize("en");
-    const user = await users.create({ name: "userOne" });
-    await user.apiLogin();
-
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
-
-    const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[id="date"]');
-
-    //Creates 2 OOO entries:
-    //First OOO is created on Next month 1st - 5th
-    await clickUntilDialogVisible(addOOOButton, dateButton);
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "1", "5");
-    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
-
-    //Expect Error while Second OOO is created on Next month 1st - 5th, i.e. for same start and end dates
-    await clickUntilDialogVisible(addOOOButton, dateButton);
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "1", "5", undefined, 409);
-    await expect(page.locator(`text=${t("out_of_office_entry_already_exists")}`)).toBeTruthy();
-  });
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
@@ -357,6 +403,15 @@ async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
     expectedStatusCode,
   });
+}
+
+async function selectToAndFromDates(page: Page, fromDate: string, toDate: string, isRangeInPast = false) {
+  const month = isRangeInPast ? "previous" : "next";
+
+  await page.locator(`button[name="${month}-month"]`).click();
+
+  await page.locator(`button[name="day"]:has-text("${fromDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:has-text("${toDate}")`).nth(0).click();
 }
 
 async function selectDateAndCreateOOO(

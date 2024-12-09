@@ -10,12 +10,12 @@ import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayl
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TOutOfOfficeDelete, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
-import { WebhookTriggerEvents } from ".prisma/client";
 
 type TBookingRedirect = {
   ctx: {
@@ -30,19 +30,12 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
   }
 
-  const inputStartTime = dayjs(startDate).startOf("day");
-  const inputEndTime = dayjs(endDate).endOf("day");
-  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day").toISOString();
-  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day").toISOString();
+  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day");
+  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day");
 
   // If start date is after end date throw error
-  if (inputStartTime.isAfter(inputEndTime)) {
+  if (startTimeUtc.isAfter(endTimeUtc)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
-  }
-
-  // If start date is before to today throw error
-  if (inputStartTime.isBefore(dayjs().startOf("day").subtract(1, "day"))) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 
   let toUserId: number | null = null;
@@ -75,26 +68,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     toUserId = user?.id;
   }
 
-  // Check if OOO entry already exists
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          uuid: {
-            not: input.uuid ?? "",
-          },
-        },
-        { OR: [{ start: new Date(startTimeUtc) }, { end: new Date(endTimeUtc) }] },
-      ],
-    },
-  });
-
-  // don't allow overlapping entries
-  if (outOfOfficeEntry) {
-    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
-  }
-
   if (!input.reasonId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
   }
@@ -112,11 +85,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       OR: [
         // Outside of range
         {
-          AND: [{ start: { lte: new Date(endTimeUtc) } }, { end: { gte: new Date(startTimeUtc) } }],
+          AND: [{ start: { lte: endTimeUtc.toISOString() } }, { end: { gte: startTimeUtc.toISOString() } }],
         },
         // Inside of range
         {
-          AND: [{ start: { gte: new Date(startTimeUtc) } }, { end: { lte: new Date(endTimeUtc) } }],
+          AND: [{ start: { gte: startTimeUtc.toISOString() } }, { end: { lte: endTimeUtc.toISOString() } }],
         },
       ],
     },
@@ -125,6 +98,18 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   // don't allow infinite redirects
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
+  }
+
+  const isDuplicateOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
+    where: {
+      userId: ctx.user.id,
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
+    },
+  });
+
+  if (isDuplicateOutOfOfficeEntry) {
+    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
   }
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
@@ -150,8 +135,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
     create: {
       uuid: uuidv4(),
-      start: startTimeUtc,
-      end: endTimeUtc,
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: ctx.user.id,
       reasonId: input.reasonId,
@@ -160,8 +145,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       updatedAt: new Date(),
     },
     update: {
-      start: startTimeUtc,
-      end: endTimeUtc,
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: ctx.user.id,
       reasonId: input.reasonId,

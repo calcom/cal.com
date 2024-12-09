@@ -66,6 +66,7 @@ class MyDocument extends Document<Props> {
           <script
             nonce={nonce}
             id="newLocale"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";

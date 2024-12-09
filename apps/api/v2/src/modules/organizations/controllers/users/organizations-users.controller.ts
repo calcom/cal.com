@@ -12,10 +12,12 @@ import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/inputs/get-organization-users.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
-import { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
+import {
+  GetOrganizationUsersResponseDTO,
+  GetOrgUsersWithProfileOutput,
+} from "@/modules/organizations/outputs/get-organization-users.output";
 import { GetOrganizationUserOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
-import { GetUserOutput } from "@/modules/users/outputs/get-users.output";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -55,7 +57,7 @@ export class OrganizationsUsersController {
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetOrganizationsUsersInput
-  ): Promise<GetOrganizationUsersOutput> {
+  ): Promise<GetOrganizationUsersResponseDTO> {
     const users = await this.organizationsUsersService.getUsers(
       orgId,
       query.emails,
@@ -65,7 +67,13 @@ export class OrganizationsUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: users.map((user) => plainToInstance(GetUserOutput, user, { strategy: "excludeAll" })),
+      data: users.map((user) =>
+        plainToInstance(
+          GetOrgUsersWithProfileOutput,
+          { ...user, profile: user?.profiles?.[0] ?? {} },
+          { strategy: "excludeAll" }
+        )
+      ),
     };
   }
 
@@ -86,7 +94,11 @@ export class OrganizationsUsersController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToInstance(GetUserOutput, user, { strategy: "excludeAll" }),
+      data: plainToInstance(
+        GetOrgUsersWithProfileOutput,
+        { ...user, profile: user?.profiles?.[0] ?? {} },
+        { strategy: "excludeAll" }
+      ),
     };
   }
 
@@ -104,7 +116,11 @@ export class OrganizationsUsersController {
     const user = await this.organizationsUsersService.updateUser(orgId, userId, input);
     return {
       status: SUCCESS_STATUS,
-      data: plainToInstance(GetUserOutput, user, { strategy: "excludeAll" }),
+      data: plainToInstance(
+        GetOrgUsersWithProfileOutput,
+        { ...user, profile: user?.profiles?.[0] ?? {} },
+        { strategy: "excludeAll" }
+      ),
     };
   }
 
@@ -120,7 +136,11 @@ export class OrganizationsUsersController {
     const user = await this.organizationsUsersService.deleteUser(orgId, userId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToInstance(GetUserOutput, user, { strategy: "excludeAll" }),
+      data: plainToInstance(
+        GetOrgUsersWithProfileOutput,
+        { ...user, profile: user?.profiles?.[0] ?? {} },
+        { strategy: "excludeAll" }
+      ),
     };
   }
 }

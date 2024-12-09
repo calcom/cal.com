@@ -69,7 +69,7 @@ export class SeatedAttendee extends Attendee {
   metadata?: Record<string, string>;
 }
 
-class Host {
+class BookingHost {
   @ApiProperty({ type: Number, example: 1 })
   @IsInt()
   @Expose()
@@ -79,6 +79,11 @@ class Host {
   @IsString()
   @Expose()
   name!: string;
+
+  @ApiProperty({ type: String, example: "jane100" })
+  @IsString()
+  @Expose()
+  username!: string;
 
   @ApiProperty({ type: String, example: "America/Los_Angeles" })
   @IsTimeZone()
@@ -119,11 +124,11 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   description!: string;
 
-  @ApiProperty({ type: [Host] })
+  @ApiProperty({ type: [BookingHost] })
   @ValidateNested({ each: true })
-  @Type(() => Host)
+  @Type(() => BookingHost)
   @Expose()
-  hosts!: Host[];
+  hosts!: BookingHost[];
 
   @ApiProperty({ enum: ["cancelled", "accepted", "rejected", "pending"], example: "accepted" })
   @IsEnum(["cancelled", "accepted", "rejected", "pending"])
@@ -199,6 +204,11 @@ class BaseBookingOutput_2024_08_13 {
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  createdAt!: string;
 
   @ApiProperty({
     type: Object,

@@ -30,7 +30,14 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
   if (!result) return;
 
-  const { webhook, booking, hostsThatJoinedTheCall, didGuestJoinTheCall } = result;
+  const {
+    webhook,
+    booking,
+    hostsThatJoinedTheCall,
+    didGuestJoinTheCall,
+    originalRescheduledBooking,
+    participants,
+  } = result;
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
@@ -39,7 +46,9 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       webhook,
       WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
       booking,
-      maxStartTime
+      maxStartTime,
+      participants,
+      originalRescheduledBooking
     );
 
     await markAllGuestNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall });

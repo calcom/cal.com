@@ -120,6 +120,7 @@ export type IconName =
   | "sun"
   | "sunrise"
   | "sunset"
+  | "tags"
   | "terminal"
   | "trash-2"
   | "trash"
