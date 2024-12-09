@@ -3865,7 +3865,7 @@
     "/v2/conferencing/{app}/oauth/auth-url": {
       "get": {
         "operationId": "ConferencingController_redirect",
-        "summary": "Get oauth conferencing app auth url",
+        "summary": "Get OAuth conferencing app auth url",
         "parameters": [
           {
             "name": "Authorization",
