@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import type { FilterValue, ExternalFilter } from "@calcom/features/data-table";
@@ -68,6 +69,15 @@ type RoutingFormTableRow = {
 
 type FieldCellValue = { label: string; value: string };
 
+const ZResponseValues = z.array(
+  z.object({
+    label: z.string(),
+    value: z.string(),
+  })
+);
+
+type ResponseValues = z.infer<typeof ZResponseValues>;
+
 function CellWithOverflowX({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={classNames("group relative max-w-[200px]", className)}>
@@ -123,7 +133,7 @@ function BookedByCell({
   );
 }
 
-function ResponseValueCell({ values, rowId }: { values: string[]; rowId: number }) {
+function ResponseValueCell({ values, rowId }: { values: ResponseValues; rowId: number }) {
   const cellId = useId();
   if (values.length === 0) return <div className="h-6 w-[200px]" />;
 
@@ -133,7 +143,7 @@ function ResponseValueCell({ values, rowId }: { values: string[]; rowId: number 
         <>
           {values.slice(0, 2).map((value, i: number) => (
             <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-              {value}
+              {value.label}
             </Badge>
           ))}
           <HoverCard>
@@ -145,7 +155,7 @@ function ResponseValueCell({ values, rowId }: { values: string[]; rowId: number 
                 <div className="flex flex-col gap-1">
                   {values.slice(2).map((value, i: number) => (
                     <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                      {value}
+                      {value.label}
                     </span>
                   ))}
                 </div>
@@ -156,7 +166,7 @@ function ResponseValueCell({ values, rowId }: { values: string[]; rowId: number 
       ) : (
         values.map((value, i: number) => (
           <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-            {value}
+            {value.label}
           </Badge>
         ))
       )}
@@ -385,13 +395,11 @@ export function RoutingFormResponsesTableContent({
           size: 200,
           cell: (info) => {
             const values = info.getValue();
+            const result = isSelect ? ZResponseValues.safeParse(values) : null;
             return (
               <div className="max-w-[200px]">
-                {isSelect ? (
-                  <ResponseValueCell
-                    values={Array.isArray(values) ? values : [values]}
-                    rowId={info.row.original.id}
-                  />
+                {isSelect && result?.success ? (
+                  <ResponseValueCell values={result.data} rowId={info.row.original.id} />
                 ) : (
                   <span>{values}</span>
                 )}
