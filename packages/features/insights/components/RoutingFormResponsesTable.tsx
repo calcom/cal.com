@@ -606,6 +606,7 @@ export function RoutingFormResponsesTableContent({
             <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
             <DataTableFilters.ActiveFilters table={table} externalFilters={externalFilters} />
             <ClearFilters />
+            <div className="grow" />
             <DateSelect />
             <RoutingDownload />
             <DataTableFilters.ColumnVisibilityButton table={table} />
