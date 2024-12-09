@@ -153,6 +153,7 @@ export class OutputEventTypesService_2024_06_14 {
       id,
       ownerId,
       lengthInMinutes: length,
+      lengthInMinutesOptions: metadata.multipleDuration,
       title,
       slug,
       description: description || "",

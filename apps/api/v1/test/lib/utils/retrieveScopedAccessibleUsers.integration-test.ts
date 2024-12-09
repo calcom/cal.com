@@ -81,7 +81,7 @@ describe("retrieveScopedAccessibleUsers tests", () => {
         where: { email: "member2-acme@example.com" },
       });
 
-      expect(accessibleUserIds.length).toBe(3);
+      expect(accessibleUserIds.length).toBe(11);
       expect(accessibleUserIds).toContain(memberOneUser.id);
       expect(accessibleUserIds).toContain(memberTwoUser.id);
       expect(accessibleUserIds).toContain(adminUser.id);

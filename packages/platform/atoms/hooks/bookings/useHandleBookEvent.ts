@@ -1,5 +1,6 @@
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
@@ -51,6 +52,8 @@ export const useHandleBookEvent = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const orgSlug = useBookerStore((state) => state.org);
   const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
+  const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
+  const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
 
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
@@ -74,6 +77,8 @@ export const useHandleBookEvent = ({
         ? duration
         : event.data.length;
 
+      setLastBookingResponse(values.responses);
+
       const bookingInput = {
         values,
         duration: validDuration,
@@ -88,6 +93,8 @@ export const useHandleBookEvent = ({
         metadata: metadata,
         hashedLink,
         teamMemberEmail,
+        crmOwnerRecordType,
+        crmAppSlug,
         orgSlug: orgSlug ? orgSlug : undefined,
       };
 

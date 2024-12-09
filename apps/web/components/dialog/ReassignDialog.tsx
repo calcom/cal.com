@@ -106,10 +106,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   });
 
   const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
+      showToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
     },
     onError: async (error) => {
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
@@ -135,7 +135,13 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     },
   });
 
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationModal, setConfirmationModal] = useState<{
+    show: boolean;
+    membersStatus: "unavailable" | "available" | null;
+  }>({
+    show: false,
+    membersStatus: null,
+  });
 
   const handleSubmit = (values: FormValues) => {
     if (values.reassignType === "round_robin") {
@@ -143,13 +149,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     } else {
       if (values.teamMemberId) {
         const selectedMember = teamMemberOptions?.find((member) => member.value === values.teamMemberId);
-        if (selectedMember && selectedMember.status === "unavailable") {
-          setShowConfirmation(true);
-        } else {
-          roundRobinManualReassignMutation.mutate({
-            bookingId,
-            teamMemberId: values.teamMemberId,
-            reassignReason: values.reassignReason,
+        if (selectedMember) {
+          setConfirmationModal({
+            show: true,
+            membersStatus: selectedMember.status as "available" | "unavailable",
           });
         }
       }
@@ -263,10 +266,16 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+      <Dialog
+        open={confirmationModal?.show}
+        onOpenChange={(open) => setConfirmationModal({ ...confirmationModal, show: open })}>
         <ConfirmationDialogContent
-          variety="warning"
-          title={t("confirm_reassign_unavailable")}
+          variety={confirmationModal?.membersStatus === "unavailable" ? "warning" : "success"}
+          title={
+            confirmationModal?.membersStatus === "unavailable"
+              ? t("confirm_reassign_unavailable")
+              : t("confirm_reassign_available")
+          }
           confirmBtnText={t("yes_reassign")}
           cancelBtnText={t("cancel")}
           onConfirm={() => {
@@ -279,14 +288,21 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
               teamMemberId,
               reassignReason: form.getValues("reassignReason"),
             });
-            setShowConfirmation(false);
+            setConfirmationModal({
+              show: false,
+              membersStatus: null,
+            });
           }}>
-          <p className="mb-4">{t("reassign_unavailable_team_member_description")}</p>
+          <p className="mb-4">
+            {confirmationModal?.membersStatus === "unavailable"
+              ? t("reassign_unavailable_team_member_description")
+              : t("reassign_available_team_member_description")}
+          </p>
           <TextAreaField
             name="reassignReason"
             label={t("reassign_reason")}
             onChange={(e) => form.setValue("reassignReason", e.target.value)}
-            required
+            required={confirmationModal?.membersStatus === "unavailable"}
           />
         </ConfirmationDialogContent>
       </Dialog>

@@ -5,6 +5,10 @@ import { useMemo, useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import type {
+  BulkUpdatParams,
+  EventTypes,
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import WebSchedule, {
@@ -106,8 +110,11 @@ type AvailabilitySettingsProps = {
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
-    save: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
+    save: (params: BulkUpdatParams) => void;
     isSaving: boolean;
+    eventTypes?: EventTypes;
+    isEventTypesFetching?: boolean;
+    handleBulkEditDialogToggle: () => void;
   };
 };
 
@@ -377,6 +384,9 @@ export function AvailabilitySettings({
               setOpen={bulkUpdateModalProps.setIsOpen}
               bulkUpdateFunction={bulkUpdateModalProps?.save}
               description={t("default_schedules_bulk_description")}
+              eventTypes={bulkUpdateModalProps?.eventTypes}
+              isEventTypesFetching={bulkUpdateModalProps?.isEventTypesFetching}
+              handleBulkEditDialogToggle={bulkUpdateModalProps.handleBulkEditDialogToggle}
             />
           )}
 

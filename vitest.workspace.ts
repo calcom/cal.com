@@ -134,10 +134,8 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
-          name: "@calcom/routing-forms/widgets",
-          include: [
-            "packages/app-store/routing-forms/components/react-awesome-query-builder/widgets.test.tsx",
-          ],
+          name: "@calcom/routing-forms",
+          include: ["packages/app-store/routing-forms/**/*.test.tsx"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.ts"],
         },
