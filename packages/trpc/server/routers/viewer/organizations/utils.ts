@@ -1,3 +1,4 @@
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -74,6 +75,10 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
 
   await prisma.membership.createMany({
     data: membershipData,
+  });
+
+  membershipData.forEach(async ({ userId, teamId }) => {
+    await updateNewTeamMemberEventTypes(userId, teamId);
   });
 
   return {

@@ -162,6 +162,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   control={control}
                   render={({ field: { onChange, value } }) => (
                     <DateRangePicker
+                      minDate={null}
                       dates={{ startDate: value.startDate, endDate: value.endDate }}
                       onDatesChange={(values) => {
                         onChange(values);
