@@ -2827,7 +2827,7 @@
   "exclude_emails_that_contain": "Exclude emails that contain ...",
   "require_emails_that_contain": "Require emails that contain ...",
   "exclude_emails_match_found_error_message": "Please enter a valid work email address",
-  "require_emails_no_match_found_error_message": "You are not allowed to book with this email domain. Contact the owner of this link.",
+  "require_emails_no_match_found_error_message": "You are not allowed to book with this email domain. Please contact the owner of this link.",
   "search_columns": "Search columns",
   "search_options": "Search options",
   "disable_org_url_label": "Disable public organization profile and redirect",
