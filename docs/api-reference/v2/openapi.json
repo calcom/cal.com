@@ -2421,7 +2421,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOrganizationUsersOutput"
+                  "$ref": "#/components/schemas/GetOrganizationUsersResponseDTO"
                 }
               }
             }
@@ -5091,6 +5091,209 @@
           }
         },
         "tags": ["Stripe"]
+      }
+    },
+    "/v2/teams/{teamId}/memberships": {
+      "post": {
+        "operationId": "TeamsMembershipsController_createTeamMembership",
+        "summary": "Create a membership",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamMembershipInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamMembershipOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Memberships"]
+      },
+      "get": {
+        "operationId": "TeamsMembershipsController_getTeamMemberships",
+        "summary": "Get all memberships",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamMembershipsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Memberships"]
+      }
+    },
+    "/v2/teams/{teamId}/memberships/{membershipId}": {
+      "get": {
+        "operationId": "TeamsMembershipsController_getTeamMembership",
+        "summary": "Get a membership",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamMembershipOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Memberships"]
+      },
+      "patch": {
+        "operationId": "TeamsMembershipsController_updateTeamMembership",
+        "summary": "Create a membership",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamMembershipInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamMembershipOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Memberships"]
+      },
+      "delete": {
+        "operationId": "TeamsMembershipsController_deleteTeamMembership",
+        "summary": "Delete a membership",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTeamMembershipOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Memberships"]
       }
     },
     "/v2/timezones": {
@@ -8924,7 +9127,34 @@
         },
         "required": ["status"]
       },
-      "GetUserOutput": {
+      "ProfileOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The ID of the profile of user",
+            "example": 1
+          },
+          "organizationId": {
+            "type": "number",
+            "description": "The ID of the organization of user",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "description": "The IDof the user",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "The username of the user within the organization context",
+            "example": "john_doe"
+          }
+        },
+        "required": ["id", "organizationId", "userId"]
+      },
+      "GetOrgUsersWithProfileOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -9048,11 +9278,19 @@
             "nullable": true,
             "description": "The ID of the user who invited this user",
             "example": 1
+          },
+          "profile": {
+            "description": "organization user profile, contains user data within the organizaton context",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileOutput"
+              }
+            ]
           }
         },
-        "required": ["id", "email", "timeZone", "weekStart", "hideBranding", "createdDate"]
+        "required": ["id", "email", "timeZone", "weekStart", "hideBranding", "createdDate", "profile"]
       },
-      "GetOrganizationUsersOutput": {
+      "GetOrganizationUsersResponseDTO": {
         "type": "object",
         "properties": {
           "status": {
@@ -9063,7 +9301,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/GetUserOutput"
+              "$ref": "#/components/schemas/GetOrgUsersWithProfileOutput"
             }
           }
         },
@@ -9162,7 +9400,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/GetUserOutput"
+            "$ref": "#/components/schemas/GetOrgUsersWithProfileOutput"
           }
         },
         "required": ["status", "data"]
@@ -12985,6 +13223,141 @@
             "description": "Reason for declining a booking that requires a confirmation"
           }
         }
+      },
+      "CreateTeamMembershipInput": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
+          "userId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableImpersonation": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["role", "userId"]
+      },
+      "TeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "disableImpersonation": {
+            "type": "boolean"
+          }
+        },
+        "required": ["role", "id", "userId", "teamId", "accepted"]
+      },
+      "CreateTeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetTeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetTeamMembershipsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateTeamMembershipInput": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableImpersonation": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "UpdateTeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "DeleteTeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": ["status", "data"]
       },
       "ReserveSlotInput": {
         "type": "object",
