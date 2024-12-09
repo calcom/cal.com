@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Data de început trebuie să fie înainte de data de sfârșit",
   "start_date_must_be_in_the_future": "Data de început trebuie să fie în viitor",
   "user_not_found": "Utilizatorul nu a fost găsit",
+  "cannot_redirect_to_self": "Nu se poate redirecționa către sine",
   "out_of_office_entry_already_exists": "Intrarea de tip 'în afara biroului' există deja",
   "out_of_office_id_required": "Este necesar un ID pentru intrarea de concediu",
   "booking_redirect_infinite_not_allowed": "Există deja o redirecționare de rezervare de la acel utilizator către tine.",
