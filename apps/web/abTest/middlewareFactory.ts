@@ -7,7 +7,6 @@ import { FUTURE_ROUTES_ENABLED_COOKIE_NAME, FUTURE_ROUTES_OVERRIDE_COOKIE_NAME }
 
 const ROUTES: [URLPattern, boolean][] = [
   ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
-  ["/settings/developer/:path*", process.env.APP_ROUTER_SETTINGS_DEVELOPER_ENABLED === "1"] as const,
   ["/apps/installed/:category", process.env.APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED === "1"] as const,
   ["/apps/:slug", process.env.APP_ROUTER_APPS_SLUG_ENABLED === "1"] as const,
   ["/apps/:slug/setup", process.env.APP_ROUTER_APPS_SLUG_SETUP_ENABLED === "1"] as const,
@@ -22,9 +21,7 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/auth/platform/:path*", process.env.APP_ROUTER_AUTH_PLATFORM_ENABLED === "1"] as const,
   ["/auth/oauth2/:path*", process.env.APP_ROUTER_AUTH_OAUTH2_ENABLED === "1"] as const,
   ["/workflows/:path*", process.env.APP_ROUTER_WORKFLOWS_ENABLED === "1"] as const,
-  ["/settings/teams/:path*", process.env.APP_ROUTER_SETTINGS_TEAMS_ENABLED === "1"] as const,
   ["/getting-started/:step", process.env.APP_ROUTER_GETTING_STARTED_STEP_ENABLED === "1"] as const,
-  ["/apps", process.env.APP_ROUTER_APPS_ENABLED === "1"] as const,
   ["/bookings/:status", process.env.APP_ROUTER_BOOKINGS_STATUS_ENABLED === "1"] as const,
   ["/booking/:path*", process.env.APP_ROUTER_BOOKING_ENABLED === "1"] as const,
   ["/video/:path*", process.env.APP_ROUTER_VIDEO_ENABLED === "1"] as const,

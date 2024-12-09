@@ -446,6 +446,19 @@ export function RoutingFormResponsesTableContent({
           </div>
         ),
       }),
+      columnHelper.accessor("routedToBooking", {
+        id: "assignmentReason",
+        header: t("routing_form_insights_assignment_reason"),
+        size: 250,
+        cell: (info) => {
+          const assignmentReason = info.getValue()?.assignmentReason;
+          return (
+            <div className="max-w-[250px]">
+              {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
+            </div>
+          );
+        },
+      }),
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
         header: t("routing_form_insights_submitted_at"),
