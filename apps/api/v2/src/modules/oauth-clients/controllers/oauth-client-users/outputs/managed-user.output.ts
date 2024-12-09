@@ -45,5 +45,5 @@ export class ManagedUserOutput {
     description: `URL of the user's avatar image`,
     required: false,
   })
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
