@@ -18,6 +18,7 @@ import {
   getRoutedHostsWithContactOwnerAndFixedHosts,
   findMatchingHostsWithEventSegment,
 } from "@calcom/lib/bookings/getRoutedUsers";
+import { shouldIgnoreContactOwner, isRerouting } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -476,9 +477,15 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     normalizedHosts: eventHosts,
   });
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
-  const skipContactOwner = input.skipContactOwner;
-  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
+
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
+  const skipContactOwner = shouldIgnoreContactOwner({
+    skipContactOwner: input.skipContactOwner ?? null,
+    rescheduleUid: input.rescheduleUid ?? null,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+  });
+
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
   const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
     hosts: hostsAfterSegmentMatching,
     routedTeamMemberIds,
@@ -1018,15 +1025,13 @@ const calculateHostsAndAvailabilities = async ({
   bypassBusyCalendarTimes: boolean;
 }) => {
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
-  const isRouting = !!routedTeamMemberIds;
-  const isRerouting = input.rescheduleUid && isRouting;
   if (
     input.rescheduleUid &&
     eventType.rescheduleWithSameRoundRobinHost &&
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     // If it is rerouting, we should not force reschedule with same host.
     // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
-    !isRerouting
+    !isRerouting({ rescheduleUid: input.rescheduleUid, routedTeamMemberIds })
   ) {
     const originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
