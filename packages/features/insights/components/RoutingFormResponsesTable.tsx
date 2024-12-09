@@ -362,7 +362,7 @@ export function RoutingFormResponsesTableContent({
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor("bookedAttendees", {
+      columnHelper.accessor("routedToBooking", {
         id: "bookedBy",
         header: t("routing_form_insights_booked_by"),
         size: 200,
