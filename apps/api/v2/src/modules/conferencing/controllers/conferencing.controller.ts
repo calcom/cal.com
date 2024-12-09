@@ -89,7 +89,7 @@ export class ConferencingController {
   @Get("/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "Get oauth conferencing app auth url" })
+  @ApiOperation({ summary: "Get OAuth conferencing app auth url" })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,

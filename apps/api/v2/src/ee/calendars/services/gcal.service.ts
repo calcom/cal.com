@@ -91,7 +91,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     }
 
     if (gcalCredentials.invalid) {
-      throw new BadRequestException("Invalid google oauth credentials.");
+      throw new BadRequestException("Invalid google OAuth credentials.");
     }
 
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
