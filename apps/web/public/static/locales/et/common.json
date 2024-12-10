@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Alguskuupäev peab olema varasem kui lõppkuupäev",
   "start_date_must_be_in_the_future": "Alguskuupäev peab olema tulevikus",
   "user_not_found": "Kasutajat ei leitud",
+  "cannot_redirect_to_self": "Ei saa ümber suunata iseendale",
   "out_of_office_entry_already_exists": "Kontoriväline sissekanne on juba olemas",
   "out_of_office_id_required": "Kontorist väljas sisenemise ID nõutav",
   "booking_redirect_infinite_not_allowed": "Sellelt kasutajalt on juba tehtud broneeringu ümbersuunamine teile.",

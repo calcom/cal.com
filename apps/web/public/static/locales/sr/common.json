@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Datum početka mora biti pre datuma završetka",
   "start_date_must_be_in_the_future": "Datum početka mora biti u budućnosti",
   "user_not_found": "Korisnik nije pronađen",
+  "cannot_redirect_to_self": "Nije moguće preusmeriti na samog sebe",
   "out_of_office_entry_already_exists": "Unos van kancelarije već postoji",
   "out_of_office_id_required": "Potrebno je uneti ID za odsustvo",
   "booking_redirect_infinite_not_allowed": "Već postoji preusmeravanje rezervacije od tog korisnika ka vama.",
