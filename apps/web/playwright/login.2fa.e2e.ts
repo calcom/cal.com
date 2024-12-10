@@ -177,10 +177,7 @@ async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; 
     token = authenticator.generate(secret);
   }
   await page.locator('input[name="2fa1"]').waitFor({ state: "visible", timeout: 60_000 });
-  await page.fill('input[name="2fa1"]', token[0]);
-  await page.fill('input[name="2fa2"]', token[1]);
-  await page.fill('input[name="2fa3"]', token[2]);
-  await page.fill('input[name="2fa4"]', token[3]);
-  await page.fill('input[name="2fa5"]', token[4]);
-  await page.fill('input[name="2fa6"]', token[5]);
+  for (let i = 0; i < 6; i++) {
+    await page.fill(`input[name="2fa${i + 1}"]`, token[i]);
+  }
 }
