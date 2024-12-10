@@ -78,8 +78,9 @@ export const getWho = (
   const hideAttendees = Boolean(seatsPerTimeSlot && !seatsShowAttendees);
   const attendeesText = getAttendeesText(t, hideAttendees, attendees);
   const teamMembersText = getTeamMembersText(t, team?.members);
+  const whoTexts = [organizerText, teamMembersText, attendeesText].filter(Boolean).join("\n\n");
 
-  return `${t("who")}:\n${organizerText}${teamMembersText}${attendeesText}`;
+  return `${t("who")}:\n${whoTexts}`;
 };
 
 export const getAdditionalNotes = (
