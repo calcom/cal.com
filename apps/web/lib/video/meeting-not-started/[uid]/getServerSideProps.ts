@@ -4,7 +4,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 
 // change the type
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
+  const booking = await BookingRepository.findBookingByUid({
     bookingUid: context.query.uid as string,
   });
 

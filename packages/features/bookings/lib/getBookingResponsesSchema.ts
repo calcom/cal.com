@@ -117,6 +117,18 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
+
+      const attendeePhoneNumberField = bookingFields.find((field) => field.name === "attendeePhoneNumber");
+      const isAttendeePhoneNumberFieldHidden = attendeePhoneNumberField?.hidden;
+
+      const emailField = bookingFields.find((field) => field.name === "email");
+      const isEmailFieldHidden = !!emailField?.hidden;
+
+      // To prevent using user's session email as attendee's email, we set email to empty string
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+        responses["email"] = "";
+      }
+
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
@@ -150,13 +162,41 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          // Email RegExp to validate if the input is a valid email
-          if (!emailSchema.safeParse(value).success) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: m("email_validation_error"),
-            });
+          if (!bookingField.hidden) {
+            // Email RegExp to validate if the input is a valid email
+            if (!emailSchema.safeParse(value).success) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("email_validation_error"),
+              });
+            }
+
+            // validate the excluded emails
+            const bookerEmail = value;
+            const excludedEmails =
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+
+            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            if (match) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("exclude_emails_match_found_error_message"),
+              });
+            }
+            const requiredEmails =
+              bookingField.requireEmails
+                ?.split(",")
+                .map((domain) => domain.trim())
+                .filter(Boolean) || [];
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("require_emails_no_match_found_error_message"),
+              });
+            }
           }
+
           continue;
         }
 
@@ -205,7 +245,18 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (bookingField.type === "checkbox" || bookingField.type === "multiselect") {
+        if (bookingField.type === "multiselect") {
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+          if (!stringSchema.array().safeParse(value).success) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+          }
+          continue;
+        }
+
+        if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
           }
@@ -213,7 +264,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!(await phoneSchema.safeParseAsync(value)).success) {
+          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           continue;

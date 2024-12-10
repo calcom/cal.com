@@ -1,4 +1,3 @@
-import type { FormValues } from "@pages/settings/my-account/profile";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -14,6 +13,8 @@ import {
   Button,
   InputError,
 } from "@calcom/ui";
+
+import type { FormValues } from "~/settings/my-account/profile-view";
 
 type CustomEmailTextFieldProps = {
   formMethods: UseFormReturn<FormValues>;
@@ -44,7 +45,7 @@ const CustomEmailTextField = ({
   return (
     <>
       <div
-        className={`border-default mt-2 flex items-center rounded-md border ${
+        className={`border-default mt-2 flex w-full items-center rounded-md border ${
           inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
         }`}>
         <TextField

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -36,7 +37,7 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
-const DuplicateDialog = ({ isInfiniteScrollEnabled }: { isInfiniteScrollEnabled?: boolean }) => {
+const DuplicateDialog = () => {
   const utils = trpc.useUtils();
 
   const searchParams = useCompatSearchParams();
@@ -46,6 +47,8 @@ const DuplicateDialog = ({ isInfiniteScrollEnabled }: { isInfiniteScrollEnabled?
   const {
     data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // react hook form
   const form = useForm({
@@ -74,15 +77,12 @@ const DuplicateDialog = ({ isInfiniteScrollEnabled }: { isInfiniteScrollEnabled?
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
 
-      if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getUserEventGroups.invalidate();
-        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
-          limit: 10,
-          group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
-        });
-      } else {
-        await utils.viewer.eventTypes.getByViewer.invalidate();
-      }
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+        limit: 10,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
+      });
 
       showToast(
         t("event_type_created_successfully", {

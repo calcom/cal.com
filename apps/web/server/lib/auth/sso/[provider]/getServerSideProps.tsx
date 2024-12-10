@@ -37,6 +37,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       const availability = await checkUsername(usernameParam, currentOrgDomain);
       if (availability.available && availability.premium && IS_PREMIUM_USERNAME_ENABLED) {
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
+          userId: session.user.id.toString(),
           userEmail: session.user.email,
           username: usernameParam,
           successDestination,
@@ -104,12 +105,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 type GetStripePremiumUsernameUrl = {
+  userId: string;
   userEmail: string;
   username: string;
   successDestination: string;
 };
 
 const getStripePremiumUsernameUrl = async ({
+  userId,
   userEmail,
   username,
   successDestination,
@@ -125,7 +128,6 @@ const getStripePremiumUsernameUrl = async ({
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
-    payment_method_types: ["card"],
     customer: customer.id,
     line_items: [
       {
@@ -136,6 +138,9 @@ const getStripePremiumUsernameUrl = async ({
     success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
     allow_promotion_codes: true,
+    metadata: {
+      dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+    },
   });
 
   return checkoutSession.url;

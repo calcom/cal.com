@@ -34,7 +34,10 @@ const AppsRouting = {
 };
 
 function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
+  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as unknown as Record<
+    string,
+    AppPageType
+  >;
 
   if (!routingConfig) {
     return {

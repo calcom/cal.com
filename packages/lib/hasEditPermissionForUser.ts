@@ -38,19 +38,20 @@ export async function hasEditPermissionForUserID({ ctx, input }: InputOptions) {
   return teamIdOverlaps;
 }
 
-export async function hasReadPermissionsForUserId({ ctx, input }: InputOptions) {
-  const { user } = ctx;
-
+export async function hasReadPermissionsForUserId({
+  userId,
+  memberId,
+}: InputOptions["input"] & { userId: number }) {
   const authedUsersTeams = await prisma.membership.findMany({
     where: {
-      userId: user.id,
+      userId,
       accepted: true,
     },
   });
 
   const targetUsersTeams = await prisma.membership.findMany({
     where: {
-      userId: input.memberId,
+      userId: memberId,
       accepted: true,
     },
   });

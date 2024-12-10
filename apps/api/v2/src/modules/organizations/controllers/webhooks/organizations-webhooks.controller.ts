@@ -32,7 +32,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -43,7 +43,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Organizations Webhooks")
+@DocsTags("Orgs / Webhooks")
 export class OrganizationsWebhooksController {
   constructor(
     private organizationsWebhooksService: OrganizationsWebhooksService,
@@ -54,6 +54,7 @@ export class OrganizationsWebhooksController {
   @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all webhooks" })
   async getAllOrganizationWebhooks(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -78,6 +79,7 @@ export class OrganizationsWebhooksController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create a webhook" })
   async createOrganizationWebhook(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateWebhookInputDto
@@ -99,6 +101,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get a webhook" })
   async getOrganizationWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.organizationsWebhooksService.getWebhook(webhookId);
     return {
@@ -114,6 +117,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete a webhook" })
   async deleteWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
     return {
@@ -129,6 +133,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update a webhook" })
   async updateOrgWebhook(
     @Param("webhookId") webhookId: string,
     @Body() body: UpdateWebhookInputDto

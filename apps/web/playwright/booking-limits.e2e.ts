@@ -13,7 +13,7 @@ import { entries } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, createUserWithLimits } from "./lib/testUtils";
+import { bookTimeSlot, confirmReschedule, createUserWithLimits } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -59,13 +59,12 @@ const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWith
   return `/${user.username}/${user.eventTypes.at(-1)?.slug}?month=${date.format("YYYY-MM")}`;
 };
 
-// eslint-disable-next-line playwright/no-skipped-test
-test.skip("Booking limits", () => {
+test.describe("Booking limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
 
     // test one limit at a time
-    test(limitUnit, async ({ page, users }) => {
+    test.fixme(`Per ${limitUnit}`, async ({ page, users }) => {
       const slug = `booking-limit-${limitUnit}`;
       const singleLimit = { [limitKey]: bookingLimit };
 
@@ -164,9 +163,8 @@ test.skip("Booking limits", () => {
         await expect(page.locator('[name="name"]')).toBeDisabled();
         await expect(page.locator('[name="email"]')).toBeDisabled();
 
-        await page.locator('[data-testid="confirm-reschedule-button"]').click();
+        await confirmReschedule(page);
 
-        await page.waitForLoadState("networkidle");
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
         const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: bookingId } });

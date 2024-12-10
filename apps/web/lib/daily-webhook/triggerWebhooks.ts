@@ -1,6 +1,7 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -53,11 +54,13 @@ export const triggerRecordingReadyWebhook = async ({
     })
   );
 
+  const payload: EventPayloadType = {
+    ...evt,
+    downloadLink,
+  };
+
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      downloadLink,
-    }).catch((e) => {
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
       log.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
@@ -91,16 +94,18 @@ export const triggerTranscriptionGeneratedWebhook = async ({
     })
   );
 
+  const payload: EventPayloadType = {
+    ...evt,
+    downloadLinks,
+  };
+
   const promises = webhooks.map((webhook) =>
     sendPayload(
       webhook.secret,
       WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
       new Date().toISOString(),
       webhook,
-      {
-        ...evt,
-        downloadLinks,
-      }
+      payload
     ).catch((e) => {
       log.error(
         `Error executing webhook for event: ${WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
