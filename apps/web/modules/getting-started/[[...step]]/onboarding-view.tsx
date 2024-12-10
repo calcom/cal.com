@@ -18,7 +18,7 @@ import { trpc } from "@calcom/trpc";
 import type { TRPCClientErrorLike } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, StepCard, Steps } from "@calcom/ui";
+import { Button, showToast, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
@@ -95,10 +95,7 @@ const OnboardingPage = (props: PageProps) => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const scheduleMutationOptions = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
-      throw new Error(error.message);
-    },
-    onSuccess: () => {
-      goToNextStep();
+      showToast(error.message, "error");
     },
   };
   const createSchedule = trpc.viewer.availability.schedule.create.useMutation(scheduleMutationOptions);
