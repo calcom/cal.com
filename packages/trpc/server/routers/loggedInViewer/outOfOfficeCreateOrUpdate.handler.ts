@@ -68,7 +68,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   let toUserId: number | null = null;
 
-  if (input.toTeamUserId === ctx.user.id) {
+  if (input.toTeamUserId === oooUserId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "cannot_redirect_to_self" });
   }
 
@@ -142,7 +142,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const isDuplicateOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
     where: {
-      userId: ctx.user.id,
+      userId: oooUserId,
       start: startTimeUtc.toISOString(),
       end: endTimeUtc.toISOString(),
     },
@@ -172,7 +172,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const createdOrUpdatedOutOfOffice = await prisma.outOfOfficeEntry.upsert({
     where: {
       uuid: input.uuid ?? "",
-      userId: ctx.user.id,
+      userId: oooUserId,
     },
     create: {
       uuid: uuidv4(),

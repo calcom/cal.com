@@ -98,9 +98,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     }
   }, document.querySelector('[role="dialog"]'));
 
-  const [searchRedirectMember, setSearchRedirectMember] = useState(
-    !!currentlyEditingOutOfOfficeEntry ? currentlyEditingOutOfOfficeEntry.toUserName || "" : ""
-  );
+  const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
   const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
     { limit: 10, searchText: debouncedSearchRedirect },

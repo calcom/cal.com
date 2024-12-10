@@ -96,6 +96,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
       columns.push({
         id: "member",
         header: `Member`,
+        size: 300,
         cell: ({ row }) => {
           if (!row.original || !row.original.user || isPending || isFetching) {
             return <SkeletonText className="h-8 w-full" />;
@@ -136,12 +137,15 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
     columns.push({
       id: "outOfOffice",
       header: `${t("out_of_office")} (${totalDBRowCount})`,
+      size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 670,
       cell: ({ row }) => {
         const item = row.original;
         return (
           <>
             {row.original && !isPending && !isFetching ? (
-              <div className="flex flex-row justify-between p-2">
+              <div
+                className="flex flex-row justify-between p-2"
+                data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
                 <div className="flex flex-row items-center">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
                     {item?.reason?.emoji || "🏝️"}
@@ -176,61 +180,78 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
                     )}
                   </div>
                 </div>
-
-                <div className="flex flex-row items-center gap-x-2">
-                  <Tooltip content={t("edit")}>
-                    <Button
-                      className="self-center rounded-lg border"
-                      type="button"
-                      color="minimal"
-                      variant="icon"
-                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
-                      StartIcon="pencil"
-                      onClick={() => {
-                        const offset = dayjs().utcOffset();
-                        const outOfOfficeEntryData: BookingRedirectForm = {
-                          uuid: item.uuid,
-                          dateRange: {
-                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
-                          },
-                          offset,
-                          toTeamUserId: item.toUserId,
-                          reasonId: item.reason?.id ?? 1,
-                          notes: item.notes ?? undefined,
-                          forUserId: item.user?.id || null,
-                          forUserName:
-                            item.user?.name ||
-                            (item.user?.email &&
-                              (() => {
-                                const emailName = item.user?.email.split("@")[0];
-                                return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                              })()),
-                          forUserAvatar: item.user?.avatarUrl,
-                          toUserName: item.toUser?.name || item.toUser?.username,
-                        };
-                        editOutOfOfficeEntry(outOfOfficeEntryData);
-                      }}
-                      disabled={isPending || isFetching}
-                    />
-                  </Tooltip>
-                  <Tooltip content={t("delete")}>
-                    <Button
-                      className="self-center rounded-lg border"
-                      type="button"
-                      color="minimal"
-                      variant="icon"
-                      disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
-                      StartIcon="trash-2"
-                      onClick={() => {
-                        deleteOutOfOfficeEntryMutation.mutate({
-                          outOfOfficeUid: item.uuid,
-                          userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
-                        });
-                      }}
-                    />
-                  </Tooltip>
-                </div>
+              </div>
+            ) : (
+              <SkeletonText className="h-8 w-full" />
+            )}
+          </>
+        );
+      },
+    });
+    columns.push({
+      id: "actions",
+      size: 90,
+      meta: {
+        sticky: { position: "right" },
+      },
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <>
+            {row.original && !isPending && !isFetching ? (
+              <div className="flex flex-row items-center justify-end gap-x-2">
+                <Tooltip content={t("edit")}>
+                  <Button
+                    className="self-center rounded-lg border"
+                    type="button"
+                    color="minimal"
+                    variant="icon"
+                    data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
+                    StartIcon="pencil"
+                    onClick={() => {
+                      const offset = dayjs().utcOffset();
+                      const outOfOfficeEntryData: BookingRedirectForm = {
+                        uuid: item.uuid,
+                        dateRange: {
+                          startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
+                          endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                        },
+                        offset,
+                        toTeamUserId: item.toUserId,
+                        reasonId: item.reason?.id ?? 1,
+                        notes: item.notes ?? undefined,
+                        forUserId: item.user?.id || null,
+                        forUserName:
+                          item.user?.name ||
+                          (item.user?.email &&
+                            (() => {
+                              const emailName = item.user?.email.split("@")[0];
+                              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                            })()),
+                        forUserAvatar: item.user?.avatarUrl,
+                        toUserName: item.toUser?.name || item.toUser?.username,
+                      };
+                      editOutOfOfficeEntry(outOfOfficeEntryData);
+                    }}
+                    disabled={isPending || isFetching}
+                  />
+                </Tooltip>
+                <Tooltip content={t("delete")}>
+                  <Button
+                    className="self-center rounded-lg border"
+                    type="button"
+                    color="minimal"
+                    variant="icon"
+                    disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
+                    StartIcon="trash-2"
+                    onClick={() => {
+                      deleteOutOfOfficeEntryMutation.mutate({
+                        outOfOfficeUid: item.uuid,
+                        userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
+                      });
+                    }}
+                  />
+                </Tooltip>
               </div>
             ) : (
               <SkeletonText className="h-8 w-full" />
@@ -336,7 +357,6 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
         <div>
           <DataTable
             hideHeader={selectedTab === OutOfOfficeTab.MINE}
-            data-testid="ooo-list-data-table"
             table={table}
             tableContainerRef={tableContainerRef}
             isPending={isPending}
