@@ -79,7 +79,7 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
   };
 
   const text = getTextPopover();
-  const isOrgDataAvailable = isSuccess && data.length > 0 && !!data[0].isOrg;
+  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg;
 
   return (
     <AnimatedPopover text={text}>
