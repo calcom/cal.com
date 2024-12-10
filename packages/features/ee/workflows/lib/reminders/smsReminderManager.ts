@@ -160,6 +160,9 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
       rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+      attendeeTimezone: evt.attendees[0].timeZone,
+      eventTimeInAttendeeTimezone: dayjs(evt.startTime).tz(evt.attendees[0].timeZone),
+      eventEndTimeInAttendeeTimezone: dayjs(evt.endTime).tz(evt.attendees[0].timeZone),
     };
     const customMessage = customTemplate(smsMessage, variables, locale, evt.organizer.timeFormat);
     smsMessage = customMessage.text;
@@ -167,6 +170,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     smsMessage =
       smsReminderTemplate(
         false,
+        evt.organizer.language.locale,
         action,
         evt.organizer.timeFormat,
         evt.startTime,

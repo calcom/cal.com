@@ -24,7 +24,13 @@ export class OrganizationsEventTypesRepository {
           slug: eventTypeSlug,
         },
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        team: { select: { bannerUrl: true } },
+      },
     });
   }
 
@@ -33,7 +39,13 @@ export class OrganizationsEventTypesRepository {
       where: {
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        team: { select: { bannerUrl: true } },
+      },
     });
   }
 
@@ -68,6 +80,28 @@ export class OrganizationsEventTypesRepository {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: { children: true },
+    });
+  }
+
+  async deleteUserManagedTeamEventTypes(userId: number, teamId: number) {
+    return this.dbWrite.prisma.eventType.deleteMany({
+      where: {
+        parent: {
+          teamId,
+        },
+        userId,
+      },
+    });
+  }
+
+  async removeUserFromTeamEventTypesHosts(userId: number, teamId: number) {
+    return this.dbWrite.prisma.host.deleteMany({
+      where: {
+        userId,
+        eventType: {
+          teamId,
+        },
+      },
     });
   }
 }

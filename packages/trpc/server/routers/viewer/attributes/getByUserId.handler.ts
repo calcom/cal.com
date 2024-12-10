@@ -21,6 +21,7 @@ type GroupedAttribute = {
     id: string;
     slug: string;
     value: string;
+    createdByDSyncId: string | null;
   }[];
 };
 
@@ -75,17 +76,18 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
           },
         },
       },
+      createdByDSyncId: true,
     },
   });
 
-  const groupedAttributes = userAttributes.reduce<GroupedAttribute[]>((acc, attribute) => {
-    const { attributeOption } = attribute;
+  const groupedAttributes = userAttributes.reduce<GroupedAttribute[]>((acc, assignment) => {
+    const { attributeOption, createdByDSyncId } = assignment;
     const { attribute: attrInfo, ...optionInfo } = attributeOption;
-
+    const optionInfoWithCreatedByDSyncId = { ...optionInfo, createdByDSyncId };
     const existingGroup = acc.find((group) => group.id === attrInfo.id);
 
     if (existingGroup) {
-      existingGroup.options.push(optionInfo);
+      existingGroup.options.push(optionInfoWithCreatedByDSyncId);
     } else {
       acc.push({
         id: attrInfo.id,
@@ -93,7 +95,7 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
         type: attrInfo.type,
         options: [
           {
-            ...optionInfo,
+            ...optionInfoWithCreatedByDSyncId,
           },
         ],
       });

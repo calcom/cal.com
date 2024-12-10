@@ -3,8 +3,8 @@ import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
-import { Icon } from "../../..";
 import { UpgradeTeamsBadge } from "../../badge";
+import { Icon } from "../../icon";
 import type { SelectProps } from "./Select";
 
 export const InputComponent = <

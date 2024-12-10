@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -256,6 +257,17 @@ export class UserRepository {
     };
   }
 
+  static async findByIds({ ids }: { ids: number[] }) {
+    return prisma.user.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select: userSelect,
+    });
+  }
+
   static async findByIdOrThrow({ id }: { id: number }) {
     const user = await UserRepository.findById({ id });
     if (!user) {
@@ -369,6 +381,65 @@ export class UserRepository {
     };
   }
 
+  static async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    if (users.length === 0) return [];
+
+    const userIds = users.map((user) => user.id);
+    const profiles = await ProfileRepository.findManyForUsers(userIds);
+
+    // Create a Map for faster lookups, preserving arrays of profiles per user
+    const profileMap = new Map<number, UserProfile[]>();
+    profiles.forEach((profile) => {
+      if (!profileMap.has(profile.userId)) {
+        profileMap.set(profile.userId, []);
+      }
+      profileMap.get(profile.userId)!.push(profile);
+    });
+
+    // Precompute personal profiles for all users
+    const personalProfileMap = new Map<number, UserProfile>();
+    users.forEach((user) => {
+      personalProfileMap.set(user.id, ProfileRepository.buildPersonalProfileFromUser({ user }));
+    });
+
+    return users.map((user) => {
+      const userProfiles = profileMap.get(user.id) || [];
+      if (userProfiles.length > 0) {
+        const profile = userProfiles[0];
+        if (profile?.organization?.isPlatform) {
+          return {
+            ...user,
+            nonProfileUsername: user.username,
+            profile: personalProfileMap.get(user.id)!,
+          };
+        }
+
+        return {
+          ...user,
+          username: profile.username,
+          nonProfileUsername: user.username,
+          profile,
+        };
+      }
+
+      // If no organization profile exists, use the precomputed personal profile
+      return {
+        ...user,
+        nonProfileUsername: user.username,
+        profile: personalProfileMap.get(user.id)!,
+      };
+    });
+  }
+
   static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
@@ -395,7 +466,7 @@ export class UserRepository {
             organization?: {
               id: number;
               name: string;
-              calVideoLogo: string | null;
+              calVideoLogo?: string | null;
               bannerUrl: string | null;
               slug: string | null;
               metadata: Prisma.JsonValue;
@@ -593,7 +664,20 @@ export class UserRepository {
     });
     return !!teams.length;
   }
-
+  static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
+    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!isAdminOrOwnerOfTeam;
+  }
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({
       where: {
@@ -640,5 +724,36 @@ export class UserRepository {
       return null;
     }
     return user;
+  }
+
+  static async updateAvatar({ id, avatarUrl }: { id: number; avatarUrl: string }) {
+    // Using updateMany here since if the user already has a profile it would throw an error
+    // because no records were found to update the profile picture
+    await prisma.user.updateMany({
+      where: {
+        id,
+        avatarUrl: {
+          equals: null,
+        },
+      },
+      data: {
+        avatarUrl,
+      },
+    });
+  }
+  static async findUserWithCredentials({ id }: { id: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        timeZone: true,
+        id: true,
+        selectedCalendars: true,
+      },
+    });
   }
 }

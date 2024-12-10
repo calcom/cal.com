@@ -22,18 +22,23 @@ const rateLimitSchema = z.object({
   ttl: z.number(),
   blockDuration: z.number(),
 });
-
 type RateLimitType = z.infer<typeof rateLimitSchema>;
-
 const rateLimitsSchema = z.array(rateLimitSchema);
+
+const sixtySecondsMs = 60 * 1000;
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
   private logger = new Logger("CustomThrottlerGuard");
 
-  private defaultTttl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", 60 * 1000));
+  private defaultTttl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", sixtySecondsMs));
+
+  private defaultLimitApiKey = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_API_KEY", 120));
+  private defaultLimitOAuthClient = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT", 500));
+  private defaultLimitAccessToken = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN", 500));
   private defaultLimit = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
-  private defaultBlockDuration = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", 60 * 1000));
+
+  private defaultBlockDuration = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", sixtySecondsMs));
 
   constructor(
     options: ThrottlerModuleOptions,
@@ -51,7 +56,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     const tracker = await this.getTracker(request);
-    this.logger.log(
+    this.logger.verbose(
       `Tracker "${tracker}" generated based on: Bearer token "${request.get(
         "Authorization"
       )}", OAuth client ID "${request.get(X_CAL_CLIENT_ID)}" and IP "${request.ip}"`
@@ -83,8 +88,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   }
 
   private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
-    const rateLimit = this.getDefaultRateLimit();
-    this.logger.log(`Tracker "${tracker}" uses default rate limits because it is not tracking api key:
+    const rateLimit = this.getDefaultRateLimit(tracker);
+    this.logger.verbose(`Tracker "${tracker}" uses default rate limits because it is not tracking api key:
       ${JSON.stringify(rateLimit, null, 2)}
     `);
 
@@ -96,17 +101,25 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     return true;
   }
 
-  private getDefaultRateLimit() {
+  private getDefaultRateLimit(tracker: string) {
     return {
       name: "default",
-      limit: this.getDefaultLimit(),
+      limit: this.getDefaultLimit(tracker),
       ttl: this.getDefaultTtl(),
       blockDuration: this.getDefaultBlockDuration(),
     };
   }
 
-  getDefaultLimit() {
-    return this.defaultLimit;
+  getDefaultLimit(tracker: string) {
+    if (tracker.startsWith("api_key_")) {
+      return this.defaultLimitApiKey;
+    } else if (tracker.startsWith("oauth_client_")) {
+      return this.defaultLimitOAuthClient;
+    } else if (tracker.startsWith("access_token_")) {
+      return this.defaultLimitAccessToken;
+    } else {
+      return this.defaultLimit;
+    }
   }
 
   getDefaultTtl() {
@@ -122,7 +135,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     const cachedRateLimits = await this.storageService.redis.get(cacheKey);
     if (cachedRateLimits) {
-      this.logger.log(`Tracker "${tracker}" rate limits retrieved from redis cache:
+      this.logger.verbose(`Tracker "${tracker}" rate limits retrieved from redis cache:
         ${cachedRateLimits}
       `);
       return rateLimitsSchema.parse(JSON.parse(cachedRateLimits));
@@ -145,13 +158,13 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     });
 
     if (rateLimits) {
-      this.logger.log(`Tracker "${tracker}" rate limits retrieved from database:
+      this.logger.verbose(`Tracker "${tracker}" rate limits retrieved from database:
         ${JSON.stringify(rateLimits, null, 2)}`);
     }
 
     if (!rateLimits || rateLimits.length === 0) {
-      rateLimits = [this.getDefaultRateLimit()];
-      this.logger.log(`Tracker "${tracker}" rate limits not found in database. Using default rate limits:
+      rateLimits = [this.getDefaultRateLimit(tracker)];
+      this.logger.verbose(`Tracker "${tracker}" rate limits not found in database. Using default rate limits:
         ${JSON.stringify(rateLimits, null, 2)}`);
     }
 
@@ -181,10 +194,10 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     );
     response.setHeader(`X-RateLimit-Reset-${nameFirstUpper}`, timeToBlockExpire || timeToExpire);
 
-    this.logger.log(
+    this.logger.verbose(
       `Tracker "${tracker}" rate limit "${name}" incremented. isBlocked ${isBlocked}, totalHits ${totalHits}, timeToExpire ${timeToExpire}, timeToBlockExpire ${timeToBlockExpire}`
     );
-    this.logger.log(
+    this.logger.verbose(
       `Tracker "${tracker}" rate limit "${name}" response headers:
         X-RateLimit-Limit-${nameFirstUpper}: ${limit},
         X-RateLimit-Remaining-${nameFirstUpper}: ${timeToBlockExpire ? 0 : Math.max(0, limit - totalHits)},
@@ -214,7 +227,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       return `ip_${request.ip}`;
     }
 
-    this.logger.log(`no tracker found: ${request.url}`);
+    this.logger.verbose(`no tracker found: ${request.url}`);
     return "unknown";
   }
 }

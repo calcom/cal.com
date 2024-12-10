@@ -5,6 +5,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 
 const emailRatingTemplate = ({
   isEditingMode,
+  locale,
   action,
   timeFormat,
   startTime,
@@ -18,6 +19,7 @@ const emailRatingTemplate = ({
   noShowUrl,
 }: {
   isEditingMode: boolean;
+  locale: string;
   action: WorkflowActions;
   timeFormat?: TimeFormat;
   startTime?: string;
@@ -45,9 +47,9 @@ const emailRatingTemplate = ({
     ratingUrl = "{RATING_URL}";
     noShowUrl = "{NO_SHOW_URL}";
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).format(dateTimeFormat);
+    eventDate = dayjs(startTime).tz(timeZone).locale(locale).format(dateTimeFormat);
 
-    endTime = dayjs(endTime).tz(timeZone).format(currentTimeFormat);
+    endTime = dayjs(endTime).tz(timeZone).locale(locale).format(currentTimeFormat);
   }
 
   const emailSubject = `How was your recent experience? ${eventName}`;
