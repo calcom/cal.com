@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
-import { getFixedT, _generateMetadata } from "app/_utils";
-import { headers } from "next/headers";
+import { getTranslate, _generateMetadata } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { EditWebhookView } from "@calcom/features/webhooks/pages/webhook-edit-view";
@@ -14,10 +13,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params }: PageProps) => {
-  const headersList = await headers();
-  const locale = headersList.get("x-locale");
-
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslate();
   const id = typeof params?.id === "string" ? params.id : undefined;
 
   const webhook = await WebhookRepository.findByWebhookId(id);

@@ -1,6 +1,5 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
-import { headers } from "next/headers";
+import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Button } from "@calcom/ui";
@@ -14,9 +13,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const headersList = await headers();
-  const locale = headersList.get("x-locale");
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslate();
 
   const AddCalendarButton = () => {
     return (

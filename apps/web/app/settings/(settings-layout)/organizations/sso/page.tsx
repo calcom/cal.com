@@ -1,5 +1,4 @@
-import { _generateMetadata, getFixedT } from "app/_utils";
-import { headers } from "next/headers";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import OrgSSOView from "@calcom/features/ee/sso/page/orgs-sso-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -11,9 +10,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const headersList = await headers();
-  const locale = headersList.get("x-locale");
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslate();
 
   return (
     <SettingsHeader title={t("sso_configuration")} description={t("sso_configuration_description_orgs")}>

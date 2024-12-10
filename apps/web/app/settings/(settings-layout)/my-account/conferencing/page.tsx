@@ -1,6 +1,5 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
-import { headers } from "next/headers";
+import { getTranslate } from "app/_utils";
 
 import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/monorepo";
 
@@ -11,9 +10,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const headersList = await headers();
-  const locale = headersList.get("x-locale");
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslate();
 
   return (
     <ConferencingAppsViewWebWrapper

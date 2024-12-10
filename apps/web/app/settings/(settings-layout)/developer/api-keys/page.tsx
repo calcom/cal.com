@@ -1,5 +1,4 @@
-import { getFixedT, _generateMetadata } from "app/_utils";
-import { headers } from "next/headers";
+import { getTranslate, _generateMetadata } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -13,11 +12,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  // FIXME: Refactor me once next-auth endpoint is migrated to App Router
-  const headersList = await headers();
-  const locale = headersList.get("x-locale");
-
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslate();
 
   return (
     <SettingsHeader

@@ -1,5 +1,4 @@
-import { _generateMetadata, getFixedT } from "app/_utils";
-import { headers } from "next/headers";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import UsersListingView from "@calcom/features/ee/users/pages/users-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -12,9 +11,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const headersList = await headers();
-  const locale = headersList.get("x-locale");
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslate();
   return (
     <SettingsHeader
       title={t("users")}

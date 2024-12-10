@@ -1,6 +1,5 @@
 import { type Params } from "app/_types";
-import { _generateMetadata, getFixedT } from "app/_utils";
-import { headers } from "next/headers";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -37,9 +36,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const user = await UserRepository.adminFindById(input.data.id);
-    const headersList = await headers();
-    const locale = headersList.get("x-locale");
-    const t = await getFixedT(locale ?? "en");
+    const t = await getTranslate();
 
     return (
       <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
