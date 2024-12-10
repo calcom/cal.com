@@ -152,10 +152,11 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const eventTypeId = route.action.eventTypeId;
+  const eventTypeUrl = route.action.value;
   // e.g. /team/abc/team-event-type
   const eventTypeRedirectPath = route.action.value;
 
-  if (!eventTypeId) {
+  if (!eventTypeId && !eventTypeUrl) {
     // If it ever happens, should automatically be fixed by saving the form again from route-builder.
     // Legacy route actions do not have eventTypeId.
     throw new TRPCError({
@@ -164,7 +165,14 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventType = eventTypeId
+    ? await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId })
+    : await EventTypeRepository.findBySlugAndUserIdOrTeamId({
+        // Assume that the slug was saved in the format of team/{teamName}/{eventSlug}?query
+        slug: eventTypeUrl.split("/")[2].split("?")[0],
+        teamId: form?.teamId,
+        userId: form.userId,
+      });
 
   if (!eventType) {
     throw new TRPCError({
