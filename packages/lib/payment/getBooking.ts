@@ -34,6 +34,20 @@ export async function getBooking(bookingId: number) {
       responses: true,
       eventType: {
         select: {
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  destinationCalendar: {
+                    select: {
+                      primaryEmail: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           currency: true,
           description: true,
           id: true,
