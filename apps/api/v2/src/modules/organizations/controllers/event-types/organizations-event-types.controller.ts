@@ -14,11 +14,11 @@ import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/contro
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
-import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/teams/create-team-event-type.output";
-import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/teams/delete-team-event-type.output";
-import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/teams/get-team-event-type.output";
-import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/teams/get-team-event-types.output";
-import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/teams/update-team-event-type.output";
+import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/create-team-event-type.output";
+import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/delete-team-event-type.output";
+import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-team-event-type.output";
+import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
+import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
