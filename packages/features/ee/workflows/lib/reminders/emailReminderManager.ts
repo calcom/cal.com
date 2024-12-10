@@ -192,6 +192,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       evt.title,
       timeZone,
+      evt.location || "",
+      bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
       attendeeName,
       name
     );
