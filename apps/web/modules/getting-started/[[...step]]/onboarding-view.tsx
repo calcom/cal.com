@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import type { TFunction } from "next-i18next";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -11,6 +12,7 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -25,29 +27,73 @@ import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const steps = [
-  "user-settings",
-  "connected-calendar",
-  "connected-video",
-  "setup-availability",
-  "user-profile",
-] as const;
+const BASE_STEPS = ["user-settings", "setup-availability", "user-profile"] as const;
+const EXTRA_STEPS = ["connected-calendar", "connected-video"] as const;
+type StepType = (typeof BASE_STEPS)[number] | (typeof EXTRA_STEPS)[number];
 
-const stepTransform = (step: (typeof steps)[number]) => {
-  const stepIndex = steps.indexOf(step);
-  if (stepIndex > -1) {
-    return steps[stepIndex];
+const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunction) => {
+  const baseHeaders: {
+    title: string;
+    subtitle: string[];
+    skipText?: string;
+  }[] = [
+    {
+      title: t("welcome_to_cal_header", { appName: APP_NAME }),
+      subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
+    },
+    {
+      title: t("set_availability"),
+      subtitle: [
+        t("set_availability_getting_started_subtitle_1"),
+        t("set_availability_getting_started_subtitle_2"),
+      ],
+    },
+    {
+      title: t("nearly_there"),
+      subtitle: [t("nearly_there_instructions")],
+    },
+  ];
+
+  const additionalHeaders: {
+    title: string;
+    subtitle: string[];
+    skipText?: string;
+  }[] = [
+    {
+      title: t("connect_your_calendar"),
+      subtitle: [t("connect_your_calendar_instructions")],
+      skipText: t("connect_calendar_later"),
+    },
+    {
+      title: t("connect_your_video_app"),
+      subtitle: [t("connect_your_video_app_instructions")],
+      skipText: t("set_up_later"),
+    },
+  ];
+
+  if (identityProvider === IdentityProvider.GOOGLE) {
+    return {
+      steps: [...BASE_STEPS] as StepType[],
+      headers: [...baseHeaders],
+    };
   }
-  return INITIAL_STEP;
+
+  return {
+    steps: [...BASE_STEPS.slice(0, 1), ...EXTRA_STEPS, ...BASE_STEPS.slice(1)] as StepType[],
+    headers: [baseHeaders[0], ...additionalHeaders, ...baseHeaders.slice(1)],
+  };
 };
 
 const stepRouteSchema = z.object({
-  step: z.array(z.enum(steps)).default([INITIAL_STEP]),
+  step: z
+    .array(
+      z.enum(["user-settings", "setup-availability", "user-profile", "connected-calendar", "connected-video"])
+    )
+    .default([INITIAL_STEP]),
   from: z.string().optional(),
 });
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
-// TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
@@ -63,33 +109,6 @@ const OnboardingPage = (props: PageProps) => {
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-  const headers = [
-    {
-      title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
-      subtitle: [`${t("we_just_need_basic_info")}`, `${t("edit_form_later_subtitle")}`],
-    },
-    {
-      title: `${t("connect_your_calendar")}`,
-      subtitle: [`${t("connect_your_calendar_instructions")}`],
-      skipText: `${t("connect_calendar_later")}`,
-    },
-    {
-      title: `${t("connect_your_video_app")}`,
-      subtitle: [`${t("connect_your_video_app_instructions")}`],
-      skipText: `${t("set_up_later")}`,
-    },
-    {
-      title: `${t("set_availability")}`,
-      subtitle: [
-        `${t("set_availability_getting_started_subtitle_1")}`,
-        `${t("set_availability_getting_started_subtitle_2")}`,
-      ],
-    },
-    {
-      title: `${t("nearly_there")}`,
-      subtitle: [`${t("nearly_there_instructions")}`],
-    },
-  ];
 
   // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
   // Ability to accept other pending invites if any (low priority)
@@ -101,13 +120,22 @@ const OnboardingPage = (props: PageProps) => {
   //     }
   //   );
   // }
+  const { steps, headers } = getStepsAndHeadersForUser(user.identityProvider, t);
+  const stepTransform = (step: StepType) => {
+    const stepIndex = steps.indexOf(step as (typeof steps)[number]);
 
-  const goToIndex = (index: number) => {
-    const newStep = steps[index];
+    if (stepIndex > -1) {
+      return steps[stepIndex];
+    }
+    return INITIAL_STEP;
+  };
+  const currentStepIndex = steps.indexOf(currentStep);
+
+  const goToNextStep = () => {
+    const nextIndex = currentStepIndex + 1;
+    const newStep = steps[nextIndex];
     router.push(`/getting-started/${stepTransform(newStep)}`);
   };
-
-  const currentStepIndex = steps.indexOf(currentStep);
 
   return (
     <div
@@ -139,22 +167,19 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
-                  <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
+                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
                 )}
-                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
+                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={goToNextStep} />}
 
-                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
+                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={goToNextStep} />}
 
                 {currentStep === "setup-availability" && (
-                  <SetupAvailability
-                    nextStep={() => goToIndex(4)}
-                    defaultScheduleId={user.defaultScheduleId}
-                  />
+                  <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
                 )}
                 {currentStep === "user-profile" && <UserProfile />}
               </Suspense>
@@ -167,7 +192,7 @@ const OnboardingPage = (props: PageProps) => {
                   data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();
-                    goToIndex(currentStepIndex + 1);
+                    goToNextStep();
                   }}
                   className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
