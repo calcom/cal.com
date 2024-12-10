@@ -1,7 +1,12 @@
 import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import {
+  useOrgBranding,
+  type OrganizationBranding,
+} from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
 
@@ -11,7 +16,7 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const navigation: NavigationItemType[] = [
+const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -29,6 +34,16 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: "clock",
   },
+  ...(orgBranding
+    ? [
+        {
+          name: "members",
+          href: `/settings/organizations/${orgBranding.slug}/members`,
+          icon: "building",
+          moreOnMobile: true,
+        } satisfies NavigationItemType,
+      ]
+    : []),
   {
     name: "teams",
     href: "/teams",
@@ -76,17 +91,20 @@ const navigation: NavigationItemType[] = [
     href: "/apps/routing-forms/forms",
     icon: "file-text",
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    moreOnMobile: true,
   },
   {
     name: "workflows",
     href: "/workflows",
     icon: "zap",
+    moreOnMobile: true,
   },
   {
     name: "insights",
     href: "/insights",
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    moreOnMobile: true,
     child: [
       {
         name: "bookings",
@@ -102,7 +120,7 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const platformNavigation: NavigationItemType[] = [
+const platformNavigationItems: NavigationItemType[] = [
   {
     name: "Dashboard",
     href: "/settings/platform/",
@@ -136,41 +154,35 @@ const platformNavigation: NavigationItemType[] = [
     name: "Billing",
     href: "/settings/platform/billing",
     icon: "credit-card",
+    moreOnMobile: true,
   },
   {
     name: "Members",
     href: "/settings/platform/members",
     icon: "users",
+    moreOnMobile: true,
   },
 ];
 
-export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
-  const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
-  const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+const useNavigationItems = (isPlatformNavigation = false) => {
+  const orgBranding = useOrgBranding();
+  return useMemo(() => {
+    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
-  const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-    !isPlatformNavigation ? navigation : platformNavigation
-  ).reduce<Record<string, NavigationItemType[]>>(
-    (items, item, index) => {
-      // We filter out the "more" separator in` desktop navigation
-      if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-      // Items for mobile bottom navigation
-      if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-        items.mobileNavigationBottomItems.push(item);
-      } // Items for the "more" menu in mobile navigation
-      else {
-        items.mobileNavigationMoreItems.push(item);
-      }
-      return items;
-    },
-    { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
-  );
+    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const mobileNavigationBottomItems = items.filter(
+      (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
+    );
+    const mobileNavigationMoreItems = items.filter(
+      (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
+    );
 
-  return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+    return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+  }, [isPlatformNavigation, orgBranding]);
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
-  const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
+  const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
 
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
@@ -196,7 +208,7 @@ export function MobileNavigationContainer({
 
 const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
-  const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
+  const { mobileNavigationBottomItems } = useNavigationItems(isPlatformNavigation);
 
   return (
     <>
@@ -216,7 +228,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 };
 
 export const MobileNavigationMoreItems = () => {
-  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
+  const { mobileNavigationMoreItems } = useNavigationItems();
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">

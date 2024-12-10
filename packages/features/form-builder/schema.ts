@@ -36,6 +36,26 @@ export const EditableSchema = z.enum([
   "user-readonly", // All fields are readOnly.
 ]);
 
+export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
+  const allDomains = val.split(",").map((dom) => dom.trim());
+
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+
+  /*
+  Valid patterns - [ example, example.anything, anyone@example.anything ]
+  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
+*/
+
+  const isValid = !allDomains.some((domain) => !regex.test(domain));
+
+  if (!isValid) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+  }
+});
+
 const baseFieldSchema = z.object({
   name: z.string().transform(getValidRhfFieldName),
   type: fieldTypeEnum,
@@ -101,28 +121,9 @@ const baseFieldSchema = z.object({
   maxLength: z.number().optional(),
 
   // Emails that needs to be excluded
-  excludeEmails: z
-    .string()
-    .superRefine((val, ctx) => {
-      const allDomains = val.split(",").map((dom) => dom.trim());
-
-      const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
-
-      /*
-      Valid patterns - [ example, example.anything, anyone@example.anything ]
-      Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
-    */
-
-      const isValid = !allDomains.some((domain) => !regex.test(domain));
-
-      if (!isValid) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Enter valid domain or email",
-        });
-      }
-    })
-    .optional(),
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
 });
 
 export const variantsConfigSchema = z.object({

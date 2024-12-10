@@ -213,18 +213,20 @@ enum IdentityProvider {
 }
 
 model DestinationCalendar {
-  id           Int         @id @default(autoincrement())
-  integration  String
-  externalId   String
+  id                               Int                   @id @default(autoincrement())
+  integration                      String
+  externalId                       String
   /// @zod.custom(imports.emailSchema)
-  primaryEmail String?
-  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int?        @unique
-  booking      Booking[]
-  eventType    EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId  Int?        @unique
-  credentialId Int?
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  primaryEmail                     String?
+  user                             User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                           Int?                  @unique
+  booking                          Booking[]
+  eventType                        EventType?            @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId                      Int?                  @unique
+  credentialId                     Int?
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
 
   @@index([userId])
   @@index([eventTypeId])
@@ -355,8 +357,12 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
   reassignedBookings         Booking[]                    @relation("reassignByUser")
+  createdAttributeToUsers    AttributeToUser[]            @relation("createdBy")
+  updatedAttributeToUsers    AttributeToUser[]            @relation("updatedBy")
   createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
+  createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
+  updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
 
   @@unique([email])
   @@unique([email, username])
@@ -458,6 +464,8 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  // Available for Organization only
+  domainWideDelegations  DomainWideDelegation[]
   features               TeamFeatures[]
 
   /// @zod.custom(imports.intervalLimitsType)
@@ -469,20 +477,24 @@ model Team {
 }
 
 model OrganizationSettings {
-  id                            Int        @id @default(autoincrement())
-  organization                  Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId                Int        @unique
-  isOrganizationConfigured      Boolean    @default(false)
+  id                                  Int        @id @default(autoincrement())
+  organization                        Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId                      Int        @unique
+  isOrganizationConfigured            Boolean    @default(false)
   // It decides if new organization members can be auto-accepted or not
-  isOrganizationVerified        Boolean    @default(false)
-  orgAutoAcceptEmail            String
-  lockEventTypeCreationForUsers Boolean    @default(false)
-  adminGetsNoSlotsNotification  Boolean    @default(false)
+  isOrganizationVerified              Boolean    @default(false)
+  // It is a domain e.g "acme.com". Any email with this domain might be auto-accepted
+  // Also, it is the domain to which the organization profile is redirected.
+  orgAutoAcceptEmail                  String
+  lockEventTypeCreationForUsers       Boolean    @default(false)
+  adminGetsNoSlotsNotification        Boolean    @default(false)
   // It decides if instance ADMIN has reviewed the organization or not.
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
-  isAdminReviewed               Boolean    @default(false)
-  dSyncData                     DSyncData?
-  isAdminAPIEnabled             Boolean    @default(false)
+  isAdminReviewed                     Boolean    @default(false)
+  dSyncData                           DSyncData?
+  isAdminAPIEnabled                   Boolean    @default(false)
+  allowSEOIndexing                    Boolean    @default(false)
+  orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
 }
 
 enum MembershipRole {
@@ -558,8 +570,10 @@ model BookingReference {
   externalCalendarId         String?
   deleted                    Boolean?
 
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  credentialId Int?
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId                     Int?
+  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
+  domainWideDelegationCredentialId String?
 
   @@index([bookingId])
   @@index([type])
@@ -694,18 +708,20 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                   Int
-  integration              String
-  externalId               String
-  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId             Int?
+  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                           Int
+  integration                      String
+  externalId                       String
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId                     Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId          String?     @unique
-  googleChannelKind        String?
-  googleChannelResourceId  String?
-  googleChannelResourceUri String?
-  googleChannelExpiration  String?
+  googleChannelId                  String?               @unique
+  googleChannelKind                String?
+  googleChannelResourceId          String?
+  googleChannelResourceUri         String?
+  googleChannelExpiration          String?
+  domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -1493,6 +1509,9 @@ model DSyncData {
   organizationId   Int?                    @unique
   org              OrganizationSettings?   @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
   teamGroupMapping DSyncTeamGroupMapping[]
+
+  createdAttributeToUsers AttributeToUser[] @relation("createdByDSync")
+  updatedAttributeToUsers AttributeToUser[] @relation("updatedByDSync")
 }
 
 model DSyncTeamGroupMapping {
@@ -1574,6 +1593,12 @@ model AttributeOption {
   attributeId   String
   value         String
   slug          String
+  isGroup       Boolean           @default(false)
+  // It is a list of AttributeOptions ids that are contained in the group option
+  // You could think of a person having the group option to actually have all the options in the contains list.
+  // We are not using relation here because it would be a many to many relation because a group option can contain many non-group options and a non-group option can be contained in many group options
+  // Such a relation would require its own table to be managed and we don't need it for now.
+  contains      String[]
   assignedUsers AttributeToUser[]
 }
 
@@ -1596,6 +1621,7 @@ model Attribute {
   updatedAt        DateTime          @updatedAt
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
+  isLocked         Boolean           @default(false)
 }
 
 model AttributeToUser {
@@ -1606,7 +1632,21 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
-  weight            Int?
+
+  weight Int?
+
+  // We don't intentionally delete assignments on deletion of a user/directory sync
+  createdAt        DateTime   @default(now())
+  createdById      Int?
+  createdBy        User?      @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByDSyncId String?
+  createdByDSync   DSyncData? @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
+
+  updatedAt        DateTime?  @updatedAt
+  updatedBy        User?      @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById      Int?
+  updatedByDSyncId String?
+  updatedByDSync   DSyncData? @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
 }
@@ -1632,14 +1672,51 @@ enum EventTypeAutoTranslatedField {
   DESCRIPTION // Currently the only field we translate
 }
 
+model DomainWideDelegation {
+  id                  String                @id @default(uuid())
+  workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
+  workspacePlatformId Int
+  // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
+  /// @zod.custom(imports.serviceAccountKeySchema)
+  serviceAccountKey   Json
+  enabled             Boolean               @default(false)
+  organizationId      Int
+  organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domain              String
+  selectedCalendars   SelectedCalendar[]
+  destinationCalendar DestinationCalendar[]
+  bookingReferences   BookingReference[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
+  // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
+  @@unique([organizationId, domain])
+}
+
+// It is for domain-wide delegation
+model WorkspacePlatform {
+  id                       Int                    @id @default(autoincrement())
+  /// @zod.min(1)
+  slug                     String
+  /// @zod.min(1)
+  name                     String
+  description              String
+  /// @zod.custom(imports.serviceAccountKeySchema)
+  defaultServiceAccountKey Json
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  enabled                  Boolean                @default(false)
+  domainWideDelegations    DomainWideDelegation[]
+
+  @@unique([slug])
+}
+
 model EventTypeTranslation {
-  id             String                       @id @default(cuid())
-  uid            String?
+  uid            String                       @id @default(cuid())
   eventType      EventType                    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId    Int
   field          EventTypeAutoTranslatedField
-  sourceLang     String
-  targetLang     String
   sourceLocale   String
   targetLocale   String
   translatedText String                       @db.Text
@@ -1650,8 +1727,29 @@ model EventTypeTranslation {
   creator        User                         @relation("CreatedEventTypeTranslations", fields: [createdBy], references: [id])
   updater        User?                        @relation("UpdatedEventTypeTranslations", fields: [updatedBy], references: [id], onDelete: SetNull)
 
-  @@unique([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@unique([eventTypeId, field, targetLocale])
-  @@index([eventTypeId, field, targetLang]) // TODO: remove after migration
   @@index([eventTypeId, field, targetLocale])
+}
+
+enum WatchlistType {
+  EMAIL
+  DOMAIN
+  USERNAME
+}
+
+model Watchlist {
+  id          String        @id @unique @default(cuid())
+  type        WatchlistType
+  // The identifier of the Watchlisted entity (email or domain)
+  value       String
+  description String?
+  createdAt   DateTime      @default(now())
+  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdById Int
+  updatedAt   DateTime      @updatedAt
+  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedById Int?
+
+  @@unique([type, value])
+  @@index([type, value])
 }
