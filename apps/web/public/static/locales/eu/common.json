@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Hasiera data amaiera data baino lehenago izan behar da",
   "start_date_must_be_in_the_future": "Hasiera data etorkizunean izan behar da",
   "user_not_found": "Ez da erabiltzailea aurkitu",
+  "cannot_redirect_to_self": "Ezin da norbera birbideratu",
   "out_of_office_entry_already_exists": "Bulegotik kanpoko sarrera dagoeneko existitzen da",
   "out_of_office_id_required": "Bulegotik kanpoko sarreraren IDa beharrezkoa da",
   "booking_redirect_infinite_not_allowed": "Dagoeneko existitzen da erabiltzaile horren birbideraketa bat zuregana.",

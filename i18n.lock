@@ -2455,6 +2455,7 @@ checksums:
     start_date_must_be_before_end_date: a0843f6fe3115fa3210f92a9bef85f2c
     start_date_must_be_in_the_future: a4c7ddb590a2559fe4098fab41564039
     user_not_found: 5903581136ac6c1c1351a482a6d8fdf7
+    cannot_redirect_to_self: 9fda68606ad40605bd5aced8be4dc447
     out_of_office_entry_already_exists: 549625f9f5ea3a18cc9c5208df992381
     out_of_office_id_required: ba936443299f151e2269f312a8de4216
     booking_redirect_infinite_not_allowed: 911c878147e9ad1f5a072e5ee4797c68
