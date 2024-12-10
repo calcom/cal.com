@@ -232,12 +232,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
   const userSelectedCalendars = user.userLevelSelectedCalendars;
 
-  log.debug({
-    eventTypeSelectedCalendars,
-    userSelectedCalendars,
-    allSelectedCalendars: user.allSelectedCalendars,
-  });
-
   const selectedCalendars = eventTypeId ? eventTypeSelectedCalendars : userSelectedCalendars;
 
   // get user's credentials + their connected integrations
@@ -321,12 +315,5 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   };
 }
 
-async function getSelectedCalendarsForEvent(eventType: { userId: number; id: number }) {
-  const selectedCalendars = await SelectedCalendarRepository.findMany({
-    where: {
-      eventTypeId: eventType.id,
-      userId: eventType.userId,
-    },
-  });
-  return selectedCalendars;
-}
+// Legacy export for @calcom/platform-libraries
+export const getConnectedDestinationCalendars = getConnectedDestinationCalendarsAndEnsureDefaultsInDb;

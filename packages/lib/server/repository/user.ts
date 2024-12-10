@@ -926,4 +926,15 @@ export class UserRepository {
       },
     };
   }
+
+  static async findManyByIdsIncludeCalendars({ ids }: { ids: number[] }) {
+    const users = await prisma.user.findMany({
+      where: { id: { in: ids } },
+      include: {
+        selectedCalendars: true,
+        destinationCalendar: true,
+      },
+    });
+    return users.map(enrichWithSelectedCalendars);
+  }
 }

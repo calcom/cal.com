@@ -718,7 +718,7 @@ model SelectedCalendar {
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId                     Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?               @unique
+  googleChannelId                  String?               
   googleChannelKind                String?
   googleChannelResourceId          String?
   googleChannelResourceUri         String?
@@ -731,8 +731,9 @@ model SelectedCalendar {
 
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
-  // Think about introducing a synthetic unique key ${userId}_${integration}_${externalId}_${eventTypeId}
+  // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
   @@unique([userId, integration, externalId, eventTypeId])
+  @@unique([googleChannelId, eventTypeId])
   @@index([userId])
   @@index([integration])
   @@index([externalId])

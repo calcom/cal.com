@@ -1,3 +1,4 @@
+import type { calendar_v3 } from "@googleapis/calendar";
 import type {
   BookingSeat,
   DestinationCalendar,
@@ -5,7 +6,6 @@ import type {
   SelectedCalendar as _SelectedCalendar,
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
-import type { calendar_v3 } from "@googleapis/calendar";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 import type z from "zod";
@@ -269,9 +269,10 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
-
-  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: { calendarId: string; eventTypeId: number | null }): Promise<unknown>;
+  watchCalendars?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<unknown>;
+  unwatchCalendar?(options: { calendarId: string; eventTypeId: number | null }): Promise<void>;
+  unwatchCalendars?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<void>;
 }
 
 /**

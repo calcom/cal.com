@@ -128,7 +128,7 @@ test("Calendar can be watched and unwatched", async () => {
   const credentialInDb1 = await createCredentialInDb();
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-  await calendarCache.watchCalendar({ calendarId: testSelectedCalendar.externalId });
+  await calendarCache.watchCalendar({ calendarId: testSelectedCalendar.externalId, eventTypeId: null });
   const watchedCalendar = await prismock.selectedCalendar.findFirst({
     where: {
       userId: credentialInDb1.userId!,
@@ -148,7 +148,7 @@ test("Calendar can be watched and unwatched", async () => {
     googleChannelResourceUri: "mock-resource-uri",
     googleChannelExpiration: "1111111111",
   });
-  await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId });
+  await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId, eventTypeId: null });
   // There's a bug in prismock where upsert creates duplicate records so we need to acces the second element
   const [, unWatchedCalendar] = await prismock.selectedCalendar.findMany({
     where: {
