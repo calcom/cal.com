@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
-import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -96,7 +95,7 @@ const FEATURES = [
   },
 ];
 
-export default function Signup({ prepopulateFormValues, orgSlug, redirectUrl }: SignupProps) {
+export default function Signup({ prepopulateFormValues, redirectUrl }: SignupProps) {
   useTheme("light");
   const [premiumUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -115,24 +114,6 @@ export default function Signup({ prepopulateFormValues, orgSlug, redirectUrl }: 
   }, [redirectUrl]);
 
   const [COOKIE_CONSENT] = useState(false);
-
-  const handleErrorsAndStripe = async (resp: Response) => {
-    if (!resp.ok) {
-      const err = await resp.json();
-      if (err.checkoutSessionId) {
-        const stripe = await getStripe();
-        if (stripe) {
-          console.log("Redirecting to stripe checkout");
-          const { error } = await stripe.redirectToCheckout({
-            sessionId: err.checkoutSessionId,
-          });
-          console.warn(error.message);
-        }
-      } else {
-        throw new Error(err.message);
-      }
-    }
-  };
 
   return (
     <>
@@ -226,10 +207,14 @@ export default function Signup({ prepopulateFormValues, orgSlug, redirectUrl }: 
                 </defs>
               </svg>
               <p className="text-[42px] font-medium leading-none text-[#114559]">
-                Crie sua conta no <br> 
-                <span className="text-[42px] font-medium leading-none text-[#06C6A9]"> Painel do Profissional</span>
+                Crie sua conta no <br />
+                <span className="text-[42px] font-medium leading-none text-[#06C6A9]">
+                  {" "}
+                  Painel do Profissional
+                </span>
               </p>
-              <p className="mt-6 text-lg font-normal text-[#114559]">Você recebeu um convite para criar a sua conta no
+              <p className="mt-6 text-lg font-normal text-[#114559]">
+                Você recebeu um convite para criar a sua conta no
                 <span className="text-lg font-medium text-[#114559]"> Painel do Profissional </span>
                 Yinflow.Life.
               </p>
