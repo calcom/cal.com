@@ -174,6 +174,7 @@ export default function Signup({
   token,
   orgSlug,
   isGoogleLoginEnabled,
+  isMicrosoftLoginEnabled,
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
@@ -184,6 +185,7 @@ export default function Signup({
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
@@ -234,6 +236,33 @@ export default function Signup({
   };
 
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
+
+  const handleOAuthClick = async (provider: "google" | "microsoft") => {
+    if (!provider) {
+      return;
+    }
+    setIsSamlSignup(false);
+    if (provider === "google") {
+      setIsGoogleLoading(true);
+    }
+    if (provider === "microsoft") {
+      setIsMicrosoftLoading(true);
+    }
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+    const AUTH_URL = `${baseUrl}/auth/sso/${provider}`;
+    const searchQueryParams = new URLSearchParams();
+    if (prepopulateFormValues?.username) {
+      // If username is present we save it in query params to check for premium
+      searchQueryParams.set("username", prepopulateFormValues.username);
+      localStorage.setItem("username", prepopulateFormValues.username);
+    }
+    if (token) {
+      searchQueryParams.set("email", prepopulateFormValues?.email);
+    }
+    const url = searchQueryParams.toString() ? `${AUTH_URL}?${searchQueryParams.toString()}` : AUTH_URL;
+
+    router.push(url);
+  };
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
@@ -514,46 +543,49 @@ export default function Signup({
             {!displayEmailForm && (
               <div className="mt-12">
                 {/* Upper Row */}
-                <div className="mt-6 flex flex-col gap-2 md:flex-row">
-                  {isGoogleLoginEnabled ? (
-                    <Button
-                      color="primary"
-                      loading={isGoogleLoading}
-                      CustomStartIcon={
-                        <img
-                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
-                          src="/google-icon-colored.svg"
-                          alt="Continue with Google Icon"
-                        />
-                      }
-                      className={classNames("w-full justify-center rounded-md text-center")}
-                      data-testid="continue-with-google-button"
-                      onClick={async () => {
-                        setIsSamlSignup(false);
-                        setIsGoogleLoading(true);
-                        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                        const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
-                        const searchQueryParams = new URLSearchParams();
-                        if (prepopulateFormValues?.username) {
-                          // If username is present we save it in query params to check for premium
-                          searchQueryParams.set("username", prepopulateFormValues.username);
-                          localStorage.setItem("username", prepopulateFormValues.username);
+                <div className="mt-6 flex flex-col gap-3">
+                  <>
+                    {isGoogleLoginEnabled ? (
+                      <Button
+                        color="primary"
+                        loading={isGoogleLoading}
+                        disabled={isMicrosoftLoading}
+                        CustomStartIcon={
+                          <img
+                            className="text-subtle mr-2 h-4 w-4"
+                            src="/google-icon-colored.svg"
+                            alt="Continue with Google Icon"
+                          />
                         }
-                        if (token) {
-                          searchQueryParams.set("email", prepopulateFormValues?.email);
+                        className="w-full justify-center rounded-md text-center"
+                        data-testid="continue-with-google-button"
+                        onClick={() => handleOAuthClick("google")}>
+                        {t("continue_with_google")}
+                      </Button>
+                    ) : null}
+                    {/* TODO replace true with isMicrosoftLoginEnabled */}
+                    {true ? (
+                      <Button
+                        color="primary"
+                        loading={isMicrosoftLoading}
+                        disabled={isGoogleLoading}
+                        CustomStartIcon={
+                          <img
+                            className="text-subtle mr-2 h-4 w-4"
+                            src="/microsoft-icon-colored.svg"
+                            alt="Continue with Microsoft Icon"
+                          />
                         }
-                        const url = searchQueryParams.toString()
-                          ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
-                          : GOOGLE_AUTH_URL;
-
-                        router.push(url);
-                      }}>
-                      {t("continue_with_google")}
-                    </Button>
-                  ) : null}
+                        className="w-full justify-center rounded-md text-center"
+                        data-testid="continue-with-microsoft-button"
+                        onClick={() => handleOAuthClick("microsoft")}>
+                        {t("continue_with_microsoft")}
+                      </Button>
+                    ) : null}
+                  </>
                 </div>
 
-                {isGoogleLoginEnabled && (
+                {(isGoogleLoginEnabled || isMicrosoftLoginEnabled) && (
                   <div className="mt-6">
                     <div className="relative flex items-center">
                       <div className="border-subtle flex-grow border-t" />
@@ -569,7 +601,7 @@ export default function Signup({
                 <div className="mt-6 flex flex-col gap-2">
                   <Button
                     color="secondary"
-                    disabled={isGoogleLoading}
+                    disabled={isGoogleLoading || isMicrosoftLoading}
                     className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
                       setDisplayEmailForm(true);
@@ -582,7 +614,7 @@ export default function Signup({
                     <Button
                       data-testid="continue-with-saml-button"
                       color="minimal"
-                      disabled={isGoogleLoading}
+                      disabled={isGoogleLoading || isMicrosoftLoading}
                       className={classNames("w-full justify-center rounded-md text-center")}
                       onClick={() => {
                         setDisplayEmailForm(true);
