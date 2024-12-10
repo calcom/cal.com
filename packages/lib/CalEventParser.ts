@@ -26,16 +26,18 @@ export const getWhen = (
 const getAttendeesText = (t: TFunction, hideAttendees: boolean, attendees?: Person[]): string => {
   if (hideAttendees || !attendees || attendees.length === 0) return "";
 
-  // This will generate something like this:
-  // John Doe
-  // john.doe@acme.com
-  //
-  // Nic Doe
-  // nic.doe@acme.com
-  //
-  // jane.doe@acme.com - Guest
-  //
-  // simon.doe@acme.com - Guest
+/*
+This will generate something like this:
+  John Doe
+  john.doe@acme.com
+  
+  Nic Doe
+  nic.doe@acme.com
+  
+  jane.doe@acme.com - Guest
+  
+  simon.doe@acme.com - Guest
+*/
   return attendees
     .map((attendee) => {
       const { name, email, phoneNumber } = attendee;
