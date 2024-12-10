@@ -914,7 +914,7 @@ export const insightsRouter = router({
     };
 
     // Validate if user belongs to org as admin/owner
-    if (user.organizationId) {
+    if (user.organizationId && user.organization.isOrgAdmin) {
       const teamsFromOrg = await ctx.insightsDb.team.findMany({
         where: {
           parentId: user.organizationId,
