@@ -41,7 +41,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  // redirect /apps/routing-forms/forms to /routing
   if (url.pathname.startsWith("/apps/routing-forms/forms")) {
     return NextResponse.redirect(new URL("/routing", url.origin), { headers: requestHeaders });
   }
