@@ -37,9 +37,10 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, expect, beforeEach } from "vitest";
+import { describe, expect, beforeEach, vi } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { resetTestSMS } from "@calcom/lib/testSMS";
@@ -693,6 +694,143 @@ describe("handleNewBooking", () => {
             },
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
           });
+        },
+        timeout
+      );
+
+      test(
+        "Should not be able to reschedule if minimumReschedulingNotice is exceeded",
+        async () => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: "google_calendar",
+              externalId: "organizer@google-calendar.com",
+            },
+          });
+
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+          await createBookingScenario(
+            getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  minimumReschedulingNotice: 120, //2 hours
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:30:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                  references: [
+                    {
+                      type: appStoreMetadata.dailyvideo.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASS",
+                      meetingUrl: "http://mock-dailyvideo.example.com",
+                    },
+                    {
+                      type: appStoreMetadata.googlecalendar.type,
+                      uid: "ORIGINAL_BOOKING_UID",
+                      meetingId: "ORIGINAL_MEETING_ID",
+                      meetingPassword: "ORIGINAL_MEETING_PASSWORD",
+                      meetingUrl: "https://ORIGINAL_MEETING_URL",
+                      externalCalendarId: "existing-event-type@example.com",
+                      credentialId: undefined,
+                    },
+                  ],
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          const videoMock = mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          //minimum notice is 2 hours, but we are trying to reschedule with 1 hour remaining
+          const mockFailingCurrentTime = new Date(dayjs(`${plus1DateString}T03:00:00.000Z`));
+          vi.useFakeTimers();
+          vi.setSystemTime(mockFailingCurrentTime);
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+          await expect(handleNewBooking(req)).rejects.toThrowError(
+            "minimum_rescheduling_notice_exceeded_error"
+          );
+          vi.useRealTimers();
         },
         timeout
       );
