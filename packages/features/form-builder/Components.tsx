@@ -113,16 +113,6 @@ export const Components: Record<FieldType, Component> = {
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
     factory: (props) => {
       const { variant: variantName = "fullName" } = props;
-      const onChange = (name: string, value: string) => {
-        let currentValue = props.value;
-        if (typeof currentValue !== "object") {
-          currentValue = {};
-        }
-        props.setValue({
-          ...currentValue,
-          [name]: value,
-        });
-      };
 
       if (!props.variants) {
         throw new Error("'variants' is required for 'name' type of field");
@@ -164,6 +154,20 @@ export const Components: Record<FieldType, Component> = {
         throw new Error("Invalid value for 'fullName' variant");
       }
 
+      const onChangeOfNestedField = (nestedFieldName: string, nestedFieldValue: string) => {
+        let currentValue = value;
+        if (typeof currentValue !== "object") {
+          currentValue = {
+            firstName: "",
+            lastName: "",
+          };
+        }
+        props.setValue({
+          ...currentValue,
+          [nestedFieldName]: nestedFieldValue,
+        });
+      };
+
       return (
         <div className="flex space-x-4">
           {variant.fields.map((variantField) => (
@@ -180,7 +184,7 @@ export const Components: Record<FieldType, Component> = {
               value={value[variantField.name as keyof typeof value]}
               required={variantField.required}
               type="text"
-              onChange={(e) => onChange(variantField.name, e.target.value)}
+              onChange={(e) => onChangeOfNestedField(variantField.name, e.target.value)}
             />
           ))}
         </div>
