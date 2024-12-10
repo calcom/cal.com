@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Kinnitamata broneeringud blokeerivad siiski kalendriajad.",
   "recurring_event": "Korduv sündmus",
   "recurring_event_description": "Inimesed saavad tellida korduvaid sündmusi",
+  "connect_and_join": "Ühenda ja liitu",
   "cannot_be_used_with_paid_event_types": "Seda ei saa kasutada tasuliste sündmuste tüüpidega",
   "warning_payment_instant_meeting_event": "Korduvate sündmuste ja makserakendustega kiirkoosolekuid veel ei toetata",
   "warning_instant_meeting_experimental": "Eksperimentaalne: kiirkohtumise sündmused on praegu katselised.",

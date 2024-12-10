@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Nepotvrzené rezervace stále blokují časové sloty v kalendáři.",
   "recurring_event": "Opakovaná událost",
   "recurring_event_description": "Lidé se mohou přihlásit k opakovaným událostem",
+  "connect_and_join": "Připojit a přidat se",
   "cannot_be_used_with_paid_event_types": "Nelze použít s placenými typy událostí",
   "warning_payment_instant_meeting_event": "Okamžité schůzky nejsou zatím podporovány s opakujícími se událostmi a platebními aplikacemi",
   "warning_instant_meeting_experimental": "Experimentální: Okamžité schůzky jsou momentálně ve fázi experimentu.",

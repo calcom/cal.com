@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "未確認の予約でもカレンダーのスロットをブロックします。",
   "recurring_event": "繰り返しイベント",
   "recurring_event_description": "人々は繰り返しイベントの配信に登録できます。",
+  "connect_and_join": "接続して参加",
   "cannot_be_used_with_paid_event_types": "有料イベントタイプでは使用できません",
   "warning_payment_instant_meeting_event": "インスタントミーティングは、定期的なイベントや支払いアプリではまだサポートされていません",
   "warning_instant_meeting_experimental": "実験的: インスタントミーティングイベントは現在実験段階です。",

@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Ubekræftede bookinger blokerer stadig kalenderpladser.",
   "recurring_event": "Tilbagevendende Begivenhed",
   "recurring_event_description": "Folk kan abonnere på tilbagevendende begivenheder",
+  "connect_and_join": "Forbind og deltag",
   "cannot_be_used_with_paid_event_types": "Det kan ikke bruges med betalte begivenhedstyper",
   "warning_payment_instant_meeting_event": "Øjeblikkelige møder understøttes endnu ikke med tilbagevendende begivenheder og betalingsapps",
   "warning_instant_meeting_experimental": "Eksperimentel: Øjeblikkelige mødebegivenheder er i øjeblikket eksperimentelle.",

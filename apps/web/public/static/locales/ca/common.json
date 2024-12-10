@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Les reserves no confirmades segueixen bloquejant els espais del calendari.",
   "recurring_event": "Esdeveniment recurrent",
   "recurring_event_description": "La gent pot subscriure's a esdeveniments recurrents",
+  "connect_and_join": "Connecta i uneix-te",
   "cannot_be_used_with_paid_event_types": "No es pot utilitzar amb tipus d'esdeveniments de pagament",
   "warning_payment_instant_meeting_event": "Les reunions instantànies encara no són compatibles amb esdeveniments recurrents i aplicacions de pagament",
   "warning_instant_meeting_experimental": "Experimental: Els esdeveniments de reunió instantània són actualment experimentals.",

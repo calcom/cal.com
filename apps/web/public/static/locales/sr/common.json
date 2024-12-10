@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Nepotvrđene rezervacije i dalje blokiraju termine u kalendaru.",
   "recurring_event": "Ponavljajući događaj",
   "recurring_event_description": "Ljudi mogu da se pretplate na ponavljajuće događaje",
+  "connect_and_join": "Poveži se i pridruži",
   "cannot_be_used_with_paid_event_types": "Ne može se koristiti sa plaćenim tipovima događaja",
   "warning_payment_instant_meeting_event": "Instant sastanci još uvek nisu podržani sa ponavljajućim događajima i aplikacijama za plaćanje",
   "warning_instant_meeting_experimental": "Eksperimentalno: Instant sastanci su trenutno eksperimentalni.",

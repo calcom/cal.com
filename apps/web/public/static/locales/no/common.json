@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Ubekreftede bestillinger blokkerer fortsatt kalenderspor.",
   "recurring_event": "Gjentakende Hendelse",
   "recurring_event_description": "Folk kan abonnere på gjentakende hendelser",
+  "connect_and_join": "Koble til og bli med",
   "cannot_be_used_with_paid_event_types": "Det kan ikke brukes med betalte hendelsestyper",
   "warning_payment_instant_meeting_event": "Øyeblikkelige møter støttes ennå ikke med tilbakevendende hendelser og betalingsapper",
   "warning_instant_meeting_experimental": "Eksperimentell: Øyeblikkelige møter er for øyeblikket eksperimentelle.",

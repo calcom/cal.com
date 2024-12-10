@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Le prenotazioni non confermate bloccano comunque gli slot del calendario.",
   "recurring_event": "Evento ricorrente",
   "recurring_event_description": "Le persone possono iscriversi a eventi ricorrenti",
+  "connect_and_join": "Connettiti e partecipa",
   "cannot_be_used_with_paid_event_types": "Non può essere utilizzato con i tipi di evento a pagamento",
   "warning_payment_instant_meeting_event": "Le riunioni immediate non sono ancora disponibili con gli eventi ricorrenti e le app di pagamento",
   "warning_instant_meeting_experimental": "Sperimentale: gli eventi Riunione immediata al momento sono in fase di sperimentazione.",

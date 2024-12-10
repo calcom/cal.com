@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Təsdiqlənməmiş bronlar təqvimdə vaxtı bloklayır.",
   "recurring_event": "Təkrarlanan Tədbir",
   "recurring_event_description": "İnsanlar təkrarlanan tədbirlərə abunə ola bilərlər",
+  "connect_and_join": "Qoşul və iştirak et",
   "cannot_be_used_with_paid_event_types": "Ödənişli tədbir növləri ilə istifadə edilə bilməz",
   "warning_payment_instant_meeting_event": "Təkrarlanan tədbirlər və ödəniş tətbiqləri ilə Dərhal Görüşlər hələ dəstəklənmir",
   "warning_instant_meeting_experimental": "Eksperimental: Dərhal Görüş Tədbirləri hazırda eksperimental mərhələdədir.",

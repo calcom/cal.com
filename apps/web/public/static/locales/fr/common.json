@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Les réservations non confirmées bloquent quand même les créneaux du calendrier.",
   "recurring_event": "Événement récurrent",
   "recurring_event_description": "Les personnes peuvent s'inscrire à des événements récurrents.",
+  "connect_and_join": "Se connecter et rejoindre",
   "cannot_be_used_with_paid_event_types": "À ne pas utiliser avec les types d'événement payants",
   "warning_payment_instant_meeting_event": "Les Rendez-vous instantanés ne sont pas encore pris en charge par les événements récurrents et les applications de paiement",
   "warning_instant_meeting_experimental": "Expérimental : Les événements de Rendez-vous instantané sont actuellement expérimentaux.",

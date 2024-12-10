@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Las reservas no confirmadas aún bloquean los espacios en el calendario.",
   "recurring_event": "Evento recurrente",
   "recurring_event_description": "Las personas pueden suscribirse a eventos recurrentes",
+  "connect_and_join": "Conecta y únete",
   "cannot_be_used_with_paid_event_types": "No se puede usar con tipos de eventos de pago.",
   "warning_payment_instant_meeting_event": "Las reuniones instantáneas no son compatibles con eventos recurrentes y aplicaciones de pago todavía.",
   "warning_instant_meeting_experimental": "Experimental: Los eventos de reuniones instantáneas son actualmente experimentales.",

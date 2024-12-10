@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Baieztatu gabeko erreserbek egutegiko tarteak blokeatzen dituzte oraindik.",
   "recurring_event": "Gertaera errepikaria",
   "recurring_event_description": "Jendeak gertaera errepikakorretarako izena eman dezake",
+  "connect_and_join": "Konektatu eta batu",
   "cannot_be_used_with_paid_event_types": "Ezin da ordaindutako gertaera motekin erabili",
   "warning_payment_instant_meeting_event": "Berehalako bilerak ez dira oraindik bateragarriak gertaera errepikakor eta ordainketa aplikazioekin",
   "warning_instant_meeting_experimental": "Esperimentala: Berehalako bilera gertaerak esperimentalak dira oraindik.",

@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "الحجوزات غير المؤكدة لا تزال تحجز الفترات الزمنية في التقويم.",
   "recurring_event": "حدث متكرر",
   "recurring_event_description": "يمكن للأشخاص الاشتراك في الأحداث المتكررة",
+  "connect_and_join": "اتصل وانضم",
   "cannot_be_used_with_paid_event_types": "لا يمكن استخدامه مع أنواع الأحداث المدفوعة",
   "warning_payment_instant_meeting_event": "الاجتماعات الفورية غير مدعومة مع الأحداث المتكررة وتطبيقات الدفع حتى الآن",
   "warning_instant_meeting_experimental": "تجريبي: أحداث الاجتماعات الفورية حاليًا تجريبية.",

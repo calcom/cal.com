@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Obekräftade bokningar blockerar fortfarande kalenderplatser.",
   "recurring_event": "Återkommande möte",
   "recurring_event_description": "Personer kan prenumerera på återkommande händelser",
+  "connect_and_join": "Anslut och gå med",
   "cannot_be_used_with_paid_event_types": "Det kan inte användas med betalda händelsetyper",
   "warning_payment_instant_meeting_event": "Omedelbara möten stöds ännu inte med återkommande händelser och betalningsappar",
   "warning_instant_meeting_experimental": "Experimentell: Omedelbara möten är för närvarande experimentella.",

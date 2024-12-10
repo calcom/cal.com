@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "未確認的預訂仍會佔用日曆時段。",
   "recurring_event": "定期活動",
   "recurring_event_description": "大家可以訂閱定期活動",
+  "connect_and_join": "連結並加入",
   "cannot_be_used_with_paid_event_types": "無法與付費活動類型一起使用",
   "warning_payment_instant_meeting_event": "即時會議目前不支援重複事件和支付應用程式",
   "warning_instant_meeting_experimental": "實驗性：即時會議事件目前處於實驗階段。",

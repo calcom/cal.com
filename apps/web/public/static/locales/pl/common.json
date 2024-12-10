@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Niepotwierdzone rezerwacje nadal blokują terminy w kalendarzu.",
   "recurring_event": "Wydarzenie cykliczne",
   "recurring_event_description": "Osoby mogą subskrybować wydarzenia cykliczne",
+  "connect_and_join": "Połącz się i dołącz",
   "cannot_be_used_with_paid_event_types": "Nie można używać z płatnymi typami wydarzeń",
   "warning_payment_instant_meeting_event": "Natychmiastowe spotkania nie są jeszcze obsługiwane z cyklicznymi wydarzeniami i aplikacjami płatniczymi",
   "warning_instant_meeting_experimental": "Eksperymentalne: Wydarzenia natychmiastowych spotkań są obecnie eksperymentalne.",

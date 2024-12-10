@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Nepotvrdené rezervácie stále blokujú časové sloty v kalendári.",
   "recurring_event": "Opakujúca sa udalosť",
   "recurring_event_description": "Ľudia sa môžu prihlásiť na opakujúce sa udalosti",
+  "connect_and_join": "Pripojiť sa",
   "cannot_be_used_with_paid_event_types": "Nemožno použiť s platenými typmi udalostí",
   "warning_payment_instant_meeting_event": "Okamžité stretnutia zatiaľ nie sú podporované s opakujúcimi sa udalosťami a platobnými aplikáciami",
   "warning_instant_meeting_experimental": "Experimentálne: Okamžité stretnutia sú momentálne experimentálne.",

@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "확인되지 않은 예약도 캘린더 슬롯을 차단합니다.",
   "recurring_event": "되풀이 이벤트",
   "recurring_event_description": "사람들이 되풀이 이벤트를 구독할 수 있습니다",
+  "connect_and_join": "연결하고 참여하기",
   "cannot_be_used_with_paid_event_types": "유료 이벤트 유형과 함께 사용할 수 없습니다",
   "warning_payment_instant_meeting_event": "즉석 회의는 반복 이벤트 및 결제 앱과 아직 호환되지 않습니다",
   "warning_instant_meeting_experimental": "실험적: 즉석 회의 이벤트는 현재 실험 중입니다.",

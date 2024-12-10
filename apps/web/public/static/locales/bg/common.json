@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Непотвърдените резервации все още блокират времеви слотове в календара.",
   "recurring_event": "Повтарящо се събитие",
   "recurring_event_description": "Хората могат да се абонират за повтарящи се събития",
+  "connect_and_join": "Свържи се и се присъедини",
   "cannot_be_used_with_paid_event_types": "Не може да се използва с платени типове събития",
   "warning_payment_instant_meeting_event": "Моментални срещи все още не се поддържат с повтарящи се събития и приложения за плащане",
   "warning_instant_meeting_experimental": "Експериментално: Моменталните срещи са в експериментална фаза.",

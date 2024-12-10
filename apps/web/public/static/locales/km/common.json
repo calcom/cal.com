@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "ការកក់ដែលមិនបានបញ្ជាក់នៅតែបិទកន្លែងប្រតិទិន។",
   "recurring_event": "ព្រឹត្តិការណ៍កើតឡើងជាដង",
   "recurring_event_description": "មនុស្សអាចជាវសម្រាប់ព្រឹត្តិការណ៍កើតឡើងជាដង",
+  "connect_and_join": "ភ្ជាប់ និងចូលរួម",
   "cannot_be_used_with_paid_event_types": "វាមិនអាចប្រើជាមួយប្រភេទព្រឹត្តិការណ៍ដែលមានការទូទាត់បានទេ",
   "warning_payment_instant_meeting_event": "ការជួបជុំភ្លាមៗមិនត្រូវបានគាំទ្រជាមួយព្រឹត្តិការណ៍កើតឡើងជាដង និងកម្មវិធីទូទាត់នៅឡើយទេ",
   "warning_instant_meeting_experimental": "សាកល្បង៖ ព្រឹត្តិការណ៍ជួបជុំភ្លាមៗកំពុងស្ថិតក្នុងការសាកល្បង។",

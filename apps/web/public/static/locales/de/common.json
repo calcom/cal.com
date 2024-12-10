@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Unbestätigte Buchungen blockieren trotzdem Kalenderslots.",
   "recurring_event": "Wiederkehrender Termin",
   "recurring_event_description": "Personen können sich für wiederkehrende Termine anmelden",
+  "connect_and_join": "Verbinden und beitreten",
   "cannot_be_used_with_paid_event_types": "Es kann nicht mit bezahlten Ereignistypen verwendet werden",
   "warning_payment_instant_meeting_event": "Softige Meetings werden von wiederkehrenden Ereignissen und Zahlungs-Apps noch nicht unterstützt",
   "warning_instant_meeting_experimental": "Experimentell: „Sofortiges Meeting“-Ereignisse sind derzeit eine experimentelle Funktion.",

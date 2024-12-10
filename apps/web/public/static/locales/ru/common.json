@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Неподтвержденные бронирования все равно блокируют слоты в календаре.",
   "recurring_event": "Повторяющееся событие",
   "recurring_event_description": "Пользователи могут подписываться на повторяющиеся события",
+  "connect_and_join": "Подключиться и присоединиться",
   "cannot_be_used_with_paid_event_types": "Это не может быть использовано с платными типами событий",
   "warning_payment_instant_meeting_event": "Мгновенные встречи пока не поддерживаются для повторяющихся событий и платежных приложений",
   "warning_instant_meeting_experimental": "Экспериментально: Мгновенные встречи в настоящее время находятся на стадии эксперимента.",

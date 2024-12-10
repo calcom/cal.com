@@ -887,6 +887,7 @@ checksums:
     requires_confirmation_will_block_slot_description: 07d2ec2d2ad1123b833f63f6d675cd3d
     recurring_event: 64081e2a29e23cfc8eb421a44565da0c
     recurring_event_description: 6652c7b8ad3562c04d4ace180a96bf09
+    connect_and_join: ffc66aaf4262d7c2385beab88d49c863
     cannot_be_used_with_paid_event_types: c655cde68dd549884259b0b0fc93a888
     warning_payment_instant_meeting_event: 6f24d32aceec42d5deee8582c03a8eb1
     warning_instant_meeting_experimental: bc42e669e6c45264ac14ea18266da9a6

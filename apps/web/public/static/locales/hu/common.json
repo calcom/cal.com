@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "A megerősítetlen foglalások is blokkolják a naptári időpontokat.",
   "recurring_event": "Ismétlődő esemény",
   "recurring_event_description": "Az emberek előfizethetnek az ismétlődő eseményekre",
+  "connect_and_join": "Csatlakozás",
   "cannot_be_used_with_paid_event_types": "Fizetett eseménytípusokkal nem használható",
   "warning_payment_instant_meeting_event": "Az azonnali értekezletek még nem támogatottak az ismétlődő eseményekkel és fizetőalkalmazásokkal",
   "warning_instant_meeting_experimental": "Kísérleti: Az azonnali találkozó események jelenleg kísérleti jellegűek.",

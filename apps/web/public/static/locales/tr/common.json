@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Onaylanmamış rezervasyonlar yine de takvimdeki zaman dilimlerini bloke eder.",
   "recurring_event": "Yinelenen Etkinlik",
   "recurring_event_description": "Kişiler yinelenen etkinlikler için abone olabilirler",
+  "connect_and_join": "Bağlan ve katıl",
   "cannot_be_used_with_paid_event_types": "Ücretli etkinlik türleriyle kullanılamaz",
   "warning_payment_instant_meeting_event": "Anlık Toplantılar, tekrarlayan etkinlikler ve ödeme uygulamaları ile henüz desteklenmemektedir",
   "warning_instant_meeting_experimental": "Deneysel: Anlık Toplantı Etkinlikleri şu anda deneysel aşamadadır.",

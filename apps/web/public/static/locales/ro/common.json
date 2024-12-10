@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Rezervările neconfirmate blochează în continuare sloturile din calendar.",
   "recurring_event": "Eveniment recurent",
   "recurring_event_description": "Persoanele se pot abona la evenimentele recurente",
+  "connect_and_join": "Conectează-te și alătură-te",
   "cannot_be_used_with_paid_event_types": "Nu poate fi utilizat cu tipuri de evenimente plătite",
   "warning_payment_instant_meeting_event": "Întâlnirile instantanee nu sunt încă suportate cu evenimente recurente și aplicații de plată",
   "warning_instant_meeting_experimental": "Experimental: Evenimentele de întâlnire instantanee sunt în prezent experimentale.",

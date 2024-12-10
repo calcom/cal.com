@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Непідтверджені бронювання все одно блокують слоти в календарі.",
   "recurring_event": "Періодичний захід",
   "recurring_event_description": "Користувачі можуть підписуватися на періодичні заходи",
+  "connect_and_join": "Підключитися та приєднатися",
   "cannot_be_used_with_paid_event_types": "Це не можна використовувати з платними типами подій",
   "warning_payment_instant_meeting_event": "Миттєві зустрічі поки що не підтримуються з повторюваними подіями та платіжними додатками",
   "warning_instant_meeting_experimental": "Експериментально: Миттєві зустрічі наразі є експериментальними.",

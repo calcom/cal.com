@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "הזמנות לא מאושרות עדיין חוסמות את הזמן ביומן.",
   "recurring_event": "אירוע חוזר",
   "recurring_event_description": "אנשים יכולים להירשם לאירועים חוזרים",
+  "connect_and_join": "התחבר והצטרף",
   "cannot_be_used_with_paid_event_types": "אי אפשר להשתמש בזה עם סוגי פגישות בתשלום",
   "warning_payment_instant_meeting_event": "אין תמיכה בפגישות מיידיות עם אירועים מחזוריים ויישומוני תשלום",
   "warning_instant_meeting_experimental": "ניסיוני: פגישות מיידיות הן ניסיוניות כרגע.",
