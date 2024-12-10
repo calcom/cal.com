@@ -91,6 +91,7 @@ model EventType {
   availability                            Availability[]
   webhooks                                Webhook[]
   destinationCalendar                     DestinationCalendar?
+  useEventLevelSelectedCalendars          Boolean                   @default(false)
   eventName                               String?
   customInputs                            EventTypeCustomInput[]
   parentId                                Int?
@@ -157,10 +158,11 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  selectedCalendars                       SelectedCalendar[]
 
   /// @zod.custom(imports.eventTypeColor)
-  eventTypeColor                   Json?
-  rescheduleWithSameRoundRobinHost Boolean @default(false)
+  eventTypeColor                          Json?
+  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -708,6 +710,7 @@ model Availability {
 }
 
 model SelectedCalendar {
+  id                               Int                   @id @default(autoincrement())
   user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int
   integration                      String
@@ -723,11 +726,19 @@ model SelectedCalendar {
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
 
-  @@id([userId, integration, externalId])
+  eventTypeId              Int?
+  eventType                EventType? @relation(fields: [eventTypeId], references: [id])
+
+  // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
+  // We currently ensure uniqueness by checking for the existence of the record before creating a new one
+  // Think about introducing a synthetic unique key ${userId}_${integration}_${externalId}_${eventTypeId}
+  @@unique([userId, integration, externalId, eventTypeId])
   @@index([userId])
   @@index([integration])
   @@index([externalId])
+  @@index([eventTypeId])
 }
+
 
 enum EventTypeCustomInputType {
   TEXT     @map("text")

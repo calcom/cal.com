@@ -7,7 +7,11 @@ const EventAdvancedWebWrapper = ({ ...props }: EventAdvancedBaseProps) => {
   return (
     <EventAdvancedTab
       {...props}
-      calendarsQueryData={connectedCalendarsQuery.data}
+      calendarsQuery={{
+        data: connectedCalendarsQuery.data,
+        isPending: connectedCalendarsQuery.isPending,
+        error: connectedCalendarsQuery.error,
+      }}
       showBookerLayoutSelector={true}
     />
   );
