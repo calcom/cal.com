@@ -16,7 +16,7 @@ export default async function handler({
   if (!organizationId) {
     throw new Error("You must be in an organization to list domain wide delegations");
   }
-  const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
+  const domainWideDelegationRepository = await DomainWideDelegation.init();
 
   const domainWideDelegations = await domainWideDelegationRepository.findDelegationsWithServiceAccount({
     organizationId,

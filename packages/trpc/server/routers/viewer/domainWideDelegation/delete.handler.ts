@@ -13,10 +13,7 @@ export default async function handler({
 }) {
   const { id } = input;
 
-  const domainWideDelegationRepository = await DomainWideDelegation.init(
-    ctx.user.id,
-    ctx.user.organizationId
-  );
+  const domainWideDelegationRepository = await DomainWideDelegation.init();
   await domainWideDelegationRepository.deleteById({ id });
 
   return { id };

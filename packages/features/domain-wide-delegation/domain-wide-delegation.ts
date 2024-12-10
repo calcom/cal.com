@@ -1,3 +1,4 @@
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import prisma from "@calcom/prisma";
 
@@ -26,10 +27,15 @@ export class DomainWideDelegation {
     return !!(teamFeature && membership);
   }
 
-  static async init(userId: number, teamId: number | null) {
-    const domainWideDelegationEnabled = await this.checkIfDwDIsEnabled(userId, teamId);
+  static async init() {
+    const featureRepo = new FeaturesRepository();
+    const isDomainWideDelegationEnabledGlobally = await featureRepo.checkIfFeatureIsEnabledGlobally(
+      "domain-wide-delegation"
+    );
 
-    if (!domainWideDelegationEnabled) {
+    console.log("isDomainWideDelegationEnabledGlobally", isDomainWideDelegationEnabledGlobally);
+
+    if (!isDomainWideDelegationEnabledGlobally) {
       return new MockDomainWideDelegationRepository();
     }
 

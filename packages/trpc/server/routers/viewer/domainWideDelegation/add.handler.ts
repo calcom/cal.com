@@ -48,7 +48,7 @@ export default async function handler({
       dwdBeingUpdatedId: null,
     });
 
-    const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
+    const domainWideDelegationRepository = await DomainWideDelegation.init();
 
     const createdDelegation = await domainWideDelegationRepository.create({
       workspacePlatformId: workspacePlatform.id,

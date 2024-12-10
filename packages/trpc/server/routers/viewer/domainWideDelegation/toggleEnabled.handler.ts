@@ -20,7 +20,7 @@ const assertWorkspaceConfigured = async ({
   domainWideDelegationId: string;
   user: { id: number; email: string; organizationId: number | null };
 }) => {
-  const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, user.organizationId);
+  const domainWideDelegationRepository = await DomainWideDelegation.init();
   const domainWideDelegation = await domainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
     {
       id: domainWideDelegationId,
@@ -61,10 +61,7 @@ export default async function toggleEnabledHandler({
     });
   }
 
-  const domainWideDelegationRepository = await DomainWideDelegation.init(
-    loggedInUser.id,
-    loggedInUser.organizationId
-  );
+  const domainWideDelegationRepository = await DomainWideDelegation.init();
 
   const updatedDomainWideDelegation = await domainWideDelegationRepository.updateById({
     id: input.id,
