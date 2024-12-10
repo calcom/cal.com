@@ -319,6 +319,14 @@ export function RoutingFormResponsesTable({
     });
   }, [flatData, headers, isHeadersLoading]);
 
+  const statusOrder: Record<BookingStatus, number> = {
+    [BookingStatus.ACCEPTED]: 1,
+    [BookingStatus.PENDING]: 2,
+    [BookingStatus.AWAITING_HOST]: 3,
+    [BookingStatus.CANCELLED]: 4,
+    [BookingStatus.REJECTED]: 5,
+  };
+
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
   const columns = useMemo(
@@ -358,6 +366,14 @@ export function RoutingFormResponsesTable({
             <BookingStatusBadge booking={info.getValue()} />
           </div>
         ),
+        sortingFn: (rowA, rowB) => {
+          const statusA = rowA.original.routedToBooking?.status;
+          const statusB = rowB.original.routedToBooking?.status;
+          // Default to highest number (5) + 1 for null/undefined values to sort them last
+          const orderA = statusA ? statusOrder[statusA] : 6;
+          const orderB = statusB ? statusOrder[statusB] : 6;
+          return orderA - orderB;
+        },
       }),
       columnHelper.accessor("routedToBooking", {
         id: "bookingAt",

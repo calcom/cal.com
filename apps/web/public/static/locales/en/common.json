@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Start date must be before end date",
   "start_date_must_be_in_the_future": "Start date must be in the future",
   "user_not_found": "User not found",
+  "cannot_redirect_to_self": "Cannot redirect to self",
   "out_of_office_entry_already_exists": "Out of office entry already exists",
   "out_of_office_id_required": "Out of office entry id required",
   "booking_redirect_infinite_not_allowed": "There is already a booking redirect from that user to you.",
