@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Data rozpoczęcia musi być przed datą zakończenia",
   "start_date_must_be_in_the_future": "Data rozpoczęcia musi być w przyszłości",
   "user_not_found": "Nie znaleziono użytkownika",
+  "cannot_redirect_to_self": "Nie można przekierować do samego siebie",
   "out_of_office_entry_already_exists": "Wpis o nieobecności już istnieje",
   "out_of_office_id_required": "Wymagany jest identyfikator wpisu o nieobecności",
   "booking_redirect_infinite_not_allowed": "Istnieje już przekierowanie rezerwacji od tego użytkownika do Ciebie.",

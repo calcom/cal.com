@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Startdato må være før sluttdato",
   "start_date_must_be_in_the_future": "Startdato må være i fremtiden",
   "user_not_found": "Bruker ikke funnet",
+  "cannot_redirect_to_self": "Kan ikke viderekoble til seg selv",
   "out_of_office_entry_already_exists": "En fraværspost eksisterer allerede",
   "out_of_office_id_required": "Fraværspost-ID er påkrevd",
   "booking_redirect_infinite_not_allowed": "Det finnes allerede en omdirigering fra den brukeren til deg.",

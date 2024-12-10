@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "시작 날짜는 종료 날짜보다 이전이어야 합니다",
   "start_date_must_be_in_the_future": "시작 날짜는 미래여야 합니다",
   "user_not_found": "사용자를 찾을 수 없습니다",
+  "cannot_redirect_to_self": "자기 자신에게 리다이렉트할 수 없습니다",
   "out_of_office_entry_already_exists": "자리 비움 항목이 이미 존재합니다",
   "out_of_office_id_required": "부재중 항목 ID가 필요합니다",
   "booking_redirect_infinite_not_allowed": "해당 사용자가 이미 당신에게 예약 리디렉션을 설정했습니다.",
