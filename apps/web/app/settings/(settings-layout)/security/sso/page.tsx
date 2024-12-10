@@ -1,7 +1,6 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
+import { getTranslate } from "app/_utils";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SAMLSSO from "@calcom/features/ee/sso/page/user-sso-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -12,9 +11,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslate();
 
   return (
     <SettingsHeader
