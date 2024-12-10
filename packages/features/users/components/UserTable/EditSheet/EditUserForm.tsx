@@ -45,6 +45,7 @@ const attributeSchema = z.object({
       z.object({
         label: z.string().optional(),
         value: stringOrNumber.optional(),
+        weight: z.number().optional(),
         createdByDSyncId: z.string().nullable().optional(),
       })
     )
@@ -247,11 +248,11 @@ function AttributesList(props: { selectedUserId: number }) {
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: props.selectedUserId,
     });
-  const { data: attributes, isPending: attributesPending } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
   const { t } = useLocale();
-  const { control, watch, getFieldState, setValue } = useFormContext();
+  const { control, getFieldState } = useFormContext();
 
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
@@ -278,7 +279,8 @@ function AttributesList(props: { selectedUserId: number }) {
           options: attr.options.map((option) => ({
             label: option.value,
             value: option.id,
-            createdByDSyncId: option.createdByDSyncId,
+            createdByDSyncId: option.createdByDSyncId ?? null,
+            weight: option.weight ?? 100,
           })),
         };
       } else if (attr.type === "SINGLE_SELECT") {
@@ -289,10 +291,11 @@ function AttributesList(props: { selectedUserId: number }) {
               label: attr.options[0]?.value,
               value: attr.options[0]?.id,
               createdByDSyncId: attr.options[0]?.createdByDSyncId ?? null,
+              weight: attr.options[0]?.weight ?? 100,
             },
           ],
         };
-      } else {
+      } else if (attr.type === "TEXT") {
         acc[key] = {
           id: attr.id,
           value: attr.options[0]?.value || "",
@@ -341,36 +344,88 @@ function AttributesList(props: { selectedUserId: number }) {
                     />
                   )}
                   {["SINGLE_SELECT", "MULTI_SELECT"].includes(attr.type) && (
-                    <SelectField
-                      isDisabled={attr.isLocked}
-                      name={field.name}
-                      containerClassName="w-full"
-                      isMulti={attr.type === "MULTI_SELECT"}
-                      labelProps={{
-                        className: "text-emphasis mb-2 block text-sm font-medium leading-none",
-                      }}
-                      label={attr.name}
-                      options={getOptionsByAttributeId(attr.id)}
-                      value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
-                      onChange={(value) => {
-                        if (!value) return;
-                        const valueAsArray = value instanceof Array ? value : [value];
+                    <div className="w-full">
+                      <SelectField
+                        isDisabled={attr.isLocked}
+                        name={field.name}
+                        containerClassName="w-full"
+                        isMulti={attr.type === "MULTI_SELECT"}
+                        labelProps={{
+                          className: "text-emphasis mb-2 block text-sm font-medium leading-none",
+                        }}
+                        label={attr.name}
+                        options={getOptionsByAttributeId(attr.id)}
+                        value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
+                        onChange={(value) => {
+                          if (!value) return;
+                          const valueAsArray = value instanceof Array ? value : [value];
 
-                        const updatedOptions =
-                          attr.type === "MULTI_SELECT"
-                            ? valueAsArray.map((v) => ({ label: v.label, value: v.value }))
-                            : [{ label: valueAsArray[0].label, value: valueAsArray[0].value }];
+                          const updatedOptions =
+                            attr.type === "MULTI_SELECT"
+                              ? valueAsArray.map((v) => ({
+                                  label: v.label,
+                                  value: v.value,
+                                  weight: v.weight || 100,
+                                }))
+                              : [
+                                  {
+                                    label: valueAsArray[0].label,
+                                    value: valueAsArray[0].value,
+                                    weight: valueAsArray[0].weight || 100,
+                                  },
+                                ];
 
-                        field.onChange({
-                          id: attr.id,
-                          // It is also ensured in the backend that the options not owned by cal.com are not removed
-                          options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
-                            earlierOptions: fieldValue?.options || [],
-                            updatedOptions,
-                          }),
-                        });
-                      }}
-                    />
+                          field.onChange({
+                            id: attr.id,
+                            options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
+                              earlierOptions: fieldValue?.options || [],
+                              updatedOptions,
+                            }),
+                          });
+                        }}
+                      />
+                      {attr.isWeightsEnabled && fieldValue?.options && (
+                        <div className="ml-12 mt-2 space-y-2">
+                          <Label>Weights</Label>
+                          {fieldValue.options.map((option, idx) => {
+                            return (
+                              <>
+                                <div key={option.value} className="flex items-center space-x-2">
+                                  {/* <Icon
+                                    name="corner-down-right"
+                                    style={{
+                                      marginTop: "14px", // Offset by label text height to ensure the arrow is visually centered on the input
+                                    }}
+                                  /> */}
+                                  <InputField
+                                    name={`attributes.${index}.options.${idx}.weight`}
+                                    type="number"
+                                    label={option.label}
+                                    min={0}
+                                    step={10}
+                                    labelProps={{
+                                      className: "text-emphasis mb-2 block text-sm font-medium leading-none",
+                                    }}
+                                    value={option.weight || 100}
+                                    onChange={(e) => {
+                                      const newWeight = parseFloat(e.target.value) || 1;
+                                      const newOptions = fieldValue.options.map((opt, i) =>
+                                        i === idx ? { ...opt, weight: newWeight } : opt
+                                      );
+                                      field.onChange({
+                                        id: attr.id,
+                                        options: newOptions,
+                                      });
+                                    }}
+                                    addOnSuffix={<span className="text-subtle text-sm">%</span>}
+                                  />
+                                </div>
+                              </>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               );
