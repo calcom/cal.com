@@ -18,18 +18,18 @@ import PageWrapper from "@components/PageWrapper";
 
 import { getTranslations } from "@server/lib/getTranslations";
 
-enum pageType {
-  ORG = "org",
-  TEAM = "team",
-  USER = "user",
-  OTHER = "other",
+enum PageType {
+  ORG = "ORG",
+  TEAM = "TEAM",
+  USER = "USER",
+  OTHER = "OTHER",
 }
 
 export default function Custom404() {
   const pathname = usePathname();
   const { t } = useLocale();
   const [username, setUsername] = useState<string>("");
-  const [currentPageType, setCurrentPageType] = useState<pageType>(pageType.USER);
+  const [currentPageType, setCurrentPageType] = useState<PageType>(PageType.USER);
 
   const links = [
     {
@@ -64,7 +64,7 @@ export default function Custom404() {
       if (splitPath[1] === "team" && splitPath.length === 3) {
         // Accessing a non-existent team
         setUsername(splitPath[2]);
-        setCurrentPageType(pageType.TEAM);
+        setCurrentPageType(PageType.TEAM);
         setUrl(
           `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`
         );
@@ -74,7 +74,7 @@ export default function Custom404() {
       }
     } else {
       setUsername(currentOrgDomain ?? "");
-      setCurrentPageType(pageType.ORG);
+      setCurrentPageType(PageType.ORG);
       setUrl(
         `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${
           currentOrgDomain?.replace("/", "") ?? ""
@@ -144,7 +144,7 @@ export default function Custom404() {
             <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
               {isSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
             </h1>
-            {isSubpage && currentPageType !== pageType.TEAM ? (
+            {isSubpage && currentPageType !== PageType.TEAM ? (
               <span className="mt-2 inline-block text-lg ">{t("check_spelling_mistakes_or_go_back")}</span>
             ) : IS_CALCOM ? (
               <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
@@ -162,8 +162,8 @@ export default function Custom404() {
           </div>
           <div className="mt-12">
             {((!isSubpage && IS_CALCOM) ||
-              currentPageType === pageType.ORG ||
-              currentPageType === pageType.TEAM) && (
+              currentPageType === PageType.ORG ||
+              currentPageType === PageType.TEAM) && (
               <ul role="list" className="my-4">
                 <li className="border-2 border-green-500 px-4 py-2">
                   <a
@@ -183,9 +183,9 @@ export default function Custom404() {
                             <span className="absolute inset-0" aria-hidden="true" />
                             {t("register")}{" "}
                             <strong className="text-green-500">{`${
-                              currentPageType === pageType.TEAM ? `${new URL(WEBSITE_URL).host}/team/` : ""
+                              currentPageType === PageType.TEAM ? `${new URL(WEBSITE_URL).host}/team/` : ""
                             }${username}${
-                              currentPageType === pageType.ORG ? `.${subdomainSuffix()}` : ""
+                              currentPageType === PageType.ORG ? `.${subdomainSuffix()}` : ""
                             }`}</strong>
                           </span>
                         </span>
@@ -206,7 +206,7 @@ export default function Custom404() {
             </h2>
             <ul role="list" className="border-subtle divide-subtle divide-y">
               {links
-                .filter((_, idx) => currentPageType === pageType.ORG || idx !== 0)
+                .filter((_, idx) => currentPageType === PageType.ORG || idx !== 0)
                 .map((link, linkIdx) => (
                   <li key={linkIdx} className="px-4 py-2">
                     <a
