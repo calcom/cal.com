@@ -1,6 +1,8 @@
 import { ReplexicaEngine } from "@replexica/sdk";
+import type { LocaleCode } from "@replexica/spec";
 
 import { REPLEXICA_API_KEY } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 
 export class ReplexicaService {
   private static engine = new ReplexicaEngine({
@@ -14,9 +16,13 @@ export class ReplexicaService {
    * @param targetLocale The target language locale
    * @returns The localized text
    */
-  static async localizeText(text: string, sourceLocale: string, targetLocale: string): Promise<string> {
+  static async localizeText(
+    text: string,
+    sourceLocale: string,
+    targetLocale: string
+  ): Promise<string | null> {
     if (!text?.trim()) {
-      return text;
+      return null;
     }
 
     try {
@@ -27,7 +33,33 @@ export class ReplexicaService {
 
       return result;
     } catch (error) {
-      return text;
+      logger.error(`ReplexicaService.localizeText() failed for targetLocale: ${targetLocale} - ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Localize a text string to multiple target locales
+   * @param text The text to localize
+   * @param sourceLocale The source language locale
+   * @param targetLocales Array of the target language locales
+   * @returns The localized texts
+   */
+  static async batchLocalizeText(
+    text: string,
+    sourceLocale: string,
+    targetLocales: string[]
+  ): Promise<string[]> {
+    try {
+      const result = await this.engine.batchLocalizeText(text, {
+        sourceLocale: sourceLocale as LocaleCode,
+        targetLocales: targetLocales as LocaleCode[],
+      });
+
+      return result;
+    } catch (error) {
+      logger.error(`ReplexicaService.batchLocalizeText() failed: ${error}`);
+      return [];
     }
   }
 
@@ -54,6 +86,7 @@ export class ReplexicaService {
 
       return result.map((chat: { name: string; text: string }) => chat.text);
     } catch (error) {
+      logger.error(`ReplexicaService.localizeTexts() failed: ${error}`);
       return texts;
     }
   }

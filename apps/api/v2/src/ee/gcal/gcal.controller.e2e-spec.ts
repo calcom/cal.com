@@ -95,7 +95,7 @@ describe("Platform Gcal Endpoints", () => {
       .expect(401);
   });
 
-  it(`/GET/gcal/oauth/auth-url: it should auth-url to google oauth with valid access token `, async () => {
+  it(`/GET/gcal/oauth/auth-url: it should auth-url to google OAuth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
       .get(`/v2/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
@@ -105,7 +105,7 @@ describe("Platform Gcal Endpoints", () => {
     expect(data.authUrl).toBeDefined();
   });
 
-  it(`/GET/gcal/oauth/save: without oauth code`, async () => {
+  it(`/GET/gcal/oauth/save: without OAuth code`, async () => {
     await request(app.getHttpServer())
       .get(
         `/v2/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3D${CLIENT_REDIRECT_URI}&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`

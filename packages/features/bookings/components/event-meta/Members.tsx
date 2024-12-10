@@ -1,3 +1,4 @@
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -22,6 +23,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
+  const isPlatform = useIsPlatform();
 
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
@@ -56,9 +58,11 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
         items={[
           ...orgOrTeamAvatarItem,
           ...shownUsers.map((user) => ({
-            href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-              user.profile?.username
-            }?redirect=false`,
+            href: isPlatform
+              ? null
+              : `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+                  user.profile?.username
+                }?redirect=false`,
             alt: user.name || "",
             title: user.name || "",
             image: getUserAvatarUrl(user),
