@@ -15,6 +15,7 @@ export const AppSetupMap = {
   sendgrid: dynamic(() => import("../../sendgrid/pages/setup")),
   stripe: dynamic(() => import("../../stripepayment/pages/setup")),
   paypal: dynamic(() => import("../../paypal/pages/setup")),
+  adyen: dynamic(() => import("../../adyen/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
