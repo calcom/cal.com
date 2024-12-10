@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Låsning vil kun tillade tildelinger fra Directory Sync",
   "attribute_edited_successfully": "Attribut redigeret med succes",
   "new_group_option": "Ny gruppemulighed",
+  "routed": "Dirigeret",
+  "reassigned": "Omfordelt",
+  "rerouted": "Omdirigeret",
+  "salesforce_assigned": "Salesforce-tildeling",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

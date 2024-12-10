@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "ロックすると、ディレクトリ同期からの割り当てのみが許可されます",
   "attribute_edited_successfully": "属性の編集が完了しました",
   "new_group_option": "新規グループオプション",
+  "routed": "ルーティング済み",
+  "reassigned": "再割り当て済み",
+  "rerouted": "再ルーティング済み",
+  "salesforce_assigned": "Salesforce割り当て",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

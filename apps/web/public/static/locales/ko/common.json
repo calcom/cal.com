@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "잠금을 설정하면 디렉토리 동기화를 통한 할당만 허용됩니다",
   "attribute_edited_successfully": "속성이 성공적으로 수정되었습니다",
   "new_group_option": "새 그룹 옵션",
+  "routed": "라우팅됨",
+  "reassigned": "재할당됨",
+  "rerouted": "재라우팅됨",
+  "salesforce_assigned": "Salesforce 할당",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

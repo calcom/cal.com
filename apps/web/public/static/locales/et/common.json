@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Lukustamine lubab määramisi ainult Directory Sync kaudu",
   "attribute_edited_successfully": "Atribuut edukalt muudetud",
   "new_group_option": "Uus grupi valik",
+  "routed": "Suunatud",
+  "reassigned": "Ümber määratud",
+  "rerouted": "Ümber suunatud",
+  "salesforce_assigned": "Salesforce'i määramine",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

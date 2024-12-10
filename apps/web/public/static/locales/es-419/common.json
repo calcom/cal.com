@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "El bloqueo solo permitirá asignaciones desde la sincronización del directorio",
   "attribute_edited_successfully": "Atributo editado exitosamente",
   "new_group_option": "Nueva opción de grupo",
+  "routed": "Enrutado",
+  "reassigned": "Reasignado",
+  "rerouted": "Reenrutado",
+  "salesforce_assigned": "Asignación de Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

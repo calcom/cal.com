@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Låsning tillåter endast tilldelningar från katalogsynkronisering",
   "attribute_edited_successfully": "Attributet har redigerats",
   "new_group_option": "Nytt gruppalternativ",
+  "routed": "Dirigerad",
+  "reassigned": "Omtilldelad",
+  "rerouted": "Omdirigerad",
+  "salesforce_assigned": "Salesforce-tilldelning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

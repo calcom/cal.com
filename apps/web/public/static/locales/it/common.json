@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Il blocco consentirà solo le assegnazioni da Directory Sync",
   "attribute_edited_successfully": "Attributo modificato con successo",
   "new_group_option": "Nuova opzione gruppo",
+  "routed": "Instradato",
+  "reassigned": "Riassegnato",
+  "rerouted": "Reindirizzato",
+  "salesforce_assigned": "Assegnazione Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

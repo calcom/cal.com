@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Το κλείδωμα θα επιτρέπει αναθέσεις μόνο από το Directory Sync",
   "attribute_edited_successfully": "Το χαρακτηριστικό τροποποιήθηκε με επιτυχία",
   "new_group_option": "Νέα επιλογή ομάδας",
+  "routed": "Δρομολογήθηκε",
+  "reassigned": "Επανεκχωρήθηκε",
+  "rerouted": "Ανακατευθύνθηκε",
+  "salesforce_assigned": "Ανάθεση Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

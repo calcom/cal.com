@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "锁定后将仅允许通过目录同步进行分配",
   "attribute_edited_successfully": "属性编辑成功",
   "new_group_option": "新建群组选项",
+  "routed": "已路由",
+  "reassigned": "已重新分配",
+  "rerouted": "已重新路由",
+  "salesforce_assigned": "Salesforce 分配",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

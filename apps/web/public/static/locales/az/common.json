@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Kilid yalnız Directory Sync-dən təyinatlara icazə verəcək",
   "attribute_edited_successfully": "Atribut uğurla redaktə edildi",
   "new_group_option": "Yeni qrup seçimi",
+  "routed": "Yönləndirildi",
+  "reassigned": "Yenidən təyin edildi",
+  "rerouted": "Yenidən yönləndirildi",
+  "salesforce_assigned": "Salesforce təyinatı",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

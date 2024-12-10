@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Zaključavanje će dozvoliti dodele samo iz Directory Sync-a",
   "attribute_edited_successfully": "Atribut je uspešno izmenjen",
   "new_group_option": "Nova opcija grupe",
+  "routed": "Prosleđeno",
+  "reassigned": "Preraspoređeno",
+  "rerouted": "Preusmereno",
+  "salesforce_assigned": "Salesforce dodeljivanje",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

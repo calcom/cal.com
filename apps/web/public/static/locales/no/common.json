@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Låsing vil kun tillate tildelinger fra Katalogsynkronisering",
   "attribute_edited_successfully": "Attributt redigert",
   "new_group_option": "Nytt gruppealternativ",
+  "routed": "Rutet",
+  "reassigned": "Omfordelt",
+  "rerouted": "Omdirigert",
+  "salesforce_assigned": "Salesforce-tildeling",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

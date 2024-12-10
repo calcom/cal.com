@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "A zárolás csak a Directory Sync-ből érkező hozzárendeléseket engedélyezi",
   "attribute_edited_successfully": "Az attribútum sikeresen módosítva",
   "new_group_option": "Új csoportbeállítás",
+  "routed": "Átirányítva",
+  "reassigned": "Újra kiosztva",
+  "rerouted": "Átirányítva",
+  "salesforce_assigned": "Salesforce hozzárendelés",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

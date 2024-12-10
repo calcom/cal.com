@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "القفل سيسمح فقط بالتعيينات من مزامنة الدليل",
   "attribute_edited_successfully": "تم تعديل السمة بنجاح",
   "new_group_option": "خيار مجموعة جديد",
+  "routed": "تم التوجيه",
+  "reassigned": "تمت إعادة التعيين",
+  "rerouted": "تمت إعادة التوجيه",
+  "salesforce_assigned": "تعيين Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

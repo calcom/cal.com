@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "鎖定後將僅允許從目錄同步進行指派",
   "attribute_edited_successfully": "屬性編輯成功",
   "new_group_option": "新增群組選項",
+  "routed": "已轉送",
+  "reassigned": "已重新分配",
+  "rerouted": "已重新轉送",
+  "salesforce_assigned": "Salesforce 分配",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

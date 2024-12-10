@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Le verrouillage n'autorisera que les attributions depuis la synchronisation d'annuaire",
   "attribute_edited_successfully": "Attribut modifié avec succès",
   "new_group_option": "Nouvelle option de groupe",
+  "routed": "Acheminé",
+  "reassigned": "Réaffecté",
+  "rerouted": "Réacheminé",
+  "salesforce_assigned": "Affectation Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

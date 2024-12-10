@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Khóa sẽ chỉ cho phép gán từ Đồng bộ hóa thư mục",
   "attribute_edited_successfully": "Đã chỉnh sửa thuộc tính thành công",
   "new_group_option": "Tùy chọn nhóm mới",
+  "routed": "Đã chuyển",
+  "reassigned": "Đã phân công lại",
+  "rerouted": "Đã chuyển hướng lại",
+  "salesforce_assigned": "Phân công Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

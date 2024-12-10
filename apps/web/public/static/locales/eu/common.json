@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Blokeatzeak Directory Sync-etik datozen esleipenak soilik baimenduko ditu",
   "attribute_edited_successfully": "Atributua behar bezala editatu da",
   "new_group_option": "Talde aukera berria",
+  "routed": "Bideratuta",
+  "reassigned": "Berresleituta",
+  "rerouted": "Berbideratuta",
+  "salesforce_assigned": "Salesforce esleipena",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Kilitleme, yalnızca Dizin Senkronizasyonundan atamalara izin verecektir",
   "attribute_edited_successfully": "Öznitelik başarıyla düzenlendi",
   "new_group_option": "Yeni grup seçeneği",
+  "routed": "Yönlendirildi",
+  "reassigned": "Yeniden atandı",
+  "rerouted": "Yeniden yönlendirildi",
+  "salesforce_assigned": "Salesforce ataması",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

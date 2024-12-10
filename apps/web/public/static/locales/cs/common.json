@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Uzamčení umožní přiřazení pouze prostřednictvím Directory Sync",
   "attribute_edited_successfully": "Atribut byl úspěšně upraven",
   "new_group_option": "Nová možnost skupiny",
+  "routed": "Přesměrováno",
+  "reassigned": "Přeřazeno",
+  "rerouted": "Přesměrováno jinam",
+  "salesforce_assigned": "Přiřazení Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

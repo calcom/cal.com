@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Vergrendeling staat alleen toewijzingen toe via Directory Sync",
   "attribute_edited_successfully": "Attribuut succesvol bewerkt",
   "new_group_option": "Nieuwe groepsoptie",
+  "routed": "Doorgestuurd",
+  "reassigned": "Opnieuw toegewezen",
+  "rerouted": "Omgeleid",
+  "salesforce_assigned": "Salesforce toewijzing",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

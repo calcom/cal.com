@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Blocarea va permite atribuiri doar din Directory Sync",
   "attribute_edited_successfully": "Atributul a fost editat cu succes",
   "new_group_option": "Opțiune nouă de grup",
+  "routed": "Direcționat",
+  "reassigned": "Realocat",
+  "rerouted": "Redirecționat",
+  "salesforce_assigned": "Atribuire Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

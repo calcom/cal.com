@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "ការចាក់សោនឹងអនុញ្ញាតឱ្យមានតែការកំណត់ពី Directory Sync ប៉ុណ្ណោះ",
   "attribute_edited_successfully": "បានកែសម្រួលលក្ខណៈដោយជោគជ័យ",
   "new_group_option": "ជម្រើសក្រុមថ្មី",
+  "routed": "បញ្ជូនបន្ត",
+  "reassigned": "បានចាត់តាំងឡើងវិញ",
+  "rerouted": "បញ្ជូនបន្តឡើងវិញ",
+  "salesforce_assigned": "ការចាត់តាំង Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

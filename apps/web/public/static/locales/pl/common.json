@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Blokada pozwoli na przypisania tylko z Directory Sync",
   "attribute_edited_successfully": "Atrybut został pomyślnie edytowany",
   "new_group_option": "Nowa opcja grupy",
+  "routed": "Przekierowano",
+  "reassigned": "Przypisano ponownie",
+  "rerouted": "Przekierowano ponownie",
+  "salesforce_assigned": "Przypisanie Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

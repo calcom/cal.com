@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Блокировка позволит назначать только через синхронизацию с директорией",
   "attribute_edited_successfully": "Атрибут успешно изменен",
   "new_group_option": "Новая опция группы",
+  "routed": "Перенаправлено",
+  "reassigned": "Переназначено",
+  "rerouted": "Перенаправлено",
+  "salesforce_assigned": "Назначение в Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

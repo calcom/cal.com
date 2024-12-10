@@ -2859,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Uzamknutie umožní priradenia iba zo synchronizácie adresára",
   "attribute_edited_successfully": "Atribút bol úspešne upravený",
   "new_group_option": "Nová možnosť skupiny",
+  "routed": "Presmerované",
+  "reassigned": "Preradené",
+  "rerouted": "Presmerované inam",
+  "salesforce_assigned": "Priradenie Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
