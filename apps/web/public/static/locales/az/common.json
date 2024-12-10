@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Başlama tarixi bitmə tarixindən əvvəl olmalıdır",
   "start_date_must_be_in_the_future": "Başlama tarixi gələcəkdə olmalıdır",
   "user_not_found": "İstifadəçi tapılmadı",
+  "cannot_redirect_to_self": "Özünə yönləndirmək mümkün deyil",
   "out_of_office_entry_already_exists": "Ofisdən kənar giriş artıq mövcuddur",
   "out_of_office_id_required": "Ofisdən kənar giriş id tələb olunur",
   "booking_redirect_infinite_not_allowed": "Həmin istifadəçidən sizə artıq bir yönləndirmə mövcuddur.",

@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "开始日期必须在结束日期之前",
   "start_date_must_be_in_the_future": "开始日期必须是未来的某个时间",
   "user_not_found": "用户未找到",
+  "cannot_redirect_to_self": "无法重定向到自身",
   "out_of_office_entry_already_exists": "外出条目已存在",
   "out_of_office_id_required": "需要外出条目 ID",
   "booking_redirect_infinite_not_allowed": "已经存在从该用户到您的预订重定向。",

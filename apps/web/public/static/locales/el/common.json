@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Η ημερομηνία έναρξης πρέπει να είναι πριν την ημερομηνία λήξης",
   "start_date_must_be_in_the_future": "Η ημερομηνία έναρξης πρέπει να είναι στο μέλλον",
   "user_not_found": "Ο χρήστης δεν βρέθηκε",
+  "cannot_redirect_to_self": "Δεν είναι δυνατή η ανακατεύθυνση στον εαυτό",
   "out_of_office_entry_already_exists": "Η καταχώρηση εκτός γραφείου υπάρχει ήδη",
   "out_of_office_id_required": "Απαιτείται το αναγνωριστικό καταχώρησης εκτός γραφείου",
   "booking_redirect_infinite_not_allowed": "Υπάρχει ήδη ανακατεύθυνση κράτησης από αυτόν τον χρήστη σε εσάς.",
