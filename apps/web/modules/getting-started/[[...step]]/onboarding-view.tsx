@@ -139,7 +139,7 @@ const OnboardingPage = (props: PageProps) => {
   };
 
   useEffect(() => {
-    if (user.completedOnboarding) {
+    if (!user || user.completedOnboarding) {
       return;
     }
     const createDefaultSchedule = async () => {
