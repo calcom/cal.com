@@ -14,35 +14,31 @@ test.describe.configure({ mode: "parallel" });
 const preventFlakyTest = async (page: Page) => {
   await expect(page.locator("text=Create your account")).toBeVisible();
 };
-test.describe("Signup Main Page Test", async () => {
+test.describe("Signup Main Page Test", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/signup");
     await preventFlakyTest(page);
   });
 
-  test("Continue with email button must exist / work", async ({ page }) => {
-    const button = page.getByTestId("continue-with-email-button");
-    await expect(button).toBeVisible();
-    await expect(button).toBeEnabled();
-    await button.click();
-    await expect(page.getByTestId("signup-back-button")).toBeVisible();
-  });
+  const buttonTests = [
+    { testId: "continue-with-email-button", expectedUrl: null },
+    { testId: "continue-with-google-button", expectedUrl: "/auth/sso/google" },
+    { testId: "continue-with-saml-button", expectedUrl: null },
+  ];
 
-  test("Continue with google button must exist / work", async ({ page }) => {
-    const button = page.getByTestId("continue-with-google-button");
-    await expect(button).toBeVisible();
-    await expect(button).toBeEnabled();
-    await button.click();
-    await page.waitForURL("/auth/sso/google");
-  });
-
-  test("Continue with SAML button must exist / work", async ({ page }) => {
-    const button = page.getByTestId("continue-with-saml-button");
-    await expect(button).toBeVisible();
-    await expect(button).toBeEnabled();
-    await button.click();
-    await expect(page.getByTestId("signup-back-button")).toBeVisible();
-  });
+  for (const { testId, expectedUrl } of buttonTests) {
+    test(`Continue with ${testId.split("-")[2]} button must exist / work`, async ({ page }) => {
+      const button = page.getByTestId(testId);
+      await expect(button).toBeVisible();
+      await expect(button).toBeEnabled();
+      await button.click();
+      if (expectedUrl) {
+        await page.waitForURL(expectedUrl);
+      } else {
+        await expect(page.getByTestId("signup-back-button")).toBeVisible();
+      }
+    });
+  }
 });
 
 test.describe("Email Signup Flow Test", async () => {
