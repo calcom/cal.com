@@ -21,13 +21,13 @@ function presenter(watchlistedEmail: Watchlist | null) {
  * to the specific use cases. Controllers orchestrate Use Cases. They don't implement any
  * logic, but define the whole operations using use cases.
  */
-export async function checkIfEmailInWatchlistController(
+export async function checkIfEmailIsBlockedInWatchlistController(
   email: string
 ): Promise<ReturnType<typeof presenter>> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
     const lowercasedEmail = email.toLowerCase();
     const watchlistRepository = new WatchlistRepository();
-    const watchlistedEmail = await watchlistRepository.getEmailInWatchlist(lowercasedEmail);
+    const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
     return presenter(watchlistedEmail);
   });
 }

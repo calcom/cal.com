@@ -91,6 +91,7 @@ const commons = {
   team: null,
   lockTimeZoneToggleOnBookingPage: false,
   requiresConfirmation: false,
+  requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
   durationLimits: null,
