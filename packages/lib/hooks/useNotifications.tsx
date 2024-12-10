@@ -92,6 +92,7 @@ export const useNotifications = () => {
     }
 
     const registration = await navigator.serviceWorker?.getRegistration();
+
     if (!registration) {
       // This will not happen ideally as the button will not be shown if the service worker is not registered
       return;

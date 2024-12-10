@@ -14,7 +14,7 @@ export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendar
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
-      rest?.calendarsToLoad?.toString() ?? "",
+      rest?.calendarsToLoad?.length ?? 0,
       rest.dateFrom ?? "",
       rest.dateTo ?? "",
       rest.loggedInUsersTz,

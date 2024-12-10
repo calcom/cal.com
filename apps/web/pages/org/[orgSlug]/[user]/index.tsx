@@ -2,11 +2,10 @@
 
 import PageWrapper from "@components/PageWrapper";
 
+import type { PageProps as TeamPageProps } from "~/team/team-view";
+import TeamPage from "~/team/team-view";
 import UserPage from "~/users/views/users-public-view";
-import { type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
-
-import type { PageProps as TeamPageProps } from "../../../team/[slug]";
-import TeamPage from "../../../team/[slug]";
+import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
 
 export { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
 

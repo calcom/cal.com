@@ -3,11 +3,13 @@ import type { GetServerSidePropsContext } from "next";
 
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
-  setEnableRecordingUIForOrganizer,
+  setEnableRecordingUIAndUserIdForOrganizer,
+  updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -20,34 +22,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const ssr = await ssrInit(context);
 
-  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
+  const booking = await BookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
-    select: {
-      uid: true,
-      description: true,
-      isRecorded: true,
-      user: {
-        select: {
-          id: true,
-          timeZone: true,
-          name: true,
-          email: true,
-          username: true,
-        },
-      },
-      references: {
-        select: {
-          id: true,
-          uid: true,
-          type: true,
-          meetingUrl: true,
-          meetingPassword: true,
-        },
-        where: {
-          type: "daily_video",
-        },
-      },
-    },
   });
 
   if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
@@ -80,6 +56,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ).profile
     : null;
 
+  const calVideoLogo = profile?.organization
+    ? await OrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
+    : null;
+
   //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
   const exitDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
@@ -104,21 +84,34 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const oldVideoReference = getCalVideoReference(bookingObj.references);
 
+  const endTime = new Date(booking.endTime);
+  const fourteenDaysAfter = new Date(endTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const epochTimeFourteenDaysAfter = Math.floor(fourteenDaysAfter.getTime() / 1000);
+
+  const videoReferencePassword = await updateMeetingTokenIfExpired({
+    bookingReferenceId: oldVideoReference.id,
+    roomName: oldVideoReference.uid,
+    meetingToken: oldVideoReference.meetingPassword,
+    exp: epochTimeFourteenDaysAfter,
+  });
+
   // set meetingPassword for guests
   if (session?.user.id !== bookingObj.user?.id) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
-      oldVideoReference.meetingPassword
+      videoReferencePassword,
+      session?.user.id
     );
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
-  // Only for backward compatibility for organizer
+  // Only for backward compatibility and setting user id in particpants for organizer
   else {
-    const meetingPassword = await setEnableRecordingUIForOrganizer(
+    const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,
-      oldVideoReference.meetingPassword
+      videoReferencePassword,
+      session?.user.id
     );
     if (!!meetingPassword) {
       bookingObj.references.forEach((bookRef) => {
@@ -146,6 +139,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           : bookingObj.user,
       },
       hasTeamPlan: !!hasTeamPlan,
+      calVideoLogo,
       trpcState: ssr.dehydrate(),
     },
   };
