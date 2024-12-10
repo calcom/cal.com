@@ -205,6 +205,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees.length).toEqual(1);
             expect(data.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -368,6 +369,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.attendees.length).toEqual(1);
             expect(firstBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -835,6 +837,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.attendees.length).toEqual(1);
             expect(firstBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
