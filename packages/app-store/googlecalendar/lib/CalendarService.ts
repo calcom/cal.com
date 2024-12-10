@@ -540,8 +540,8 @@ export default class GoogleCalendarService implements Calendar {
       return [];
     }
 
-    async function getCalIdsWithTimeZone() {
-      const cals = await getAllCalendars(calendar, ["id", "timeZone"]);
+    const getCalIdsWithTimeZone = async () => {
+      const cals = await this.getAllCalendars(calendar, ["id", "timeZone"]);
       if (!cals.length) return [];
 
       if (selectedCalendarIds.length !== 0) {
@@ -557,7 +557,7 @@ export default class GoogleCalendarService implements Calendar {
           id: cal.id || "",
           timeZone: cal.timeZone || "",
         }));
-    }
+    };
 
     try {
       const calIdsWithTimeZone = await getCalIdsWithTimeZone();
