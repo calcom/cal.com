@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   usePersistentColumnResizing({
-    enabled: enableColumnResizing,
+    enabled: Boolean(enableColumnResizing),
     table,
     identifier,
   });
