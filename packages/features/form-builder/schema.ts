@@ -36,7 +36,7 @@ export const EditableSchema = z.enum([
   "user-readonly", // All fields are readOnly.
 ]);
 
-export const excludeEmailSchema = z.string().superRefine((val, ctx) => {
+export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
   const allDomains = val.split(",").map((dom) => dom.trim());
 
   const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
@@ -121,7 +121,9 @@ const baseFieldSchema = z.object({
   maxLength: z.number().optional(),
 
   // Emails that needs to be excluded
-  excludeEmails: excludeEmailSchema.optional(),
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
 });
 
 export const variantsConfigSchema = z.object({
