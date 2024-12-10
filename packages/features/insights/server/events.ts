@@ -444,7 +444,7 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
-        bookerNoShow: booker.noShow,
+        noShowGuest: booker.noShow,
         bookerEmail: booker.email,
         bookerName: booker.name,
       };
