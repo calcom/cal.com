@@ -1,4 +1,4 @@
-import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
+import type { Frame, Locator, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -537,4 +537,21 @@ export async function bookTeamEvent({
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
+}
+
+export async function clickUntilDialogVisible(
+  dialogOpenButton: Locator,
+  visibleLocatorOnDialog: Locator,
+  retries = 3,
+  delay = 500
+) {
+  for (let i = 0; i < retries; i++) {
+    await dialogOpenButton.click();
+    try {
+      await visibleLocatorOnDialog.waitFor({ state: "visible", timeout: delay });
+      return;
+    } catch {
+      if (i === retries - 1) throw new Error("Dialog did not appear after multiple attempts.");
+    }
+  }
 }
