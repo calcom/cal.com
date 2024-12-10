@@ -92,10 +92,6 @@ export const AvailableTimeSlots = ({
   const isTherapy = therapyIds.includes(event.data?.id ?? 0);
   const slotsPerDay = useSlotsForAvailableDates(dates, isTherapy, schedule?.slots);
 
-  console.log("dates", dates);
-  console.log("scheduleSlots", schedule?.slots);
-  console.log("slotsPerDay", slotsPerDay);
-
   return (
     <>
       <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>
