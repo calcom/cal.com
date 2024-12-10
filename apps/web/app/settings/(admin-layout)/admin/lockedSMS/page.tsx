@@ -1,6 +1,6 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import LockedSMSView from "~/settings/admin/locked-sms-view";
@@ -12,8 +12,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
+  const t = await getFixedT(locale ?? "en");
   return (
     <SettingsHeader title={t("lockedSMS")} description={t("admin_lockedSMS_description")}>
       <LockedSMSView />

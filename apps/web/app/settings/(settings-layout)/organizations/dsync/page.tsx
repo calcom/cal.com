@@ -1,6 +1,6 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
+import { headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import DirectorySyncTeamView from "@calcom/features/ee/dsync/page/team-dsync-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -11,8 +11,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const headersList = await headers();
+  const locale = headersList.get("x-locale");
+  const t = await getFixedT(locale ?? "en");
 
   return (
     <SettingsHeader title={t("directory_sync")} description={t("directory_sync_description")}>
