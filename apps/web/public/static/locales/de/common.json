@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Das Startdatum muss vor dem Enddatum liegen",
   "start_date_must_be_in_the_future": "Das Startdatum muss in der Zukunft liegen",
   "user_not_found": "Benutzer nicht gefunden",
+  "cannot_redirect_to_self": "Weiterleitung auf sich selbst nicht möglich",
   "out_of_office_entry_already_exists": "Abwesenheitseintrag existiert bereits",
   "out_of_office_id_required": "Abwesenheitseintrags-ID erforderlich",
   "booking_redirect_infinite_not_allowed": "Es besteht bereits eine Buchungsumleitung von diesem Benutzer zu Ihnen.",

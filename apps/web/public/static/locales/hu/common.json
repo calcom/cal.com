@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "A kezdő dátumnak a befejező dátum előtt kell lennie",
   "start_date_must_be_in_the_future": "A kezdő dátumnak a jövőben kell lennie",
   "user_not_found": "Felhasználó nem található",
+  "cannot_redirect_to_self": "Nem lehet önmagára átirányítani",
   "out_of_office_entry_already_exists": "Az irodán kívüli bejegyzés már létezik",
   "out_of_office_id_required": "Irodán kívüli bejegyzés azonosító szükséges",
   "booking_redirect_infinite_not_allowed": "Már van egy foglalási átirányítás az adott felhasználótól Önhöz.",

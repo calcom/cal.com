@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "תאריך ההתחלה חייב להיות לפני תאריך הסיום",
   "start_date_must_be_in_the_future": "תאריך ההתחלה חייב להיות בעתיד",
   "user_not_found": "המשתמש לא נמצא",
+  "cannot_redirect_to_self": "לא ניתן להפנות לעצמך",
   "out_of_office_entry_already_exists": "רשומת מחוץ למשרד כבר קיימת",
   "out_of_office_id_required": "צריך מזהה רשומת מחוץ למשרד",
   "booking_redirect_infinite_not_allowed": "כבר יש הפניית הזמנה מהמשתמש הזה אליך.",

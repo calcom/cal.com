@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "ថ្ងៃចាប់ផ្តើមត្រូវតែមុនថ្ងៃបញ្ចប់",
   "start_date_must_be_in_the_future": "ថ្ងៃចាប់ផ្តើមត្រូវតែនៅអនាគត",
   "user_not_found": "រកមិនឃើញអ្នកប្រើ",
+  "cannot_redirect_to_self": "មិនអាចបញ្ជូនបន្តទៅកាន់ខ្លួនឯងបានទេ",
   "out_of_office_entry_already_exists": "ការបញ្ចូលចេញពីការិយាល័យមានរួចហើយ",
   "out_of_office_id_required": "ត្រូវការបញ្ចូលលេខសម្គាល់ចេញពីការិយាល័យ",
   "booking_redirect_infinite_not_allowed": "មានការបញ្ជូនការកក់ពីអ្នកប្រើនោះទៅអ្នករួចហើយ។",

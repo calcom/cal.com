@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "La fecha de inicio debe ser antes de la fecha de finalización",
   "start_date_must_be_in_the_future": "La fecha de inicio debe estar en el futuro",
   "user_not_found": "Usuario no encontrado",
+  "cannot_redirect_to_self": "No se puede redirigir a sí mismo",
   "out_of_office_entry_already_exists": "La entrada de fuera de la oficina ya existe",
   "out_of_office_id_required": "Se requiere el ID de la entrada de fuera de la oficina",
   "booking_redirect_infinite_not_allowed": "Ya existe una redirección de reservas de ese usuario hacia ti.",

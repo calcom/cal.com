@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Дата початку повинна бути перед датою закінчення",
   "start_date_must_be_in_the_future": "Дата початку повинна бути в майбутньому",
   "user_not_found": "Користувача не знайдено",
+  "cannot_redirect_to_self": "Неможливо перенаправити на себе",
   "out_of_office_entry_already_exists": "Запис про відсутність вже існує",
   "out_of_office_id_required": "Потрібен ідентифікатор запису про відсутність",
   "booking_redirect_infinite_not_allowed": "Вже існує перенаправлення бронювання від цього користувача до вас.",

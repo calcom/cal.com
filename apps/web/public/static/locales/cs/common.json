@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Počáteční datum musí být před koncovým datem",
   "start_date_must_be_in_the_future": "Počáteční datum musí být v budoucnosti",
   "user_not_found": "Uživatel nenalezen",
+  "cannot_redirect_to_self": "Nelze přesměrovat na sebe sama",
   "out_of_office_entry_already_exists": "Záznam o nepřítomnosti již existuje",
   "out_of_office_id_required": "ID záznamu o nepřítomnosti je povinné",
   "booking_redirect_infinite_not_allowed": "Již existuje přesměrování rezervace od tohoto uživatele k vám.",

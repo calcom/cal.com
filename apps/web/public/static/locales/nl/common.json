@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Startdatum moet voor de einddatum liggen",
   "start_date_must_be_in_the_future": "Startdatum moet in de toekomst liggen",
   "user_not_found": "Gebruiker niet gevonden",
+  "cannot_redirect_to_self": "Kan niet naar zichzelf doorverwijzen",
   "out_of_office_entry_already_exists": "Afwezigheidsvermelding bestaat al",
   "out_of_office_id_required": "Afwezigheidsvermelding-id vereist",
   "booking_redirect_infinite_not_allowed": "Er is al een boekingsomleiding van die gebruiker naar jou.",

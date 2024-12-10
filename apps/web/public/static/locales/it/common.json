@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "La data iniziale deve precedere quella finale",
   "start_date_must_be_in_the_future": "La data iniziale deve essere nel futuro",
   "user_not_found": "Utente non trovato",
+  "cannot_redirect_to_self": "Impossibile reindirizzare a se stesso",
   "out_of_office_entry_already_exists": "La voce per l'assenza esiste già",
   "out_of_office_id_required": "L'ID della voce per l'assenza è obbligatorio",
   "booking_redirect_infinite_not_allowed": "Esiste già un reindirizzamento della prenotazione dall'utente a te.",

@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Startdatum måste vara före slutdatum",
   "start_date_must_be_in_the_future": "Startdatum måste vara i framtiden",
   "user_not_found": "Användare hittades inte",
+  "cannot_redirect_to_self": "Kan inte omdirigera till sig själv",
   "out_of_office_entry_already_exists": "En frånvaropost finns redan",
   "out_of_office_id_required": "Frånvaropostens ID krävs",
   "booking_redirect_infinite_not_allowed": "Det finns redan en bokningsomdirigering från den användaren till dig.",

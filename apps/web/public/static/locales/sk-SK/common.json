@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Dátum začiatku musí byť pred dátumom konca",
   "start_date_must_be_in_the_future": "Dátum začiatku musí byť v budúcnosti",
   "user_not_found": "Používateľ nebol nájdený",
+  "cannot_redirect_to_self": "Nie je možné presmerovať na seba",
   "out_of_office_entry_already_exists": "Záznam o neprítomnosti už existuje",
   "out_of_office_id_required": "Požadované ID záznamu o neprítomnosti",
   "booking_redirect_infinite_not_allowed": "Už existuje presmerovanie rezervácie od tohto používateľa k vám.",
