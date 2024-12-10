@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Startdato skal være før slutdato",
   "start_date_must_be_in_the_future": "Startdato skal være i fremtiden",
   "user_not_found": "Bruger ikke fundet",
+  "cannot_redirect_to_self": "Kan ikke omdirigere til sig selv",
   "out_of_office_entry_already_exists": "Ude af kontoret-indtastning findes allerede",
   "out_of_office_id_required": "Ude af kontoret-indtastning id er påkrævet",
   "booking_redirect_infinite_not_allowed": "Der er allerede en booking-omdirigering fra den bruger til dig.",
