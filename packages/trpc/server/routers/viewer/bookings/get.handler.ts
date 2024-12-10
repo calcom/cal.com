@@ -1,3 +1,5 @@
+import { Prisma as PrismaClientType } from "@prisma/client";
+
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
@@ -282,6 +284,10 @@ export async function getBookings({
           },
         },
       },
+    },
+    assignmentReason: {
+      orderBy: { createdAt: PrismaClientType.SortOrder.desc },
+      take: 1,
     },
   };
 
