@@ -94,13 +94,14 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
-  const isTeamAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: user.id,
-      accepted: true,
-      role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-    },
-  });
+  const isTeamAdminOrOwner =
+    (await prisma.membership.findFirst({
+      where: {
+        userId: user.id,
+        accepted: true,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      },
+    })) !== null;
 
   return {
     id: user.id,
