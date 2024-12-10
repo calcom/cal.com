@@ -18,7 +18,7 @@ const zoomAppKeysSchema = z.object({
 @Injectable()
 export class ZoomVideoService {
   private logger = new Logger("ZoomVideoService");
-  private redirectUri = `${this.config.get("api.url")}/conferencing/zoom/oauth/callback`;
+  private redirectUri = `${this.config.get("api.url")}/conferencing/${ZOOM}/oauth/callback`;
 
   constructor(private readonly config: ConfigService, private readonly appsRepository: AppsRepository) {}
 
