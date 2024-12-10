@@ -428,13 +428,12 @@ export function RoutingFormResponsesTable({
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
     return (
