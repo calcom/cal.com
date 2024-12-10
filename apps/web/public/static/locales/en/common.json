@@ -1385,6 +1385,7 @@
   "example_2": "Example 2",
   "booking_question_identifier": "Booking Question Identifier",
   "company_size": "Company size",
+  "select_availability_to_edit": "Select availability to edit",
   "what_help_needed": "What do you need help with?",
   "variable_format": "Variable format",
   "webhook_subscriber_url_reserved": "Webhook subscriber url is already defined",
