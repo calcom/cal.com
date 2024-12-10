@@ -249,9 +249,6 @@ async function handler(
     ...reqBody
   } = bookingData;
 
-  console.log("bookingData", bookingData);
-  console.log("reqBody", reqBody.calEventUserFieldsResponses);
-
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
@@ -885,7 +882,7 @@ async function handler(
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     },
     responses: reqBody.calEventResponses || null,
-    userFieldsResponses: JSON.stringify(reqBody.calEventUserFieldsResponses || null),
+    userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
     location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
