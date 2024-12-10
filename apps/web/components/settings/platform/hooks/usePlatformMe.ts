@@ -1,21 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { trpc } from "@calcom/trpc/react";
 
-import type { UserResponse } from "@calcom/platform-types";
-
-export const usePlatformMe = () => {
-  const QUERY_KEY = "get-platform-me";
-  const platformMeQuery = useQuery<UserResponse>({
-    queryKey: [QUERY_KEY],
-    queryFn: async (): Promise<UserResponse> => {
-      const response = await fetch(`/api/v2/me`, {
-        method: "get",
-        headers: { "Content-type": "application/json" },
-      });
-      const data = await response.json();
-
-      return data.data as UserResponse;
+export function usePlatformMe() {
+  const meQuery = trpc.viewer.platformMe.useQuery(undefined, {
+    retry(failureCount) {
+      return failureCount > 3;
     },
+    // 5 minutes
+    staleTime: 300000,
   });
 
-  return platformMeQuery;
-};
+  return meQuery;
+}
+
+export default usePlatformMe;

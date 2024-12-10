@@ -18,10 +18,8 @@ test.describe("Users can impersonate", async () => {
     const userToImpersonate = await users.create({ disableImpersonation: false });
 
     await user.apiLogin();
-    await page.waitForLoadState();
-
     await page.goto("/settings/admin/impersonation");
-    await page.waitForLoadState();
+    await expect(page.getByText("User Impersonation")).toBeVisible();
     const adminInput = page.getByTestId("admin-impersonation-input");
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore the username does exist
@@ -41,8 +39,8 @@ test.describe("Users can impersonate", async () => {
     await expect(impersonatedUser).toBe(userToImpersonate.username);
 
     await stopImpersonatingButton.click();
+    await expect(stopImpersonatingButton).toBeHidden();
 
-    await page.waitForLoadState("networkidle");
     // Return to user
     const ogUser = await impersonatedUsernameInput.inputValue();
 

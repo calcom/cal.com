@@ -11,6 +11,8 @@ const CUSTOM_REQUIRED_FIELD_ERROR_MSG = "error_required_field";
 const CUSTOM_PHONE_VALIDATION_ERROR_MSG = "invalid_number";
 const CUSTOM_EMAIL_VALIDATION_ERROR_MSG = "email_validation_error";
 const CUSTOM_URL_VALIDATION_ERROR_MSG = "url_validation_error";
+const CUSTOM_EMAIL_EXCLUDED_ERROR_MSG = "exclude_emails_match_found_error_message";
+const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_message";
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
 
 describe("getBookingResponsesSchema", () => {
@@ -116,8 +118,8 @@ describe("getBookingResponsesSchema", () => {
         //@ts-ignore
         expect(parsedResponsesWithJustName.error.issues[0]).toEqual(
           expect.objectContaining({
-            message: ZOD_REQUIRED_FIELD_ERROR_MSG,
             path: ["email"],
+            message: ZOD_REQUIRED_FIELD_ERROR_MSG,
           })
         );
 
@@ -1239,5 +1241,158 @@ describe("getBookingResponsesPartialSchema - Prefill validation", () => {
         testField: "test",
       })
     );
+  });
+});
+
+describe("excluded email/domain validation", () => {
+  test("should fail if the email is present in excluded emails", async () => {
+    const excludedEmails = "spammer@cal.com, hotmail.com, yahoo, @gmail.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "harry@gmail.com",
+    });
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("should pass if the email is not present in excluded emails", async () => {
+    const excludedEmails = "spammer@cal.com, hotmail.com, yahoo, @gmail.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "harry@workmail.com",
+    });
+
+    expect(parsedResponses.success).toBe(true);
+
+    if (!parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.data).toEqual({
+      name: "test",
+      email: "harry@workmail.com",
+    });
+  });
+});
+
+describe("require email/domain validation", () => {
+  test("should fail if the requried email/domain is not present", async () => {
+    const requiredEmails = "gmail.com, user@hotmail.com, @yahoo.com";
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          requireEmails: requiredEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "test@test.com",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("should pass if the required email/domain is present", async () => {
+    const requiredEmails = "gmail.com, user@hotmail.com, @yahoo.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          requireEmails: requiredEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "test@gmail.com",
+    });
+
+    expect(parsedResponses.success).toBe(true);
+
+    if (!parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.data).toEqual({
+      name: "test",
+      email: "test@gmail.com",
+    });
   });
 });

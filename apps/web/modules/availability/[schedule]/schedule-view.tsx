@@ -4,15 +4,26 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/monorepo";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
-export const AvailabilitySettingsWebWrapper = () => {
+type PageProps = {
+  scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
+};
+
+export const AvailabilitySettingsWebWrapper = ({
+  scheduleFetched: scheduleProp,
+  travelSchedules: travelSchedulesProp,
+}: PageProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -21,24 +32,45 @@ export const AvailabilitySettingsWebWrapper = () => {
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data: schedule, isPending } = trpc.viewer.availability.schedule.get.useQuery(
+  const { data: scheduleData, isPending: isFetchingPending } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
-      enabled: !!scheduleId,
+      enabled: !!scheduleId && !scheduleProp,
     }
   );
+  const isPending = isFetchingPending && !scheduleProp;
+  const schedule = scheduleProp ?? scheduleData;
 
-  const { data: travelSchedules } = trpc.viewer.getTravelSchedules.useQuery();
+  const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
+    enabled: !travelSchedulesProp,
+  });
+  const travelSchedules = travelSchedulesProp ?? travelSchedulesData;
 
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
-    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
-      onSuccess: () => {
-        utils.viewer.availability.list.invalidate();
-        setIsBulkUpdateModalOpen(false);
-        showToast(t("success"), "success");
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
+
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
+    bulkUpdateDefaultAvailabilityMutation.mutate(
+      {
+        eventTypeIds,
       },
-    });
+      {
+        onSuccess: () => {
+          utils.viewer.availability.list.invalidate();
+          callback();
+          showToast(t("success"), "success");
+        },
+      }
+    );
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+  };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
 
@@ -115,8 +147,11 @@ export const AvailabilitySettingsWebWrapper = () => {
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,
         setIsOpen: setIsBulkUpdateModalOpen,
-        save: bulkUpdateDefaultAvailabilityMutation.mutate,
+        save: bulkUpdateFunction,
         isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
+        eventTypes: eventTypesQueryData?.eventTypes,
+        isEventTypesFetching,
+        handleBulkEditDialogToggle: handleBulkEditDialogToggle,
       }}
     />
   );

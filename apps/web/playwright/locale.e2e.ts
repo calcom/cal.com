@@ -437,7 +437,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
       await page.waitForLoadState("domcontentloaded");
 
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();
-      await page.locator("#react-select-2-option-0").click();
+      await page.getByTestId("select-option-ar").click();
 
       await page.getByRole("button", { name: "Aktualisieren" }).click();
 

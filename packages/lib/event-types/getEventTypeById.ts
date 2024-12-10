@@ -103,7 +103,10 @@ export const getEventTypeById = async ({
 
   const eventType = {
     ...restEventType,
-    schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    schedule:
+      rawEventType.schedule?.id ||
+      (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
+      null,
     instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
@@ -194,11 +197,12 @@ export const getEventTypeById = async ({
     });
   }
 
+  const isOrgTeamEvent = !!eventType?.teamId && !!eventType.team?.parentId;
   const eventTypeObject = Object.assign({}, eventType, {
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;

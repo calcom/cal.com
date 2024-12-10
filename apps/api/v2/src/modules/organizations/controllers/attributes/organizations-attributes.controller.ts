@@ -28,6 +28,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -37,12 +38,14 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Orgs / Attributes")
 export class OrganizationsAttributesController {
   constructor(private readonly organizationsAttributesService: OrganizationAttributesService) {}
   // Gets all attributes for an organization
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes")
+  @ApiOperation({ summary: "Get all attributes" })
   async getOrganizationAttributes(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -60,6 +63,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/:attributeId")
+  @ApiOperation({ summary: "Get an attribute" })
   async getOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string
@@ -75,6 +79,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/attributes")
+  @ApiOperation({ summary: "Create an attribute" })
   async createOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() bodyAttribute: CreateOrganizationAttributeInput
@@ -93,6 +98,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/attributes/:attributeId")
+  @ApiOperation({ summary: "Update an attribute" })
   async updateOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string,
@@ -113,6 +119,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/attributes/:attributeId")
+  @ApiOperation({ summary: "Delete an attribute" })
   async deleteOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string
