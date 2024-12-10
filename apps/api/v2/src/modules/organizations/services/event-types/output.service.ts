@@ -1,5 +1,5 @@
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host, DestinationCalendar } from "@prisma/client";
@@ -72,7 +72,7 @@ type Input = Pick<
 export class OutputOrganizationsEventTypesService {
   constructor(
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
-    private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly usersRepository: UsersRepository
   ) {}
 
@@ -100,7 +100,7 @@ export class OutputOrganizationsEventTypesService {
   }
 
   async getManagedEventTypeHosts(eventTypeId: number) {
-    const children = await this.organizationEventTypesRepository.getEventTypeChildren(eventTypeId);
+    const children = await this.teamsEventTypesRepository.getEventTypeChildren(eventTypeId);
     const transformedHosts: TeamEventTypeResponseHost[] = [];
     for (const child of children) {
       if (child.userId) {

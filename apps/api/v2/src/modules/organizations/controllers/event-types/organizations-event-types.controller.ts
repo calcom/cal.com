@@ -1,6 +1,5 @@
 import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
-import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -62,7 +61,6 @@ export class OrganizationsEventTypesController {
   constructor(
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
     private readonly inputService: InputOrganizationsEventTypesService,
-    private readonly inputUserEventTypesService: InputEventTypesService_2024_06_14,
     private readonly outputTeamEventTypesResponsePipe: OutputTeamEventTypesResponsePipe
   ) {}
 
@@ -180,7 +178,11 @@ export class OrganizationsEventTypesController {
     @Query() queryParams: SkipTakePagination
   ): Promise<GetTeamEventTypesOutput> {
     const { skip, take } = queryParams;
-    const eventTypes = await this.organizationsEventTypesService.getTeamsEventTypes(orgId, skip, take);
+    const eventTypes = await this.organizationsEventTypesService.getOrganizationsTeamsEventTypes(
+      orgId,
+      skip,
+      take
+    );
 
     return {
       status: SUCCESS_STATUS,
