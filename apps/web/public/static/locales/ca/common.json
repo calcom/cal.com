@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "La data d'inici ha de ser anterior a la data de finalització",
   "start_date_must_be_in_the_future": "La data d'inici ha de ser en el futur",
   "user_not_found": "No s'ha trobat l'usuari",
+  "cannot_redirect_to_self": "No es pot redirigir a si mateix",
   "out_of_office_entry_already_exists": "Ja existeix una entrada de fora de l'oficina",
   "out_of_office_id_required": "Es requereix l'ID de l'entrada de fora de l'oficina",
   "booking_redirect_infinite_not_allowed": "Ja hi ha una redirecció de reserva d'aquest usuari cap a tu.",

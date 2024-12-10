@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "Ngày bắt đầu phải trước ngày kết thúc",
   "start_date_must_be_in_the_future": "Ngày bắt đầu phải ở tương lai",
   "user_not_found": "Không tìm thấy người dùng",
+  "cannot_redirect_to_self": "Không thể tự chuyển hướng đến chính nó",
   "out_of_office_entry_already_exists": "Mục vắng mặt đã tồn tại",
   "out_of_office_id_required": "Cần có ID mục vắng mặt",
   "booking_redirect_infinite_not_allowed": "Đã có một chuyển hướng đặt chỗ từ người dùng đó đến bạn.",

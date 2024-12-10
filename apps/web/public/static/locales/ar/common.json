@@ -2453,6 +2453,7 @@
   "start_date_must_be_before_end_date": "يجب أن يكون تاريخ البدء قبل تاريخ الانتهاء",
   "start_date_must_be_in_the_future": "يجب أن يكون تاريخ البدء في المستقبل",
   "user_not_found": "المستخدم غير موجود",
+  "cannot_redirect_to_self": "لا يمكن إعادة التوجيه إلى نفس الصفحة",
   "out_of_office_entry_already_exists": "إدخال خارج المكتب موجود بالفعل",
   "out_of_office_id_required": "معرف إدخال خارج المكتب مطلوب",
   "booking_redirect_infinite_not_allowed": "يوجد بالفعل إعادة توجيه حجز من هذا المستخدم إليك.",
