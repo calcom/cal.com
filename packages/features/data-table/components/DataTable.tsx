@@ -6,6 +6,7 @@ import type { Table as ReactTableType } from "@tanstack/react-table";
 import { useVirtualizer, type Virtualizer } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
+import { usePathname } from "next/navigation";
 import { useMemo, useEffect, memo } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -35,10 +36,13 @@ export function DataTable<TData, TValue>({
   onRowMouseclick,
   onScroll,
   children,
-  identifier,
+  identifier: _identifier,
   enableColumnResizing,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
+  const pathname = usePathname();
+  const identifier = _identifier ?? pathname;
+
   const { rows } = table.getRowModel();
 
   // https://stackblitz.com/github/tanstack/table/tree/main/examples/react/virtualized-infinite-scrolling
@@ -83,7 +87,7 @@ export function DataTable<TData, TValue>({
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   usePersistentColumnResizing({
-    enabled: Boolean(identifier && enableColumnResizing),
+    enabled: enableColumnResizing,
     table,
     identifier,
   });
