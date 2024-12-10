@@ -39,6 +39,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         teamId?: number;
         returnTo?: string;
         defaultInstall?: boolean;
+        upgrade?: boolean;
+        credentialId?: number;
       }
     | ""
   >({
@@ -52,6 +54,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         : variables && variables.returnTo
         ? variables.returnTo
         : undefined;
+      const upgrade = !!(variables && (variables?.upgrade || false));
+
       if (variables === "") {
         type = _type;
       } else {
@@ -61,12 +65,17 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         type = type.split("_other_calendar")[0];
       }
 
+      if (type?.endsWith("_crm")) {
+        type = type.split("_crm")[0];
+      }
+
       if (options?.installGoogleVideo && type !== "google_calendar")
         throw new Error("Could not install Google Meet");
-
       const state: IntegrationOAuthCallbackState = {
         onErrorReturnTo,
         fromApp: true,
+        upgrade: upgrade,
+        credentialId: variables ? variables?.credentialId : -1,
         ...(teamId && { teamId }),
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(returnTo && { returnTo }),
