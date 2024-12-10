@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Balansiranje opterećenja",
   "rr_distribution_method_balanced_description": "Pratićemo broj zakazanih sastanaka kod svakog domaćina i upoređivati ga sa ostalima, privremeno onemogućavajući domaćine koji imaju previše sastanaka kako bi distribucija bila ravnomerna.",
   "exclude_emails_that_contain": "Isključi e-poruke koje sadrže ...",
+  "require_emails_that_contain": "Zahtevaj email adrese koje sadrže...",
   "exclude_emails_match_found_error_message": "Molimo unesite važeću poslovnu e-mail adresu",
+  "require_emails_no_match_found_error_message": "Nije dozvoljeno zakazivanje sa ovim email domenom. Molimo kontaktirajte vlasnika ovog linka.",
   "search_columns": "Pretraži kolone",
   "search_options": "Opcije pretrage",
   "disable_org_url_label": "Onemogući javni profil organizacije i preusmeravanje",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Zaključavanje će dozvoliti dodele samo iz Directory Sync-a",
   "attribute_edited_successfully": "Atribut je uspešno izmenjen",
   "new_group_option": "Nova opcija grupe",
+  "routed": "Prosleđeno",
+  "reassigned": "Preraspoređeno",
+  "rerouted": "Preusmereno",
+  "salesforce_assigned": "Salesforce dodeljivanje",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

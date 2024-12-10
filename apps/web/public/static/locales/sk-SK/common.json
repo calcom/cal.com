@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Vyvažovanie záťaže",
   "rr_distribution_method_balanced_description": "Budeme sledovať počet rezervácií u každého hostiteľa a porovnávať ich s ostatnými. Hostiteľov, ktorí majú príliš veľa rezervácií, dočasne deaktivujeme, aby boli stretnutia distribuované rovnomerne.",
   "exclude_emails_that_contain": "Vylúčiť e-maily, ktoré obsahujú...",
+  "require_emails_that_contain": "Vyžadovať e-maily, ktoré obsahujú ...",
   "exclude_emails_match_found_error_message": "Zadajte platnú pracovnú e-mailovú adresu",
+  "require_emails_no_match_found_error_message": "S touto e-mailovou doménou nemáte povolené rezervovať termín. Prosím, kontaktujte vlastníka tohto odkazu.",
   "search_columns": "Vyhľadať stĺpce",
   "search_options": "Možnosti vyhľadávania",
   "disable_org_url_label": "Zakázať verejný profil organizácie a presmerovanie",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Uzamknutie umožní priradenia iba zo synchronizácie adresára",
   "attribute_edited_successfully": "Atribút bol úspešne upravený",
   "new_group_option": "Nová možnosť skupiny",
+  "routed": "Presmerované",
+  "reassigned": "Preradené",
+  "rerouted": "Presmerované inam",
+  "salesforce_assigned": "Priradenie Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

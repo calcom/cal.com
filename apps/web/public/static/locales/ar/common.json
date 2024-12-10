@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "توازن الأحمال",
   "rr_distribution_method_balanced_description": "سنراقب عدد الحجوزات التي تمت مع كل مضيف ونقارنها مع الآخرين، مع تعطيل بعض المضيفين الذين تجاوزوا الحد بكثير لضمان توزيع الحجوزات بشكل متساوٍ.",
   "exclude_emails_that_contain": "استبعاد رسائل البريد الإلكتروني التي تحتوي على ...",
+  "require_emails_that_contain": "يتطلب رسائل بريد إلكتروني تحتوي على ...",
   "exclude_emails_match_found_error_message": "يرجى إدخال عنوان بريد إلكتروني صالح للعمل",
+  "require_emails_no_match_found_error_message": "غير مسموح لك بالحجز باستخدام نطاق البريد الإلكتروني هذا. يرجى الاتصال بمالك هذا الرابط.",
   "search_columns": "البحث في الأعمدة",
   "search_options": "خيارات البحث",
   "disable_org_url_label": "تعطيل الملف التعريفي العام للمؤسسة وإعادة التوجيه",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "القفل سيسمح فقط بالتعيينات من مزامنة الدليل",
   "attribute_edited_successfully": "تم تعديل السمة بنجاح",
   "new_group_option": "خيار مجموعة جديد",
+  "routed": "تم التوجيه",
+  "reassigned": "تمت إعادة التعيين",
+  "rerouted": "تمت إعادة التوجيه",
+  "salesforce_assigned": "تعيين Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

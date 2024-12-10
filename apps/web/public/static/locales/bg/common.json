@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Балансиране на натоварването",
   "rr_distribution_method_balanced_description": "Ще следим колко резервации са направени с всеки домакин и ще ги сравняваме с останалите, като деактивираме някои домакини, които са прекалено напред, за да бъдат резервациите равномерно разпределени.",
   "exclude_emails_that_contain": "Изключи имейли, които съдържат ...",
+  "require_emails_that_contain": "Изисквай имейли, които съдържат...",
   "exclude_emails_match_found_error_message": "Моля, въведете валиден служебен имейл адрес",
+  "require_emails_no_match_found_error_message": "Нямате право да запазвате час с този имейл домейн. Моля, свържете се със собственика на тази връзка.",
   "search_columns": "Търсене в колони",
   "search_options": "Опции за търсене",
   "disable_org_url_label": "Деактивиране на публичния профил на организацията и пренасочване",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Заключването ще позволи присвояване само от Directory Sync",
   "attribute_edited_successfully": "Атрибутът е редактиран успешно",
   "new_group_option": "Нова опция за група",
+  "routed": "Пренасочен",
+  "reassigned": "Преразпределен",
+  "rerouted": "Пренасочен",
+  "salesforce_assigned": "Възложен в Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "איזון עומסים",
   "rr_distribution_method_balanced_description": "אנחנו נעקוב אחר מספר ההזמנות שנקבעו עם כל מארח ונשווה זאת לאחרים, תוך השבתה זמנית של מארחים שקיבלו יותר מדי הזמנות כדי להבטיח חלוקה שווה",
   "exclude_emails_that_contain": "הוצא כתובות דוא\"ל המכילות...",
+  "require_emails_that_contain": "נדרשות כתובות דוא\"ל המכילות...",
   "exclude_emails_match_found_error_message": "אנא הזן כתובת דוא\"ל עבודה תקינה",
+  "require_emails_no_match_found_error_message": "אינך רשאי להזמין עם דומיין דוא\"ל זה. אנא צור קשר עם בעל הקישור.",
   "search_columns": "חיפוש עמודות",
   "search_options": "אפשרויות חיפוש",
   "disable_org_url_label": "השבת פרופיל ארגוני ציבורי והפנה מחדש",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "נעילה תאפשר הקצאות רק מסנכרון הספרייה",
   "attribute_edited_successfully": "המאפיין נערך בהצלחה",
   "new_group_option": "אפשרות קבוצה חדשה",
+  "routed": "נותב",
+  "reassigned": "הוקצה מחדש",
+  "rerouted": "נותב מחדש",
+  "salesforce_assigned": "הקצאת Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

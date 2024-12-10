@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Εξισορρόπηση φόρτου",
   "rr_distribution_method_balanced_description": "Θα παρακολουθούμε πόσες κρατήσεις έχουν γίνει με κάθε διοργανωτή και θα τις συγκρίνουμε με άλλους, απενεργοποιώντας κάποιους διοργανωτές που έχουν προχωρήσει πολύ μπροστά ώστε οι κρατήσεις να κατανέμονται ομοιόμορφα.",
   "exclude_emails_that_contain": "Εξαίρεση email που περιέχουν ...",
+  "require_emails_that_contain": "Απαιτούνται emails που περιέχουν ...",
   "exclude_emails_match_found_error_message": "Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email εργασίας",
+  "require_emails_no_match_found_error_message": "Δεν επιτρέπεται η κράτηση με αυτό το domain email. Παρακαλώ επικοινωνήστε με τον κάτοχο αυτού του συνδέσμου.",
   "search_columns": "Αναζήτηση στηλών",
   "search_options": "Επιλογές αναζήτησης",
   "disable_org_url_label": "Απενεργοποίηση δημόσιου προφίλ οργανισμού και ανακατεύθυνση",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Το κλείδωμα θα επιτρέπει αναθέσεις μόνο από το Directory Sync",
   "attribute_edited_successfully": "Το χαρακτηριστικό τροποποιήθηκε με επιτυχία",
   "new_group_option": "Νέα επιλογή ομάδας",
+  "routed": "Δρομολογήθηκε",
+  "reassigned": "Επανεκχωρήθηκε",
+  "rerouted": "Ανακατευθύνθηκε",
+  "salesforce_assigned": "Ανάθεση Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

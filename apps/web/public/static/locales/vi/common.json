@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Cân bằng tải",
   "rr_distribution_method_balanced_description": "Chúng tôi sẽ theo dõi số lượng đặt lịch đã được thực hiện với từng chủ trì và so sánh với những người khác, vô hiệu hóa một số chủ trì đã nhận quá nhiều lịch để đảm bảo việc đặt lịch được phân phối đồng đều.",
   "exclude_emails_that_contain": "Loại trừ các email chứa ...",
+  "require_emails_that_contain": "Yêu cầu email phải chứa ...",
   "exclude_emails_match_found_error_message": "Vui lòng nhập địa chỉ email công việc hợp lệ",
+  "require_emails_no_match_found_error_message": "Bạn không được phép đặt lịch với tên miền email này. Vui lòng liên hệ với chủ sở hữu của đường dẫn này.",
   "search_columns": "Tìm kiếm cột",
   "search_options": "Tùy chọn tìm kiếm",
   "disable_org_url_label": "Vô hiệu hóa hồ sơ tổ chức công khai và chuyển hướng",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Khóa sẽ chỉ cho phép gán từ Đồng bộ hóa thư mục",
   "attribute_edited_successfully": "Đã chỉnh sửa thuộc tính thành công",
   "new_group_option": "Tùy chọn nhóm mới",
+  "routed": "Đã chuyển",
+  "reassigned": "Đã phân công lại",
+  "rerouted": "Đã chuyển hướng lại",
+  "salesforce_assigned": "Phân công Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

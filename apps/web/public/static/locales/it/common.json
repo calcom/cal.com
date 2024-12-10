@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Bilanciamento del carico",
   "rr_distribution_method_balanced_description": "Monitoreremo quante prenotazioni sono state effettuate con ciascun host e le confronteremo con gli altri, disabilitando alcuni host che sono troppo avanti per garantire una distribuzione uniforme delle prenotazioni.",
   "exclude_emails_that_contain": "Escludi le email che contengono ...",
+  "require_emails_that_contain": "Richiedi email che contengono ...",
   "exclude_emails_match_found_error_message": "Inserisci un indirizzo email di lavoro valido",
+  "require_emails_no_match_found_error_message": "Non sei autorizzato a prenotare con questo dominio email. Contatta il proprietario di questo link.",
   "search_columns": "Cerca colonne",
   "search_options": "Opzioni di ricerca",
   "disable_org_url_label": "Disabilita il profilo pubblico dell'organizzazione e reindirizza",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Il blocco consentirà solo le assegnazioni da Directory Sync",
   "attribute_edited_successfully": "Attributo modificato con successo",
   "new_group_option": "Nuova opzione gruppo",
+  "routed": "Instradato",
+  "reassigned": "Riassegnato",
+  "rerouted": "Reindirizzato",
+  "salesforce_assigned": "Assegnazione Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Yük balanslaşdırma",
   "rr_distribution_method_balanced_description": "Hər bir təşkilatçı ilə neçə bron edildiyini izləyəcəyik və bunu digərləri ilə müqayisə edəcəyik, çox irəlidə olan bəzi təşkilatçıları deaktiv edərək bronların bərabər paylanmasını təmin edəcəyik.",
   "exclude_emails_that_contain": "Tərkibində olan e-poçtları istisna et...",
+  "require_emails_that_contain": "E-poçt ünvanları ... tərkibli olmalıdır",
   "exclude_emails_match_found_error_message": "Zəhmət olmasa düzgün iş e-poçt ünvanı daxil edin",
+  "require_emails_no_match_found_error_message": "Bu e-poçt domeni ilə rezervasiya etməyə icazəniz yoxdur. Zəhmət olmasa bu linkin sahibi ilə əlaqə saxlayın.",
   "search_columns": "Sütunlarda axtar",
   "search_options": "Axtarış seçimləri",
   "disable_org_url_label": "İctimai təşkilat profilini deaktiv edin və yönləndirin",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "Kilid yalnız Directory Sync-dən təyinatlara icazə verəcək",
   "attribute_edited_successfully": "Atribut uğurla redaktə edildi",
   "new_group_option": "Yeni qrup seçimi",
+  "routed": "Yönləndirildi",
+  "reassigned": "Yenidən təyin edildi",
+  "rerouted": "Yenidən yönləndirildi",
+  "salesforce_assigned": "Salesforce təyinatı",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

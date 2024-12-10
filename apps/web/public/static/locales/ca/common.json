@@ -2842,7 +2842,9 @@
   "rr_distribution_method_balanced_title": "Equilibri de càrrega",
   "rr_distribution_method_balanced_description": "Monitoritzarem quantes reserves s'han fet amb cada amfitrió i ho compararem amb els altres, desactivant alguns amfitrions que estiguin massa avançats perquè les reserves es distribueixin uniformement",
   "exclude_emails_that_contain": "Excloure correus electrònics que continguin...",
+  "require_emails_that_contain": "Requereix correus electrònics que continguin...",
   "exclude_emails_match_found_error_message": "Si us plau, introdueix una adreça de correu electrònic de treball vàlida",
+  "require_emails_no_match_found_error_message": "No tens permís per reservar amb aquest domini de correu electrònic. Si us plau, contacta amb el propietari d'aquest enllaç.",
   "search_columns": "Cerca columnes",
   "search_options": "Opcions de cerca",
   "disable_org_url_label": "Desactiva el perfil públic de l'organització i redirigeix",
@@ -2857,5 +2859,9 @@
   "lock_attribute_for_assignment_description": "El bloqueig només permetrà assignacions des de la sincronització del directori",
   "attribute_edited_successfully": "L'atribut s'ha editat correctament",
   "new_group_option": "Nova opció de grup",
+  "routed": "Redirigit",
+  "reassigned": "Reassignat",
+  "rerouted": "Redirigit de nou",
+  "salesforce_assigned": "Assignació de Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
