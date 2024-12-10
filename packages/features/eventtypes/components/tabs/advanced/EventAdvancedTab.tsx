@@ -346,7 +346,7 @@ export const EventAdvancedTab = ({
                 }
                 className={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.select}
                 containerClassName={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.container}
-                onChange={(option) =>
+                onChange={(option?: { value: number }) =>
                   formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
                 }
                 value={verifiedSecondaryEmails.find(

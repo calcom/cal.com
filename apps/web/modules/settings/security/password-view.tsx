@@ -271,7 +271,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                       }
                       isSearchable={false}
                       className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
-                      onChange={(event) => {
+                      onChange={(event?: (typeof timeoutOptions)[0]) => {
                         setSessionTimeout(event?.value);
                       }}
                     />

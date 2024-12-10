@@ -1,4 +1,4 @@
-import type { GroupBase, Props, SingleValue } from "react-select";
+import type { GroupBase, Props, SingleValue, SingleValueProps, OptionProps } from "react-select";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -90,7 +90,7 @@ export default function LocationSelect({
       id="location-select"
       data-testid="location-select"
       components={{
-        Option: (props) => {
+        Option: (props: OptionProps<LocationOption>) => {
           return (
             <components.Option {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>
@@ -104,7 +104,7 @@ export default function LocationSelect({
             </components.Option>
           );
         },
-        SingleValue: (props) => {
+        SingleValue: (props: SingleValueProps<LocationOption>) => {
           return (
             <components.SingleValue {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>
@@ -119,7 +119,7 @@ export default function LocationSelect({
           );
         },
       }}
-      formatOptionLabel={(e, d) => (
+      formatOptionLabel={(e: LocationOption) => (
         <div className="flex items-center gap-3">
           {e.icon && !isPlatform && (
             <img
@@ -131,7 +131,7 @@ export default function LocationSelect({
           <span>{e.label}</span>
         </div>
       )}
-      formatGroupLabel={(e) => (
+      formatGroupLabel={(e: { label: string }) => (
         <p className={classNames("text-default text-xs font-medium", customClassNames?.groupLabel)}>
           {e.label}
         </p>

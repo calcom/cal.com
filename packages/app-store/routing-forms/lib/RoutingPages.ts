@@ -1,7 +1,12 @@
 import type { LocalRoute } from "../types/types";
 import { RouteActionType } from "../zod";
 
-export const RoutingPages: { label: string; value: NonNullable<LocalRoute["action"]>["type"] }[] = [
+export interface RoutingPage {
+  label: string;
+  value: NonNullable<LocalRoute["action"]>["type"];
+}
+
+export const RoutingPages: RoutingPage[] = [
   {
     label: "Custom Page",
     value: RouteActionType.CustomPageMessage,

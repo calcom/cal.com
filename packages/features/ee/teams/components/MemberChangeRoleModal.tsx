@@ -147,7 +147,7 @@ export default function MemberChangeRoleModal(props: {
                 isSearchable={false}
                 options={options}
                 value={role}
-                onChange={(option) => option && setRole(option)}
+                onChange={(option: (typeof options)[0]) => option && setRole(option)}
                 id="role"
                 className="border-default mt-1 block w-full rounded-md text-sm"
               />
