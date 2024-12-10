@@ -39,7 +39,6 @@ rm -rf \
    app/future/booking\
    app/future/d\
    app/future/enterprise\
-   app/future/insights\
    app/future/org\
    app/future/payment\
    app/future/reschedule\
