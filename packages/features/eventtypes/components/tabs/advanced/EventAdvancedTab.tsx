@@ -133,7 +133,7 @@ type CalendarSettingsProps = {
   isChildrenManagedEventType: boolean;
 };
 
-const destinationCalendar = {
+const destinationCalendarComponents = {
   DestinationCalendarSettings({
     showConnectedCalendarSettings,
     customClassNames,
@@ -296,11 +296,11 @@ const destinationCalendar = {
   },
 };
 
-const calendar = {
+const calendarComponents = {
   CalendarSettingsSkeleton() {
     return (
       <div>
-        <destinationCalendar.DestinationCalendarSettingsSkeleton />
+        <destinationCalendarComponents.DestinationCalendarSettingsSkeleton />
         <SelectedCalendarsSettingsWebWrapperSkeleton />
       </div>
     );
@@ -334,13 +334,14 @@ const calendar = {
       ? SelectedCalendarSettingsScope.EventType
       : SelectedCalendarSettingsScope.User;
 
+    const destinationCalendar = calendarsQuery.data?.destinationCalendar;
     if (isConnectedCalendarSettingsLoading && isConnectedCalendarSettingsApplicable) {
-      return <calendar.CalendarSettingsSkeleton />;
+      return <calendarComponents.CalendarSettingsSkeleton />;
     }
 
     return (
       <div>
-        <destinationCalendar.DestinationCalendarSettings
+        <destinationCalendarComponents.DestinationCalendarSettings
           verifiedSecondaryEmails={verifiedSecondaryEmails}
           userEmail={userEmail}
           isTeamEventType={isTeamEventType}
@@ -362,6 +363,7 @@ const calendar = {
                       disabledScope={SelectedCalendarSettingsScope.User}
                       disableConnectionModification={true}
                       scope={selectedCalendarSettingsScope}
+                      destinationCalendarId={destinationCalendar?.externalId}
                       setScope={(scope) => {
                         const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
                         formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
@@ -520,7 +522,7 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      <calendar.CalendarSettings
+      <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}
         calendarsQuery={calendarsQuery}

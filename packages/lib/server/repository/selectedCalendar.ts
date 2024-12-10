@@ -11,18 +11,47 @@ export class SelectedCalendarRepository {
       },
     });
   }
+
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    return await prisma.selectedCalendar.upsert({
+    // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable.
+    // We can't use upsert here
+    // We have to ensure at all places(which we do) that an entry doesn't exist already before creating a new one
+    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
       where: {
-        userId_integration_externalId: {
-          userId: data.userId,
-          integration: data.integration,
-          externalId: data.externalId,
-        },
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
         eventTypeId: data.eventTypeId || null,
       },
-      create: { ...data },
-      update: { ...data },
+    });
+
+    if (existingSelectedCalendar) {
+      return await prisma.selectedCalendar.update({
+        where: {
+          id: existingSelectedCalendar.id,
+        },
+        data,
+      });
+    }
+
+    return await prisma.selectedCalendar.create({
+      data,
+    });
+  }
+
+  static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+      where: {
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
+        eventTypeId: data.eventTypeId || null,
+      },
+    });
+
+    if (existingSelectedCalendar) return existingSelectedCalendar;
+    return await prisma.selectedCalendar.create({
+      data,
     });
   }
   /** Retrieve calendars that need to be watched */
@@ -84,13 +113,11 @@ export class SelectedCalendarRepository {
     return nextBatch;
   }
   static async delete(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    return await prisma.selectedCalendar.delete({
+    return await prisma.selectedCalendar.deleteMany({
       where: {
-        userId_integration_externalId: {
-          userId: data.userId,
-          externalId: data.externalId,
-          integration: data.integration,
-        },
+        userId: data.userId,
+        externalId: data.externalId,
+        integration: data.integration,
         eventTypeId: data.eventTypeId ?? null,
       },
     });

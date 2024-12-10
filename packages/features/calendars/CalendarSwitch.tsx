@@ -39,7 +39,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         externalId: externalId,
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
-        eventTypeId: String(eventTypeId),
+        ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),
       };
 
       if (isOn) {
@@ -89,7 +89,12 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           }}
         />
       </div>
-      <label className="ml-3 break-all text-sm font-medium leading-5" htmlFor={externalId}>
+      <label
+        className={classNames(
+          "ml-3 break-all text-sm font-medium leading-5",
+          disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer"
+        )}
+        htmlFor={externalId}>
         {name}
       </label>
       {!!props.destination && (

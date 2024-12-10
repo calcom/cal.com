@@ -711,6 +711,7 @@ model Availability {
 }
 
 model SelectedCalendar {
+  id                               Int                   @id @default(autoincrement())
   user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int
   integration                      String
@@ -729,11 +730,14 @@ model SelectedCalendar {
   eventTypeId              Int?
   eventType                EventType? @relation(fields: [eventTypeId], references: [id])
 
-
-  @@id([userId, integration, externalId])
+  // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
+  // We currently ensure uniqueness by checking for the existence of the record before creating a new one
+  // Think about introducing a synthetic unique key ${userId}_${integration}_${externalId}_${eventTypeId}
+  @@unique([userId, integration, externalId, eventTypeId])
   @@index([userId])
   @@index([integration])
   @@index([externalId])
+  @@index([eventTypeId])
 }
 
 

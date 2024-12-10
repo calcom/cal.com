@@ -57,7 +57,10 @@ async function handleNoDestinationCalendar({
   const updatedConnectedCalendars = connectedCalendars.map((connectedCalendar) => ({
     ...connectedCalendar,
   }));
+
+  // This is the calendar that we will ensure is enabled for conflict check
   let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
+
   log.debug(
     `There are connected calendars, but no destination calendar, so create a default destination calendar in DB for user ${user.id}`
   );
@@ -174,33 +177,26 @@ function findMatchingCalendar({
 async function ensureSelectedCalendarIsInDb({
   user,
   selectedCalendar,
+  eventTypeId,
 }: {
   user: UserWithCalendars;
   selectedCalendar: {
     integration: string;
     externalId: string;
   };
+  eventTypeId: number | null;
 }) {
-  log.debug(
+  console.log(
     `Upsert the selectedCalendar record to the DB for user ${user.id} with details ${JSON.stringify(
       selectedCalendar
     )}`
   );
-  await prisma.selectedCalendar.upsert({
-    where: {
-      userId_integration_externalId: {
-        userId: user.id,
-        integration: selectedCalendar.integration,
-        externalId: selectedCalendar.externalId,
-      },
-    },
-    create: {
-      userId: user.id,
-      integration: selectedCalendar.integration,
-      externalId: selectedCalendar.externalId,
-    },
-    // already exists
-    update: {},
+
+  await SelectedCalendarRepository.createIfNotExists({
+    userId: user.id,
+    integration: selectedCalendar.integration,
+    externalId: selectedCalendar.externalId,
+    eventTypeId,
   });
 }
 
@@ -230,7 +226,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  console.log(JSON.stringify({ userFromSession: user }, null, 2));
   const eventTypeSelectedCalendars = user.allSelectedCalendars.filter(
     (selectedCalendar) => selectedCalendar.eventTypeId === eventTypeId
   );
@@ -310,7 +305,11 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
   // Insert the newly toggled record to the DB
   if (calendarToEnsureIsEnabledForConflictCheck) {
-    await ensureSelectedCalendarIsInDb({ user, selectedCalendar: calendarToEnsureIsEnabledForConflictCheck });
+    await ensureSelectedCalendarIsInDb({
+      user,
+      selectedCalendar: calendarToEnsureIsEnabledForConflictCheck,
+      eventTypeId: eventTypeId ?? null,
+    });
   }
 
   return {
