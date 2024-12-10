@@ -516,7 +516,7 @@ function UserListTableContent() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
-        name="UserListTable"
+        identifier="UserListTable"
         enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">

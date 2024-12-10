@@ -596,7 +596,7 @@ export function RoutingFormResponsesTableContent({
             fetchMoreOnBottomReached(e.target as HTMLDivElement);
           }
         }}
-        name="RoutingFormResponsesTable"
+        identifier="RoutingFormResponsesTable"
         enableColumnResizing={true}
         isPending={isFetching && !data}>
         <div className="header mb-4">
