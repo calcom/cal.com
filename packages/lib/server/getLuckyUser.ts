@@ -17,6 +17,8 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { mergeOverlappingRanges } from "../date-ranges";
+
 const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
 const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
@@ -527,26 +529,6 @@ export function getLuckyUser_requiresDataToBePreFetched<
     }),
     usersAndTheirBookingShortfalls,
   };
-}
-
-function mergeOverlappingRanges(ranges: { start: Date; end: Date }[]): { start: Date; end: Date }[] {
-  if (ranges.length === 0) return [];
-
-  const sortedRanges = ranges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
-
-  const mergedRanges: { start: Date; end: Date }[] = [sortedRanges[0]];
-
-  for (let i = 1; i < sortedRanges.length; i++) {
-    const lastMergedRange = mergedRanges[mergedRanges.length - 1];
-    const currentRange = sortedRanges[i];
-
-    if (currentRange.start.getTime() <= lastMergedRange.end.getTime()) {
-      lastMergedRange.end = new Date(Math.max(lastMergedRange.end.getTime(), currentRange.end.getTime()));
-    } else {
-      mergedRanges.push(currentRange);
-    }
-  }
-  return mergedRanges;
 }
 
 function isFullDayEvent(date1: Date, date2: Date) {
