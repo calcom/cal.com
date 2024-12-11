@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/adyen",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@adyen/adyen-web": "^6.3.0",
+    "@adyen/api-library": "^19.4.0",
+    "@calcom/lib": "*",
+    "pkce-challenge": "^4.1.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Adyen payment app by Cal.com"
+}
