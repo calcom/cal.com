@@ -8,6 +8,7 @@ checksums:
     second_one: eca62f1c8e7e2e407f29d6acd03ed238
     second_other: d558d34e6b0d8969830650d4acea68e4
     upgrade_now: 059e020c0eddd549ac6c6369a427915a
+    untitled: 84ba9ab3c295dbc18cbe788c4c2eccc8
     accept_invitation: 8de2e2e357dd63d75e00a67bb00e6229
     max_characters: 3740a3537a6a69ce3ce0cabfcfb59bd1
     min_characters: 2fff28b51dd9fa8cfe10ed9876e4a7d5
@@ -2822,6 +2823,11 @@ checksums:
     routing_form_insights_booking_status: 08b945804d902b55184884401a840d57
     routing_form_insights_booking_at: ca8a804eb7068845bede9adbb6bb7d3b
     routing_form_insights_submitted_at: b95063c78796a32900c35743237512c4
+    total_bookings_per_period: 4ddd62a03c104739a99c23bf60545367
+    routed_to_per_period: a950330d2a551b4840bf77f044d4dd64
+    per_day: 861a51979a317ed5ce9e2a584c4d85a3
+    per_week: 938e789464ef5b1564c8a87847fb1f15
+    per_month: 44cbbb767bc832fbd7f6c03f1383d8c2
     routing_form_insights_assignment_reason: 2903818c2b550f7e29ac5dc18d6dae71
     access_denied: 589456a5c4103e29c44e9df16a4eaf82
     salesforce_route_to_owner: 39a88a7afb1c1e8fb9215e27ae7a7033
