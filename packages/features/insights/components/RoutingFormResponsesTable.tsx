@@ -72,7 +72,7 @@ const ZResponseValues = z.array(
   })
 );
 
-type ResponseValues = z.infer<typeof ZResponseValues>;
+type ResponseValues = FieldCellValue[];
 
 function CellWithOverflowX({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
