@@ -43,8 +43,8 @@ function ensureReqIsPost(req: RequestWithUsernameStatus) {
 
 export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const remoteIp = getIP(req);
+  // Use a try catch instead of returning res every time
   try {
-    // Verify the Turnstile token before processing signup
     await checkCfTurnstileToken({
       token: req.headers["cf-access-token"] as string,
       remoteIp,
