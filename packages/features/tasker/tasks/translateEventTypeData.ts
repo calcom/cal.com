@@ -13,7 +13,24 @@ export const ZTranslateEventDataPayloadSchema = z.object({
   userLocale: z.string(),
 });
 
-const SUPPORTED_LOCALES = ["en", "es", "de", "pt", "fr", "it", "ar", "ru", "zh-CN"] as const;
+const SUPPORTED_LOCALES = [
+  "en", // English
+  "es", // Spanish
+  "de", // German
+  "pt", // Portuguese
+  "pt-BR", // Portuguese Brazilian
+  "fr", // French
+  "it", // Italian
+  "ar", // Arabic
+  "ru", // Russian
+  "zh-CN", // Simplified Chinese
+  "nl", // Dutch
+  "zh-TW", // Traditional Chinese
+  "ko", // Korean
+  "ja", // Japanese
+  "sv", // Swedish
+  "da", // Danish
+] as const;
 
 async function processTranslations({
   text,
