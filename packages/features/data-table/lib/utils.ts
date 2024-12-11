@@ -64,6 +64,10 @@ export function useColumnFilters(): ColumnFilter[] {
 }
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
+  if (filterValue.data.operator === "isEmpty" && cellValue === undefined) {
+    return true;
+  }
+
   if (typeof cellValue !== "string") {
     return false;
   }

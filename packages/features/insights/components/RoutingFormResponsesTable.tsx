@@ -21,6 +21,7 @@ import {
   useFetchMoreOnBottomReached,
   useColumnFilters,
   selectFilter,
+  textFilter,
   dataTableFilter,
   convertToTitleCase,
   useDataTable,
@@ -474,6 +475,9 @@ export function RoutingFormResponsesTableContent({
         id: "assignmentReason",
         header: t("routing_form_insights_assignment_reason"),
         size: 250,
+        meta: {
+          filter: { type: "text" },
+        },
         cell: (info) => {
           const assignmentReason = info.getValue()?.assignmentReason;
           return (
@@ -481,6 +485,9 @@ export function RoutingFormResponsesTableContent({
               {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
             </div>
           );
+        },
+        filterFn: (row, id, filterValue) => {
+          return textFilter(row.original.routedToBooking?.assignmentReason?.[0]?.reasonString, filterValue);
         },
       }),
       columnHelper.accessor("createdAt", {

@@ -5,7 +5,7 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { type ColumnFilter } from "@calcom/features/data-table";
+import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -200,7 +200,41 @@ class RoutingEventsInsights {
     });
 
     const bookingStatusFilter = columnFilters.find((filter) => filter.id === "bookingStatus");
-    const fieldFilters = columnFilters.filter((filter) => filter.id !== "bookingStatus");
+    const assignmentReasonFilter = columnFilters.find((filter) => filter.id === "assignmentReason") as
+      | TypedColumnFilter<"text">
+      | undefined;
+    const fieldFilters = columnFilters.filter(
+      (filter) => filter.id !== "bookingStatus" && filter.id !== "assignmentReason"
+    );
+
+    let bookingWhereInput: Prisma.BookingWhereInput = {};
+    if (userId) {
+      bookingWhereInput.userId = userId;
+    }
+    if (bookingStatusFilter) {
+      bookingWhereInput = {
+        ...bookingWhereInput,
+        ...makeWhereClause({ columnName: "status", filterValue: bookingStatusFilter.value }),
+      };
+    }
+    if (assignmentReasonFilter) {
+      const operator = assignmentReasonFilter.value.data.operator;
+      if (operator === "isEmpty") {
+        bookingWhereInput.assignmentReason = { none: {} };
+      } else if (operator === "isNotEmpty") {
+        bookingWhereInput.assignmentReason = {
+          some: {
+            reasonString: {
+              not: "",
+            },
+          },
+        };
+      } else {
+        bookingWhereInput.assignmentReason = {
+          some: makeWhereClause({ columnName: "reasonString", filterValue: assignmentReasonFilter.value }),
+        };
+      }
+    }
 
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
       ...(startDate &&
@@ -210,18 +244,7 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatusFilter
-        ? {
-            ...{
-              routedToBooking: {
-                ...(userId && { userId }),
-                ...(bookingStatusFilter &&
-                  makeWhereClause({ columnName: "status", filterValue: bookingStatusFilter.value })),
-              },
-            },
-          }
-        : {}),
-
+      ...(Object.keys(bookingWhereInput).length > 0 ? { routedToBooking: bookingWhereInput } : {}),
       form: formsTeamWhereCondition,
     };
 

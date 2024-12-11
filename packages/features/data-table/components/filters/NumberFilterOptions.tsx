@@ -14,17 +14,14 @@ export type NumberFilterOperatorOption = {
   value: NumberFilterOperator;
 };
 
-const useNumberFilterOperatorOptions = (): NumberFilterOperatorOption[] => {
-  const { t } = useLocale();
-  return [
-    { value: "eq", label: t("filter_operator_eq") },
-    { value: "neq", label: t("filter_operator_neq") },
-    { value: "gt", label: t("filter_operator_gt") },
-    { value: "gte", label: t("filter_operator_gte") },
-    { value: "lt", label: t("filter_operator_lt") },
-    { value: "lte", label: t("filter_operator_lte") },
-  ];
-};
+const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
+  { value: "eq", label: "=" },
+  { value: "neq", label: "≠" },
+  { value: "gt", label: ">" },
+  { value: "gte", label: "≥" },
+  { value: "lt", label: "<" },
+  { value: "lte", label: "≤" },
+];
 
 export type NumberFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "number" }>;
@@ -32,7 +29,6 @@ export type NumberFilterOptionsProps = {
 
 export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
   const { t } = useLocale();
-  const numberFilterOperatorOptions = useNumberFilterOperatorOptions();
   const filterValue = useFilterValue(column.id, ZNumberFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
 

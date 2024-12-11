@@ -54,8 +54,10 @@ export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue, ZNumb
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
 
+export type ColumnFilterType = "select" | "text" | "number";
+
 export type ColumnFilterMeta = {
-  type?: "select" | "text" | "number";
+  type?: ColumnFilterType;
   icon?: IconName;
 };
 
@@ -84,6 +86,17 @@ export const ZColumnFilter = z.object({
 });
 
 export type ColumnFilter = z.infer<typeof ZColumnFilter>;
+
+export type TypedColumnFilter<T extends ColumnFilterType> = {
+  id: string;
+  value: T extends "text"
+    ? TextFilterValue
+    : T extends "number"
+    ? NumberFilterValue
+    : T extends "select"
+    ? SelectFilterValue
+    : never;
+};
 
 export type ExternalFilter = {
   key: string;
