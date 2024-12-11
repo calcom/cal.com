@@ -186,7 +186,7 @@ export function UserListTable() {
                   const isAGroupOption = attributeValue.contains?.length > 0;
                   const suffix = attribute.isWeightsEnabled ? `${attributeValue.weight || 100}%` : undefined;
                   return (
-                    <div className="mr-1" key={attributeValue.id}>
+                    <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
                       <Badge
                         variant={isAGroupOption ? "orange" : "gray"}
                         className={classNames(suffix && "rounded-r-none")}>
