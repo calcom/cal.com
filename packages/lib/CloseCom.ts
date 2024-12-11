@@ -1,4 +1,5 @@
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 
 export type CloseComLead = {
   companyName?: string | null | undefined;
@@ -145,8 +146,6 @@ export type typeCloseComCustomActivityGet = {
 
 type CloseComCustomActivityCustomField<T extends string> = `custom.${T}`;
 
-const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
-
 type CloseComQuery = {
   negate?: boolean;
   queries?: CloseComQuery[] | CloseComCondition[];
@@ -186,7 +185,7 @@ export type CloseComCustomFieldCreateResponse = {
 };
 
 /**
- * This class to instance communicating to Close.com APIs requires an API Key.
+ * This class to instance communicating to Close.com APIs requires an API Key (legacy) or OAuth.
  *
  * You can either pass to the constructor an API Key or have one defined as an
  * environment variable in case the communication to Close.com is just for
@@ -194,13 +193,128 @@ export type CloseComCustomFieldCreateResponse = {
  */
 export default class CloseCom {
   private apiUrl = "https://api.close.com/api/v1";
-  private apiKey: string | undefined = undefined;
+  private api_key: string;
+  private refresh_token?: string;
+  private expires_at?: number;
+  private isOAuth: boolean;
   private log: typeof logger;
+  private userId?: number;
 
-  constructor(providedApiKey = "") {
+  constructor(
+    apiKey: string,
+    options?: {
+      refresh_token?: string;
+      expires_at?: number;
+      isOAuth?: boolean;
+      userId?: number;
+    }
+  ) {
     this.log = logger.getSubLogger({ prefix: [`[[lib] close.com`] });
-    if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
-    this.apiKey = providedApiKey || environmentApiKey;
+    this.api_key = apiKey;
+    this.refresh_token = options?.refresh_token;
+    this.expires_at = options?.expires_at;
+    this.isOAuth = options?.isOAuth || false;
+    this.userId = options?.userId;
+  }
+
+  private async getHeaders() {
+    if (this.isOAuth) {
+      // Check if token needs refresh
+      if (await this.shouldRefreshToken()) {
+        await this.refreshAccessToken();
+      }
+      return {
+        Authorization: `Bearer ${this.api_key}`,
+        "Content-Type": "application/json",
+      };
+    }
+
+    // API key auth
+    return {
+      Authorization: `Basic ${Buffer.from(`${this.api_key}:`).toString("base64")}`,
+      "Content-Type": "application/json",
+    };
+  }
+
+  private async shouldRefreshToken(): Promise<boolean> {
+    if (!this.expires_at) return false;
+
+    // Refresh token if it expires in less than 5 minutes
+    const fiveMinutesInMs = 5 * 60 * 1000;
+    return Date.now() + fiveMinutesInMs >= this.expires_at;
+  }
+
+  private async refreshAccessToken() {
+    if (!this.refresh_token) throw new Error("No refresh token available");
+    if (!this.userId) throw new Error("No userId available for token refresh");
+
+    try {
+      const response = await fetch("https://api.close.com/oauth2/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: this.refresh_token,
+          client_id: process.env.CLOSECOM_CLIENT_ID!,
+          client_secret: process.env.CLOSECOM_CLIENT_SECRET!,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to refresh token");
+      }
+
+      const data = await response.json();
+
+      this.api_key = data.access_token;
+      this.refresh_token = data.refresh_token;
+      this.expires_at = Date.now() + data.expires_in * 1000;
+
+      try {
+        const credential = await prisma.credential.findFirst({
+          where: {
+            userId: this.userId,
+            type: "closecom_crm",
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!credential?.id) {
+          throw new Error("Credential not found");
+        }
+
+        await prisma.credential.update({
+          where: {
+            id: credential.id,
+          },
+          data: {
+            key: {
+              access_token: data.access_token,
+              refresh_token: data.refresh_token,
+              expires_at: this.expires_at,
+            },
+          },
+        });
+      } catch (error) {
+        this.log.error("Failed to update credentials in database", error);
+      }
+
+      return {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: this.expires_at,
+      };
+    } catch (error) {
+      this.log.error("Token refresh process failed", {
+        error,
+        userId: this.userId,
+      });
+      throw error;
+    }
   }
 
   public me = async () => {
@@ -355,11 +469,7 @@ export default class CloseCom {
     data?: Record<string, unknown>;
   }) => {
     this.log.debug(method, urlPath, query, data);
-    const credentials = Buffer.from(`${this.apiKey}:`).toString("base64");
-    const headers = {
-      Authorization: `Basic ${credentials}`,
-      "Content-Type": "application/json",
-    };
+    const headers = await this.getHeaders();
     const queryString = query ? `?${new URLSearchParams(String(query)).toString()}` : "";
     return await fetch(`${this.apiUrl}${urlPath}${queryString}`, {
       headers,

@@ -24,7 +24,13 @@ export class OrganizationsEventTypesRepository {
           slug: eventTypeSlug,
         },
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        team: { select: { bannerUrl: true } },
+      },
     });
   }
 
@@ -33,7 +39,13 @@ export class OrganizationsEventTypesRepository {
       where: {
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        team: { select: { bannerUrl: true } },
+      },
     });
   }
 

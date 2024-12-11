@@ -79,18 +79,19 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
   };
 
   const text = getTextPopover();
+  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg;
 
   return (
     <AnimatedPopover text={text}>
       <FilterCheckboxFieldsContainer>
-        {isSuccess && data?.length > 0 && data[0].isOrg && (
+        {isOrgDataAvailable && (
           <FilterCheckboxField
             id="all"
             icon={<Icon name="layers" className="h-4 w-4" />}
             checked={isAll}
             onChange={(e) => {
               setConfigFilters({
-                selectedTeamId: data[0].isOrg ? data[0].id : null,
+                selectedTeamId: data[0].id,
                 selectedUserId: null,
                 selectedTeamName: null,
                 isAll: true,
@@ -123,7 +124,7 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
                   });
                 } else if (!e.target.checked) {
                   setConfigFilters({
-                    selectedTeamId: null,
+                    selectedTeamId: isOrgDataAvailable ? data[0].id : null,
                     selectedTeamName: null,
                     isAll: true,
                   });
@@ -154,8 +155,10 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
               });
             } else if (!e.target.checked) {
               setConfigFilters({
+                selectedTeamId: isOrgDataAvailable ? data[0].id : null,
                 selectedUserId: null,
-                isAll: false,
+                selectedTeamName: null,
+                isAll: isOrgDataAvailable,
               });
             }
           }}

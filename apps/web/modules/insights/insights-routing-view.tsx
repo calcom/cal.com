@@ -4,6 +4,7 @@ import {
   FailedBookingsByField,
   RoutingFormResponsesTable,
   RoutingKPICards,
+  RoutedToPerPeriod,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { RoutingInsightsFilters } from "@calcom/features/insights/filters/routing/FilterBar";
@@ -29,6 +30,8 @@ export default function InsightsPage() {
               </div>
             )}
           </RoutingFormResponsesTable>
+
+          <RoutedToPerPeriod />
 
           <FailedBookingsByField />
 
