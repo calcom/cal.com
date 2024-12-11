@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Onbevestigde boekingen blokkeren nog steeds de kalender slots.",
   "recurring_event": "Terugkerende gebeurtenis",
   "recurring_event_description": "Mensen kunnen zich abonneren op terugkerende gebeurtenissen",
+  "connect_and_join": "Verbind en doe mee",
   "cannot_be_used_with_paid_event_types": "Het kan niet worden gebruikt met betaalde evenementtypes",
   "warning_payment_instant_meeting_event": "Directe Vergaderingen worden nog niet ondersteund met terugkerende evenementen en betalingsapps",
   "warning_instant_meeting_experimental": "Experimenteel: Instant Meeting Events zijn momenteel experimenteel.",
@@ -2842,7 +2843,9 @@
   "rr_distribution_method_balanced_title": "Evenredige verdeling",
   "rr_distribution_method_balanced_description": "We monitoren hoeveel boekingen er bij elke host zijn gemaakt en vergelijken dit met anderen. Hosts die te ver voorlopen worden tijdelijk uitgeschakeld zodat boekingen gelijkmatig worden verdeeld.",
   "exclude_emails_that_contain": "E-mailadressen uitsluiten die ... bevatten",
+  "require_emails_that_contain": "E-mailadressen moeten bevatten ...",
   "exclude_emails_match_found_error_message": "Voer een geldig zakelijk e-mailadres in",
+  "require_emails_no_match_found_error_message": "Je mag niet boeken met dit e-maildomein. Neem contact op met de eigenaar van deze link.",
   "search_columns": "Kolommen zoeken",
   "search_options": "Zoekopties",
   "disable_org_url_label": "Openbaar organisatieprofiel uitschakelen en doorverwijzen",
@@ -2857,5 +2860,9 @@
   "lock_attribute_for_assignment_description": "Vergrendeling staat alleen toewijzingen toe via Directory Sync",
   "attribute_edited_successfully": "Attribuut succesvol bewerkt",
   "new_group_option": "Nieuwe groepsoptie",
+  "routed": "Doorgestuurd",
+  "reassigned": "Opnieuw toegewezen",
+  "rerouted": "Omgeleid",
+  "salesforce_assigned": "Salesforce toewijzing",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

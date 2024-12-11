@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Las reservas no confirmadas aún bloquean los espacios en el calendario.",
   "recurring_event": "Evento recurrente",
   "recurring_event_description": "Las personas pueden suscribirse a eventos recurrentes",
+  "connect_and_join": "Conecta y únete",
   "cannot_be_used_with_paid_event_types": "No se puede usar con tipos de eventos de pago.",
   "warning_payment_instant_meeting_event": "Las reuniones instantáneas no son compatibles con eventos recurrentes y aplicaciones de pago todavía.",
   "warning_instant_meeting_experimental": "Experimental: Los eventos de reuniones instantáneas son actualmente experimentales.",
@@ -2842,7 +2843,9 @@
   "rr_distribution_method_balanced_title": "Equilibrio de carga",
   "rr_distribution_method_balanced_description": "Monitorizaremos cuántas reservas se han realizado con cada anfitrión y las compararemos con otros, deshabilitando algunos anfitriones que estén muy por delante para que las reservas se distribuyan uniformemente.",
   "exclude_emails_that_contain": "Excluir correos que contengan...",
+  "require_emails_that_contain": "Requerir correos que contengan...",
   "exclude_emails_match_found_error_message": "Por favor, introduce una dirección de correo electrónico laboral válida",
+  "require_emails_no_match_found_error_message": "No tienes permiso para agendar con este dominio de correo electrónico. Por favor, contacta al propietario de este enlace.",
   "search_columns": "Buscar columnas",
   "search_options": "Opciones de búsqueda",
   "disable_org_url_label": "Desactivar perfil público de la organización y redireccionar",
@@ -2857,5 +2860,9 @@
   "lock_attribute_for_assignment_description": "El bloqueo solo permitirá asignaciones desde la sincronización del directorio",
   "attribute_edited_successfully": "Atributo editado correctamente",
   "new_group_option": "Nueva opción de grupo",
+  "routed": "Enrutado",
+  "reassigned": "Reasignado",
+  "rerouted": "Reenrutado",
+  "salesforce_assigned": "Asignación de Salesforce",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
