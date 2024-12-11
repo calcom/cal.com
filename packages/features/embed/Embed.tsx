@@ -146,15 +146,16 @@ const EmailEmbed = ({
   username,
   orgSlug,
   isTeamEvent,
+  userSettingsTimezone,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
+  userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-
-  const [timezone] = useTimePreferences((state) => [state.timezone]);
+  const [preferenceTimezone] = useTimePreferences((state) => [state.timezone]);
 
   useInitializeBookerStore({
     username,
@@ -165,22 +166,25 @@ const EmailEmbed = ({
     isTeamEvent,
   });
 
-  const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
-    (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
+  const [month, selectedDate, selectedDatesAndTimes, bookerStoreTimezone] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes, state.timeZone],
     shallow
   );
-  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot] = useBookerStore(
-    (state) => [
-      state.setSelectedDate,
-      state.setMonth,
-      state.setSelectedDatesAndTimes,
-      state.setSelectedTimeslot,
-    ],
-    shallow
-  );
+  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimeZone] =
+    useBookerStore(
+      (state) => [
+        state.setSelectedDate,
+        state.setMonth,
+        state.setSelectedDatesAndTimes,
+        state.setSelectedTimeslot,
+        state.setTimeZone,
+      ],
+      shallow
+    );
   const event = useEvent();
   const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
 
   const onTimeSelect = (time: string) => {
     if (!eventType) {
@@ -306,7 +310,7 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
-            <TimezoneSelect id="timezone" value={timezone} isDisabled />
+            <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimeZone(value)} />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -321,6 +325,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
   calLink,
+  userSettingsTimezone,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -329,9 +334,12 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
   calLink: string;
+  userSettingsTimezone?: string;
 }) => {
   const { t } = useLocale();
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const [timeFormat, preferenceTimezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const bookerStoreTimezone = useBookerStore((store) => store.timeZone);
+  const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
 
   if (!eventType) {
     return null;
@@ -392,7 +400,10 @@ const EmailEmbedPreview = ({
                 Object.keys(selectedDateAndTime)
                   .sort()
                   .map((key) => {
-                    const selectedDate = dayjs(key).tz(timezone).format("dddd, MMMM D, YYYY");
+                    const firstSlotOfSelectedDay = selectedDateAndTime[key][0];
+                    const selectedDate = dayjs(firstSlotOfSelectedDay)
+                      .tz(timezone)
+                      .format("dddd, MMMM D, YYYY");
                     return (
                       <table
                         key={key}
@@ -431,7 +442,7 @@ const EmailEmbedPreview = ({
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length
-                                        }&date=${key}&month=${month}&slot=${time}`;
+                                        }&date=${key}&month=${month}&slot=${time}&tz=${timezone}`;
                                         return (
                                           <td
                                             key={time}
@@ -495,7 +506,7 @@ const EmailEmbedPreview = ({
                 <a
                   className="more"
                   data-testid="see_all_available_times"
-                  href={`${eventType.bookerUrl}/${calLink}`}
+                  href={`${eventType.bookerUrl}/${calLink}?tz=${timezone}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
@@ -559,6 +570,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
+  const { data: userSettings } = trpc.viewer.me.useQuery();
 
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
@@ -769,6 +781,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <EmailEmbed
               eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
+              userSettingsTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
             />
@@ -1120,6 +1133,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}
                         username={teamSlug ?? (data?.user.username as string)}
+                        userSettingsTimezone={userSettings?.timeZone}
                         month={month as string}
                         selectedDateAndTime={
                           selectedDatesAndTimes
