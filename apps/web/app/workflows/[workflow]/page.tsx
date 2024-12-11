@@ -4,7 +4,7 @@ import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+// import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 
@@ -21,7 +21,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const workflow = await WorkflowRepository.getById({ id: +parsed.data.workflow });
 
   return await _generateMetadata(
-    () => (workflow && workflow.name ? workflow.name : "Untitled"),
+    (t) => (workflow && workflow.name ? workflow.name : t("untitled")),
     () => ""
   );
 };
@@ -30,31 +30,33 @@ export const generateStaticParams = () => [];
 
 const Page = async ({ params, searchParams }: PageProps) => {
   // FIXME: Refactor me once next-auth endpoint is migrated to App Router
-  const session = await getServerSessionForAppDir();
-  const user = session?.user;
+  // const session = await getServerSessionForAppDir();
+  // const user = session?.user;
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
   if (!parsed.success) {
     notFound();
   }
 
-  const workflow = await WorkflowRepository.getById({ id: +parsed.data.workflow });
-  let verifiedEmails, verifiedNumbers;
-  try {
-    verifiedEmails = await WorkflowRepository.getVerifiedEmails({
-      userEmail: user?.email ?? null,
-      userId: user?.id ?? null,
-      teamId: workflow?.team?.id,
-    });
-  } catch (err) {}
-  try {
-    verifiedNumbers = await WorkflowRepository.getVerifiedNumbers({
-      userId: user?.id ?? null,
-      teamId: workflow?.team?.id,
-    });
-  } catch (err) {}
+  // const workflow = await WorkflowRepository.getById({ id: +parsed.data.workflow });
+  // let verifiedEmails, verifiedNumbers;
+  // try {
+  //   verifiedEmails = await WorkflowRepository.getVerifiedEmails({
+  //     userEmail: user?.email ?? null,
+  //     userId: user?.id ?? null,
+  //     teamId: workflow?.team?.id,
+  //   });
+  // } catch (err) {}
+  // try {
+  //   verifiedNumbers = await WorkflowRepository.getVerifiedNumbers({
+  //     userId: user?.id ?? null,
+  //     teamId: workflow?.team?.id,
+  //   });
+  // } catch (err) {}
 
   return (
-    <LegacyPage workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />
+    <LegacyPage
+    //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
+    />
   );
 };
 
