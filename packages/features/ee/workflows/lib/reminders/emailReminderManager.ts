@@ -185,18 +185,22 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   } else if (template === WorkflowTemplates.REMINDER) {
     emailContent = emailReminderTemplate(
       false,
+      evt.organizer.language.locale,
       action,
       evt.organizer.timeFormat,
       startTime,
       endTime,
       evt.title,
       timeZone,
+      evt.location || "",
+      bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
       attendeeName,
       name
     );
   } else if (template === WorkflowTemplates.RATING) {
     emailContent = emailRatingTemplate({
       isEditingMode: true,
+      locale: evt.organizer.language.locale,
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,

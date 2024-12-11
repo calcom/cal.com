@@ -7,8 +7,8 @@ import { useFormContext } from "react-hook-form";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
+import EventTypeWebhookListItem from "@calcom/features/webhooks/components/EventTypeWebhookListItem";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
-import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -103,8 +103,9 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     translate: t,
     formMethods,
   });
-  const webhookLockedStatus = shouldLockDisableProps("webhooks");
-
+  const webhooksDisableProps = shouldLockDisableProps("webhooks", { simple: true });
+  const lockedText = webhooksDisableProps.isLocked ? "locked" : "unlocked";
+  const cannotEditWebhooks = isChildrenManagedEventType ? webhooksDisableProps.isLocked : false;
   return (
     <div>
       {webhooks && !isLoading && (
@@ -112,12 +113,31 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
           <div>
             <div>
               <>
-                {isManagedEventType && (
+                {(isManagedEventType || isChildrenManagedEventType) && (
                   <Alert
-                    severity="neutral"
+                    severity={webhooksDisableProps.isLocked ? "neutral" : "green"}
                     className="mb-2"
-                    title={t("locked_for_members")}
-                    message={t("locked_webhooks_description")}
+                    title={
+                      <Trans
+                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                        {lockedText[0].toUpperCase()}
+                        {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
+                      </Trans>
+                    }
+                    actions={
+                      <div className="flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
+                    }
+                    message={
+                      <Trans
+                        i18nKey={`webhooks_${lockedText}_${
+                          isManagedEventType ? "for_members" : "by_team_admins"
+                        }_description`}>
+                        {isManagedEventType ? "Members" : "You"}{" "}
+                        {webhooksDisableProps.isLocked
+                          ? "will be able to see the active webhooks but will not be able to edit any webhook settings"
+                          : "will be able to see the active webhooks and will be able to edit any webhook settings"}
+                      </Trans>
+                    }
                   />
                 )}
                 {webhooks.length ? (
@@ -130,7 +150,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                             {t("add_webhook_description", { appName: APP_NAME })}
                           </p>
                         </div>
-                        {isChildrenManagedEventType && !isManagedEventType ? (
+                        {cannotEditWebhooks ? (
                           <Button StartIcon="lock" color="secondary" disabled>
                             {t("locked_by_team_admin")}
                           </Button>
@@ -142,15 +162,15 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       <div className="border-subtle my-8 rounded-md border">
                         {webhooks.map((webhook, index) => {
                           return (
-                            <WebhookListItem
+                            <EventTypeWebhookListItem
                               key={webhook.id}
                               webhook={webhook}
                               lastItem={webhooks.length === index + 1}
-                              canEditWebhook={!webhookLockedStatus.disabled}
                               onEditWebhook={() => {
                                 setEditModalOpen(true);
                                 setWebhookToEdit(webhook);
                               }}
+                              readOnly={isChildrenManagedEventType && webhook.eventTypeId !== eventType.id}
                             />
                           );
                         })}
@@ -174,7 +194,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
-                      isChildrenManagedEventType && !isManagedEventType ? (
+                      cannotEditWebhooks ? (
                         <Button StartIcon="lock" color="secondary" disabled>
                           {t("locked_by_team_admin")}
                         </Button>

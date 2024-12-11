@@ -343,7 +343,8 @@ export async function handleConfirmation(args: {
           workflows,
           false,
           !!updatedBookings[index].eventType?.owner?.hideBranding,
-          evt.attendeeSeatId
+          evt.attendeeSeatId,
+          !emailsEnabled && Boolean(platformClientParams?.platformClientId)
         );
       }
 
