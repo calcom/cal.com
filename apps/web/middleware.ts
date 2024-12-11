@@ -166,7 +166,6 @@ export const config = {
 
     "/event-types",
     "/future/event-types/",
-    "/settings/admin/:path*",
     "/apps/installed/:category/",
     "/future/apps/installed/:category/",
     "/apps/:slug/",
@@ -179,17 +178,16 @@ export const config = {
     "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/future/workflows/:path*",
-    "/settings/teams/:path*",
     "/getting-started/:step/",
     "/future/getting-started/:step/",
     "/apps",
-    "/future/apps",
     "/bookings/:status/",
     "/future/bookings/:status/",
     "/video/:path*",
     "/future/video/:path*",
     "/teams",
     "/future/teams/",
+    "/settings/:path*",
   ],
 };
 
