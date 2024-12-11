@@ -46,9 +46,12 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   useEffect(() => {
+    console.log("inside useffect");
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
-  }, []);
+    //This removes the queryparameters from the url as soon as it gets added on every cliks on layout or calender dates
+    history.replaceState(null, "", window.location.pathname);
+  });
 
   useInitializeBookerStore({
     ...props,
