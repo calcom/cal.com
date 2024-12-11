@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Non disponibile, per tutto il giorno",
   "date_overrides_mark_all_day_unavailable_one": "Segna come non disponibile (tutto il giorno)",
   "date_overrides_mark_all_day_unavailable_other": "Segna come non disponibile nelle date selezionate",
-  "date_overrides_add_btn": "Aggiungi configurazione data specifica",
   "date_overrides_update_btn": "Aggiorna configurazione data specifica",
   "date_successfully_added": "Configurazione delle date aggiunta correttamente",
   "event_type_duplicate_copy_text": "{{slug}}-copia",

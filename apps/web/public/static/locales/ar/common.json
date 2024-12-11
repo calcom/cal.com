@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "غير متاح طوال اليوم",
   "date_overrides_mark_all_day_unavailable_one": "وصغ علامة غير متاح (طوال اليوم)",
   "date_overrides_mark_all_day_unavailable_other": "وضع علامة غير متاح على التواريخ المحددة",
-  "date_overrides_add_btn": "إضافة تجاوز",
   "date_overrides_update_btn": "تحديث التجاوز",
   "date_successfully_added": "تم إضافة تخطّي التاريخ بنجاح",
   "event_type_duplicate_copy_text": "{{slug}}-نسخ",

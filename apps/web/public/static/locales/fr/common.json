@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Indisponible toute la journée",
   "date_overrides_mark_all_day_unavailable_one": "Marquer comme indisponible (toute la journée)",
   "date_overrides_mark_all_day_unavailable_other": "Marquer comme indisponible aux dates sélectionnées",
-  "date_overrides_add_btn": "Ajouter la superposition",
   "date_overrides_update_btn": "Mettre à jour la superposition",
   "date_successfully_added": "Ajout du remplacement de date réussi",
   "event_type_duplicate_copy_text": "{{slug}}-copie",

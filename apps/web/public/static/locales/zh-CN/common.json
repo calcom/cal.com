@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "全天不可预约",
   "date_overrides_mark_all_day_unavailable_one": "标记不可预约的时间 (全天)",
   "date_overrides_mark_all_day_unavailable_other": "在选定日期标记不可预约的时间",
-  "date_overrides_add_btn": "添加替代",
   "date_overrides_update_btn": "更新替代",
   "date_successfully_added": "日期替代已成功添加",
   "event_type_duplicate_copy_text": "{{slug}}-复制",

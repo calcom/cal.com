@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Занят(а) весь день",
   "date_overrides_mark_all_day_unavailable_one": "Отметить, что я занят(а) (весь день)",
   "date_overrides_mark_all_day_unavailable_other": "Отметить, что я занят(а) в выбранные даты",
-  "date_overrides_add_btn": "Добавить переопределение",
   "date_overrides_update_btn": "Обновить переопределение",
   "date_successfully_added": "Переопределения даты успешно добавлено",
   "event_type_duplicate_copy_text": "{{slug}}-копия",

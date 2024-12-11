@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "No disponible todo el día",
   "date_overrides_mark_all_day_unavailable_one": "Marcar como no disponible (Todo el día)",
   "date_overrides_mark_all_day_unavailable_other": "Marcar como no disponible en las fechas seleccionadas",
-  "date_overrides_add_btn": "Agregar excepción",
   "date_overrides_update_btn": "Actualizar excepción",
   "date_successfully_added": "Excepción de fecha agregada con éxito",
   "event_type_duplicate_copy_text": "{{slug}}-copia",

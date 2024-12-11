@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Egész nap nem elérhető",
   "date_overrides_mark_all_day_unavailable_one": "Megjelölés elérhetetlennek (egész nap)",
   "date_overrides_mark_all_day_unavailable_other": "Jelölje meg nem elérhetőnek a kiválasztott dátumokon",
-  "date_overrides_add_btn": "Felülbírálás hozzáadása",
   "date_overrides_update_btn": "Felülbírálás frissítése",
   "date_successfully_added": "A dátum felülbírálása sikeresen hozzáadva",
   "event_type_duplicate_copy_text": "{{slug}}-másolat",
