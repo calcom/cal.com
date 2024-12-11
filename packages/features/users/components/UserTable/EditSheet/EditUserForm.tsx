@@ -352,7 +352,9 @@ function AttributesList(props: { selectedUserId: number }) {
                       label={attr.name}
                       options={getOptionsByAttributeId(attr.id)}
                       value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
-                      onChange={(value) => {
+                      onChange={(
+                        value: { value: string; label: string } | { value: string; label: string }[]
+                      ) => {
                         if (!value) return;
                         const valueAsArray = value instanceof Array ? value : [value];
 

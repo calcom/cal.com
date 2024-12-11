@@ -88,7 +88,9 @@ export const PriorityDialog = (
             className={customClassNames?.select}
             innerClassNames={customClassNames?.innerClassNames}
             value={newPriority}
-            onChange={(value) => setNewPriority(value ?? priorityOptions[2])}
+            onChange={(value?: { label: string; value: number }) =>
+              setNewPriority(value ?? priorityOptions[2])
+            }
             options={priorityOptions}
           />
         </div>

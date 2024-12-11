@@ -201,7 +201,7 @@ export default function RequiresConfirmationController({
                                             customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
                                           }
                                           innerClassNames={{ control: "rounded-l-none bg-subtle" }}
-                                          onChange={(opt) => {
+                                          onChange={(opt: (typeof options)[0]) => {
                                             setRequiresConfirmationSetup({
                                               time:
                                                 requiresConfirmationSetup?.time ??

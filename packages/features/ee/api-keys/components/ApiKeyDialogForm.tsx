@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type { ClassNamesState } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
@@ -177,11 +178,11 @@ export default function ApiKeyDialogForm({
                   return (
                     <SelectField
                       styles={{
-                        singleValue: (baseStyles) => ({
+                        singleValue: (baseStyles: ClassNamesState) => ({
                           ...baseStyles,
                           fontSize: "14px",
                         }),
-                        option: (baseStyles) => ({
+                        option: (baseStyles: ClassNamesState) => ({
                           ...baseStyles,
                           fontSize: "14px",
                         }),
@@ -189,7 +190,7 @@ export default function ApiKeyDialogForm({
                       isDisabled={watchNeverExpires || !!defaultValues}
                       containerClassName="data-testid-field-type"
                       options={expiresAtOptions}
-                      onChange={(option) => {
+                      onChange={(option: (typeof expiresAtOptions)[0]) => {
                         if (!option) {
                           return;
                         }

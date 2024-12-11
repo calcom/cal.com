@@ -644,7 +644,7 @@ export const EventTeamAssignmentTab = ({
                       customClassNames?.assignmentType?.schedulingTypeSelect?.select
                     )}
                     innerClassNames={customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames}
-                    onChange={(val) => {
+                    onChange={(val?: { value: string }) => {
                       onChange(val?.value);
                       resetRROptions();
                     }}
