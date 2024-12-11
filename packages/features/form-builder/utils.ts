@@ -27,8 +27,8 @@ export const getFullName = (name: string | { firstName: string; lastName?: strin
   return nameString;
 };
 
-function getFirstAndLastName(value: string | Record<"firstName" | "lastName", string> | undefined) {
-  let newValue: Record<"firstName" | "lastName", string>;
+export function getFirstAndLastName(value: string | { firstName: string; lastName?: string } | undefined) {
+  let newValue: { firstName: string; lastName?: string };
   value = value || "";
   if (typeof value === "string") {
     try {
