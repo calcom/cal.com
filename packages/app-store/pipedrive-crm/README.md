@@ -11,7 +11,7 @@
   - Go to the "OAuth & access scopes" tab of your app
   - Copy your client_id and client_secret
 
-#### Installing Pipedrive in cal.com
+#### Installing Pipedrive in Cal.com
 
 - GO to Apps in cal.com and click on `Crm` filter -> `Pipedrive`
 - Click on Install App
