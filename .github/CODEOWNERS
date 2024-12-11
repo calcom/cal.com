@@ -1,0 +1,13 @@
+/packages/app-store/applecalendar/**/* @Foundation
+/packages/app-store/caldavcalendar/**/* @Foundation
+/packages/app-store/exchange2013calendar/**/* @Foundation
+/packages/app-store/exchange2016calendar/**/* @Foundation
+/packages/app-store/exchangecalendar/**/* @Foundation
+/packages/app-store/feishucalendar/**/* @Foundation
+/packages/app-store/googlecalendar/**/* @Foundation
+/packages/app-store/ics-feedcalendar/**/* @Foundation
+/packages/app-store/larkcalendar/**/* @Foundation
+/packages/app-store/office365calendar/**/* @Foundation
+/packages/app-store/weather_in_your_calendar/**/* @Foundation
+/packages/app-store/wipemycalother/**/* @Foundation
+/packages/app-store/zohocalendar/**/* @Foundation
