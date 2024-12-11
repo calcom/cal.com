@@ -244,8 +244,11 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId: result?.credentialId !== -1 ? result?.credentialId ?? undefined : undefined,
-        delegatedToId: result?.delegatedToId || undefined,
+        credentialId:
+          result?.credentialId === -1 || result?.credentialId === 0
+            ? undefined
+            : result?.credentialId ?? undefined,
+        domainWideDelegationCredentialId: result?.delegatedToId || undefined,
       };
     });
 
@@ -637,7 +640,6 @@ export default class EventManager {
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
-    console.log("createAllCalendarEvents.this.calendarCredentials", this.calendarCredentials);
 
     const fallbackToFirstCalendarInTheList = async () => {
       /**
