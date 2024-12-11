@@ -20,7 +20,6 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/auth/error", process.env.APP_ROUTER_AUTH_ERROR_ENABLED === "1"] as const,
   ["/auth/platform/:path*", process.env.APP_ROUTER_AUTH_PLATFORM_ENABLED === "1"] as const,
   ["/auth/oauth2/:path*", process.env.APP_ROUTER_AUTH_OAUTH2_ENABLED === "1"] as const,
-  ["/workflows/:path*", process.env.APP_ROUTER_WORKFLOWS_ENABLED === "1"] as const,
   ["/getting-started/:step", process.env.APP_ROUTER_GETTING_STARTED_STEP_ENABLED === "1"] as const,
   ["/bookings/:status", process.env.APP_ROUTER_BOOKINGS_STATUS_ENABLED === "1"] as const,
   ["/booking/:path*", process.env.APP_ROUTER_BOOKING_ENABLED === "1"] as const,

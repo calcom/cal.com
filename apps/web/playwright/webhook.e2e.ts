@@ -658,12 +658,7 @@ test.describe("FORM_SUBMITTED", async () => {
     webhookReceiver.close();
   });
 
-  test("on submitting team form, triggers team webhook @test", async ({
-    page,
-    users,
-    routingForms,
-    webhooks,
-  }) => {
+  test("on submitting team form, triggers team webhook", async ({ page, users, routingForms, webhooks }) => {
     const user = await users.create(null, {
       hasTeam: true,
     });
