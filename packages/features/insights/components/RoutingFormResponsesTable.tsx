@@ -323,7 +323,7 @@ export function RoutingFormResponsesTableContent({
       };
 
       Object.entries(response.response).forEach(([fieldId, field]) => {
-        const fieldHeader = headers?.fields.find((h) => h.id === fieldId);
+        const fieldHeader = (headers || []).find((h) => h.id === fieldId);
 
         if (fieldHeader?.options) {
           if (Array.isArray(field.value)) {
@@ -377,7 +377,7 @@ export function RoutingFormResponsesTableContent({
         },
       }),
 
-      ...((headers?.fields || []).map((fieldHeader) => {
+      ...((headers || []).map((fieldHeader) => {
         const isText = [
           RoutingFormFieldType.TEXT,
           RoutingFormFieldType.EMAIL,
@@ -517,7 +517,7 @@ export function RoutingFormResponsesTableContent({
         return new Map();
       }
 
-      const fieldHeader = headers.fields.find((h) => h.id === columnId);
+      const fieldHeader = headers.find((h) => h.id === columnId);
       if (fieldHeader?.options) {
         return new Map(fieldHeader.options.map((option) => [{ label: option.label, value: option.id }, 1]));
       } else if (columnId === "bookingStatus") {

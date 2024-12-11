@@ -1645,16 +1645,14 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const fields = await RoutingEventsInsights.getRoutingFormHeaders({
+      const headers = await RoutingEventsInsights.getRoutingFormHeaders({
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
       });
 
-      return {
-        fields: fields || [],
-      };
+      return headers || [];
     }),
   rawRoutingData: userBelongsToTeamProcedure
     .input(
