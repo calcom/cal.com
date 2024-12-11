@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "未确认的预订仍会占用日历时间段。",
   "recurring_event": "定期活动",
   "recurring_event_description": "人们可以订阅定期活动",
+  "connect_and_join": "连接并加入",
   "cannot_be_used_with_paid_event_types": "不能用于付费的活动类型",
   "warning_payment_instant_meeting_event": "即时会议暂不支持定期活动和支付应用程序",
   "warning_instant_meeting_experimental": "测试提示：即时会议活动目前正在测试中。",
@@ -2842,7 +2843,9 @@
   "rr_distribution_method_balanced_title": "负载均衡",
   "rr_distribution_method_balanced_description": "系统会监控每位主持人已接受的预订数量并与其他人进行比较，如果某些主持人的预订数量远超他人，系统会暂时停用这些主持人，以确保预订均匀分配。",
   "exclude_emails_that_contain": "排除包含...的电子邮件",
+  "require_emails_that_contain": "要求电子邮件包含...",
   "exclude_emails_match_found_error_message": "请输入有效的工作电子邮件地址",
+  "require_emails_no_match_found_error_message": "您不被允许使用此电子邮件域名进行预订。请联系此链接的所有者。",
   "search_columns": "搜索列",
   "search_options": "搜索选项",
   "disable_org_url_label": "禁用公开组织资料并重定向",
@@ -2857,5 +2860,9 @@
   "lock_attribute_for_assignment_description": "锁定后将仅允许通过目录同步进行分配",
   "attribute_edited_successfully": "属性编辑成功",
   "new_group_option": "新建群组选项",
+  "routed": "已路由",
+  "reassigned": "已重新分配",
+  "rerouted": "已重新路由",
+  "salesforce_assigned": "Salesforce 分配",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
