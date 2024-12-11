@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Baieztatu gabeko erreserbek egutegiko tarteak blokeatzen dituzte oraindik.",
   "recurring_event": "Gertaera errepikaria",
   "recurring_event_description": "Jendeak gertaera errepikakorretarako izena eman dezake",
+  "connect_and_join": "Konektatu eta batu",
   "cannot_be_used_with_paid_event_types": "Ezin da ordaindutako gertaera motekin erabili",
   "warning_payment_instant_meeting_event": "Berehalako bilerak ez dira oraindik bateragarriak gertaera errepikakor eta ordainketa aplikazioekin",
   "warning_instant_meeting_experimental": "Esperimentala: Berehalako bilera gertaerak esperimentalak dira oraindik.",
@@ -2842,7 +2843,9 @@
   "rr_distribution_method_balanced_title": "Karga orekatzea",
   "rr_distribution_method_balanced_description": "Ostalari bakoitzarekin egin diren erreserben kopurua monitorizatu eta besteekin konparatuko dugu, aurreregi doazen ostalari batzuk desgaituz erreserbak modu orekatuan banatzeko",
   "exclude_emails_that_contain": "Baztertu hau duten emailak...",
+  "require_emails_that_contain": "Helbide elektronikoak hau eduki behar du ...",
   "exclude_emails_match_found_error_message": "Mesedez, sartu baliozko lan helbide elektroniko bat",
+  "require_emails_no_match_found_error_message": "Ez duzu baimenik helbide elektroniko domeinu honekin erreserbatzeko. Mesedez, jarri harremanetan esteka honen jabearekin.",
   "search_columns": "Bilatu zutabeak",
   "search_options": "Bilaketa-aukerak",
   "disable_org_url_label": "Desgaitu erakundearen profil publikoa eta birbideratu",
@@ -2857,5 +2860,9 @@
   "lock_attribute_for_assignment_description": "Blokeatzeak Directory Sync-etik datozen esleipenak soilik baimenduko ditu",
   "attribute_edited_successfully": "Atributua behar bezala editatu da",
   "new_group_option": "Talde aukera berria",
+  "routed": "Bideratuta",
+  "reassigned": "Berresleituta",
+  "rerouted": "Berbideratuta",
+  "salesforce_assigned": "Salesforce esleipena",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
