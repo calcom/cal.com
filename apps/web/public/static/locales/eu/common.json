@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Honekin amaitzen da",
   "filter_operator_is_empty": "Hutsik dago",
   "filter_operator_not_empty": "Ez dago hutsik",
-  "translate_description_button": "Deskribapena bisitariaren nabigatzailearen hizkuntzara itzuli adimen artifizialaren bidez",
+  "translate_description_button": "Bisitariaren nabigatzailearen hizkuntzara itzuli titulua/deskribapena AI erabiliz",
   "rr_distribution_method": "Banaketa",
   "rr_distribution_method_description": "Banaketa optimizatzeko aukera ematen du, erabilgarritasun maximoa edo esleipen orekatuagoa lortzeko",
   "rr_distribution_method_availability_title": "Erabilgarritasuna maximizatu",

@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Završava sa",
   "filter_operator_is_empty": "Prazno je",
   "filter_operator_not_empty": "Nije prazno",
-  "translate_description_button": "Prevedi opis na jezik posetiočevog pretraživača koristeći AI",
+  "translate_description_button": "Prevedi naslov/opis na jezik posetiočevog pretraživača koristeći AI",
   "rr_distribution_method": "Distribucija",
   "rr_distribution_method_description": "Omogućava optimizaciju distribucije za maksimalnu dostupnost ili za balansiranu raspodelu.",
   "rr_distribution_method_availability_title": "Maksimalna dostupnost",

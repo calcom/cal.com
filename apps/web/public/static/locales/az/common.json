@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "İlə bitir",
   "filter_operator_is_empty": "Boşdur",
   "filter_operator_not_empty": "Boş deyil",
-  "translate_description_button": "Təsviri ziyarətçinin brauzer dilinə süni intellekt vasitəsilə tərcümə et",
+  "translate_description_button": "Süni intellekt vasitəsilə başlıq/təsviri ziyarətçinin brauzer dilinə tərcümə et",
   "rr_distribution_method": "Paylama",
   "rr_distribution_method_description": "Maksimum əlçatanlıq üçün paylamanı optimallaşdırmağa və ya daha balanslı bir təyinat üçün çalışmağa imkan verir.",
   "rr_distribution_method_availability_title": "Əlçatanlığı maksimuma çatdırmaq",

@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "מסתיים ב",
   "filter_operator_is_empty": "ריק",
   "filter_operator_not_empty": "לא ריק",
-  "translate_description_button": "תרגם את התיאור לשפת הדפדפן של המבקר באמצעות בינה מלאכותית",
+  "translate_description_button": "תרגם כותרת/תיאור לשפת הדפדפן של המבקר באמצעות בינה מלאכותית",
   "rr_distribution_method": "שיטת חלוקה",
   "rr_distribution_method_description": "מאפשר אופטימיזציה של החלוקה למקסימום זמינות או לחלוקה מאוזנת יותר",
   "rr_distribution_method_availability_title": "מקסום זמינות",

@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Eindigt met",
   "filter_operator_is_empty": "Is leeg",
   "filter_operator_not_empty": "Is niet leeg",
-  "translate_description_button": "Vertaal beschrijving naar de browsertaal van de bezoeker met behulp van AI",
+  "translate_description_button": "Vertaal titel/beschrijving naar de browsertaal van de bezoeker met behulp van AI",
   "rr_distribution_method": "Distributie",
   "rr_distribution_method_description": "Maakt het mogelijk om de distributie te optimaliseren voor maximale beschikbaarheid of voor een meer gebalanceerde toewijzing.",
   "rr_distribution_method_availability_title": "Maximale beschikbaarheid",

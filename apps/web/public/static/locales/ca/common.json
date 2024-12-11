@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Acaba amb",
   "filter_operator_is_empty": "És buit",
   "filter_operator_not_empty": "No és buit",
-  "translate_description_button": "Traduir la descripció a l'idioma del navegador del visitant utilitzant IA",
+  "translate_description_button": "Tradueix el títol/descripció a l'idioma del navegador del visitant utilitzant IA",
   "rr_distribution_method": "Distribució",
   "rr_distribution_method_description": "Permet optimitzar la distribució per maximitzar la disponibilitat o aconseguir una assignació més equilibrada",
   "rr_distribution_method_availability_title": "Maximitzar disponibilitat",

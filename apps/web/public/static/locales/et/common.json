@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Lõpeb",
   "filter_operator_is_empty": "On tühi",
   "filter_operator_not_empty": "Ei ole tühi",
-  "translate_description_button": "Tõlgi kirjeldus tehisintellekti abil külastaja brauseri keelde",
+  "translate_description_button": "Tõlgi pealkiri/kirjeldus tehisintellekti abil külastaja brauseri keelde",
   "rr_distribution_method": "Jaotamine",
   "rr_distribution_method_description": "Võimaldab optimeerida jaotust maksimaalseks kättesaadavuseks või tasakaalustatumaks määramiseks.",
   "rr_distribution_method_availability_title": "Maksimeeri kättesaadavus",

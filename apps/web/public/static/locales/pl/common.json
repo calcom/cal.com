@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Kończy się na",
   "filter_operator_is_empty": "Jest pusty",
   "filter_operator_not_empty": "Nie jest pusty",
-  "translate_description_button": "Przetłumacz opis na język przeglądarki użytkownika za pomocą AI",
+  "translate_description_button": "Przetłumacz tytuł/opis na język przeglądarki użytkownika za pomocą AI",
   "rr_distribution_method": "Dystrybucja",
   "rr_distribution_method_description": "Pozwala zoptymalizować dystrybucję pod kątem maksymalnej dostępności lub bardziej zrównoważonego przydziału spotkań.",
   "rr_distribution_method_availability_title": "Maksymalizuj dostępność",

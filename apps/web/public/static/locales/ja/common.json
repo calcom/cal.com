@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "で終わる",
   "filter_operator_is_empty": "が空である",
   "filter_operator_not_empty": "が空ではない",
-  "translate_description_button": "AIを使用して説明文を訪問者のブラウザ言語に翻訳",
+  "translate_description_button": "AIを使用して訪問者のブラウザ言語にタイトル/説明を翻訳",
   "rr_distribution_method": "配分方式",
   "rr_distribution_method_description": "最大限の予約可能性を確保するため、または均等な配分を目指すための最適化が可能です。",
   "rr_distribution_method_availability_title": "予約可能性を最大化",

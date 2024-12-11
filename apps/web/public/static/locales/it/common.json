@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Finisce con",
   "filter_operator_is_empty": "È vuoto",
   "filter_operator_not_empty": "Non è vuoto",
-  "translate_description_button": "Traduci la descrizione nella lingua del browser del visitatore usando l'IA",
+  "translate_description_button": "Traduci titolo/descrizione nella lingua del browser del visitatore usando l'IA",
   "rr_distribution_method": "Distribuzione",
   "rr_distribution_method_description": "Permette di ottimizzare la distribuzione per massimizzare la disponibilità o per ottenere un'assegnazione più bilanciata.",
   "rr_distribution_method_availability_title": "Massimizza disponibilità",

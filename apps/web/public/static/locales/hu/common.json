@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Ezzel végződik",
   "filter_operator_is_empty": "Üres",
   "filter_operator_not_empty": "Nem üres",
-  "translate_description_button": "A leírás lefordítása a látogató böngészőjének nyelvére MI segítségével",
+  "translate_description_button": "A cím/leírás automatikus fordítása a látogató böngészőjének nyelvére MI segítségével",
   "rr_distribution_method": "Elosztás",
   "rr_distribution_method_description": "Lehetővé teszi az elosztás optimalizálását a maximális rendelkezésre állás érdekében, vagy a kiegyensúlyozottabb feladatkiosztás eléréséhez.",
   "rr_distribution_method_availability_title": "Rendelkezésre állás maximalizálása",

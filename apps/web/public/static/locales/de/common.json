@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Endet mit",
   "filter_operator_is_empty": "Ist leer",
   "filter_operator_not_empty": "Ist nicht leer",
-  "translate_description_button": "Beschreibung mit KI in die Browsersprache des Besuchers übersetzen",
+  "translate_description_button": "Titel/Beschreibung mit KI in die Browsersprache des Besuchers übersetzen",
   "rr_distribution_method": "Verteilung",
   "rr_distribution_method_description": "Ermöglicht die Optimierung der Verteilung für maximale Verfügbarkeit oder eine ausgewogenere Zuweisung.",
   "rr_distribution_method_availability_title": "Verfügbarkeit maximieren",

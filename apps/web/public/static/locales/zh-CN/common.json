@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "结尾为",
   "filter_operator_is_empty": "为空",
   "filter_operator_not_empty": "不为空",
-  "translate_description_button": "使用AI将描述翻译成访问者浏览器的语言",
+  "translate_description_button": "使用AI将标题/描述自动翻译为访问者浏览器的语言",
   "rr_distribution_method": "分配方式",
   "rr_distribution_method_description": "可以优化分配方式以实现最大可用性或更均衡的任务分配。",
   "rr_distribution_method_availability_title": "最大化可用性",

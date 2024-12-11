@@ -2843,7 +2843,7 @@ checksums:
     filter_operator_ends_with: c8a5f60f1bd1d8fa018dbbf49806fb5b
     filter_operator_is_empty: dca87bc415341b1cdf9523f3b795a313
     filter_operator_not_empty: 303caa93dcb79e54d47d4cd7d748a1df
-    translate_description_button: 65b94fd5bdb06c983ee3f4c1be74a1ac
+    translate_description_button: 659cad3e743ba1b6a554fc8007a9dbfb
     rr_distribution_method: c3d4633236c01f8314a38a9e9c2361f1
     rr_distribution_method_description: e9c1dda0299fbfc979a52a79b57e40c7
     rr_distribution_method_availability_title: 3a7c8afaf3ddb8d262e2a03d7fc8779d

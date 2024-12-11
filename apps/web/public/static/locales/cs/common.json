@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Končí na",
   "filter_operator_is_empty": "Je prázdné",
   "filter_operator_not_empty": "Není prázdné",
-  "translate_description_button": "Přeložit popis do jazyka prohlížeče návštěvníka pomocí AI",
+  "translate_description_button": "Přeložit název/popis do jazyka prohlížeče návštěvníka pomocí AI",
   "rr_distribution_method": "Distribuce",
   "rr_distribution_method_description": "Umožňuje optimalizovat distribuci pro maximální dostupnost nebo pro vyváženější přidělování.",
   "rr_distribution_method_availability_title": "Maximalizovat dostupnost",

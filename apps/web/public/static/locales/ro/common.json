@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Se termină cu",
   "filter_operator_is_empty": "Este gol",
   "filter_operator_not_empty": "Nu este gol",
-  "translate_description_button": "Traduce descrierea în limba browserului vizitatorului folosind AI",
+  "translate_description_button": "Traduce titlul/descrierea în limba browserului vizitatorului folosind AI",
   "rr_distribution_method": "Distribuție",
   "rr_distribution_method_description": "Permite optimizarea distribuției pentru disponibilitate maximă sau pentru o alocare mai echilibrată.",
   "rr_distribution_method_availability_title": "Maximizează disponibilitatea",

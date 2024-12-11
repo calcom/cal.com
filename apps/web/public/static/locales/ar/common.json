@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "ينتهي بـ",
   "filter_operator_is_empty": "فارغ",
   "filter_operator_not_empty": "غير فارغ",
-  "translate_description_button": "ترجمة الوصف إلى لغة متصفح الزائر باستخدام الذكاء الاصطناعي",
+  "translate_description_button": "ترجمة العنوان/الوصف إلى لغة متصفح الزائر باستخدام الذكاء الاصطناعي",
   "rr_distribution_method": "التوزيع",
   "rr_distribution_method_description": "يتيح تحسين التوزيع لتحقيق أقصى قدر من التوفر أو لتحقيق توزيع أكثر توازناً.",
   "rr_distribution_method_availability_title": "تعظيم التوفر",

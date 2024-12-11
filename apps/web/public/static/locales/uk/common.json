@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Закінчується на",
   "filter_operator_is_empty": "Порожньо",
   "filter_operator_not_empty": "Не порожньо",
-  "translate_description_button": "Перекласти опис мовою браузера відвідувача за допомогою ШІ",
+  "translate_description_button": "Перекласти заголовок/опис мовою браузера відвідувача за допомогою ШІ",
   "rr_distribution_method": "Розподіл",
   "rr_distribution_method_description": "Дозволяє оптимізувати розподіл для максимальної доступності або для більш збалансованого розподілу завдань.",
   "rr_distribution_method_availability_title": "Максимізувати доступність",

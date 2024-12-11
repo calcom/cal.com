@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Завършва с",
   "filter_operator_is_empty": "Е празно",
   "filter_operator_not_empty": "Не е празно",
-  "translate_description_button": "Преведи описанието на езика на браузъра на посетителя чрез AI",
+  "translate_description_button": "Преведи заглавието/описанието на езика на браузъра на посетителя чрез AI",
   "rr_distribution_method": "Разпределение",
   "rr_distribution_method_description": "Позволява оптимизиране на разпределението за максимална наличност или за по-балансирано разпределение.",
   "rr_distribution_method_availability_title": "Максимизиране на наличността",

@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "다음으로 끝남",
   "filter_operator_is_empty": "비어 있음",
   "filter_operator_not_empty": "비어 있지 않음",
-  "translate_description_button": "AI를 사용하여 방문자의 브라우저 언어로 설명 번역하기",
+  "translate_description_button": "AI를 사용하여 방문자의 브라우저 언어로 제목/설명 번역하기",
   "rr_distribution_method": "분배 방식",
   "rr_distribution_method_description": "최대 가용성을 위한 분배 최적화 또는 균형 잡힌 할당을 위한 설정이 가능합니다.",
   "rr_distribution_method_availability_title": "가용성 최대화",

@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Slutar med",
   "filter_operator_is_empty": "Är tom",
   "filter_operator_not_empty": "Är inte tom",
-  "translate_description_button": "Översätt beskrivningen till besökarens webbläsarspråk med hjälp av AI",
+  "translate_description_button": "Översätt titel/beskrivning till besökarens webbläsarspråk med hjälp av AI",
   "rr_distribution_method": "Distribution",
   "rr_distribution_method_description": "Möjliggör optimering av distributionen för maximal tillgänglighet eller för att uppnå en mer balanserad fördelning.",
   "rr_distribution_method_availability_title": "Maximera tillgänglighet",

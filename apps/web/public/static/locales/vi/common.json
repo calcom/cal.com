@@ -2841,7 +2841,7 @@
   "filter_operator_ends_with": "Kết thúc bằng",
   "filter_operator_is_empty": "Trống",
   "filter_operator_not_empty": "Không trống",
-  "translate_description_button": "Dịch mô tả sang ngôn ngữ trình duyệt của khách bằng AI",
+  "translate_description_button": "Dùng AI để dịch tiêu đề/mô tả sang ngôn ngữ trình duyệt của khách",
   "rr_distribution_method": "Phân phối",
   "rr_distribution_method_description": "Cho phép tối ưu hóa việc phân phối để đạt khả năng sẵn sàng tối đa hoặc hướng đến việc phân công cân bằng hơn.",
   "rr_distribution_method_availability_title": "Tối đa hóa khả năng sẵn sàng",
