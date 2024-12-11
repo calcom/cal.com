@@ -561,7 +561,7 @@ export default class GoogleCalendarService implements Calendar {
 
     try {
       const calIdsWithTimeZone = await getCalIdsWithTimeZone();
-      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => calIdWithTimeZone.id);
+      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
 
       const originalStartDate = dayjs(dateFrom);
       const originalEndDate = dayjs(dateTo);
@@ -569,20 +569,17 @@ export default class GoogleCalendarService implements Calendar {
       const freeBusyData = await this.getCacheOrFetchAvailability({
         timeMin: dateFrom,
         timeMax: dateTo,
-        items: calIds.map((id) => ({ id })),
+        items: calIds,
       });
       if (!freeBusyData) throw new Error("No response from google calendar");
 
+      const timeZoneMap = new Map(calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone]));
+
       const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
-        let timeZone = "";
-        const calIdWithTimeZone = calIdsWithTimeZone.find(
-          (calIdWithTimeZone) => calIdWithTimeZone.id === freeBusy.id
-        );
-        timeZone = calIdWithTimeZone?.timeZone || "";
         return {
           start: freeBusy.start,
           end: freeBusy.end,
-          timeZone,
+          timeZone: timeZoneMap.get(freeBusy.id) || "",
         };
       });
 
