@@ -35,7 +35,7 @@ export async function getConnectedDestinationCalendars(
   const allCredentials = [...userCredentials, ...domainWideDelegationCredentials];
 
   // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(allCredentials);
+  const calendarCredentials = await getCalendarCredentials(allCredentials);
 
   // get all the connected integrations' calendars (from third party)
   const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(

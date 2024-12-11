@@ -23,7 +23,7 @@ const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
     select: credentialForCalendarServiceSelect,
   });
 
-  const calendarCredentials = getCalendarCredentials(userCredentials);
+  const calendarCredentials = await getCalendarCredentials(userCredentials);
 
   const { connectedCalendars } = await getConnectedCalendars(
     calendarCredentials,

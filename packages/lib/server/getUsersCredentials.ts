@@ -25,6 +25,7 @@ export async function getUsersCredentials(user: User) {
       id: user.id,
     },
   });
+
   return [
     ...credentials.map((credential) => ({ ...credential, delegatedToId: null })),
     ...domainWideDelegationCredentials,

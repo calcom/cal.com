@@ -76,19 +76,24 @@ export async function getCredentialForCalendarService<
   } as CredentialForCalendarService<T>;
 }
 
-export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
-  const calendarCredentials = getApps(credentials, true)
-    .filter((app) => app.type.endsWith("_calendar"))
-    .flatMap((app) => {
-      const credentials = app.credentials.flatMap((credential) => {
-        const calendar = getCalendar(credential);
-        return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
-      });
+export const getCalendarCredentials = async (credentials: Array<CredentialPayload>) => {
+  const calendarCredentials = await Promise.all(
+    getApps(credentials, true)
+      .filter((app) => app.type.endsWith("_calendar"))
+      .flatMap(async (app) => {
+        const credentials = await Promise.all(
+          app.credentials.map(async (credential) => {
+            const credentialForCalendarService = await getCredentialForCalendarService(credential);
+            const calendar = getCalendar(credentialForCalendarService);
+            return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
+          })
+        );
 
-      return credentials.length ? credentials : [];
-    });
+        return credentials.flat();
+      })
+  );
 
-  return calendarCredentials;
+  return calendarCredentials.flat();
 };
 
 export const getConnectedCalendars = async (
@@ -97,6 +102,7 @@ export const getConnectedCalendars = async (
   destinationCalendarExternalId?: string
 ) => {
   let destinationCalendar: IntegrationCalendar | undefined;
+  console.log("getConnectedCalendars.dddd", calendarCredentials);
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {

@@ -6,9 +6,9 @@
       - No DWD credential should be considered
   - Tests
     - [ ] Booking Scenario Tests that would verify that correct payload is given to CalendarService when DWD is enabled
-    - [ ] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.
-    - [ ] setDestinationCalendar.handler.ts tests to verify that when DWD is enabled it still correctly sets the destination calendar. 
-    - [ ] getConnectedDestinationCalendars tests.
+    - [x] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.
+    - [x] setDestinationCalendar.handler.ts tests to verify that when DWD is enabled it still correctly sets the destination calendar. 
+    - [x] getConnectedDestinationCalendars tests.
   - [x] Creating DWD shouldn't immediately enable it. Enabling has separate check to confirm if it is actually configured in google workspace
   - [x] Added check to avoid adding same domain for a workspace platform in another organization if it is already enabled in some other organization
   - [x] Don't show dwd in menu for non-org-admin users - It errors with something_went_wrong right now

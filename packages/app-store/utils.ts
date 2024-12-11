@@ -57,12 +57,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     delegatedTo: null,
   };
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
-    const appCredentials = credentials
-      .filter((credential) => credential.appId === appMeta.slug)
-      .map((credential) => ({
-        ...credential,
-        ...delegatedToPayloadForNonDwdCredential,
-      }));
+    const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 
     if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
 

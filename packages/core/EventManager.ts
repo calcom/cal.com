@@ -336,7 +336,7 @@ export default class EventManager {
       credentialId,
       this.calendarCredentials,
       credentialType,
-      reference.delegatedToId
+      reference.domainWideDelegationCredentialId
     );
 
     if (calendarCredential) {
@@ -368,10 +368,10 @@ export default class EventManager {
     credentialId: number | null | undefined,
     credentials: CredentialPayload[],
     type: string,
-    delegatedToId?: string | null
+    domainWideDelegationCredentialId?: string | null
   ) {
-    if (delegatedToId) {
-      return this.calendarCredentials.find((cred) => cred.delegatedToId === delegatedToId);
+    if (domainWideDelegationCredentialId) {
+      return this.calendarCredentials.find((cred) => cred.delegatedToId === domainWideDelegationCredentialId);
     }
     const credential = credentials.find((cred) => cred.id === credentialId);
     if (credential) {
