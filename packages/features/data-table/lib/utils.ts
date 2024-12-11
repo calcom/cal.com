@@ -26,9 +26,10 @@ export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
   return useMemo(() => {
     const value = activeFilters.find((filter) => filter.f === columnId)?.v;
     if (schema && value) {
-      try {
-        return schema.parse(value);
-      } catch {}
+      const result = schema.safeParse(value);
+      if (result.success) {
+        return result.data;
+      }
     }
     return undefined;
   }, [activeFilters, columnId, schema]);
