@@ -79,7 +79,7 @@ export type BookerStore = {
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
-  setSelectedDate: (date: string | null) => void;
+  setSelectedDate: (date: string | null, omitUpdatingParams?: boolean) => void;
   addToSelectedDate: (days: number) => void;
   /**
    * Multiple Selected Dates and Times
@@ -178,7 +178,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
-  setSelectedDate: (selectedDate: string | null) => {
+  setSelectedDate: (selectedDate: string | null, omitUpdatingParams = false) => {
     // unset selected date
     if (!selectedDate) {
       removeQueryParam("date");
@@ -188,12 +188,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
-    updateQueryParam("date", selectedDate ?? "");
+    if (!omitUpdatingParams) {
+      updateQueryParam("date", selectedDate ?? "");
+    }
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      updateQueryParam("month", newSelection.format("YYYY-MM"));
+      if (!omitUpdatingParams) {
+        updateQueryParam("month", newSelection.format("YYYY-MM"));
+      }
     }
   },
   selectedDatesAndTimes: null,
@@ -221,7 +225,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
   },
-  month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
+  month:
+    getQueryParam("month") ||
+    (getQueryParam("date") && dayjs(getQueryParam("date")).isValid()
+      ? dayjs(getQueryParam("date")).format("YYYY-MM")
+      : null) ||
+    dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     if (!month) {
       removeQueryParam("month");
