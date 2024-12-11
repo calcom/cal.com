@@ -2,15 +2,19 @@ import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
-import { eventTypeSelect } from "../eventTypeSelect";
+import { eventTypeSelect, eventTypeSelectForBookingPage } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
+import { enrichWithSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
@@ -622,6 +626,7 @@ export class EventTypeRepository {
       },
       secondaryEmailId: true,
       maxLeadThreshold: true,
+      useEventLevelSelectedCalendars: true,
     });
 
     return await prisma.eventType.findFirst({
@@ -711,5 +716,213 @@ export class EventTypeRepository {
         ],
       },
     });
+  }
+
+  static async findForAvailabilityCheck({ id }: { id: number }) {
+    const eventType = await prisma.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        useEventLevelSelectedCalendars: true,
+        seatsPerTimeSlot: true,
+        bookingLimits: true,
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        },
+        hosts: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                id: true,
+                selectedCalendars: true,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        durationLimits: true,
+        assignAllTeamMembers: true,
+        schedulingType: true,
+        timeZone: true,
+        length: true,
+        metadata: true,
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                days: true,
+                date: true,
+                startTime: true,
+                endTime: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            startTime: true,
+            endTime: true,
+            days: true,
+            date: true,
+          },
+        },
+      },
+    });
+
+    if (!eventType) {
+      return eventType;
+    }
+
+    return {
+      ...eventType,
+      hosts: eventType.hosts.map((host) => ({
+        ...host,
+        user: enrichWithSelectedCalendars(host.user),
+      })),
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    };
+  }
+
+  static async findForSlots({ id }: { id: number }) {
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        ...eventTypeSelectForBookingPage,
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        },
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                date: true,
+                startTime: true,
+                endTime: true,
+                days: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            date: true,
+            startTime: true,
+            endTime: true,
+            days: true,
+          },
+        },
+        hosts: {
+          select: {
+            isFixed: true,
+            createdAt: true,
+            user: {
+              select: {
+                credentials: { select: credentialForCalendarServiceSelect },
+                ...availabilityUserSelect,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        users: {
+          select: {
+            credentials: { select: credentialForCalendarServiceSelect },
+            ...availabilityUserSelect,
+          },
+        },
+      },
+    });
+
+    if (!eventType) {
+      return eventType;
+    }
+
+    const hostsWithSelectedCalendars = eventType.hosts.map((host) => ({
+      ...host,
+      user: enrichWithSelectedCalendars(host.user),
+    }));
+
+    const usersWithSelectedCalendars = eventType.users.map((user) => enrichWithSelectedCalendars(user));
+
+    return {
+      ...eventType,
+      hosts: hostsWithSelectedCalendars,
+      users: usersWithSelectedCalendars,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
+    };
+  }
+
+  static getSelectedCalendarsFromUser({
+    user,
+    eventTypeId,
+  }: {
+    user: { allSelectedCalendars: SelectedCalendar[] };
+    eventTypeId: number;
+  }) {
+    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 }

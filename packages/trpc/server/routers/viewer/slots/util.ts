@@ -29,14 +29,14 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { UserRepository, enrichWithSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -158,120 +158,7 @@ export async function getEventType(
     return null;
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      minimumBookingNotice: true,
-      length: true,
-      offsetStart: true,
-      seatsPerTimeSlot: true,
-      timeZone: true,
-      slotInterval: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      bookingLimits: true,
-      durationLimits: true,
-      assignAllTeamMembers: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      onlyShowFirstAvailableSlot: true,
-      periodCountCalendarDays: true,
-      rescheduleWithSameRoundRobinHost: true,
-      periodDays: true,
-      metadata: true,
-      assignRRMembersUsingSegment: true,
-      rrSegmentQueryValue: true,
-      maxLeadThreshold: true,
-      team: {
-        select: {
-          id: true,
-          bookingLimits: true,
-          includeManagedEventsInLimits: true,
-        },
-      },
-      parent: {
-        select: {
-          team: {
-            select: {
-              id: true,
-              bookingLimits: true,
-              includeManagedEventsInLimits: true,
-            },
-          },
-        },
-      },
-      schedule: {
-        select: {
-          id: true,
-          availability: {
-            select: {
-              date: true,
-              startTime: true,
-              endTime: true,
-              days: true,
-            },
-          },
-          timeZone: true,
-        },
-      },
-      availability: {
-        select: {
-          date: true,
-          startTime: true,
-          endTime: true,
-          days: true,
-        },
-      },
-      hosts: {
-        select: {
-          isFixed: true,
-          createdAt: true,
-          user: {
-            select: {
-              credentials: { select: credentialForCalendarServiceSelect },
-              ...availabilityUserSelect,
-            },
-          },
-          schedule: {
-            select: {
-              availability: {
-                select: {
-                  date: true,
-                  startTime: true,
-                  endTime: true,
-                  days: true,
-                },
-              },
-              timeZone: true,
-              id: true,
-            },
-          },
-        },
-      },
-      users: {
-        select: {
-          credentials: { select: credentialForCalendarServiceSelect },
-          ...availabilityUserSelect,
-        },
-      },
-    },
-  });
-
-  if (!eventType) {
-    return null;
-  }
-
-  return {
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
-  };
+  return await EventTypeRepository.findForSlots({ id: eventTypeId });
 }
 
 export async function getDynamicEventType(
@@ -305,7 +192,8 @@ export async function getDynamicEventType(
       },
     },
   });
-  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  const usersWithSelectedCalendars = users.map((user) => enrichWithSelectedCalendars(user));
+  const isDynamicAllowed = !usersWithSelectedCalendars.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({
       message: "Some of the users in this group do not allow dynamic booking",
@@ -313,7 +201,7 @@ export async function getDynamicEventType(
     });
   }
   return Object.assign({}, dynamicEventType, {
-    users,
+    users: usersWithSelectedCalendars,
   });
 }
 

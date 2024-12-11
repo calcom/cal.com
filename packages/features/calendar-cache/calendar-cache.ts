@@ -22,6 +22,7 @@ export class CalendarCache {
     const isCalendarCacheEnabledGlobally = await featureRepo.checkIfFeatureIsEnabledGlobally(
       "calendar-cache"
     );
+    console.log("isCalendarCacheEnabledGlobally", isCalendarCacheEnabledGlobally);
     if (isCalendarCacheEnabledGlobally) return new CalendarCacheRepository(calendar);
     return new CalendarCacheRepositoryMock();
   }

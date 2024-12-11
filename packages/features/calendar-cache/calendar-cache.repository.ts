@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 
@@ -50,15 +51,15 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async watchCalendar(args: { calendarId: string }) {
-    const { calendarId } = args;
+  async watchCalendar(args: { calendarId: string; eventTypeId: number | null }) {
+    const { calendarId, eventTypeId } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
       log.info(
         '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.watchCalendar({ calendarId });
+    const response = await this.calendar?.watchCalendar({ calendarId, eventTypeId });
     const parsedResponse = watchCalendarSchema.safeParse(response);
     if (!parsedResponse.success) {
       log.info(
@@ -70,21 +71,52 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     return parsedResponse.data;
   }
 
-  async unwatchCalendar(args: { calendarId: string }) {
-    const { calendarId } = args;
+  async unwatchCalendar(args: { calendarId: string; eventTypeId: number | null }) {
+    const { calendarId, eventTypeId } = args;
     if (typeof this.calendar?.unwatchCalendar !== "function") {
       log.info(
-        '[unwatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
+        '[unwatchCalendar] Skipping unwatching calendar due to calendar not having "unwatchCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.unwatchCalendar({ calendarId });
+    const response = await this.calendar?.unwatchCalendar({ calendarId, eventTypeId });
+    return response;
+  }
+
+  async watchCalendars(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
+    const { calendarId, eventTypeIds } = args;
+    if (typeof this.calendar?.watchCalendars !== "function") {
+      log.info(
+        '[handleWatchCalendars] Skipping watching calendars due to calendar not having "watchCalendars" method'
+      );
+      return;
+    }
+    const response = await this.calendar?.watchCalendars({ calendarId, eventTypeIds });
+    const parsedResponse = watchCalendarSchema.safeParse(response);
+    if (!parsedResponse.success) {
+      log.info(
+        "[handleWatchCalendars] Received invalid response from calendar.watchCalendars, skipping watching calendars"
+      );
+      return;
+    }
+
+    return parsedResponse.data;
+  }
+
+  async unwatchCalendars(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
+    const { calendarId, eventTypeIds } = args;
+    if (typeof this.calendar?.unwatchCalendars !== "function") {
+      log.info(
+        '[unwatchCalendars] Skipping unwatching calendars due to calendar not having "unwatchCalendars" method'
+      );
+      return;
+    }
+    const response = await this.calendar?.unwatchCalendars({ calendarId, eventTypeIds });
     return response;
   }
 
   async getCachedAvailability(credentialId: number, args: FreeBusyArgs) {
     const key = parseKeyForCache(args);
-    log.info("Getting cached availability", key);
     const cached = await prisma.calendarCache.findUnique({
       where: {
         credentialId_key: {
@@ -94,6 +126,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         expiresAt: { gte: new Date(Date.now()) },
       },
     });
+    log.info("Got cached availability", safeStringify({ key, cached }));
     return cached;
   }
   async upsertCachedAvailability(

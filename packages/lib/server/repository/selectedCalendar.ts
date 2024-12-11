@@ -11,17 +11,77 @@ export class SelectedCalendarRepository {
       },
     });
   }
+
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    return await prisma.selectedCalendar.upsert({
+    // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable.
+    // We can't use upsert here
+    // We have to ensure at all places(which we do) that an entry doesn't exist already before creating a new one
+    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
       where: {
-        userId_integration_externalId: {
-          userId: data.userId,
-          integration: data.integration,
-          externalId: data.externalId,
-        },
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
+        eventTypeId: data.eventTypeId || null,
       },
-      create: { ...data },
-      update: { ...data },
+    });
+
+    if (existingSelectedCalendar) {
+      return await prisma.selectedCalendar.update({
+        where: {
+          id: existingSelectedCalendar.id,
+        },
+        data,
+      });
+    }
+
+    return await prisma.selectedCalendar.create({
+      data,
+    });
+  }
+
+  // static async upsertManyByUserIdIntegrationAndExternalId(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+  //   // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable.
+  //   // We can't use upsert here
+  //   // We have to ensure at all places(which we do) that an entry doesn't exist already before creating a new one
+  //   const existingSelectedCalendars = await prisma.selectedCalendar.findMany({
+  //     where: {
+  //       userId: data.userId,
+  //       integration: data.integration,
+  //       externalId: data.externalId,
+  //     },
+  //   });
+
+  //   if (existingSelectedCalendars.length > 0) {
+  //     return await prisma.selectedCalendar.updateMany({
+  //       where: {
+  //         id: {
+  //           in: existingSelectedCalendars.map((sc) => sc.id),
+  //         },
+  //       },
+  //       data,
+  //     });
+  //   }
+
+  //   return await prisma.selectedCalendar.create({
+  //     data: {
+  //       ...data,
+  //     },
+  //   });
+  // }
+
+  static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+      where: {
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
+        eventTypeId: data.eventTypeId || null,
+      },
+    });
+
+    if (existingSelectedCalendar) return existingSelectedCalendar;
+    return await prisma.selectedCalendar.create({
+      data,
     });
   }
   /** Retrieve calendars that need to be watched */
@@ -57,7 +117,10 @@ export class SelectedCalendarRepository {
     });
     return nextBatch;
   }
-  /** Retrieve calendars that are being watched but shouldn't be anymore */
+  /**
+   * Retrieve calendars that are being watched but shouldn't be anymore
+   * e.g. when a user disables calendar cache for the organization
+   */
   static async getNextBatchToUnwatch(limit = 100) {
     const nextBatch = await prisma.selectedCalendar.findMany({
       take: limit,
@@ -83,21 +146,20 @@ export class SelectedCalendarRepository {
     return nextBatch;
   }
   static async delete(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    return await prisma.selectedCalendar.delete({
+    return await prisma.selectedCalendar.deleteMany({
       where: {
-        userId_integration_externalId: {
-          userId: data.userId,
-          externalId: data.externalId,
-          integration: data.integration,
-        },
+        userId: data.userId,
+        externalId: data.externalId,
+        integration: data.integration,
+        eventTypeId: data.eventTypeId ?? null,
       },
     });
   }
   static async findMany(args: Prisma.SelectedCalendarFindManyArgs) {
     return await prisma.selectedCalendar.findMany(args);
   }
-  static async findByGoogleChannelId(googleChannelId: string) {
-    return await prisma.selectedCalendar.findUnique({
+  static async findFirstByGoogleChannelId(googleChannelId: string) {
+    return await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
       },
@@ -113,6 +175,12 @@ export class SelectedCalendarRepository {
           },
         },
       },
+    });
+  }
+
+  static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
+    return await prisma.selectedCalendar.findFirst({
+      where,
     });
   }
 }
