@@ -1,4 +1,4 @@
-import type { FilterValue } from "./types";
+import type { FilterValue, SortingState } from "./types";
 import { isSelectFilterValue, isTextFilterValue, isNumberFilterValue } from "./utils";
 
 type makeWhereClauseProps = {
@@ -6,6 +6,14 @@ type makeWhereClauseProps = {
   filterValue: FilterValue;
   json?: true | { path: string[] };
 };
+
+export function makeOrderBy(sorting: SortingState) {
+  if (!sorting || !sorting.length) return undefined;
+
+  return sorting.map((sort) => ({
+    [sort.id]: sort.desc ? ("desc" as const) : ("asc" as const),
+  }));
+}
 
 export function makeWhereClause(props: makeWhereClauseProps) {
   const { columnName, filterValue } = props;

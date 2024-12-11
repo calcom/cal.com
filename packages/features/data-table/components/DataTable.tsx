@@ -129,8 +129,10 @@ export function DataTable<TData, TValue>({
                         width: `var(--header-${kebabCase(header?.id)}-size)`,
                       }}
                       className={classNames(
-                        "bg-subtle hover:bg-muted relative flex shrink-0 items-center",
-                        header.column.getCanSort() ? "cursor-pointer select-none" : "",
+                        "relative flex shrink-0 items-center",
+                        header.column.getCanSort()
+                          ? "bg-subtle hover:bg-muted cursor-pointer select-none"
+                          : "",
                         meta?.sticky && "sticky top-0 z-20"
                       )}>
                       <div
