@@ -24,7 +24,8 @@ export function createAppsFixture(page: Page) {
     },
     installAnalyticsApp: async (app: string, eventTypeIds: number[]) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
-      (await page.waitForSelector('[data-testid="install-app-button"]')).click();
+      await page.waitForSelector('[data-testid="install-app-button"]');
+      await page.click('[data-testid="install-app-button"]');
 
       await page.click('[data-testid="install-app-button-personal"]');
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
