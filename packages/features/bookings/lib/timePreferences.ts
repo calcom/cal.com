@@ -12,6 +12,7 @@ type TimePreferencesStore = {
 };
 
 const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
+const currentTimezone = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
 
 /**
  * This hook is NOT inside the user feature, since
@@ -24,7 +25,7 @@ export const timePreferencesStore = create<TimePreferencesStore>((set) => ({
     setIs24hClockInLocalStorage(format === TimeFormat.TWENTY_FOUR_HOUR);
     set({ timeFormat: format });
   },
-  timezone: localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess() || "Europe/London",
+  timezone: localStorage.getItem(timezoneLocalStorageKey) || currentTimezone,
   setTimezone: (timezone: string) => {
     localStorage.setItem(timezoneLocalStorageKey, timezone);
     set({ timezone });
