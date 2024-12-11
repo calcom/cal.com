@@ -26,53 +26,58 @@ export default function JoinCall(props: PageProps) {
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
-    const callFrame = DailyIframe.createFrame({
-      theme: {
-        colors: {
-          accent: "#FFF",
-          accentText: "#111111",
-          background: "#111111",
-          backgroundAccent: "#111111",
-          baseText: "#FFF",
-          border: "#292929",
-          mainAreaBg: "#111111",
-          mainAreaBgAccent: "#1A1A1A",
-          mainAreaText: "#FFF",
-          supportiveText: "#FFF",
-        },
-      },
-      showLeaveButton: true,
-      iframeStyle: {
-        position: "fixed",
-        width: "100%",
-        height: "100%",
-      },
-      url: meetingUrl,
-      ...(typeof meetingPassword === "string" && { token: meetingPassword }),
-      ...(hasTeamPlan && {
-        customTrayButtons: {
-          recording: {
-            label: "Record",
-            tooltip: "Start or stop recording",
-            iconPath: RECORDING_DEFAULT_ICON,
-            iconPathDarkMode: RECORDING_DEFAULT_ICON,
-          },
-          transcription: {
-            label: "Cal.ai",
-            tooltip: "Transcription powered by AI",
-            iconPath: TRANSCRIPTION_STOPPED_ICON,
-            iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+    let callFrame: DailyCall | undefined;
+    try {
+      callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#FFF",
+            accentText: "#111111",
+            background: "#111111",
+            backgroundAccent: "#111111",
+            baseText: "#FFF",
+            border: "#292929",
+            mainAreaBg: "#111111",
+            mainAreaBgAccent: "#1A1A1A",
+            mainAreaText: "#FFF",
+            supportiveText: "#FFF",
           },
         },
-      }),
-    });
+        showLeaveButton: true,
+        iframeStyle: {
+          position: "fixed",
+          width: "100%",
+          height: "100%",
+        },
+        url: meetingUrl,
+        ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+        ...(hasTeamPlan && {
+          customTrayButtons: {
+            recording: {
+              label: "Record",
+              tooltip: "Start or stop recording",
+              iconPath: RECORDING_DEFAULT_ICON,
+              iconPathDarkMode: RECORDING_DEFAULT_ICON,
+            },
+            transcription: {
+              label: "Cal.ai",
+              tooltip: "Transcription powered by AI",
+              iconPath: TRANSCRIPTION_STOPPED_ICON,
+              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+            },
+          },
+        }),
+      });
+    } catch (err) {
+      callFrame = DailyIframe.getCallInstance();
+    } finally {
+      setDaily(callFrame ?? null);
 
-    setDaily(callFrame);
-
-    callFrame.join();
+      callFrame?.join();
+    }
 
     return () => {
-      callFrame.destroy();
+      callFrame?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
