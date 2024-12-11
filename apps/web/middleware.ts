@@ -177,7 +177,6 @@ export const config = {
     "/apps/categories/:category/",
     "/future/apps/categories/:category/",
     "/workflows/:path*",
-    "/future/workflows/:path*",
     "/getting-started/:step/",
     "/future/getting-started/:step/",
     "/apps",
