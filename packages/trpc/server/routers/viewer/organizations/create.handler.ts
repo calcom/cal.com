@@ -101,6 +101,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       email: true,
       completedOnboarding: true,
       emailVerified: true,
+      avatarUrl: true,
       teams: {
         select: {
           team: {
@@ -117,11 +118,28 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
+  console.log("-------------");
+  console.log(loggedInUser, "this is the logged in user");
+  console.log("-------------");
+
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
-  const verifiedUser = loggedInUser.completedOnboarding && !!loggedInUser.emailVerified;
 
   // We only allow creating an annual billing period if you are a system admin
   const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
+
+  if (isPlatform && !loggedInUser.completedOnboarding) {
+    // add default availability and creaete some default event types for the user
+    // once above is done, completedOnboarding can be set to true
+
+    await prisma.user.update({
+      data: {
+        completedOnboarding: true,
+      },
+      where: {
+        email: loggedInUser.email,
+      },
+    });
+  }
 
   if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
@@ -131,13 +149,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
-    });
-  }
-
-  if (isPlatform && !verifiedUser) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You need to complete onboarding before creating a platform team",
     });
   }
 
