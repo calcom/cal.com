@@ -362,6 +362,11 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   @DocsProperty({ example: "John Doe" })
   name!: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty({ example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png" })
+  avatarUrl?: string | null;
 }
 
 export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
@@ -413,4 +418,9 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsBoolean()
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  bannerUrl?: string;
 }

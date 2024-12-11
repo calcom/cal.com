@@ -247,6 +247,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             reminder.booking.endTime.toISOString() || "",
             reminder.booking.eventType?.title || "",
             timeZone || "",
+            reminder.booking.location || "",
+            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
             attendeeName || "",
             name || "",
             !!reminder.booking.user?.hideBranding
@@ -264,6 +266,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           );
           emailContent = emailRatingTemplate({
             isEditingMode: true,
+            locale: reminder.booking.user?.locale || "en",
             action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
@@ -374,6 +377,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
           timeZone || "",
+          reminder.booking.location || "",
+          bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
           attendeeName || "",
           name || "",
           !!reminder.booking.user?.hideBranding
