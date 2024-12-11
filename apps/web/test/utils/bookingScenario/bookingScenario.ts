@@ -1999,3 +1999,49 @@ export const getDefaultBookingFields = ({
     ...bookingFields,
   ] as Fields;
 };
+
+export const createDwdCredential = async (orgId: number) => {
+  const workspace = await prismock.workspacePlatform.create({
+    data: {
+      name: "Test Workspace",
+      slug: "google",
+      description: "Test Workspace",
+      defaultServiceAccountKey: {
+        type: "service_account",
+        auth_uri: "https://accounts.google.com/o/oauth2/auth",
+        client_id: "CLIENT_ID",
+        token_uri: "https://oauth2.googleapis.com/token",
+        project_id: "PROJECT_ID",
+        private_key: "PRIVATE_KEY",
+        client_email: "CLIENT_EMAIL",
+        private_key_id: "PRIVATE_KEY_ID",
+        universe_domain: "googleapis.com",
+        client_x509_cert_url: "CLIENT_X509_CERT_URL",
+        auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      enabled: true,
+    },
+  });
+
+  const dwd = await prismock.domainWideDelegation.create({
+    data: {
+      workspacePlatform: {
+        connect: {
+          id: workspace.id,
+        },
+      },
+      domain: "example.com",
+      enabled: true,
+      organization: {
+        connect: {
+          id: orgId,
+        },
+      },
+      serviceAccountKey: workspace.defaultServiceAccountKey,
+    },
+  });
+
+  return dwd;
+};
