@@ -20,6 +20,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
+import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
@@ -199,20 +200,24 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
 };
 
 export const getBusyCalendarTimes = async (
-  username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  includeTimeZone?: boolean
 ) => {
-  let results: EventBusyDate[][] = [];
+  let results: (EventBusyDate & { timeZone?: string })[][] = [];
   // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+    if (includeTimeZone) {
+      results = await getCalendarsEventsWithTimezones(withCredentials, startDate, endDate, selectedCalendars);
+    } else {
+      results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+    }
   } catch (e) {
     log.warn(safeStringify(e));
   }
