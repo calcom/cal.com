@@ -2874,5 +2874,9 @@
   "reassigned": "Reassigned",
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
+  "generate_credentials_description": "Generate credentials to use with {{appName}} at",
+  "provide_credentials": "Provide Credntials",
+  "provide_client_id": "Enter Client ID",
+  "provide_client_secret": "Enter Client Secret",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
