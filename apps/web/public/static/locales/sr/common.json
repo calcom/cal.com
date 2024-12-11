@@ -2290,6 +2290,7 @@
   "most_popular_events": "Najpopularniji događaji",
   "summary_of_events_for_your_team_for_the_last_30_days": "Evo preseka popularnih događaja za vaš tim {{teamName}} u poslednjih 30 dana",
   "me": "Ja",
+  "meeting_unavailable": "Sastanak nije dostupan",
   "monthly_digest_email": "Mesečni e-mail sa pregledom",
   "monthly_digest_email_for_teams": "Imejl sa mesečnim presekom za timove",
   "verify_team_tooltip": "Verifikujte svoj tim da biste omogućili slanje poruka učesnicima",

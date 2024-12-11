@@ -2290,6 +2290,7 @@
   "most_popular_events": "Kõige populaarsemad sündmused",
   "summary_of_events_for_your_team_for_the_last_30_days": "Siin on teie meeskonna {{teamName}} populaarsete sündmuste kokkuvõte viimase 30 päeva jooksul",
   "me": "Mina",
+  "meeting_unavailable": "Kohtumine pole saadaval",
   "monthly_digest_email": "Igakuine kokkuvõttev e-kiri",
   "monthly_digest_email_for_teams": "Igakuine kokkuvõtte meilimeeskondadele",
   "verify_team_tooltip": "Kinnitage oma meeskond, et võimaldada osalejatele sõnumite saatmine",

@@ -2290,6 +2290,7 @@
   "most_popular_events": "Najobľúbenejšie udalosti",
   "summary_of_events_for_your_team_for_the_last_30_days": "Tu je váš prehľad obľúbených udalostí pre váš tím {{teamName}} za posledných 30 dní",
   "me": "Ja",
+  "meeting_unavailable": "Stretnutie nie je k dispozícii",
   "monthly_digest_email": "Mesačný prehľadový email",
   "monthly_digest_email_for_teams": "Mesačný prehľadový email pre tímy",
   "verify_team_tooltip": "Overte svoj tím, aby ste mohli posielať správy účastníkom",

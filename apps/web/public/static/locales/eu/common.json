@@ -2290,6 +2290,7 @@
   "most_popular_events": "Gertaera ospetsuenak",
   "summary_of_events_for_your_team_for_the_last_30_days": "Hemen duzu {{teamName}} taldearen azken 30 egunetako gertaera ospetsuen laburpena",
   "me": "Ni",
+  "meeting_unavailable": "Bilera ez dago eskuragarri",
   "monthly_digest_email": "Hileko laburpen emaila",
   "monthly_digest_email_for_teams": "Taldeentzako hileko laburpen emaila",
   "verify_team_tooltip": "Egiaztatu zure taldea parte-hartzaileei mezuak bidali ahal izateko",

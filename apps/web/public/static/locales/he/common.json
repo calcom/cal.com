@@ -2290,6 +2290,7 @@
   "most_popular_events": "האירועים הפופולריים ביותר",
   "summary_of_events_for_your_team_for_the_last_30_days": "הנה הסיכום של האירועים הפופולריים של הצוות שלך, {{teamName}}, ל-30 הימים האחרונים",
   "me": "אני",
+  "meeting_unavailable": "הפגישה אינה זמינה",
   "monthly_digest_email": "דוא\"ל סיכום חודשי",
   "monthly_digest_email_for_teams": "אימייל עם סיכום חודשי עבור צוותים",
   "verify_team_tooltip": "אמת/י את הצוות שלך כדי לאפשר שליחת הודעות למשתתפים",

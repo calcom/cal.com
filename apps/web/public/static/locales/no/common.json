@@ -2290,6 +2290,7 @@
   "most_popular_events": "Mest populære arrangementer",
   "summary_of_events_for_your_team_for_the_last_30_days": "Her er din oppsummering av populære arrangementer for teamet ditt {{teamName}} de siste 30 dagene",
   "me": "Meg",
+  "meeting_unavailable": "Møte ikke tilgjengelig",
   "monthly_digest_email": "Månedlig sammendrag på e-post",
   "monthly_digest_email_for_teams": "Månedlig oppsummerings-e-post for team",
   "verify_team_tooltip": "Verifiser teamet ditt for å aktivere sending av meldinger til deltakere",

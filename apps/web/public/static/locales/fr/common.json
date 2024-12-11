@@ -2290,6 +2290,7 @@
   "most_popular_events": "Événements les plus populaires",
   "summary_of_events_for_your_team_for_the_last_30_days": "Voici votre résumé des événements populaires pour votre équipe {{teamName}} au cours des 30 derniers jours",
   "me": "Moi",
+  "meeting_unavailable": "Réunion indisponible",
   "monthly_digest_email": "E-mail de synthèse mensuelle",
   "monthly_digest_email_for_teams": "E-mail de résumé mensuel pour les équipes.",
   "verify_team_tooltip": "Vérifiez votre équipe pour activer l'envoi de messages aux participants",

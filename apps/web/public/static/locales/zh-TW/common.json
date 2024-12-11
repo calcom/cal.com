@@ -2290,6 +2290,7 @@
   "most_popular_events": "最熱門活動",
   "summary_of_events_for_your_team_for_the_last_30_days": "您的團隊「{{teamName}}」最近 30 天的熱門活動摘要如下",
   "me": "我",
+  "meeting_unavailable": "會議無法使用",
   "monthly_digest_email": "每月摘要電子郵件",
   "monthly_digest_email_for_teams": "團隊每月摘要電子郵件",
   "verify_team_tooltip": "驗證您的團隊，已啟用傳送訊息給與會者的訊息",

@@ -2290,6 +2290,7 @@
   "most_popular_events": "الأحداث الأكثر شعبية",
   "summary_of_events_for_your_team_for_the_last_30_days": "إليك ملخصك للأحداث الشعبية لفريقك {{teamName}} خلال آخر 30 يومًا",
   "me": "أنا",
+  "meeting_unavailable": "الاجتماع غير متاح",
   "monthly_digest_email": "البريد الإلكتروني الشهري الموجز",
   "monthly_digest_email_for_teams": "رسالة إلكترونية بالموجز الشهري للفرق",
   "verify_team_tooltip": "تأكيد فريقك لتمكين إرسال الرسائل إلى الحاضرين",

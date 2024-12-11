@@ -2290,6 +2290,7 @@
   "most_popular_events": "Nejoblíbenější události",
   "summary_of_events_for_your_team_for_the_last_30_days": "Zde je přehled oblíbených událostí vašeho týmu {{teamName}} za posledních 30 dní",
   "me": "Já",
+  "meeting_unavailable": "Schůzka není k dispozici",
   "monthly_digest_email": "Měsíční souhrnný e-mail",
   "monthly_digest_email_for_teams": "Měsíční e-mail s přehledem pro týmy",
   "verify_team_tooltip": "Proveďte ověření svého týmu a zapněte odesílání zpráv účastníkům",

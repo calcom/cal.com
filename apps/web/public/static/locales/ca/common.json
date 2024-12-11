@@ -2290,6 +2290,7 @@
   "most_popular_events": "Esdeveniments més populars",
   "summary_of_events_for_your_team_for_the_last_30_days": "Aquí tens el resum dels esdeveniments populars del teu equip {{teamName}} dels últims 30 dies",
   "me": "Jo",
+  "meeting_unavailable": "Reunió no disponible",
   "monthly_digest_email": "Correu de resum mensual",
   "monthly_digest_email_for_teams": "Correu de resum mensual per equips",
   "verify_team_tooltip": "Verifica el teu equip per poder enviar missatges als assistents",

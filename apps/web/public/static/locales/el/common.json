@@ -2290,6 +2290,7 @@
   "most_popular_events": "Δημοφιλέστερες εκδηλώσεις",
   "summary_of_events_for_your_team_for_the_last_30_days": "Εδώ είναι η σύνοψη των δημοφιλών εκδηλώσεων για την ομάδα σας {{teamName}} για τις τελευταίες 30 ημέρες",
   "me": "Εγώ",
+  "meeting_unavailable": "Μη διαθέσιμη συνάντηση",
   "monthly_digest_email": "Email μηνιαίου digest",
   "monthly_digest_email_for_teams": "Μηνιαίο email σύνοψης για ομάδες",
   "verify_team_tooltip": "Επαληθεύστε την ομάδα σας για να ενεργοποιήσετε την αποστολή μηνυμάτων στους συμμετέχοντες",

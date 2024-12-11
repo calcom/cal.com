@@ -2290,6 +2290,7 @@
   "most_popular_events": "가장 인기 있는 이벤트",
   "summary_of_events_for_your_team_for_the_last_30_days": "지난 30일간 {{teamName}} 팀의 인기 이벤트 요약은 다음과 같습니다",
   "me": "나",
+  "meeting_unavailable": "미팅 불가",
   "monthly_digest_email": "월간 다이제스트 이메일",
   "monthly_digest_email_for_teams": "팀의 월간 다이제스트 이메일",
   "verify_team_tooltip": "참석자에게 메시지를 보낼 수 있도록 팀을 인증하세요",

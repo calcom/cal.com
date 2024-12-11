@@ -2290,6 +2290,7 @@
   "most_popular_events": "Cele mai populare evenimente",
   "summary_of_events_for_your_team_for_the_last_30_days": "Iată rezumatul evenimentelor populare pentru echipa dvs. {{teamName}} din ultimele 30 de zile",
   "me": "Eu",
+  "meeting_unavailable": "Întâlnire indisponibilă",
   "monthly_digest_email": "Email cu rezumat lunar",
   "monthly_digest_email_for_teams": "E-mail cu rezumatul lunar pentru echipe",
   "verify_team_tooltip": "Verificați-vă echipa pentru a permite trimiterea de mesaje către participanți",

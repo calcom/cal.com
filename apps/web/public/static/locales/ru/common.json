@@ -2290,6 +2290,7 @@
   "most_popular_events": "Наиболее популярные события",
   "summary_of_events_for_your_team_for_the_last_30_days": "Информация о популярных событиях для вашей команды {{teamName}} за последние 30 дней",
   "me": "Я",
+  "meeting_unavailable": "Встреча недоступна",
   "monthly_digest_email": "Письмо с ежемесячным обзором",
   "monthly_digest_email_for_teams": "Письмо с ежемесячным обзором для команд",
   "verify_team_tooltip": "Подтвердите свою команду, чтобы отправлять участникам сообщения",

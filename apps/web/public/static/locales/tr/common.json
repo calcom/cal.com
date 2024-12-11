@@ -2290,6 +2290,7 @@
   "most_popular_events": "En Popüler Etkinlikler",
   "summary_of_events_for_your_team_for_the_last_30_days": "{{teamName}} ekibinize ait son 30 gündeki popüler etkinliklerin özetini burada bulabilirsiniz",
   "me": "Ben",
+  "meeting_unavailable": "Toplantı Mevcut Değil",
   "monthly_digest_email": "Aylık özet e-postası",
   "monthly_digest_email_for_teams": "Ekipler için aylık özet e-postası",
   "verify_team_tooltip": "Katılımcılara mesaj göndermeyi etkinleştirmek için ekibinizi doğrulayın",

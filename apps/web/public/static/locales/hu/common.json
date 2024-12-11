@@ -2290,6 +2290,7 @@
   "most_popular_events": "Legnépszerűbb események",
   "summary_of_events_for_your_team_for_the_last_30_days": "Íme az Ön csapata ({{teamName}}) népszerű eseményeinek összefoglalója az elmúlt 30 napban",
   "me": "Én",
+  "meeting_unavailable": "A találkozó nem elérhető",
   "monthly_digest_email": "Havi összefoglaló e-mail",
   "monthly_digest_email_for_teams": "Havi kivonat e-mailek csapatoknak",
   "verify_team_tooltip": "Erősítse meg csapatát, hogy engedélyezze az üzenetek küldését a résztvevőknek",

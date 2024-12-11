@@ -2290,6 +2290,7 @@
   "most_popular_events": "Beliebteste Termine",
   "summary_of_events_for_your_team_for_the_last_30_days": "Hier ist Ihre Zusammenfassung der beliebten Termine für Ihr Team {{teamName}} der letzten 30 Tage",
   "me": "Ich",
+  "meeting_unavailable": "Meeting nicht verfügbar",
   "monthly_digest_email": "Monatliche Zusammenfassungs-E-Mail",
   "monthly_digest_email_for_teams": "Monatliche Statistik E-Mail für Teams",
   "verify_team_tooltip": "Verifizieren Sie Ihr Team, um das Senden von Nachrichten an Teilnehmer zu aktivieren",

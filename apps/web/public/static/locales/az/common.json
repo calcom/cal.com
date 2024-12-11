@@ -2290,6 +2290,7 @@
   "most_popular_events": "Ən Populyar Tədbirlər",
   "summary_of_events_for_your_team_for_the_last_30_days": "Son 30 gün ərzində komandanız üçün populyar tədbirlərin xülasəsi {{teamName}}",
   "me": "Mən",
+  "meeting_unavailable": "Görüş mümkün deyil",
   "monthly_digest_email": "Aylıq icmal e-poçtu",
   "monthly_digest_email_for_teams": "Komandalar üçün aylıq xülasə e-poçtu",
   "verify_team_tooltip": "İştirakçılara mesaj göndərməyi aktivləşdirmək üçün komandanızı təsdiqləyin",

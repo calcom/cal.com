@@ -2290,6 +2290,7 @@
   "most_popular_events": "Mest populära händelser",
   "summary_of_events_for_your_team_for_the_last_30_days": "Här är din sammanfattning av populära händelser för ditt team {{teamName}} de senaste 30 dagarna",
   "me": "Jag",
+  "meeting_unavailable": "Mötet är inte tillgängligt",
   "monthly_digest_email": "Månatligt sammanfattningsmail",
   "monthly_digest_email_for_teams": "E-post med månadssammandrag för teams",
   "verify_team_tooltip": "Verifiera ditt team för att aktivera att skicka meddelanden till deltagare",

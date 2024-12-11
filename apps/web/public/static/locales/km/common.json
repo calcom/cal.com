@@ -2290,6 +2290,7 @@
   "most_popular_events": "ព្រឹត្តិការណ៍ពេញនិយមបំផុត",
   "summary_of_events_for_your_team_for_the_last_30_days": "នេះគឺជាសង្ខេបនៃព្រឹត្តិការណ៍ពេញនិយមសម្រាប់ក្រុមរបស់អ្នក {{teamName}} សម្រាប់ ៣០ ថ្ងៃចុងក្រោយ",
   "me": "ខ្ញុំ",
+  "meeting_unavailable": "មិនមានការប្រជុំ",
   "monthly_digest_email": "អ៊ីមែលសង្ខេបប្រចាំខែ",
   "monthly_digest_email_for_teams": "អ៊ីមែលសង្ខេបប្រចាំខែសម្រាប់ក្រុម",
   "verify_team_tooltip": "ផ្ទៀងផ្ទាត់ក្រុមរបស់អ្នកដើម្បីបើកការផ្ញើសារទៅអ្នកចូលរួម",

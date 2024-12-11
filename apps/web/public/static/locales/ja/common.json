@@ -2290,6 +2290,7 @@
   "most_popular_events": "最も人気のイベント",
   "summary_of_events_for_your_team_for_the_last_30_days": "こちらはこの 30 日間、チーム {{teamName}} で最も人気があったイベントのサマリーです",
   "me": "私",
+  "meeting_unavailable": "ミーティングは利用できません",
   "monthly_digest_email": "月次ダイジェストメール",
   "monthly_digest_email_for_teams": "チームのための月 1 回のダイジェストのメール",
   "verify_team_tooltip": "出席者へのメッセージ送信ができるようにするには、チームを確認してください",

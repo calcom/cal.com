@@ -2290,6 +2290,7 @@
   "most_popular_events": "Những sự kiện phổ biến nhất",
   "summary_of_events_for_your_team_for_the_last_30_days": "Đây là tóm tắt những sự kiện phổ biến cho nhóm {{teamName}} của bạn trong 30 ngày qua",
   "me": "Tôi",
+  "meeting_unavailable": "Cuộc họp không khả dụng",
   "monthly_digest_email": "Email tổng hợp hàng tháng",
   "monthly_digest_email_for_teams": "Email tin nhanh hằng tháng cho các nhóm",
   "verify_team_tooltip": "Xác minh nhóm của bạn để kích hoạt chức năng gửi tin nhắn cho người tham dự",

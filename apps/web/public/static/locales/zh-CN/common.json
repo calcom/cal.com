@@ -2290,6 +2290,7 @@
   "most_popular_events": "最受欢迎的活动",
   "summary_of_events_for_your_team_for_the_last_30_days": "以下是您的团队 {{teamName}} 在过去 30 天的热门活动摘要",
   "me": "我",
+  "meeting_unavailable": "会议不可用",
   "monthly_digest_email": "月度摘要邮件",
   "monthly_digest_email_for_teams": "团队的每月摘要电子邮件",
   "verify_team_tooltip": "验证您的团队以允许向参与者发送消息",

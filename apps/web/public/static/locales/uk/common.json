@@ -2290,6 +2290,7 @@
   "most_popular_events": "Найпопулярніші заходи",
   "summary_of_events_for_your_team_for_the_last_30_days": "Ось зведена інформація про популярні заходи для вашої команди «{{teamName}}» за останні 30 днів",
   "me": "Я",
+  "meeting_unavailable": "Зустріч недоступна",
   "monthly_digest_email": "Щомісячний дайджест електронною поштою",
   "monthly_digest_email_for_teams": "Ел. лист із місячним дайджестом для команд",
   "verify_team_tooltip": "Верифікуйте свою команду, щоб увімкнути надсилання повідомлень відвідувачам",

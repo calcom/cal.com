@@ -2290,6 +2290,7 @@
   "most_popular_events": "Най-популярни събития",
   "summary_of_events_for_your_team_for_the_last_30_days": "Ето вашето обобщение на популярните събития за вашия екип {{teamName}} за последните 30 дни",
   "me": "Аз",
+  "meeting_unavailable": "Срещата не е налична",
   "monthly_digest_email": "Месечен имейл дайджест",
   "monthly_digest_email_for_teams": "Месечен имейл дайджест за екипи",
   "verify_team_tooltip": "Верифицирайте вашия екип, за да активирате изпращането на съобщения до участниците",

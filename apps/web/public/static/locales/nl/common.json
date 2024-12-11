@@ -2290,6 +2290,7 @@
   "most_popular_events": "Populairste gebeurtenissen",
   "summary_of_events_for_your_team_for_the_last_30_days": "Dit is uw overzicht van populaire evenementen voor uw team {{teamName}} van de afgelopen 30 dagen",
   "me": "Ik",
+  "meeting_unavailable": "Afspraak niet beschikbaar",
   "monthly_digest_email": "Maandelijkse overzichtsmail",
   "monthly_digest_email_for_teams": "Maandelijks overzichts-e-mail voor teams",
   "verify_team_tooltip": "Verifieer uw team om het versturen van berichten naar deelnemers in te schakelen",
