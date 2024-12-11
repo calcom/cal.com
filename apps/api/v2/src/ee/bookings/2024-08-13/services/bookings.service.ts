@@ -12,6 +12,8 @@ import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { z } from "zod";
 
+import getIP from "@calcom/lib/getIP";
+import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import {
   handleNewBooking,
   handleNewRecurringBooking,
@@ -186,6 +188,16 @@ export class BookingsService_2024_08_13 {
     }
 
     return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+  }
+
+  async create(req: Request, res: Response) {
+    const remoteIp = getIP(req);
+
+    // Verify Turnstile token
+    await checkCfTurnstileToken({
+      token: req.headers["cf-access-token"] as string,
+      remoteIp,
+    });
   }
 
   async getBooking(uid: string) {

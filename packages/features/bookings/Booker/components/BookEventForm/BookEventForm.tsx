@@ -1,11 +1,12 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
+import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL, CLOUDFLARE_SITE_ID } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
@@ -15,6 +16,8 @@ import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
+
+const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
 
 type BookEventFormProps = {
   onCancel?: () => void;
@@ -141,6 +144,14 @@ export const BookEventForm = ({
             />
           </div>
         )}
+        {CLOUDFLARE_SITE_ID ? (
+          <TurnstileCaptcha
+            appearance="interaction-only"
+            onVerify={(token) => {
+              bookingForm.setValue("cfToken", token);
+            }}
+          />
+        ) : null}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -160,6 +171,9 @@ export const BookEventForm = ({
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
                   isVerificationCodeSending
+                }
+                disabled={
+                  CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !bookingForm.getValues("cfToken")
                 }
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
