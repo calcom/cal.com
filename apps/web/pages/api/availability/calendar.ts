@@ -14,6 +14,7 @@ const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
   credentialId: z.coerce.number(),
+  defaultReminder: z.number().optional(),
 });
 
 /** Shared authentication middleware for GET, DELETE and POST requests */
@@ -40,12 +41,15 @@ type CustomNextApiRequest = NextApiRequest & {
 async function postHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
-  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
+  const { integration, externalId, credentialId, defaultReminder } = selectedCalendarSelectSchema.parse(
+    req.body
+  );
   await SelectedCalendarRepository.upsert({
     userId: user.id,
     integration,
     externalId,
     credentialId,
+    defaultReminder: defaultReminder || 30,
   });
 
   return { message: "Calendar Selection Saved" };

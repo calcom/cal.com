@@ -40,6 +40,7 @@ describe("POST /api/selected-calendars", () => {
         method: "POST",
         body: {
           integration: "google",
+          defaultReminder: 30,
         },
       });
 
@@ -79,6 +80,7 @@ describe("POST /api/selected-calendars", () => {
         integration: "google",
         externalId: "ext123",
         userId: 444444,
+        defaultReminder: 30,
       });
 
       await handler(req, res);
@@ -108,6 +110,7 @@ describe("POST /api/selected-calendars", () => {
         integration: "google",
         externalId: "ext123",
         userId: 333333,
+        defaultReminder: 30,
       });
 
       await handler(req, res);

@@ -59,6 +59,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
         select: {
           externalId: true,
           integration: true,
+          defaultReminder: true,
+          credentialId: true,
         },
       },
       completedOnboarding: true,

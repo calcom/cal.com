@@ -7,10 +7,13 @@ import { schemaQueryIdParseInt } from "./shared/queryIdTransformParseInt";
 
 export const schemaSelectedCalendarBaseBodyParams = SelectedCalendar;
 
-export const schemaSelectedCalendarPublic = SelectedCalendar.omit({});
+export const schemaSelectedCalendarPublic = SelectedCalendar.omit({}).extend({
+  defaultReminder: SelectedCalendar.shape.defaultReminder.optional(),
+});
 
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams.partial({
   userId: true,
+  defaultReminder: true,
 });
 
 export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams.partial();
@@ -39,6 +42,7 @@ export const selectedCalendarIdSchema = schemaQueryIdAsString.transform((v, ctx)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Missing externalId" });
     return z.NEVER;
   }
+
   return {
     userId: userIdInt.data.id,
     /** We re-add the split `_calendar` string */

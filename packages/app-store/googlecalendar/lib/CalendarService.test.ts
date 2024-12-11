@@ -140,6 +140,7 @@ test("Calendar can be watched and unwatched", async () => {
     userId: 1,
     integration: "google_calendar",
     externalId: "example@cal.com",
+    defaultReminder: 30,
     credentialId: 1,
     domainWideDelegationCredentialId: null,
     googleChannelId: "mock-channel-id",
@@ -169,6 +170,7 @@ test("Calendar can be watched and unwatched", async () => {
     googleChannelResourceId: null,
     googleChannelResourceUri: null,
     googleChannelExpiration: null,
+    defaultReminder: 30,
   });
 });
 

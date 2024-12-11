@@ -38,14 +38,15 @@ export class SelectedCalendarsController {
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId } = input;
+    const { integration, externalId, credentialId, defaultReminder } = input;
     await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
 
     const newlyAddedCalendarEntry = await this.selectedCalendarsRepository.addUserSelectedCalendar(
       user.id,
       integration,
       externalId,
-      credentialId
+      credentialId,
+      defaultReminder
     );
 
     return {
