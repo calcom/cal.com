@@ -5,7 +5,7 @@ import LegacyPage from "~/upgrade/upgrade-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Upgrade",
+    (t) => t("upgrade"),
     () => ""
   );
 

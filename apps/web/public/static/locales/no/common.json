@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "Ubekreftede bestillinger blokkerer fortsatt kalenderspor.",
   "recurring_event": "Gjentakende Hendelse",
   "recurring_event_description": "Folk kan abonnere på gjentakende hendelser",
+  "connect_and_join": "Koble til og bli med",
   "cannot_be_used_with_paid_event_types": "Det kan ikke brukes med betalte hendelsestyper",
   "warning_payment_instant_meeting_event": "Øyeblikkelige møter støttes ennå ikke med tilbakevendende hendelser og betalingsapper",
   "warning_instant_meeting_experimental": "Eksperimentell: Øyeblikkelige møter er for øyeblikket eksperimentelle.",
@@ -2842,7 +2843,9 @@
   "rr_distribution_method_balanced_title": "Lastbalansering",
   "rr_distribution_method_balanced_description": "Vi vil overvåke hvor mange bestillinger som er gjort med hver vert og sammenligne dette med andre, og deaktivere enkelte verter som ligger for langt foran slik at bestillinger blir jevnt fordelt.",
   "exclude_emails_that_contain": "Ekskluder e-poster som inneholder ...",
+  "require_emails_that_contain": "Krev e-postadresser som inneholder ...",
   "exclude_emails_match_found_error_message": "Vennligst skriv inn en gyldig arbeids-e-postadresse",
+  "require_emails_no_match_found_error_message": "Du har ikke tillatelse til å bestille med dette e-postdomenet. Vennligst kontakt eieren av denne lenken.",
   "search_columns": "Søk i kolonner",
   "search_options": "Søkealternativer",
   "disable_org_url_label": "Deaktiver offentlig organisasjonsprofil og omdirigering",
@@ -2857,5 +2860,9 @@
   "lock_attribute_for_assignment_description": "Låsing vil kun tillate tildelinger fra Katalogsynkronisering",
   "attribute_edited_successfully": "Attributt redigert",
   "new_group_option": "Nytt gruppealternativ",
+  "routed": "Rutet",
+  "reassigned": "Omfordelt",
+  "rerouted": "Omdirigert",
+  "salesforce_assigned": "Salesforce-tildeling",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

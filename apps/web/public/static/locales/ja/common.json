@@ -885,6 +885,7 @@
   "requires_confirmation_will_block_slot_description": "未確認の予約でもカレンダーのスロットをブロックします。",
   "recurring_event": "繰り返しイベント",
   "recurring_event_description": "人々は繰り返しイベントの配信に登録できます。",
+  "connect_and_join": "接続して参加",
   "cannot_be_used_with_paid_event_types": "有料イベントタイプでは使用できません",
   "warning_payment_instant_meeting_event": "インスタントミーティングは、定期的なイベントや支払いアプリではまだサポートされていません",
   "warning_instant_meeting_experimental": "実験的: インスタントミーティングイベントは現在実験段階です。",
@@ -2842,7 +2843,9 @@
   "rr_distribution_method_balanced_title": "負荷分散",
   "rr_distribution_method_balanced_description": "各ホストの予約数を監視し、他のホストと比較して予約数が多すぎるホストを一時的に無効にすることで、予約を均等に配分します。",
   "exclude_emails_that_contain": "...を含むメールアドレスを除外",
+  "require_emails_that_contain": "メールアドレスに含まれる必要がある文字列...",
   "exclude_emails_match_found_error_message": "有効な勤務用メールアドレスを入力してください",
+  "require_emails_no_match_found_error_message": "このメールドメインでの予約は許可されていません。このリンクの所有者にお問い合わせください。",
   "search_columns": "列を検索",
   "search_options": "検索オプション",
   "disable_org_url_label": "組織の公開プロフィールを無効にしてリダイレクト",
@@ -2857,5 +2860,9 @@
   "lock_attribute_for_assignment_description": "ロックすると、ディレクトリ同期からの割り当てのみが許可されます",
   "attribute_edited_successfully": "属性の編集が完了しました",
   "new_group_option": "新規グループオプション",
+  "routed": "ルーティング済み",
+  "reassigned": "再割り当て済み",
+  "rerouted": "再ルーティング済み",
+  "salesforce_assigned": "Salesforce割り当て",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
