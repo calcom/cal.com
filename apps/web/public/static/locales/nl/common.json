@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Hele dag niet beschikbaar",
   "date_overrides_mark_all_day_unavailable_one": "Markeren als niet beschikbaar (hele dag)",
   "date_overrides_mark_all_day_unavailable_other": "Markeren als niet beschikbaar op geselecteerde datums",
-  "date_overrides_add_btn": "Overschrijving toevoegen",
   "date_overrides_update_btn": "Overschrijving bijwerken",
   "date_successfully_added": "Datumoverschrijing toegevoegd",
   "event_type_duplicate_copy_text": "{{slug}}-kopie",

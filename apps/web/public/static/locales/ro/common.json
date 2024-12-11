@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Indisponibil/ă toată ziua",
   "date_overrides_mark_all_day_unavailable_one": "Marchează ca indisponibilă (Toată ziua)",
   "date_overrides_mark_all_day_unavailable_other": "Marchează datele selectate ca indisponibile",
-  "date_overrides_add_btn": "Adaugă suprascriere",
   "date_overrides_update_btn": "Actualizează suprascrierea",
   "date_successfully_added": "Suprascriere dată adăugată cu succes",
   "event_type_duplicate_copy_text": "{{slug}}-copie",

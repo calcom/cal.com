@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "全天不開放",
   "date_overrides_mark_all_day_unavailable_one": "標示不開放 (全天)",
   "date_overrides_mark_all_day_unavailable_other": "將所選日期標示不開放",
-  "date_overrides_add_btn": "新增覆寫",
   "date_overrides_update_btn": "更新覆寫",
   "date_successfully_added": "日期覆寫已成功新增",
   "event_type_duplicate_copy_text": "{{slug}}-複製",
