@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
@@ -28,8 +29,12 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, APP_NAME } from "@calcom/lib/constants";
+import type { DurationType } from "@calcom/lib/convertToNewDurationType";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -40,12 +45,15 @@ import {
   Badge,
   CheckboxField,
   Icon,
+  InputField,
   Label,
+  Select,
   SelectField,
   SettingsToggle,
   Switch,
   TextField,
   ColorPicker,
+  UpgradeTeamsBadge,
 } from "@calcom/ui";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
@@ -106,6 +114,97 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   showBookerLayoutSelector: boolean;
 };
 
+const MinimumReschedulingNoticeInput = React.forwardRef<
+  HTMLInputElement,
+  Omit<UseFormRegisterReturn<"minimumReschedulingNotice">, "ref">
+>(function MinimumReschedulingNoticeInput({ ...passThroughProps }, ref) {
+  const { t } = useLocale();
+  const { setValue, getValues } = useFormContext<FormValues>();
+  const durationTypeOptions: {
+    value: DurationType;
+    label: string;
+  }[] = [
+    {
+      label: t("minutes"),
+      value: "minutes",
+    },
+    {
+      label: t("hours"),
+      value: "hours",
+    },
+    {
+      label: t("days"),
+      value: "days",
+    },
+  ];
+
+  const [minimumReschedulingNoticeDisplayValues, setMinimumReschedulingNoticeDisplayValues] = useState<{
+    type: DurationType;
+    value: number;
+  }>({
+    type: findDurationType(getValues(passThroughProps.name)),
+    value:
+      convertToNewDurationType(
+        "minutes",
+        findDurationType(getValues(passThroughProps.name)),
+        getValues(passThroughProps.name)
+      ) ?? 0,
+  });
+  // keep hidden field in sync with minimumReschedulingNoticeDisplayValues
+  useEffect(() => {
+    setValue(
+      passThroughProps.name,
+      convertToNewDurationType(
+        minimumReschedulingNoticeDisplayValues.type,
+        "minutes",
+        minimumReschedulingNoticeDisplayValues.value
+      ),
+      { shouldDirty: true }
+    );
+  }, [minimumReschedulingNoticeDisplayValues, setValue, passThroughProps.name]);
+
+  return (
+    <div className="flex items-end justify-end">
+      <div className="w-1/2 md:w-full">
+        <InputField
+          required
+          disabled={passThroughProps.disabled}
+          defaultValue={minimumReschedulingNoticeDisplayValues.value}
+          onChange={(e) =>
+            setMinimumReschedulingNoticeDisplayValues({
+              ...minimumReschedulingNoticeDisplayValues,
+              value: parseInt(e.target.value || "0", 10),
+            })
+          }
+          label={t("minimum_rescheduling_notice")}
+          type="number"
+          placeholder="0"
+          min={0}
+          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
+        />
+        <input type="hidden" ref={ref} {...passThroughProps} />
+      </div>
+      <Select
+        isSearchable={false}
+        isDisabled={passThroughProps.disabled}
+        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+        defaultValue={durationTypeOptions.find(
+          (option) => option.value === minimumReschedulingNoticeDisplayValues.type
+        )}
+        onChange={(input) => {
+          if (input) {
+            setMinimumReschedulingNoticeDisplayValues({
+              ...minimumReschedulingNoticeDisplayValues,
+              type: input.value,
+            });
+          }
+        }}
+        options={durationTypeOptions}
+      />
+    </div>
+  );
+});
+
 export const EventAdvancedTab = ({
   eventType,
   team,
@@ -127,10 +226,14 @@ export const EventAdvancedTab = ({
     !!formMethods.getValues("multiplePrivateLinks") &&
       formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
+  const [minimumReschedulingNoticeVisible, setMinimumReschedulingNoticeVisible] = useState(
+    formMethods.getValues("minimumReschedulingNotice") !== 0
+  );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
   );
+  const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -425,6 +528,38 @@ export const EventAdvancedTab = ({
             onCheckedChange={(e) => onChange(e)}
           />
         )}
+      />
+      <Controller
+        name="minimumReschedulingNotice"
+        render={({ field: { value, onChange } }) => {
+          return (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                minimumReschedulingNoticeVisible && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
+              title={t("minimum_rescheduling_notice")}
+              disabled={!hasPaidPlan || isTeamPlanStatusLoading}
+              Badge={<UpgradeTeamsBadge />}
+              data-testid="minimum-rescheduling-notice"
+              description={t("minimum_rescheduling_notice_description")}
+              checked={hasPaidPlan ? minimumReschedulingNoticeVisible : false}
+              onCheckedChange={(e) => {
+                setMinimumReschedulingNoticeVisible(e);
+                onChange(e ? value : 0);
+              }}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <MinimumReschedulingNoticeInput
+                  disabled={shouldLockDisableProps("minimumReschedulingNotice").disabled}
+                  {...formMethods.register("minimumReschedulingNotice")}
+                />
+              </div>
+            </SettingsToggle>
+          );
+        }}
       />
       <Controller
         name="hideCalendarNotes"
