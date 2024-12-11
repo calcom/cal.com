@@ -1824,9 +1824,9 @@ checksums:
     date_overrides_unavailable: 7084cfb0ab887bb111cff0fe9b6d40de
     date_overrides_mark_all_day_unavailable_one: bb97f6d537c9c1f3f8409355fdea9644
     date_overrides_mark_all_day_unavailable_other: 0d88fc3db1bed4deb7f627fc8ad8fe32
-    date_overrides_add_btn: 0d84a29a140ea669a862dc739fdeefdb
     date_overrides_update_btn: 6d41dd12ede59e87ab393691a8791e09
     date_successfully_added: b61c1a133ca7b12c7da5255c43aead39
+    date_overrides_save_btn: 8829a802e22fd234218715574b0dc4d2
     event_type_duplicate_copy_text: 2d542569948e5980be82ef5982bba351
     set_as_default: dcbc0ab506e0ed94bb83f5db42c419aa
     hide_eventtype_details: 75c9d4f8c0b148a289949ecc78eb6ed6
