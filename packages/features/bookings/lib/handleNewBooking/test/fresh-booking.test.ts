@@ -1722,6 +1722,7 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send emails to the booker as well as organizer for booking request and awaiting approval
             3. Should trigger BOOKING_REQUESTED webhook
+            4. Should trigger BOOKING_REQUESTED Workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -1755,6 +1756,13 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -1825,7 +1833,11 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
+          //should not trigger NEW_EVENT Workflow
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+
+          //should trigger BOOKING_REQUESTED Workflow
+          expectWorkflowToBeTriggered({ emailsToReceive: [booker.email], emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1852,6 +1864,7 @@ describe("handleNewBooking", () => {
         1. Should create a booking in the database with status PENDING
         2. Should send emails to the booker as well as organizer for booking request and awaiting approval
         3. Should trigger BOOKING_REQUESTED webhook
+        4. Should Trigger BOOKING_REQUESTED Workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -1885,6 +1898,13 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -1950,7 +1970,11 @@ describe("handleNewBooking", () => {
             }),
           });
 
+          //should not trigger NEW_EVENT Workflow
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+
+          //should trigger BOOKING_REQUESTED Workflow
+          expectWorkflowToBeTriggered({ emailsToReceive: [booker.email], emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -2009,6 +2033,13 @@ describe("handleNewBooking", () => {
                   userId: organizer.id,
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+                {
+                  userId: organizer.id,
+                  trigger: "BOOKING_REQUESTED",
+                  action: "EMAIL_ATTENDEE",
                   template: "REMINDER",
                   activeOn: [1],
                 },
@@ -2112,6 +2143,7 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send emails to the booker as well as organizer for booking request and awaiting approval
             3. Should trigger BOOKING_REQUESTED webhook
+            4. Should trigger BOOKING_REQUESTED Workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2145,6 +2177,13 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -2219,7 +2258,11 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
+          //should not trigger NEW_EVENT Workflow
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+
+          //should trigger BOOKING_REQUESTED Workflow
+          expectWorkflowToBeTriggered({ emailsToReceive: [booker.email], emails });
 
           expectBookingRequestedEmails({ booker, organizer, emails });
 
