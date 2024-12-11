@@ -183,7 +183,6 @@ export const config = {
     "/bookings/:status/",
     "/future/bookings/:status/",
     "/video/:path*",
-    "/future/video/:path*",
     "/teams",
     "/future/teams/",
     "/settings/:path*",
