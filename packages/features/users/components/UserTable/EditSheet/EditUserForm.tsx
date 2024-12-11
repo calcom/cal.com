@@ -405,7 +405,7 @@ function AttributesList(props: { selectedUserId: number }) {
                                       value={option.weight || 100}
                                       onChange={(e) => {
                                         const newWeight = parseFloat(e.target.value) || 1;
-                                        const newOptions = fieldValue.options.map((opt, i) =>
+                                        const newOptions = fieldValue?.options?.map((opt, i) =>
                                           i === idx ? { ...opt, weight: newWeight } : opt
                                         );
                                         field.onChange({
