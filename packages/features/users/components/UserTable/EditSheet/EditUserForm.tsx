@@ -401,7 +401,6 @@ function AttributesList(props: { selectedUserId: number }) {
                                       noLabel
                                       name={`attributes.${index}.options.${idx}.weight`}
                                       type="number"
-                                      min={0}
                                       step={10}
                                       value={option.weight || 100}
                                       onChange={(e) => {
