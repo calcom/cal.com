@@ -193,7 +193,7 @@ export function EditForm({
           </div>
         </SheetHeader>
         <SheetBody className="mt-4 flex h-full flex-col space-y-3 px-1">
-          <label className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</label>
+          <label className="text-emphasis mb-1 text-base font-bold">{t("profile")}</label>
           <TextField label={t("username")} {...form.register("username")} />
           <TextField label={t("name")} {...form.register("name")} />
           <TextField label={t("email")} {...form.register("email")} />
@@ -311,7 +311,7 @@ function AttributesList(props: { selectedUserId: number }) {
   return (
     <div className="flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-emphasis mb-1 mt-6 text-base font-semibold">{t("attributes")}</label>
+        <label className="text-emphasis mb-1 mt-6 text-base font-bold">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
@@ -326,7 +326,7 @@ function AttributesList(props: { selectedUserId: number }) {
             render={({ field: { value, ...field } }) => {
               const fieldValue = value as Attribute | undefined | null;
               return (
-                <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
+                <div className="flex w-full items-center justify-center" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
                     <InputField
                       {...field}
@@ -385,44 +385,42 @@ function AttributesList(props: { selectedUserId: number }) {
                         }}
                       />
                       {attr.isWeightsEnabled && fieldValue?.options && (
-                        <div className="ml-12 mt-2 space-y-2">
+                        <div className="mt-3 space-y-2">
                           <Label>Weights</Label>
-                          {fieldValue.options.map((option, idx) => {
-                            return (
-                              <>
-                                <div key={option.value} className="flex items-center space-x-2">
-                                  {/* <Icon
-                                    name="corner-down-right"
-                                    style={{
-                                      marginTop: "14px", // Offset by label text height to ensure the arrow is visually centered on the input
-                                    }}
-                                  /> */}
-                                  <InputField
-                                    name={`attributes.${index}.options.${idx}.weight`}
-                                    type="number"
-                                    label={option.label}
-                                    min={0}
-                                    step={10}
-                                    labelProps={{
-                                      className: "text-emphasis mb-2 block text-sm font-medium leading-none",
-                                    }}
-                                    value={option.weight || 100}
-                                    onChange={(e) => {
-                                      const newWeight = parseFloat(e.target.value) || 1;
-                                      const newOptions = fieldValue.options.map((opt, i) =>
-                                        i === idx ? { ...opt, weight: newWeight } : opt
-                                      );
-                                      field.onChange({
-                                        id: attr.id,
-                                        options: newOptions,
-                                      });
-                                    }}
-                                    addOnSuffix={<span className="text-subtle text-sm">%</span>}
-                                  />
-                                </div>
-                              </>
-                            );
-                          })}
+                          <div className="">
+                            {fieldValue.options.map((option, idx) => {
+                              return (
+                                <>
+                                  <div key={option.value} className="flex items-center justify-between">
+                                    <Label
+                                      htmlFor={`attributes.${index}.otions.${idx}.weight`}
+                                      className="text-subtle">
+                                      {option.label}
+                                    </Label>
+                                    <InputField
+                                      noLabel
+                                      name={`attributes.${index}.options.${idx}.weight`}
+                                      type="number"
+                                      min={0}
+                                      step={10}
+                                      value={option.weight || 100}
+                                      onChange={(e) => {
+                                        const newWeight = parseFloat(e.target.value) || 1;
+                                        const newOptions = fieldValue.options.map((opt, i) =>
+                                          i === idx ? { ...opt, weight: newWeight } : opt
+                                        );
+                                        field.onChange({
+                                          id: attr.id,
+                                          options: newOptions,
+                                        });
+                                      }}
+                                      addOnSuffix={<span className="text-subtle text-sm">%</span>}
+                                    />
+                                  </div>
+                                </>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
