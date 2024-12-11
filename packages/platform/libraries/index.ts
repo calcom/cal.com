@@ -20,6 +20,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
@@ -28,6 +29,7 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -81,6 +83,10 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+
+export { getConnectedApps } from "@calcom/lib/getConnectedApps";
+export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
@@ -218,3 +224,5 @@ export { AttendeeUpdatedEmail };
 export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
+export { handleDeleteCredential };
+export { getBulkEventTypes };
