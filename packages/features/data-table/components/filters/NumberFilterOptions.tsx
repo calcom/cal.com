@@ -5,45 +5,38 @@ import { useForm, Controller } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
-import type { FilterableColumn, TextFilterOperator } from "../../lib/types";
-import { ZTextFilterValue } from "../../lib/types";
+import type { FilterableColumn, NumberFilterOperator } from "../../lib/types";
+import { ZNumberFilterValue } from "../../lib/types";
 import { useFilterValue, useDataTable } from "../../lib/utils";
 
-export type TextFilterOperatorOption = {
+export type NumberFilterOperatorOption = {
   label: string;
-  value: TextFilterOperator;
-  requiresOperand: boolean;
+  value: NumberFilterOperator;
 };
 
-const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
+const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
+  { value: "eq", label: "=" },
+  { value: "neq", label: "≠" },
+  { value: "gt", label: ">" },
+  { value: "gte", label: "≥" },
+  { value: "lt", label: "<" },
+  { value: "lte", label: "≤" },
+];
+
+export type NumberFilterOptionsProps = {
+  column: Extract<FilterableColumn, { type: "number" }>;
+};
+
+export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
   const { t } = useLocale();
-  return [
-    { value: "equals", label: t("filter_operator_is"), requiresOperand: true },
-    { value: "notEquals", label: t("filter_operator_is_not"), requiresOperand: true },
-    { value: "contains", label: t("filter_operator_contains"), requiresOperand: true },
-    { value: "notContains", label: t("filter_operator_does_not_contain"), requiresOperand: true },
-    { value: "startsWith", label: t("filter_operator_starts_with"), requiresOperand: true },
-    { value: "endsWith", label: t("filter_operator_ends_with"), requiresOperand: true },
-    { value: "isEmpty", label: t("filter_operator_is_empty"), requiresOperand: false },
-    { value: "isNotEmpty", label: t("filter_operator_not_empty"), requiresOperand: false },
-  ];
-};
-
-export type TextFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "text" }>;
-};
-
-export function TextFilterOptions({ column }: TextFilterOptionsProps) {
-  const { t } = useLocale();
-  const textFilterOperatorOptions = useTextFilterOperatorOptions();
-  const filterValue = useFilterValue(column.id, ZTextFilterValue);
+  const filterValue = useFilterValue(column.id, ZNumberFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
 
   const form = useForm({
     defaultValues: {
       operatorOption: filterValue
-        ? textFilterOperatorOptions.find((o) => o.value === filterValue.data.operator)
-        : textFilterOperatorOptions[0],
+        ? numberFilterOperatorOptions.find((o) => o.value === filterValue.data.operator)
+        : numberFilterOperatorOptions[0],
       operand: filterValue?.data.operand || "",
     },
   });
@@ -55,10 +48,10 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
         handleSubmit={({ operatorOption, operand }) => {
           if (operatorOption) {
             updateFilter(column.id, {
-              type: "text",
+              type: "number",
               data: {
                 operator: operatorOption.value,
-                operand: operatorOption.requiresOperand ? operand : "",
+                operand: Number(operand),
               },
             });
           }
@@ -68,9 +61,10 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
             name="operatorOption"
             control={form.control}
             render={({ field: { value } }) => (
-              <>
+              <div className="-mt-2 flex items-center gap-2">
                 <Select
-                  options={textFilterOperatorOptions}
+                  className="basis-1/3"
+                  options={numberFilterOperatorOptions}
                   value={value}
                   isSearchable={false}
                   onChange={(event) => {
@@ -79,8 +73,8 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
                     }
                   }}
                 />
-                {value?.requiresOperand && <Input className="mt-2" {...form.register("operand")} />}
-              </>
+                <Input type="number" className="mt-2 basis-2/3" {...form.register("operand")} />
+              </div>
             )}
           />
 
