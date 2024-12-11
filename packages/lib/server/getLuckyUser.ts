@@ -151,7 +151,7 @@ function getHostsWithCalibration({
   oooData: OOODataType;
 }) {
   // Helper function to calculate calibration for a new host
-  function calculatenNewHostCalibration(newHost: { userId: number; createdAt: Date }) {
+  function calculateNewHostCalibration(newHost: { userId: number; createdAt: Date }) {
     const existingBookingsBeforeAdded = existingBookings.filter(
       (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
     );
@@ -211,7 +211,7 @@ function getHostsWithCalibration({
     newHostsWithCalibration = new Map(
       allRRHostsCreatedThisMonth.map((newHost) => [
         newHost.userId,
-        { ...newHost, calibration: calculatenNewHostCalibration(newHost) },
+        { ...newHost, calibration: calculateNewHostCalibration(newHost) },
       ])
     );
     // Map hosts with their respective calibration values
