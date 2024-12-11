@@ -70,26 +70,24 @@ export async function translateEventTypeData(payload: string): Promise<void> {
     JSON.parse(payload)
   );
 
-  // Should not be reached
-  if (!description && !title) return;
-
-  if (description) {
-    await processTranslations({
-      text: description,
-      userLocale,
-      eventTypeId,
-      userId,
-      field: EventTypeAutoTranslatedField.DESCRIPTION,
-    });
-  }
-
-  if (title) {
-    await processTranslations({
-      text: title,
-      userLocale,
-      eventTypeId,
-      userId,
-      field: EventTypeAutoTranslatedField.TITLE,
-    });
-  }
+  await Promise.all(
+    [
+      description &&
+        processTranslations({
+          text: description,
+          userLocale,
+          eventTypeId,
+          userId,
+          field: EventTypeAutoTranslatedField.DESCRIPTION,
+        }),
+      title &&
+        processTranslations({
+          text: title,
+          userLocale,
+          eventTypeId,
+          userId,
+          field: EventTypeAutoTranslatedField.TITLE,
+        }),
+    ].filter(Boolean)
+  );
 }
