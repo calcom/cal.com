@@ -4,6 +4,7 @@ import { BookingStatus } from "@calcom/prisma/client";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
+import { setupManagedEvent } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -149,6 +150,61 @@ test.describe("Bookings", () => {
       await updateNoShow.click();
       await moreGuests.click();
       await expect(firstGuestInMore).toBeChecked({ checked: true });
+    });
+    test("Team admin/owner can mark first attendee as no-show", async ({
+      page,
+      users,
+      bookings,
+      webhooks,
+    }) => {
+      const { adminUser, memberUser, managedEvent } = await setupManagedEvent({ users });
+
+      const bookingFixture = await createBooking({
+        title: "Managed Event Booking",
+        bookingsFixture: bookings,
+        // Create a booking 3 days ago
+        relativeDate: -3,
+        organizer: memberUser,
+        organizerEventType: managedEvent,
+        attendees: [
+          { name: "First Guest", email: "first@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Second Guest", email: "second@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Third Guest", email: "third@cal.com", timeZone: "Europe/Berlin" },
+        ],
+      });
+      const booking = await bookingFixture.self();
+      await adminUser.apiLogin();
+      const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
+      await page.goto(`/bookings/past`);
+      const pastBookings = page.locator('[data-testid="past-bookings"]');
+      const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
+      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
+      const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
+      await firstGuest.click();
+      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
+      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await firstGuest.click();
+      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
+      await webhookReceiver.waitForRequestCount(1);
+      const [request] = webhookReceiver.requestList;
+      const body = request.body;
+      const dynamic = "[redacted/dynamic]";
+      // @ts-expect-error we are modifying the object
+      body.createdAt = dynamic;
+      expect(body).toMatchObject({
+        triggerEvent: "BOOKING_NO_SHOW_UPDATED",
+        createdAt: "[redacted/dynamic]",
+        payload: {
+          message: "first@cal.com marked as no-show",
+          attendees: [{ email: "first@cal.com", noShow: true }],
+          bookingUid: booking?.uid,
+          bookingId: booking?.id,
+        },
+      });
+
+      // Close webhook receiver
+      webhookReceiver.close();
     });
   });
 });

@@ -1,6 +1,5 @@
-import { _generateMetadata, getFixedT } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import PrivacyView from "@calcom/features/ee/organizations/pages/settings/privacy";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -11,8 +10,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslate();
 
   return (
     <SettingsHeader title={t("privacy")} description={t("privacy_organization_description")}>
