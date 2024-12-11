@@ -23,14 +23,20 @@ export const getWhen = (
   calEvent: Pick<CalendarEvent, "organizer" | "attendees" | "seatsPerTimeSlot">,
   t: TFunction
 ) => {
-  return calEvent.seatsPerTimeSlot
-    ? `
+  const defaultTimezone = calEvent.organizer?.timeZone ?? "UTC";
+
+  if (calEvent.seatsPerTimeSlot) {
+    return `
 ${t("organizer_timezone")}:
-${calEvent.organizer.timeZone}
-  `
-    : `
+${defaultTimezone}
+  `;
+  }
+
+  const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
+
+  return `
 ${t("invitee_timezone")}:
-${calEvent.attendees[0].timeZone}
+${attendeeTimezone}
   `;
 };
 
