@@ -162,21 +162,22 @@ export default function MemberList(props: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchTerm: debouncedSearchTerm,
-      teamId: props.team.id,
-    },
-    {
-      enabled: !!props.team.id,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      placeholderData: keepPreviousData,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-    }
-  );
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
+    trpc.viewer.teams.listMembers.useInfiniteQuery(
+      {
+        limit: 10,
+        searchTerm: debouncedSearchTerm,
+        teamId: props.team.id,
+      },
+      {
+        enabled: !!props.team.id,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+      }
+    );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -633,13 +634,12 @@ export default function MemberList(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 

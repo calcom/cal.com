@@ -532,13 +532,12 @@ export function RoutingFormResponsesTableContent({
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const { removeDisplayedExternalFilter } = useDataTable();
 
