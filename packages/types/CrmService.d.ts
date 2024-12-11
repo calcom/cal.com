@@ -27,11 +27,7 @@ export interface CrmEvent {
   type?: string;
   password?: string;
   url?: string;
-  additionalInfo?: {
-    contacts?: Contact[];
-    sfEvent?: any;
-    calWarnings: string[];
-  };
+  additionalInfo?: any;
 }
 
 export interface CRM {
