@@ -23,6 +23,15 @@ export interface Contact {
 
 export interface CrmEvent {
   id: string;
+  uid?: string;
+  type?: string;
+  password?: string;
+  url?: string;
+  additionalInfo?: {
+    contacts?: Contact[];
+    sfEvent?: any;
+    calWarnings: string[];
+  };
 }
 
 export interface CRM {
