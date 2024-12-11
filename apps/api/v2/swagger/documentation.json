@@ -13159,12 +13159,18 @@
           "email": {
             "type": "string",
             "description": "The email of the attendee.",
-            "example": "john.doe@example.com"
+            "example": "john.doe@example.com",
+            "default": ""
           },
           "timeZone": {
             "type": "string",
             "description": "The time zone of the attendee.",
             "example": "America/New_York"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the attendee in international format.",
+            "example": "+919876543210"
           },
           "language": {
             "type": "string",
@@ -13219,7 +13225,6 @@
         },
         "required": [
           "name",
-          "email",
           "timeZone"
         ]
       },
