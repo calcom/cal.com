@@ -9,8 +9,8 @@ import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Meeting Unavailable",
-    () => "Meeting Unavailable"
+    (t) => t("meeting_unavailable"),
+    (t) => t("meeting_unavailable")
   );
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
