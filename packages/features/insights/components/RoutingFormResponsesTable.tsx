@@ -17,6 +17,7 @@ import type { FilterValue, ExternalFilter } from "@calcom/features/data-table";
 import {
   DataTableProvider,
   DataTable,
+  DataTableSkeleton,
   DataTableFilters,
   useFetchMoreOnBottomReached,
   useColumnFilters,
@@ -39,15 +40,9 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  type BadgeProps,
   HoverCardPortal,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from "@calcom/ui";
-import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
 import { ClearFilters } from "../filters/ClearFilters";
@@ -564,49 +559,7 @@ export function RoutingFormResponsesTableContent({
   );
 
   if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
-    return (
-      <div
-        className="grid h-[85dvh]"
-        style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
-        <div
-          className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
-          style={{ gridArea: "body" }}>
-          <Table>
-            <TableHeader className="bg-subtle sticky top-0 z-10">
-              <TableRow>
-                {[...Array(4)].map((_, index) => (
-                  <TableHead key={`skeleton-header-${index}`}>
-                    <div className="bg-subtle h-4 w-[200px] animate-pulse rounded-md" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(10)].map((_, rowIndex) => (
-                <TableRow key={`skeleton-row-${rowIndex}`}>
-                  {[...Array(4)].map((_, colIndex) => (
-                    <TableCell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
-                      <div
-                        className={classNames(
-                          "bg-subtle h-6 animate-pulse rounded-md",
-                          colIndex === 0
-                            ? "w-[200px]"
-                            : colIndex === 2
-                            ? "w-[250px]"
-                            : colIndex === 3
-                            ? "w-[250px]"
-                            : "w-[200px]"
-                        )}
-                      />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
+    return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
 
   return (

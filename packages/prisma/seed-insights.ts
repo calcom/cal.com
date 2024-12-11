@@ -68,7 +68,8 @@ const shuffle = (
   booking.uid = uuidv4();
 
   if (usersIdsToPick && usersIdsToPick.length > 0) {
-    booking.userId = Math.random() > 0.5 ? usersIdsToPick[0] : usersIdsToPick[1];
+    // Pick a random user from all available users instead of just two
+    booking.userId = usersIdsToPick[Math.floor(Math.random() * usersIdsToPick.length)];
   } else {
     booking.userId = randomEvent.userId;
   }
@@ -226,6 +227,15 @@ async function main() {
     });
   }
 
+  const insightsMembers = await prisma.membership.findMany({
+    where: {
+      teamId: insightsTeam.id,
+    },
+    include: {
+      user: true,
+    },
+  });
+
   // Create bookings for the team events
   const baseBooking = {
     uid: "demoUID",
@@ -233,7 +243,7 @@ async function main() {
     description: "Team Meeting Should be changed in shuffle",
     startTime: dayjs().toISOString(),
     endTime: dayjs().toISOString(),
-    userId: orgMembers[0].id, // Use first org member as default
+    userId: insightsMembers[0].user.id, // Use first org member as default
   };
 
   // Create past bookings -2y, -1y, -0y
@@ -244,7 +254,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y") - 2,
           teamEvents,
-          orgMembers.map((m) => m.id)
+          insightsMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -257,7 +267,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y") - 1,
           teamEvents,
-          orgMembers.map((m) => m.id)
+          insightsMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -270,7 +280,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y"),
           teamEvents,
-          orgMembers.map((m) => m.id)
+          insightsMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -288,7 +298,7 @@ async function main() {
   }
   const seededForm = await seedRoutingForms(
     insightsTeam.id,
-    owner?.user.id ?? orgMembers[0].user.id,
+    owner?.user.id ?? insightsMembers[0].user.id,
     attributes
   );
 
