@@ -55,10 +55,6 @@ export async function getServerSideProps(
   context: GetServerSidePropsContext,
   ...rest: GetServerSidePropsRestArgs
 ) {
-  //add forms to be the default page, if no pages are found
-  //this is useful when rendering /routing as no params would be available
-  const defaultPage = "forms";
-  const page = context.params?.pages?.[0] || defaultPage;
-  const component = getComponent(page);
+  const component = getComponent(context.params?.pages?.[0] || "");
   return component.getServerSideProps?.(context, ...rest) || { props: {} };
 }
