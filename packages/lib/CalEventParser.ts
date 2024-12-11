@@ -30,7 +30,7 @@ ${calEvent.organizer.timeZone}
   `
     : `
 ${t("invitee_timezone")}:
-${calEvent.attendees[0].timeZone}
+${calEvent.attendees[0]?.timeZone}
   `;
 };
 
