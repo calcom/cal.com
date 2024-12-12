@@ -86,13 +86,42 @@ export class SelectedCalendarsRepository {
 
   async removeUserSelectedCalendar(userId: number, integration: string, externalId: string) {
     // Using deleteMany because userId_externalId_integration_eventTypeId is a unique constraint but with eventTypeId being nullable, causing it to be not used as a unique constraint
-    return await this.dbWrite.prisma.selectedCalendar.deleteMany({
+    const records = await this.dbWrite.prisma.selectedCalendar.findMany({
+      where: {
+        userId,
+        externalId, 
+        integration,
+        ...propsEnsuringUserLevelCalendar,
+      }
+    });
+
+    console.log(
+      "All records",
+      await this.dbWrite.prisma.selectedCalendar.findMany({
+        where: {
+          externalId,
+        },
+      })
+    );
+
+    if (records.length > 1) {
+      throw new Error("Multiple records found for the same user, externalId, integration, and eventTypeId");
+    }
+
+    // Make the behaviour same as .delete which throws error if no record is found
+    if (records.length === 0) {
+      throw new Error("No record found for the given user, externalId, integration, and eventTypeId");
+    }
+
+    await this.dbWrite.prisma.selectedCalendar.deleteMany({
       where: {
         userId,
         externalId,
         integration,
         ...propsEnsuringUserLevelCalendar,
-      },
+      }
     });
+
+    return records[0];
   }
 }
