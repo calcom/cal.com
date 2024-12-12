@@ -967,6 +967,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             });
             expect(firstBooking.attendees[1]).toEqual({
               name: nameAttendeeTwo,
+              email: emailAttendeeTwo,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
