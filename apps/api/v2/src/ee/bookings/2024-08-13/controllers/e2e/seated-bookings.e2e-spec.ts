@@ -1002,6 +1002,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.attendees.length).toEqual(2);
             expect(secondBooking.attendees[0]).toEqual({
               name: nameAttendeeOne,
+              email: emailAttendeeOne,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -1014,6 +1015,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             });
             expect(secondBooking.attendees[1]).toEqual({
               name: nameAttendeeTwo,
+              email: emailAttendeeTwo,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
