@@ -545,18 +545,17 @@ export default class GoogleCalendarService implements Calendar {
       if (!cals.length) return [];
 
       if (selectedCalendarIds.length !== 0) {
-        const selectedIdsSet = new Set(selectedCalendarIds);
-        return cals
-          .filter((cal) => cal.id && selectedIdsSet.has(cal.id))
-          .map((cal) => ({ id: cal.id || "", timeZone: cal.timeZone || undefined }));
+        return selectedCalendarIds.map((selectedCalendarId) => {
+          const calWithTz = cals.find((cal) => cal.id === selectedCalendarId);
+          return {
+            id: selectedCalendarId,
+            timeZone: calWithTz?.timeZone || "",
+          };
+        });
       }
 
-      return cals
-        .filter((cal) => cal.id)
-        .map((cal) => ({
-          id: cal.id || "",
-          timeZone: cal.timeZone || "",
-        }));
+      // we ever reach that code, we already check before if selectedCalendarIds is empty
+      return [];
     };
 
     try {

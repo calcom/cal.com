@@ -389,7 +389,7 @@ async function getCurrentMonthCalendarBusyTimes(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
         user.credentials,
-        startOfMonth.toISOString(),
+        startOfMonth().toISOString(),
         new Date().toISOString(),
         user.selectedCalendars,
         true
@@ -665,8 +665,8 @@ async function fetchAllDataNeededForCalculations<
 
         // make sure start date and end date is converted to 00:00 for full day busy events
         const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
-        let start = new Date(new Date(busyTime.start).getTime() - timezoneOffset);
-        const end = new Date(new Date(busyTime.end).getTime() - timezoneOffset);
+        let start = new Date(new Date(busyTime.start).getTime() + timezoneOffset);
+        const end = new Date(new Date(busyTime.end).getTime() + timezoneOffset);
 
         // needed for full day busy events that started the month before
         const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -687,7 +687,7 @@ async function fetchAllDataNeededForCalculations<
       },
       end: {
         lte: new Date(),
-        gte: startOfMonth,
+        gte: startOfMonth(),
       },
     },
     select: {
