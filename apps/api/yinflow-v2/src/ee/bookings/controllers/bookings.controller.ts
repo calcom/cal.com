@@ -17,11 +17,14 @@ import { randomBytes } from "crypto";
 import dayjs from "dayjs";
 import { Request } from "express";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BookingResponse, HttpError } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platform-types";
-import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { Prisma, WorkflowReminder } from "@calcom/prisma/client";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { supabase } from "../../../config/supabase";
 import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
@@ -422,8 +425,9 @@ export class BookingsController {
   }
 
   private async cancelUsageByBookingUid(req: BookingRequest, bookingId: string): Promise<any> {
-    const { allRemainingBookings, cancellationReason } = req.body;
-    const { data: bookingToDelete } = await supabase
+    const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, cancelledBy } = req.body;
+
+    const { data: bookingToDelete, error } = await supabase
       .from("Booking")
       .update({
         status: BookingStatus.CANCELLED.toLowerCase(),
@@ -433,6 +437,7 @@ export class BookingsController {
       .select("*")
       .maybeSingle();
 
+    // aqui _________
     let allBookingsUpdated = [bookingToDelete];
 
     if (bookingToDelete?.eventType?.seatsPerTimeSlot)
@@ -459,11 +464,366 @@ export class BookingsController {
       .eq("uid", bookingToDelete!.recurringEventId as string)
       .select("*");
 
+    // aqui _________
+
+    // const {
+    //   bookingToDelete,
+    //   userId,
+    //   platformBookingUrl,
+    //   platformCancelUrl,
+    //   platformClientId,
+    //   platformRescheduleUrl,
+    //   arePlatformEmailsEnabled,
+    // } = req;
+
+    if (!bookingToDelete || error) throw new HttpError({ statusCode: 400, message: "Booking not found" });
+
+    if (!bookingToDelete.userId) throw new HttpError({ statusCode: 400, message: "User not found" });
+
+    const { data: eventType } = await supabase
+      .from("EventType")
+      .select("*")
+      .eq("id", bookingToDelete.eventTypeId)
+      .maybeSingle();
+
+    // get webhooks
+    const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+
+    const teamId = eventType && eventType.teamId;
+    const triggerForUser = !teamId || (teamId && eventType && eventType.parentId);
+    const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
+
+    // const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+    // const subscriberOptions = {
+    //   userId: organizerUserId,
+    //   eventTypeId: bookingToDelete.eventTypeId as number,
+    //   triggerEvent: eventTrigger,
+    //   teamId,
+    //   orgId,
+    // };
+    // const eventTypeInfo: EventTypeInfo = {
+    //   eventTitle: bookingToDelete?.eventType?.title || null,
+    //   eventDescription: bookingToDelete?.eventType?.description || null,
+    //   requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
+    //   price: bookingToDelete?.eventType?.price || null,
+    //   currency: bookingToDelete?.eventType?.currency || null,
+    //   length: bookingToDelete?.eventType?.length || null,
+    // };
+
+    // const webhooks = await getWebhooks(subscriberOptions);
+
+    // const organizer = await prisma.user.findFirstOrThrow({
+    //   where: {
+    //     id: bookingToDelete.userId,
+    //   },
+    //   select: {
+    //     id: true,
+    //     username: true,
+    //     name: true,
+    //     email: true,
+    //     timeZone: true,
+    //     timeFormat: true,
+    //     locale: true,
+    //   },
+    // });
+
+    const teamMembersPromises = [];
+    const attendeesListPromises = [];
+    const hostsPresent = !!eventType && eventType.hosts;
+
+    for (const attendee of bookingToDelete.attendees) {
+      const attendeeObject = {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      };
+
+      // Check for the presence of hosts to determine if it is a team event type
+      if (hostsPresent) {
+        // If the attendee is a host then they are a team member
+        const teamMember =
+          eventType && eventType?.hosts.some((host: any) => host.user.email === attendee.email);
+        if (teamMember) {
+          teamMembersPromises.push(attendeeObject);
+          // If not then they are an attendee
+        } else {
+          attendeesListPromises.push(attendeeObject);
+        }
+      } else {
+        attendeesListPromises.push(attendeeObject);
+      }
+    }
+
+    // const attendeesList = await Promise.all(attendeesListPromises);
+    // const teamMembers = await Promise.all(teamMembersPromises);
+    // const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+
+    const evt: CalendarEvent = {
+      title: bookingToDelete?.title,
+      length: eventType && eventType.length,
+      type: eventType && (eventType.slug as string),
+      description: bookingToDelete?.description || "",
+      //   customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+      eventTypeId: bookingToDelete.eventTypeId as number,
+      //   ...getCalEventResponses({
+      //     bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+      //     booking: bookingToDelete,
+      //   }),
+      startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
+      endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
+      // organizer: {
+      //     id: organizer.id,
+      //     username: organizer.username || undefined,
+      //     email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
+      //     name: organizer.name ?? "Nameless",
+      //     timeZone: organizer.timeZone,
+      //     timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
+      //     language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
+      // },
+      //   attendees: attendeesList,
+      uid: bookingToDelete?.uid,
+      bookingId: bookingToDelete?.id,
+      /* Include recurringEvent information only when cancelling all bookings */
+      //   recurringEvent: allRemainingBookings
+      //     ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
+      //     : undefined,
+      location: bookingToDelete?.location,
+      // destinationCalendar: bookingToDelete?.destinationCalendar
+      //   ? [bookingToDelete?.destinationCalendar]
+      //   : bookingToDelete?.user.destinationCalendar
+      //   ? [bookingToDelete?.user.destinationCalendar]
+      //   : [],
+      cancellationReason: cancellationReason,
+      //   ...(teamMembers && {
+      //     team: { name: bookingToDelete?.eventType?.team?.name || "Nameless", members: teamMembers, id: teamId! },
+      //   }),
+      seatsPerTimeSlot: eventType && eventType?.seatsPerTimeSlot,
+      seatsShowAttendees: eventType && eventType?.seatsShowAttendees,
+      iCalUID: bookingToDelete.iCalUID,
+      iCalSequence: bookingToDelete.iCalSequence + 1,
+      //   platformClientId,
+      //   platformRescheduleUrl,
+      //   platformCancelUrl,
+      //   platformBookingUrl,
+    };
+
+    // const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+
+    // If it's just an attendee of a booking then just remove them from that booking
+    // const result = await cancelAttendeeSeat(
+    //   req,
+    //   dataForWebhooks,
+    //   bookingToDelete?.eventType?.metadata as EventTypeMetadata
+    // );
+    // if (result)
+    //   return {
+    //     success: true,
+    //     onlyRemovedAttendee: true,
+    //     bookingId: bookingToDelete.id,
+    //     bookingUid: bookingToDelete.uid,
+    //     message: "Attendee successfully removed.",
+    //   } satisfies HandleCancelBookingResponse;
+
+    // const promises = webhooks.map((webhook) =>
+    //   sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+    //     ...evt,
+    //     ...eventTypeInfo,
+    //     status: "CANCELLED",
+    //     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    //     cancelledBy: cancelledBy,
+    //   }).catch((e) => {
+    //     logger.error(
+    //       `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+    //       safeStringify(e)
+    //     );
+    //   })
+    // );
+    // await Promise.all(promises);
+
+    // const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+
+    // await sendCancelledReminders({
+    //   workflows,
+    //   smsReminderNumber: bookingToDelete.smsReminderNumber,
+    //   evt: {
+    //     ...evt,
+    //     ...{
+    //       eventType: {
+    //         slug: bookingToDelete.eventType?.slug,
+    //         schedulingType: bookingToDelete.eventType?.schedulingType,
+    //         hosts: bookingToDelete.eventType?.hosts,
+    //       },
+    //     },
+    //   },
+    //   hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    // });
+
+    const updatedBookings: {
+      id: number;
+      uid: string;
+      workflowReminders: WorkflowReminder[];
+      references: {
+        type: string;
+        credentialId: number | null;
+        uid: string;
+        externalCalendarId: string | null;
+      }[];
+      startTime: Date;
+      endTime: Date;
+    }[] = [];
+
+    // by cancelling first, and blocking whilst doing so; we can ensure a cancel
+    // action always succeeds even if subsequent integrations fail cancellation.
+    if (eventType && eventType?.recurringEvent && bookingToDelete.recurringEventId && allRemainingBookings) {
+      //   const recurringEventId = bookingToDelete.recurringEventId;
+      //   // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
+      //   await prisma.booking.updateMany({
+      //     where: {
+      //       recurringEventId,
+      //       startTime: {
+      //         gte: new Date(),
+      //       },
+      //     },
+      //     data: {
+      //       status: BookingStatus.CANCELLED,
+      //       cancellationReason: cancellationReason,
+      //       cancelledBy: cancelledBy,
+      //     },
+      //   });
+      //   const allUpdatedBookings = await prisma.booking.findMany({
+      //     where: {
+      //       recurringEventId: bookingToDelete.recurringEventId,
+      //       startTime: {
+      //         gte: new Date(),
+      //       },
+      //     },
+      //     select: {
+      //       id: true,
+      //       startTime: true,
+      //       endTime: true,
+      //       references: {
+      //         select: {
+      //           uid: true,
+      //           type: true,
+      //           externalCalendarId: true,
+      //           credentialId: true,
+      //         },
+      //       },
+      //       workflowReminders: true,
+      //       uid: true,
+      //     },
+      //   });
+      //   updatedBookings = updatedBookings.concat(allUpdatedBookings);
+      // } else {
+      //   if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
+      //     await prisma.attendee.deleteMany({
+      //       where: {
+      //         bookingId: bookingToDelete.id,
+      //       },
+      //     });
+    }
+
+    //   const where: Prisma.BookingWhereUniqueInput = uid ? { uid } : { id };
+
+    //   const updatedBooking = await prisma.booking.update({
+    //     where,
+    //     data: {
+    //       status: BookingStatus.CANCELLED,
+    //       cancellationReason: cancellationReason,
+    //       cancelledBy: cancelledBy,
+    //       // Assume that canceling the booking is the last action
+    //       iCalSequence: evt.iCalSequence || 100,
+    //     },
+    //     select: {
+    //       id: true,
+    //       startTime: true,
+    //       endTime: true,
+    //       references: {
+    //         select: {
+    //           uid: true,
+    //           type: true,
+    //           externalCalendarId: true,
+    //           credentialId: true,
+    //         },
+    //       },
+    //       workflowReminders: true,
+    //       uid: true,
+    //     },
+    //   });
+    //   updatedBookings.push(updatedBooking);
+    // }
+
+    /** TODO: Remove this without breaking functionality */
+    if (bookingToDelete.location === DailyLocationType) {
+      //   bookingToDelete.user.credentials.push({
+      //     ...FAKE_DAILY_CREDENTIAL,
+      //     teamId: bookingToDelete.eventType?.team?.id || null,
+      //   });
+    }
+
+    // const isBookingInRecurringSeries = !!(
+    //   bookingToDelete.eventType?.recurringEvent &&
+    //   bookingToDelete.recurringEventId &&
+    //   allRemainingBookings
+    // );
+
+    // const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    //   bookingToDelete.eventType?.metadata || null
+    // );
+
+    // const credentials = await getAllCredentials(bookingToDelete.user, {
+    //   ...bookingToDelete.eventType,
+    //   metadata: bookingToDeleteEventTypeMetadata,
+    // });
+
+    // const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
+
+    // await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+
+    // const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+    //   where: {
+    //     bookingId: bookingToDelete.id,
+    //   },
+    // });
+
+    const webhookTriggerPromises = [];
+    const workflowReminderPromises = [];
+
+    // for (const booking of updatedBookings) {
+    //   // delete scheduled webhook triggers of cancelled bookings
+    //   webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+
+    //   //Workflows - cancel all reminders for cancelled bookings
+    //   workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
+    // }
+
+    // await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
+    //   log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
+    // });
+
+    // const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
+
+    try {
+      // TODO: if emails fail try to requeue them
+      //   if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+      //     await sendCancelledEmails(
+      //       evt,
+      //       { eventName: bookingToDelete?.eventType?.eventName },
+      //       bookingToDelete?.eventType?.metadata as EventTypeMetadata
+      //     );
+    } catch (error) {
+      console.error("Error deleting event", error);
+    }
+
     return {
       onlyRemovedAttendee: false,
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
-      updatedBookings: allBookingsUpdated,
+      // updatedBookings: allBookingsUpdated,
     };
   }
 
