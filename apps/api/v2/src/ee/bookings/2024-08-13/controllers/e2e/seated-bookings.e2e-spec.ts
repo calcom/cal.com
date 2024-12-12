@@ -279,6 +279,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const firstAttendee = data.attendees.find((attendee) => attendee.name === nameAttendeeOne);
             expect(firstAttendee).toEqual({
               name: createdSeatedBooking.attendees[0].name,
+              email: createdSeatedBooking.attendees[0].email,
               timeZone: createdSeatedBooking.attendees[0].timeZone,
               language: createdSeatedBooking.attendees[0].language,
               absent: false,
@@ -404,6 +405,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.attendees.length).toEqual(1);
             expect(secondBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -578,6 +580,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const attendee = createdSeatedBooking.attendees.find((a) => a.seatUid === body.seatUid);
             expect(data.attendees[0]).toEqual({
               name: attendee?.name,
+              email: attendee?.email,
               timeZone: attendee?.timeZone,
               language: attendee?.language,
               absent: false,
@@ -872,6 +875,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.attendees.length).toEqual(1);
             expect(secondBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -949,6 +953,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.attendees.length).toEqual(2);
             expect(firstBooking.attendees[0]).toEqual({
               name: nameAttendeeOne,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,

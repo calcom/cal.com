@@ -478,6 +478,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(thirdBooking.recurringBookingUid).toBeDefined();
               expect(thirdBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
+                email: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,

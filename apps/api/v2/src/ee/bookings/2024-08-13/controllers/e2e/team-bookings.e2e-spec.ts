@@ -367,6 +367,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(data.attendees[1]).toEqual({
                 name: teamUser2.name,
+                email: teamUser2.email,
                 timeZone: teamUser2.timeZone,
                 language: teamUser2.locale,
                 absent: false,
