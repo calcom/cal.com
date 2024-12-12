@@ -9,12 +9,14 @@ export const schemaSelectedCalendarBaseBodyParams = SelectedCalendar;
 
 export const schemaSelectedCalendarPublic = SelectedCalendar.omit({});
 
-export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams.partial({
-  userId: true,
-}).omit({
-  // id will be set by the database
-  id: true,
-});
+export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
+  .partial({
+    userId: true,
+  })
+  .omit({
+    // id will be set by the database
+    id: true,
+  });
 
 export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams.partial();
 

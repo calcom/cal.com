@@ -19,7 +19,7 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb, getBusyCalendarTimes } from "@calcom/platform-libraries";
+import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -42,7 +42,7 @@ export class CalendarsService {
       throw new NotFoundException("User not found");
     }
 
-    return getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+    return getConnectedDestinationCalendars({
       user: userWithCalendars,
       onboarding: false,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
