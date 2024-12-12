@@ -323,12 +323,10 @@ export default class SalesforceCRMService implements CRM {
     includeOwner?: boolean;
     forRoundRobinSkip?: boolean;
   }) {
-    this.log = logger.getSubLogger({ prefix: [`[getContacts]:${emails}`] });
+    const log = logger.getSubLogger({ prefix: [`[getContacts]:${emails}`] });
     try {
       const conn = await this.conn;
       const emailArray = Array.isArray(emails) ? emails : [emails];
-
-      this.log.debug("Getting contacts for emails", { emailArray, includeOwner, forRoundRobinSkip });
 
       const appOptions = this.getAppOptions();
       const recordToSearch =
@@ -338,18 +336,26 @@ export default class SalesforceCRMService implements CRM {
       let soql: string;
       let accountOwnerId = "";
 
+      log.info("Getting contacts for emails", {
+        emailArray,
+        includeOwner,
+        forRoundRobinSkip,
+        recordToSearch,
+        appOptions,
+      });
+
       // Handle Account record type
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
         // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
-        this.log.debug("Searching account for email", { attendeeEmail });
+        log.info("Searching account for email", { attendeeEmail });
 
         soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
 
         // If this is for a round robin skip then we need to return the account record
         if (forRoundRobinSkip) {
           const results = await conn.query(soql);
-          this.log.debug("Account contact search results", { resultCount: results.records.length });
+          log.info("Account contact search results", { resultCount: results.records.length });
 
           if (results.records?.length) {
             const contact = results.records[0] as { AccountId?: string };
@@ -373,7 +379,7 @@ export default class SalesforceCRMService implements CRM {
       }
 
       const results = await conn.query(soql);
-      this.log.debug("Query results", { recordCount: results.records?.length });
+      log.info("Query results", { recordCount: results.records?.length });
 
       // If we're checking against the contact, the ownerId should take precedence
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records?.length) {
@@ -400,7 +406,7 @@ export default class SalesforceCRMService implements CRM {
         if (contactSearch?.records?.length > 0) {
           records = contactSearch.records as ContactRecord[];
           this.setFallbackToContact(true);
-          this.log.debug("Found matching contacts, falling back to contact", {
+          log.info("Found matching contacts, falling back to contact", {
             contactCount: records.length,
           });
         }
@@ -411,7 +417,7 @@ export default class SalesforceCRMService implements CRM {
       }
 
       if (!records.length) {
-        this.log.debug("No records found");
+        log.info("No records found");
         return [];
       }
 
@@ -430,7 +436,7 @@ export default class SalesforceCRMService implements CRM {
         }
 
         if (ownerIds.size === 0) {
-          this.log.warn("No owner IDs found for records");
+          log.warn("No owner IDs found for records");
           return [];
         }
 
@@ -452,14 +458,14 @@ export default class SalesforceCRMService implements CRM {
         });
 
         if (validOwnersQuery.length === 0) {
-          this.log.warn("No valid owner records found");
+          log.warn("No valid owner records found");
           return [];
         }
 
         return records
           .map((record) => {
             if (!record?.Id || !record?.OwnerId) {
-              this.log.warn("Invalid record data", { record });
+              log.warn("Invalid record data", { record });
               return null;
             }
 
@@ -468,7 +474,7 @@ export default class SalesforceCRMService implements CRM {
               : validOwnersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]?.Email;
 
             if (!ownerEmail) {
-              this.log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
+              log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
               return null;
             }
 
@@ -483,11 +489,10 @@ export default class SalesforceCRMService implements CRM {
           .filter((record): record is NonNullable<typeof record> => record !== null);
       }
 
-      // Return basic record information
       return records
         .map((record) => {
           if (!record?.Id || !record?.Email || !record?.attributes?.type) {
-            this.log.warn("Invalid record data for basic mapping", { record });
+            log.warn("Invalid record data for basic mapping", { record });
             return null;
           }
 
@@ -499,7 +504,7 @@ export default class SalesforceCRMService implements CRM {
         })
         .filter((record): record is NonNullable<typeof record> => record !== null);
     } catch (error) {
-      this.log.error("Error in getContacts", { error });
+      log.error("Error in getContacts", { error });
       return [];
     }
   }
