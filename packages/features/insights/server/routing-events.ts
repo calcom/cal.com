@@ -765,7 +765,7 @@ class RoutingEventsInsights {
       }>
     >`
       WITH routed_responses AS (
-        SELECT DISTINCT ON (b."userId") 
+        SELECT DISTINCT ON (b."userId")
           b."userId",
           u.id,
           u.name,
@@ -793,6 +793,20 @@ class RoutingEventsInsights {
 
     const hasMoreUsers = users.length === limit;
 
+    // Return early if no users found
+    if (users.length === 0) {
+      return {
+        users: {
+          data: [],
+          nextCursor: undefined,
+        },
+        periodStats: {
+          data: [],
+          nextCursor: undefined,
+        },
+      };
+    }
+
     // Get periods with pagination
     const periodStats = await prisma.$queryRaw<
       Array<{
@@ -805,7 +819,7 @@ class RoutingEventsInsights {
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT date + (CASE 
+        SELECT date + (CASE
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
@@ -827,7 +841,7 @@ class RoutingEventsInsights {
       ),
       -- Generate combinations for paginated periods
       date_user_combinations AS (
-        SELECT 
+        SELECT
           period_start,
           user_id as "userId"
         FROM paginated_periods
@@ -835,7 +849,7 @@ class RoutingEventsInsights {
       ),
       -- Count bookings per user per period
       booking_counts AS (
-        SELECT 
+        SELECT
           b."userId",
           date_trunc(${dayjsPeriod}, b."createdAt") as period_start,
           COUNT(DISTINCT b.id)::integer as total
@@ -849,13 +863,13 @@ class RoutingEventsInsights {
         GROUP BY 1, 2
       )
       -- Join everything together
-      SELECT 
+      SELECT
         c."userId",
         c.period_start,
         COALESCE(b.total, 0)::integer as total
       FROM date_user_combinations c
-      LEFT JOIN booking_counts b ON 
-        b."userId" = c."userId" AND 
+      LEFT JOIN booking_counts b ON
+        b."userId" = c."userId" AND
         b.period_start = c.period_start
       ORDER BY c.period_start ASC, c."userId" ASC
     `;
@@ -865,7 +879,7 @@ class RoutingEventsInsights {
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT date + (CASE 
+        SELECT date + (CASE
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
@@ -883,7 +897,7 @@ class RoutingEventsInsights {
         total_bookings: number;
       }>
     >`
-      SELECT 
+      SELECT
         b."userId",
         COUNT(*)::integer as total_bookings
       FROM "App_RoutingForms_FormResponse" r
@@ -1000,7 +1014,7 @@ class RoutingEventsInsights {
       }>
     >`
       WITH routed_responses AS (
-        SELECT DISTINCT ON (b."userId") 
+        SELECT DISTINCT ON (b."userId")
           b."userId",
           u.id,
           u.name,
@@ -1033,7 +1047,7 @@ class RoutingEventsInsights {
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT date + (CASE 
+        SELECT date + (CASE
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
@@ -1045,14 +1059,14 @@ class RoutingEventsInsights {
         SELECT unnest(ARRAY[${Prisma.join(usersQuery.map((u) => u.id))}]) as user_id
       ),
       date_user_combinations AS (
-        SELECT 
+        SELECT
           date as period_start,
           user_id as "userId"
         FROM date_range
         CROSS JOIN all_users
       ),
       booking_counts AS (
-        SELECT 
+        SELECT
           b."userId",
           date_trunc(${dayjsPeriod}, b."createdAt") as period_start,
           COUNT(DISTINCT b.id)::integer as total
@@ -1065,13 +1079,13 @@ class RoutingEventsInsights {
         ${whereClause}
         GROUP BY 1, 2
       )
-      SELECT 
+      SELECT
         c."userId",
         c.period_start,
         COALESCE(b.total, 0)::integer as total
       FROM date_user_combinations c
-      LEFT JOIN booking_counts b ON 
-        b."userId" = c."userId" AND 
+      LEFT JOIN booking_counts b ON
+        b."userId" = c."userId" AND
         b.period_start = c.period_start
       ORDER BY c.period_start ASC, c."userId" ASC
     `;
@@ -1083,7 +1097,7 @@ class RoutingEventsInsights {
         total_bookings: number;
       }>
     >`
-      SELECT 
+      SELECT
         b."userId",
         COUNT(*)::integer as total_bookings
       FROM "App_RoutingForms_FormResponse" r
