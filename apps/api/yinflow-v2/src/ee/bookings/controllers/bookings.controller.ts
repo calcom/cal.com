@@ -656,7 +656,7 @@ export class BookingsController {
 
     const { data: user } = await supabase.from("users").select("*").eq("id", bookingToDelete.userId).single();
 
-    const credentials = await getAllCredentials(
+    const credentials = await this.getAllCredentials(
       {
         id: user.id,
         username: user.username,
