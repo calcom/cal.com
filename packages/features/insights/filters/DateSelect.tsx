@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DateRangePicker } from "@calcom/ui";
 import { Select } from "@calcom/ui";
@@ -10,7 +9,7 @@ import { Select } from "@calcom/ui";
 import { useFilterContext } from "../context/provider";
 import "./DateSelect.css";
 
-export const DateSelect = ({ className }: { className?: string }) => {
+export const DateSelect = () => {
   const { t } = useLocale();
   const presetOptions = [
     { label: t("today"), value: "tdy" },
@@ -69,7 +68,7 @@ export const DateSelect = ({ className }: { className?: string }) => {
   };
 
   return (
-    <div className={classNames("ml inline-flex space-x-2 rtl:space-x-reverse", className)}>
+    <div className="ml me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
       <DateRangePicker
         dates={{
           startDate: startValue,

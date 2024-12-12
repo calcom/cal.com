@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import type { IconName } from "@calcom/ui";
-
 export const ZTextFilterOperator = z.enum([
   "equals",
   "notEquals",
@@ -29,77 +27,13 @@ export const ZTextFilterValue = z.object({
 
 export type TextFilterValue = z.infer<typeof ZTextFilterValue>;
 
-export const ZNumberFilterOperator = z.enum([
-  "eq", // =
-  "neq", // !=
-  "gt", // >
-  "gte", // >=
-  "lt", // <
-  "lte", // <=
-]);
-
-export type NumberFilterOperator = z.infer<typeof ZNumberFilterOperator>;
-
-export const ZNumberFilterValue = z.object({
-  type: z.literal("number"),
-  data: z.object({
-    operator: ZNumberFilterOperator,
-    operand: z.number(),
-  }),
-});
-
-export type NumberFilterValue = z.infer<typeof ZNumberFilterValue>;
-
-export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue, ZNumberFilterValue]);
+export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue]);
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
-
-export type ColumnFilterType = "select" | "text" | "number";
-
-export type ColumnFilterMeta = {
-  type?: ColumnFilterType;
-  icon?: IconName;
-};
 
 export type FilterableColumn = {
   id: string;
   title: string;
-} & (
-  | {
-      type: "select";
-      icon?: IconName;
-      options: Map<string | { label: string; value: string }, number>;
-    }
-  | {
-      type: "text";
-      icon?: IconName;
-    }
-  | {
-      type: "number";
-      icon?: IconName;
-    }
-);
-
-export const ZColumnFilter = z.object({
-  id: z.string(),
-  value: ZFilterValue,
-});
-
-export type ColumnFilter = z.infer<typeof ZColumnFilter>;
-
-export type TypedColumnFilter<T extends ColumnFilterType> = {
-  id: string;
-  value: T extends "text"
-    ? TextFilterValue
-    : T extends "number"
-    ? NumberFilterValue
-    : T extends "select"
-    ? SelectFilterValue
-    : never;
-};
-
-export type ExternalFilter = {
-  key: string;
-  titleKey: string;
-  component: () => React.ReactNode;
+  filterType: "text" | "select";
+  options: Map<string, number>;
 };
