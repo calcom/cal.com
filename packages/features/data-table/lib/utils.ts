@@ -16,7 +16,7 @@ import { ZFilterValue, ZNumberFilterValue, ZSelectFilterValue, ZTextFilterValue 
 export function useDataTable() {
   const context = useContext(DataTableContext);
   if (!context) {
-    throw new Error("useDataTable must be used within a FiltersStateProvider");
+    throw new Error("useDataTable must be used within a DataTableProvider");
   }
   return context;
 }
