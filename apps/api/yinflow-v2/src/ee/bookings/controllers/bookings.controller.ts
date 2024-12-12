@@ -17,6 +17,7 @@ import { randomBytes } from "crypto";
 import dayjs from "dayjs";
 import { Request } from "express";
 
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
@@ -634,10 +635,10 @@ export class BookingsController {
 
     /** TODO: Remove this without breaking functionality */
     if (bookingToDelete.location === DailyLocationType) {
-      bookingToDelete.user.credentials.push({
-        //   ...FAKE_DAILY_CREDENTIAL,
-        teamId: bookingToDelete.eventType?.team?.id || null,
-      });
+      // bookingToDelete.user.credentials.push({
+      //   ...FAKE_DAILY_CREDENTIAL,
+      //   teamId: bookingToDelete.eventType?.team?.id || null,
+      // });
     }
 
     const isBookingInRecurringSeries = !!(
