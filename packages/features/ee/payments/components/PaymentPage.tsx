@@ -1,6 +1,6 @@
 "use client";
 
-import { useTimePreferences } from "bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import Head from "next/head";
