@@ -119,7 +119,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // for large teams and we don't want to add it back. Future refactors will happen
   // to speed up this call.
   let users: { username: string; name: string }[] = [];
-  if (!team.isPrivate && eventData.hosts.length) {
+
+  if (!team.isPrivate && eventData.hosts.length > 0) {
     users = eventData.hosts
       .filter((host) => host.user.username)
       .map((host) => ({
@@ -127,9 +128,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         name: host.user.name ?? "",
       }));
   }
-  if (!team.isPrivate && !eventData.hosts.length) {
-    // backward compatibility logic
-    // for team event types that have users[] but not hosts[]
+  if (!team.isPrivate && eventData.hosts.length === 0) {
+    // a minimalistic version of `getOwnerFromUsersArray` in `getPublicEvent.ts`
+    // backward compatibility logic for team event types that have users[] but not hosts[]
     const { users: data } = await prisma.eventType.findUniqueOrThrow({
       where: { id: eventTypeId },
       select: {
@@ -141,12 +142,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
     });
-    users = data
-      .filter((user) => user.username)
-      .map((user) => ({
-        username: user.username ?? "",
-        name: user.name ?? "",
-      }));
+
+    users =
+      data.length > 0
+        ? [
+            {
+              username: data[0].username ?? "",
+              name: data[0].name ?? "",
+            },
+          ]
+        : [];
   }
 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
