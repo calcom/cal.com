@@ -19,6 +19,7 @@ import { Request } from "express";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
+import EventManager from "@calcom/core/EventManager";
 import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -28,6 +29,7 @@ import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platf
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { CalendarEvent } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import tOrganizer from "../../../../../../web/public/static/locales/pt-BR/common.json";
 import { supabase } from "../../../config/supabase";
@@ -652,16 +654,31 @@ export class BookingsController {
     //   bookingToDelete.eventType?.metadata || null
     // );
 
-    // const credentials = await getAllCredentials(bookingToDelete.user, {
-    //   ...bookingToDelete.eventType,
-    //   metadata: bookingToDeleteEventTypeMetadata,
-    // });
+    const { data: user } = await supabase.from("users").select("*").eq("id", bookingToDelete.userId).single();
 
-    // const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
+    const credentials = await getAllCredentials(
+      {
+        id: user.id,
+        username: user.username,
+        credentials: [],
+      },
+      {
+        userId: user.id,
+        team: teamId,
+        parentId: eventType?.parentId,
+        metadata: eventType?.metadata,
+      }
+    );
+
+    const { data: references } = await supabase
+      .from("BookingReference")
+      .delete()
+      .eq("bookingId", bookingToDelete.id)
+      .select("*");
+
+    // const eventManager = new EventManager({ ...user, credentials });
 
     // await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
-
-    await supabase.from("BookingReference").delete().eq("bookingId", bookingToDelete.id);
 
     const webhookTriggerPromises = [] as Promise<unknown>[];
     const workflowReminderPromises = [] as Promise<unknown>[];
@@ -694,6 +711,7 @@ export class BookingsController {
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
       updatedBookings: allBookingsUpdated,
+      references,
     };
   }
 
@@ -716,5 +734,97 @@ export class BookingsController {
     }
 
     throw new InternalServerErrorException(errMsg);
+  }
+
+  private async getAllCredentials(
+    user: { id: number; username: string | null; credentials: CredentialPayload[] },
+    eventType: {
+      userId?: number | null;
+      team?: { id: number | null; parentId: number | null } | null;
+      parentId?: number | null;
+      metadata: any;
+    } | null,
+    organizationId?: number | null
+  ): any {
+    let allCredentials = user.credentials;
+
+    // If it's a team event type query for team credentials
+    if (eventType?.team?.id) {
+      const { data: teamCredentialsQueryByTeamId } = await supabase
+        .from("Credential")
+        .select("*")
+        .eq("teamId", eventType.team.id);
+
+      allCredentials.push(...(teamCredentialsQueryByTeamId as any[]));
+    }
+
+    // If it's a managed event type, query for the parent team's credentials
+    if (eventType?.parentId) {
+      const { data: teamCredentialsQueryByParentId } = await supabase
+        .from("Team")
+        .select("*")
+        .eq("eventTypeId", eventType.parentId)
+        .single();
+
+      if (teamCredentialsQueryByParentId?.credentials) {
+        allCredentials.push(...(teamCredentialsQueryByParentId?.credentials as any[]));
+      }
+    }
+
+    // If the user is a part of an organization, query for the organization's credentials
+    if (organizationId) {
+      const { data: teamCredentialsQueryByOrganizationId } = await supabase
+        .from("Team")
+        .select("*")
+        .eq("id", organizationId)
+        .single();
+
+      if (teamCredentialsQueryByOrganizationId?.credentials) {
+        allCredentials.push(...(teamCredentialsQueryByOrganizationId.credentials as any[]));
+      }
+    }
+
+    // Only return CRM credentials that are enabled on the event type
+    const eventTypeAppMetadata = eventType?.metadata?.apps;
+
+    // Will be [credentialId]: { enabled: boolean }]
+    const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};
+
+    for (const appKey in eventTypeAppMetadata) {
+      const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
+      if (app.appCategories && app.appCategories.some((category: string) => category === "crm")) {
+        eventTypeCrmCredentials[app.credentialId] = {
+          enabled: app.enabled,
+        };
+      }
+    }
+
+    allCredentials = allCredentials.filter((credential) => {
+      if (!credential.type.includes("_crm") && !credential.type.includes("_other_calendar")) {
+        return credential;
+      }
+
+      // Backwards compatibility: All CRM apps are triggered for every event type. Unless disabled on the event type
+      // Check if the CRM app exists on the event type
+      if (eventTypeCrmCredentials[credential.id]) {
+        if (eventTypeCrmCredentials[credential.id].enabled) {
+          return credential;
+        }
+      } else {
+        // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org and is an old CRM credential
+        if (
+          credential.type.includes("_other_calendar") &&
+          (credential.userId === eventType?.userId ||
+            credential.teamId === eventType?.team?.id ||
+            credential.teamId === eventType?.team?.parentId ||
+            credential.teamId === profile?.organizationId)
+        ) {
+          // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
+          return credential;
+        }
+      }
+    });
+
+    return allCredentials;
   }
 }
