@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getDefaultLocations } from "@calcom/lib/server";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
@@ -82,10 +81,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data.schedulingType = schedulingType;
   }
 
-  const isOrgTeamEvent = teamId ? await checkIsOrgTeamEvent(teamId, ctx.prisma) : false;
-  const defaultBookingFields = await getDefaultBookingFields(isOrgTeamEvent);
-  data.bookingFields = defaultBookingFields;
-
   // If we are in an organization & they are not admin & they are not creating an event on a teamID
   // Check if evenTypes are locked.
   if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
@@ -124,19 +119,3 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 };
-
-async function checkIsOrgTeamEvent(teamId: number, prisma: PrismaClient) {
-  const team = await prisma.team.findUnique({ where: { id: teamId } });
-  return !!team?.parentId;
-}
-
-async function getDefaultBookingFields(isOrgTeamEvent: boolean) {
-  return getBookingFieldsWithSystemFields({
-    disableGuests: false,
-    bookingFields: null,
-    customInputs: [],
-    metadata: null,
-    workflows: [],
-    isOrgTeamEvent,
-  });
-}
