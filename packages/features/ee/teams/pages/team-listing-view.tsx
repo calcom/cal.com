@@ -1,7 +1,6 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta } from "@calcom/ui";
 
 import { TeamsListing } from "../components";
 

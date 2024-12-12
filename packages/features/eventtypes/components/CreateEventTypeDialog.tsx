@@ -114,16 +114,7 @@ export default function CreateEventTypeDialog({
   return (
     <Dialog
       name="new"
-      clearQueryParamsOnClose={[
-        "eventPage",
-        "teamId",
-        "type",
-        "description",
-        "title",
-        "length",
-        "slug",
-        "locations",
-      ]}>
+      clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}>
       <DialogContent
         type="creation"
         enableOverflow
