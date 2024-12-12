@@ -529,7 +529,7 @@ describe("Organizations Event Types Endpoints", () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         title: newTitle,
         hosts: newHosts,
-        successRedirectUrl: "https://new-url-success.com",
+        successRedirectUrl: "https://new-url-success-managed.com",
       };
 
       return request(app.getHttpServer())
@@ -573,6 +573,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate1Event?.title).toEqual(newTitle);
 
           managedEventType = responseBody.data[0];
+          expect(managedEventType.successRedirectUrl).toEqual("https://new-url-success-managed.com");
         });
     });
 
