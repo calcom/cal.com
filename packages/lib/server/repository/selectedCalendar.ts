@@ -171,8 +171,16 @@ export class SelectedCalendarRepository {
     });
   }
 
-  static async findMany(args: Prisma.SelectedCalendarFindManyArgs) {
-    return await prisma.selectedCalendar.findMany(args);
+  static async findMany({
+    where,
+  }: {
+    where: {
+      userId: number;
+      credentialId: number | null;
+      externalId: string;
+    };
+  }) {
+    return await prisma.selectedCalendar.findMany({ where });
   }
 
   static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
