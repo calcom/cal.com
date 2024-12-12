@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "El bloqueo solo permitirá asignaciones desde la sincronización del directorio",
   "attribute_edited_successfully": "Atributo editado correctamente",
   "new_group_option": "Nueva opción de grupo",
+  "attribute_weight_enabled": "Pesos habilitados",
+  "attribute_weight_enabled_description": "Al habilitar los pesos, sería posible asignar mayor prioridad a ciertos atributos por usuario. Cuanto mayor sea el peso, mayor será la prioridad.",
   "routed": "Enrutado",
   "reassigned": "Reasignado",
   "rerouted": "Reenrutado",

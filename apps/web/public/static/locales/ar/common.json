@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "القفل سيسمح فقط بالتعيينات من مزامنة الدليل",
   "attribute_edited_successfully": "تم تعديل السمة بنجاح",
   "new_group_option": "خيار مجموعة جديد",
+  "attribute_weight_enabled": "تفعيل الأوزان",
+  "attribute_weight_enabled_description": "عند تفعيل الأوزان، سيكون من الممكن تعيين أولوية أعلى لبعض السمات لكل مستخدم. كلما زاد الوزن، زادت الأولوية.",
   "routed": "تم التوجيه",
   "reassigned": "تمت إعادة التعيين",
   "rerouted": "تمت إعادة التوجيه",

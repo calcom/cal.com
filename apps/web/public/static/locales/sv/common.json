@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Låsning tillåter endast tilldelningar från katalogsynkronisering",
   "attribute_edited_successfully": "Attributet har redigerats",
   "new_group_option": "Nytt gruppalternativ",
+  "attribute_weight_enabled": "Vikter aktiverade",
+  "attribute_weight_enabled_description": "Genom att aktivera vikter blir det möjligt att tilldela högre prioritet till vissa attribut per användare. Ju högre vikt, desto högre prioritet.",
   "routed": "Dirigerad",
   "reassigned": "Omtilldelad",
   "rerouted": "Omdirigerad",

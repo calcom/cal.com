@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Kilid yalnız Directory Sync-dən təyinatlara icazə verəcək",
   "attribute_edited_successfully": "Atribut uğurla redaktə edildi",
   "new_group_option": "Yeni qrup seçimi",
+  "attribute_weight_enabled": "Çəkilər aktivdir",
+  "attribute_weight_enabled_description": "Çəkiləri aktivləşdirməklə hər istifadəçi üçün müəyyən atributlara daha yüksək prioritet təyin etmək mümkün olacaq. Çəki nə qədər yüksək olarsa, prioritet də bir o qədər yüksək olar.",
   "routed": "Yönləndirildi",
   "reassigned": "Yenidən təyin edildi",
   "rerouted": "Yenidən yönləndirildi",

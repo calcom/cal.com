@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Die Sperrung erlaubt Zuweisungen nur über die Verzeichnissynchronisierung",
   "attribute_edited_successfully": "Attribut erfolgreich bearbeitet",
   "new_group_option": "Neue Gruppenoption",
+  "attribute_weight_enabled": "Gewichtungen aktiviert",
+  "attribute_weight_enabled_description": "Durch die Aktivierung von Gewichtungen ist es möglich, bestimmten Attributen pro Benutzer eine höhere Priorität zuzuweisen. Je höher die Gewichtung, desto höher die Priorität.",
   "routed": "Weitergeleitet",
   "reassigned": "Neu zugewiesen",
   "rerouted": "Umgeleitet",

@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Vergrendeling staat alleen toewijzingen toe via Directory Sync",
   "attribute_edited_successfully": "Attribuut succesvol bewerkt",
   "new_group_option": "Nieuwe groepsoptie",
+  "attribute_weight_enabled": "Gewichten ingeschakeld",
+  "attribute_weight_enabled_description": "Door gewichten in te schakelen is het mogelijk om een hogere prioriteit toe te kennen aan bepaalde attributen per gebruiker. Hoe hoger het gewicht, hoe hoger de prioriteit.",
   "routed": "Doorgestuurd",
   "reassigned": "Opnieuw toegewezen",
   "rerouted": "Omgeleid",

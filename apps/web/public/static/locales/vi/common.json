@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Khóa sẽ chỉ cho phép gán từ Đồng bộ hóa thư mục",
   "attribute_edited_successfully": "Đã chỉnh sửa thuộc tính thành công",
   "new_group_option": "Tùy chọn nhóm mới",
+  "attribute_weight_enabled": "Đã bật trọng số",
+  "attribute_weight_enabled_description": "Bằng cách bật trọng số, bạn có thể gán mức độ ưu tiên cao hơn cho một số thuộc tính của từng người dùng. Trọng số càng cao thì mức độ ưu tiên càng cao.",
   "routed": "Đã chuyển",
   "reassigned": "Đã phân công lại",
   "rerouted": "Đã chuyển hướng lại",

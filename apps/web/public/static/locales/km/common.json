@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "ការចាក់សោនឹងអនុញ្ញាតឱ្យមានតែការកំណត់ពី Directory Sync ប៉ុណ្ណោះ",
   "attribute_edited_successfully": "បានកែសម្រួលលក្ខណៈដោយជោគជ័យ",
   "new_group_option": "ជម្រើសក្រុមថ្មី",
+  "attribute_weight_enabled": "បើកការប្រើប្រាស់ទម្ងន់",
+  "attribute_weight_enabled_description": "ដោយការបើកប្រើប្រាស់ទម្ងន់ វានឹងអាចកំណត់អាទិភាពខ្ពស់ជាងមុនទៅលើលក្ខណៈសម្បត្តិជាក់លាក់សម្រាប់អ្នកប្រើប្រាស់ម្នាក់ៗ។ កាន់តែច្រើនទម្ងន់ កាន់តែខ្ពស់អាទិភាព។",
   "routed": "បញ្ជូនបន្ត",
   "reassigned": "បានចាត់តាំងឡើងវិញ",
   "rerouted": "បញ្ជូនបន្តឡើងវិញ",

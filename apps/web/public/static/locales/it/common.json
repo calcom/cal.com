@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Il blocco consentirà solo le assegnazioni da Directory Sync",
   "attribute_edited_successfully": "Attributo modificato con successo",
   "new_group_option": "Nuova opzione gruppo",
+  "attribute_weight_enabled": "Pesi abilitati",
+  "attribute_weight_enabled_description": "Abilitando i pesi, sarà possibile assegnare una priorità più alta a determinati attributi per utente. Maggiore è il peso, maggiore è la priorità.",
   "routed": "Instradato",
   "reassigned": "Riassegnato",
   "rerouted": "Reindirizzato",

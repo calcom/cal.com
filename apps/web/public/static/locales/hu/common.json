@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "A zárolás csak a Directory Sync-ből érkező hozzárendeléseket engedélyezi",
   "attribute_edited_successfully": "Az attribútum sikeresen módosítva",
   "new_group_option": "Új csoportbeállítás",
+  "attribute_weight_enabled": "Súlyozás engedélyezve",
+  "attribute_weight_enabled_description": "A súlyozás engedélyezésével lehetőség nyílik magasabb prioritás hozzárendelésére bizonyos felhasználói attribútumokhoz. Minél nagyobb a súly, annál magasabb a prioritás.",
   "routed": "Átirányítva",
   "reassigned": "Újra kiosztva",
   "rerouted": "Átirányítva",

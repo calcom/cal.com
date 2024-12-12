@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Заключването ще позволи присвояване само от Directory Sync",
   "attribute_edited_successfully": "Атрибутът е редактиран успешно",
   "new_group_option": "Нова опция за група",
+  "attribute_weight_enabled": "Активирани тежести",
+  "attribute_weight_enabled_description": "При активиране на тежестите ще бъде възможно да се зададе по-висок приоритет на определени атрибути за всеки потребител. Колкото по-голяма е тежестта, толкова по-висок е приоритетът.",
   "routed": "Пренасочен",
   "reassigned": "Преразпределен",
   "rerouted": "Пренасочен",

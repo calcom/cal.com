@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "ロックすると、ディレクトリ同期からの割り当てのみが許可されます",
   "attribute_edited_successfully": "属性の編集が完了しました",
   "new_group_option": "新規グループオプション",
+  "attribute_weight_enabled": "重み付けを有効化",
+  "attribute_weight_enabled_description": "重み付けを有効にすると、ユーザーごとに特定の属性により高い優先度を設定することができます。重みが大きいほど、優先度が高くなります。",
   "routed": "ルーティング済み",
   "reassigned": "再割り当て済み",
   "rerouted": "再ルーティング済み",

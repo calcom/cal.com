@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Uzamknutie umožní priradenia iba zo synchronizácie adresára",
   "attribute_edited_successfully": "Atribút bol úspešne upravený",
   "new_group_option": "Nová možnosť skupiny",
+  "attribute_weight_enabled": "Váhy povolené",
+  "attribute_weight_enabled_description": "Povolením váh bude možné priradiť vyššiu prioritu určitým atribútom pre každého používateľa. Čím vyššia váha, tým vyššia priorita.",
   "routed": "Presmerované",
   "reassigned": "Preradené",
   "rerouted": "Presmerované inam",

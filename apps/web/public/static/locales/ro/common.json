@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Blocarea va permite atribuiri doar din Directory Sync",
   "attribute_edited_successfully": "Atributul a fost editat cu succes",
   "new_group_option": "Opțiune nouă de grup",
+  "attribute_weight_enabled": "Ponderi activate",
+  "attribute_weight_enabled_description": "Prin activarea ponderilor, ar fi posibilă atribuirea unei priorități mai mari anumitor atribute per utilizator. Cu cât ponderea este mai mare, cu atât prioritatea este mai mare.",
   "routed": "Direcționat",
   "reassigned": "Realocat",
   "rerouted": "Redirecționat",

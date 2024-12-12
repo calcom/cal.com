@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Blokada pozwoli na przypisania tylko z Directory Sync",
   "attribute_edited_successfully": "Atrybut został pomyślnie edytowany",
   "new_group_option": "Nowa opcja grupy",
+  "attribute_weight_enabled": "Wagi włączone",
+  "attribute_weight_enabled_description": "Po włączeniu wag możliwe będzie przypisanie wyższego priorytetu określonym atrybutom dla każdego użytkownika. Im wyższa waga, tym wyższy priorytet.",
   "routed": "Przekierowano",
   "reassigned": "Przypisano ponownie",
   "rerouted": "Przekierowano ponownie",

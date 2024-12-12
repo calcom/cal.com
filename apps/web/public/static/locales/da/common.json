@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Låsning vil kun tillade tildelinger fra Directory Sync",
   "attribute_edited_successfully": "Attribut redigeret med succes",
   "new_group_option": "Ny gruppemulighed",
+  "attribute_weight_enabled": "Vægtning aktiveret",
+  "attribute_weight_enabled_description": "Ved at aktivere vægtning bliver det muligt at tildele højere prioritet til bestemte attributter pr. bruger. Jo højere vægtning, jo højere prioritet.",
   "routed": "Dirigeret",
   "reassigned": "Omfordelt",
   "rerouted": "Omdirigeret",

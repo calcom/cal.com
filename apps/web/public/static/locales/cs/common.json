@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Uzamčení umožní přiřazení pouze prostřednictvím Directory Sync",
   "attribute_edited_successfully": "Atribut byl úspěšně upraven",
   "new_group_option": "Nová možnost skupiny",
+  "attribute_weight_enabled": "Váhy povoleny",
+  "attribute_weight_enabled_description": "Povolením vah bude možné přiřadit některým atributům uživatele vyšší prioritu. Čím vyšší váha, tím vyšší priorita.",
   "routed": "Přesměrováno",
   "reassigned": "Přeřazeno",
   "rerouted": "Přesměrováno jinam",

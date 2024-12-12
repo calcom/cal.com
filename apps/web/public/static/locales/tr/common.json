@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Kilitleme, yalnızca Dizin Senkronizasyonundan atamalara izin verecektir",
   "attribute_edited_successfully": "Öznitelik başarıyla düzenlendi",
   "new_group_option": "Yeni grup seçeneği",
+  "attribute_weight_enabled": "Ağırlıklar etkin",
+  "attribute_weight_enabled_description": "Ağırlıkları etkinleştirerek, kullanıcı başına belirli özelliklere daha yüksek öncelik atamak mümkün olacaktır. Ağırlık ne kadar yüksekse, öncelik de o kadar yüksek olur.",
   "routed": "Yönlendirildi",
   "reassigned": "Yeniden atandı",
   "rerouted": "Yeniden yönlendirildi",

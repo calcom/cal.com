@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Zaključavanje će dozvoliti dodele samo iz Directory Sync-a",
   "attribute_edited_successfully": "Atribut je uspešno izmenjen",
   "new_group_option": "Nova opcija grupe",
+  "attribute_weight_enabled": "Težine omogućene",
+  "attribute_weight_enabled_description": "Omogućavanjem težina, moguće je dodeliti veći prioritet određenim atributima po korisniku. Što je veća težina, to je veći prioritet.",
   "routed": "Prosleđeno",
   "reassigned": "Preraspoređeno",
   "rerouted": "Preusmereno",

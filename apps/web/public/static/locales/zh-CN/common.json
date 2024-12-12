@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "锁定后将仅允许通过目录同步进行分配",
   "attribute_edited_successfully": "属性编辑成功",
   "new_group_option": "新建群组选项",
+  "attribute_weight_enabled": "权重已启用",
+  "attribute_weight_enabled_description": "启用权重后，可以为每个用户的特定属性分配更高的优先级。权重越高，优先级越高。",
   "routed": "已路由",
   "reassigned": "已重新分配",
   "rerouted": "已重新路由",

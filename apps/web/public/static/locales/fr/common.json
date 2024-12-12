@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Le verrouillage n'autorisera que les attributions depuis la synchronisation d'annuaire",
   "attribute_edited_successfully": "Attribut modifié avec succès",
   "new_group_option": "Nouvelle option de groupe",
+  "attribute_weight_enabled": "Pondération activée",
+  "attribute_weight_enabled_description": "En activant la pondération, il sera possible d'attribuer une priorité plus élevée à certains attributs par utilisateur. Plus le poids est élevé, plus la priorité est importante.",
   "routed": "Acheminé",
   "reassigned": "Réaffecté",
   "rerouted": "Réacheminé",

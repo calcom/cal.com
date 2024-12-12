@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "잠금을 설정하면 디렉토리 동기화를 통한 할당만 허용됩니다",
   "attribute_edited_successfully": "속성이 성공적으로 수정되었습니다",
   "new_group_option": "새 그룹 옵션",
+  "attribute_weight_enabled": "가중치 활성화",
+  "attribute_weight_enabled_description": "가중치를 활성화하면 사용자별로 특정 속성에 더 높은 우선순위를 부여할 수 있습니다. 가중치가 높을수록 우선순위가 높아집니다.",
   "routed": "라우팅됨",
   "reassigned": "재할당됨",
   "rerouted": "재라우팅됨",

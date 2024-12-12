@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Blokeatzeak Directory Sync-etik datozen esleipenak soilik baimenduko ditu",
   "attribute_edited_successfully": "Atributua behar bezala editatu da",
   "new_group_option": "Talde aukera berria",
+  "attribute_weight_enabled": "Pisuak gaituta",
+  "attribute_weight_enabled_description": "Pisuak gaituz gero, erabiltzaile bakoitzeko atributu batzuei lehentasun handiagoa eman ahal izango zaie. Zenbat eta pisu handiagoa izan, orduan eta lehentasun handiagoa izango du.",
   "routed": "Bideratuta",
   "reassigned": "Berresleituta",
   "rerouted": "Berbideratuta",

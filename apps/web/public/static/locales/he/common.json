@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "נעילה תאפשר הקצאות רק מסנכרון הספרייה",
   "attribute_edited_successfully": "המאפיין נערך בהצלחה",
   "new_group_option": "אפשרות קבוצה חדשה",
+  "attribute_weight_enabled": "משקולות מופעלות",
+  "attribute_weight_enabled_description": "הפעלת משקולות תאפשר להקצות עדיפות גבוהה יותר למאפיינים מסוימים עבור כל משתמש. ככל שהמשקל גבוה יותר, כך העדיפות גבוהה יותר.",
   "routed": "נותב",
   "reassigned": "הוקצה מחדש",
   "rerouted": "נותב מחדש",

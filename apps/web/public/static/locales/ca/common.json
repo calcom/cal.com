@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "El bloqueig només permetrà assignacions des de la sincronització del directori",
   "attribute_edited_successfully": "L'atribut s'ha editat correctament",
   "new_group_option": "Nova opció de grup",
+  "attribute_weight_enabled": "Pesos activats",
+  "attribute_weight_enabled_description": "En activar els pesos, serà possible assignar una prioritat més alta a certs atributs per usuari. Com més alt sigui el pes, més alta serà la prioritat.",
   "routed": "Redirigit",
   "reassigned": "Reassignat",
   "rerouted": "Redirigit de nou",

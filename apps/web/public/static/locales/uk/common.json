@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Блокування дозволить призначення лише через синхронізацію каталогів",
   "attribute_edited_successfully": "Атрибут успішно відредаговано",
   "new_group_option": "Новий варіант групи",
+  "attribute_weight_enabled": "Ваги увімкнено",
+  "attribute_weight_enabled_description": "Увімкнення ваг дозволяє призначати вищий пріоритет певним атрибутам для кожного користувача. Чим більша вага, тим вищий пріоритет.",
   "routed": "Перенаправлено",
   "reassigned": "Перепризначено",
   "rerouted": "Перемаршрутизовано",

@@ -2867,6 +2867,8 @@
   "lock_attribute_for_assignment_description": "Låsing vil kun tillate tildelinger fra Katalogsynkronisering",
   "attribute_edited_successfully": "Attributt redigert",
   "new_group_option": "Nytt gruppealternativ",
+  "attribute_weight_enabled": "Vekting aktivert",
+  "attribute_weight_enabled_description": "Ved å aktivere vekting blir det mulig å gi høyere prioritet til bestemte attributter per bruker. Jo høyere vekt, desto høyere prioritet.",
   "routed": "Rutet",
   "reassigned": "Omfordelt",
   "rerouted": "Omdirigert",
