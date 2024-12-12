@@ -493,39 +493,36 @@ export class BookingsController {
     const triggerForUser = !teamId || (teamId && eventType && eventType.parentId);
     const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
 
-    // const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
-    // const subscriberOptions = {
-    //   userId: organizerUserId,
-    //   eventTypeId: bookingToDelete.eventTypeId as number,
-    //   triggerEvent: eventTrigger,
-    //   teamId,
-    //   orgId,
-    // };
-    // const eventTypeInfo: EventTypeInfo = {
-    //   eventTitle: bookingToDelete?.eventType?.title || null,
-    //   eventDescription: bookingToDelete?.eventType?.description || null,
-    //   requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
-    //   price: bookingToDelete?.eventType?.price || null,
-    //   currency: bookingToDelete?.eventType?.currency || null,
-    //   length: bookingToDelete?.eventType?.length || null,
-    // };
+    const { data: team } = await supabase
+      .from("Team")
+      .select("*")
+      .or(`id.eq.${teamId}, parentId.eq.${organizerUserId}`)
+      .maybeSingle();
+
+    const subscriberOptions = {
+      userId: organizerUserId,
+      eventTypeId: bookingToDelete.eventTypeId as number,
+      triggerEvent: eventTrigger,
+      teamId,
+      orgId: team?.id,
+    };
+
+    const eventTypeInfo: EventTypeInfo = {
+      eventTitle: eventType?.title || null,
+      eventDescription: eventType?.description || null,
+      requiresConfirmation: eventType?.requiresConfirmation || null,
+      price: eventType?.price || null,
+      currency: eventType?.currency || null,
+      length: eventType?.length || null,
+    };
 
     // const webhooks = await getWebhooks(subscriberOptions);
 
-    // const organizer = await prisma.user.findFirstOrThrow({
-    //   where: {
-    //     id: bookingToDelete.userId,
-    //   },
-    //   select: {
-    //     id: true,
-    //     username: true,
-    //     name: true,
-    //     email: true,
-    //     timeZone: true,
-    //     timeFormat: true,
-    //     locale: true,
-    //   },
-    // });
+    const { data: organizer } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", bookingToDelete.userId)
+      .single();
 
     const teamMembersPromises = [];
     const attendeesListPromises = [];
