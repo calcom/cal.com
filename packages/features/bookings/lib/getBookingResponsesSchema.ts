@@ -183,6 +183,18 @@ function preprocess<T extends z.ZodType>({
                 message: m("exclude_emails_match_found_error_message"),
               });
             }
+            const requiredEmails =
+              bookingField.requireEmails
+                ?.split(",")
+                .map((domain) => domain.trim())
+                .filter(Boolean) || [];
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("require_emails_no_match_found_error_message"),
+              });
+            }
           }
 
           continue;

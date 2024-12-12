@@ -914,7 +914,7 @@ export const insightsRouter = router({
     };
 
     // Validate if user belongs to org as admin/owner
-    if (user.organizationId) {
+    if (user.organizationId && user.organization.isOrgAdmin) {
       const teamsFromOrg = await ctx.insightsDb.team.findMany({
         where: {
           parentId: user.organizationId,
@@ -1703,6 +1703,70 @@ export const insightsRouter = router({
           hasMore,
           nextCursor,
         };
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  routedToPerPeriod: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        period: z.enum(["perDay", "perWeek", "perMonth"]),
+        cursor: z
+          .object({
+            userCursor: z.number().optional(),
+            periodCursor: z.string().optional(),
+          })
+          .optional(),
+        routingFormId: z.string().optional(),
+        limit: z.number().optional(),
+        searchQuery: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate, period, cursor, limit, isAll, routingFormId, searchQuery } = input;
+
+      return await RoutingEventsInsights.routedToPerPeriod({
+        teamId: teamId ?? null,
+        startDate,
+        endDate,
+        period,
+        cursor: cursor?.periodCursor,
+        userCursor: cursor?.userCursor,
+        limit,
+        isAll: isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: routingFormId ?? null,
+        searchQuery: searchQuery,
+      });
+    }),
+  routedToPerPeriodCsv: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        period: z.enum(["perDay", "perWeek", "perMonth"]),
+        searchQuery: z.string().optional(),
+        routingFormId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate } = input;
+      try {
+        const csvData = await RoutingEventsInsights.routedToPerPeriodCsv({
+          teamId: input.teamId ?? null,
+          startDate,
+          endDate,
+          isAll: input.isAll ?? false,
+          organizationId: ctx.user.organizationId ?? null,
+          routingFormId: input.routingFormId ?? null,
+          period: input.period,
+          searchQuery: input.searchQuery,
+        });
+
+        const csvString = RoutingEventsInsights.objectToCsv(csvData);
+        const downloadAs = `routed-to-${input.period}-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+          endDate
+        ).format("YYYY-MM-DD")}.csv`;
+
+        return { data: csvString, filename: downloadAs };
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
