@@ -497,6 +497,7 @@ describe("Organizations Event Types Endpoints", () => {
 
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         hosts: newHosts,
+        successRedirectUrl: "https://new-url-success.com",
       };
 
       return request(app.getHttpServer())
@@ -508,6 +509,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const eventType = responseBody.data;
+          expect(eventType.successRedirectUrl).toEqual("https://new-url-success.com");
           expect(eventType.title).toEqual(collectiveEventType.title);
           expect(eventType.hosts.length).toEqual(1);
           evaluateHost(eventType.hosts[0], newHosts[0]);
@@ -527,6 +529,7 @@ describe("Organizations Event Types Endpoints", () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         title: newTitle,
         hosts: newHosts,
+        successRedirectUrl: "https://new-url-success.com",
       };
 
       return request(app.getHttpServer())
