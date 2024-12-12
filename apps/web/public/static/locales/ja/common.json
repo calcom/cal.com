@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "終日参加不可",
   "date_overrides_mark_all_day_unavailable_one": "(終日) 参加不可としてマーク",
   "date_overrides_mark_all_day_unavailable_other": "選択した日付を参加不可としてマーク",
-  "date_overrides_add_btn": "上書きを追加",
   "date_overrides_update_btn": "上書きを更新",
   "date_successfully_added": "日付の上書きが正常に追加されました",
   "event_type_duplicate_copy_text": "{{slug}}-copy",
