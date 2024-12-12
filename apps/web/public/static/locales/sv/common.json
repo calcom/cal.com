@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Otillgänglig hela dagen",
   "date_overrides_mark_all_day_unavailable_one": "Markera som otillgänglig (hela dagen)",
   "date_overrides_mark_all_day_unavailable_other": "Markera som otillgänglig på valda datum",
-  "date_overrides_add_btn": "Lägg till åsidosättning",
   "date_overrides_update_btn": "Uppdatera åsidosättning",
   "date_successfully_added": "Åsidosättande av datum har lagts till",
   "event_type_duplicate_copy_text": "{{slug}}-kopia",

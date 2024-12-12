@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Niedostępność przez cały dzień",
   "date_overrides_mark_all_day_unavailable_one": "Zaznacz niedostępność (cały dzień)",
   "date_overrides_mark_all_day_unavailable_other": "Zaznacz niedostępność w wybrane dni",
-  "date_overrides_add_btn": "Dodaj zastąpienie",
   "date_overrides_update_btn": "Zaktualizuj zastąpienie",
   "date_successfully_added": "Pomyślnie dodano nadpisanie daty",
   "event_type_duplicate_copy_text": "{{slug}}-kopia",

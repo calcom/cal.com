@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Indisponível o dia todo",
   "date_overrides_mark_all_day_unavailable_one": "Marcar indisponível (o dia todo)",
   "date_overrides_mark_all_day_unavailable_other": "Marcar indisponível nas datas selecionadas",
-  "date_overrides_add_btn": "Adicionar substituição",
   "date_overrides_update_btn": "Atualizar substituição",
   "date_successfully_added": "Substituição de data adicionada com sucesso",
   "event_type_duplicate_copy_text": "Cópia de {{slug}}",
