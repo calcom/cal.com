@@ -235,6 +235,7 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
+        successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
         title: "Coding consultation collective",
         slug: "coding-consultation collective",
         description: "Our team will review your codebase.",
@@ -334,7 +335,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
-
+          expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           collectiveEventType = responseBody.data;
         });
     });
