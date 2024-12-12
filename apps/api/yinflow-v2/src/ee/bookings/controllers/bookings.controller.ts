@@ -19,15 +19,15 @@ import { Request } from "express";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BookingResponse, HttpError } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platform-types";
-import { Prisma, WorkflowReminder } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
+import tOrganizer from "../../../../../../web/public/static/locales/pt-BR/common.json";
 import { supabase } from "../../../config/supabase";
 import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
 import { ApiAuthGuard } from "../../../modules/auth/guards/api-auth/api-auth.guard";
@@ -503,7 +503,6 @@ export class BookingsController {
     const hostsPresent = !!eventType && eventType.hosts;
 
     const teamMembers = await Promise.all(teamMembersPromises);
-    const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
     const evt: CalendarEvent = {
       title: bookingToDelete?.title,
