@@ -285,6 +285,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     slug: value.slug,
                     contains: value.contains,
                     isGroup: value.isGroup,
+                    weight: 100,
                   }));
                   newAttributes.push(...newAttributeValues);
                 } else {
@@ -296,6 +297,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     slug: slugify(selectedAttributeOptions[0]),
                     contains: [],
                     isGroup: false,
+                    weight: 100,
                   });
                 }
 
