@@ -62,10 +62,12 @@ async function deleteHandler(req: CustomNextApiRequest) {
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
   await calendarCacheRepository.unwatchCalendar({ calendarId: externalId, eventTypeId: eventTypeId ?? null });
   await SelectedCalendarRepository.delete({
-    userId: user.id,
-    externalId,
-    integration,
-    eventTypeId: eventTypeId ?? null,
+    where: {
+      userId: user.id,
+      externalId,
+      integration,
+      eventTypeId: eventTypeId ?? null,
+    },
   });
 
   return { message: "Calendar Selection Saved" };

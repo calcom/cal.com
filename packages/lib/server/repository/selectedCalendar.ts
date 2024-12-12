@@ -145,13 +145,13 @@ export class SelectedCalendarRepository {
     });
     return nextBatch;
   }
-  static async delete(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+  static async delete({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
     return await prisma.selectedCalendar.deleteMany({
       where: {
-        userId: data.userId,
-        externalId: data.externalId,
-        integration: data.integration,
-        eventTypeId: data.eventTypeId ?? null,
+        userId: where.userId,
+        externalId: where.externalId,
+        integration: where.integration,
+        eventTypeId: where.eventTypeId ?? null,
       },
     });
   }
