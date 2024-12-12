@@ -22,6 +22,29 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const expand = input.expand;
   const filters = input.filters || [];
 
+  const allAttributeOptions = await prisma.attributeOption.findMany({
+    where: {
+      attribute: {
+        teamId: organizationId,
+      },
+    },
+    orderBy: {
+      attribute: {
+        name: "asc",
+      },
+    },
+  });
+
+  const groupOptionsWithContainsOptionValues = allAttributeOptions
+    .filter((option) => option.isGroup)
+    .map((option) => ({
+      ...option,
+      contains: option.contains.map((optionId) => ({
+        id: optionId,
+        value: allAttributeOptions.find((o) => o.id === optionId)?.value,
+      })),
+    }));
+
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
   }
@@ -76,13 +99,28 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
+        const attributeOptionValues: string[] = [];
+        if (filter.value instanceof Array) {
+          filter.value.forEach((filterValueItem) => {
+            attributeOptionValues.push(filterValueItem);
+            groupOptionsWithContainsOptionValues.forEach((groupOption) => {
+              if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
+                attributeOptionValues.push(groupOption.value);
+              }
+            });
+          });
+        }
+
         whereClause.AttributeToUser = {
           some: {
             attributeOption: {
               attribute: {
                 id: filter.id,
               },
-              ...makeWhereClause("value", filter.value),
+              ...makeWhereClause({
+                columnName: "value",
+                filterValue: attributeOptionValues.length > 0 ? attributeOptionValues : filter.value,
+              }),
             },
           },
         };
@@ -139,20 +177,29 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       let attributes;
 
       if (expand?.includes("attributes")) {
-        attributes = await prisma.attributeOption.findMany({
-          where: {
-            assignedUsers: {
-              some: {
-                memberId: membership.id,
+        attributes = await prisma.attributeToUser
+          .findMany({
+            where: {
+              memberId: membership.id,
+            },
+            select: {
+              attributeOption: true,
+              weight: true,
+            },
+            orderBy: {
+              attributeOption: {
+                attribute: {
+                  name: "asc",
+                },
               },
             },
-          },
-          orderBy: {
-            attribute: {
-              name: "asc",
-            },
-          },
-        });
+          })
+          .then((assignedUsers) =>
+            assignedUsers.map((au) => ({
+              ...au.attributeOption,
+              weight: au.weight ?? 100,
+            }))
+          );
       }
 
       return {

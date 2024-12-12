@@ -244,7 +244,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
         });
       });
   });
-  it("/webhooks (GET) should fail to get webhooks of oauth client that doesn't belong to you", () => {
+  it("/webhooks (GET) should fail to get webhooks of OAuth client that doesn't belong to you", () => {
     return request(app.getHttpServer()).get(`/v2/oauth-clients/${otherOAuthClient.id}/webhooks`).expect(403);
   });
 
@@ -267,7 +267,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
       });
   });
 
-  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete webhooks of an oauth client that doesn't belong to you", () => {
+  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete webhooks of an OAuth client that doesn't belong to you", () => {
     return request(app.getHttpServer())
       .delete(`/v2/oauth-clients/${otherOAuthClient.id}/webhooks/${otherOAuthClientWebhook.id}`)
       .expect(403);

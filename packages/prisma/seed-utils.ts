@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { Prisma, UserPermissionRole } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { uuid } from "short-uuid";
@@ -440,8 +441,17 @@ export async function seedRoutingForms(
         value: "team/insights-team/team-sales",
       },
     ],
-    formFieldFilled: {
+    formFieldSkills: {
       id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+    },
+    formFieldEmail: {
+      id: "dd28ffcf-7029-401e-bddb-ce2e7496a1c1",
+    },
+    formFieldManager: {
+      id: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
+    },
+    formFieldRating: {
+      id: "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729",
     },
   };
 
@@ -538,13 +548,31 @@ export async function seedRoutingForms(
       ],
       fields: [
         {
-          id: seededForm.formFieldFilled.id,
+          id: seededForm.formFieldSkills.id,
           type: "multiselect",
           label: "skills",
           options: attributeRaw[2].options.map((opt) => ({
             id: opt.id,
             label: opt.value,
           })),
+          required: true,
+        },
+        {
+          id: seededForm.formFieldEmail.id,
+          type: "email",
+          label: "Email",
+          required: true,
+        },
+        {
+          id: seededForm.formFieldManager.id,
+          type: "text",
+          label: "Manager",
+          required: true,
+        },
+        {
+          id: seededForm.formFieldRating.id,
+          type: "number",
+          label: "Rating",
           required: true,
         },
       ],
@@ -571,7 +599,16 @@ type SeededForm = {
     id: string;
     value: string;
   }[];
-  formFieldFilled: {
+  formFieldSkills: {
+    id: string;
+  };
+  formFieldEmail: {
+    id: string;
+  };
+  formFieldManager: {
+    id: string;
+  };
+  formFieldRating: {
     id: string;
   };
 };
@@ -591,7 +628,7 @@ export async function seedRoutingFormResponses(
         teamId: teamId,
       },
     },
-    take: 250, // Limit to 250 responses
+    take: 1000, // Limit to 1000 responses
     select: {
       id: true,
       uid: true,
@@ -610,15 +647,34 @@ export async function seedRoutingFormResponses(
     const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
     const selectedSkills = shuffledOptions.slice(0, numSkills);
 
+    // Generate a random date within the last 30 days
+    const randomDate = dayjs()
+      .subtract(Math.floor(Math.random() * 30), "days")
+      .subtract(Math.floor(Math.random() * 24), "hours")
+      .subtract(Math.floor(Math.random() * 60), "minutes");
+
     // Create the form response with the routedToBookingUid field set
     const response = await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: seededForm.id,
         formFillerId: randomUUID(),
+        createdAt: randomDate.toDate(),
         response: {
-          [seededForm.formFieldFilled.id]: {
+          [seededForm.formFieldSkills.id]: {
             label: "skills",
             value: selectedSkills.map((opt) => opt.id),
+          },
+          [seededForm.formFieldEmail.id]: {
+            label: "Email",
+            value: faker.internet.email(),
+          },
+          [seededForm.formFieldManager.id]: {
+            label: "Manager",
+            value: faker.person.fullName(),
+          },
+          [seededForm.formFieldRating.id]: {
+            label: "Rating",
+            value: Math.floor(Math.random() * 5) + 1,
           },
         },
       },
@@ -631,18 +687,33 @@ export async function seedRoutingFormResponses(
       },
       data: {
         routedFromRoutingFormReponse: { connect: { id: response.id } },
+        startTime: randomDate.toDate(),
+        endTime: randomDate.add(1, "hour").toDate(),
+        createdAt: randomDate.toDate(),
       },
     });
 
-    // Create some responses without a booking
     await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: seededForm.id,
         formFillerId: randomUUID(),
+        createdAt: randomDate.subtract(2, "hour").toDate(),
         response: {
-          [seededForm.formFieldFilled.id]: {
+          [seededForm.formFieldSkills.id]: {
             label: "skills",
             value: selectedSkills.map((opt) => opt.id),
+          },
+          [seededForm.formFieldEmail.id]: {
+            label: "Email",
+            value: faker.internet.email(),
+          },
+          [seededForm.formFieldManager.id]: {
+            label: "Manager",
+            value: faker.person.fullName(),
+          },
+          [seededForm.formFieldRating.id]: {
+            label: "Rating",
+            value: Math.floor(Math.random() * 5) + 1,
           },
         },
       },

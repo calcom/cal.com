@@ -1,18 +1,13 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
 import {
+  DataTableProvider,
   DataTable,
   DataTableToolbar,
   DataTableFilters,
@@ -22,6 +17,8 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
+  isSelectFilterValue,
+  selectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -103,6 +100,14 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
+  return (
+    <DataTableProvider>
+      <UserListTableContent />
+    </DataTableProvider>
+  );
+}
+
+function UserListTableContent() {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -123,7 +128,7 @@ export function UserListTable() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, fetchNextPage, isFetching } =
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 30,
@@ -170,40 +175,75 @@ export function UserListTable() {
         return [];
       }
       return (
-        (attributes?.map((attribute) => ({
-          id: attribute.id,
-          header: attribute.name,
-          meta: {
-            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
-          },
-          size: 120,
-          accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
-          cell: ({ row }) => {
-            const attributeValues = row.original.attributes.filter(
-              (attr) => attr.attributeId === attribute.id
-            );
-            if (attributeValues.length === 0) return null;
-            return (
-              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
-              </div>
-            );
-          },
-          filterFn: (row, id, filterValue) => {
-            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+        (attributes?.map((attribute) => {
+          // TODO: We need to normalize AttributeOption table first
+          // so that we can have `number_value` column for numeric operations.
+          // Currently, `value` column is used for both text and number attributes.
+          //
+          // const isNumber = attribute.type === "NUMBER";
+          const isNumber = false;
+          const isText = attribute.type === "TEXT";
+          const filterType = isNumber ? "number" : isText ? "text" : "select";
 
-            if (isTextFilterValue(filterValue)) {
-              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-            }
+          return {
+            id: attribute.id,
+            header: attribute.name,
+            meta: {
+              filter: { type: filterType },
+            },
+            size: 120,
+            accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
+            cell: ({ row }) => {
+              const attributeValues = row.original.attributes.filter(
+                (attr) => attr.attributeId === attribute.id
+              );
+              if (attributeValues.length === 0) return null;
+              return (
+                <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
+                  {attributeValues.map((attributeValue) => {
+                    const isAGroupOption = attributeValue.contains?.length > 0;
+                    const suffix = attribute.isWeightsEnabled
+                      ? `${attributeValue.weight || 100}%`
+                      : undefined;
+                    return (
+                      <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                        <Badge
+                          variant={isAGroupOption ? "orange" : "gray"}
+                          className={classNames(suffix && "rounded-r-none")}>
+                          {attributeValue.value}
+                        </Badge>
 
-            if (attributeValues.length === 0) return false;
-            return attributeValues.some((attr) => filterValue.includes(attr.value));
-          },
-        })) as ColumnDef<UserTableUser>[]) ?? []
+                        {suffix ? (
+                          <Badge
+                            variant={isAGroupOption ? "orange" : "gray"}
+                            style={{
+                              backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                            }}
+                            className="rounded-l-none">
+                            {suffix}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            },
+            filterFn: (row, id, filterValue) => {
+              const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+
+              if (isTextFilterValue(filterValue)) {
+                return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+              } else if (isSelectFilterValue(filterValue)) {
+                return selectFilter(
+                  attributeValues.map((attr) => attr.value),
+                  filterValue
+                );
+              }
+              return false;
+            },
+          };
+        }) as ColumnDef<UserTableUser>[]) ?? []
       );
     };
     const cols: ColumnDef<UserTableUser>[] = [
@@ -212,6 +252,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         meta: {
           sticky: {
@@ -355,6 +396,8 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        enableSorting: false,
+        enableResizing: false,
         size: 80,
         meta: {
           sticky: { position: "right" },
@@ -392,6 +435,7 @@ export function UserListTable() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
+    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
@@ -405,8 +449,6 @@ export function UserListTable() {
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
-    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,
@@ -429,13 +471,12 @@ export function UserListTable() {
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -495,6 +536,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">
@@ -516,7 +558,7 @@ export function UserListTable() {
                 {t("download")}
               </DataTableToolbar.CTA>
               {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.AddFilterButton table={table} omit={["member"]} />
               <DataTableFilters.ColumnVisibilityButton table={table} />
               {adminOrOwner && (
                 <DataTableToolbar.CTA

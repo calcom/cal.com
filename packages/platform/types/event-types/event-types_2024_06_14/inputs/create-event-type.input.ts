@@ -11,6 +11,7 @@ import {
   IsBoolean,
   IsOptional,
   Min,
+  IsUrl,
   IsEnum,
   IsArray,
   ValidateNested,
@@ -381,6 +382,14 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @DocsPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "A valid URL where the booker will redirect to, once the booking is completed successfully",
+    example: "https://masterchief.com/argentina/flan/video/9129412",
+  })
+  successRedirectUrl?: string;
 }
 
 export enum HostPriority {
