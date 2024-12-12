@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "មិនអាចប្រើបានពេញមួយថ្ងៃ",
   "date_overrides_mark_all_day_unavailable_one": "សម្គាល់មិនអាចប្រើបាន (ពេញមួយថ្ងៃ)",
   "date_overrides_mark_all_day_unavailable_other": "សម្គាល់មិនអាចប្រើបាននៅកាលបរិច្ឆេទដែលបានជ្រើស",
-  "date_overrides_add_btn": "បន្ថែមបដិសេធ",
   "date_overrides_update_btn": "ធ្វើបច្ចុប្បន្នភាពបដិសេធ",
   "date_successfully_added": "បដិសេធកាលបរិច្ឆេទត្រូវបានបន្ថែមដោយជោគជ័យ",
   "event_type_duplicate_copy_text": "{{slug}}-ចម្លង",
