@@ -530,33 +530,31 @@ export class BookingsController {
     const teamMembersPromises = [];
     const attendeesListPromises = [];
     const hostsPresent = !!eventType && eventType.hosts;
+    //   const attendeeObject = {
+    //     name: attendee.name,
+    //     email: attendee.email,
+    //     timeZone: attendee.timeZone,
+    //     language: {
+    //       translate: await getTranslation(attendee.locale ?? "en", "common"),
+    //       locale: attendee.locale ?? "en",
+    //     },
+    //   };
 
-    for (const attendee of bookingToDelete.attendees) {
-      const attendeeObject = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
-        },
-      };
-
-      // Check for the presence of hosts to determine if it is a team event type
-      if (hostsPresent) {
-        // If the attendee is a host then they are a team member
-        const teamMember =
-          eventType && eventType?.hosts.some((host: any) => host.user.email === attendee.email);
-        if (teamMember) {
-          teamMembersPromises.push(attendeeObject);
-          // If not then they are an attendee
-        } else {
-          attendeesListPromises.push(attendeeObject);
-        }
-      } else {
-        attendeesListPromises.push(attendeeObject);
-      }
-    }
+    //   // Check for the presence of hosts to determine if it is a team event type
+    //   if (hostsPresent) {
+    //     // If the attendee is a host then they are a team member
+    //     const teamMember =
+    //       eventType && eventType?.hosts.some((host: any) => host.user.email === attendee.email);
+    //     if (teamMember) {
+    //       teamMembersPromises.push(attendeeObject);
+    //       // If not then they are an attendee
+    //     } else {
+    //       attendeesListPromises.push(attendeeObject);
+    //     }
+    //   } else {
+    //     attendeesListPromises.push(attendeeObject);
+    //   }
+    // }
 
     // const attendeesList = await Promise.all(attendeesListPromises);
     // const teamMembers = await Promise.all(teamMembersPromises);
@@ -823,7 +821,7 @@ export class BookingsController {
       onlyRemovedAttendee: false,
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
-      // updatedBookings: allBookingsUpdated,
+      updatedBookings: allBookingsUpdated,
     };
   }
 
