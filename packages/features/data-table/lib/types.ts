@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { IconName } from "@calcom/ui/icon";
+import type { IconName } from "@calcom/ui";
 
 export const ZTextFilterOperator = z.enum([
   "equals",
