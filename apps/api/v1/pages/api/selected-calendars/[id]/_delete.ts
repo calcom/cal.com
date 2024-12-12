@@ -49,7 +49,9 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
-  await SelectedCalendarRepository.delete({ where: { ...userId_integration_externalId, eventTypeId: null } });
+  await SelectedCalendarRepository.deleteUserLevel({
+    where: userId_integration_externalId,
+  });
   return { message: `Selected Calendar with id: ${query.id} deleted successfully` };
 }
 

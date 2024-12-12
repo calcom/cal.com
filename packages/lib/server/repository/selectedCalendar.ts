@@ -3,6 +3,12 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+export type UpdateArguments = Prisma.SelectedCalendarUpdateManyArgs;
+
+const ensureUserLevelWhere = {
+  eventTypeId: null,
+};
+
 export class SelectedCalendarRepository {
   static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     return await prisma.selectedCalendar.create({
@@ -155,9 +161,42 @@ export class SelectedCalendarRepository {
       },
     });
   }
+
+  static async deleteUserLevel({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
+    return await SelectedCalendarRepository.delete({
+      where: {
+        ...where,
+        ...ensureUserLevelWhere,
+      },
+    });
+  }
+
   static async findMany(args: Prisma.SelectedCalendarFindManyArgs) {
     return await prisma.selectedCalendar.findMany(args);
   }
+
+  static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
+    const calendars = await prisma.selectedCalendar.findMany({ where });
+    if (calendars.length === 0) {
+      throw new Error("SelectedCalendar not found");
+    }
+    return calendars[0];
+  }
+
+  static async findUserLevelUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
+    const calendars = await SelectedCalendarRepository.findUniqueOrThrow({
+      where: {
+        ...where,
+        ...ensureUserLevelWhere,
+      },
+    });
+
+    if (!calendars) {
+      throw new Error("SelectedCalendar not found");
+    }
+    return calendars;
+  }
+
   static async findFirstByGoogleChannelId(googleChannelId: string) {
     return await prisma.selectedCalendar.findFirst({
       where: {
@@ -181,6 +220,28 @@ export class SelectedCalendarRepository {
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
     return await prisma.selectedCalendar.findFirst({
       where,
+    });
+  }
+
+  static async findFirstOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
+    const calendar = await SelectedCalendarRepository.findFirst({ where });
+    if (!calendar) {
+      throw new Error("SelectedCalendar not found");
+    }
+    return calendar;
+  }
+
+  static async update(args: UpdateArguments) {
+    return await prisma.selectedCalendar.updateMany(args);
+  }
+
+  static async updateUserLevel(args: UpdateArguments) {
+    return SelectedCalendarRepository.update({
+      where: {
+        ...args.where,
+        ...ensureUserLevelWhere,
+      },
+      data: args.data,
     });
   }
 }

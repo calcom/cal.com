@@ -83,12 +83,6 @@ type UserWithSelectedCalendars<TCalendar, TUser> = Omit<TUser, "selectedCalendar
   userLevelSelectedCalendars: TCalendar[];
 };
 
-function getUserLevelSelectedCalendars<TCalendar extends { eventTypeId: number | null }>(
-  selectedCalendars: TCalendar[]
-) {
-  return selectedCalendars.filter((selectedCalendar) => !selectedCalendar.eventTypeId);
-}
-
 export function enrichWithSelectedCalendars<
   TCalendar extends {
     eventTypeId: number | null;
