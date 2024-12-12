@@ -81,7 +81,7 @@ export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
-export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";

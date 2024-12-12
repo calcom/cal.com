@@ -9,6 +9,13 @@ const ensureUserLevelWhere = {
   eventTypeId: null,
 };
 
+function ensureValidWhereClause(where: Record<string, unknown>) {
+  if (Object.keys(where).length === 0) {
+    throw new Error("No where clause provided");
+  }
+  return where;
+}
+
 export class SelectedCalendarRepository {
   static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     return await prisma.selectedCalendar.create({
@@ -173,14 +180,18 @@ export class SelectedCalendarRepository {
 
   static async findMany({
     where,
+    select,
   }: {
+    // https://github.com/microsoft/TypeScript/issues/55217 It crashes atoms build with this if we become too generic here. Seems like a TS bug with complex prisma types.
     where: {
-      userId: number;
-      credentialId: number | null;
-      externalId: string;
+      userId?: number;
+      credentialId?: number | null;
+      externalId?: string;
     };
+    select?: Prisma.SelectedCalendarSelect;
   }) {
-    return await prisma.selectedCalendar.findMany({ where });
+    ensureValidWhereClause(where);
+    return await prisma.selectedCalendar.findMany({ where, select });
   }
 
   static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
