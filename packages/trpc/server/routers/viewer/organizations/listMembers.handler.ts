@@ -117,10 +117,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               attribute: {
                 id: filter.id,
               },
-              ...makeWhereClause(
-                "value",
-                attributeOptionValues.length > 0 ? attributeOptionValues : filter.value
-              ),
+              ...makeWhereClause({
+                columnName: "value",
+                filterValue: attributeOptionValues.length > 0 ? attributeOptionValues : filter.value,
+              }),
             },
           },
         };
