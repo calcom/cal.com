@@ -136,8 +136,11 @@ test("Calendar can be watched and unwatched", async () => {
       integration: "google_calendar",
     },
   });
+
   expect(watchedCalendar).toEqual({
     userId: 1,
+    eventTypeId: null,
+    id: 1,
     integration: "google_calendar",
     externalId: "example@cal.com",
     credentialId: 1,
@@ -148,9 +151,9 @@ test("Calendar can be watched and unwatched", async () => {
     googleChannelResourceUri: "mock-resource-uri",
     googleChannelExpiration: "1111111111",
   });
+
   await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId, eventTypeId: null });
-  // There's a bug in prismock where upsert creates duplicate records so we need to acces the second element
-  const [, unWatchedCalendar] = await prismock.selectedCalendar.findMany({
+  const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
     where: {
       userId: credentialInDb1.userId!,
       externalId: testSelectedCalendar.externalId,
@@ -158,8 +161,10 @@ test("Calendar can be watched and unwatched", async () => {
     },
   });
 
-  expect(unWatchedCalendar).toEqual({
+  expect(calendarAfterUnwatch).toEqual({
     userId: 1,
+    eventTypeId: null,
+    id: 1,
     integration: "google_calendar",
     externalId: "example@cal.com",
     credentialId: 1,
