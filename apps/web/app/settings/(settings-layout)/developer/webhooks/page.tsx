@@ -9,4 +9,8 @@ export const generateMetadata = async () =>
     (t) => t("add_webhook_description", { appName: APP_NAME })
   );
 
-export default WebhooksView;
+const WebhooksViewServerWrapper = async () => {
+  return <WebhooksView />;
+};
+
+export default WebhooksViewServerWrapper;

@@ -1821,7 +1821,6 @@
   "date_overrides_unavailable": "Bütün gün mövcud deyil",
   "date_overrides_mark_all_day_unavailable_one": "Bütün gün üçün əlçatan deyil olaraq işarələ",
   "date_overrides_mark_all_day_unavailable_other": "Seçilmiş tarixlərdə əlçatan deyil olaraq işarələ",
-  "date_overrides_add_btn": "Dəyişiklik əlavə et",
   "date_overrides_update_btn": "Dəyişikliyi yenilə",
   "date_successfully_added": "Tarix dəyişikliyi uğurla əlavə edildi",
   "event_type_duplicate_copy_text": "{{slug}}-nüsxə",
