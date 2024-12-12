@@ -197,7 +197,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           .then((assignedUsers) =>
             assignedUsers.map((au) => ({
               ...au.attributeOption,
-              weight: au.weight,
+              weight: au.weight ?? 100,
             }))
           );
       }
