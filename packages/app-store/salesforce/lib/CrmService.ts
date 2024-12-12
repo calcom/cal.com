@@ -472,16 +472,16 @@ export default class SalesforceCRMService implements CRM {
             createdContacts.push(...createdAccountContacts);
           }
         }
+      } else {
+        await this.createAttendeeRecord({
+          attendee,
+          recordType: SalesforceRecordEnum.LEAD,
+          organizerId,
+          calEventResponses,
+        }).then((result) => {
+          createdContacts.push(...result);
+        });
       }
-
-      await this.createAttendeeRecord({
-        attendee,
-        recordType: SalesforceRecordEnum.LEAD,
-        organizerId,
-        calEventResponses,
-      }).then((result) => {
-        createdContacts.push(...result);
-      });
     }
 
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
