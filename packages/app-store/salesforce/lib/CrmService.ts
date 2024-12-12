@@ -340,11 +340,13 @@ export default class SalesforceCRMService implements CRM {
 
       // Handle Account record type
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
+        // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
         this.log.debug("Searching account for email", { attendeeEmail });
 
         soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
 
+        // If this is for a round robin skip then we need to return the account record
         if (forRoundRobinSkip) {
           const results = await conn.query(soql);
           this.log.debug("Account contact search results", { resultCount: results.records.length });
@@ -355,12 +357,14 @@ export default class SalesforceCRMService implements CRM {
               soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
             }
           } else {
+            // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
             const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
             if (accountId) {
               soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${accountId}'`;
             }
           }
         }
+        // If creating events on contacts or leads
       } else {
         // Handle Contact/Lead record types
         soql = `SELECT Id, Email, OwnerId FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
@@ -371,6 +375,7 @@ export default class SalesforceCRMService implements CRM {
       const results = await conn.query(soql);
       this.log.debug("Query results", { recordCount: results.records?.length });
 
+      // If we're checking against the contact, the ownerId should take precedence
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records?.length) {
         const account = results.records[0] as ContactRecord;
         if (account?.OwnerId) {
@@ -380,11 +385,12 @@ export default class SalesforceCRMService implements CRM {
 
       let records: ContactRecord[] = [];
 
-      // Handle fallback to contacts for leads
+      // If falling back to contacts, check for the contact before returning the leads or empty array
       if (
         appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
         appOptions.createEventOnLeadCheckForContact
       ) {
+        // Get any matching contacts
         const contactSearch = await conn.query(
           `SELECT Id, Email, OwnerId FROM ${SalesforceRecordEnum.CONTACT} WHERE Email IN ('${emailArray.join(
             "','"
