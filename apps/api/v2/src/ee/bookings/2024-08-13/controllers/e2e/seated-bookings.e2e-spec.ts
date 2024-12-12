@@ -293,6 +293,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const secondAttendee = data.attendees.find((attendee) => attendee.name === nameAttendeeTwo);
             expect(secondAttendee).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -953,7 +954,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.attendees.length).toEqual(2);
             expect(firstBooking.attendees[0]).toEqual({
               name: nameAttendeeOne,
-              email: body.attendee.email,
+              email: emailAttendeeOne,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
