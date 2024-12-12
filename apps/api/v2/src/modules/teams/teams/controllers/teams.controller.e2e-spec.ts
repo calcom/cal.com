@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { StripeService } from "@/modules/stripe/stripe.service";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
 import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
 import { CreateTeamOutput } from "@/modules/teams/teams/outputs/teams/create-team.output";
@@ -10,13 +11,13 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "next-auth";
+import Stripe from "stripe";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomNumber } from "test/utils/randomNumber";
-import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { TeamOutputDto } from "@calcom/platform-types";
@@ -43,6 +44,8 @@ describe("Teams endpoint", () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, TeamsModule],
     }).compile();
+
+    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({} as unknown as Stripe));
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
@@ -82,11 +85,12 @@ describe("Teams endpoint", () => {
         .expect(201)
         .then(async (response) => {
           const responseBody: CreateTeamOutput = response.body;
+          const responseData = responseBody.data as TeamOutputDto;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(responseBody.data.id).toBeDefined();
-          expect(responseBody.data.name).toEqual(body.name);
-          team1 = responseBody.data;
+          expect(responseData).toBeDefined();
+          expect(responseData.id).toBeDefined();
+          expect(responseData.name).toEqual(body.name);
+          team1 = responseData;
         });
     });
 
@@ -102,11 +106,12 @@ describe("Teams endpoint", () => {
         .expect(201)
         .then(async (response) => {
           const responseBody: CreateTeamOutput = response.body;
+          const responseData = responseBody.data as TeamOutputDto;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(responseBody.data.id).toBeDefined();
-          expect(responseBody.data.name).toEqual(body.name);
-          team2 = responseBody.data;
+          expect(responseData).toBeDefined();
+          expect(responseData.id).toBeDefined();
+          expect(responseData.name).toEqual(body.name);
+          team2 = responseData;
         });
     });
 

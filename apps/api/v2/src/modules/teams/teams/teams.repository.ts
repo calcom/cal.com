@@ -46,6 +46,18 @@ export class TeamsRepository {
     return team.members.map((member) => member.userId);
   }
 
+  async getTeamsUserIsMemberOf(userId: number) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+    });
+  }
+
   async update(teamId: number, team: Prisma.TeamUpdateInput) {
     return this.dbWrite.prisma.team.update({
       where: { id: teamId },

@@ -1,10 +1,9 @@
-import { AppConfig } from "@/config/type";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
 import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 @Injectable()
@@ -13,7 +12,7 @@ export class TeamsService {
 
   constructor(
     private readonly teamsRepository: TeamsRepository,
-    private readonly membershipsRepository: MembershipsRepository,
+    private readonly teamsMembershipsRepository: TeamsMembershipsRepository,
     private readonly stripeService: StripeService,
     private readonly configService: ConfigService
   ) {}
@@ -21,9 +20,23 @@ export class TeamsService {
   async createTeam(input: CreateTeamInput, ownerId: number) {
     const { autoAcceptCreator, ...teamData } = input;
 
+    const existingTeam = await this.teamsMembershipsRepository.findTeamMembershipsByNameAndUser(
+      input.name,
+      ownerId
+    );
+    if (existingTeam) {
+      throw new BadRequestException({
+        message: `You already have created a team with name=${input.name}`,
+      });
+    }
+
     if (!this.isTeamBillingEnabled) {
       const team = await this.teamsRepository.create(teamData);
-      await this.membershipsRepository.createMembership(team.id, ownerId, "OWNER", !!autoAcceptCreator);
+      await this.teamsMembershipsRepository.createTeamMembership(team.id, {
+        userId: ownerId,
+        role: "OWNER",
+        accepted: !!autoAcceptCreator,
+      });
       return team;
     }
 
@@ -47,9 +60,7 @@ export class TeamsService {
   }
 
   async getUserTeams(userId: number) {
-    const memberships = await this.membershipsRepository.findUserMemberships(userId);
-    const teamIds = memberships.map((m) => m.teamId);
-    const teams = await this.teamsRepository.getByIds(teamIds);
+    const teams = await this.teamsRepository.getTeamsUserIsMemberOf(userId);
     return teams;
   }
 

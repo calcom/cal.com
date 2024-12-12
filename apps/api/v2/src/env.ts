@@ -37,7 +37,7 @@ export type Environment = {
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
   const value = process.env[key] as Environment[K] | undefined;
 
-  if (!value) {
+  if (value === undefined) {
     if (fallback) {
       return fallback;
     }
