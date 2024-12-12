@@ -25,9 +25,9 @@ const initClock = () => {
   }
   // This only sets browser locale if there's no preference on localStorage.
   if (getIs24hClockFromLocalStorage() === null) set24hClock(isBrowserLocale24h());
+  const currentTimezone = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
   timeOptions.is24hClock = !!getIs24hClockFromLocalStorage();
-  timeOptions.inviteeTimeZone =
-    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
+  timeOptions.inviteeTimeZone = localStorage.getItem("timeOption.preferredTimeZone") || currentTimezone;
 };
 
 const is24h = (is24hClock?: boolean) => {

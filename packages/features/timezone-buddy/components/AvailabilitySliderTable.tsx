@@ -78,7 +78,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
-      loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
+      loggedInUsersTz: dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London",
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
       searchString: debouncedSearchString,

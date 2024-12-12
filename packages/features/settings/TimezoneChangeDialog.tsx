@@ -22,7 +22,7 @@ const TimezoneChangeDialogContent = () => {
 
   const utils = trpc.useUtils();
 
-  const browserTimezone = dayjs.tz.guess() || "Europe/London";
+  const browserTimezone = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
   const formattedCurrentTz = browserTimezone.replace("_", " ");
 
   const onMutationSuccess = async () => {
