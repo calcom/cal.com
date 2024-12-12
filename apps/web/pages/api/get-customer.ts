@@ -179,10 +179,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(cardData);
   } catch (error) {
     console.error("Detailed error:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      cause: error.cause,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      name: (error as Error).name,
+      cause: (error as Error).cause,
     });
 
     res.status(500).json({
@@ -193,7 +193,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           components: [
             {
               componentText: {
-                text: `Debug error: ${error?.message}`, // More detailed error message
+                text: `Debug error: ${(error as Error).message}`,
               },
             },
           ],
