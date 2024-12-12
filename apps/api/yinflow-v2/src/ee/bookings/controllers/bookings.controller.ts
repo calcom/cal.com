@@ -19,6 +19,7 @@ import { Request } from "express";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BookingResponse, HttpError } from "@calcom/platform-libraries";
@@ -40,6 +41,8 @@ import { MarkNoShowOutput } from "../outputs/mark-no-show.output";
 type BookingRequest = Request & {
   userId?: number;
 };
+
+const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 @Controller({
   path: "/v2/bookings",
   version: API_VERSIONS_VALUES,
@@ -491,7 +494,10 @@ export class BookingsController {
       length: eventType?.length || null,
     };
 
-    // const webhooks = await getWebhooks(subscriberOptions);
+    const { data: webhooks } = await supabase
+      .from("Webhook")
+      .select("*")
+      .or(`teamId.in.${teamId}, teamId.eq.${organizerUserId}`);
 
     const { data: organizer } = await supabase
       .from("users")
@@ -551,7 +557,7 @@ export class BookingsController {
       //   platformBookingUrl,
     };
 
-    // const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+    const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
     // If it's just an attendee of a booking then just remove them from that booking
     // const result = await cancelAttendeeSeat(
@@ -628,17 +634,18 @@ export class BookingsController {
 
     /** TODO: Remove this without breaking functionality */
     if (bookingToDelete.location === DailyLocationType) {
-      //   bookingToDelete.user.credentials.push({
-      //     ...FAKE_DAILY_CREDENTIAL,
-      //     teamId: bookingToDelete.eventType?.team?.id || null,
-      //   });
+      bookingToDelete.user.credentials.push({
+        //   ...FAKE_DAILY_CREDENTIAL,
+        teamId: bookingToDelete.eventType?.team?.id || null,
+      });
     }
 
-    // const isBookingInRecurringSeries = !!(
-    //   bookingToDelete.eventType?.recurringEvent &&
-    //   bookingToDelete.recurringEventId &&
-    //   allRemainingBookings
-    // );
+    const isBookingInRecurringSeries = !!(
+      eventType &&
+      eventType.recurringEvent &&
+      bookingToDelete.recurringEventId &&
+      allRemainingBookings
+    );
 
     // const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
     //   bookingToDelete.eventType?.metadata || null
@@ -653,28 +660,21 @@ export class BookingsController {
 
     // await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    // const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-    //   where: {
-    //     bookingId: bookingToDelete.id,
-    //   },
-    // });
+    await supabase.from("BookingReference").delete().eq("bookingId", bookingToDelete.id);
 
-    const webhookTriggerPromises = [];
-    const workflowReminderPromises = [];
+    const webhookTriggerPromises = [] as Promise<unknown>[];
+    const workflowReminderPromises = [] as Promise<unknown>[];
 
-    // for (const booking of updatedBookings) {
-    //   // delete scheduled webhook triggers of cancelled bookings
-    //   webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+    for (const booking of allBookingsUpdated) {
+      // delete scheduled webhook triggers of cancelled bookings
+      // webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+      //Workflows - cancel all reminders for cancelled bookings
+      // workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
+    }
 
-    //   //Workflows - cancel all reminders for cancelled bookings
-    //   workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
-    // }
-
-    // await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
-    //   log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
-    // });
-
-    // const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
+    await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
+      log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
+    });
 
     try {
       // TODO: if emails fail try to requeue them
