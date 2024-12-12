@@ -30,6 +30,8 @@ export type Environment = {
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: number;
   AXIOM_DATASET: string;
   AXIOM_TOKEN: string;
+  STRIPE_TEAM_MONTHLY_PRICE_ID: string;
+  IS_TEAM_BILLING_ENABLED: boolean;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

@@ -12712,6 +12712,34 @@
           "name"
         ]
       },
+      "CreateTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Output"
+              },
+              {
+                "$ref": "#/components/schemas/TeamOutputDto"
+              }
+            ],
+            "description": "Either an Output object or a TeamOutputDto."
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "TeamOutputDto": {
         "type": "object",
         "properties": {
@@ -12786,26 +12814,6 @@
         "required": [
           "id",
           "name"
-        ]
-      },
-      "CreateTeamOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/TeamOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
         ]
       },
       "GetTeamOutput": {
