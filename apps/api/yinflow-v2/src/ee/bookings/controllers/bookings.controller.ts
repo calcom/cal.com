@@ -18,7 +18,9 @@ import dayjs from "dayjs";
 import { Request } from "express";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BookingResponse, HttpError } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platform-types";
@@ -437,34 +439,7 @@ export class BookingsController {
       .select("*")
       .maybeSingle();
 
-    // aqui _________
     let allBookingsUpdated = [bookingToDelete];
-
-    if (bookingToDelete?.eventType?.seatsPerTimeSlot)
-      await supabase.from("Attendee").delete().eq("bookingId", bookingId).select("*");
-
-    if (allRemainingBookings) {
-      const recurringEventId = bookingToDelete.recurringEventId;
-      const { data: updatedBookings, error } = await supabase
-        .from("Booking")
-        .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
-        .eq("recurringEventId", recurringEventId)
-        .gte("startTime", new Date().toISOString())
-        .select("*");
-      allBookingsUpdated = allBookingsUpdated.concat(updatedBookings);
-    }
-
-    await supabase
-      .from("Booking")
-      .update({
-        status: BookingStatus.CANCELLED.toLowerCase(),
-        cancellationReason,
-        iCalSequence: bookingToDelete.iCalSequence ? bookingToDelete.iCalSequence : 100,
-      })
-      .eq("uid", bookingToDelete!.recurringEventId as string)
-      .select("*");
-
-    // aqui _________
 
     // const {
     //   bookingToDelete,
@@ -524,38 +499,11 @@ export class BookingsController {
       .eq("id", bookingToDelete.userId)
       .single();
 
-    const teamMembersPromises = [];
-    const attendeesListPromises = [];
+    const teamMembersPromises: any[] = [];
     const hostsPresent = !!eventType && eventType.hosts;
-    //   const attendeeObject = {
-    //     name: attendee.name,
-    //     email: attendee.email,
-    //     timeZone: attendee.timeZone,
-    //     language: {
-    //       translate: await getTranslation(attendee.locale ?? "en", "common"),
-    //       locale: attendee.locale ?? "en",
-    //     },
-    //   };
 
-    //   // Check for the presence of hosts to determine if it is a team event type
-    //   if (hostsPresent) {
-    //     // If the attendee is a host then they are a team member
-    //     const teamMember =
-    //       eventType && eventType?.hosts.some((host: any) => host.user.email === attendee.email);
-    //     if (teamMember) {
-    //       teamMembersPromises.push(attendeeObject);
-    //       // If not then they are an attendee
-    //     } else {
-    //       attendeesListPromises.push(attendeeObject);
-    //     }
-    //   } else {
-    //     attendeesListPromises.push(attendeeObject);
-    //   }
-    // }
-
-    // const attendeesList = await Promise.all(attendeesListPromises);
-    // const teamMembers = await Promise.all(teamMembersPromises);
-    // const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+    const teamMembers = await Promise.all(teamMembersPromises);
+    const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
     const evt: CalendarEvent = {
       title: bookingToDelete?.title,
@@ -570,16 +518,16 @@ export class BookingsController {
       //   }),
       startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
       endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
-      // organizer: {
-      //     id: organizer.id,
-      //     username: organizer.username || undefined,
-      //     email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
-      //     name: organizer.name ?? "Nameless",
-      //     timeZone: organizer.timeZone,
-      //     timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
-      //     language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
-      // },
-      //   attendees: attendeesList,
+      organizer: {
+        id: organizer.id,
+        username: organizer.username || undefined,
+        email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
+        name: organizer.name ?? "Nameless",
+        timeZone: organizer.timeZone,
+        timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
+        language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
+      },
+      attendees: [],
       uid: bookingToDelete?.uid,
       bookingId: bookingToDelete?.id,
       /* Include recurringEvent information only when cancelling all bookings */
@@ -593,9 +541,7 @@ export class BookingsController {
       //   ? [bookingToDelete?.user.destinationCalendar]
       //   : [],
       cancellationReason: cancellationReason,
-      //   ...(teamMembers && {
-      //     team: { name: bookingToDelete?.eventType?.team?.name || "Nameless", members: teamMembers, id: teamId! },
-      //   }),
+      team: { name: team?.name || "Nameless", members: [], id: team?.id },
       seatsPerTimeSlot: eventType && eventType?.seatsPerTimeSlot,
       seatsShowAttendees: eventType && eventType?.seatsShowAttendees,
       iCalUID: bookingToDelete.iCalUID,
@@ -657,100 +603,29 @@ export class BookingsController {
     //   hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
     // });
 
-    const updatedBookings: {
-      id: number;
-      uid: string;
-      workflowReminders: WorkflowReminder[];
-      references: {
-        type: string;
-        credentialId: number | null;
-        uid: string;
-        externalCalendarId: string | null;
-      }[];
-      startTime: Date;
-      endTime: Date;
-    }[] = [];
-
     // by cancelling first, and blocking whilst doing so; we can ensure a cancel
     // action always succeeds even if subsequent integrations fail cancellation.
-    if (eventType && eventType?.recurringEvent && bookingToDelete.recurringEventId && allRemainingBookings) {
-      //   const recurringEventId = bookingToDelete.recurringEventId;
-      //   // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
-      //   await prisma.booking.updateMany({
-      //     where: {
-      //       recurringEventId,
-      //       startTime: {
-      //         gte: new Date(),
-      //       },
-      //     },
-      //     data: {
-      //       status: BookingStatus.CANCELLED,
-      //       cancellationReason: cancellationReason,
-      //       cancelledBy: cancelledBy,
-      //     },
-      //   });
-      //   const allUpdatedBookings = await prisma.booking.findMany({
-      //     where: {
-      //       recurringEventId: bookingToDelete.recurringEventId,
-      //       startTime: {
-      //         gte: new Date(),
-      //       },
-      //     },
-      //     select: {
-      //       id: true,
-      //       startTime: true,
-      //       endTime: true,
-      //       references: {
-      //         select: {
-      //           uid: true,
-      //           type: true,
-      //           externalCalendarId: true,
-      //           credentialId: true,
-      //         },
-      //       },
-      //       workflowReminders: true,
-      //       uid: true,
-      //     },
-      //   });
-      //   updatedBookings = updatedBookings.concat(allUpdatedBookings);
-      // } else {
-      //   if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
-      //     await prisma.attendee.deleteMany({
-      //       where: {
-      //         bookingId: bookingToDelete.id,
-      //       },
-      //     });
-    }
+    if (bookingToDelete.recurringEventId && allRemainingBookings) {
+      const recurringEventId = bookingToDelete.recurringEventId;
+      const { data: updatedBookings } = await supabase
+        .from("Booking")
+        .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
+        .eq("recurringEventId", recurringEventId)
+        .gte("startTime", new Date().toISOString())
+        .select("*");
+      allBookingsUpdated = allBookingsUpdated.concat(updatedBookings);
+    } else await supabase.from("Attendee").delete().eq("bookingId", bookingId).select("*");
 
-    //   const where: Prisma.BookingWhereUniqueInput = uid ? { uid } : { id };
-
-    //   const updatedBooking = await prisma.booking.update({
-    //     where,
-    //     data: {
-    //       status: BookingStatus.CANCELLED,
-    //       cancellationReason: cancellationReason,
-    //       cancelledBy: cancelledBy,
-    //       // Assume that canceling the booking is the last action
-    //       iCalSequence: evt.iCalSequence || 100,
-    //     },
-    //     select: {
-    //       id: true,
-    //       startTime: true,
-    //       endTime: true,
-    //       references: {
-    //         select: {
-    //           uid: true,
-    //           type: true,
-    //           externalCalendarId: true,
-    //           credentialId: true,
-    //         },
-    //       },
-    //       workflowReminders: true,
-    //       uid: true,
-    //     },
-    //   });
-    //   updatedBookings.push(updatedBooking);
-    // }
+    const { data: updatedBookingsByRecurringEventId } = await supabase
+      .from("Booking")
+      .update({
+        status: BookingStatus.CANCELLED.toLowerCase(),
+        cancellationReason,
+        iCalSequence: bookingToDelete.iCalSequence ? bookingToDelete.iCalSequence : 100,
+      })
+      .eq("uid", bookingToDelete!.recurringEventId as string)
+      .select("*");
+    allBookingsUpdated = allBookingsUpdated.concat(updatedBookingsByRecurringEventId);
 
     /** TODO: Remove this without breaking functionality */
     if (bookingToDelete.location === DailyLocationType) {
