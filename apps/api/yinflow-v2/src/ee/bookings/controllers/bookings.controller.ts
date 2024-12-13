@@ -446,7 +446,6 @@ export class BookingsController {
           uid: bookingId,
           cancellationReason: cancellationReason,
           allRemainingBookings,
-          seatReferenceUid: bookingToDelete.seatReferenceUid,
           cancelledBy: bookingToDelete.userPrimaryEmail,
         }),
         method: "POST",
@@ -469,16 +468,7 @@ export class BookingsController {
         updatedBookings: allBookingsUpdated,
       };
     } catch (err) {
-      return {
-        err,
-        body: {
-          uid: bookingId,
-          cancellationReason: cancellationReason,
-          allRemainingBookings,
-          seatReferenceUid: bookingToDelete.seatReferenceUid,
-          cancelledBy: bookingToDelete.userPrimaryEmail,
-        },
-      };
+      return err;
     }
   }
 
