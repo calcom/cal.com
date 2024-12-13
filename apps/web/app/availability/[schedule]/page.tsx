@@ -89,5 +89,5 @@ const Page = async ({ params, searchParams }: PageProps) => {
     notFound();
   }
 };
-export const revalidate = 0;
+
 export default WithLayout({ ServerPage: Page });
