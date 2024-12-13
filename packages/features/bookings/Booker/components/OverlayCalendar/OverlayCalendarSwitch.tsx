@@ -20,7 +20,7 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
     (state) => state.setCalendarSettingsOverlayModal
   );
   const layout = useBookerStore((state) => state.layout);
-  const switchEnabled = enabled;
+  const switchEnabled = hasSession || enabled;
 
   /**
    * If a user is not logged in and the overlay calendar query param is true,
