@@ -12,7 +12,10 @@ type EventTypeRelations = {
   schedule: Schedule | null;
   hosts: Host[];
   destinationCalendar?: DestinationCalendar | null;
-  team?: Pick<Team, "bannerUrl"> | null;
+  team?: Pick<
+    Team,
+    "bannerUrl" | "name" | "logoUrl" | "slug" | "weekStart" | "brandColor" | "darkBrandColor" | "theme"
+  > | null;
 };
 export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
@@ -95,10 +98,17 @@ export class OutputOrganizationsEventTypesService {
       ...rest,
       hosts,
       teamId,
+      teamName: databaseEventType?.team?.name,
+      teamSlug: databaseEventType?.team?.slug,
       ownerId: userId,
       parentEventTypeId: parentId,
       schedulingType: databaseEventType.schedulingType,
       bannerUrl: databaseEventType?.team?.bannerUrl,
+      logoUrl: databaseEventType?.team?.logoUrl,
+      weekStart: databaseEventType?.team?.weekStart,
+      brandColor: databaseEventType?.team?.brandColor,
+      darkBrandColor: databaseEventType?.team?.darkBrandColor,
+      theme: databaseEventType?.team?.theme,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
     };
   }

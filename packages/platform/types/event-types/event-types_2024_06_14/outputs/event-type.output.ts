@@ -423,4 +423,39 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsOptional()
   @DocsProperty()
   bannerUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  teamName?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  teamSlug?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  weekStart?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  brandColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  darkBrandColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  theme?: string;
 }
