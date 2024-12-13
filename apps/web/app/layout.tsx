@@ -62,7 +62,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { locale, direction, isEmbed, embedColorScheme } = isSSG
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
-  console.log("TrpcProviderTrpcProviderTrpcProviderTrpcProviderTrpcProviderTrpcProviderTrpcProvider");
 
   return (
     <html
