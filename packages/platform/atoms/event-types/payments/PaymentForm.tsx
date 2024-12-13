@@ -4,12 +4,12 @@ import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL, CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { localStorage } from "@calcom/lib/webstorage";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
@@ -40,7 +40,7 @@ export const PaymentForm = ({
   const eventName = paymentInfo?.booking.title;
 
   const is24h = isBrowserLocale24h();
-  const { timezone } = useTimePreferences();
+  const timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
   const date = dayjs.utc(paymentInfo?.booking.startTime).tz(timezone);
 
   if (isLoading) return <h1 className="p-4 pt-4 text-xl">Loading...</h1>;
