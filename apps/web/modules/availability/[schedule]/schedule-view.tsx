@@ -54,9 +54,9 @@ export const AvailabilitySettingsWebWrapper = ({
         eventTypeIds,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          await revalidatePage();
           utils.viewer.availability.list.invalidate();
-          revalidatePage();
           callback();
           showToast(t("success"), "success");
         },
@@ -80,9 +80,8 @@ export const AvailabilitySettingsWebWrapper = ({
           utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
-      utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
+      await revalidatePage();
       utils.viewer.availability.list.invalidate();
-      revalidatePage();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
