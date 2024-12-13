@@ -8,7 +8,12 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
+
+import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
+
+export type NoShowAttendees = { email: string; noShow: boolean }[];
 
 const buildResultPayload = async (
   bookingUid: string,
@@ -41,7 +46,7 @@ const logFailedResults = (results: PromiseSettledResult<any>[]) => {
 };
 
 class ResponsePayload {
-  attendees: { email: string; noShow: boolean }[];
+  attendees: NoShowAttendees;
   noShowHost: boolean;
   message: string;
 
@@ -78,7 +83,12 @@ const handleMarkNoShow = async ({
   noShowHost,
   userId,
   locale,
-}: TNoShowInputSchema & { userId?: number; locale?: string }) => {
+  platformClientParams,
+}: TNoShowInputSchema & {
+  userId?: number;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+}) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
@@ -90,18 +100,23 @@ const handleMarkNoShow = async ({
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
-      const { webhooks, bookingId } = await getWebhooksService(bookingUid);
+      const { webhooks, bookingId } = await getWebhooksService(
+        bookingUid,
+        platformClientParams?.platformClientId
+      );
 
       await webhooks.sendPayload({
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
-        // @ts-expect-error payload is too booking specific, we need to refactor this
         bookingUid,
         bookingId,
+        ...(platformClientParams ? platformClientParams : {}),
       });
 
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);
+
+      await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
     if (noShowHost) {
@@ -174,7 +189,7 @@ const updateAttendees = async (
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async (bookingUid: string) => {
+const getWebhooksService = async (bookingUid: string, platformClientId?: string) => {
   const booking = await prisma.booking.findUnique({
     where: { uid: bookingUid },
     select: {
@@ -199,6 +214,7 @@ const getWebhooksService = async (bookingUid: string) => {
     eventTypeId: booking?.eventType?.id,
     orgId,
     triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+    oAuthClientId: platformClientId,
   });
 
   return { webhooks, bookingId: booking?.id };
@@ -211,6 +227,16 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
 
   if (!booking)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
+
+  const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
+  const isBookingInPast = new Date(booking.endTime) < new Date();
+  if (!isBookingInPast && !isOngoing) {
+    throw new HttpError({
+      statusCode: 403,
+      message: "Cannot mark no-show before the meeting has started.",
+    });
+  }
 };
 
 export default handleMarkNoShow;

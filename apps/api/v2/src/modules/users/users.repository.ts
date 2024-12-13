@@ -2,7 +2,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import type { Profile, User, Team } from "@prisma/client";
 
 export type UserWithProfile = User & {
@@ -68,7 +68,6 @@ export class UsersRepository {
   }
 
   async findByIdWithProfile(userId: number): Promise<UserWithProfile | null> {
-    console.log("findByIdWithProfile");
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
@@ -143,11 +142,21 @@ export class UsersRepository {
     });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-      },
+      where:
+        orgId || orgSlug
+          ? {
+              profiles: {
+                some: {
+                  organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+                  username: username,
+                },
+              },
+            }
+          : {
+              username,
+            },
     });
   }
 
@@ -223,5 +232,30 @@ export class UsersRepository {
       },
     });
     return profiles.map((profile) => profile.user);
+  }
+
+  async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
+    const user = await this.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException("user not found");
+    }
+
+    return await this.dbWrite.prisma.user.update({
+      data: {
+        metadata:
+          typeof user.metadata === "object"
+            ? {
+                ...user.metadata,
+                defaultConferencingApp: {
+                  appSlug: appSlug,
+                  appLink: appLink,
+                },
+              }
+            : {},
+      },
+
+      where: { id: userId },
+    });
   }
 }

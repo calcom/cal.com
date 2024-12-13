@@ -4,26 +4,34 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { getBookings } from "@calcom/trpc/server/routers/viewer/bookings/get.handler";
 
 type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
+type SortOptions = {
+  sortStart?: "asc" | "desc";
+  sortEnd?: "asc" | "desc";
+  sortCreated?: "asc" | "desc";
+};
 type GetOptions = {
   ctx: {
     user: { id: number; email: string };
     prisma: PrismaClient;
   };
-  bookingListingByStatus: InputByStatus;
+  bookingListingByStatus: InputByStatus[];
   take: number;
   skip: number;
   filters: {
-    status: InputByStatus;
+    status?: InputByStatus;
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
+    attendeeEmail?: string;
+    attendeeName?: string;
   };
+  sort?: SortOptions;
 };
 
-const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip }: GetOptions) => {
+const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip, sort }: GetOptions) => {
   const { prisma, user } = ctx;
 
-  const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
+  const bookingListingFilters: Record<InputByStatus, Prisma.BookingWhereInput> = {
     upcoming: {
       endTime: { gte: new Date() },
       // These changes are needed to not show confirmed recurring events,
@@ -62,24 +70,17 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
       status: { equals: BookingStatus.PENDING },
     },
   };
-  const bookingListingOrderby: Record<
-    typeof bookingListingByStatus,
-    Prisma.BookingOrderByWithAggregationInput
-  > = {
-    upcoming: { startTime: "asc" },
-    recurring: { startTime: "asc" },
-    past: { startTime: "desc" },
-    cancelled: { startTime: "desc" },
-    unconfirmed: { startTime: "asc" },
-  };
 
-  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
-  const orderBy = bookingListingOrderby[bookingListingByStatus];
+  const orderBy = getOrderBy(bookingListingByStatus, sort);
+
+  const combinedFilters = bookingListingByStatus.map((status) => bookingListingFilters[status]);
 
   const { bookings, recurringInfo } = await getBookings({
     user,
     prisma,
-    passedBookingsStatusFilter,
+    passedBookingsStatusFilter: {
+      OR: combinedFilters,
+    },
     filters: filters,
     orderBy,
     take,
@@ -100,5 +101,34 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
     nextCursor,
   };
 };
+
+function getOrderBy(
+  bookingListingByStatus: InputByStatus[],
+  sort?: SortOptions
+): Prisma.BookingOrderByWithAggregationInput {
+  const bookingListingOrderby: Record<InputByStatus, Prisma.BookingOrderByWithAggregationInput> = {
+    upcoming: { startTime: "asc" },
+    recurring: { startTime: "asc" },
+    past: { startTime: "desc" },
+    cancelled: { startTime: "desc" },
+    unconfirmed: { startTime: "asc" },
+  };
+
+  if (bookingListingByStatus?.length === 1 && !sort) {
+    return bookingListingOrderby[bookingListingByStatus[0]];
+  }
+
+  if (sort?.sortStart) {
+    return { startTime: sort.sortStart };
+  }
+  if (sort?.sortEnd) {
+    return { endTime: sort.sortEnd };
+  }
+  if (sort?.sortCreated) {
+    return { createdAt: sort.sortCreated };
+  }
+
+  return { startTime: "asc" };
+}
 
 export default getAllUserBookings;

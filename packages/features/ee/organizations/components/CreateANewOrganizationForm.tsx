@@ -1,3 +1,5 @@
+"use client";
+
 import type { SessionContextValue } from "next-auth/react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";

@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { shallow } from "zustand/shallow";
 
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiSuccessResponse, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import type { ApiResponse } from "@calcom/platform-types";
@@ -14,12 +12,8 @@ export const QUERY_KEY = "use-team-event-type";
 export const useTeamEventType = (teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
   const { organizationId } = useAtomsContext();
 
-  const [stateEventSlug] = useBookerStore(
-    (state) => [state.eventSlug],
-    shallow
-  );
 
-  const requestEventSlug = stateEventSlug ?? eventSlug;
+  const requestEventSlug =  eventSlug;
 
   const pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
 
@@ -35,6 +29,7 @@ export const useTeamEventType = (teamId: number  | undefined, eventSlug: string,
         });
       }
     },
+    enabled: Boolean(organizationId) && Boolean(teamId) && Boolean(eventSlug) && Boolean(isTeamEvent),
   });
 
   return event;

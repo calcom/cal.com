@@ -85,7 +85,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const startTime = now.startOf("month").toISOString();
   const endTime = now.add(2, "month").endOf("month").toISOString();
-  const orgSlug = eventType?.team?.parent?.slug ?? undefined;
+  const orgSlug = eventType?.team?.parent?.slug ?? null;
 
   const availableSlots = await getAvailableSlots({
     input: {

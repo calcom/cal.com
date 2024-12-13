@@ -1,11 +1,11 @@
 import { BadRequestException } from "@nestjs/common";
-import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { ApiProperty as DocsProperty, ApiPropertyOptional as DocsPropertyOptional } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
-const bookingFields = [
+const inputBookingFieldTypes = [
   "name",
   "email",
   "phone",
@@ -21,58 +21,70 @@ const bookingFields = [
   "boolean",
 ] as const;
 
-export class NameField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class NameFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "name", description: "only allowed value for type is `name`" })
   type!: "name";
 
   @IsString()
+  @IsOptional()
   @DocsProperty()
-  slug!: string;
-
-  @IsString()
-  @DocsProperty()
-  label!: string;
-
-  @IsBoolean()
-  @DocsProperty()
-  required!: boolean;
+  label?: string;
 
   @IsString()
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&name=bob`,\
+      the name field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
-export class EmailField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+
+export class EmailFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "email", description: "only allowed value for type is `email`" })
   type!: "email";
 
   @IsString()
+  @IsOptional()
   @DocsProperty()
-  slug!: string;
-
-  @IsString()
-  @DocsProperty()
-  label!: string;
-
-  @IsBoolean()
-  @DocsProperty()
-  required!: boolean;
+  label?: string;
 
   @IsString()
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
-}
 
-export class PhoneField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&email=bob@gmail.com`,\
+      the email field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+export class PhoneFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
   type!: "phone";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -87,15 +99,30 @@ export class PhoneField_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,\
+      the phone field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class AddressField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class AddressFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "address", description: "only allowed value for type is `address`" })
   type!: "address";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -111,15 +138,30 @@ export class AddressField_2024_06_14 {
   @DocsProperty()
   @DocsProperty({ example: "e.g., 1234 Main St" })
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,\
+      the address field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class TextField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class TextFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "text", description: "only allowed value for type is `text`" })
   type!: "text";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -135,15 +177,30 @@ export class TextField_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,\
+      the text field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class NumberField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class NumberFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "number", description: "only allowed value for type is `number`" })
   type!: "number";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -159,15 +216,30 @@ export class NumberField_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,\
+      the number field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class TextAreaField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class TextAreaFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "textarea", description: "only allowed value for type is `textarea`" })
   type!: "textarea";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -183,15 +255,30 @@ export class TextAreaField_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,\
+      the text area will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class SelectField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class SelectFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "select", description: "only allowed value for type is `select`" })
   type!: "select";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -211,15 +298,30 @@ export class SelectField_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Option 1", "Option 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
+      the 'italian' will be selected and the select field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class MultiSelectField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class MultiSelectFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "multiselect", description: "only allowed value for type is `multiselect`" })
   type!: "multiselect";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -233,15 +335,30 @@ export class MultiSelectField_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Option 1", "Option 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,\
+      the 'en' and 'it' will be selected and the select field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class MultiEmailField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class MultiEmailFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "multiemail", description: "only allowed value for type is `multiemail`" })
   type!: "multiemail";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -257,15 +374,30 @@ export class MultiEmailField_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,\
+      the these emails will be added and none more can be added.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class CheckboxGroupField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class CheckboxGroupFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "checkbox", description: "only allowed value for type is `checkbox`" })
   type!: "checkbox";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -279,15 +411,30 @@ export class CheckboxGroupField_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Checkbox 1", "Checkbox 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,\
+      the checkbox will be selected and the checkbox field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class RadioGroupField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class RadioGroupFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "radio", description: "only allowed value for type is `radio`" })
   type!: "radio";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -301,15 +448,30 @@ export class RadioGroupField_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Radio 1", "Radio 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
+      the 'italian' radio buttom will be selected and the select field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
-export class BooleanField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
+export class BooleanFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "boolean", description: "only allowed value for type is `boolean`" })
   type!: "boolean";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -319,40 +481,47 @@ export class BooleanField_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   required!: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({ type: Boolean })
+  disableOnPrefill?: boolean;
 }
 
-export type BookingField_2024_06_14 =
-  | NameField_2024_06_14
-  | EmailField_2024_06_14
-  | PhoneField_2024_06_14
-  | AddressField_2024_06_14
-  | TextField_2024_06_14
-  | NumberField_2024_06_14
-  | TextAreaField_2024_06_14
-  | SelectField_2024_06_14
-  | MultiSelectField_2024_06_14
-  | MultiEmailField_2024_06_14
-  | CheckboxGroupField_2024_06_14
-  | RadioGroupField_2024_06_14
-  | BooleanField_2024_06_14;
+export type InputBookingField_2024_06_14 =
+  | NameFieldInput_2024_06_14
+  | EmailFieldInput_2024_06_14
+  | PhoneFieldInput_2024_06_14
+  | AddressFieldInput_2024_06_14
+  | TextFieldInput_2024_06_14
+  | NumberFieldInput_2024_06_14
+  | TextAreaFieldInput_2024_06_14
+  | SelectFieldInput_2024_06_14
+  | MultiSelectFieldInput_2024_06_14
+  | MultiEmailFieldInput_2024_06_14
+  | CheckboxGroupFieldInput_2024_06_14
+  | RadioGroupFieldInput_2024_06_14
+  | BooleanFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
-class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
-  private classTypeMap: { [key: string]: new () => BookingField_2024_06_14 } = {
-    name: NameField_2024_06_14,
-    email: EmailField_2024_06_14,
-    phone: PhoneField_2024_06_14,
-    address: AddressField_2024_06_14,
-    text: TextField_2024_06_14,
-    number: NumberField_2024_06_14,
-    textarea: TextAreaField_2024_06_14,
-    select: SelectField_2024_06_14,
-    multiselect: MultiSelectField_2024_06_14,
-    multiemail: MultiEmailField_2024_06_14,
-    checkbox: CheckboxGroupField_2024_06_14,
-    radio: RadioGroupField_2024_06_14,
-    boolean: BooleanField_2024_06_14,
+class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
+  private classTypeMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
+    name: NameFieldInput_2024_06_14,
+    email: EmailFieldInput_2024_06_14,
+    phone: PhoneFieldInput_2024_06_14,
+    address: AddressFieldInput_2024_06_14,
+    text: TextFieldInput_2024_06_14,
+    number: NumberFieldInput_2024_06_14,
+    textarea: TextAreaFieldInput_2024_06_14,
+    select: SelectFieldInput_2024_06_14,
+    multiselect: MultiSelectFieldInput_2024_06_14,
+    multiemail: MultiEmailFieldInput_2024_06_14,
+    checkbox: CheckboxGroupFieldInput_2024_06_14,
+    radio: RadioGroupFieldInput_2024_06_14,
+    boolean: BooleanFieldInput_2024_06_14,
   };
+
+  private reservedSystemSlugs = ["location", "rescheduleReason", "attendeePhoneNumber"];
 
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {
@@ -370,8 +539,17 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
         throw new BadRequestException(`Each booking field must have a 'type' property.`);
       }
 
-      if (!slug) {
+      const notSystemEditableField = type !== "name" && type !== "email";
+      if (notSystemEditableField && !slug) {
         throw new BadRequestException(`Each booking field must have a 'slug' property.`);
+      }
+
+      if (this.reservedSystemSlugs.includes(slug)) {
+        throw new BadRequestException(
+          `The slug '${slug}' is reserved and cannot be used, because it is a slug of a default booking field. Reserved slugs are: ${this.reservedSystemSlugs.join(
+            ", "
+          )}`
+        );
       }
 
       if (slugs.includes(slug)) {
@@ -379,7 +557,9 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
           `Duplicate bookingFields slug '${slug}' found. All bookingFields slugs must be unique.`
         );
       }
-      slugs.push(slug);
+      if (notSystemEditableField) {
+        slugs.push(slug);
+      }
 
       const ClassType = this.classTypeMap[type];
       if (!ClassType) {
@@ -402,15 +582,15 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   }
 }
 
-export function ValidateBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
+export function ValidateInputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any, propertyName: string) {
     registerDecorator({
-      name: "ValidateBookingFields",
+      name: "ValidateInputBookingFields",
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
-      validator: new BookingFieldValidator_2024_06_14(),
+      validator: new InputBookingFieldValidator_2024_06_14(),
     });
   };
 }
