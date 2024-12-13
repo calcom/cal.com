@@ -6800,6 +6800,48 @@
         },
         "required": ["type"]
       },
+      "NameFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "name",
+            "description": "only allowed value for type is `name`"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+          }
+        },
+        "required": ["type", "label", "placeholder"]
+      },
+      "EmailFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "email",
+            "description": "only allowed value for type is `email`"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+          }
+        },
+        "required": ["type", "label", "placeholder"]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6908,6 +6950,12 @@
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
             "items": {
               "oneOf": [
+                {
+                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
@@ -7081,6 +7129,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
@@ -8470,6 +8523,12 @@
             "items": {
               "oneOf": [
                 {
+                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
@@ -8642,6 +8701,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": ["lengthInMinutesOptions"]
@@ -9781,6 +9845,12 @@
             "items": {
               "oneOf": [
                 {
+                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
@@ -9953,6 +10023,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
           "schedulingType": {
             "type": "object"
@@ -10493,6 +10568,12 @@
             "items": {
               "oneOf": [
                 {
+                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
@@ -10665,6 +10746,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
           "hosts": {
             "type": "array",
@@ -12770,6 +12856,10 @@
             "type": "string",
             "example": "John Doe"
           },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -12844,7 +12934,7 @@
             }
           }
         },
-        "required": ["name", "timeZone", "absent", "seatUid"]
+        "required": ["name", "email", "timeZone", "absent", "seatUid"]
       },
       "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
