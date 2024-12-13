@@ -1,6 +1,5 @@
 import fs from "fs";
 import matter from "gray-matter";
-import type { GetStaticPropsContext } from "next";
 import path from "path";
 import { z } from "zod";
 
@@ -26,7 +25,7 @@ export const sourceSchema = z.object({
   }),
 });
 
-export const getStaticProps = async (ctx: GetStaticPropsContext) => {
+export const getStaticProps = async () => {
   const appName = "routing-forms";
 
   const appMeta = await getAppWithMetadata({
