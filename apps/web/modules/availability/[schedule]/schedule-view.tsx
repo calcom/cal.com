@@ -72,14 +72,13 @@ export const AvailabilitySettingsWebWrapper = ({
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
-      if (prevDefaultId && currentDefaultId) {
+      if (prevDefaultId && currentDefaultId && prevDefaultId !== currentDefaultId) {
         // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
-        if (prevDefaultId !== currentDefaultId) {
-          // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
-          await revalidatePage(prevDefaultId.toString());
-        }
+        // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
+        await Promise.all([revalidatePage(prevDefaultId.toString()), revalidatePage()]);
+      } else {
+        await revalidatePage();
       }
-      await revalidatePage();
       utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
