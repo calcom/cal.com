@@ -1,8 +1,8 @@
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Icon, TextArea } from "@calcom/ui";
@@ -38,7 +38,7 @@ type Props = {
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
-  const router = useRouter();
+  const refreshData = useRefreshData();
   const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
     props;
   const [loading, setLoading] = useState(false);
@@ -47,6 +47,7 @@ export default function CancelBooking(props: Props) {
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
@@ -120,7 +121,7 @@ export default function CancelBooking(props: Props) {
                       ...bookingCancelledEventProps,
                       booking: bookingWithCancellationReason,
                     });
-                    router.refresh();
+                    refreshData();
                   } else {
                     setLoading(false);
                     setError(

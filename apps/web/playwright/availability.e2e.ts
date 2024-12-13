@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 
 import { test } from "./lib/fixtures";
-import { localize } from "./lib/testUtils";
+import { localize, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -33,13 +33,12 @@ test.describe("Availablity", () => {
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
-    await page.locator('[form="availability-form"][type="submit"]').click();
-    const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
-    const json = await response.json();
+    await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1", {
+      action: () => page.locator('[form="availability-form"][type="submit"]').click(),
+    });
     const nextMonth = dayjs().add(1, "month").startOf("month");
     const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);
-    await page.waitForLoadState("networkidle");
     await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 
@@ -85,7 +84,7 @@ test.describe("Availablity", () => {
     await page.locator('[form="availability-form"][type="submit"]').click();
 
     await expect(dateOverrideList).toHaveCount(3);
-    await expect(await page.getByTitle(deleteButtonTitle).isVisible()).toBe(false);
+    await expect(page.getByTitle(deleteButtonTitle)).toBeHidden();
   });
 
   test("Can create date override on current day in a negative timezone", async ({ page }) => {
@@ -121,18 +120,17 @@ test.describe("Availablity", () => {
     await test.step("Can delete a schedule", async () => {
       await page.getByTestId("go-back-button").click();
       await page.locator('[data-testid="schedules"] > li').nth(1).getByTestId("schedule-more").click();
-      await page.locator('[data-testid="delete-schedule"]').click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast).toBeTruthy();
-
+      await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.delete?batch=1", {
+        action: () => page.locator('[data-testid="delete-schedule"]').click(),
+      });
       await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0);
     });
     await test.step("Cannot delete the last schedule", async () => {
       await page.locator('[data-testid="schedules"] > li').nth(0).getByTestId("schedule-more").click();
       await page.locator('[data-testid="delete-schedule"]').click();
+      // FIXME: Check on toast to be present causes flakiness, cannot check for response since it's client side validated as well
       const toast = await page.waitForSelector('[data-testid="toast-error"]');
       expect(toast).toBeTruthy();
-
       await expect(page.locator('[data-testid="schedules"] > li').nth(0)).toHaveCount(1);
     });
   });
@@ -181,10 +179,9 @@ test.describe("Availablity", () => {
       .locator("svg")
       .click();
 
-    await page.locator("[id=timeZone-lg-viewport]").fill("bras");
+    await page.locator("[id=timeZone-lg-viewport]").fill("Braz");
     await page.getByTestId("select-option-America/Sao_Paulo").click();
-    await page.getByRole("button", { name: save }).click();
-    await expect(page.getByTestId("toast-success").last()).toBeVisible();
+    await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
     await page.getByTestId("incrementMonth").click();
     await page.getByRole("button", { name: "20" }).click();
@@ -192,7 +189,6 @@ test.describe("Availablity", () => {
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
     await page.getByTestId("date-overrides-list").getByRole("button").nth(1).click();
-    await page.getByRole("button", { name: save }).click();
-    await expect(page.getByTestId("toast-success").last()).toBeVisible();
+    await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1");
   });
 });

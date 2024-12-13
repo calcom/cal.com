@@ -1,11 +1,15 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__/OAuthManager";
-import { googleapisMock, setCredentialsMock } from "./__mocks__/googleapis";
+import { adminMock, calendarMock, setCredentialsMock } from "./__mocks__/googleapis";
 
-import { expect, test, vi } from "vitest";
+import { expect, test, beforeEach, vi } from "vitest";
 import "vitest-fetch-mock";
 
-import CalendarService, { getTimeMax, getTimeMin } from "./CalendarService";
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+
+import CalendarService from "./CalendarService";
+
+vi.stubEnv("GOOGLE_WEBHOOK_TOKEN", "test-webhook-token");
 
 vi.mock("@calcom/features/flags/server/utils", () => ({
   getFeatureFlag: vi.fn().mockReturnValue(true),
@@ -18,7 +22,21 @@ vi.mock("./getGoogleAppKeys", () => ({
     redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
   }),
 }));
-googleapisMock.google;
+
+vi.mock("googleapis-common", () => ({
+  OAuth2Client: vi.fn().mockImplementation(() => ({
+    setCredentials: setCredentialsMock,
+  })),
+}));
+vi.mock("@googleapis/admin", () => adminMock);
+vi.mock("@googleapis/calendar", () => calendarMock);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  setCredentialsMock.mockClear();
+  calendarMock.calendar_v3.Calendar.mockClear();
+  adminMock.admin_directory_v1.Admin.mockClear();
+});
 
 const googleTestCredentialKey = {
   scope: "https://www.googleapis.com/auth/calendar.events",
@@ -32,7 +50,7 @@ const getSampleCredential = () => {
   return {
     invalid: false,
     key: googleTestCredentialKey,
-    type: "test",
+    type: "google_calendar",
   };
 };
 
@@ -42,21 +60,22 @@ const testSelectedCalendar = {
   externalId: "example@cal.com",
 };
 
-test("Calendar Cache is being read and updated", async () => {
+test("Calendar Cache is being read on cache HIT", async () => {
   const credentialInDb1 = await createCredentialInDb();
   const dateFrom1 = new Date().toISOString();
   const dateTo1 = new Date().toISOString();
 
   // Create cache
-  await prismock.calendarCache.create({
-    data: {
-      credentialId: credentialInDb1.id,
-      key: JSON.stringify({
-        timeMin: getTimeMin(dateFrom1),
-        timeMax: getTimeMax(dateTo1),
-        items: [{ id: testSelectedCalendar.externalId }],
-      }),
-      value: {
+  const calendarCache = await CalendarCache.init(null);
+  await calendarCache.upsertCachedAvailability(
+    credentialInDb1.id,
+    {
+      timeMin: dateFrom1,
+      timeMax: dateTo1,
+      items: [{ id: testSelectedCalendar.externalId }],
+    },
+    JSON.parse(
+      JSON.stringify({
         calendars: [
           {
             busy: [
@@ -67,10 +86,9 @@ test("Calendar Cache is being read and updated", async () => {
             ],
           },
         ],
-      },
-      expiresAt: String(Date.now() + 10000),
-    },
-  });
+      })
+    )
+  );
 
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarService = new CalendarService(credentialInDb1);
@@ -83,29 +101,75 @@ test("Calendar Cache is being read and updated", async () => {
       end: "2023-12-01T19:00:00Z",
     },
   ]);
+});
 
-  const credentialInDb2 = await createCredentialInDb();
-  const dateFrom2 = new Date(Date.now()).toISOString();
+test("Calendar Cache is being ignored on cache MISS", async () => {
+  const calendarCache = await CalendarCache.init(null);
+  const credentialInDb = await createCredentialInDb();
+  const dateFrom = new Date(Date.now()).toISOString();
   // Tweak date so that it's a cache miss
-  const dateTo2 = new Date(Date.now() + 100000000).toISOString();
-  const calendarService2 = new CalendarService(credentialInDb2);
+  const dateTo = new Date(Date.now() + 100000000).toISOString();
+  const calendarService = new CalendarService(credentialInDb);
 
   // Test Cache Miss
-  await calendarService2.getAvailability(dateFrom2, dateTo2, [testSelectedCalendar]);
+  await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar]);
 
-  // Expect cache to be updated in case of a MISS
-  const calendarCache = await prismock.calendarCache.findFirst({
+  // Expect cache to be ignored in case of a MISS
+  const cachedAvailability = await calendarCache.getCachedAvailability(credentialInDb.id, {
+    timeMin: dateFrom,
+    timeMax: dateTo,
+    items: [{ id: testSelectedCalendar.externalId }],
+  });
+
+  expect(cachedAvailability).toBeNull();
+});
+
+test("Calendar can be watched and unwatched", async () => {
+  const credentialInDb1 = await createCredentialInDb();
+  oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
+  const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+  await calendarCache.watchCalendar({ calendarId: testSelectedCalendar.externalId });
+  const watchedCalendar = await prismock.selectedCalendar.findFirst({
     where: {
-      credentialId: credentialInDb2.id,
-      key: JSON.stringify({
-        timeMin: getTimeMin(dateFrom2),
-        timeMax: getTimeMax(dateTo2),
-        items: [{ id: testSelectedCalendar.externalId }],
-      }),
+      userId: credentialInDb1.userId!,
+      externalId: testSelectedCalendar.externalId,
+      integration: "google_calendar",
+    },
+  });
+  expect(watchedCalendar).toEqual({
+    userId: 1,
+    integration: "google_calendar",
+    externalId: "example@cal.com",
+    credentialId: 1,
+    domainWideDelegationCredentialId: null,
+    googleChannelId: "mock-channel-id",
+    googleChannelKind: "api#channel",
+    googleChannelResourceId: "mock-resource-id",
+    googleChannelResourceUri: "mock-resource-uri",
+    googleChannelExpiration: "1111111111",
+  });
+  await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId });
+  // There's a bug in prismock where upsert creates duplicate records so we need to acces the second element
+  const [, unWatchedCalendar] = await prismock.selectedCalendar.findMany({
+    where: {
+      userId: credentialInDb1.userId!,
+      externalId: testSelectedCalendar.externalId,
+      integration: "google_calendar",
     },
   });
 
-  expect(calendarCache?.value).toEqual({ calendars: [] });
+  expect(unWatchedCalendar).toEqual({
+    userId: 1,
+    integration: "google_calendar",
+    externalId: "example@cal.com",
+    credentialId: 1,
+    domainWideDelegationCredentialId: null,
+    googleChannelId: null,
+    googleChannelKind: null,
+    googleChannelResourceId: null,
+    googleChannelResourceUri: null,
+    googleChannelExpiration: null,
+  });
 });
 
 test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {

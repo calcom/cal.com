@@ -66,8 +66,11 @@ const BookerComponent = ({
   isPlatform,
   orgBannerUrl,
   customClassNames,
+  areInstantMeetingParametersSet = false,
+  userLocale,
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
+
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -138,6 +141,7 @@ const BookerComponent = ({
   const scrolledToTimeslotsOnce = useRef(false);
   const scrollToTimeSlots = () => {
     if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Conditional within !isEmbed condition
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
       scrolledToTimeslotsOnce.current = true;
     }
@@ -176,7 +180,7 @@ const BookerComponent = ({
         isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
-          {verifyCode ? (
+          {verifyCode && formEmail ? (
             <VerifyCodeDialog
               isOpenDialog={isEmailVerificationModalVisible}
               setIsOpenDialog={setEmailVerificationModalVisible}
@@ -200,6 +204,7 @@ const BookerComponent = ({
               onGoBack={() => {
                 onGoBackInstantMeeting();
               }}
+              orgName={event.data?.entity?.name}
             />
           )}
         </>
@@ -291,7 +296,9 @@ const BookerComponent = ({
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
-                {!isPlatform ? (
+                {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
+                  <></>
+                ) : (
                   <Header
                     isMyLink={Boolean(username === sessionUsername)}
                     eventSlug={eventSlug}
@@ -321,8 +328,6 @@ const BookerComponent = ({
                       )
                     }
                   />
-                ) : (
-                  <></>
                 )}
               </BookerSection>
             )}
@@ -330,10 +335,10 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                {!hideEventTypeDetails && orgBannerUrl && !isPlatform && (
+                {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
-                    className="-mb-9 ltr:rounded-tl-md rtl:rounded-tr-md"
+                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
@@ -348,6 +353,7 @@ const BookerComponent = ({
                   event={event.data}
                   isPending={event.isPending}
                   isPlatform={isPlatform}
+                  locale={userLocale}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
@@ -439,26 +445,28 @@ const BookerComponent = ({
           }}
         />
 
-        {bookerState !== "booking" && event.data?.showInstantEventConnectNowModal && (
-          <div
-            className={classNames(
-              "animate-fade-in-up  z-40 my-2 opacity-0",
-              layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
-            )}
-            style={{ animationDelay: "1s" }}>
-            <InstantBooking
-              event={event.data}
-              onConnectNow={() => {
-                onConnectNowInstantMeeting();
-              }}
-            />
-          </div>
-        )}
+        {bookerState !== "booking" &&
+          event.data?.showInstantEventConnectNowModal &&
+          areInstantMeetingParametersSet && (
+            <div
+              className={classNames(
+                "animate-fade-in-up  z-40 my-2 opacity-0",
+                layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+              )}
+              style={{ animationDelay: "1s" }}>
+              <InstantBooking
+                event={event.data}
+                onConnectNow={() => {
+                  onConnectNowInstantMeeting();
+                }}
+              />
+            </div>
+          )}
         {!hideBranding && !isPlatform && (
           <m.span
             key="logo"
             className={classNames(
-              "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+              "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
             )}>

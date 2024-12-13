@@ -1,3 +1,5 @@
+"use client";
+
 import { trpc } from "@calcom/trpc/react";
 
 import type { CreateBtnProps, Option } from "./CreateButton";

@@ -17,12 +17,13 @@ export function defaultResponder<T>(f: Handle<T>) {
         return res.json(result);
       }
     } catch (err) {
-      console.error(err);
       const error = getServerErrorFromUnknown(err);
-      // dynamic import of Sentry so it's only loaded when something goes wrong.
-      const captureException = (await import("@sentry/nextjs")).captureException;
-      captureException(err);
-      // return API route response
+      // we don't want to report Bad Request errors to Sentry / console
+      if (!(error.statusCode >= 400 && error.statusCode < 500)) {
+        console.error(err);
+        const captureException = (await import("@sentry/nextjs")).captureException;
+        captureException(err);
+      }
       return res
         .status(error.statusCode)
         .json({ message: error.message, url: error.url, method: error.method });

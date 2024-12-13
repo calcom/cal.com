@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -170,6 +171,7 @@ const LayoutToggle = ({
   enabledLayouts?: BookerLayouts[];
 }) => {
   const isEmbed = useIsEmbed();
+  const isPlatform = useIsPlatform();
 
   const { t } = useLocale();
 
@@ -177,17 +179,32 @@ const LayoutToggle = ({
     return [
       {
         value: BookerLayouts.MONTH_VIEW,
-        label: <Icon name="calendar" width="16" height="16" />,
+        label: (
+          <>
+            <Icon name="calendar" width="16" height="16" />
+            <span className="sr-only">${t("switch_monthly")}</span>
+          </>
+        ),
         tooltip: t("switch_monthly"),
       },
       {
         value: BookerLayouts.WEEK_VIEW,
-        label: <Icon name="grid-3x3" width="16" height="16" />,
+        label: (
+          <>
+            <Icon name="grid-3x3" width="16" height="16" />
+            <span className="sr-only">${t("switch_weekly")}</span>
+          </>
+        ),
         tooltip: t("switch_weekly"),
       },
       {
         value: BookerLayouts.COLUMN_VIEW,
-        label: <Icon name="columns-3" width="16" height="16" />,
+        label: (
+          <>
+            <Icon name="columns-3" width="16" height="16" />
+            <span className="sr-only">${t("switch_columnview")}</span>
+          </>
+        ),
         tooltip: t("switch_columnview"),
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
@@ -198,6 +215,10 @@ const LayoutToggle = ({
   if (isEmbed) {
     return null;
   }
+
+  // just like embed the layout toggle doesn't look rightly placed in platform
+  // the layout can be toggled via props in the booker atom
+  if (isPlatform) return null;
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
 };

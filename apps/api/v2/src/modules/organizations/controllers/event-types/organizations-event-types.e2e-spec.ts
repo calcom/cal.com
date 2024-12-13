@@ -6,7 +6,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { SchedulingType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -17,7 +17,12 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
@@ -230,6 +235,7 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
+        successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
         title: "Coding consultation collective",
         slug: "coding-consultation collective",
         description: "Our team will review your codebase.",
@@ -276,6 +282,31 @@ describe("Organizations Event Types Endpoints", () => {
           value: 30,
           rolling: true,
         },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
+        requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
       };
 
       return request(app.getHttpServer())
@@ -297,7 +328,14 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(data.offsetStart).toEqual(body.offsetStart);
           expect(data.bookingWindow).toEqual(body.bookingWindow);
-
+          expect(data.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
+          expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
+          expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
+          expect(data.color).toEqual(body.color);
+          expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           collectiveEventType = responseBody.data;
         });
     });
@@ -350,15 +388,18 @@ describe("Organizations Event Types Endpoints", () => {
             1
           );
 
-          const responseTeamEvent = responseBody.data[0];
-          expect(responseTeamEvent?.teamId).toEqual(team.id);
+          const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
+          expect(responseTeamEvent).toBeDefined();
+          if (!responseTeamEvent) {
+            throw new Error("Team event not found");
+          }
 
-          const responseTeammate1Event = responseBody.data[1];
-          expect(responseTeammate1Event?.ownerId).toEqual(teammate1.id);
+          const responseTeammate1Event = responseBody.data.find((event) => event.ownerId === teammate1.id);
+          expect(responseTeammate1Event).toBeDefined();
           expect(responseTeammate1Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
-          const responseTeammate2Event = responseBody.data[2];
-          expect(responseTeammate2Event?.ownerId).toEqual(teammate2.id);
+          const responseTeammate2Event = responseBody.data.find((event) => event.ownerId === teammate2.id);
+          expect(responseTeammate2Event).toBeDefined();
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
@@ -444,7 +485,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/999999`)
         .send(body)
-        .expect(404);
+        .expect(400);
     });
 
     it("should update collective event-type", async () => {
@@ -456,6 +497,7 @@ describe("Organizations Event Types Endpoints", () => {
 
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         hosts: newHosts,
+        successRedirectUrl: "https://new-url-success.com",
       };
 
       return request(app.getHttpServer())
@@ -467,6 +509,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const eventType = responseBody.data;
+          expect(eventType.successRedirectUrl).toEqual("https://new-url-success.com");
           expect(eventType.title).toEqual(collectiveEventType.title);
           expect(eventType.hosts.length).toEqual(1);
           evaluateHost(eventType.hosts[0], newHosts[0]);
@@ -486,6 +529,7 @@ describe("Organizations Event Types Endpoints", () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         title: newTitle,
         hosts: newHosts,
+        successRedirectUrl: "https://new-url-success-managed.com",
       };
 
       return request(app.getHttpServer())
@@ -529,6 +573,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate1Event?.title).toEqual(newTitle);
 
           managedEventType = responseBody.data[0];
+          expect(managedEventType.successRedirectUrl).toEqual("https://new-url-success-managed.com");
         });
     });
 
@@ -607,6 +652,81 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .delete(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${managedEventType.id}`)
         .expect(200);
+    });
+
+    it("should return event type with default bookingFields if they are not defined", async () => {
+      const eventTypeInput = {
+        title: "unknown field event type two",
+        description: "unknown field event type description two",
+        length: 40,
+        hidden: false,
+        slug: "unknown-field-type-two",
+        locations: [],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      };
+      const eventType = await eventTypesRepositoryFixture.createTeamEventType({
+        ...eventTypeInput,
+        team: { connect: { id: team.id } },
+      });
+
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${eventType.id}`)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+
+          expect(fetchedEventType.bookingFields).toEqual([
+            {
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: true,
+            },
+            {
+              isDefault: true,
+              required: false,
+              slug: "attendeePhoneNumber",
+              type: "phone",
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
+            },
+          ]);
+        });
     });
 
     function evaluateHost(expected: Host, received: Host | undefined) {

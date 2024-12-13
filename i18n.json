@@ -4,13 +4,16 @@
     "source": "en",
     "targets": [
       "ar",
+      "az",
+      "bg",
+      "ca",
       "cs",
       "da",
-      "az",
-      "cs",
       "de",
+      "el",
       "es",
       "es-419",
+      "eu",
       "et",
       "fr",
       "he",
@@ -26,14 +29,19 @@
       "pt",
       "ro",
       "ru",
-      "zh-CN"
+      "sk-SK",
+      "sr",
+      "sv",
+      "tr",
+      "uk",
+      "vi",
+      "zh-CN",
+      "zh-TW"
     ]
   },
   "buckets": {
     "json": {
-      "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
-      ]
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
   }
 }

@@ -1,11 +1,9 @@
-import type { SelectedCalendar } from "@prisma/client";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
@@ -30,7 +28,10 @@ const getCalendarsEvents = async (
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
-    const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
+    const passedSelectedCalendars = selectedCalendars
+      .filter((sc) => sc.integration === type)
+      // Needed to ensure cache keys are consistent
+      .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
     if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
 

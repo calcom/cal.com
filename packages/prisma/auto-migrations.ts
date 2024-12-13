@@ -14,6 +14,10 @@ const exec = promisify(execCb);
  * @see https://github.com/prisma/prisma/issues/4703#issuecomment-1447354363
  */
 async function main(): Promise<void> {
+  if (process.env.SKIP_DB_MIGRATIONS === "1") {
+    console.info("SKIP_DB_MIGRATIONS set, skipping migrations");
+    return;
+  }
   if (!process.env.DATABASE_URL) {
     console.info("No DATABASE_URL found, skipping migrations");
     return;

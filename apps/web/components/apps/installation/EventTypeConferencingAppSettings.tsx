@@ -1,4 +1,3 @@
-import type { TEventType } from "@pages/apps/installation/[[...step]]";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
@@ -17,6 +16,8 @@ import { Skeleton, Label } from "@calcom/ui";
 import { QueryCell } from "@lib/QueryCell";
 
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
+
+import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
 
 const LocationsWrapper = ({
   eventType,
