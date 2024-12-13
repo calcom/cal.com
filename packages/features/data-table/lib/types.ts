@@ -15,9 +15,19 @@ export const ZTextFilterOperator = z.enum([
 
 export type TextFilterOperator = z.infer<typeof ZTextFilterOperator>;
 
-export const ZSelectFilterValue = z.array(z.string());
+export const ZSingleSelectFilterValue = z.object({
+  type: z.literal("single_select"),
+  data: z.string(),
+});
 
-export type SelectFilterValue = z.infer<typeof ZSelectFilterValue>;
+export type SingleSelectFilterValue = z.infer<typeof ZSingleSelectFilterValue>;
+
+export const ZMultiSelectFilterValue = z.object({
+  type: z.literal("multi_select"),
+  data: z.array(z.string()),
+});
+
+export type MultiSelectFilterValue = z.infer<typeof ZMultiSelectFilterValue>;
 
 export const ZTextFilterValue = z.object({
   type: z.literal("text"),
@@ -50,11 +60,16 @@ export const ZNumberFilterValue = z.object({
 
 export type NumberFilterValue = z.infer<typeof ZNumberFilterValue>;
 
-export const ZFilterValue = z.union([ZSelectFilterValue, ZTextFilterValue, ZNumberFilterValue]);
+export const ZFilterValue = z.union([
+  ZSingleSelectFilterValue,
+  ZMultiSelectFilterValue,
+  ZTextFilterValue,
+  ZNumberFilterValue,
+]);
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
 
-export type ColumnFilterType = "select" | "text" | "number";
+export type ColumnFilterType = "single_select" | "multi_select" | "text" | "number";
 
 export type ColumnFilterMeta = {
   type?: ColumnFilterType;
@@ -66,7 +81,12 @@ export type FilterableColumn = {
   title: string;
 } & (
   | {
-      type: "select";
+      type: "single_select";
+      icon?: IconName;
+      options: Map<string | { label: string; value: string }, number>;
+    }
+  | {
+      type: "multi_select";
       icon?: IconName;
       options: Map<string | { label: string; value: string }, number>;
     }
@@ -93,8 +113,10 @@ export type TypedColumnFilter<T extends ColumnFilterType> = {
     ? TextFilterValue
     : T extends "number"
     ? NumberFilterValue
-    : T extends "select"
-    ? SelectFilterValue
+    : T extends "single_select"
+    ? SingleSelectFilterValue
+    : T extends "multi_select"
+    ? MultiSelectFilterValue
     : never;
 };
 

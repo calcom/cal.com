@@ -21,7 +21,7 @@ import {
   DataTableFilters,
   useFetchMoreOnBottomReached,
   useColumnFilters,
-  selectFilter,
+  multiSelectFilter,
   textFilter,
   dataTableFilter,
   convertToTitleCase,
@@ -65,12 +65,12 @@ type RoutingFormTableRow = {
 
 type FieldCellValue = { label: string; value: string };
 
-const ZResponseValues = z.array(
-  z.object({
-    label: z.string(),
-    value: z.string(),
-  })
-);
+const ZResponseValue = z.object({
+  label: z.string(),
+  value: z.string(),
+});
+
+const ZResponseValues = z.array(ZResponseValue);
 
 type ResponseValues = FieldCellValue[];
 
@@ -387,11 +387,16 @@ export function RoutingFormResponsesTableContent({
 
         const isNumber = fieldHeader.type === RoutingFormFieldType.NUMBER;
 
-        const isSelect =
-          fieldHeader.type === RoutingFormFieldType.SINGLE_SELECT ||
-          fieldHeader.type === RoutingFormFieldType.MULTI_SELECT;
+        const isSingleSelect = fieldHeader.type === RoutingFormFieldType.SINGLE_SELECT;
+        const isMultiSelect = fieldHeader.type === RoutingFormFieldType.MULTI_SELECT;
 
-        const filterType = isSelect ? "select" : isNumber ? "number" : "text";
+        const filterType = isSingleSelect
+          ? "single_select"
+          : isNumber
+          ? "number"
+          : isText
+          ? "text"
+          : "multi_select";
 
         return columnHelper.accessor(fieldHeader.id, {
           id: fieldHeader.id,
@@ -399,14 +404,25 @@ export function RoutingFormResponsesTableContent({
           size: 200,
           cell: (info) => {
             const values = info.getValue();
-            const result = isSelect ? ZResponseValues.safeParse(values) : null;
-            return isSelect && result?.success ? (
-              <ResponseValueCell values={result.data} rowId={info.row.original.id} />
-            ) : (
-              <div className="truncate">
-                <span title={values}>{values}</span>
-              </div>
-            );
+            if (isMultiSelect) {
+              const result = ZResponseValues.safeParse(values);
+              return (
+                result.success && <ResponseValueCell values={result.data} rowId={info.row.original.id} />
+              );
+            } else if (isSingleSelect) {
+              const result = ZResponseValue.safeParse(values);
+              return (
+                result.success && <ResponseValueCell values={[result.data]} rowId={info.row.original.id} />
+              );
+            } else if (typeof values !== "object") {
+              return (
+                <div className="truncate">
+                  <span title={values}>{values}</span>
+                </div>
+              );
+            } else {
+              return null;
+            }
           },
           meta: {
             filter: { type: filterType },
@@ -436,10 +452,10 @@ export function RoutingFormResponsesTableContent({
           </div>
         ),
         meta: {
-          filter: { type: "select", icon: "circle" },
+          filter: { type: "multi_select", icon: "circle" },
         },
         filterFn: (row, id, filterValue) => {
-          return selectFilter(row.original.routedToBooking?.status, filterValue);
+          return multiSelectFilter(row.original.routedToBooking?.status, filterValue);
         },
         sortingFn: (rowA, rowB) => {
           const statusA = rowA.original.routedToBooking?.status;

@@ -17,8 +17,10 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
-  isSelectFilterValue,
-  selectFilter,
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  singleSelectFilter,
+  multiSelectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -183,7 +185,15 @@ function UserListTableContent() {
           // const isNumber = attribute.type === "NUMBER";
           const isNumber = false;
           const isText = attribute.type === "TEXT";
-          const filterType = isNumber ? "number" : isText ? "text" : "select";
+          const isSingleSelect = attribute.type === "SINGLE_SELECT";
+          const isMultiSelect = attribute.type === "MULTI_SELECT";
+          const filterType = isNumber
+            ? "number"
+            : isText
+            ? "text"
+            : isSingleSelect
+            ? "single_select"
+            : "multi_select";
 
           return {
             id: attribute.id,
@@ -234,8 +244,13 @@ function UserListTableContent() {
 
               if (isTextFilterValue(filterValue)) {
                 return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-              } else if (isSelectFilterValue(filterValue)) {
-                return selectFilter(
+              } else if (isSingleSelectFilterValue(filterValue)) {
+                return singleSelectFilter(
+                  attributeValues.map((attr) => attr.value),
+                  filterValue
+                );
+              } else if (isMultiSelectFilterValue(filterValue)) {
+                return multiSelectFilter(
                   attributeValues.map((attr) => attr.value),
                   filterValue
                 );
@@ -538,7 +553,7 @@ function UserListTableContent() {
         isPending={isPending}
         enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root className="lg:max-w-screen-2xl">
+        <DataTableToolbar.Root>
           <div className="flex w-full flex-col gap-2 sm:flex-row">
             <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
               <DataTableToolbar.SearchBar

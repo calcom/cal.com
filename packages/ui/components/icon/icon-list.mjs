@@ -55,6 +55,7 @@ export const lucideIconList = new Set([
   "corner-down-left",
   "corner-down-right",
   "credit-card",
+  "disc",
   "dot",
   "download",
   "ellipsis-vertical",

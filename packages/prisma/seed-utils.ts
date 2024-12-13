@@ -441,6 +441,9 @@ export async function seedRoutingForms(
         value: "team/insights-team/team-sales",
       },
     ],
+    formFieldLocation: {
+      id: "674c169a-e40a-492c-b4bb-6f5213873bd6",
+    },
     formFieldSkills: {
       id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
     },
@@ -548,6 +551,16 @@ export async function seedRoutingForms(
       ],
       fields: [
         {
+          id: seededForm.formFieldLocation.id,
+          type: "select",
+          label: "Location",
+          options: attributeRaw[1].options.map((opt) => ({
+            id: opt.id,
+            label: opt.value,
+          })),
+          required: true,
+        },
+        {
           id: seededForm.formFieldSkills.id,
           type: "multiselect",
           label: "skills",
@@ -599,6 +612,9 @@ type SeededForm = {
     id: string;
     value: string;
   }[];
+  formFieldLocation: {
+    id: string;
+  };
   formFieldSkills: {
     id: string;
   };
@@ -644,8 +660,11 @@ export async function seedRoutingFormResponses(
   for (const booking of bookings) {
     // Randomly select 1-3 skills from the form field options
     const numSkills = Math.floor(Math.random() * 3) + 1;
-    const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
-    const selectedSkills = shuffledOptions.slice(0, numSkills);
+    const shuffledSkillOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
+    const selectedSkills = shuffledSkillOptions.slice(0, numSkills);
+
+    const selectedLocation =
+      attributeRaw[1].options[Math.floor(Math.random() * attributeRaw[1].options.length)];
 
     // Generate a random date within the last 30 days
     const randomDate = dayjs()
@@ -660,6 +679,10 @@ export async function seedRoutingFormResponses(
         formFillerId: randomUUID(),
         createdAt: randomDate.toDate(),
         response: {
+          [seededForm.formFieldLocation.id]: {
+            label: "Location",
+            value: selectedLocation.id,
+          },
           [seededForm.formFieldSkills.id]: {
             label: "skills",
             value: selectedSkills.map((opt) => opt.id),
@@ -699,6 +722,10 @@ export async function seedRoutingFormResponses(
         formFillerId: randomUUID(),
         createdAt: randomDate.subtract(2, "hour").toDate(),
         response: {
+          [seededForm.formFieldLocation.id]: {
+            label: "Location",
+            value: selectedLocation.id,
+          },
           [seededForm.formFieldSkills.id]: {
             label: "skills",
             value: selectedSkills.map((opt) => opt.id),

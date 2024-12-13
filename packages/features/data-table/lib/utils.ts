@@ -5,13 +5,20 @@ import type { z } from "zod";
 
 import { DataTableContext } from "./context";
 import type {
-  SelectFilterValue,
+  SingleSelectFilterValue,
+  MultiSelectFilterValue,
   TextFilterValue,
   FilterValue,
   NumberFilterValue,
   ColumnFilter,
 } from "./types";
-import { ZFilterValue, ZNumberFilterValue, ZSelectFilterValue, ZTextFilterValue } from "./types";
+import {
+  ZFilterValue,
+  ZNumberFilterValue,
+  ZSingleSelectFilterValue,
+  ZMultiSelectFilterValue,
+  ZTextFilterValue,
+} from "./types";
 
 export function useDataTable() {
   const context = useContext(DataTableContext);
@@ -56,7 +63,7 @@ export function useColumnFilters(): ColumnFilter[] {
         // The empty arrays in `filtersSearchState` keep the filter UI component,
         // but we do not send them to the actual query.
         // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
-        if (isSelectFilterValue(filter.value) && filter.value.length === 0) {
+        if (isMultiSelectFilterValue(filter.value) && filter.value.data.length === 0) {
           return false;
         }
         return true;
@@ -99,17 +106,25 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
   return ZTextFilterValue.safeParse(filterValue).success;
 };
 
-export const selectFilter = (cellValue: unknown | undefined, filterValue: SelectFilterValue) => {
+export const multiSelectFilter = (cellValue: unknown | undefined, filterValue: MultiSelectFilterValue) => {
   const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
   if (!cellValueArray.every((value) => typeof value === "string")) {
     return false;
   }
 
-  return filterValue.length === 0 ? true : cellValueArray.some((v) => filterValue.includes(v));
+  return filterValue.data.length === 0 ? true : cellValueArray.some((v) => filterValue.data.includes(v));
 };
 
-export const isSelectFilterValue = (filterValue: unknown): filterValue is SelectFilterValue => {
-  return ZSelectFilterValue.safeParse(filterValue).success;
+export const isMultiSelectFilterValue = (filterValue: unknown): filterValue is MultiSelectFilterValue => {
+  return ZMultiSelectFilterValue.safeParse(filterValue).success;
+};
+
+export const singleSelectFilter = (cellValue: unknown | undefined, filterValue: SingleSelectFilterValue) => {
+  return filterValue.data === cellValue;
+};
+
+export const isSingleSelectFilterValue = (filterValue: unknown): filterValue is SingleSelectFilterValue => {
+  return ZSingleSelectFilterValue.safeParse(filterValue).success;
 };
 
 export const numberFilter = (cellValue: unknown, filterValue: NumberFilterValue) => {
@@ -140,8 +155,10 @@ export const isNumberFilterValue = (filterValue: unknown): filterValue is Number
 };
 
 export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
-  if (isSelectFilterValue(filterValue)) {
-    return selectFilter(cellValue, filterValue);
+  if (isSingleSelectFilterValue(filterValue)) {
+    return singleSelectFilter(cellValue, filterValue);
+  } else if (isMultiSelectFilterValue(filterValue)) {
+    return multiSelectFilter(cellValue, filterValue);
   } else if (isTextFilterValue(filterValue)) {
     return textFilter(cellValue, filterValue);
   } else if (isNumberFilterValue(filterValue)) {

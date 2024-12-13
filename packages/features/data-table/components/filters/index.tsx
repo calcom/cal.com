@@ -200,14 +200,14 @@ function useFilterableColumns<TData>(table: Table<TData>, omit?: string[]) {
     () =>
       columns
         .map((column) => {
-          const type = column.columnDef.meta?.filter?.type || "select";
+          const type = column.columnDef.meta?.filter?.type || "multi_select";
           const base = {
             id: column.id,
             title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
             ...(column.columnDef.meta?.filter || {}),
             type,
           };
-          if (type === "select") {
+          if (type === "multi_select" || type === "single_select") {
             return {
               ...base,
               options: column.getFacetedUniqueValues(),
@@ -238,7 +238,8 @@ interface ActiveFiltersProps<TData> {
 const filterIcons = {
   text: "file-text",
   number: "binary",
-  select: "layers",
+  multi_select: "layers",
+  single_select: "disc",
 } as const;
 
 function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TData>) {

@@ -260,6 +260,10 @@
   <rect width="20" height="14" x="2" y="5" rx="2" ></rect>
   <line x1="2" x2="22" y1="10" y2="10" ></line>
 </symbol>
+<symbol class="lucide lucide-disc" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="disc">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <circle cx="12" cy="12" r="2" ></circle>
+</symbol>
 <symbol class="lucide lucide-dot" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="dot">
   <circle cx="12.1" cy="12.1" r="1" ></circle>
 </symbol>

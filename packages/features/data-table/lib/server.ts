@@ -1,5 +1,10 @@
 import type { FilterValue } from "./types";
-import { isSelectFilterValue, isTextFilterValue, isNumberFilterValue } from "./utils";
+import {
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  isTextFilterValue,
+  isNumberFilterValue,
+} from "./utils";
 
 type makeWhereClauseProps = {
   columnName: string;
@@ -13,11 +18,18 @@ export function makeWhereClause(props: makeWhereClauseProps) {
   const jsonPath = isJson && typeof props.json === "object" ? props.json.path : undefined;
 
   const jsonPathObj = isJson && jsonPath ? { path: jsonPath } : {};
-  if (isSelectFilterValue(filterValue)) {
+  if (isMultiSelectFilterValue(filterValue)) {
     return {
       [columnName]: {
         ...jsonPathObj,
-        ...(isJson ? { array_contains: filterValue } : { in: filterValue }),
+        ...(isJson ? { array_contains: filterValue.data } : { in: filterValue.data }),
+      },
+    };
+  } else if (isSingleSelectFilterValue(filterValue)) {
+    return {
+      [columnName]: {
+        ...jsonPathObj,
+        equals: filterValue.data,
       },
     };
   } else if (isTextFilterValue(filterValue)) {
@@ -135,5 +147,5 @@ export function makeWhereClause(props: makeWhereClauseProps) {
         throw new Error(`Invalid operator for number filter: ${operator}`);
     }
   }
-  return {};
+  throw new Error(`Invalid filter type: ${JSON.stringify({ columnName, filterValue })}`);
 }

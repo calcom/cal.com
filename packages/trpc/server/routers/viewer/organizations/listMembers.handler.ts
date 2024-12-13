@@ -2,7 +2,6 @@ import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -67,7 +66,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   });
 
-  const whereClause = {
+  let whereClause: Prisma.MembershipWhereInput = {
     user: {
       isPlatformManaged: false,
     },
@@ -77,31 +76,36 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         OR: [{ email: { contains: searchTerm } }, { username: { contains: searchTerm } }],
       },
     }),
-  } as Prisma.MembershipWhereInput;
+  };
 
   filters.forEach((filter) => {
     switch (filter.id) {
       case "role":
-        whereClause.role = { in: filter.value as MembershipRole[] };
+        whereClause = {
+          ...whereClause,
+          ...makeWhereClause({
+            columnName: "role",
+            filterValue: filter.value,
+          }),
+        };
         break;
       case "teams":
         whereClause.user = {
           teams: {
             some: {
-              team: {
-                name: {
-                  in: filter.value as string[],
-                },
-              },
+              team: makeWhereClause({
+                columnName: "name",
+                filterValue: filter.value,
+              }),
             },
           },
         };
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
-        const attributeOptionValues: string[] = [];
-        if (filter.value instanceof Array) {
-          filter.value.forEach((filterValueItem) => {
+        if (filter.value.type === "multi_select") {
+          const attributeOptionValues: string[] = [];
+          filter.value.data.forEach((filterValueItem) => {
             attributeOptionValues.push(filterValueItem);
             groupOptionsWithContainsOptionValues.forEach((groupOption) => {
               if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
@@ -109,6 +113,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               }
             });
           });
+
+          filter.value.data = attributeOptionValues;
         }
 
         whereClause.AttributeToUser = {
@@ -119,7 +125,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               },
               ...makeWhereClause({
                 columnName: "value",
-                filterValue: attributeOptionValues.length > 0 ? attributeOptionValues : filter.value,
+                filterValue: filter.value,
               }),
             },
           },
