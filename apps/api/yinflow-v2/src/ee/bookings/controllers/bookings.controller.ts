@@ -441,7 +441,7 @@ export class BookingsController {
       .eq("uid", bookingId)
       .single();
 
-    await fetch("https://agenda.yinflow.life/api/cancel", {
+    const response = await fetch("https://agenda.yinflow.life/api/cancel", {
       body: JSON.stringify({
         uid: bookingId,
         cancellationReason: cancellationReason,
@@ -465,6 +465,7 @@ export class BookingsController {
       bookingId: bookingToDelete.id,
       bookingUid: bookingId,
       updatedBookings: allBookingsUpdated,
+      response,
     };
   }
 
