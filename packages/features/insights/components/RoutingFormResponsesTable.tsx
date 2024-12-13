@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
+import { DataTable, DataTableSkeleton, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,14 +25,9 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  type BadgeProps,
+  HoverCardPortal,
 } from "@calcom/ui";
-import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
 
@@ -118,15 +113,17 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
             <HoverCardTrigger>
               <Badge variant="gray">+{value.length - 2}</Badge>
             </HoverCardTrigger>
-            <HoverCardContent side="bottom" align="start" className="w-fit">
-              <div className="flex flex-col gap-1">
-                {value.slice(2).map((v: string, i: number) => (
-                  <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                    {v}
-                  </span>
-                ))}
-              </div>
-            </HoverCardContent>
+            <HoverCardPortal>
+              <HoverCardContent side="bottom" align="start" className="w-fit">
+                <div className="flex flex-col gap-1">
+                  {value.slice(2).map((v: string, i: number) => (
+                    <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              </HoverCardContent>
+            </HoverCardPortal>
           </HoverCard>
         </>
       ) : (
@@ -184,32 +181,34 @@ function BookingAtCell({
           </Link>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-            <div>
-              <p className="text-sm font-medium">{booking.user.name}</p>
-              <p className="group/booking_status_email text-subtle flex items-center text-xs">
-                <span className="truncate">{booking.user.email}</span>
-                <button
-                  className="invisible ml-2 group-hover/booking_status_email:visible"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyToClipboard(booking.user?.email ?? "");
-                  }}>
-                  <Icon name="copy" />
-                </button>
-              </p>
+      <HoverCardPortal>
+        <HoverCardContent>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+              <div>
+                <p className="text-sm font-medium">{booking.user.name}</p>
+                <p className="group/booking_status_email text-subtle flex items-center text-xs">
+                  <span className="truncate">{booking.user.email}</span>
+                  <button
+                    className="invisible ml-2 group-hover/booking_status_email:visible"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      copyToClipboard(booking.user?.email ?? "");
+                    }}>
+                    <Icon name="copy" />
+                  </button>
+                </p>
+              </div>
+            </div>
+            <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
+              <span>Status:</span>
+              <BookingStatusBadge booking={booking} />
             </div>
           </div>
-          <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
-            <span>Status:</span>
-            <BookingStatusBadge booking={booking} />
-          </div>
-        </div>
-      </HoverCardContent>
+        </HoverCardContent>
+      </HoverCardPortal>
     </HoverCard>
   );
 }
@@ -262,7 +261,7 @@ export function RoutingFormResponsesTable({
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
         fieldFilter: selectedRoutingFormFilter ?? undefined,
-        limit: 10,
+        limit: 30,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -314,6 +313,14 @@ export function RoutingFormResponsesTable({
     });
   }, [flatData, headers, isHeadersLoading]);
 
+  const statusOrder: Record<BookingStatus, number> = {
+    [BookingStatus.ACCEPTED]: 1,
+    [BookingStatus.PENDING]: 2,
+    [BookingStatus.AWAITING_HOST]: 3,
+    [BookingStatus.CANCELLED]: 4,
+    [BookingStatus.REJECTED]: 5,
+  };
+
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
   const columns = useMemo(
@@ -353,6 +360,14 @@ export function RoutingFormResponsesTable({
             <BookingStatusBadge booking={info.getValue()} />
           </div>
         ),
+        sortingFn: (rowA, rowB) => {
+          const statusA = rowA.original.routedToBooking?.status;
+          const statusB = rowB.original.routedToBooking?.status;
+          // Default to highest number (5) + 1 for null/undefined values to sort them last
+          const orderA = statusA ? statusOrder[statusA] : 6;
+          const orderB = statusB ? statusOrder[statusB] : 6;
+          return orderA - orderB;
+        },
       }),
       columnHelper.accessor("routedToBooking", {
         id: "bookingAt",
@@ -368,6 +383,19 @@ export function RoutingFormResponsesTable({
             />
           </div>
         ),
+      }),
+      columnHelper.accessor("routedToBooking", {
+        id: "assignmentReason",
+        header: t("routing_form_insights_assignment_reason"),
+        size: 250,
+        cell: (info) => {
+          const assignmentReason = info.getValue()?.assignmentReason;
+          return (
+            <div className="max-w-[250px]">
+              {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
+            </div>
+          );
+        },
       }),
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
@@ -394,58 +422,15 @@ export function RoutingFormResponsesTable({
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
-    return (
-      <div
-        className="grid h-[85dvh]"
-        style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
-        <div
-          className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
-          style={{ gridArea: "body" }}>
-          <Table>
-            <TableHeader className="bg-subtle sticky top-0 z-10">
-              <TableRow>
-                {[...Array(4)].map((_, index) => (
-                  <TableHead key={`skeleton-header-${index}`}>
-                    <div className="bg-subtle h-4 w-[200px] animate-pulse rounded-md" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(10)].map((_, rowIndex) => (
-                <TableRow key={`skeleton-row-${rowIndex}`}>
-                  {[...Array(4)].map((_, colIndex) => (
-                    <TableCell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
-                      <div
-                        className={classNames(
-                          "bg-subtle h-6 animate-pulse rounded-md",
-                          colIndex === 0
-                            ? "w-[200px]"
-                            : colIndex === 2
-                            ? "w-[250px]"
-                            : colIndex === 3
-                            ? "w-[250px]"
-                            : "w-[200px]"
-                        )}
-                      />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
+    return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
 
   return (

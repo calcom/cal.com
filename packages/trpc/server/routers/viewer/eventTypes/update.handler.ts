@@ -7,13 +7,14 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -36,6 +37,7 @@ type User = {
   };
   selectedCalendars: SessionUser["selectedCalendars"];
   organizationId: number | null;
+  locale: string;
 };
 
 type UpdateOptions = {
@@ -76,6 +78,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     aiPhoneCallConfig,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
+    description: newDescription,
+    title: newTitle,
     ...rest
   } = input;
 
@@ -83,6 +87,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      description: true,
+      fieldTranslations: {
+        select: {
+          field: true,
+        },
+      },
       isRRWeightsEnabled: true,
       hosts: {
         select: {
@@ -153,10 +163,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
+  if (autoTranslateDescriptionEnabled && !ctx.user.organizationId) {
+    logger.error(
+      "Auto-translating description requires an organization. This should not happen - UI controls should prevent this state."
+    );
+  }
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    description: newDescription,
+    title: newTitle,
     bookingFields,
     isRRWeightsEnabled,
     rrSegmentQueryValue:
@@ -478,6 +496,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
+  }
+
+  // Logic for updating `fieldTranslations`
+  // user has no translations OR user is changing the field
+  const hasNoDescriptionTranslations =
+    eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.DESCRIPTION)
+      .length === 0;
+  const description = newDescription ?? (hasNoDescriptionTranslations ? eventType.description : undefined);
+  const hasNoTitleTranslations =
+    eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.TITLE)
+      .length === 0;
+  const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
+
+  if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
+    await tasker.create("translateEventTypeData", {
+      eventTypeId: id,
+      description,
+      title,
+      userLocale: ctx.user.locale,
+      userId: ctx.user.id,
+    });
   }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({

@@ -159,6 +159,7 @@ describe("Trigger Host No Show:", () => {
           attendees: [],
           bookingId: 222,
           bookingUid: uidOfBooking,
+          participants: [],
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
@@ -264,6 +265,16 @@ describe("Trigger Host No Show:", () => {
         })
       );
 
+      const MOCKED_PARTICIPANTS = [
+        {
+          user_id: null,
+          participant_id: "MOCK_PARTICIPANT_ID",
+          user_name: "MOCK_USER_NAME",
+          join_time: 0,
+          duration: 15,
+        },
+      ];
+
       const MOCKED_MEETING_SESSIONS = {
         total_count: 1,
         data: [
@@ -274,15 +285,7 @@ describe("Trigger Host No Show:", () => {
             duration: 15,
             max_participants: 1,
             // User with id 101 is not in the participants list
-            participants: [
-              {
-                user_id: null,
-                participant_id: "MOCK_PARTICIPANT_ID",
-                user_name: "MOCK_USER_NAME",
-                join_time: 0,
-                duration: 15,
-              },
-            ],
+            participants: MOCKED_PARTICIPANTS,
           },
         ],
       };
@@ -320,6 +323,7 @@ describe("Trigger Host No Show:", () => {
           attendees: [],
           bookingId: 222,
           bookingUid: uidOfBooking,
+          participants: MOCKED_PARTICIPANTS,
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
@@ -464,6 +468,16 @@ describe("Trigger Host No Show:", () => {
         })
       );
 
+      const MOCKED_PARTICIPANTS = [
+        {
+          user_id: null,
+          participant_id: "MOCK_PARTICIPANT_ID",
+          user_name: "MOCK_USER_NAME",
+          join_time: 0,
+          duration: 15,
+        },
+      ];
+
       const MOCKED_MEETING_SESSIONS = {
         total_count: 1,
         data: [
@@ -474,15 +488,7 @@ describe("Trigger Host No Show:", () => {
             duration: 15,
             max_participants: 1,
             // User with id 101 is not in the participants list
-            participants: [
-              {
-                user_id: null,
-                participant_id: "MOCK_PARTICIPANT_ID",
-                user_name: "MOCK_USER_NAME",
-                join_time: 0,
-                duration: 15,
-              },
-            ],
+            participants: MOCKED_PARTICIPANTS,
           },
         ],
       };
@@ -520,6 +526,7 @@ describe("Trigger Host No Show:", () => {
           attendees: [],
           bookingId: 224,
           bookingUid: newUidOfBooking,
+          participants: MOCKED_PARTICIPANTS,
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:15:00.000Z`,
           endTime: `${plus1DateString}T05:30:00.000Z`,

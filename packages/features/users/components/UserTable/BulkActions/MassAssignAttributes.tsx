@@ -1,11 +1,13 @@
 import type { Table } from "@tanstack/react-table";
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import { parseAsString, useQueryState, parseAsArrayOf } from "nuqs";
-import { useState } from "react";
+import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
+import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import {
   Alert,
@@ -31,50 +33,78 @@ interface Props {
   filters: ColumnFiltersState;
 }
 
-function useSelectedAttributes() {
-  const [selectedAttribute, setSelectedAttribute] = useQueryState("a", parseAsString);
-  const utils = trpc.useUtils();
-  const attributeData = utils.viewer.attributes.list.getData();
-  const foundAttribute = attributeData?.find((attr) => attr.id === selectedAttribute);
+type Attribute = _Attribute & { options: AttributeOption[] };
 
-  return {
+type AttributesContextType = {
+  selectedAttribute: string | undefined;
+  setSelectedAttribute: Dispatch<SetStateAction<string | undefined>>;
+  foundAttributeInCache: Attribute | undefined;
+
+  selectedAttributeOptions: string[];
+  setSelectedAttributeOptions: Dispatch<SetStateAction<string[]>>;
+
+  attributes: Attribute[] | undefined;
+};
+
+const AttributesContext = createContext<AttributesContextType | null>(null);
+
+function AttributesProvider({ children }: PropsWithChildren) {
+  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
+  const [selectedAttribute, setSelectedAttribute] = useState<string>();
+  const [selectedAttributeOptions, setSelectedAttributeOptions] = useState<string[]>([]);
+
+  const foundAttributeInCache = useMemo(
+    () => attributes?.find((attr) => attr.id === selectedAttribute),
+    [selectedAttribute, attributes]
+  );
+
+  const value: AttributesContextType = {
     selectedAttribute,
     setSelectedAttribute,
-    foundAttributeInCache: foundAttribute,
+    selectedAttributeOptions,
+    setSelectedAttributeOptions,
+    foundAttributeInCache,
+    attributes,
   };
+
+  return <AttributesContext.Provider value={value}>{children}</AttributesContext.Provider>;
 }
 
-function useSelectedAttributeOption() {
-  return useQueryState("ao", parseAsArrayOf(parseAsString).withDefault([]));
+function useAttributes() {
+  const context = useContext(AttributesContext);
+  if (!context) {
+    throw new Error("useAttributes must be used within an AttributesProvider");
+  }
+  return context;
+}
+
+function getTranslateableStringFromType(type: string) {
+  switch (type) {
+    case "SINGLE_SELECT":
+      return "single_select";
+    case "MULTI_SELECT":
+      return "multi_select";
+    case "TEXT":
+      return "text";
+    case "NUMBER":
+      return "number";
+    default:
+      return undefined;
+  }
 }
 
 function SelectedAttributeToAssign() {
   const { t } = useLocale();
-  const [selectedAttributeOption, setSelectedAttributeOption] = useSelectedAttributeOption();
-  const { selectedAttribute, setSelectedAttribute } = useSelectedAttributes();
-  const utils = trpc.useUtils();
-  const attributeData = utils.viewer.attributes.list.getData();
-  const foundAttribute = attributeData?.find((attr) => attr.id === selectedAttribute);
+  const {
+    foundAttributeInCache: foundAttribute,
+    selectedAttributeOptions,
+    setSelectedAttributeOptions,
+  } = useAttributes();
 
   if (!foundAttribute) {
-    setSelectedAttribute(null);
     return null;
   }
 
-  function getTranslateableStringFromType(type: string) {
-    switch (type) {
-      case "SINGLE_SELECT":
-        return "single_select";
-      case "MULTI_SELECT":
-        return "multi_select";
-      case "TEXT":
-        return "text";
-      case "NUMBER":
-        return "number";
-      default:
-        return undefined;
-    }
-  }
   const translateableType = getTranslateableStringFromType(foundAttribute.type);
 
   const isSelectable = foundAttribute.type === "SINGLE_SELECT" || foundAttribute.type === "MULTI_SELECT";
@@ -95,11 +125,11 @@ function SelectedAttributeToAssign() {
                   className="hover:cursor-pointer"
                   onSelect={() => {
                     if (foundAttribute.type === "SINGLE_SELECT") {
-                      setSelectedAttributeOption([option.id]);
+                      setSelectedAttributeOptions([option.id]);
                     } else {
-                      setSelectedAttributeOption((prev) => {
+                      setSelectedAttributeOptions((prev: string[]) => {
                         if (prev.includes(option.id)) {
-                          return prev.filter((id) => id !== option.id);
+                          return prev.filter((id: string) => id !== option.id);
                         }
                         return [...prev, option.id];
                       });
@@ -110,7 +140,7 @@ function SelectedAttributeToAssign() {
                     className={classNames(
                       "ml-auto flex h-4 w-4 items-center justify-center rounded-sm border"
                     )}>
-                    {selectedAttributeOption?.includes(option.id) ? (
+                    {selectedAttributeOptions?.includes(option.id) ? (
                       <Icon name="check" className={classNames("h-4 w-4")} />
                     ) : null}
                   </div>
@@ -122,12 +152,12 @@ function SelectedAttributeToAssign() {
           <>
             <CommandItem>
               <Input
-                defaultValue={selectedAttributeOption[0] || ""}
+                defaultValue={selectedAttributeOptions[0] || ""}
                 type={foundAttribute.type === "TEXT" ? "text" : "number"}
                 onBlur={(e) => {
                   // trigger onBlur so it's set as Apply is pressed (but not onChange) which triggers
                   // a re-render which also loses focus.
-                  setSelectedAttributeOption([e.target.value]);
+                  setSelectedAttributeOptions([e.target.value]);
                 }}
               />
             </CommandItem>
@@ -138,12 +168,78 @@ function SelectedAttributeToAssign() {
   );
 }
 
-export function MassAssignAttributesBulkAction({ table, filters }: Props) {
-  const { selectedAttribute, setSelectedAttribute, foundAttributeInCache } = useSelectedAttributes();
-  const [selectedAttributeOptions, setSelectedAttributeOptions] = useSelectedAttributeOption();
+function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }) {
+  const { t } = useLocale();
+  const {
+    selectedAttribute,
+    setSelectedAttribute,
+    selectedAttributeOptions,
+    setSelectedAttributeOptions,
+    attributes,
+    foundAttributeInCache,
+  } = useAttributes();
+  if (!selectedAttribute) {
+    return (
+      <>
+        <CommandInput placeholder={t("search")} />
+        <CommandList>
+          <CommandEmpty>No attributes found</CommandEmpty>
+          <CommandGroup>
+            {attributes &&
+              attributes.map((option) => {
+                return (
+                  <CommandItem
+                    key={option.id}
+                    className="hover:cursor-pointer"
+                    onSelect={() => {
+                      setSelectedAttribute(option.id);
+                      setSelectedAttributeOptions([]);
+                    }}>
+                    <span>{option.name}</span>
+                    <div
+                      className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
+                      <Icon name="chevron-right" className={classNames("h-4 w-4")} />
+                    </div>
+                  </CommandItem>
+                );
+              })}
+          </CommandGroup>
+        </CommandList>
+      </>
+    );
+  }
+
+  if (showMultiSelectWarning) {
+    return (
+      <div className="max-h-[300px] overflow-y-auto overflow-x-hidden px-3 py-2">
+        <Alert
+          severity="warning"
+          message="You are mass assigning to a multi select. This will assign the attribute to all selected users and
+          will not override existing values."
+        />
+      </div>
+    );
+  }
+
+  if (selectedAttribute) {
+    return <SelectedAttributeToAssign />;
+  }
+
+  return null;
+}
+
+function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
+  const {
+    selectedAttribute,
+    setSelectedAttribute,
+    selectedAttributeOptions,
+    setSelectedAttributeOptions,
+    foundAttributeInCache,
+  } = useAttributes();
+
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
     onSuccess: (success) => {
       // Optimistically update the infinite query data
@@ -161,6 +257,13 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
         },
         // @ts-expect-error i really dont know how to type this
         (oldData) => {
+          if (!oldData) {
+            return {
+              pages: [],
+              pageParams: [],
+            };
+          }
+
           const newPages = oldData?.pages.map((page) => ({
             ...page,
             rows: page.rows.map((row) => {
@@ -180,6 +283,9 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
                     attributeId: value.attributeId,
                     value: value.value,
                     slug: value.slug,
+                    contains: value.contains,
+                    isGroup: value.isGroup,
+                    weight: 100,
                   }));
                   newAttributes.push(...newAttributeValues);
                 } else {
@@ -189,6 +295,9 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
                     attributeId: foundAttributeInCache?.id ?? "-1",
                     value: selectedAttributeOptions[0],
                     slug: slugify(selectedAttributeOptions[0]),
+                    contains: [],
+                    isGroup: false,
+                    weight: 100,
                   });
                 }
 
@@ -208,7 +317,7 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
         }
       );
 
-      setSelectedAttribute(null);
+      setSelectedAttribute(undefined);
       setSelectedAttributeOptions([]);
       showToast(success.message, "success");
     },
@@ -216,131 +325,93 @@ export function MassAssignAttributesBulkAction({ table, filters }: Props) {
       showToast(`Error assigning attributes: ${error.message}`, "error");
     },
   });
-  const { data } = trpc.viewer.attributes.list.useQuery();
-
-  function Content() {
-    if (!selectedAttribute) {
-      return (
-        <>
-          <CommandInput placeholder={t("search")} />
-          <CommandList>
-            <CommandEmpty>No attributes found</CommandEmpty>
-            <CommandGroup>
-              {data &&
-                data.map((option) => {
-                  return (
-                    <CommandItem
-                      key={option.id}
-                      className="hover:cursor-pointer"
-                      onSelect={() => {
-                        setSelectedAttribute(option.id);
-                      }}>
-                      <span>{option.name}</span>
-                      <div
-                        className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
-                        <Icon name="chevron-right" className={classNames("h-4 w-4")} />
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-            </CommandGroup>
-          </CommandList>
-        </>
-      );
-    }
-
-    if (showMultiSelectWarning) {
-      return (
-        <div className="max-h-[300px] overflow-y-auto overflow-x-hidden px-3 py-2">
-          <Alert
-            severity="warning"
-            message="You are mass assigning to a multi select. This will assign the attribute to all selected users and
-            will not override existing values."
-          />
-        </div>
-      );
-    }
-
-    if (selectedAttribute) {
-      return <SelectedAttributeToAssign />;
-    }
-
-    return null;
-  }
 
   return (
-    <>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button StartIcon="map-pin">{t("add_attributes")}</Button>
-        </PopoverTrigger>
-        {/* We dont really use shadows much - but its needed here  */}
-        <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>
-          <Command>
-            <Content />
-          </Command>
-          <div className="my-1.5 flex w-full justify-end gap-2 p-1.5">
-            {selectedAttribute ? (
-              <>
-                <Button
-                  color="secondary"
-                  className="rounded-md"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedAttribute(null);
-                    setSelectedAttributeOptions([]);
-                    setShowMultiSelectWarning(false);
-                  }}>
-                  {t("clear")}
-                </Button>
-                <Button
-                  className="rounded-md"
-                  loading={bulkAssignAttributes.isPending}
-                  size="sm"
-                  onClick={() => {
-                    if (
-                      foundAttributeInCache &&
-                      foundAttributeInCache.type === "MULTI_SELECT" &&
-                      !showMultiSelectWarning
-                    ) {
-                      setShowMultiSelectWarning(true);
-                    } else {
-                      if (!foundAttributeInCache) {
-                        return;
-                      }
-                      setShowMultiSelectWarning(false);
-                      let attributesToAssign;
-                      if (
-                        foundAttributeInCache?.type === "MULTI_SELECT" ||
-                        foundAttributeInCache?.type === "SINGLE_SELECT"
-                      ) {
-                        attributesToAssign = [
-                          {
-                            id: foundAttributeInCache.id,
-                            options: selectedAttributeOptions.map((v) => ({
-                              value: v,
-                            })),
-                          },
-                        ];
-                      } else {
-                        attributesToAssign = [
-                          { id: foundAttributeInCache.id, value: selectedAttributeOptions[0] },
-                        ];
-                      }
-
-                      bulkAssignAttributes.mutate({
-                        attributes: attributesToAssign,
-                        userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
-                      });
+    <Popover
+      onOpenChange={(open) => {
+        if (!open) {
+          setSelectedAttribute(undefined);
+          setSelectedAttributeOptions([]);
+          setShowMultiSelectWarning(false);
+        }
+      }}>
+      <PopoverTrigger asChild>
+        <DataTableSelectionBar.Button icon="tags">{t("add_attributes")}</DataTableSelectionBar.Button>
+      </PopoverTrigger>
+      {/* We dont really use shadows much - but its needed here  */}
+      <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>
+        <Command>
+          <Content showMultiSelectWarning={showMultiSelectWarning} />
+        </Command>
+        <div className="my-1.5 flex w-full justify-end gap-2 p-1.5">
+          {selectedAttribute ? (
+            <>
+              <Button
+                color="secondary"
+                className="rounded-md"
+                size="sm"
+                onClick={() => {
+                  setSelectedAttribute(undefined);
+                  setSelectedAttributeOptions([]);
+                  setShowMultiSelectWarning(false);
+                }}>
+                {t("clear")}
+              </Button>
+              <Button
+                className="rounded-md"
+                loading={bulkAssignAttributes.isPending}
+                size="sm"
+                onClick={() => {
+                  if (
+                    foundAttributeInCache &&
+                    foundAttributeInCache.type === "MULTI_SELECT" &&
+                    !showMultiSelectWarning
+                  ) {
+                    setShowMultiSelectWarning(true);
+                  } else {
+                    if (!foundAttributeInCache) {
+                      return;
                     }
-                  }}>
-                  {t("apply")}
-                </Button>
-              </>
-            ) : null}
-          </div>
-        </PopoverContent>
-      </Popover>
-    </>
+                    setShowMultiSelectWarning(false);
+                    let attributesToAssign;
+                    if (
+                      foundAttributeInCache?.type === "MULTI_SELECT" ||
+                      foundAttributeInCache?.type === "SINGLE_SELECT"
+                    ) {
+                      attributesToAssign = [
+                        {
+                          id: foundAttributeInCache.id,
+                          options: selectedAttributeOptions.map((v) => ({
+                            value: v,
+                          })),
+                        },
+                      ];
+                    } else {
+                      attributesToAssign = [
+                        { id: foundAttributeInCache.id, value: selectedAttributeOptions[0] },
+                      ];
+                    }
+
+                    bulkAssignAttributes.mutate({
+                      attributes: attributesToAssign,
+                      userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
+                    });
+                  }
+                }}>
+                {t("apply")}
+              </Button>
+            </>
+          ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function MassAssignAttributesBulkAction({ table, filters }: Props) {
+  return (
+    <AttributesProvider>
+      <MassAssignAttributesBulkActionComponent table={table} filters={filters} />
+    </AttributesProvider>
   );
 }

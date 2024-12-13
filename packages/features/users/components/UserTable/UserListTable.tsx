@@ -1,13 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -24,6 +18,7 @@ import {
   isTextFilterValue,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   downloadAsCsv,
@@ -33,7 +28,7 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, Checkbox, showToast } from "@calcom/ui";
+import { Avatar, Badge, Checkbox, showToast } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -122,10 +117,10 @@ export function UserListTable() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, fetchNextPage, isFetching } =
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
-        limit: 10,
+        limit: 30,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
         filters: columnFilters,
@@ -175,6 +170,7 @@ export function UserListTable() {
           meta: {
             filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
           },
+          size: 120,
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValues = row.original.attributes.filter(
@@ -182,13 +178,35 @@ export function UserListTable() {
             );
             if (attributeValues.length === 0) return null;
             return (
-              <>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
-              </>
+              <div
+                className={classNames(
+                  attribute.type === "NUMBER" ? "flex w-full justify-center" : "flex flex-wrap"
+                )}>
+                {attributeValues.map((attributeValue, index) => {
+                  const isAGroupOption = attributeValue.contains?.length > 0;
+                  const suffix = attribute.isWeightsEnabled ? `${attributeValue.weight || 100}%` : undefined;
+                  return (
+                    <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                      <Badge
+                        variant={isAGroupOption ? "orange" : "gray"}
+                        className={classNames(suffix && "rounded-r-none")}>
+                        {attributeValue.value}
+                      </Badge>
+
+                      {suffix ? (
+                        <Badge
+                          variant={isAGroupOption ? "orange" : "gray"}
+                          style={{
+                            backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                          }}
+                          className="rounded-l-none">
+                          {suffix}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             );
           },
           filterFn: (row, id, filterValue) => {
@@ -210,6 +228,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         meta: {
           sticky: {
@@ -237,7 +256,7 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        size: 170,
+        size: 200,
         header: () => {
           return `Members`;
         },
@@ -279,6 +298,7 @@ export function UserListTable() {
         id: "role",
         accessorFn: (data) => data.role,
         header: "Role",
+        size: 100,
         cell: ({ row, table }) => {
           const { role, username } = row.original;
           return (
@@ -306,6 +326,7 @@ export function UserListTable() {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
+        size: 140,
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -323,6 +344,7 @@ export function UserListTable() {
                   Pending
                 </Badge>
               )}
+
               {teams.map((team) => (
                 <Badge
                   key={team.id}
@@ -350,7 +372,9 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
-        size: 50,
+        enableSorting: false,
+        enableResizing: false,
+        size: 80,
         meta: {
           sticky: { position: "right" },
         },
@@ -387,18 +411,20 @@ export function UserListTable() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
+    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+    },
+    defaultColumn: {
+      size: 150,
     },
     state: {
       columnFilters,
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
-    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,
@@ -421,13 +447,12 @@ export function UserListTable() {
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -487,6 +512,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={{ name: "UserListTable" }}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">
@@ -534,27 +560,30 @@ export function UserListTable() {
             <DataTableFilters.ActiveFilters table={table} />
           </div>
         </DataTableToolbar.Root>
+
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>
           <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
         </div>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
+          <DataTableSelectionBar.Root className="justify-center">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
               <>
                 <TeamListBulkAction table={table} />
                 {numberOfSelectedRows >= 2 && (
-                  <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                    Group Meeting
-                  </Button>
+                  <DataTableSelectionBar.Button
+                    onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                    icon="handshake">
+                    {t("group_meeting")}
+                  </DataTableSelectionBar.Button>
                 )}
                 <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 <EventTypesList table={table} orgTeams={teams} />
@@ -567,7 +596,6 @@ export function UserListTable() {
           </DataTableSelectionBar.Root>
         )}
       </DataTable>
-
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
