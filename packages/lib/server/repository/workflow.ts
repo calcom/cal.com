@@ -68,7 +68,7 @@ export class WorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });
 
   static async getById({ id }: TGetInputSchema) {
-    return await prisma.workflow.findFirst({
+    return await prisma.workflow.findUnique({
       where: {
         id,
       },
@@ -213,7 +213,7 @@ export class WorkflowRepository {
           position: "desc",
         },
         {
-          id: "asc",
+          id: "desc",
         },
       ],
     });
@@ -267,7 +267,7 @@ export class WorkflowRepository {
         where,
         include: includedFields,
         orderBy: {
-          id: "asc",
+          id: "desc",
         },
       });
 

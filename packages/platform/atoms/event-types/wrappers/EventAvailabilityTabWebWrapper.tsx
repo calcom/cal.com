@@ -32,10 +32,11 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   const { isPending: isSchedulePending, data: scheduleQueryData } =
     trpc.viewer.availability.schedule.get.useQuery(
       {
-        scheduleId: scheduleId || props.user?.defaultScheduleId || undefined,
+        scheduleId:
+          scheduleId || (!props.isTeamEvent ? props.user?.defaultScheduleId : undefined) || undefined,
         isManagedEventType: isManagedEventType || isChildrenManagedEventType,
       },
-      { enabled: !!scheduleId || !!props.user?.defaultScheduleId }
+      { enabled: !!scheduleId || (!props.isTeamEvent && !!props.user?.defaultScheduleId) }
     );
 
   const { data: schedulesQueryData, isPending: isSchedulesPending } =

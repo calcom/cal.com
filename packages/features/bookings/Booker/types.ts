@@ -32,6 +32,7 @@ export interface BookerProps {
     teamSlug?: string | null;
     name?: string | null;
     logoUrl?: string | null;
+    eventTypeId?: number | null;
   };
 
   /**
@@ -87,6 +88,10 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
+  areInstantMeetingParametersSet?: boolean | null;
+  userLocale?: string | null;
 }
 
 export type WrappedBookerPropsMain = {
@@ -152,5 +157,5 @@ export type CustomClassNames = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
-  atomsWrapper: string;
+  atomsWrapper?: string;
 };

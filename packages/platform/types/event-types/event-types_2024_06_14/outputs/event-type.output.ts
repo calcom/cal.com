@@ -1,6 +1,8 @@
 import { ApiProperty as DocsProperty, ApiExtraModels, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
+  ArrayNotEmpty,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -11,11 +13,7 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import type {
-  Location_2024_06_14,
-  BookingWindow_2024_06_14,
-  BookingLimitsDuration_2024_06_14,
-} from "../inputs";
+import type { BookingWindow_2024_06_14, BookingLimitsDuration_2024_06_14 } from "../inputs";
 import {
   EventTypeColor_2024_06_14,
   Seats_2024_06_14,
@@ -30,13 +28,6 @@ import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
-import {
-  AddressLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
-  ValidateLocations_2024_06_14,
-} from "../inputs/locations.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -59,6 +50,16 @@ import {
 } from "../outputs/booking-fields.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
+import type { OutputLocation_2024_06_14 } from "./locations.output";
+import {
+  OutputAddressLocation_2024_06_14,
+  OutputConferencingLocation_2024_06_14,
+  OutputIntegrationLocation_2024_06_14,
+  OutputLinkLocation_2024_06_14,
+  OutputPhoneLocation_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  ValidateOutputLocations_2024_06_14,
+} from "./locations.output";
 
 enum SchedulingTypeEnum {
   ROUND_ROBIN = "ROUND_ROBIN",
@@ -95,10 +96,12 @@ class User_2024_06_14 {
 }
 
 @ApiExtraModels(
-  AddressLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
+  OutputAddressLocation_2024_06_14,
+  OutputLinkLocation_2024_06_14,
+  OutputIntegrationLocation_2024_06_14,
+  OutputPhoneLocation_2024_06_14,
+  OutputConferencingLocation_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   LocationDefaultFieldOutput_2024_06_14,
@@ -132,6 +135,19 @@ class BaseEventTypeOutput_2024_06_14 {
   @DocsProperty({ example: 60 })
   lengthInMinutes!: number;
 
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions?: number[];
+
   @IsString()
   @DocsProperty({ example: "Learn the secrets of masterchief!" })
   title!: string;
@@ -146,18 +162,20 @@ class BaseEventTypeOutput_2024_06_14 {
   })
   description!: string;
 
-  @ValidateLocations_2024_06_14()
+  @ValidateOutputLocations_2024_06_14()
   @DocsProperty({
     oneOf: [
-      { $ref: getSchemaPath(AddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(LinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(IntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(PhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputConferencingLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputUnknownLocation_2024_06_14) },
     ],
     type: "array",
   })
   @Type(() => Object)
-  locations!: Location_2024_06_14[];
+  locations!: OutputLocation_2024_06_14[];
 
   @ValidateOutputBookingFields_2024_06_14()
   @DocsProperty()
@@ -344,6 +362,11 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   @DocsProperty({ example: "John Doe" })
   name!: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty({ example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png" })
+  avatarUrl?: string | null;
 }
 
 export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
@@ -395,4 +418,9 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsBoolean()
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  bannerUrl?: string;
 }

@@ -1,3 +1,5 @@
+import { Prisma as PrismaClientType } from "@prisma/client";
+
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
@@ -78,21 +80,13 @@ export async function getBookings({
           OR: [
             {
               eventType: {
-                team: {
-                  id: {
-                    in: filters.teamIds,
-                  },
-                },
+                teamId: { in: filters.teamIds },
               },
             },
             {
               eventType: {
                 parent: {
-                  team: {
-                    id: {
-                      in: filters.teamIds,
-                    },
-                  },
+                  teamId: { in: filters.teamIds },
                 },
               },
             },
@@ -114,6 +108,7 @@ export async function getBookings({
                     userId: {
                       in: filters.userIds,
                     },
+                    isFixed: true,
                   },
                 },
               },
@@ -207,15 +202,27 @@ export async function getBookings({
         .map((key) => bookingWhereInputFilters[key])
         // On prisma 5.4.2 passing undefined to where "AND" causes an error
         .filter(Boolean);
+
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,
+    responses: true,
+    /**
+     * Who uses it -
+     * 1. We need to be able to decide which booking can have a 'Reroute' action
+     */
+    routedFromRoutingFormReponse: {
+      select: {
+        id: true,
+      },
+    },
     recurringEventId: true,
     location: true,
     eventType: {
       select: {
         slug: true,
         id: true,
+        title: true,
         eventName: true,
         price: true,
         recurringEvent: true,
@@ -225,10 +232,12 @@ export async function getBookings({
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
         schedulingType: true,
+        length: true,
         team: {
           select: {
             id: true,
             name: true,
+            slug: true,
           },
         },
       },
@@ -268,6 +277,10 @@ export async function getBookings({
         },
       },
     },
+    assignmentReason: {
+      orderBy: { createdAt: PrismaClientType.SortOrder.desc },
+      take: 1,
+    },
   };
 
   const [
@@ -276,6 +289,7 @@ export async function getBookings({
     bookingsQueryUserId,
     bookingsQueryAttendees,
     bookingsQueryTeamMember,
+    bookingsQueryOrganizationMembers,
     bookingsQuerySeatReference,
     //////////////////////////
 
@@ -324,6 +338,35 @@ export async function getBookings({
                     userId: user.id,
                     role: {
                       in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    isOrganization: true,
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
                     },
                   },
                 },
@@ -421,6 +464,7 @@ export async function getBookings({
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
 

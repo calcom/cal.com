@@ -5,7 +5,18 @@ import {
   ApiExtraModels,
 } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
-import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
+import {
+  IsString,
+  IsInt,
+  IsBoolean,
+  IsOptional,
+  Min,
+  ValidateNested,
+  IsArray,
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsUrl,
+} from "class-validator";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
@@ -50,21 +61,24 @@ import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
-  AddressLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
+  InputAddressLocation_2024_06_14,
+  InputAttendeeAddressLocation_2024_06_14,
+  InputAttendeeDefinedLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputIntegrationLocation_2024_06_14,
+  InputLinkLocation_2024_06_14,
+  InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
 } from "./locations.input";
-import type { Location_2024_06_14 } from "./locations.input";
+import type { InputLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
 
 @ApiExtraModels(
-  AddressLocation_2024_06_14,
-  LinkLocation_2024_06_14,
-  IntegrationLocation_2024_06_14,
-  PhoneLocation_2024_06_14,
+  InputAddressLocation_2024_06_14,
+  InputLinkLocation_2024_06_14,
+  InputIntegrationLocation_2024_06_14,
+  InputPhoneLocation_2024_06_14,
   PhoneFieldInput_2024_06_14,
   AddressFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
@@ -84,7 +98,10 @@ import { Seats_2024_06_14 } from "./seats.input";
   BaseBookingLimitsDuration_2024_06_14,
   Recurrence_2024_06_14,
   BaseConfirmationPolicy_2024_06_14,
-  Seats_2024_06_14
+  Seats_2024_06_14,
+  InputAttendeeAddressLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputAttendeeDefinedLocation_2024_06_14
 )
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -92,6 +109,19 @@ export class UpdateEventTypeInput_2024_06_14 {
   @Min(1)
   @DocsPropertyOptional({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @DocsProperty({
+    example: [15, 30, 60],
+    description:
+      "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+  })
+  lengthInMinutesOptions?: number[];
 
   @IsOptional()
   @IsString()
@@ -114,15 +144,18 @@ export class UpdateEventTypeInput_2024_06_14 {
     description:
       "Locations where the event will take place. If not provided, cal video link will be used as the location.",
     oneOf: [
-      { $ref: getSchemaPath(AddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(LinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(IntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(PhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
     ],
     type: "array",
   })
   @Type(() => Object)
-  locations?: Location_2024_06_14[];
+  locations?: InputLocation_2024_06_14[];
 
   @IsOptional()
   @ValidateInputBookingFields_2024_06_14()
@@ -350,6 +383,14 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @DocsPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "A valid URL where the booker will redirect to, once the booking is completed successfully",
+    example: "https://masterchief.com/argentina/flan/video/9129412",
+  })
+  successRedirectUrl?: string;
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {

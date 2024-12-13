@@ -11,6 +11,7 @@ import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/contro
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/controllers/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
+import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/controllers/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsWebhooksController } from "@/modules/organizations/controllers/webhooks/organizations-webhooks.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
@@ -112,6 +113,7 @@ import { Module } from "@nestjs/common";
     OrganizationsAttributesController,
     OrganizationsOptionsAttributesController,
     OrganizationsWebhooksController,
+    OrganizationsTeamsSchedulesController,
   ],
 })
 export class OrganizationsModule {}

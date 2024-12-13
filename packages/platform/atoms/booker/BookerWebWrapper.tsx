@@ -19,6 +19,7 @@ import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -51,7 +52,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   useInitializeBookerStore({
     ...props,
-    eventId: event?.data?.id,
+    eventId: props.entity.eventTypeId ?? event?.data?.id,
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
@@ -85,6 +86,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
+  const lastBookingResponse = getLastBookingResponse();
+
   const bookerForm = useBookingForm({
     event: event.data,
     sessionEmail: session?.user.email,
@@ -93,6 +96,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
+    lastBookingResponse,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
@@ -123,6 +127,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
    * */
   const schedule = useScheduleForEvent({
     prefetchNextMonth,
+    eventId: props.entity.eventTypeId ?? event.data?.id,
     username: props.username,
     monthCount,
     dayCount,
@@ -132,6 +137,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     selectedDate,
     teamMemberEmail: props.teamMemberEmail,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
+    isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
   });
   const bookings = useBookings({
     event,
@@ -175,6 +181,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     theme: event.data?.profile.theme,
   });
 
+  const areInstantMeetingParametersSet = Boolean(
+    event.data?.instantMeetingParameters &&
+      searchParams &&
+      event.data.instantMeetingParameters?.every?.((param) =>
+        Array.from(searchParams.values()).includes(param)
+      )
+  );
+
   return (
     <BookerComponent
       {...props}
@@ -213,6 +227,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       verifyCode={verifyCode}
       isPlatform={false}
+      areInstantMeetingParametersSet={areInstantMeetingParametersSet}
+      userLocale={session?.user.locale}
     />
   );
 };

@@ -1,19 +1,14 @@
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "../../lib/constants";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import type { LocalRoute } from "../../types/types";
+import type { FormResponse, LocalRoute } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 
+type FormResponseValueOnly = { [key: string]: { value: FormResponse[keyof FormResponse]["value"] } };
 type Props = inferSSRProps<typeof getServerSideProps>;
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
-export function getUrlSearchParamsToForward({
-  formResponse,
-  fields,
-  searchParams,
-  teamMembersMatchingAttributeLogic,
-  formResponseId,
-  attributeRoutingConfig,
-}: {
+type GetUrlSearchParamsToForwardOptions = {
   formResponse: Record<
     string,
     {
@@ -25,10 +20,21 @@ export function getUrlSearchParamsToForward({
     "id" | "type" | "options" | "identifier" | "label"
   >[];
   searchParams: URLSearchParams;
-  formResponseId: number;
+  formResponseId: number | null;
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
-}) {
+  reroutingFormResponses?: FormResponseValueOnly;
+};
+
+export function getUrlSearchParamsToForward({
+  formResponse,
+  fields,
+  searchParams,
+  teamMembersMatchingAttributeLogic,
+  formResponseId,
+  attributeRoutingConfig,
+  reroutingFormResponses,
+}: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
   const paramsFromCurrentUrl: Params = {};
@@ -75,6 +81,25 @@ export function getUrlSearchParamsToForward({
     }
   }
 
+  const attributeRoutingConfigParams: Record<string, any> = {};
+
+  if (attributeRoutingConfig) {
+    for (const key of Object.keys(attributeRoutingConfig)) {
+      if (key === "skipContactOwner" && attributeRoutingConfig[key]) {
+        attributeRoutingConfigParams["cal.skipContactOwner"] = "true";
+      }
+
+      // TODO: How do we move this logic to their respective app packages
+      if (key === "salesforce") {
+        const salesforceData = attributeRoutingConfig[key];
+
+        if (salesforceData?.rrSkipToAccountLookupField && salesforceData.rrSKipToAccountLookupFieldName) {
+          attributeRoutingConfigParams["cal.salesforce.rrSkipToAccountLookupField"] = "true";
+        }
+      }
+    }
+  }
+
   const allQueryParams: Params = {
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
@@ -82,8 +107,11 @@ export function getUrlSearchParamsToForward({
     ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
-    ["cal.routingFormResponseId"]: String(formResponseId),
-    ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
+    [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId),
+    ...attributeRoutingConfigParams,
+    ...(reroutingFormResponses
+      ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
+      : null),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
@@ -97,4 +125,53 @@ export function getUrlSearchParamsToForward({
   });
 
   return allQueryURLSearchParams;
+}
+
+export function getUrlSearchParamsToForwardForReroute({
+  formResponse,
+  formResponseId,
+  fields,
+  searchParams,
+  teamMembersMatchingAttributeLogic,
+  attributeRoutingConfig,
+  rescheduleUid,
+  reroutingFormResponses,
+}: GetUrlSearchParamsToForwardOptions & {
+  rescheduleUid: string;
+  reroutingFormResponses: FormResponseValueOnly;
+}) {
+  searchParams.set("rescheduleUid", rescheduleUid);
+  searchParams.set("cal.rerouting", "true");
+  return getUrlSearchParamsToForward({
+    formResponse,
+    formResponseId,
+    fields,
+    searchParams,
+    teamMembersMatchingAttributeLogic,
+    attributeRoutingConfig,
+    reroutingFormResponses,
+  });
+}
+
+export function getUrlSearchParamsToForwardForTestPreview({
+  formResponse,
+  fields,
+  attributeRoutingConfig,
+  teamMembersMatchingAttributeLogic,
+}: Pick<
+  GetUrlSearchParamsToForwardOptions,
+  "formResponse" | "fields" | "attributeRoutingConfig" | "teamMembersMatchingAttributeLogic"
+>) {
+  // There are no existing query params to forward in test preview. These are available only when doing the actual form submission
+  const searchParams = new URLSearchParams();
+  searchParams.set("cal.isTestPreviewLink", "true");
+  return getUrlSearchParamsToForward({
+    formResponse,
+    fields,
+    attributeRoutingConfig,
+    teamMembersMatchingAttributeLogic,
+    // There is no form response being stored in test preview
+    formResponseId: null,
+    searchParams,
+  });
 }

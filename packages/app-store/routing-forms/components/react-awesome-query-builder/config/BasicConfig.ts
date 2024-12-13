@@ -7,10 +7,7 @@ import type {
   Operator as RAQBOperator,
 } from "react-awesome-query-builder";
 
-export type Conjunction = Omit<
-  RAQBConjunction,
-  "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj"
->;
+export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
 export type Operator = RAQBOperator & {
   _jsonLogicIsExclamationOp?: boolean;
@@ -30,11 +27,19 @@ const conjunctions: Conjunctions = {
     label: "And",
     jsonLogicConj: "and",
     reversedConj: "OR",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
   OR: {
     label: "Or",
     jsonLogicConj: "or",
     reversedConj: "AND",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
 };
 
@@ -175,7 +180,7 @@ const operators: Operators = {
   },
   select_not_any_in: {
     isNotOp: true,
-    label: "Not in",
+    label: "Not any in",
     labelForFormat: "NOT IN",
     reversedOp: "select_any_in",
   },
@@ -188,6 +193,10 @@ const operators: Operators = {
         some: [field, { in: [{ var: "" }, vals] }],
       };
     },
+  },
+  multiselect_not_some_in: {
+    label: "Not any in",
+    reversedOp: "multiselect_some_in",
   },
   multiselect_equals: {
     label: "All in",
@@ -434,10 +443,12 @@ const settings: Settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 
-export default {
+const basicConfig = {
   conjunctions,
   operators,
   widgets,
   types,
   settings,
 };
+
+export default basicConfig;

@@ -17,9 +17,15 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import {
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
+  useFetchMoreOnBottomReached,
+} from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
-import { useFetchMoreOnBottomReached } from "@calcom/features/users/components/UserTable/useFetchMoreOnBottomReached";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,10 +38,6 @@ import {
   Button,
   ButtonGroup,
   Checkbox,
-  DataTable,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSelectionBar,
   ConfirmationDialogContent,
   Dialog,
   DialogClose,
@@ -43,6 +45,7 @@ import {
   DialogFooter,
   Dropdown,
   DropdownItem,
+  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -159,24 +162,26 @@ export default function MemberList(props: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchTerm: debouncedSearchTerm,
-      teamId: props.team.id,
-    },
-    {
-      enabled: !!props.team.id,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      placeholderData: keepPreviousData,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-    }
-  );
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
+    trpc.viewer.teams.listMembers.useInfiniteQuery(
+      {
+        limit: 10,
+        searchTerm: debouncedSearchTerm,
+        teamId: props.team.id,
+      },
+      {
+        enabled: !!props.team.id,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+      }
+    );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState({});
 
   const removeMemberFromCache = ({
     utils,
@@ -280,6 +285,7 @@ export default function MemberList(props: Props) {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        size: 30,
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -302,6 +308,7 @@ export default function MemberList(props: Props) {
         accessorFn: (data) => data.email,
         enableHiding: false,
         header: `Member (${totalDBRowCount})`,
+        size: 250,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
           const memberName =
@@ -341,6 +348,7 @@ export default function MemberList(props: Props) {
         id: "role",
         accessorFn: (data) => data.role,
         header: "Role",
+        size: 100,
         cell: ({ row, table }) => {
           const { role, accepted } = row.original;
           return (
@@ -378,7 +386,16 @@ export default function MemberList(props: Props) {
         },
       },
       {
+        id: "lastActiveAt",
+        header: "Last Active",
+        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
         id: "actions",
+        size: 80,
+        meta: {
+          sticky: { position: "right" },
+        },
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
@@ -446,99 +463,8 @@ export default function MemberList(props: Props) {
                             StartIcon="ellipsis"
                           />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              onClick={() =>
-                                dispatch({
-                                  type: "EDIT_USER_SHEET",
-                                  payload: {
-                                    user,
-                                    showModal: true,
-                                  },
-                                })
-                              }
-                              StartIcon="pencil">
-                              {t("edit")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                          {impersonationMode && (
-                            <>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "SET_IMPERSONATE_ID",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="lock">
-                                  {t("impersonate")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                            </>
-                          )}
-                          {resendInvitation && (
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() => {
-                                  resendInvitationMutation.mutate({
-                                    teamId: props.team?.id,
-                                    email: user.email,
-                                    language: i18n.language,
-                                  });
-                                }}
-                                StartIcon="send">
-                                {t("resend_invitation")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              onClick={() =>
-                                dispatch({
-                                  type: "SET_DELETE_ID",
-                                  payload: {
-                                    user,
-                                    showModal: true,
-                                  },
-                                })
-                              }
-                              color="destructive"
-                              StartIcon="user-x">
-                              {t("remove")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </Dropdown>
-                    )}
-                  </ButtonGroup>
-                  <div className="flex md:hidden">
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild>
-                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            disabled={!user.accepted}
-                            href={!user.accepted ? undefined : `/${user.username}`}
-                            target="_blank"
-                            type="button"
-                            StartIcon="external-link">
-                            {t("view_public_page")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                        {editMode && (
-                          <>
+                        <DropdownMenuPortal>
+                          <DropdownMenuContent>
                             <DropdownMenuItem>
                               <DropdownItem
                                 type="button"
@@ -555,10 +481,46 @@ export default function MemberList(props: Props) {
                                 {t("edit")}
                               </DropdownItem>
                             </DropdownMenuItem>
+                            {impersonationMode && (
+                              <>
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "SET_IMPERSONATE_ID",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="lock">
+                                    {t("impersonate")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {resendInvitation && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() => {
+                                    resendInvitationMutation.mutate({
+                                      teamId: props.team?.id,
+                                      email: user.email,
+                                      language: i18n.language,
+                                    });
+                                  }}
+                                  StartIcon="send">
+                                  {t("resend_invitation")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>
                               <DropdownItem
                                 type="button"
-                                color="destructive"
                                 onClick={() =>
                                   dispatch({
                                     type: "SET_DELETE_ID",
@@ -568,13 +530,72 @@ export default function MemberList(props: Props) {
                                     },
                                   })
                                 }
+                                color="destructive"
                                 StartIcon="user-x">
                                 {t("remove")}
                               </DropdownItem>
                             </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
+                          </DropdownMenuContent>
+                        </DropdownMenuPortal>
+                      </Dropdown>
+                    )}
+                  </ButtonGroup>
+                  <div className="flex md:hidden">
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem className="outline-none">
+                            <DropdownItem
+                              disabled={!user.accepted}
+                              href={!user.accepted ? undefined : `/${user.username}`}
+                              target="_blank"
+                              type="button"
+                              StartIcon="external-link">
+                              {t("view_public_page")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                          {editMode && (
+                            <>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "EDIT_USER_SHEET",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="pencil">
+                                  {t("edit")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  color="destructive"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "SET_DELETE_ID",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="user-x">
+                                  {t("remove")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenuPortal>
                     </Dropdown>
                   </div>
                 </div>
@@ -602,21 +623,23 @@ export default function MemberList(props: Props) {
     },
     state: {
       columnFilters,
+      rowSelection,
     },
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -651,19 +674,21 @@ export default function MemberList(props: Props) {
         </DataTableToolbar.Root>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
-              {numberOfSelectedRows} selected
+          <DataTableSelectionBar.Root className="justify-center">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {numberOfSelectedRows >= 2 && (
-              <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
-                Group Meeting
-              </Button>
+              <DataTableSelectionBar.Button
+                onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                icon="handshake">
+                {t("group_meeting")}
+              </DataTableSelectionBar.Button>
             )}
             <EventTypesList table={table} teamId={props.team.id} />
             <DeleteBulkTeamMembers
