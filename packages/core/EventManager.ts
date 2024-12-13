@@ -979,7 +979,9 @@ export default class EventManager {
       let success = true;
       const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
         success = false;
-        log.warn(`Error creating crm event for ${credential.type}`, JSON.stringify(error));
+        // We don't know the type of the error here, so for an Error instance we can read message but otherwise we stringify the error
+        const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+        log.warn(`Error creating crm event for ${credential.type}`, errorMsg);
       });
 
       if (createdEvent) {

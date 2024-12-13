@@ -188,7 +188,7 @@ export const OAuthClientForm = ({
           />
         </div> */}
         <div className="mt-6">
-          <Tooltip content="URL of your booking page">
+          <Tooltip content={t("booking_redirect_uri")}>
             <TextField
               type="url"
               label="Booking redirect uri"
@@ -199,7 +199,7 @@ export const OAuthClientForm = ({
           </Tooltip>
         </div>
         <div className="mt-6">
-          <Tooltip content="URL of the page where your users can cancel their booking">
+          <Tooltip content={t("booking_cancel_redirect_uri")}>
             <TextField
               type="url"
               label="Booking cancel redirect uri"
@@ -210,7 +210,7 @@ export const OAuthClientForm = ({
           </Tooltip>
         </div>
         <div className="mt-6">
-          <Tooltip content="URL of the page where your users can reschedule their booking">
+          <Tooltip content={t("booking_reschedule_redirect_uri")}>
             <TextField
               type="url"
               label="Booking reschedule redirect uri"
@@ -242,7 +242,7 @@ export const OAuthClientForm = ({
           <div>{permissionsCheckboxes}</div>
         </div>
         <Button className="mt-6" type="submit" loading={isPending}>
-          {defaultValues ? "Update" : "Submit"}
+          {defaultValues ? t("update") : t("submit")}
         </Button>
       </form>
     </div>
