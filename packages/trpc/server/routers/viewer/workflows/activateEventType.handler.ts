@@ -187,8 +187,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await removeSmsReminderFieldForEventTypes({ activeOnToRemove: activeOn, workflowId, isOrg });
   } else {
     if (
-      eventTypeWorkflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
-      eventTypeWorkflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT
+      eventTypeWorkflow.trigger == WorkflowTriggerEvents.BEFORE_EVENT ||
+      eventTypeWorkflow.trigger == WorkflowTriggerEvents.AFTER_EVENT
     ) {
       // activate workflow and schedule reminders for existing bookings
       const bookingsForReminders = await prisma.booking.findMany({
