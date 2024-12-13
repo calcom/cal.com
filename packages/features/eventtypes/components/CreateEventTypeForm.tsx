@@ -8,13 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Editor, Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
-import Select, { SingleValue } from "react-select";
-
-interface DurationOption {
-  value: "minutes" | "hours" | "days";
-  label: string;
-}
+import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
 
 export default function CreateEventTypeForm({
   form,
@@ -160,17 +154,6 @@ const durationOptions = [
               defaultValue={durationUnit}
               className="w-24"
               options={durationOptions}
-              onChange={(option: SingleValue<DurationOption>) => {
-                const newUnit = option?.value as "minutes" | "hours" | "days";
-                setDurationUnit(newUnit);
-                if (newUnit === "hours") {
-                  setValue("length", Math.round((duration / 60) * 100) / 100);
-                } else if (newUnit === "days") {
-                  setValue("length", Math.round((duration / 1440) * 100) / 100);
-                } else {
-                  setValue("length", Math.round(duration * 60));
-                }
-              }}
             />
           </div>
         </>
