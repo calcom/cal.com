@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import usageCard from "./plain/usage";
+
 type Customer = {
   id: string;
   email: string;
@@ -100,9 +102,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const firstTeam = user.teams[0]?.team;
-    const teamPlan = firstTeam?.platformBilling?.plan || "No Plan";
-    const subscriptionStatus = firstTeam?.platformBilling?.overdue ? "Overdue" : "Active";
+    // Generate card using the email
+    const emailCard = usageCard(user.email);
 
     const cardData: CardResponse = {
       cards: [
@@ -130,49 +131,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 text: `Email: ${user.email}`,
               },
             },
-            {
-              componentDivider: {},
-            },
-            {
-              componentHeader: {
-                text: "Team & Plan Information",
-              },
-            },
-            {
-              componentText: {
-                text: `Team Plan: ${teamPlan}`,
-              },
-            },
-            {
-              componentText: {
-                text: `Subscription Status: ${subscriptionStatus}`,
-              },
-            },
-            {
-              componentText: {
-                text: `Team Name: ${firstTeam?.name || "No Team"}`,
-              },
-            },
-            {
-              componentDivider: {},
-            },
-            {
-              componentHeader: {
-                text: "Security",
-              },
-            },
-            {
-              componentText: {
-                text: `Identity Provider: ${user.identityProvider}`,
-              },
-            },
-            {
-              componentText: {
-                text: `2FA Enabled: ${user.twoFactorEnabled ? "Yes" : "No"}`,
-              },
-            },
           ],
         },
+        ...emailCard.cards, // Add the email card components
       ],
     };
 
