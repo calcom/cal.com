@@ -1,7 +1,6 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
@@ -42,11 +41,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-export const revalidatePage = async (id: number) => {
-  "use server";
-  revalidatePath(`availability/${id.toString()}`);
-};
-
 const Page = async ({ params, searchParams }: PageProps) => {
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
   if (!parsed.success) {
@@ -83,7 +77,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
     return (
       <AvailabilitySettingsWebWrapper
         scheduleFetched={schedule}
-        revalidatePage={revalidatePage}
         //  travelSchedules={travelSchedules}
       />
     );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { revalidatePage as revalidateSchedulePage } from "app/availability/[schedule]/page";
+import { revalidateSchedulePage } from "app/actions";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
