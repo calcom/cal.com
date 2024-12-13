@@ -177,20 +177,29 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       let attributes;
 
       if (expand?.includes("attributes")) {
-        attributes = await prisma.attributeOption.findMany({
-          where: {
-            assignedUsers: {
-              some: {
-                memberId: membership.id,
+        attributes = await prisma.attributeToUser
+          .findMany({
+            where: {
+              memberId: membership.id,
+            },
+            select: {
+              attributeOption: true,
+              weight: true,
+            },
+            orderBy: {
+              attributeOption: {
+                attribute: {
+                  name: "asc",
+                },
               },
             },
-          },
-          orderBy: {
-            attribute: {
-              name: "asc",
-            },
-          },
-        });
+          })
+          .then((assignedUsers) =>
+            assignedUsers.map((au) => ({
+              ...au.attributeOption,
+              weight: au.weight ?? 100,
+            }))
+          );
       }
 
       return {

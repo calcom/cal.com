@@ -17,8 +17,8 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Event Types A/B tests", () => {
-  test("should render the /future/event-types page", async ({ page, users }) => {
+test.describe("Event Types tests", () => {
+  test("should render the /event-types page", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();

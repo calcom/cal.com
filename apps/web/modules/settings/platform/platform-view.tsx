@@ -39,7 +39,7 @@ export default function Platform() {
 
   const { mutateAsync, isPending: isDeleting } = useDeleteOAuthClient({
     onSuccess: () => {
-      showToast("OAuth client deleted successfully", "success");
+      showToast(t("oauth_client_deletion_message"), "success");
       refetchClients();
       refetchManagedUsers();
     },

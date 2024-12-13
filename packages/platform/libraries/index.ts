@@ -17,6 +17,7 @@ import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-em
 import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
@@ -226,3 +227,5 @@ export { OrganizerRequestEmail };
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
 export { getBulkEventTypes };
+
+export { getBookingFieldsWithSystemFields };
