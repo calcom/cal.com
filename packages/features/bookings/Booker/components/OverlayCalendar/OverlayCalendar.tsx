@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
@@ -32,6 +34,16 @@ export const OverlayCalendar = ({
   hasSession,
 }: OverlayCalendarProps) => {
   const isPlatform = useIsPlatform();
+
+  // Local state for overlay calendar enabled
+  const [isOverlayEnabled, setIsOverlayEnabled] = useState(hasSession ? true : isOverlayCalendarEnabled);
+
+  useEffect(() => {
+    if (hasSession) {
+      setIsOverlayEnabled(true);
+    }
+  }, [hasSession]);
+
   const {
     handleCloseContinueModal,
     handleCloseSettingsModal,
@@ -41,7 +53,7 @@ export const OverlayCalendar = ({
     checkIsCalendarToggled,
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
 
-  // on platform we don't handle connecting to third party calendar via booker yet
+  // On platform, avoid rendering if no connected calendars
   if (isPlatform && connectedCalendars?.length === 0) {
     return <></>;
   }
@@ -49,9 +61,12 @@ export const OverlayCalendar = ({
   return (
     <>
       <OverlayCalendarSwitch
-        enabled={isOverlayCalendarEnabled}
+        enabled={isOverlayEnabled}
         hasSession={hasSession}
-        onStateChange={handleSwitchStateChange}
+        onStateChange={(state) => {
+          setIsOverlayEnabled(state);
+          handleSwitchStateChange(state);
+        }}
       />
       {!isPlatform && (
         <OverlayCalendarContinueModal
