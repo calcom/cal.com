@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-import usageCard from "./plain/usage";
+import usageCard from "./plain/customer-card-display";
 
 type Customer = {
   id: string;
