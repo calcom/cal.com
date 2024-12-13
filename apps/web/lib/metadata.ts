@@ -41,6 +41,13 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     ],
   },
   manifest: "/site.webmanifest",
+  viewport: {
+    width: "device-width",
+    initialScale: 1.0,
+    maximumScale: 1.0,
+    userScalable: false,
+    viewportFit: "cover",
+  },
   robots: recipe.robots,
   other: {
     "application-TileColor": "#ff0000",
