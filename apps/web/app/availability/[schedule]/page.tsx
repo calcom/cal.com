@@ -70,9 +70,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
       timeZone: userData.timeZone,
       defaultScheduleId: userData.defaultScheduleId,
     });
-    const revalidatePage = async () => {
+    const revalidatePage = async (id?: string) => {
       "use server";
-      revalidatePath(`availability/${scheduleId}`);
+      revalidatePath(`availability/${id ?? scheduleId}`);
     };
     // try {
     //   travelSchedules = await TravelScheduleRepository.findTravelSchedulesByUserId(userId);

@@ -17,7 +17,7 @@ import { showToast } from "@calcom/ui";
 
 type PageProps = {
   scheduleFetched: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
-  revalidatePage: () => Promise<void>;
+  revalidatePage: (id?: string) => Promise<void>;
   travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
 };
 
@@ -72,6 +72,13 @@ export const AvailabilitySettingsWebWrapper = ({
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
+      if (prevDefaultId && currentDefaultId) {
+        // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
+        if (prevDefaultId !== currentDefaultId) {
+          // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
+          await revalidatePage(prevDefaultId.toString());
+        }
+      }
       await revalidatePage();
       utils.viewer.availability.list.invalidate();
       showToast(
