@@ -6,16 +6,17 @@ import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import type { AppProps } from "@lib/app-providers";
 
 import { ssrInit } from "@server/lib/ssr";
 
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
 type AppPageType = {
   getServerSideProps?: AppGetServerSideProps;
-  // A component than can accept any properties
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) &
+  default: ((props: PageProps) => JSX.Element) &
     Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
 };
 

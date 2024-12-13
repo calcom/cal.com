@@ -3,16 +3,13 @@
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import type { AppProps } from "@lib/app-providers";
-import type { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
+import type { PageProps } from "@lib/routing/getServerSideProps";
 
 type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
-  // A component than can accept any properties
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) &
+  default: ((props: PageProps) => JSX.Element) &
     Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
 };
 
@@ -37,7 +34,6 @@ function getRoute() {
   }
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
   const params = useParamsWithFallback();
