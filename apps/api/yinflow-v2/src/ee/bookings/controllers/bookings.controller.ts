@@ -433,299 +433,38 @@ export class BookingsController {
   }
 
   private async cancelUsageByBookingUid(req: BookingRequest, bookingId: string): Promise<any> {
-    const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, cancelledBy } = req.body;
+    const { allRemainingBookings, cancellationReason } = req.body;
 
-    const { data: bookingToDelete, error } = await supabase
+    const { data: bookingToDelete } = await supabase
       .from("Booking")
-      .update({
-        status: BookingStatus.CANCELLED.toLowerCase(),
-        cancellationReason,
-      })
+      .select("*")
       .eq("uid", bookingId)
-      .select("*")
-      .maybeSingle();
-
-    let allBookingsUpdated = [bookingToDelete];
-
-    // const {
-    //   bookingToDelete,
-    //   userId,
-    //   platformBookingUrl,
-    //   platformCancelUrl,
-    //   platformClientId,
-    //   platformRescheduleUrl,
-    //   arePlatformEmailsEnabled,
-    // } = req;
-
-    if (!bookingToDelete || error) throw new HttpError({ statusCode: 400, message: "Booking not found" });
-
-    if (!bookingToDelete.userId) throw new HttpError({ statusCode: 400, message: "User not found" });
-
-    const { data: eventType } = await supabase
-      .from("EventType")
-      .select("*")
-      .eq("id", bookingToDelete.eventTypeId)
-      .maybeSingle();
-
-    // get webhooks
-    const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
-
-    const teamId = eventType && eventType.teamId;
-    const triggerForUser = !teamId || (teamId && eventType && eventType.parentId);
-    const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
-
-    const { data: team } = await supabase
-      .from("Team")
-      .select("*")
-      .or(`id.eq.${teamId}, parentId.eq.${organizerUserId}`)
-      .maybeSingle();
-
-    const subscriberOptions = {
-      userId: organizerUserId,
-      eventTypeId: bookingToDelete.eventTypeId as number,
-      triggerEvent: eventTrigger,
-      teamId,
-      orgId: team?.id,
-    };
-
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType?.title || null,
-      eventDescription: eventType?.description || null,
-      requiresConfirmation: eventType?.requiresConfirmation || null,
-      price: eventType?.price || null,
-      currency: eventType?.currency || null,
-      length: eventType?.length || null,
-    };
-
-    const { data: webhooks } = await supabase
-      .from("Webhook")
-      .select("*")
-      .or(`teamId.in.${teamId}, teamId.eq.${organizerUserId}`);
-
-    const { data: organizer } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", bookingToDelete.userId)
       .single();
 
-    const teamMembersPromises: any[] = [];
-    const hostsPresent = !!eventType && eventType.hosts;
-
-    const teamMembers = await Promise.all(teamMembersPromises);
-
-    const evt: CalendarEvent = {
-      title: bookingToDelete?.title,
-      length: eventType && eventType.length,
-      type: eventType && (eventType.slug as string),
-      description: bookingToDelete?.description || "",
-      //   customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
-      eventTypeId: bookingToDelete.eventTypeId as number,
-      //   ...getCalEventResponses({
-      //     bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
-      //     booking: bookingToDelete,
-      //   }),
-      startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
-      endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
-      organizer: {
-        id: organizer.id,
-        username: organizer.username || undefined,
-        email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
-        name: organizer.name ?? "Nameless",
-        timeZone: organizer.timeZone,
-        timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
-        language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
+    await fetch("https://agenda.yinflow.life/api/cancel", {
+      body: JSON.stringify({
+        uid: bookingId,
+        cancellationReason: cancellationReason,
+        allRemainingBookings,
+        seatReferenceUid: bookingToDelete.seatReferenceUid,
+        cancelledBy: bookingToDelete.userPrimaryEmail,
+      }),
+      headers: {
+        "Content-Type": "application/json",
       },
-      attendees: [],
-      uid: bookingToDelete?.uid,
-      bookingId: bookingToDelete?.id,
-      /* Include recurringEvent information only when cancelling all bookings */
-      //   recurringEvent: allRemainingBookings
-      //     ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
-      //     : undefined,
-      location: bookingToDelete?.location,
-      // destinationCalendar: bookingToDelete?.destinationCalendar
-      //   ? [bookingToDelete?.destinationCalendar]
-      //   : bookingToDelete?.user.destinationCalendar
-      //   ? [bookingToDelete?.user.destinationCalendar]
-      //   : [],
-      cancellationReason: cancellationReason,
-      team: { name: team?.name || "Nameless", members: [], id: team?.id },
-      seatsPerTimeSlot: eventType && eventType?.seatsPerTimeSlot,
-      seatsShowAttendees: eventType && eventType?.seatsShowAttendees,
-      iCalUID: bookingToDelete.iCalUID,
-      iCalSequence: bookingToDelete.iCalSequence + 1,
-      //   platformClientId,
-      //   platformRescheduleUrl,
-      //   platformCancelUrl,
-      //   platformBookingUrl,
-    };
-
-    const dataForWebhooks = { evt, webhooks, eventTypeInfo };
-
-    // If it's just an attendee of a booking then just remove them from that booking
-    // const result = await cancelAttendeeSeat(
-    //   req,
-    //   dataForWebhooks,
-    //   bookingToDelete?.eventType?.metadata as EventTypeMetadata
-    // );
-    // if (result)
-    //   return {
-    //     success: true,
-    //     onlyRemovedAttendee: true,
-    //     bookingId: bookingToDelete.id,
-    //     bookingUid: bookingToDelete.uid,
-    //     message: "Attendee successfully removed.",
-    //   } satisfies HandleCancelBookingResponse;
-
-    // const promises = webhooks.map((webhook) =>
-    //   sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-    //     ...evt,
-    //     ...eventTypeInfo,
-    //     status: "CANCELLED",
-    //     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-    //     cancelledBy: cancelledBy,
-    //   }).catch((e) => {
-    //     logger.error(
-    //       `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-    //       safeStringify(e)
-    //     );
-    //   })
-    // );
-    // await Promise.all(promises);
-
-    // const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
-
-    // await sendCancelledReminders({
-    //   workflows,
-    //   smsReminderNumber: bookingToDelete.smsReminderNumber,
-    //   evt: {
-    //     ...evt,
-    //     ...{
-    //       eventType: {
-    //         slug: bookingToDelete.eventType?.slug,
-    //         schedulingType: bookingToDelete.eventType?.schedulingType,
-    //         hosts: bookingToDelete.eventType?.hosts,
-    //       },
-    //     },
-    //   },
-    //   hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
-    // });
-
-    // by cancelling first, and blocking whilst doing so; we can ensure a cancel
-    // action always succeeds even if subsequent integrations fail cancellation.
-    if (bookingToDelete.recurringEventId && allRemainingBookings) {
-      const recurringEventId = bookingToDelete.recurringEventId;
-      const { data: updatedBookings } = await supabase
-        .from("Booking")
-        .update({ status: BookingStatus.CANCELLED.toLowerCase(), cancellationReason })
-        .eq("recurringEventId", recurringEventId)
-        .gte("startTime", new Date().toISOString())
-        .select("*");
-      allBookingsUpdated = allBookingsUpdated.concat(updatedBookings);
-    } else await supabase.from("Attendee").delete().eq("bookingId", bookingId).select("*");
-
-    const { data: updatedBookingsByRecurringEventId } = await supabase
-      .from("Booking")
-      .update({
-        status: BookingStatus.CANCELLED.toLowerCase(),
-        cancellationReason,
-        iCalSequence: bookingToDelete.iCalSequence ? bookingToDelete.iCalSequence : 100,
-      })
-      .eq("uid", bookingToDelete!.recurringEventId as string)
-      .select("*");
-    allBookingsUpdated = allBookingsUpdated.concat(updatedBookingsByRecurringEventId);
-
-    /** TODO: Remove this without breaking functionality */
-    if (bookingToDelete.location === DailyLocationType) {
-      // bookingToDelete.user.credentials.push({
-      //   ...FAKE_DAILY_CREDENTIAL,
-      //   teamId: bookingToDelete.eventType?.team?.id || null,
-      // });
-    }
-
-    const isBookingInRecurringSeries = !!(
-      eventType &&
-      eventType.recurringEvent &&
-      bookingToDelete.recurringEventId &&
-      allRemainingBookings
-    );
-
-    // const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
-    //   bookingToDelete.eventType?.metadata || null
-    // );
-
-    const { data: user } = await supabase.from("users").select("*").eq("id", bookingToDelete.userId).single();
-
-    const credentials = await this.getAllCredentials(
-      {
-        id: user.id,
-        username: user.username,
-        credentials: [],
-      },
-      {
-        userId: user.id,
-        team: teamId,
-        parentId: eventType?.parentId,
-        metadata: eventType?.metadata,
-      }
-    );
-
-    const { data: references } = (await supabase
-      .from("BookingReference")
-      .delete()
-      .eq("bookingId", bookingToDelete.id)
-      .select("*")) as any;
-
-    const calendarReferences = [],
-      allPromises = [];
-
-    for (const reference of references) {
-      if (reference.type.includes("_calendar") && !reference.type.includes("other_calendar")) {
-        calendarReferences.push(reference);
-        allPromises.push(
-          this.deleteCalendarEventForBookingReference({
-            reference,
-            event: evt,
-            isBookingInRecurringSeries,
-          })
-        );
-      }
-    }
-
-    await Promise.allSettled(allPromises);
-
-    const webhookTriggerPromises = [] as Promise<unknown>[];
-    const workflowReminderPromises = [] as Promise<unknown>[];
-
-    for (const booking of allBookingsUpdated) {
-      // delete scheduled webhook triggers of cancelled bookings
-      // webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
-      //Workflows - cancel all reminders for cancelled bookings
-      // workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
-    }
-
-    await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
-      log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
+      method: "POST",
     });
 
-    try {
-      // TODO: if emails fail try to requeue them
-      //   if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
-      //     await sendCancelledEmails(
-      //       evt,
-      //       { eventName: bookingToDelete?.eventType?.eventName },
-      //       bookingToDelete?.eventType?.metadata as EventTypeMetadata
-      //     );
-    } catch (error) {
-      console.error("Error deleting event", error);
-    }
+    const { data: allBookingsUpdated } = await supabase
+      .from("Booking")
+      .select("*")
+      .or(`uid.eq.${bookingId}, recurringEventId.eq.${bookingToDelete.recurringEventId}`);
 
     return {
       onlyRemovedAttendee: false,
       bookingId: bookingToDelete.id,
-      bookingUid: bookingToDelete.uid,
+      bookingUid: bookingId,
       updatedBookings: allBookingsUpdated,
-      references,
     };
   }
 
@@ -748,128 +487,5 @@ export class BookingsController {
     }
 
     throw new InternalServerErrorException(errMsg);
-  }
-
-  private async getAllCredentials(
-    user: { id: number; username: string | null; credentials: CredentialPayload[] },
-    eventType: {
-      userId?: number | null;
-      team?: { id: number | null; parentId: number | null } | null;
-      parentId?: number | null;
-      metadata: any;
-    } | null,
-    organizationId?: number | null
-  ): Promise<any> {
-    let allCredentials = user.credentials;
-
-    // If it's a team event type query for team credentials
-    if (eventType?.team?.id) {
-      const { data: teamCredentialsQueryByTeamId } = await supabase
-        .from("Credential")
-        .select("*")
-        .eq("teamId", eventType.team.id);
-
-      allCredentials.push(...(teamCredentialsQueryByTeamId as any[]));
-    }
-
-    // If it's a managed event type, query for the parent team's credentials
-    if (eventType?.parentId) {
-      const { data: teamCredentialsQueryByParentId } = await supabase
-        .from("Team")
-        .select("*")
-        .eq("eventTypeId", eventType.parentId)
-        .single();
-
-      if (teamCredentialsQueryByParentId?.credentials) {
-        allCredentials.push(...(teamCredentialsQueryByParentId?.credentials as any[]));
-      }
-    }
-
-    // If the user is a part of an organization, query for the organization's credentials
-    if (organizationId) {
-      const { data: teamCredentialsQueryByOrganizationId } = await supabase
-        .from("Team")
-        .select("*")
-        .eq("id", organizationId)
-        .single();
-
-      if (teamCredentialsQueryByOrganizationId?.credentials) {
-        allCredentials.push(...(teamCredentialsQueryByOrganizationId.credentials as any[]));
-      }
-    }
-
-    // Only return CRM credentials that are enabled on the event type
-    const eventTypeAppMetadata = eventType?.metadata?.apps;
-
-    // Will be [credentialId]: { enabled: boolean }]
-    const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};
-
-    for (const appKey in eventTypeAppMetadata) {
-      const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
-      if (app.appCategories && app.appCategories.some((category: string) => category === "crm")) {
-        eventTypeCrmCredentials[app.credentialId] = {
-          enabled: app.enabled,
-        };
-      }
-    }
-
-    allCredentials = allCredentials.filter((credential) => {
-      if (!credential.type.includes("_crm") && !credential.type.includes("_other_calendar")) {
-        return credential;
-      }
-
-      // Backwards compatibility: All CRM apps are triggered for every event type. Unless disabled on the event type
-      // Check if the CRM app exists on the event type
-      if (eventTypeCrmCredentials[credential.id]) {
-        if (eventTypeCrmCredentials[credential.id].enabled) {
-          return credential;
-        }
-      } else {
-        // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org and is an old CRM credential
-        if (
-          credential.type.includes("_other_calendar") &&
-          (credential.userId === eventType?.userId ||
-            credential.teamId === eventType?.team?.id ||
-            credential.teamId === eventType?.team?.parentId ||
-            credential.teamId === organizationId)
-        ) {
-          // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
-          return credential;
-        }
-      }
-    });
-
-    return allCredentials;
-  }
-
-  private async deleteCalendarEventForBookingReference({
-    reference,
-    event,
-    isBookingInRecurringSeries,
-  }: {
-    reference: PartialReference;
-    event: CalendarEvent;
-    isBookingInRecurringSeries?: boolean;
-  }): void {
-    const { externalCalendarId: bookingExternalCalendarId, credentialId } = reference;
-
-    const bookingRefUid =
-      isBookingInRecurringSeries && reference?.thirdPartyRecurringEventId
-        ? reference.thirdPartyRecurringEventId
-        : reference.uid;
-
-    const calendarCredential = await this.getCredentialAndWarnIfNotFound(credentialId);
-    if (calendarCredential) {
-      await deleteEvent({
-        credential: calendarCredential,
-        bookingRefUid,
-        event,
-        externalCalendarId: bookingExternalCalendarId,
-      });
-    }
-  }
-
-  private async getCredentialAndWarnIfNotFound(credentialId: number | null | undefined): Promise<any> {
-    return (await supabase.from("Credential").select("*").eq("id", credentialId).single()).data;
   }
 }
