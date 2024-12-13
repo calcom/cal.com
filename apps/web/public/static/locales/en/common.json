@@ -2866,13 +2866,13 @@
   "lock_attribute_for_assignment_description": "Locking would only allow assignments from Directory Sync",
   "attribute_edited_successfully": "Attribute edited successfully",
   "new_group_option": "New group option",
-  "attribute_weight_enabled":"Weights enabled",
-  "attribute_weight_enabled_description":"By enabling weights, it would be possible to assign higher priority to certain attributes per user. The higher the weight, the higher the priority.",
+  "attribute_weight_enabled": "Weights enabled",
+  "attribute_weight_enabled_description": "By enabling weights, it would be possible to assign higher priority to certain attributes per user. The higher the weight, the higher the priority.",
   "routed": "Routed",
   "reassigned": "Reassigned",
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
-  "connect_with": "Connect with",
+  "connect_with": "Connect With",
   "pay_using": "Pay using",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
