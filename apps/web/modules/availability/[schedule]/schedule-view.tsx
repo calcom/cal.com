@@ -22,7 +22,7 @@ type PageProps = {
 };
 
 export const AvailabilitySettingsWebWrapper = ({
-  scheduleFetched,
+  scheduleFetched: schedule,
   revalidatePage,
   travelSchedules: travelSchedulesProp,
 }: PageProps) => {
@@ -31,10 +31,9 @@ export const AvailabilitySettingsWebWrapper = ({
   const router = useRouter();
   const utils = trpc.useUtils();
   const me = useMeQuery();
-  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
+  const scheduleId = schedule.id;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
-  const schedule = scheduleFetched;
 
   const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
     enabled: !travelSchedulesProp,
