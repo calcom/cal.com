@@ -8,10 +8,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
-import { GroupBase } from 'react-select';
+import { Editor, Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
+import Select, { SingleValue } from "react-select";
 
-// Imports the Select Component
+interface DurationOption {
+  value: "minutes" | "hours" | "days";
+  label: string;
+}
 
 export default function CreateEventTypeForm({
   form,
@@ -49,14 +52,10 @@ export default function CreateEventTypeForm({
     }
   };
 
-const durationOptions: GroupBase<string>[] = [
-  {
-    options: [
-      { value: "minutes", label: "Minutes" },
-      { value: "hours", label: "Hours" },
-      { value: "days", label: "Days" },
-    ],
-  },
+const durationOptions = [
+  { value: "minutes", label: "Minutes" },
+  { value: "hours", label: "Hours" },
+  { value: "days", label: "Days" },
 ];
 
   return (
@@ -161,7 +160,7 @@ const durationOptions: GroupBase<string>[] = [
               defaultValue={durationUnit}
               className="w-24"
               options={durationOptions}
-              onChange={(option: { value: "minutes" | "hours" | "days"; label: string } | null) => {
+              onChange={(option: SingleValue<DurationOption>) => {
                 const newUnit = option?.value as "minutes" | "hours" | "days";
                 setDurationUnit(newUnit);
                 if (newUnit === "hours") {
