@@ -8,7 +8,7 @@ const querySchema = z.object({
 export const getStaticProps: GetStaticProps = (ctx) => {
   const params = querySchema.safeParse(ctx.params);
   console.log("Built workflow page:", params);
-  if (!params.success) return { notFound: true };
+  if (!params.success) return { notFound: true } as const;
 
   return {
     props: {

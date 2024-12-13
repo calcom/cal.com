@@ -212,7 +212,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "border-l-1 mb-0 mt-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
+              "border-l-1 my-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
               isInputUsernamePremium
                 ? "border border-orange-400 focus:border focus:border-orange-400"
                 : "border focus:border",
@@ -262,7 +262,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         )}
       </div>
       {paymentMsg}
-      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
@@ -280,7 +280,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="text-emphasis mt-1" data-testid="current-username">
+                  <p className="text-emphasis mt-1 break-all" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
@@ -288,7 +288,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis">{inputUsernameValue}</p>
+                  <p className="text-emphasis break-all">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>

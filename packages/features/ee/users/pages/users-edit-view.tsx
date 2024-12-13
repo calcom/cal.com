@@ -7,13 +7,14 @@ import NoSSR from "@calcom/core/components/NoSSR";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { UserForm } from "../components/UserForm";
 import { userBodySchema } from "../schemas/userBodySchema";
+import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
+type User = UserAdminRouterOutputs["get"]["user"];
 const userIdSchema = z.object({ id: z.coerce.number() });
 
 const UsersEditPage = () => {
@@ -22,14 +23,22 @@ const UsersEditPage = () => {
 
   if (!input.success) return <div>Invalid input</div>;
 
-  return <UsersEditView userId={input.data.id} />;
+  const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId: input.data.id });
+  const { user } = data;
+
+  return (
+    <LicenseRequired>
+      <NoSSR>
+        <UsersEditView user={user} />
+      </NoSSR>
+    </LicenseRequired>
+  );
 };
 
-const UsersEditView = ({ userId }: { userId: number }) => {
+export const UsersEditView = ({ user }: { user: User }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
-  const { user } = data;
+
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.users.update.useMutation({
     onSuccess: async () => {
@@ -43,29 +52,22 @@ const UsersEditView = ({ userId }: { userId: number }) => {
     },
   });
   return (
-    <LicenseRequired>
-      <Meta title={`Editing user: ${user.username}`} description="Here you can edit a current user." />
-      <NoSSR>
-        <UserForm
-          key={JSON.stringify(user)}
-          onSubmit={(values) => {
-            const parser = getParserWithGeneric(userBodySchema);
-            const parsedValues = parser(values);
-            const data: Partial<typeof parsedValues & { userId: number }> = {
-              ...parsedValues,
-              userId: user.id,
-            };
-            // Don't send username if it's the same as the current one
-            if (user.username === data.username) delete data.username;
-            mutation.mutate(data);
-          }}
-          defaultValues={user}
-        />
-      </NoSSR>
-    </LicenseRequired>
+    <UserForm
+      key={JSON.stringify(user)}
+      onSubmit={(values) => {
+        const parser = getParserWithGeneric(userBodySchema);
+        const parsedValues = parser(values);
+        const data: Partial<typeof parsedValues & { userId: number }> = {
+          ...parsedValues,
+          userId: user.id,
+        };
+        // Don't send username if it's the same as the current one
+        if (user.username === data.username) delete data.username;
+        mutation.mutate(data);
+      }}
+      defaultValues={user}
+    />
   );
 };
 
-UsersEditPage.getLayout = getLayout;
-
-export default UsersEditPage;
+export default UsersEditView;

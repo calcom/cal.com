@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Fragment } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -52,6 +53,7 @@ export function OverlayCalendarSettingsModal({
   checkIsCalendarToggled,
 }: IOverlayCalendarSettingsModalProps) {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
 
   return (
     <>
@@ -93,8 +95,12 @@ export function OverlayCalendarSettingsModal({
                                       "h-10 w-10",
                                       item.integration.logo.includes("-dark") && "dark:invert"
                                     )}
-                                    src={item.integration.logo}
-                                    alt={item.integration.title}
+                                    src={
+                                      isPlatform
+                                        ? `https://app.cal.com${item.integration.logo}`
+                                        : item.integration.logo
+                                    }
+                                    alt={`${item.integration.title} logo`}
                                   />
                                 )
                               }

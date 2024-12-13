@@ -121,6 +121,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -208,6 +209,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -291,6 +293,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -385,6 +388,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -488,6 +492,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -577,6 +582,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -660,6 +666,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["-11:00"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -675,7 +682,6 @@ describe("getSchedule", () => {
           ];
 
           expect(scheduleForEvent).toHaveTimeSlots(
-            // All slots on current day are available
             [
               // "2024-05-30T04:30:00.000Z", // Not available as before the start of the range
               "2024-05-31T04:30:00.000Z",
@@ -783,6 +789,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -880,6 +887,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -980,6 +988,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1087,6 +1096,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1206,6 +1216,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -1302,6 +1313,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -1410,6 +1422,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1511,6 +1524,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1546,6 +1560,127 @@ describe("getSchedule", () => {
 
         expect(scheduleForEvent).toHaveDateDisabled({
           dateString: plus4DateString,
+        });
+      });
+
+      describe("GMT-11 Browsing", () => {
+        test("should show correct timeslots only for 24th and 25th July(of IST Timezone)", async () => {
+          vi.setSystemTime(`2024-07-05T01:30:00Z`);
+
+          const scenarioData = {
+            eventTypes: [
+              {
+                id: 1,
+                length: 60,
+                // Makes today and tomorrow only available
+                ...getPeriodTypeData({
+                  type: "RANGE",
+
+                  // Only 25th and 26th(as per the event timezone(IST)) should be available
+                  periodStartDate: new Date(`2024-07-24T18:30:00.000Z`), // 25th July in IST
+                  periodEndDate: new Date(`2024-07-25T18:30:00.000Z`), // 26th July in IST
+
+                  periodCountCalendarDays: true,
+                }),
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+                schedules: [TestData.schedules.IstWorkHours],
+              },
+            ],
+          } satisfies ScenarioData;
+
+          await createBookingScenario(scenarioData);
+
+          const scheduleForEventForPagoTz = await getSchedule({
+            input: {
+              eventTypeId: 1,
+              eventTypeSlug: "",
+              usernameList: [],
+              startTime: `2024-06-30T18:30:00.000Z`,
+              endTime: `2024-07-31T18:29:59.999Z`,
+              timeZone: Timezones["-11:00"],
+              isTeamEvent: false,
+              orgSlug: null,
+            },
+          });
+
+          /**
+           * Current day in test is 5th July, so verify that earlier timeslots than 24th July are disabled
+           */
+          {
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-21",
+            });
+
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-22",
+            });
+
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-23",
+            });
+          }
+
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(
+            [
+              "2024-07-25T04:30:00.000Z",
+              "2024-07-25T05:30:00.000Z",
+              "2024-07-25T06:30:00.000Z",
+              "2024-07-25T07:30:00.000Z",
+              "2024-07-25T08:30:00.000Z",
+              "2024-07-25T09:30:00.000Z",
+              "2024-07-25T10:30:00.000Z",
+            ],
+            {
+              // 25th timeslots are shown mostly on 24th of Pago Pago
+              dateString: "2024-07-24",
+              doExactMatch: true,
+            }
+          );
+
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(
+            [
+              "2024-07-25T11:30:00.000Z",
+              "2024-07-26T04:30:00.000Z",
+              "2024-07-26T05:30:00.000Z",
+              "2024-07-26T06:30:00.000Z",
+              "2024-07-26T07:30:00.000Z",
+              "2024-07-26T08:30:00.000Z",
+              "2024-07-26T09:30:00.000Z",
+              "2024-07-26T10:30:00.000Z",
+            ],
+            {
+              dateString: "2024-07-25",
+              doExactMatch: true,
+            }
+          );
+
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(["2024-07-26T11:30:00.000Z"], {
+            dateString: "2024-07-26",
+            doExactMatch: true,
+          });
+
+          /**
+           * Verify that timeslots beyond 26th July are disabled
+           */
+          {
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-27",
+            });
+
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-28",
+            });
+          }
         });
       });
     });

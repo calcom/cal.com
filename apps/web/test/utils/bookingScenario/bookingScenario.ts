@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
+import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
@@ -17,11 +18,17 @@ import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import type {
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+  WorkflowMethods,
+} from "@calcom/prisma/client";
 import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
@@ -29,7 +36,14 @@ import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
-logger.settings.minLevel = 0;
+// We don't need to test it. Also, it causes Formbricks error when imported
+vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+  default: {},
+}));
+
+type Fields = z.infer<typeof eventTypeBookingFields>;
+
+logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
@@ -43,6 +57,7 @@ type InputWebhook = {
 };
 
 type InputWorkflow = {
+  id?: number;
   userId?: number | null;
   teamId?: number | null;
   name?: string;
@@ -56,9 +71,20 @@ type InputWorkflow = {
   sendTo?: string;
 };
 
+type InputWorkflowReminder = {
+  id?: number;
+  bookingUid: string;
+  method: WorkflowMethods;
+  scheduledDate: Date;
+  scheduled: boolean;
+  workflowStepId?: number;
+  workflowId: number;
+};
+
 type InputHost = {
   userId: number;
   isFixed?: boolean;
+  scheduleId?: number | null;
 };
 /**
  * Data to be mocked
@@ -100,6 +126,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       name: string;
       slug: string;
       parentId?: number;
+      isPrivate?: boolean;
     };
   }[];
   schedules: {
@@ -117,6 +144,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
+  completedOnboarding?: boolean;
 };
 
 export type InputEventType = {
@@ -125,6 +153,7 @@ export type InputEventType = {
   length?: number;
   offsetStart?: number;
   slotInterval?: number;
+  userId?: number;
   minimumBookingNotice?: number;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
@@ -132,20 +161,24 @@ export type InputEventType = {
   users?: { id: number }[];
   hosts?: InputHost[];
   schedulingType?: SchedulingType;
+  parent?: { id: number };
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
   team?: {
     id?: number | null;
     parentId?: number | null;
+    bookingLimits?: IntervalLimit;
+    includeManagedEventsInLimits?: boolean;
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-  schedule?: InputUser["schedules"][number];
+  schedule?: InputUser["schedules"][number] | null;
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
   metadata?: any;
+  rescheduleWithSameRoundRobinHost?: boolean;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -161,13 +194,16 @@ type WhiteListedBookingProps = {
   status: BookingStatus;
   attendees?: {
     email: string;
+    phoneNumber?: string;
     bookingSeat?: AttendeeBookingSeatInput | null;
   }[];
   references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  user?: { id: number };
   bookingSeat?: Prisma.BookingSeatCreateInput[];
+  createdAt?: string;
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
@@ -194,6 +230,13 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
             id: host.userId,
           },
         },
+        schedule: host.scheduleId
+          ? {
+              connect: {
+                id: host.scheduleId,
+              },
+            }
+          : undefined,
       };
 
       await prismock.host.create({
@@ -211,6 +254,9 @@ export async function addEventTypesToDb(
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
+    userId?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hosts?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -218,6 +264,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
+    team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -257,6 +304,22 @@ export async function addEventTypesToDb(
         },
       });
     }
+
+    if (eventType.team?.id) {
+      const createdTeam = await prismock.team.create({
+        data: {
+          id: eventType.team?.id,
+          bookingLimits: eventType.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
+          name: "",
+        },
+      });
+
+      await prismock.eventType.update({
+        where: { id: eventType.id },
+        data: { teamId: createdTeam.id },
+      });
+    }
   }
   /***
    *  HACK ENDS
@@ -279,6 +342,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     bookingLimits: {},
+    includeManagedEventsInLimits: false,
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
@@ -304,11 +368,17 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
       eventType.users?.map((userWithJustId) => {
         return usersStore.find((user) => user.id === userWithJustId.id);
       }) || [];
+    const hosts =
+      eventType.users?.map((host) => {
+        const user = usersStore.find((user) => user.id === host.id);
+        return { ...host, user };
+      }) || [];
     return {
       ...baseEventType,
       ...eventType,
       workflows: [],
       users,
+      hosts,
       destinationCalendar: eventType.destinationCalendar
         ? {
             create: eventType.destinationCalendar,
@@ -328,6 +398,8 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
+      parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
+      rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
@@ -344,6 +416,7 @@ async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
+    user?: { id: number };
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
@@ -376,7 +449,7 @@ async function addBookingsToDb(
   );
 }
 
-async function addBookings(bookings: InputBooking[]) {
+export async function addBookings(bookings: InputBooking[]) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
   const allBookings = [...bookings].map((booking) => {
     if (booking.references) {
@@ -434,6 +507,16 @@ async function addBookings(bookings: InputBooking[]) {
         };
       }
 
+      if (booking?.user?.id) {
+        bookingCreate.user = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          connect: {
+            id: booking.user.id,
+          },
+        };
+      }
+
       return bookingCreate;
     })
   );
@@ -470,6 +553,7 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
       // Create the workflow first
       const createdWorkflow = await prismock.workflow.create({
         data: {
+          ...(workflow.id && { id: workflow.id }),
           userId: workflow.userId,
           teamId: workflow.teamId,
           trigger: workflow.trigger,
@@ -529,7 +613,15 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
 async function addWorkflows(workflows: InputWorkflow[]) {
   log.silly("TestData: Creating Workflows", safeStringify(workflows));
 
-  await addWorkflowsToDb(workflows);
+  return await addWorkflowsToDb(workflows);
+}
+
+export async function addWorkflowReminders(workflowReminders: InputWorkflowReminder[]) {
+  log.silly("TestData: Creating Workflow Reminders", safeStringify(workflowReminders));
+
+  return await prismock.workflowReminder.createMany({
+    data: workflowReminders,
+  });
 }
 
 export async function addUsersToDb(
@@ -540,24 +632,28 @@ export async function addUsersToDb(
     data: users,
   });
 
+  const allUsers = await prismock.user.findMany({
+    include: {
+      credentials: true,
+      teams: true,
+      profiles: true,
+      schedules: {
+        include: {
+          availability: true,
+        },
+      },
+      destinationCalendar: true,
+    },
+  });
+
   log.silly(
     "Added users to Db",
     safeStringify({
-      allUsers: await prismock.user.findMany({
-        include: {
-          credentials: true,
-          teams: true,
-          profiles: true,
-          schedules: {
-            include: {
-              availability: true,
-            },
-          },
-          destinationCalendar: true,
-        },
-      }),
+      allUsers,
     })
   );
+
+  return allUsers;
 }
 
 export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
@@ -597,7 +693,7 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
   return addedTeams;
 }
 
-async function addUsers(users: InputUser[]) {
+export async function addUsers(users: InputUser[]) {
   const prismaUsersCreate = [];
   for (let i = 0; i < users.length; i++) {
     const newUser = users[i];
@@ -654,6 +750,13 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+    if (user.destinationCalendar) {
+      newUser.destinationCalendar = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        create: user.destinationCalendar,
+      };
+    }
     if (user.profiles) {
       newUser.profiles = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -668,7 +771,7 @@ async function addUsers(users: InputUser[]) {
   }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  await addUsersToDb(prismaUsersCreate);
+  return await addUsersToDb(prismaUsersCreate);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -700,11 +803,22 @@ export async function createBookingScenario(data: ScenarioData) {
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
-  await addWorkflows(data.workflows || []);
+  const workflows = await addWorkflows(data.workflows || []);
 
   return {
     eventTypes,
+    workflows,
   };
+}
+
+type TeamCreateReturnType = Awaited<ReturnType<typeof prismock.team.create>>;
+
+function assertNonNullableSlug<T extends { slug: string | null }>(
+  org: T
+): asserts org is T & { slug: string } {
+  if (org.slug === null) {
+    throw new Error("Slug cannot be null");
+  }
 }
 
 export async function createOrganization(orgData: {
@@ -712,7 +826,7 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}) {
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -738,7 +852,7 @@ export async function createOrganization(orgData: {
       },
     });
   }
-
+  assertNonNullableSlug(org);
   return org;
 }
 
@@ -996,6 +1110,11 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    EmptyAvailability: {
+      name: "Empty Availability",
+      availability: [],
+      timeZone: Timezones["+5:30"],
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
@@ -1125,6 +1244,7 @@ export function getOrganizer({
   organizationId,
   metadata,
   smsLockState,
+  completedOnboarding,
 }: {
   name: string;
   email: string;
@@ -1139,6 +1259,7 @@ export function getOrganizer({
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
+  completedOnboarding?: boolean;
 }) {
   return {
     ...TestData.users.example,
@@ -1156,11 +1277,15 @@ export function getOrganizer({
     profiles: [],
     metadata,
     smsLockState,
+    completedOnboarding,
   };
 }
 
 export function getScenarioData(
   {
+    /**
+     * organizer has no special meaning. It is a regular user. It is supposed to be deprecated along with `usersApartFromOrganizer` and we should introduce a new `users` field instead
+     */
     organizer,
     eventTypes,
     usersApartFromOrganizer = [],
@@ -1195,7 +1320,6 @@ export function getScenarioData(
       ];
     });
   }
-
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -1211,8 +1335,10 @@ export function getScenarioData(
         ...eventType,
         teamId: eventType.teamId || null,
         team: {
-          id: eventType.teamId,
+          id: eventType.teamId ?? eventType.team?.id,
           parentId: org ? org.id : null,
+          bookingLimits: eventType?.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType?.team?.includeManagedEventsInLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
@@ -1223,13 +1349,6 @@ export function getScenarioData(
         ...user,
         organizationId: user.organizationId ?? null,
       };
-      if (user.destinationCalendar) {
-        newUser.destinationCalendar = {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          create: user.destinationCalendar,
-        };
-      }
       return newUser;
     }),
     apps: [...apps],
@@ -1251,10 +1370,10 @@ export function enableEmailFeature() {
 
 export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
-  // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
+      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });
@@ -1665,10 +1784,19 @@ export function mockCrmApp(
   };
 }
 
-export function getBooker({ name, email }: { name: string; email: string }) {
+export function getBooker({
+  name,
+  email,
+  attendeePhoneNumber,
+}: {
+  name: string;
+  email: string;
+  attendeePhoneNumber?: string;
+}) {
   return {
     name,
     email,
+    attendeePhoneNumber,
   };
 }
 
@@ -1727,8 +1855,11 @@ export function getMockBookingReference(
 }
 
 export function getMockBookingAttendee(
-  attendee: Omit<Attendee, "bookingId"> & {
+  attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email" | "noShow"> & {
     bookingSeat?: AttendeeBookingSeatInput;
+    phoneNumber?: string | null;
+    email: string;
+    noShow?: boolean;
   }
 ) {
   return {
@@ -1738,6 +1869,8 @@ export function getMockBookingAttendee(
     email: attendee.email,
     locale: attendee.locale,
     bookingSeat: attendee.bookingSeat || null,
+    phoneNumber: attendee.phoneNumber ?? undefined,
+    noShow: attendee.noShow ?? false,
   };
 }
 
@@ -1779,4 +1912,90 @@ export const replaceDates = (dates: string[], replacement: Record<string, string
   return dates.map((date) => {
     return date.replace(/(.*)T/, (_, group1) => `${replacement[group1]}T`);
   });
+};
+
+export const getDefaultBookingFields = ({
+  emailField,
+  bookingFields = [],
+}: {
+  emailField?: Fields[number];
+  bookingFields: Fields;
+}) => {
+  return [
+    {
+      name: "name",
+      type: "name",
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system",
+      required: true,
+      defaultLabel: "your_name",
+    },
+    !!emailField
+      ? emailField
+      : {
+          name: "email",
+          type: "email",
+          label: "",
+          hidden: false,
+          sources: [{ id: "default", type: "default", label: "Default" }],
+          editable: "system",
+          required: true,
+          placeholder: "",
+          defaultLabel: "email_address",
+        },
+    {
+      name: "location",
+      type: "radioInput",
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system",
+      required: false,
+      defaultLabel: "location",
+      getOptionsAt: "locations",
+      optionsInputs: {
+        phone: { type: "phone", required: true, placeholder: "" },
+        attendeeInPerson: { type: "address", required: true, placeholder: "" },
+      },
+      hideWhenJustOneOption: true,
+    },
+    {
+      name: "title",
+      type: "text",
+      hidden: true,
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: true,
+      defaultLabel: "what_is_this_meeting_about",
+      defaultPlaceholder: "",
+    },
+    {
+      name: "notes",
+      type: "textarea",
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: false,
+      defaultLabel: "additional_notes",
+      defaultPlaceholder: "share_additional_notes",
+    },
+    {
+      name: "guests",
+      type: "multiemail",
+      hidden: false,
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: false,
+      defaultLabel: "additional_guests",
+      defaultPlaceholder: "email",
+    },
+    {
+      name: "rescheduleReason",
+      type: "textarea",
+      views: [{ id: "reschedule", label: "Reschedule View" }],
+      sources: [{ id: "default", type: "default", label: "Default" }],
+      editable: "system-but-optional",
+      required: false,
+      defaultLabel: "reason_for_reschedule",
+      defaultPlaceholder: "reschedule_placeholder",
+    },
+    ...bookingFields,
+  ] as Fields;
 };

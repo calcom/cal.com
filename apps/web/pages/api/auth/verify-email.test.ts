@@ -18,7 +18,7 @@ describe("moveUserToMatchingOrg", () => {
   });
 
   it("should not proceed if no matching organization is found", async () => {
-    organizationScenarios.OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.fakeNoMatch();
+    organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
 
     await moveUserToMatchingOrg({ email });
 
@@ -44,7 +44,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );
@@ -65,7 +65,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );

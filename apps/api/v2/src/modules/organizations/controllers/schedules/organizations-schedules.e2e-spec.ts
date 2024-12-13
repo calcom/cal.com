@@ -8,6 +8,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -31,7 +32,7 @@ describe("Organizations Schedules Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = "mr-robot@schedules-api.com";
@@ -48,7 +49,7 @@ describe("Organizations Schedules Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
@@ -110,7 +111,7 @@ describe("Organizations Schedules Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
@@ -146,7 +147,7 @@ describe("Organizations Schedules Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 

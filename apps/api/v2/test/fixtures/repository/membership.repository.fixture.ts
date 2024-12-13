@@ -4,11 +4,11 @@ import { TestingModule } from "@nestjs/testing";
 import { Membership, MembershipRole, Prisma, Team, User } from "@prisma/client";
 
 export class MembershipRepositoryFixture {
-  private primaReadClient: PrismaReadService["prisma"];
+  private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.primaReadClient = module.get(PrismaReadService).prisma;
+    this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
@@ -21,11 +21,11 @@ export class MembershipRepositoryFixture {
   }
 
   async get(membershipId: Membership["id"]) {
-    return this.primaReadClient.membership.findFirst({ where: { id: membershipId } });
+    return this.prismaReadClient.membership.findFirst({ where: { id: membershipId } });
   }
 
   async getUserMembershipByTeamId(userId: User["id"], teamId: Team["id"]) {
-    return this.primaReadClient.membership.findFirst({ where: { teamId, userId } });
+    return this.prismaReadClient.membership.findFirst({ where: { teamId, userId } });
   }
 
   async addUserToOrg(user: User, org: Team, role: MembershipRole, accepted: boolean) {

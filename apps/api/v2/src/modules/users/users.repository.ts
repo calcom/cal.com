@@ -2,11 +2,12 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { Injectable } from "@nestjs/common";
-import type { Profile, User } from "@prisma/client";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import type { Profile, User, Team } from "@prisma/client";
 
 export type UserWithProfile = User & {
-  movedToProfile?: Profile | null;
+  movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
+  profiles?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> })[];
 };
 
 @Injectable()
@@ -72,7 +73,12 @@ export class UsersRepository {
         id: userId,
       },
       include: {
-        movedToProfile: true,
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
       },
     });
   }
@@ -86,6 +92,16 @@ export class UsersRepository {
       },
       include: {
         eventTypes: true,
+      },
+    });
+  }
+
+  async findByIds(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
       },
     });
   }
@@ -116,16 +132,31 @@ export class UsersRepository {
         email,
       },
       include: {
-        movedToProfile: true,
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
       },
     });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-      },
+      where:
+        orgId || orgSlug
+          ? {
+              profiles: {
+                some: {
+                  organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+                  username: username,
+                },
+              },
+            }
+          : {
+              username,
+            },
     });
   }
 
@@ -201,5 +232,30 @@ export class UsersRepository {
       },
     });
     return profiles.map((profile) => profile.user);
+  }
+
+  async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
+    const user = await this.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException("user not found");
+    }
+
+    return await this.dbWrite.prisma.user.update({
+      data: {
+        metadata:
+          typeof user.metadata === "object"
+            ? {
+                ...user.metadata,
+                defaultConferencingApp: {
+                  appSlug: appSlug,
+                  appLink: appLink,
+                },
+              }
+            : {},
+      },
+
+      where: { id: userId },
+    });
   }
 }

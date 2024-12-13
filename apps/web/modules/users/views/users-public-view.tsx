@@ -18,10 +18,11 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
 
-import { type getServerSideProps } from "./users-public-view.getServerSideProps";
+import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
-export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
+export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
+export function UserPage(props: PageProps) {
+  const { users, profile, eventTypes, markdownStrippedBio, entity, isOrgSEOIndexable } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -58,6 +59,13 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
+
+  const allowSEOIndexing = isOrg
+    ? isOrgSEOIndexable
+      ? profile.allowSEOIndexing
+      : false
+    : profile.allowSEOIndexing;
+
   return (
     <>
       <HeadSeo
@@ -70,8 +78,8 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
-          noindex: !profile.allowSEOIndexing,
-          nofollow: !profile.allowSEOIndexing,
+          noindex: !allowSEOIndexing,
+          nofollow: !allowSEOIndexing,
         }}
       />
 
@@ -111,6 +119,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               <>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
               </>
@@ -159,5 +168,5 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     </>
   );
 }
-
+UserPage.isBookingPage = true;
 export default UserPage;

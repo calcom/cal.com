@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -54,10 +54,10 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
+  const email = token.email.toLowerCase();
+
   const userFromDb = await prisma.user.findUnique({
-    where: {
-      email: token.email.toLowerCase(),
-    },
+    where: { email },
   });
 
   if (!userFromDb) {
@@ -65,7 +65,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const hasValidLicense = await checkLicense(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance();
+  const hasValidLicense = await licenseKeyService.checkLicense();
 
   let upId = token.upId;
 

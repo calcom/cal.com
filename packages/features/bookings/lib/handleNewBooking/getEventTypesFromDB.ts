@@ -4,7 +4,11 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, customInputSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  customInputSchema,
+  rrSegmentQueryValueSchema,
+} from "@calcom/prisma/zod-utils";
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUniqueOrThrow({
@@ -24,11 +28,19 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       slug: true,
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
+      teamId: true,
       team: {
         select: {
           id: true,
           name: true,
           parentId: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
         },
       },
       bookingFields: true,
@@ -45,6 +57,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
+      maxLeadThreshold: true,
       minimumBookingNotice: true,
       userId: true,
       price: true,
@@ -52,17 +65,29 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      hideCalendarEventDetails: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
       seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
+      rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
       parentId: true,
       parent: {
         select: {
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       useEventTypeDestinationCalendarEmail: true,
@@ -91,12 +116,28 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           isFixed: true,
           priority: true,
+          weight: true,
+          createdAt: true,
           user: {
             select: {
               credentials: {
                 select: credentialForCalendarServiceSelect,
               },
               ...userSelect.select,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
             },
           },
         },
@@ -116,16 +157,22 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           email: true,
         },
       },
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
     },
   });
 
+  const { profile, ...restEventType } = eventType;
+  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
+
   return {
-    ...eventType,
+    ...restEventType,
     metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields(eventType || {}),
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
+    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
   };
 };

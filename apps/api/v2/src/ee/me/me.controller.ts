@@ -7,9 +7,10 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { userSchemaResponse } from "@calcom/platform-types";
@@ -23,14 +24,27 @@ import { userSchemaResponse } from "@calcom/platform-types";
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly schedulesService: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly usersService: UsersService
   ) {}
 
   @Get("/")
   @Permissions([PROFILE_READ])
+  @ApiOperation({ summary: "Get my profile" })
   async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
-    const me = userSchemaResponse.parse(user);
-
+    const organization = this.usersService.getUserMainProfile(user)?.organization;
+    const me = userSchemaResponse.parse(
+      organization
+        ? {
+            ...user,
+            organizationId: organization.id,
+            organization: {
+              id: organization.id,
+              isPlatform: organization.isPlatform,
+            },
+          }
+        : user
+    );
     return {
       status: SUCCESS_STATUS,
       data: me,
@@ -39,6 +53,7 @@ export class MeController {
 
   @Patch("/")
   @Permissions([PROFILE_WRITE])
+  @ApiOperation({ summary: "Update my profile" })
   async updateMe(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateManagedUserInput

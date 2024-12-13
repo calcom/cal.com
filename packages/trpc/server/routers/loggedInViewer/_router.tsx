@@ -1,5 +1,6 @@
 import authedProcedure from "../../procedures/authedProcedure";
 import { importHandler, router } from "../../trpc";
+import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
@@ -12,9 +13,13 @@ import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schem
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
+import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { ZOutOfOfficeInputSchema, ZOutOfOfficeDelete } from "./outOfOffice.schema";
 import { me } from "./procedures/me";
+import { myStats } from "./procedures/myStats";
+import { platformMe } from "./procedures/platformMe";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
+import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
@@ -28,6 +33,8 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 type AppsRouterHandlerCache = {
   me?: typeof import("./me.handler").meHandler;
+  myStats?: typeof import("./myStats.handler").myStatsHandler;
+  platformMe?: typeof import("./platformMe.handler").platformMeHandler;
   shouldVerifyEmail?: typeof import("./shouldVerifyEmail.handler").shouldVerifyEmailHandler;
   deleteMe?: typeof import("./deleteMe.handler").deleteMeHandler;
   deleteMeWithoutPassword?: typeof import("./deleteMeWithoutPassword.handler").deleteMeWithoutPasswordHandler;
@@ -52,18 +59,23 @@ type AppsRouterHandlerCache = {
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
-  outOfOfficeCreate?: typeof import("./outOfOffice.handler").outOfOfficeCreate;
+  outOfOfficeCreateOrUpdate?: typeof import("./outOfOffice.handler").outOfOfficeCreateOrUpdate;
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
   getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
   outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
+  addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
+  removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
+  markNoShow?: typeof import("./markNoShow.handler").markNoShow;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
 export const loggedInViewerRouter = router({
   me,
+  myStats,
+  platformMe,
 
   deleteMe: authedProcedure.input(ZDeleteMeInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.deleteMe) {
@@ -415,18 +427,22 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.connectAndJoin({ ctx, input });
   }),
-  outOfOfficeCreate: authedProcedure.input(ZOutOfOfficeInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreate) {
-      UNSTABLE_HANDLER_CACHE.outOfOfficeCreate = (await import("./outOfOffice.handler")).outOfOfficeCreate;
-    }
+  outOfOfficeCreateOrUpdate: authedProcedure
+    .input(ZOutOfOfficeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
+        UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate = (
+          await import("./outOfOffice.handler")
+        ).outOfOfficeCreateOrUpdate;
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreate) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeCreate({ ctx, input });
-  }),
+      return UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate({ ctx, input });
+    }),
   outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
       UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (
@@ -496,5 +512,48 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList();
+  }),
+  addNotificationsSubscription: authedProcedure
+    .input(ZAddNotificationsSubscriptionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.addNotificationsSubscription) {
+        UNSTABLE_HANDLER_CACHE.addNotificationsSubscription = (
+          await import("./addNotificationsSubscription.handler")
+        ).addNotificationsSubscriptionHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.addNotificationsSubscription) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.addNotificationsSubscription({ ctx, input });
+    }),
+  removeNotificationsSubscription: authedProcedure
+    .input(ZRemoveNotificationsSubscriptionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription) {
+        UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription = (
+          await import("./removeNotificationsSubscription.handler")
+        ).removeNotificationsSubscriptionHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription({ ctx, input });
+    }),
+  markNoShow: authedProcedure.input(ZNoShowInputSchema).mutation(async (opts) => {
+    if (!UNSTABLE_HANDLER_CACHE.markNoShow) {
+      UNSTABLE_HANDLER_CACHE.markNoShow = (await import("./markNoShow.handler")).markNoShow;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.markNoShow) {
+      throw new Error("Failed to load handler");
+    }
+    return UNSTABLE_HANDLER_CACHE.markNoShow(opts);
   }),
 });

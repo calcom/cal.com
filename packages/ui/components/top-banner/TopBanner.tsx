@@ -1,10 +1,10 @@
 import classNames from "classnames";
-import type { LucideProps } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 
-import { Icon, type IconName } from "../..";
+import { Icon } from "../icon";
+import type { IconName } from "../icon";
 
 export type TopBannerProps = {
   icon?: IconName;
@@ -21,8 +21,7 @@ const variantClassName = {
 
 const defaultIconProps = {
   className: "text-emphasis h-4 w-4 stroke-[2.5px]",
-  "aria-hidden": "true",
-} as LucideProps;
+};
 
 export function TopBanner(props: TopBannerProps) {
   const { icon, variant = "default", text, actions } = props;

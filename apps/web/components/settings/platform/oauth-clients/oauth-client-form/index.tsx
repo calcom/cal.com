@@ -77,7 +77,7 @@ export const OAuthClientForm = ({
             <input
               {...register(`${permissionKey}Read`)}
               id={`${permissionKey}Read`}
-              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
               disabled={!!defaultValues}
             />
@@ -89,7 +89,7 @@ export const OAuthClientForm = ({
             <input
               {...register(`${permissionKey}Write`)}
               id={`${permissionKey}Write`}
-              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
               disabled={!!defaultValues}
             />
@@ -224,7 +224,7 @@ export const OAuthClientForm = ({
           <input
             {...register("areEmailsEnabled")}
             id="areEmailsEnabled"
-            className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
             type="checkbox"
             disabled={isFormDisabled}
           />

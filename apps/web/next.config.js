@@ -172,18 +172,21 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
+    serverActions: true,
   },
   i18n: {
     ...i18n,
+    defaultLocale: "en",
+    locales: ["en"],
     localeDetection: false,
   },
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -204,8 +207,6 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
-    "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -216,16 +217,16 @@ const nextConfig = {
     lodash: {
       transform: "lodash/{{member}}",
     },
-    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-    // "@calcom/ui": {
-    //   transform: "@calcom/ui/components/{{member}}",
-    // },
   },
   images: {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
+      if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
+        config.devtool = false;
+      }
+
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
@@ -292,8 +293,8 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
+        source: "/router/:path*",
+        destination: "/apps/routing-forms/router/:path*",
       },
       {
         source: "/success/:path*",
@@ -366,6 +367,10 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      {
+        source: "/icons/sprite.svg",
+        destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[
@@ -387,6 +392,13 @@ const nextConfig = {
     };
   },
   async headers() {
+    // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
+    // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
+    const CORP_CROSS_ORIGIN_HEADER = {
+      key: "Cross-Origin-Resource-Policy",
+      value: "cross-origin",
+    };
+
     return [
       {
         source: "/auth/:path*",
@@ -419,6 +431,46 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/embed/embed.js",
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*/embed",
+        // COEP require-corp header is set conditionally when flag.coep is set to true
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
+        headers: [
+          // make sure to pass full referer URL for booking pages
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+        ],
+      },
+      // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
+      ...[
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+      ],
       ...(isOrganizationsEnabled
         ? [
             {
@@ -615,10 +667,14 @@ const nextConfig = {
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
-      autoInstrumentServerFunctions: true,
+      autoInstrumentServerFunctions: false,
       hideSourceMaps: true,
       // disable source map generation for the server code
       disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+      silent: false,
+      sourcemaps: {
+        disable: process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1",
+      },
     })
   );
 }

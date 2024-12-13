@@ -107,7 +107,7 @@ export interface BaseCardProps extends CVACardType {
     href?: string;
     child: ReactNode;
     onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-    "data-testId"?: string;
+    "data-testid"?: string;
   };
   learnMore?: {
     href: string;
@@ -177,11 +177,11 @@ export function Card({
           target="_blank"
           rel="noreferrer"
           href={mediaLink}
-          data-testId={actionButton?.["data-testId"]}
+          data-testid={actionButton?.["data-testid"]}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
           <div className="absolute inset-0 bg-black bg-opacity-50 transition group-hover:bg-opacity-40" />
           <svg
-            className="text-inverted absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full shadow-lg hover:-mt-px"
+            className="text-inverted absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full shadow-lg transition-all hover:-mt-px"
             viewBox="0 0 32 32"
             fill="none"
             xmlns="http://www.w3.org/2000/svg">
@@ -210,7 +210,7 @@ export function Card({
             href={actionButton?.href}
             className="mt-10"
             EndIcon="arrow-right"
-            data-testId={actionButton["data-testId"]}>
+            data-testid={actionButton["data-testid"]}>
             {actionButton?.child}
           </Button>
         </div>
@@ -232,7 +232,7 @@ export function Card({
             <button
               className="text-default hover:text-emphasis p-0 text-xs font-normal"
               color="minimal"
-              data-testId={actionButton?.["data-testId"]}
+              data-testid={actionButton?.["data-testid"]}
               onClick={actionButton?.onClick}>
               {actionButton?.child}
             </button>

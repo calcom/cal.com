@@ -40,8 +40,6 @@ describe("handleChildrenEventTypes", () => {
         children: [],
         updatedEventType: { schedulingType: null, slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -64,8 +62,6 @@ describe("handleChildrenEventTypes", () => {
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -91,8 +87,6 @@ describe("handleChildrenEventTypes", () => {
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -118,6 +112,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -130,8 +125,6 @@ describe("handleChildrenEventTypes", () => {
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -143,10 +136,14 @@ describe("handleChildrenEventTypes", () => {
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: undefined,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           userId: 4,
+          rrSegmentQueryValue: undefined,
+          assignRRMembersUsingSegment: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -182,23 +179,26 @@ describe("handleChildrenEventTypes", () => {
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: "somestring",
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {
           bookingLimits: undefined,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          assignRRMembersUsingSegment: undefined,
+          rrSegmentQueryValue: undefined,
           locations: [],
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          hashedLink: { create: { link: expect.any(String) } },
+          hashedLink: {
+            deleteMany: {},
+          },
+          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {
@@ -221,8 +221,6 @@ describe("handleChildrenEventTypes", () => {
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -247,8 +245,6 @@ describe("handleChildrenEventTypes", () => {
         ],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -274,6 +270,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -287,8 +284,6 @@ describe("handleChildrenEventTypes", () => {
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: ["something"] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
@@ -301,11 +296,15 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          hashedLink: undefined,
+          eventTypeColor: undefined,
+          instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
+          hashedLink: undefined,
+          rrSegmentQueryValue: undefined,
+          assignRRMembersUsingSegment: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -340,21 +339,25 @@ describe("handleChildrenEventTypes", () => {
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: ["something"] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {
           length: 30,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          assignRRMembersUsingSegment: undefined,
+          rrSegmentQueryValue: undefined,
           locations: [],
+          hashedLink: {
+            deleteMany: {},
+          },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {
@@ -385,6 +388,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        autoTranslateDescriptionEnabled,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -405,19 +409,19 @@ describe("handleChildrenEventTypes", () => {
         ],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
-        hashedLink: undefined,
-        connectedLink: null,
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
       });
+
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          hashedLink: undefined,
+          eventTypeColor: undefined,
+          instantMeetingScheduleId: undefined,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -433,6 +437,9 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
+          hashedLink: undefined,
+          rrSegmentQueryValue: undefined,
+          assignRRMembersUsingSegment: false,
         },
       });
       const { profileId, ...rest } = evType;
@@ -441,9 +448,14 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           locations: [],
+          assignRRMembersUsingSegment: undefined,
+          rrSegmentQueryValue: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          hashedLink: undefined,
+          hashedLink: {
+            deleteMany: {},
+          },
+          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {

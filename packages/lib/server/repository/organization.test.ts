@@ -8,7 +8,7 @@ vi.mock("./teamUtils", () => ({
   getParsedTeam: (org: any) => org,
 }));
 
-describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
+describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -17,7 +17,7 @@ describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
   });
 
   it("should return null if no organization matches the email domain", async () => {
-    const result = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({
+    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -25,18 +25,21 @@ describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
   });
 
   it("should throw an error if multiple organizations match the email domain", async () => {
-    await createOrganization({ name: "Test Org 1", orgAutoAcceptEmail: "example.com" });
-    await createOrganization({ name: "Test Org 2", orgAutoAcceptEmail: "example.com" });
+    await createReviewedOrganization({ name: "Test Org 1", orgAutoAcceptEmail: "example.com" });
+    await createReviewedOrganization({ name: "Test Org 2", orgAutoAcceptEmail: "example.com" });
 
     await expect(
-      OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({ email: "test@example.com" })
+      OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email: "test@example.com" })
     ).rejects.toThrow("Multiple organizations found with the same auto accept email domain");
   });
 
   it("should return the parsed organization if a single match is found", async () => {
-    const organization = await createOrganization({ name: "Test Org", orgAutoAcceptEmail: "example.com" });
+    const organization = await createReviewedOrganization({
+      name: "Test Org",
+      orgAutoAcceptEmail: "example.com",
+    });
 
-    const result = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({
+    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -46,7 +49,7 @@ describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
   it("should not confuse a team with organization", async () => {
     await createTeam({ name: "Test Team", orgAutoAcceptEmail: "example.com" });
 
-    const result = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({
+    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -54,9 +57,9 @@ describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
   });
 
   it("should correctly match orgAutoAcceptEmail", async () => {
-    await createOrganization({ name: "Test Org", orgAutoAcceptEmail: "noexample.com" });
+    await createReviewedOrganization({ name: "Test Org", orgAutoAcceptEmail: "noexample.com" });
 
-    const result = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({
+    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -64,7 +67,7 @@ describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
   });
 });
 
-async function createOrganization({
+async function createReviewedOrganization({
   name = "Test Org",
   orgAutoAcceptEmail,
 }: {
@@ -78,6 +81,8 @@ async function createOrganization({
       organizationSettings: {
         create: {
           orgAutoAcceptEmail,
+          isOrganizationVerified: true,
+          isAdminReviewed: true,
         },
       },
     },

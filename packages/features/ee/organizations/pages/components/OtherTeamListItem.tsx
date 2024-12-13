@@ -62,7 +62,7 @@ export default function OtherTeamListItem(props: Props) {
 
   return (
     <li>
-      <div className="hover:bg-muted group flex items-center justify-between">
+      <div className="hover:bg-muted group flex items-center justify-between transition">
         {teamInfo}
         <div className="px-5 py-5">
           <div className="flex space-x-2 rtl:space-x-reverse">

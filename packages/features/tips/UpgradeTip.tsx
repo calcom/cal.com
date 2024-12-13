@@ -23,24 +23,24 @@ export function UpgradeTip({
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
   /**Chldren renders when the user is in a team */
-  children: JSX.Element;
+  children: ReactNode;
   isParentLoading?: ReactNode;
   plan: "team" | "enterprise";
 }) {
-  const { activeTheme } = useGetTheme();
+  const { resolvedTheme } = useGetTheme();
   const { t } = useLocale();
   const { isPending, hasTeamPlan } = useHasTeamPlan();
   const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
-  const imageSrc = `${background}${activeTheme === "dark" ? "-dark" : ""}.jpg`;
+  const imageSrc = `${background}${resolvedTheme === "dark" ? "-dark" : ""}.jpg`;
 
   const hasEnterprisePlan = false;
   //const { isPending , hasEnterprisePlan } = useHasEnterprisePlan();
 
   const hasUnpublishedTeam = !!data?.[0];
 
-  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return children;
+  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return <>{children}</>;
 
-  if (plan === "enterprise" && hasEnterprisePlan) return children;
+  if (plan === "enterprise" && hasEnterprisePlan) return <>{children}</>;
 
   if (isPending) return <>{isParentLoading}</>;
 

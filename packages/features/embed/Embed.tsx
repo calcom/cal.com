@@ -17,7 +17,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,10 +41,17 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EmbedDialogProps = {
+  types: EmbedTypes;
+  tabs: EmbedTabs;
+  eventTypeHideOptionDisabled: boolean;
+  defaultBrandColor: { brandColor: string | null; darkBrandColor: string | null } | null;
+};
 
 const enum Theme {
   auto = "auto",
@@ -114,7 +121,7 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {types.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -122,7 +129,7 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
                 embedType: embed.type,
               });
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
+            <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
             <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
@@ -172,7 +179,7 @@ const EmailEmbed = ({
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug });
+  const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
@@ -420,7 +427,7 @@ const EmailEmbedPreview = ({
                                       selectedDateAndTime[key].map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${WEBSITE_URL}/${
+                                        const bookingURL = `${eventType.bookerUrl}/${
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length
@@ -525,13 +532,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   namespace,
   eventTypeHideOptionDisabled,
   types,
-}: {
+  defaultBrandColor,
+}: EmbedDialogProps & {
   embedType: EmbedType;
   embedUrl: string;
-  tabs: EmbedTabs;
   namespace: string;
   eventTypeHideOptionDisabled: boolean;
-  types: EmbedTypes;
 }) => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
@@ -575,18 +581,40 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
+  const defaultConfig = {
+    layout: BookerLayouts.MONTH_VIEW,
+  };
+
+  const paletteDefaultValue = (paletteName: string) => {
+    if (paletteName === "brandColor") {
+      return defaultBrandColor?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR;
+    }
+
+    if (paletteName === "darkBrandColor") {
+      return defaultBrandColor?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR;
+    }
+
+    return "#000000";
+  };
+
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
-    },
+      config: defaultConfig,
+    } as PreviewState["inline"],
     theme: Theme.auto,
-    layout: BookerLayouts.MONTH_VIEW,
-    floatingPopup: {},
-    elementClick: {},
+    layout: defaultConfig.layout,
+    floatingPopup: {
+      config: defaultConfig,
+    } as PreviewState["floatingPopup"],
+    elementClick: {
+      config: defaultConfig,
+    } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
-      brandColor: "#000000",
+      brandColor: defaultBrandColor?.brandColor ?? null,
+      darkBrandColor: defaultBrandColor?.darkBrandColor ?? null,
     },
   });
 
@@ -606,7 +634,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return null;
   }
 
-  const addToPalette = (update: (typeof previewState)["palette"]) => {
+  const addToPalette = (update: Partial<(typeof previewState)["palette"]>) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -649,11 +677,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
-      styles: {
-        branding: {
-          ...previewState.palette,
-        },
-      },
+      cssVarsPerTheme: buildCssVarsPerTheme({
+        brandColor: previewState.palette.brandColor,
+        darkBrandColor: previewState.palette.darkBrandColor,
+      }),
     },
   });
 
@@ -707,11 +734,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const FloatingPopupPositionOptions = [
     {
-      value: "bottom-right",
+      value: "bottom-right" as const,
       label: "Bottom right",
     },
     {
-      value: "bottom-left",
+      value: "bottom-left" as const,
       label: "Bottom left",
     },
   ];
@@ -941,6 +968,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             setPreviewState((previewState) => {
                               return {
                                 ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  config: {
+                                    ...(previewState.inline.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                floatingPopup: {
+                                  ...previewState.floatingPopup,
+                                  config: {
+                                    ...(previewState.floatingPopup.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                elementClick: {
+                                  ...previewState.elementClick,
+                                  config: {
+                                    ...(previewState.elementClick.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
                                 theme: option.value,
                               };
                             });
@@ -965,7 +1013,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       ) : null}
                       {[
-                        { name: "brandColor", title: "Brand Color" },
+                        { name: "brandColor", title: "light_brand_color" },
+                        { name: "darkBrandColor", title: "dark_brand_color" },
                         // { name: "lightColor", title: "Light Color" },
                         // { name: "lighterColor", title: "Lighter Color" },
                         // { name: "lightestColor", title: "Lightest Color" },
@@ -973,12 +1022,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         // { name: "medianColor", title: "Median Color" },
                       ].map((palette) => (
                         <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{palette.title}</div>
+                          <div className="mb-2">{t(palette.title)}</div>
                           <div className="w-full">
                             <ColorPicker
                               popoverAlign="start"
                               container={dialogContentRef?.current ?? undefined}
-                              defaultValue="#000000"
+                              defaultValue={paletteDefaultValue(palette.name)}
                               onChange={(color) => {
                                 addToPalette({
                                   [palette.name as keyof (typeof previewState)["palette"]]: color,
@@ -1005,6 +1054,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return {
                                 ...previewState,
                                 floatingPopup: {
+                                  ...previewState.floatingPopup,
                                   config,
                                 },
                                 layout: option.value,
@@ -1134,11 +1184,8 @@ export const EmbedDialog = ({
   types,
   tabs,
   eventTypeHideOptionDisabled,
-}: {
-  types: EmbedTypes;
-  tabs: EmbedTabs;
-  eventTypeHideOptionDisabled: boolean;
-}) => {
+  defaultBrandColor,
+}: EmbedDialogProps) => {
   const searchParams = useCompatSearchParams();
   const embedUrl = (searchParams?.get("embedUrl") || "") as string;
   const namespace = (searchParams?.get("namespace") || "") as string;
@@ -1154,6 +1201,7 @@ export const EmbedDialog = ({
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
         />
       )}
     </Dialog>

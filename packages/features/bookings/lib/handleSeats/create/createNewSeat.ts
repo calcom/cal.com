@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import EventManager from "@calcom/core/EventManager";
-import { sendScheduledSeatsEmails } from "@calcom/emails";
+import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -21,7 +21,8 @@ import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } 
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
-  seatedBooking: SeatedBooking
+  seatedBooking: SeatedBooking,
+  metadata?: Record<string, string>
 ) => {
   const {
     tAttendees,
@@ -37,6 +38,7 @@ const createNewSeat = async (
     bookerEmail,
     responses,
     workflows,
+    bookerPhoneNumber,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   let resultBooking: HandleSeatsResultBooking;
@@ -80,6 +82,7 @@ const createNewSeat = async (
       attendees: {
         create: {
           email: inviteeToAdd.email,
+          phoneNumber: inviteeToAdd.phoneNumber,
           name: inviteeToAdd.name,
           timeZone: inviteeToAdd.timeZone,
           locale: inviteeToAdd.language.locale,
@@ -90,6 +93,7 @@ const createNewSeat = async (
                 description: additionalNotes,
                 responses,
               },
+              metadata,
               booking: {
                 connect: {
                   id: seatedBooking.id,
@@ -132,13 +136,14 @@ const createNewSeat = async (
     if (isAttendeeConfirmationEmailDisabled) {
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
     }
-    await sendScheduledSeatsEmails(
+    await sendScheduledSeatsEmailsAndSMS(
       copyEvent,
       inviteeToAdd,
       newSeat,
       !!eventType.seatsShowAttendees,
       isHostConfirmationEmailsDisabled,
-      isAttendeeConfirmationEmailDisabled
+      isAttendeeConfirmationEmailDisabled,
+      eventType.metadata
     );
   }
   const credentials = await refreshCredentials(allCredentials);
@@ -186,7 +191,8 @@ const createNewSeat = async (
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       seatedBooking,
       fullName,
-      bookerEmail
+      bookerEmail,
+      bookerPhoneNumber
     );
 
     resultBooking = { ...foundBooking };

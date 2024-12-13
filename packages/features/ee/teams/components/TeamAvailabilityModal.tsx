@@ -13,7 +13,7 @@ import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
   team?: RouterOutputs["viewer"]["teams"]["get"];
-  member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  member?: RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -86,7 +86,7 @@ export default function TeamAvailabilityModal(props: Props) {
           </div>
 
           <div className="col-span-1 max-h-[500px]">
-            {props.team && props.member && (
+            {props.team?.id && props.member && (
               <TeamAvailabilityTimes
                 teamId={props.team.id}
                 memberId={props.member.id}

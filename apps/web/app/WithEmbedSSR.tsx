@@ -14,7 +14,6 @@ export default function withEmbedSsrAppDir<T extends Record<string, any>>(
 ) {
   return async (context: GetServerSidePropsContext): Promise<T> => {
     const { embed, layout } = context.query;
-
     try {
       const props = await getData(context);
 

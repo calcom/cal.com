@@ -85,6 +85,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   id: 0,
   hideCalendarNotes: false,
+  hideCalendarEventDetails: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
@@ -104,9 +105,16 @@ const commons = {
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,
+  assignRRMembersUsingSegment: false,
+  rrSegmentQueryValue: null,
+  isRRWeightsEnabled: false,
+  rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,
   secondaryEmail: null,
+  autoTranslateDescriptionEnabled: false,
+  fieldTranslations: [],
+  maxLeadThreshold: null,
 };
 
 export const dynamicEvent = {
@@ -169,4 +177,4 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 
 export default defaultEvents;
 
-export type AwaitedGetDefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;
+export type DefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;

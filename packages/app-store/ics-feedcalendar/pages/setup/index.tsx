@@ -94,7 +94,6 @@ export default function ICSFeedSetup() {
 
                 <div className="mt-3 flex items-center">
                   <CheckboxField
-                    type="checkbox"
                     id="skipWriting"
                     checked={skipWriting}
                     onChange={(e) => setSkipWriting(e.target.checked)}

@@ -7,10 +7,13 @@ import { Controller, useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
+import cn from "@calcom/lib/classNames";
 import useApp from "@calcom/lib/hooks/useApp";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { Brand } from "@calcom/types/utils";
 import {
   Alert,
   Badge,
@@ -35,8 +38,8 @@ import {
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
-import { processRoute } from "../lib/processRoute";
-import type { Response, Route, SerializableForm } from "../types/types";
+import { findMatchingRoute } from "../lib/processRoute";
+import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
@@ -95,7 +98,7 @@ const Actions = ({
           tooltip={t("copy_link_to_form")}
         />
 
-        <Tooltip content="Download Responses">
+        <Tooltip content={t("download_responses")}>
           <FormAction
             data-testid="download-responses"
             routingForm={form}
@@ -207,7 +210,7 @@ const Actions = ({
               action="toggle"
               routingForm={form}
               label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
             />
           </div>
         </FormActionsDropdown>
@@ -228,37 +231,374 @@ type SingleFormComponentProps = {
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
-  enrichedWithUserProfileForm?: inferSSRProps<
+  enrichedWithUserProfileForm: inferSSRProps<
     typeof getServerSidePropsForSingleFormView
   >["enrichedWithUserProfileForm"];
+};
+
+type MembersMatchResultType = {
+  isUsingAttributeWeights: boolean;
+  eventTypeRedirectUrl: string | null;
+  contactOwnerEmail: string | null;
+  teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
+  perUserData: {
+    bookingsCount: Record<number, number>;
+    bookingShortfalls: Record<number, number> | null;
+    calibrations: Record<number, number> | null;
+    weights: Record<number, number> | null;
+  } | null;
+  checkedFallback: boolean;
+  mainWarnings: string[] | null;
+  fallbackWarnings: string[] | null;
+} | null;
+
+const TeamMembersMatchResult = ({
+  membersMatchResult,
+  chosenRouteName,
+}: {
+  membersMatchResult: MembersMatchResultType;
+  chosenRouteName: string;
+}) => {
+  const { t } = useLocale();
+  if (!membersMatchResult) return null;
+
+  const hasMainWarnings = (membersMatchResult.mainWarnings?.length ?? 0) > 0;
+  const hasFallbackWarnings = (membersMatchResult.fallbackWarnings?.length ?? 0) > 0;
+
+  const renderFallbackLogicStatus = () => {
+    if (!membersMatchResult.checkedFallback) {
+      return t("fallback_not_needed");
+    } else if (
+      isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic) ||
+      membersMatchResult.teamMembersMatchingAttributeLogic.length > 0
+    ) {
+      return t("yes");
+    } else {
+      return t("no");
+    }
+  };
+
+  const renderMainLogicStatus = () => {
+    return !membersMatchResult.checkedFallback ? t("yes") : t("no");
+  };
+
+  const renderQueue = () => {
+    if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
+      if (membersMatchResult.checkedFallback) {
+        return (
+          <span className="font-semibold">
+            {t(
+              "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
+            )}
+          </span>
+        );
+      }
+      return (
+        <span className="font-semibold">
+          {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
+        </span>
+      );
+    }
+
+    const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic;
+
+    if (matchingMembers.length && membersMatchResult.perUserData) {
+      const perUserData = membersMatchResult.perUserData;
+      return (
+        <span className="font-semibold">
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-2 pr-4">#</th>
+                  <th className="py-2 pr-4">Email</th>
+                  <th className="py-2 pr-4">Bookings</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">Weight</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? <th className="py-2">Calibration</th> : null}
+                  {membersMatchResult.perUserData.bookingShortfalls ? (
+                    <th className="border-l py-2 pl-2">Shortfall</th>
+                  ) : null}
+                </tr>
+              </thead>
+              <tbody>
+                {matchingMembers.map((member, index) => (
+                  <tr key={member.id} className="border-b">
+                    <td className="py-2 pr-4">{index + 1}</td>
+                    <td className="py-2 pr-4">{member.email}</td>
+                    <td className="py-2">{perUserData.bookingsCount[member.id] ?? 0}</td>
+                    {perUserData.weights ? (
+                      <td className="py-2">{perUserData.weights[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.calibrations ? (
+                      <td className="py-2">{perUserData.calibrations[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.bookingShortfalls ? (
+                      <td className="border-l py-2 pl-2">{perUserData.bookingShortfalls[member.id] ?? 0}</td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </span>
+      );
+    }
+
+    return (
+      <span className="font-semibold">
+        {t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
+      </span>
+    );
+  };
+
+  return (
+    <div className="text-default mt-2 space-y-2">
+      <div data-testid="chosen-route">
+        {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
+      </div>
+      <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+        {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
+        {hasMainWarnings && (
+          <Alert className="mt-2" severity="warning" title={membersMatchResult.mainWarnings?.join(", ")} />
+        )}
+      </div>
+      <div data-testid="attribute-logic-fallback-matched" className={cn(hasFallbackWarnings && "text-error")}>
+        {t("attribute_logic_fallback_matched")}:{" "}
+        <span className="font-semibold">{renderFallbackLogicStatus()}</span>
+        {hasFallbackWarnings && (
+          <Alert
+            className="mt-2"
+            severity="warning"
+            title={membersMatchResult.fallbackWarnings?.join(", ")}
+          />
+        )}
+      </div>
+      <div className="mt-4">
+        {membersMatchResult.contactOwnerEmail ? (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}:{" "}
+            <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
+          </div>
+        ) : (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}: <span className="font-semibold">Not found</span>
+          </div>
+        )}
+        <div className="mt-2" data-testid="matching-members">
+          {membersMatchResult.isUsingAttributeWeights
+            ? t("matching_members_queue_using_attribute_weights")
+            : t("matching_members_queue_using_event_assignee_weights")}
+          {renderQueue()}
+        </div>
+      </div>
+    </div>
+  );
+
+  function isNoLogicFound(
+    teamMembersMatchingAttributeLogic: NonNullable<MembersMatchResultType>["teamMembersMatchingAttributeLogic"]
+  ): teamMembersMatchingAttributeLogic is null {
+    return teamMembersMatchingAttributeLogic === null;
+  }
+};
+
+/**
+ * It has the the ongoing changes in the form along with enrichedWithUserProfileForm specific data.
+ * So, it can be used to test the form in the test preview dialog without saving the changes even.
+ */
+type UptoDateForm = Brand<
+  NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
+  "UptoDateForm"
+>;
+
+export const TestFormDialog = ({
+  form,
+  isTestPreviewOpen,
+  setIsTestPreviewOpen,
+}: {
+  form: UptoDateForm;
+  isTestPreviewOpen: boolean;
+  setIsTestPreviewOpen: (value: boolean) => void;
+}) => {
+  const { t } = useLocale();
+  const [response, setResponse] = useState<FormResponse>({});
+  const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
+  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
+  const searchParams = useCompatSearchParams();
+  const isTeamForm = !!form.teamId;
+  const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
+
+  const resetMembersMatchResult = () => {
+    setMembersMatchResult(null);
+  };
+  const findTeamMembersMatchingAttributeLogicMutation =
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
+      onSuccess(data) {
+        setMembersMatchResult({
+          isUsingAttributeWeights: data.isUsingAttributeWeights,
+          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
+          contactOwnerEmail: data.contactOwnerEmail,
+          teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
+          perUserData: data.result ? data.result.perUserData : null,
+          checkedFallback: data.checkedFallback,
+          mainWarnings: data.mainWarnings,
+          fallbackWarnings: data.fallbackWarnings,
+        });
+      },
+      onError(e) {
+        if (e instanceof TRPCClientError) {
+          showToast(e.message, "error");
+        } else {
+          showToast(t("something_went_wrong"), "error");
+        }
+      },
+    });
+
+  function testRouting() {
+    const route = findMatchingRoute({ form, response });
+    let eventTypeRedirectUrl: string | null = null;
+
+    if (route?.action?.type === "eventTypeRedirectUrl") {
+      eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+        eventTypeRedirectUrl: route.action.value,
+        form,
+        allURLSearchParams: new URLSearchParams(),
+      });
+      setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+    }
+
+    setChosenRoute(route || null);
+
+    if (!route) return;
+
+    if (isTeamForm) {
+      findTeamMembersMatchingAttributeLogicMutation.mutate({
+        formId: form.id,
+        response,
+        route,
+        isPreview: true,
+        _enablePerf: searchParams.get("enablePerf") === "true",
+      });
+    }
+  }
+
+  const renderTestResult = () => {
+    if (!form.routes || !chosenRoute) return null;
+
+    const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
+
+    const chosenRouteName = () => {
+      if (chosenRoute.isFallback) {
+        return t("fallback_route");
+      }
+      return `Route ${chosenRouteIndex + 1}`;
+    };
+
+    return (
+      <div className="bg-subtle text-default mt-5 rounded-md p-3">
+        <div className="font-bold ">{t("route_to")}:</div>
+        <div className="mt-2">
+          {RoutingPages.map((page) => {
+            if (page.value !== chosenRoute.action.type) return null;
+            return (
+              <span key={page.value} data-testid="test-routing-result-type">
+                {page.label}
+              </span>
+            );
+          })}
+          :{" "}
+          {chosenRoute.action.type === "customPageMessage" ? (
+            <span className="text-default" data-testid="test-routing-result">
+              {chosenRoute.action.value}
+            </span>
+          ) : chosenRoute.action.type === "externalRedirectUrl" ? (
+            <span className="text-default underline">
+              <a
+                target="_blank"
+                data-testid="test-routing-result"
+                href={
+                  chosenRoute.action.value.includes("https://") ||
+                  chosenRoute.action.value.includes("http://")
+                    ? chosenRoute.action.value
+                    : `http://${chosenRoute.action.value}`
+                }
+                rel="noreferrer">
+                {chosenRoute.action.value}
+              </a>
+            </span>
+          ) : (
+            <div className="flex flex-col space-y-2">
+              <span className="text-default underline">
+                <a
+                  target="_blank"
+                  className={cn(
+                    findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
+                  )}
+                  href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
+                  rel="noreferrer"
+                  data-testid="test-routing-result">
+                  {chosenRoute.action.value}
+                </a>
+              </span>
+              {isTeamForm ? (
+                !findTeamMembersMatchingAttributeLogicMutation.isPending ? (
+                  <div>
+                    <TeamMembersMatchResult
+                      chosenRouteName={chosenRouteName()}
+                      membersMatchResult={membersMatchResult}
+                    />
+                  </div>
+                ) : (
+                  <div>Loading...</div>
+                )
+              ) : null}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
+      <DialogContent size="md" enableOverflow>
+        <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+        <div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              resetMembersMatchResult();
+              testRouting();
+            }}>
+            <div className="px-1">
+              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+            </div>
+            <div>{renderTestResult()}</div>
+            <DialogFooter>
+              <DialogClose
+                color="secondary"
+                onClick={() => {
+                  setIsTestPreviewOpen(false);
+                  setChosenRoute(null);
+                  setResponse({});
+                }}>
+                {t("close")}
+              </DialogClose>
+              <Button type="submit" data-testid="test-routing">
+                {t("test_routing")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
-
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
-  const [response, setResponse] = useState<Response>({});
-  const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
-  const [eventTypeUrl, setEventTypeUrl] = useState("");
-
-  function testRouting() {
-    const action = processRoute({ form, response });
-    if (action.type === "eventTypeRedirectUrl") {
-      setEventTypeUrl(
-        enrichedWithUserProfileForm
-          ? getAbsoluteEventTypeRedirectUrl({
-              eventTypeRedirectUrl: action.value,
-              form: enrichedWithUserProfileForm,
-              allURLSearchParams: new URLSearchParams(),
-            })
-          : ""
-      );
-    }
-    setDecidedAction(action);
-  }
-
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -288,7 +628,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
   const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
-
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
@@ -305,6 +644,17 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     },
   });
   const connectedForms = form.connectedForms;
+
+  const uptoDateForm = {
+    ...hookForm.getValues(),
+    routes: hookForm.watch("routes"),
+    user: enrichedWithUserProfileForm.user,
+    team: enrichedWithUserProfileForm.team,
+    nonOrgUsername: enrichedWithUserProfileForm.nonOrgUsername,
+    nonOrgTeamslug: enrichedWithUserProfileForm.nonOrgTeamslug,
+    userOrigin: enrichedWithUserProfileForm.userOrigin,
+    teamOrigin: enrichedWithUserProfileForm.teamOrigin,
+  } as UptoDateForm;
 
   return (
     <>
@@ -335,7 +685,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
+                <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
                   <TextField
                     type="text"
                     containerClassName="mb-6"
@@ -358,17 +708,21 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
+                          teamId={form.teamId}
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
-                            label: member.name || "",
+                            label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
+                            defaultScheduleId: member.defaultScheduleId,
                           }))}
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
-                            priority: 1,
+                            priority: 2,
+                            weight: 100,
+                            scheduleId: 1,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(
@@ -501,84 +855,11 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
-      <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent enableOverflow>
-          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-          <div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                testRouting();
-              }}>
-              <div className="px-1">
-                {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-              </div>
-              <div>
-                {decidedAction && (
-                  <div className="bg-subtle text-default mt-5 rounded-md p-3">
-                    <div className="font-bold ">{t("route_to")}:</div>
-                    <div className="mt-2">
-                      {RoutingPages.map((page) => {
-                        if (page.value !== decidedAction.type) return null;
-                        return (
-                          <span key={page.value} data-testid="test-routing-result-type">
-                            {page.label}
-                          </span>
-                        );
-                      })}
-                      :{" "}
-                      {decidedAction.type === "customPageMessage" ? (
-                        <span className="text-default" data-testid="test-routing-result">
-                          {decidedAction.value}
-                        </span>
-                      ) : decidedAction.type === "externalRedirectUrl" ? (
-                        <span className="text-default underline">
-                          <a
-                            target="_blank"
-                            data-testid="test-routing-result"
-                            href={
-                              decidedAction.value.includes("https://") ||
-                              decidedAction.value.includes("http://")
-                                ? decidedAction.value
-                                : `http://${decidedAction.value}`
-                            }
-                            rel="noreferrer">
-                            {decidedAction.value}
-                          </a>
-                        </span>
-                      ) : (
-                        <span className="text-default underline">
-                          <a
-                            target="_blank"
-                            href={eventTypeUrl}
-                            rel="noreferrer"
-                            data-testid="test-routing-result">
-                            {decidedAction.value}
-                          </a>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <DialogClose
-                  color="secondary"
-                  onClick={() => {
-                    setIsTestPreviewOpen(false);
-                    setDecidedAction(null);
-                    setResponse({});
-                  }}>
-                  {t("close")}
-                </DialogClose>
-                <Button type="submit" data-testid="test-routing">
-                  {t("test_routing")}
-                </Button>
-              </DialogFooter>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TestFormDialog
+        form={uptoDateForm}
+        isTestPreviewOpen={isTestPreviewOpen}
+        setIsTestPreviewOpen={setIsTestPreviewOpen}
+      />
     </>
   );
 }

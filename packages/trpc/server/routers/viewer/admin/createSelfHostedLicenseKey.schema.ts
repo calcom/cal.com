@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
+
 const BillingType = z.enum(["PER_BOOKING", "PER_USER"]);
 const BillingPeriod = z.enum(["MONTHLY", "ANNUALLY"]);
 
@@ -9,7 +11,7 @@ export const ZCreateSelfHostedLicenseSchema = z.object({
   entityPrice: z.number().nonnegative(),
   billingPeriod: BillingPeriod,
   overages: z.number().nonnegative(),
-  billingEmail: z.string().email(),
+  billingEmail: emailSchema,
 });
 
 export type TCreateSelfHostedLicenseSchema = z.infer<typeof ZCreateSelfHostedLicenseSchema>;
