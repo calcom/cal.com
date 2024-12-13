@@ -422,10 +422,12 @@ class EventsInsights {
           select: {
             name: true,
             email: true,
+            noShow: true,
           },
         },
       },
     });
+
     const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
 
     return csvData.map((bookingTimeStatus) => {
@@ -442,6 +444,7 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
+        noShowGuest: booker.noShow,
         bookerEmail: booker.email,
         bookerName: booker.name,
       };
