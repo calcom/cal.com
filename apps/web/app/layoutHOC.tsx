@@ -16,18 +16,6 @@ type WithLayoutParams<T extends Record<string, any>> = {
   requiresLicense?: boolean;
 };
 
-export function generateMetadata() {
-  return {
-    viewport: {
-      width: "device-width",
-      initialScale: 1.0,
-      maximumScale: 1.0,
-      userScalable: false,
-      viewportFit: "cover",
-    },
-  };
-}
-
 export function WithLayout<T extends Record<string, any>>({
   getLayout,
   getServerLayout,
