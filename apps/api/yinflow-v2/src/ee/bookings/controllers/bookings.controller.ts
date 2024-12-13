@@ -454,7 +454,7 @@ export class BookingsController {
       },
     });
 
-    const result = response.url;
+    const result = [response.body, response.status];
 
     const { data: allBookingsUpdated } = await supabase
       .from("Booking")
