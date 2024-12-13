@@ -191,6 +191,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
           create: {
             memberId: membership.id,
             attributeOptionId: option.value,
+            weight: option.weight,
           },
           update: {}, // No update needed if it already exists
           select: {
