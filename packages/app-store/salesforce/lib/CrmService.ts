@@ -6,14 +6,12 @@ import { z } from "zod";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
@@ -24,6 +22,7 @@ import {
   DateFieldTypeData,
   RoutingReasons,
 } from "./enums";
+import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -82,17 +81,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private getClient = async (credential: CredentialPayload) => {
-    let consumer_key = "";
-    let consumer_secret = "";
-
-    const appKeys = await getAppKeysFromSlug("salesforce");
-    if (typeof appKeys.consumer_key === "string") consumer_key = appKeys.consumer_key;
-    if (typeof appKeys.consumer_secret === "string") consumer_secret = appKeys.consumer_secret;
-    if (!consumer_key)
-      throw new HttpError({ statusCode: 400, message: "Salesforce consumer key is missing." });
-    if (!consumer_secret)
-      throw new HttpError({ statusCode: 400, message: "Salesforce consumer secret missing." });
-
+    const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
     try {
       /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
@@ -198,6 +187,11 @@ export default class SalesforceCRMService implements CRM {
     }
 
     const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
+    /**
+     * Current code assume that contacts is not empty.
+     * I'm not going to reject the promise since I don't know if this is a valid assumption.
+     **/
+    const [firstContact] = contacts;
 
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
@@ -213,19 +207,20 @@ export default class SalesforceCRMService implements CRM {
         // User has not configured "Allow Users to Relate Multiple Contacts to Tasks and Events"
         // proceeding to create the event using just the first attendee as the primary WhoId
         return await this.salesforceCreateEventApiCall(event, {
-          WhoId: contacts[0],
-        });
-      } else {
-        return Promise.reject();
+          WhoId: firstContact,
+        }).catch((reason) => Promise.reject(reason));
       }
+      return Promise.reject(reason);
     });
     // Check to see if we also need to change the record owner
     if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
-      await this.checkRecordOwnerNameFromRecordId(contacts[0].id, ownerId);
+      // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
+      await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
     }
     if (appOptions.onBookingWriteToRecord && appOptions.onBookingWriteToRecordFields) {
       await this.writeToPersonRecord(
-        contacts[0].id,
+        // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
+        firstContact.id,
         event.startTime,
         event.organizer.email,
         event.responses,
@@ -259,17 +254,17 @@ export default class SalesforceCRMService implements CRM {
   async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
-      this.log.debug("event:creation:ok", { sfEvent });
-      return Promise.resolve({
+      this.log.info("event:creation:ok", { sfEvent });
+      return {
         uid: sfEvent.id,
         id: sfEvent.id,
         type: "salesforce_other_calendar",
         password: "",
         url: "",
         additionalInfo: { contacts, sfEvent, calWarnings: this.calWarnings },
-      });
+      };
     }
-    this.log.debug("event:creation:notOk", { event, sfEvent, contacts });
+    this.log.info("event:creation:notOk", { event, sfEvent, contacts });
     return Promise.reject({
       calError: "Something went wrong when creating an event in Salesforce",
     });
@@ -281,14 +276,14 @@ export default class SalesforceCRMService implements CRM {
 
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
-      return Promise.resolve({
+      return {
         uid: sfEvent.id,
         id: sfEvent.id,
         type: "salesforce_other_calendar",
         password: "",
         url: "",
         additionalInfo: { contacts, sfEvent, calWarnings: this.calWarnings },
-      });
+      };
     }
     this.log.debug("event:creation:notOk", { event, sfEvent, contacts });
     return Promise.reject("Something went wrong when creating an event in Salesforce");
@@ -297,14 +292,14 @@ export default class SalesforceCRMService implements CRM {
   async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
     const updatedEvent = await this.salesforceUpdateEvent(uid, event);
     if (updatedEvent.success) {
-      return Promise.resolve({
+      return {
         uid: updatedEvent.id,
         id: updatedEvent.id,
         type: "salesforce_other_calendar",
         password: "",
         url: "",
         additionalInfo: { calWarnings: this.calWarnings },
-      });
+      };
     } else {
       return Promise.reject({ calError: "Something went wrong when updating the event in Salesforce" });
     }
@@ -477,16 +472,16 @@ export default class SalesforceCRMService implements CRM {
             createdContacts.push(...createdAccountContacts);
           }
         }
+      } else {
+        await this.createAttendeeRecord({
+          attendee,
+          recordType: SalesforceRecordEnum.LEAD,
+          organizerId,
+          calEventResponses,
+        }).then((result) => {
+          createdContacts.push(...result);
+        });
       }
-
-      await this.createAttendeeRecord({
-        attendee,
-        recordType: SalesforceRecordEnum.LEAD,
-        organizerId,
-        calEventResponses,
-      }).then((result) => {
-        createdContacts.push(...result);
-      });
     }
 
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
@@ -771,9 +766,16 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
 
+    if (!appOptions?.createEventOn) {
+      this.log.warn(
+        `No appOptions.createEventOn found for ${this.integrationName} on checkRecordOwnerNameFromRecordId`
+      );
+      return;
+    }
+
     // Get the associated record that the event was created on
     const recordQuery = (await conn.query(
-      `SELECT OwnerId FROM ${appOptions?.createEventOn} WHERE Id = '${id}'`
+      `SELECT OwnerId FROM ${appOptions.createEventOn} WHERE Id = '${id}'`
     )) as { records: { OwnerId: string }[] };
 
     if (!recordQuery || !recordQuery.records.length) return;
@@ -844,7 +846,10 @@ export default class SalesforceCRMService implements CRM {
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
 
     const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
-    if (!personRecord) return;
+    if (!personRecord) {
+      this.log.warn(`No personRecord found for contactId ${contactId}`);
+      return;
+    }
 
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
@@ -857,10 +862,15 @@ export default class SalesforceCRMService implements CRM {
     });
 
     // Update the person record
-    await conn.sobject(personRecordType).update({
-      Id: contactId,
-      ...writeOnRecordBody,
-    });
+    await conn
+      .sobject(personRecordType)
+      .update({
+        Id: contactId,
+        ...writeOnRecordBody,
+      })
+      .catch((e) => {
+        this.log.error(`Error updating person record for contactId ${contactId}`, e);
+      });
   }
 
   private async buildRecordUpdatePayload({
