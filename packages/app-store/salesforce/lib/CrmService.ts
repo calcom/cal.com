@@ -7,6 +7,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -62,16 +63,18 @@ const salesforceTokenSchema = z.object({
 
 export default class SalesforceCRMService implements CRM {
   private integrationName = "";
-  private conn: Promise<jsforce.Connection>;
+  private conn!: Promise<jsforce.Connection>;
   private log: typeof logger;
   private calWarnings: string[] = [];
   private appOptions: any;
   private doNotCreateEvent = false;
   private fallbackToContact = false;
 
-  constructor(credential: CredentialPayload, appOptions: any) {
+  constructor(credential: CredentialPayload, appOptions: any, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
-    this.conn = this.getClient(credential).then((c) => c);
+    if (!testMode) {
+      this.conn = this.getClient(credential).then((c) => c);
+    }
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.appOptions = appOptions;
   }
@@ -336,26 +339,29 @@ export default class SalesforceCRMService implements CRM {
       let soql: string;
       let accountOwnerId = "";
 
-      log.info("Getting contacts for emails", {
-        emailArray,
-        includeOwner,
-        forRoundRobinSkip,
-        recordToSearch,
-        appOptions,
-      });
+      log.info(
+        "Getting contacts for emails",
+        safeStringify({
+          emailArray,
+          includeOwner,
+          forRoundRobinSkip,
+          recordToSearch,
+          appOptions,
+        })
+      );
 
       // Handle Account record type
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
         // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
-        log.info("Searching account for email", { attendeeEmail });
+        log.info("Searching account for email", safeStringify({ attendeeEmail }));
 
         soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
 
         // If this is for a round robin skip then we need to return the account record
         if (forRoundRobinSkip) {
           const results = await conn.query(soql);
-          log.info("Account contact search results", { resultCount: results.records.length });
+          log.info("Account contact search results", safeStringify({ resultCount: results.records.length }));
 
           if (results.records?.length) {
             const contact = results.records[0] as { AccountId?: string };
@@ -379,7 +385,7 @@ export default class SalesforceCRMService implements CRM {
       }
 
       const results = await conn.query(soql);
-      log.info("Query results", { recordCount: results.records?.length });
+      log.info("Query results", safeStringify({ recordCount: results.records?.length }));
 
       // If we're checking against the contact, the ownerId should take precedence
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records?.length) {
@@ -406,9 +412,12 @@ export default class SalesforceCRMService implements CRM {
         if (contactSearch?.records?.length > 0) {
           records = contactSearch.records as ContactRecord[];
           this.setFallbackToContact(true);
-          log.info("Found matching contacts, falling back to contact", {
-            contactCount: records.length,
-          });
+          log.info(
+            "Found matching contacts, falling back to contact",
+            safeStringify({
+              contactCount: records.length,
+            })
+          );
         }
       }
 
@@ -504,7 +513,7 @@ export default class SalesforceCRMService implements CRM {
         })
         .filter((record): record is NonNullable<typeof record> => record !== null);
     } catch (error) {
-      log.error("Error in getContacts", { error });
+      log.error("Error in getContacts", safeStringify({ error }));
       return [];
     }
   }

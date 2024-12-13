@@ -1,3 +1,5 @@
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -9,6 +11,8 @@ describe("SalesforceCRMService", () => {
   let service: SalesforceCRMService;
   let mockConnection: { query: any };
 
+  setupAndTeardown();
+
   beforeEach(() => {
     mockConnection = {
       query: vi.fn(),
@@ -16,7 +20,7 @@ describe("SalesforceCRMService", () => {
 
     const mockCredential: CredentialPayload = {
       id: 1,
-      type: "salesforce_other_calendar",
+      type: "salesforce_crm",
       key: {
         access_token: "mock_token",
         refresh_token: "mock_refresh",
@@ -31,7 +35,7 @@ describe("SalesforceCRMService", () => {
       },
     };
 
-    service = new SalesforceCRMService(mockCredential, {});
+    service = new SalesforceCRMService(mockCredential, {}, true);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     service.conn = Promise.resolve(mockConnection);
@@ -180,10 +184,14 @@ describe("SalesforceCRMService", () => {
     });
 
     it("should handle account record type with round robin skip", async () => {
-      service = new SalesforceCRMService({} as CredentialPayload, {
-        createEventOn: SalesforceRecordEnum.ACCOUNT,
-        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.ACCOUNT,
-      });
+      service = new SalesforceCRMService(
+        {} as CredentialPayload,
+        {
+          createEventOn: SalesforceRecordEnum.ACCOUNT,
+          roundRobinSkipCheckRecordOn: SalesforceRecordEnum.ACCOUNT,
+        },
+        true
+      );
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       service.conn = Promise.resolve(mockConnection);
