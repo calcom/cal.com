@@ -669,15 +669,15 @@ export class BookingsController {
       }
     );
 
-    const { data: references } = await supabase
+    const { data: references } = (await supabase
       .from("BookingReference")
       .delete()
       .eq("bookingId", bookingToDelete.id)
-      .select("*");
+      .select("*")) as any;
 
     const eventManager = new EventManager({ ...user, credentials });
 
-    await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+    await eventManager.cancelEvent(evt, references, isBookingInRecurringSeries);
 
     const webhookTriggerPromises = [] as Promise<unknown>[];
     const workflowReminderPromises = [] as Promise<unknown>[];
