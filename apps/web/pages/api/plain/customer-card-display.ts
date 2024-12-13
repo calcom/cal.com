@@ -7,7 +7,6 @@ export default (
   username: string,
   timeZone: string,
   emailVerified: Date | null,
-  plan: string,
   identityProvider: string,
   twoFactorEnabled: boolean | null
 ): Card => {
@@ -131,30 +130,6 @@ export default (
             {
               componentText: {
                 text: timeZone || "Unknown",
-              },
-            },
-          ],
-        },
-      },
-      {
-        componentSpacer: {
-          spacerSize: "M",
-        },
-      },
-      {
-        componentRow: {
-          rowMainContent: [
-            {
-              componentText: {
-                text: "Plan",
-                textColor: "MUTED",
-              },
-            },
-          ],
-          rowAsideContent: [
-            {
-              componentText: {
-                text: plan || "Unknown",
               },
             },
           ],

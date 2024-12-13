@@ -30,9 +30,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid customer data" });
     }
 
-    // Fetch user details from the database using Prisma
+    // Fetch specific user details from the database using Prisma
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        email: true,
+        id: true,
+        username: true,
+        timeZone: true,
+        emailVerified: true,
+        identityProvider: true,
+        twoFactorEnabled: true,
+      },
     });
 
     if (!user) {
@@ -159,30 +168,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     {
                       componentText: {
                         text: timeZone || "Unknown",
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                componentSpacer: {
-                  spacerSize: "M",
-                },
-              },
-              {
-                componentRow: {
-                  rowMainContent: [
-                    {
-                      componentText: {
-                        text: "Plan",
-                        textColor: "MUTED",
-                      },
-                    },
-                  ],
-                  rowAsideContent: [
-                    {
-                      componentText: {
-                        text: plan || "Unknown",
                       },
                     },
                   ],

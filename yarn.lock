@@ -4332,9 +4332,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/atoms@npm:1.0.60":
-  version: 1.0.60
-  resolution: "@calcom/atoms@npm:1.0.60"
+"@calcom/atoms@npm:1.0.74":
+  version: 1.0.74
+  resolution: "@calcom/atoms@npm:1.0.74"
   dependencies:
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-slot": ^1.0.2
@@ -4343,6 +4343,8 @@ __metadata:
     "@tanstack/react-query": ^5.17.15
     class-variance-authority: ^0.7.0
     clsx: ^2.0.0
+    dompurify: ^3.2.3
+    marked: ^15.0.3
     react-use: ^17.4.2
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
@@ -4350,7 +4352,7 @@ __metadata:
   peerDependencies:
     react: ">=18.0.0"
     typescript: ">=5.4.5"
-  checksum: b216d40948ca1a96d8374c0f9878c1c9b5776b2b6cc569ba7fb344fec360fe4a43f23f97a4d82e4c5ad75c83ea6c8b63de079088598594564bf44d00d7cb9b42
+  checksum: d0f528acc77019eda8aee06822cee0f7af1d8ea3f6f147c48ac08b826b33c1adccec2c86ed21adb58a550bbeb9204ca8af412a29022b25e071fd4e06c27bb7be
   languageName: node
   linkType: hard
 
@@ -5820,7 +5822,7 @@ __metadata:
   dependencies:
     "@algora/sdk": ^0.1.2
     "@calcom/app-store": "*"
-    "@calcom/atoms": 1.0.60
+    "@calcom/atoms": 1.0.74
     "@calcom/config": "*"
     "@calcom/dayjs": "*"
     "@calcom/embed-react": "workspace:^"
@@ -5846,7 +5848,7 @@ __metadata:
     "@next/bundle-analyzer": ^13.1.6
     "@radix-ui/react-accordion": ^1.0.0
     "@radix-ui/react-avatar": ^1.0.4
-    "@radix-ui/react-dropdown-menu": ^2.1.2
+    "@radix-ui/react-dropdown-menu": ^2.0.5
     "@radix-ui/react-navigation-menu": ^1.0.0
     "@radix-ui/react-portal": ^1.0.0
     "@radix-ui/react-select": ^2.1.1
@@ -12910,31 +12912,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-dropdown-menu@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "@radix-ui/react-dropdown-menu@npm:2.1.2"
-  dependencies:
-    "@radix-ui/primitive": 1.1.0
-    "@radix-ui/react-compose-refs": 1.1.0
-    "@radix-ui/react-context": 1.1.1
-    "@radix-ui/react-id": 1.1.0
-    "@radix-ui/react-menu": 2.1.2
-    "@radix-ui/react-primitive": 2.0.0
-    "@radix-ui/react-use-controllable-state": 1.1.0
-  peerDependencies:
-    "@types/react": "*"
-    "@types/react-dom": "*"
-    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
-    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-dom":
-      optional: true
-  checksum: 9b5036e6c7707d92c6ab27e73619e9db73d6adc5dd07b708add7e9d21dae20cfe7932b2ceed6120a0521415ebd3c6fc37d2be93926d80adeb5e2df7d9f632184
-  languageName: node
-  linkType: hard
-
 "@radix-ui/react-focus-guards@npm:1.0.0":
   version: 1.0.0
   resolution: "@radix-ui/react-focus-guards@npm:1.0.0"
@@ -13178,42 +13155,6 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 938623497ffa4dc5290e572dc80bd0b36af910adfe15632290b6e081543e9a7158db954ccced0c9ab0f68bac512dfb772c057a55ece0e1d1e20633cd21057afe
-  languageName: node
-  linkType: hard
-
-"@radix-ui/react-menu@npm:2.1.2":
-  version: 2.1.2
-  resolution: "@radix-ui/react-menu@npm:2.1.2"
-  dependencies:
-    "@radix-ui/primitive": 1.1.0
-    "@radix-ui/react-collection": 1.1.0
-    "@radix-ui/react-compose-refs": 1.1.0
-    "@radix-ui/react-context": 1.1.1
-    "@radix-ui/react-direction": 1.1.0
-    "@radix-ui/react-dismissable-layer": 1.1.1
-    "@radix-ui/react-focus-guards": 1.1.1
-    "@radix-ui/react-focus-scope": 1.1.0
-    "@radix-ui/react-id": 1.1.0
-    "@radix-ui/react-popper": 1.2.0
-    "@radix-ui/react-portal": 1.1.2
-    "@radix-ui/react-presence": 1.1.1
-    "@radix-ui/react-primitive": 2.0.0
-    "@radix-ui/react-roving-focus": 1.1.0
-    "@radix-ui/react-slot": 1.1.0
-    "@radix-ui/react-use-callback-ref": 1.1.0
-    aria-hidden: ^1.1.1
-    react-remove-scroll: 2.6.0
-  peerDependencies:
-    "@types/react": "*"
-    "@types/react-dom": "*"
-    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
-    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-dom":
-      optional: true
-  checksum: 7d9a0f097590ee464ffb0f13fdec0c4bacd7cab011a5b7906139f03a76af4b32c35dd54e30d9da733673cd0e03a5e98bec2a65cf0ec1d8c18fdb7758c646e9f8
   languageName: node
   linkType: hard
 
