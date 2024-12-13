@@ -440,34 +440,46 @@ export class BookingsController {
       .eq("uid", bookingId)
       .single();
 
-    const response = await fetch("https://agenda.yinflow.life/api/cancel", {
-      body: JSON.stringify({
-        uid: bookingId,
-        cancellationReason: cancellationReason,
-        allRemainingBookings,
-        seatReferenceUid: bookingToDelete.seatReferenceUid,
-        cancelledBy: bookingToDelete.userPrimaryEmail,
-      }),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const response = await fetch("https://agenda.yinflow.life/api/cancel", {
+        body: JSON.stringify({
+          uid: bookingId,
+          cancellationReason: cancellationReason,
+          allRemainingBookings,
+          seatReferenceUid: bookingToDelete.seatReferenceUid,
+          cancelledBy: bookingToDelete.userPrimaryEmail,
+        }),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    const result = [response.body, response.status];
+      if (!response.ok) throw new HttpError(response.statusText, response.status);
 
-    const { data: allBookingsUpdated } = await supabase
-      .from("Booking")
-      .select("*")
-      .or(`uid.eq.${bookingId}, recurringEventId.eq.${bookingToDelete.recurringEventId}`);
+      const { data: allBookingsUpdated } = await supabase
+        .from("Booking")
+        .select("*")
+        .or(`uid.eq.${bookingId}, recurringEventId.eq.${bookingToDelete.recurringEventId}`);
 
-    return {
-      onlyRemovedAttendee: false,
-      bookingId: bookingToDelete.id,
-      bookingUid: bookingId,
-      updatedBookings: allBookingsUpdated,
-      response: result,
-    };
+      return {
+        onlyRemovedAttendee: false,
+        bookingId: bookingToDelete.id,
+        bookingUid: bookingId,
+        updatedBookings: allBookingsUpdated,
+      };
+    } catch (err) {
+      return {
+        err,
+        body: {
+          uid: bookingId,
+          cancellationReason: cancellationReason,
+          allRemainingBookings,
+          seatReferenceUid: bookingToDelete.seatReferenceUid,
+          cancelledBy: bookingToDelete.userPrimaryEmail,
+        },
+      };
+    }
   }
 
   private handleBookingErrors(
