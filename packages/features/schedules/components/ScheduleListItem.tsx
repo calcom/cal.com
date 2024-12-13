@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -39,20 +38,12 @@ export function ScheduleListItem({
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
 }) {
   const { t, i18n } = useLocale();
-  const router = useRouter();
 
   const { data, isPending } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule.id });
 
-  // Prefetch the schedule data when hovering over the link
-  const handleMouseEnter = () => {
-    router.prefetch(`/availability/${schedule.id}`);
-  };
-
   return (
     <li key={schedule.id}>
-      <div
-        className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0"
-        onMouseEnter={handleMouseEnter}>
+      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
         <div className="group flex w-full items-center justify-between sm:px-6">
           <Link
             href={`/availability/${schedule.id}`}
