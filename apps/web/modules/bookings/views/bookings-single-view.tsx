@@ -31,7 +31,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -258,9 +258,7 @@ export default function Success(props: PageProps) {
   }, [telemetry]); */
 
   useEffect(() => {
-    setDate(
-      date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London")
-    );
+    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
