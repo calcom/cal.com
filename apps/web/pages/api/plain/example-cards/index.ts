@@ -7,7 +7,6 @@ export const cardExamples: ((
   username: string,
   timeZone: string,
   emailVerified: Date | null,
-  plan: string,
   identityProvider: string,
   twoFactorEnabled: boolean | null
 ) => Card)[] = [customerCardDisplay];

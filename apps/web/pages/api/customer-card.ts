@@ -23,8 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Cache-Control", "no-cache");
 
     const { cardKeys, customer } = req.body;
-    const { email, id, username, timeZone, emailVerified, plan, identityProvider, twoFactorEnabled } =
-      customer;
+    const { email, id, username, timeZone, emailVerified, identityProvider, twoFactorEnabled } = customer;
 
     if (!email) {
       return res.status(400).json({ error: "Invalid customer data" });
@@ -233,7 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch the card data using the cardExamples function
     const cards = await Promise.all(
       cardExamples.map(async (cardFn) => {
-        return cardFn(email, id, username, timeZone, emailVerified, plan, identityProvider, twoFactorEnabled);
+        return cardFn(email, id, username, timeZone, emailVerified, identityProvider, twoFactorEnabled);
       })
     );
 
