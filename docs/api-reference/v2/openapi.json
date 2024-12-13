@@ -5571,6 +5571,12 @@
             ],
             "type": "string",
             "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
           }
         },
         "required": [
@@ -5677,6 +5683,11 @@
             ],
             "type": "string",
             "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
           }
         },
         "required": ["email", "name"]
@@ -5791,6 +5802,11 @@
             ],
             "type": "string",
             "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
           },
           "email": {
             "type": "string"
@@ -6924,6 +6940,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
@@ -8485,6 +8506,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": ["lengthInMinutesOptions"]
@@ -8712,13 +8738,35 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Name of the team",
+            "example": "CalTeam"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "description": "Team slug",
+            "example": "caltel"
           },
           "logoUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+            "description": "URL of the teams logo image"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
+            "description": "URL of the teams banner image which is shown on booker"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London",
+            "example": "America/New_York",
+            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday",
+            "example": "Monday"
           },
           "calVideoLogo": {
             "type": "string"
@@ -8754,19 +8802,8 @@
           "darkBrandColor": {
             "type": "string"
           },
-          "bannerUrl": {
-            "type": "string"
-          },
           "timeFormat": {
             "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday"
           },
           "bookingLimits": {
             "type": "string"
@@ -8781,13 +8818,35 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Name of the team",
+            "example": "CalTeam"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "description": "Team slug",
+            "example": "caltel"
           },
           "logoUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+            "description": "URL of the teams logo image"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
+            "description": "URL of the teams banner image which is shown on booker"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London",
+            "example": "America/New_York",
+            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday",
+            "example": "Monday"
           },
           "calVideoLogo": {
             "type": "string"
@@ -8823,19 +8882,8 @@
           "darkBrandColor": {
             "type": "string"
           },
-          "bannerUrl": {
-            "type": "string"
-          },
           "timeFormat": {
             "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday"
           },
           "autoAcceptCreator": {
             "type": "boolean",
@@ -9797,6 +9845,11 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
           "schedulingType": {
             "type": "object"
           },
@@ -9857,6 +9910,11 @@
           "name": {
             "type": "string",
             "example": "John Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
           }
         },
         "required": ["userId", "name"]
@@ -10130,6 +10188,30 @@
             "type": "string",
             "nullable": true,
             "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "teamSlug": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
           }
         },
         "required": [
@@ -10500,6 +10582,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
           "hosts": {
             "type": "array",
@@ -12397,6 +12484,10 @@
             "type": "string",
             "example": "John Doe"
           },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -12471,7 +12562,7 @@
             }
           }
         },
-        "required": ["name", "timeZone", "absent", "seatUid"]
+        "required": ["name", "email", "timeZone", "absent", "seatUid"]
       },
       "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
