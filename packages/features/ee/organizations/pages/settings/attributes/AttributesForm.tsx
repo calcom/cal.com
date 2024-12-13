@@ -21,6 +21,7 @@ import {
 const AttributeFormSchema = z.object({
   attrName: z.string().min(1),
   isLocked: z.boolean().optional(),
+  isWeightsEnabled: z.boolean().optional(),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
   options: z.array(
     z.object({
@@ -193,6 +194,23 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           );
         }}
       />
+      {["SINGLE_SELECT", "MULTI_SELECT"].includes(watchedType) && (
+        <Controller
+          name="isWeightsEnabled"
+          render={({ field: { value, onChange } }) => {
+            return (
+              <SettingsToggle
+                title={t("attribute_weight_enabled")}
+                description={t("attribute_weight_enabled_description")}
+                checked={value}
+                onCheckedChange={(checked) => {
+                  onChange(checked);
+                }}
+              />
+            );
+          }}
+        />
+      )}
       <InputField label={t("name")} required {...form.register("attrName")} />
       <Controller
         name="type"

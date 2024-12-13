@@ -27,6 +27,15 @@ export const getFixedT = async (locale: string, ns = "common") => {
   return i18n.getFixedT(locale, ns);
 };
 
+export const getTranslate = async () => {
+  const headersList = await headers();
+  // If "x-locale" does not exist in header,
+  // ensure that config.matcher in middleware includes the page you are testing
+  const locale = headersList.get("x-locale");
+  const t = await getFixedT(locale ?? "en");
+  return t;
+};
+
 export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
