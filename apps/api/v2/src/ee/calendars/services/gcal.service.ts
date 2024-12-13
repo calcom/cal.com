@@ -4,6 +4,7 @@ import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { calendar_v3 } from "@googleapis/calendar";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
@@ -11,7 +12,6 @@ import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
 import { OAuth2Client } from "googleapis-common";
-import { calendar_v3 } from "@googleapis/calendar";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
@@ -91,7 +91,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     }
 
     if (gcalCredentials.invalid) {
-      throw new BadRequestException("Invalid google oauth credentials.");
+      throw new BadRequestException("Invalid google OAuth credentials.");
     }
 
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
