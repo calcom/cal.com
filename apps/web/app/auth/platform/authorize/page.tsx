@@ -5,7 +5,7 @@ import Page from "~/auth/platform/authorize-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => "Authorize",
+    (t) => t("authorize"),
     () => ""
   );
 };
