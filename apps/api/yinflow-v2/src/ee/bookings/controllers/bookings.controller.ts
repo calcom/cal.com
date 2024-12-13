@@ -434,7 +434,6 @@ export class BookingsController {
 
   private async cancelUsageByBookingUid(req: BookingRequest, bookingId: string): Promise<any> {
     const { allRemainingBookings, cancellationReason } = req.body;
-
     const { data: bookingToDelete } = await supabase
       .from("Booking")
       .select("*")
@@ -449,11 +448,13 @@ export class BookingsController {
         seatReferenceUid: bookingToDelete.seatReferenceUid,
         cancelledBy: bookingToDelete.userPrimaryEmail,
       }),
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      method: "POST",
     });
+
+    const result = response.url;
 
     const { data: allBookingsUpdated } = await supabase
       .from("Booking")
@@ -465,7 +466,7 @@ export class BookingsController {
       bookingId: bookingToDelete.id,
       bookingUid: bookingId,
       updatedBookings: allBookingsUpdated,
-      response,
+      response: result,
     };
   }
 
