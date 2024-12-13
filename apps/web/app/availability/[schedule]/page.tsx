@@ -42,6 +42,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
+export const revalidatePage = async (id: number) => {
+  "use server";
+  revalidatePath(`availability/${id.toString()}`);
+};
+
 const Page = async ({ params, searchParams }: PageProps) => {
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
   if (!parsed.success) {
@@ -70,10 +75,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
       timeZone: userData.timeZone,
       defaultScheduleId: userData.defaultScheduleId,
     });
-    const revalidatePage = async (id?: string) => {
-      "use server";
-      revalidatePath(`availability/${id ?? scheduleId}`);
-    };
+
     // try {
     //   travelSchedules = await TravelScheduleRepository.findTravelSchedulesByUserId(userId);
     // } catch (e) {}

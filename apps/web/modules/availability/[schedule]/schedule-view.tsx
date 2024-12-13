@@ -17,7 +17,7 @@ import { showToast } from "@calcom/ui";
 
 type PageProps = {
   scheduleFetched: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
-  revalidatePage: (id?: string) => Promise<void>;
+  revalidatePage: (id: number) => Promise<void>;
   travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
 };
 
@@ -54,7 +54,7 @@ export const AvailabilitySettingsWebWrapper = ({
       },
       {
         onSuccess: async () => {
-          await revalidatePage();
+          await revalidatePage(scheduleId);
           utils.viewer.availability.list.invalidate();
           callback();
           showToast(t("success"), "success");
@@ -74,9 +74,9 @@ export const AvailabilitySettingsWebWrapper = ({
       if (prevDefaultId && currentDefaultId && prevDefaultId !== currentDefaultId) {
         // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
         // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
-        await Promise.all([revalidatePage(prevDefaultId.toString()), revalidatePage()]);
+        await Promise.all([revalidatePage(prevDefaultId), revalidatePage(scheduleId)]);
       } else {
-        await revalidatePage();
+        await revalidatePage(scheduleId);
       }
       utils.viewer.availability.list.invalidate();
       showToast(

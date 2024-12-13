@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { revalidatePage as revalidateSchedulePage } from "app/availability/[schedule]/page";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -63,7 +64,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ schedule }) => {
-      await utils.viewer.availability.list.invalidate();
+      await Promise.all([utils.viewer.availability.list.invalidate(), revalidateSchedulePage(schedule.id)]);
       showToast(
         t("availability_updated_successfully", {
           scheduleName: schedule.name,
