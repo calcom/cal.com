@@ -2,6 +2,8 @@ import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
+import { cache } from "react";
+import { z } from "zod";
 
 // import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
@@ -10,15 +12,27 @@ import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 // import { UserRepository } from "@calcom/lib/server/repository/user";
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
-export const generateMetadata = async ({ params }: PageProps) => {
-  const scheduleId = params?.schedule ? Number(params.schedule) : -1;
-  const schedule = await ScheduleRepository.findScheduleById({ id: scheduleId });
+const querySchema = z.object({
+  schedule: z
+    .string()
+    .refine((val) => !isNaN(Number(val)), {
+      message: "schedule must be a string that can be cast to a number",
+    })
+    .transform((val) => Number(val)),
+});
+
+const getSchedule = cache((id: number) => ScheduleRepository.findScheduleById({ id }));
+
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+  if (!parsed.success) {
+    notFound();
+  }
+
+  const schedule = await getSchedule(parsed.data.schedule);
 
   if (!schedule) {
-    return await _generateMetadata(
-      (t) => t("availability"),
-      () => ""
-    );
+    notFound();
   }
 
   return await _generateMetadata(
@@ -27,8 +41,9 @@ export const generateMetadata = async ({ params }: PageProps) => {
   );
 };
 
-const Page = async ({ params }: PageProps) => {
-  if (!params?.schedule) {
+const Page = async ({ params, searchParams }: PageProps) => {
+  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+  if (!parsed.success) {
     notFound();
   }
   // const scheduleId = Number(params.schedule);
