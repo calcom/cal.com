@@ -22,13 +22,17 @@ type Props = {
       NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
       "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
     >,
-    "profile"
+    "profile" | "users"
   > & {
     profile: {
       image: string | undefined;
       name: string | null;
       username: string | null;
     };
+    users: {
+      username: string;
+      name: string;
+    }[];
   };
 
   booking?: GetBookingType;
@@ -159,7 +163,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users,
+      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
       hidden: eventData.hidden,
     },
     user: usernames.join("+"),
@@ -255,7 +259,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users,
+      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
       hidden: eventData.hidden,
     },
     user: username,
