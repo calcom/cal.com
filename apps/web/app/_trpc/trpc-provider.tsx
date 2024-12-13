@@ -1,5 +1,6 @@
-import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HydrateClient } from "app/_trpc/HydrateClient";
+"use client";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
@@ -36,10 +37,7 @@ const resolveEndpoint = (links: any) => {
   };
 };
 
-export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState?: DehydratedState }> = ({
-  children,
-  dehydratedState,
-}) => {
+export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -120,9 +118,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {dehydratedState ? <HydrateClient state={dehydratedState}>{children}</HydrateClient> : children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </trpc.Provider>
   );
 };

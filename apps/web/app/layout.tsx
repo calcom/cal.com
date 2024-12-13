@@ -1,3 +1,4 @@
+import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -61,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { locale, direction, isEmbed, embedColorScheme } = isSSG
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
+  console.log("TrpcProviderTrpcProviderTrpcProviderTrpcProviderTrpcProviderTrpcProviderTrpcProvider");
 
   return (
     <html
@@ -112,7 +114,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        {children}
+        <TrpcProvider>{children}</TrpcProvider>
       </body>
     </html>
   );
