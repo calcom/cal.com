@@ -17,7 +17,6 @@ import { randomBytes } from "crypto";
 import dayjs from "dayjs";
 import { Request } from "express";
 
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -676,7 +675,7 @@ export class BookingsController {
       .eq("bookingId", bookingToDelete.id)
       .select("*");
 
-    // const eventManager = new EventManager({ ...user, credentials });
+    const eventManager = new EventManager({ ...user, credentials });
 
     // await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
@@ -745,7 +744,7 @@ export class BookingsController {
       metadata: any;
     } | null,
     organizationId?: number | null
-  ): any {
+  ): Promise<any> {
     let allCredentials = user.credentials;
 
     // If it's a team event type query for team credentials
@@ -817,7 +816,7 @@ export class BookingsController {
           (credential.userId === eventType?.userId ||
             credential.teamId === eventType?.team?.id ||
             credential.teamId === eventType?.team?.parentId ||
-            credential.teamId === profile?.organizationId)
+            credential.teamId === organizationId)
         ) {
           // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
           return credential;
