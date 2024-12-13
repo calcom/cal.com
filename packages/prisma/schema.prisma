@@ -1669,7 +1669,8 @@ model AssignmentReason {
 }
 
 enum EventTypeAutoTranslatedField {
-  DESCRIPTION // Currently the only field we translate
+  DESCRIPTION
+  TITLE
 }
 
 model DomainWideDelegation {
