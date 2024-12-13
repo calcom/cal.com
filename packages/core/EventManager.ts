@@ -1,5 +1,4 @@
-import type { DestinationCalendar, BookingReference } from "@prisma/client";
-import { createClient } from "@supabase/supabase-js";
+import type { BookingReference, DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -13,16 +12,16 @@ import getApps from "@calcom/app-store/utils";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
+  getPiiFreeCalendarEvent,
+  getPiiFreeCredential,
   getPiiFreeDestinationCalendar,
   getPiiFreeUser,
-  getPiiFreeCredential,
-  getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
@@ -33,21 +32,14 @@ import type {
   PartialReference,
 } from "@calcom/types/EventManager";
 
-import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
+import { createEvent, deleteEvent, updateEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
-import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
+import { createMeeting, deleteMeeting, updateMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
-
-const supabaseUrl = "https://ogbfbwkftgpdiejqafdq.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw";
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
-
 interface HasId {
   id: number;
 }
@@ -364,7 +356,12 @@ export default class EventManager {
     } else {
       const credential =
         typeof credentialId === "number" && credentialId > 0
-          ? (await supabase.from("Credential").select("*").eq("id", credentialId).single()).data
+          ? await prisma.credential.findUnique({
+              where: {
+                id: credentialId,
+              },
+              select: credentialForCalendarServiceSelect,
+            })
           : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
             this.videoCredentials.find((cred) => cred.type === type) ||
             this.calendarCredentials.find((cred) => cred.type === type) ||

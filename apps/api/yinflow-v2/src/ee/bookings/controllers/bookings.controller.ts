@@ -18,7 +18,7 @@ import dayjs from "dayjs";
 import { Request } from "express";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
+import { deleteEvent } from "@calcom/core/CalendarManager";
 import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -29,6 +29,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { CalendarEvent } from "@calcom/types/Calendar";
 import { CredentialPayload } from "@calcom/types/Credential";
+import { PartialReference } from "@calcom/types/EventManager";
 
 import tOrganizer from "../../../../../../web/public/static/locales/pt-BR/common.json";
 import { supabase } from "../../../config/supabase";
@@ -675,9 +676,23 @@ export class BookingsController {
       .eq("bookingId", bookingToDelete.id)
       .select("*")) as any;
 
-    const eventManager = new EventManager({ ...user, credentials });
+    const calendarReferences = [],
+      allPromises = [];
 
-    await eventManager.cancelEvent(evt, references, isBookingInRecurringSeries);
+    for (const reference of references) {
+      if (reference.type.includes("_calendar") && !reference.type.includes("other_calendar")) {
+        calendarReferences.push(reference);
+        allPromises.push(
+          this.deleteCalendarEventForBookingReference({
+            reference,
+            event: evt,
+            isBookingInRecurringSeries,
+          })
+        );
+      }
+    }
+
+    await Promise.allSettled(allPromises);
 
     const webhookTriggerPromises = [] as Promise<unknown>[];
     const workflowReminderPromises = [] as Promise<unknown>[];
@@ -825,5 +840,36 @@ export class BookingsController {
     });
 
     return allCredentials;
+  }
+
+  private async deleteCalendarEventForBookingReference({
+    reference,
+    event,
+    isBookingInRecurringSeries,
+  }: {
+    reference: PartialReference;
+    event: CalendarEvent;
+    isBookingInRecurringSeries?: boolean;
+  }): void {
+    const { externalCalendarId: bookingExternalCalendarId, credentialId } = reference;
+
+    const bookingRefUid =
+      isBookingInRecurringSeries && reference?.thirdPartyRecurringEventId
+        ? reference.thirdPartyRecurringEventId
+        : reference.uid;
+
+    const calendarCredential = await this.getCredentialAndWarnIfNotFound(credentialId);
+    if (calendarCredential) {
+      await deleteEvent({
+        credential: calendarCredential,
+        bookingRefUid,
+        event,
+        externalCalendarId: bookingExternalCalendarId,
+      });
+    }
+  }
+
+  private async getCredentialAndWarnIfNotFound(credentialId: number | null | undefined): Promise<any> {
+    return (await supabase.from("Credential").select("*").eq("id", credentialId).single()).data;
   }
 }
