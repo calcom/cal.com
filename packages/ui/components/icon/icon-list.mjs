@@ -19,6 +19,7 @@ export const lucideIconList = new Set([
   "book-open",
   "book-user",
   "building",
+  "chevrons-down-up",
   "calendar-check-2",
   "calendar-days",
   "calendar-heart",
