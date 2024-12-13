@@ -42,6 +42,8 @@ const EventAvailabilityTabPlatformWrapper = ({
     return <></>;
   }
 
+  console.log(scheduleQueryData, "this is the schedules");
+
   return (
     <EventAvailabilityTab
       {...props}
