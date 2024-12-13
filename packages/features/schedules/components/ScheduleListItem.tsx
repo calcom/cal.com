@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,8 +38,11 @@ export function ScheduleListItem({
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
 }) {
   const { t, i18n } = useLocale();
+  const utils = trpc.useUtils();
 
-  const { data, isPending } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule.id });
+  useEffect(() => {
+    utils.viewer.availability.schedule.get.prefetch({ scheduleId: schedule.id });
+  }, []);
 
   return (
     <li key={schedule.id}>
@@ -94,56 +97,54 @@ export function ScheduleListItem({
               StartIcon="ellipsis"
             />
           </DropdownMenuTrigger>
-          {!isPending && data && (
-            <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                {!schedule.isDefault && (
-                  <DropdownItem
-                    type="button"
-                    StartIcon="star"
-                    onClick={() => {
-                      updateDefault({
-                        scheduleId: schedule.id,
-                        isDefault: true,
-                      });
-                    }}>
-                    {t("set_as_default")}
-                  </DropdownItem>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem className="outline-none">
+          <DropdownMenuContent>
+            <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              {!schedule.isDefault && (
                 <DropdownItem
                   type="button"
-                  data-testid={`schedule-duplicate${schedule.id}`}
-                  StartIcon="copy"
+                  StartIcon="star"
                   onClick={() => {
-                    duplicateFunction({
+                    updateDefault({
                       scheduleId: schedule.id,
+                      isDefault: true,
                     });
                   }}>
-                  {t("duplicate")}
+                  {t("set_as_default")}
                 </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                <DropdownItem
-                  type="button"
-                  color="destructive"
-                  StartIcon="trash"
-                  data-testid="delete-schedule"
-                  onClick={() => {
-                    if (!isDeletable) {
-                      showToast(t("requires_at_least_one_schedule"), "error");
-                    } else {
-                      deleteFunction({
-                        scheduleId: schedule.id,
-                      });
-                    }
-                  }}>
-                  {t("delete")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          )}
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="outline-none">
+              <DropdownItem
+                type="button"
+                data-testid={`schedule-duplicate${schedule.id}`}
+                StartIcon="copy"
+                onClick={() => {
+                  duplicateFunction({
+                    scheduleId: schedule.id,
+                  });
+                }}>
+                {t("duplicate")}
+              </DropdownItem>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownItem
+                type="button"
+                color="destructive"
+                StartIcon="trash"
+                data-testid="delete-schedule"
+                onClick={() => {
+                  if (!isDeletable) {
+                    showToast(t("requires_at_least_one_schedule"), "error");
+                  } else {
+                    deleteFunction({
+                      scheduleId: schedule.id,
+                    });
+                  }
+                }}>
+                {t("delete")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
         </Dropdown>
       </div>
     </li>
