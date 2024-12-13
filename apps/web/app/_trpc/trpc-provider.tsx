@@ -41,6 +41,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [queryClient] = useState(
     () =>
       new QueryClient({
+        // these configurations are copied from "packages/trpc/react/trpc.ts"
         defaultOptions: {
           queries: {
             /**
