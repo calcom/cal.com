@@ -77,7 +77,7 @@ For a demonstration of the booker atom along with calendar overlay, please refer
 
 <p></p>
 
-We offer all kinds of customizations to the booker atom via props and customClassNames. 
+We offer all kinds of customizations to the booker atom via props and customClassNames.
 
 Below is a list of props that can be passed to the booker atom.
 <p></p>
@@ -97,7 +97,7 @@ Below is a list of props that can be passed to the booker atom.
 | defaultFormValues          | No       | Prefilled values for booking form fields like name, email, guests, notes, reschedule reason, etc.     |
 | isTeamEvent                | No       | Boolean indicating if it is a team event                                                              |
 | duration                   | No       | Refers to a multiple-duration event type; selects default if not passed                               |
-| durationConfig             | No       | Configures selectable options for a multi-duration event type                                         |
+| durationConfig             | YES      | Configures selectable options for a multi-duration event type                                         |
 | hashedLink                 | No       | Refers to the private link from event types page                                                      |
 | isInstantMeeting           | No       | Boolean indicating if the booking is an instant meeting                                               |
 | rescheduleUid              | No       | Unique ID generated during rescheduling                                                               |
@@ -116,7 +116,7 @@ Below is a list of props that can be passed to the booker atom.
 | onReserveSlotSuccess       | No       | Callback function for successful slot reservation                                                     |
 | onReserveSlotError         | No       | Callback function triggered on slot reservation failure                                               |
 | onDeleteSlotSuccess        | No       | Callback function for successful slot deletion                                                        |
-| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure   
+| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure
 
 Along with the props, booker atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
 <p></p>

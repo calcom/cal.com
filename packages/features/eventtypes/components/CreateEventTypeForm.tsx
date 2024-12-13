@@ -8,7 +8,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Editor, Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
+import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
+
+// Imports the Select Component
 
 export default function CreateEventTypeForm({
   form,
@@ -30,8 +32,22 @@ export default function CreateEventTypeForm({
   const isPlatform = useIsPlatform();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+  const [durationUnit, setDurationUnit] = useState<"minutes" | "hours" | "days">("minutes");
 
-  const { register } = form;
+  // setValue and watch are for time format handling
+  const { register, setValue, watch } = form;
+  const duration = watch("length");
+
+  const handleDurationChange = (value: number) => {
+    if (durationUnit === "hours") {
+      setValue("length", value * 60); // Convert hours to minutes
+    } else if (durationUnit === "days") {
+      setValue("length", value * 1440); // Convert days to minutes
+    } else {
+      setValue("length", Math.round(value)); // Minutes
+    }
+  };
+
   return (
     <Form
       form={form}
@@ -123,9 +139,32 @@ export default function CreateEventTypeForm({
               min="10"
               placeholder="15"
               label={t("duration")}
-              className="pr-4"
-              {...register("length", { valueAsNumber: true })}
-              addOnSuffix={t("minutes")}
+              className="flex-grow pr-4"
+              {...register("length", {
+                valueAsNumber: true,
+                onChange: (e) => handleDurationChange(parseFloat(e.target.value)),
+              })}
+              //addOnSuffix={t("minutes")}
+            />
+            <Select
+              defaultValue={durationUnit}
+              className="w-24"
+              options={[
+                { value: "minutes", label: t("minutes") },
+                { value: "hours", label: t("hours") },
+                { value: "days", label: t("days") },
+              ]}
+              onChange={(option) => {
+                const newUnit = option?.value as "minutes" | "hours" | "days";
+                setDurationUnit(newUnit);
+                if (newUnit === "hours") {
+                  setValue("length", Math.round((duration / 60) * 100) / 100);
+                } else if (newUnit === "days") {
+                  setValue("length", Math.round((duration / 1440) * 100) / 100);
+                } else {
+                  setValue("length", Math.round(duration * 60));
+                }
+              }}
             />
           </div>
         </>

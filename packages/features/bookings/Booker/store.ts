@@ -309,6 +309,21 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     } else {
       removeQueryParam("duration");
     }
+    const durationParam = Number(getQueryParam("duration")) || 0;
+    const durationUnit = getQueryParam("durationUnit");
+    const durationInMinutes =
+      durationUnit === "hours"
+        ? durationParam * 60
+        : durationUnit === "days"
+        ? durationParam * 24 * 60
+        : durationParam;
+
+    if (durationConfig?.includes(durationInMinutes)) {
+      set({ selectedDuration: durationInMinutes });
+    } else {
+      removeQueryParam("duration");
+      removeQueryParam("durationUnit"); // Limpieza adicional
+    }
 
     // Unset selected timeslot if user is rescheduling. This could happen
     // if the user reschedules a booking right after the confirmation page.
@@ -345,9 +360,17 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   durationConfig: null,
   selectedDuration: null,
-  setSelectedDuration: (selectedDuration: number | null) => {
-    set({ selectedDuration });
-    updateQueryParam("duration", selectedDuration ?? "");
+  setSelectedDuration: (selectedDuration: number | null, unit: "minutes" | "hours" | "days" = "minutes") => {
+    let durationInMinutes = selectedDuration;
+    if (unit === "hours") {
+      durationInMinutes = selectedDuration ? selectedDuration * 60 : null;
+    } else if (unit === "days") {
+      durationInMinutes = selectedDuration ? selectedDuration * 24 * 60 : null;
+    }
+
+    set({ selectedDuration: durationInMinutes });
+    updateQueryParam("duration", durationInMinutes ?? "");
+    updateQueryParam("durationUnit", unit); // Nueva unidad para query param
   },
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
