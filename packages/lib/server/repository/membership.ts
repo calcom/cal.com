@@ -7,7 +7,7 @@ import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
-import { enrichWithSelectedCalendars } from "./user";
+import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
@@ -252,7 +252,7 @@ export class MembershipRepository {
     const membershipsWithSelectedCalendars = memberships.map((m) => {
       return {
         ...m,
-        user: enrichWithSelectedCalendars(m.user),
+        user: withSelectedCalendars(m.user),
       };
     });
 

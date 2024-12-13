@@ -14,7 +14,7 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect, eventTypeSelectForBookingPage } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
-import { enrichWithSelectedCalendars } from "./user";
+import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
@@ -808,7 +808,7 @@ export class EventTypeRepository {
       ...eventType,
       hosts: eventType.hosts.map((host) => ({
         ...host,
-        user: enrichWithSelectedCalendars(host.user),
+        user: withSelectedCalendars(host.user),
       })),
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     };
@@ -902,10 +902,10 @@ export class EventTypeRepository {
 
     const hostsWithSelectedCalendars = eventType.hosts.map((host) => ({
       ...host,
-      user: enrichWithSelectedCalendars(host.user),
+      user: withSelectedCalendars(host.user),
     }));
 
-    const usersWithSelectedCalendars = eventType.users.map((user) => enrichWithSelectedCalendars(user));
+    const usersWithSelectedCalendars = eventType.users.map((user) => withSelectedCalendars(user));
 
     return {
       ...eventType,

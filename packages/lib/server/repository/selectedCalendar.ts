@@ -3,21 +3,59 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-export type UpdateArguments = Prisma.SelectedCalendarUpdateManyArgs;
+export type UpdateArguments = {
+  where: FindManyArgs["where"];
+  data: Prisma.SelectedCalendarUpdateManyArgs["data"];
+};
+export type FindManyArgs = {
+  // https://github.com/microsoft/TypeScript/issues/55217 It crashes atoms build with this if we become too generic here. Seems like a TS bug with complex prisma types.
+  where?: {
+    userId?:
+      | number
+      | {
+          in: number[];
+        };
+    credentialId?: number | null;
+    externalId?: string;
+    eventTypeId?: number | null;
+  };
+  orderBy?: {
+    userId?: "asc" | "desc";
+  };
+  select?: Prisma.SelectedCalendarSelect;
+};
 
 const ensureUserLevelWhere = {
   eventTypeId: null,
 };
 
-function ensureValidWhereClause(where: Record<string, unknown>) {
-  if (Object.keys(where).length === 0) {
-    throw new Error("No where clause provided");
-  }
-  return where;
-}
-
 export class SelectedCalendarRepository {
+  private static async findConflicting(data: {
+    userId: number;
+    integration: string;
+    externalId: string;
+    eventTypeId?: number | null;
+  }) {
+    // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable,
+    // it allows for multiple entries with the same (userId, integration, externalId) with eventTypeId=null in DB.
+    // We restrict it at app level by ensuring that an entry doesn't exist already before creating a new one
+    return await SelectedCalendarRepository.findFirst({
+      where: {
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
+        eventTypeId: data.eventTypeId || null,
+      },
+    });
+  }
+
   static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
+
+    if (conflictingCalendar) {
+      throw new Error("Selected calendar already exists");
+    }
+
     return await prisma.selectedCalendar.create({
       data: {
         ...data,
@@ -26,22 +64,14 @@ export class SelectedCalendarRepository {
   }
 
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable.
-    // We can't use upsert here
-    // We have to ensure at all places(which we do) that an entry doesn't exist already before creating a new one
-    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
-      where: {
-        userId: data.userId,
-        integration: data.integration,
-        externalId: data.externalId,
-        eventTypeId: data.eventTypeId || null,
-      },
-    });
+    // userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable
+    // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
+    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 
-    if (existingSelectedCalendar) {
+    if (conflictingCalendar) {
       return await prisma.selectedCalendar.update({
         where: {
-          id: existingSelectedCalendar.id,
+          id: conflictingCalendar.id,
         },
         data,
       });
@@ -52,51 +82,35 @@ export class SelectedCalendarRepository {
     });
   }
 
-  // static async upsertManyByUserIdIntegrationAndExternalId(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-  //   // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable.
-  //   // We can't use upsert here
-  //   // We have to ensure at all places(which we do) that an entry doesn't exist already before creating a new one
-  //   const existingSelectedCalendars = await prisma.selectedCalendar.findMany({
-  //     where: {
-  //       userId: data.userId,
-  //       integration: data.integration,
-  //       externalId: data.externalId,
-  //     },
-  //   });
+  static async delete({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
+    const calendarsToDelete = await SelectedCalendarRepository.findMany({ where });
 
-  //   if (existingSelectedCalendars.length > 0) {
-  //     return await prisma.selectedCalendar.updateMany({
-  //       where: {
-  //         id: {
-  //           in: existingSelectedCalendars.map((sc) => sc.id),
-  //         },
-  //       },
-  //       data,
-  //     });
-  //   }
+    if (calendarsToDelete.length === 0) {
+      // Same behaviour as Prisma.delete as it throws error if no record is found
+      throw new Error("SelectedCalendar not found");
+    }
 
-  //   return await prisma.selectedCalendar.create({
-  //     data: {
-  //       ...data,
-  //     },
-  //   });
-  // }
+    if (calendarsToDelete.length > 1) {
+      throw new Error("Multiple SelectedCalendar records found to delete. deleteMany should be used instead");
+    }
 
-  static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+    // We can't use delete because unique constraint on userId_integration_externalId_eventTypeId has eventTypeId as nullable
+    return await prisma.selectedCalendar.delete({
       where: {
-        userId: data.userId,
-        integration: data.integration,
-        externalId: data.externalId,
-        eventTypeId: data.eventTypeId || null,
+        id: calendarsToDelete[0].id,
       },
     });
+  }
 
-    if (existingSelectedCalendar) return existingSelectedCalendar;
+  static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
+
+    if (conflictingCalendar) return conflictingCalendar;
     return await prisma.selectedCalendar.create({
       data,
     });
   }
+
   /** Retrieve calendars that need to be watched */
   static async getNextBatchToWatch(limit = 100) {
     // Get selected calendars from users that belong to a team that has calendar cache enabled
@@ -158,40 +172,9 @@ export class SelectedCalendarRepository {
     });
     return nextBatch;
   }
-  static async delete({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
-    return await prisma.selectedCalendar.deleteMany({
-      where: {
-        userId: where.userId,
-        externalId: where.externalId,
-        integration: where.integration,
-        eventTypeId: where.eventTypeId ?? null,
-      },
-    });
-  }
 
-  static async deleteUserLevel({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
-    return await SelectedCalendarRepository.delete({
-      where: {
-        ...where,
-        ...ensureUserLevelWhere,
-      },
-    });
-  }
-
-  static async findMany({
-    where,
-    select,
-  }: {
-    // https://github.com/microsoft/TypeScript/issues/55217 It crashes atoms build with this if we become too generic here. Seems like a TS bug with complex prisma types.
-    where: {
-      userId?: number;
-      credentialId?: number | null;
-      externalId?: string;
-    };
-    select?: Prisma.SelectedCalendarSelect;
-  }) {
-    ensureValidWhereClause(where);
-    return await prisma.selectedCalendar.findMany({ where, select });
+  static async findMany({ where, select, orderBy }: FindManyArgs) {
+    return await prisma.selectedCalendar.findMany({ where, select, orderBy });
   }
 
   static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
@@ -200,20 +183,6 @@ export class SelectedCalendarRepository {
       throw new Error("SelectedCalendar not found");
     }
     return calendars[0];
-  }
-
-  static async findUserLevelUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
-    const calendars = await SelectedCalendarRepository.findUniqueOrThrow({
-      where: {
-        ...where,
-        ...ensureUserLevelWhere,
-      },
-    });
-
-    if (!calendars) {
-      throw new Error("SelectedCalendar not found");
-    }
-    return calendars;
   }
 
   static async findFirstByGoogleChannelId(googleChannelId: string) {
@@ -251,7 +220,51 @@ export class SelectedCalendarRepository {
   }
 
   static async update(args: UpdateArguments) {
-    return await prisma.selectedCalendar.updateMany(args);
+    const calendarsToUpdate = await SelectedCalendarRepository.findMany({ where: args.where });
+
+    if (calendarsToUpdate.length === 0) {
+      throw new Error("SelectedCalendar not found");
+    }
+
+    if (calendarsToUpdate.length > 1) {
+      throw new Error("Multiple SelectedCalendar records found to update. updateMany should be used instead");
+    }
+
+    const calendarToUpdate = calendarsToUpdate[0];
+
+    return await prisma.selectedCalendar.update({
+      where: {
+        id: calendarToUpdate.id,
+      },
+      data: args.data,
+    });
+  }
+
+  /**
+   * Following methods ensure that they operate on user level calendars only
+   */
+  static async findUserLevelUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
+    const calendars = await SelectedCalendarRepository.findUniqueOrThrow({
+      where: {
+        ...where,
+        ...ensureUserLevelWhere,
+      },
+    });
+
+    if (!calendars) {
+      throw new Error("SelectedCalendar not found");
+    }
+    return calendars;
+  }
+
+  static async findManyUserLevel(args: FindManyArgs) {
+    return SelectedCalendarRepository.findMany({
+      ...args,
+      where: {
+        ...args.where,
+        ...ensureUserLevelWhere,
+      },
+    });
   }
 
   static async updateUserLevel(args: UpdateArguments) {
@@ -261,6 +274,15 @@ export class SelectedCalendarRepository {
         ...ensureUserLevelWhere,
       },
       data: args.data,
+    });
+  }
+
+  static async deleteUserLevel({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
+    return await SelectedCalendarRepository.delete({
+      where: {
+        ...where,
+        ...ensureUserLevelWhere,
+      },
     });
   }
 }

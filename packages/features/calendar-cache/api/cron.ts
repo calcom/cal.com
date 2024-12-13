@@ -7,9 +7,9 @@ import { CalendarCache } from "../calendar-cache";
 
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
-  // if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
-  //   throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  // }
+  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
+    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  }
 };
 
 function logRejected(result: PromiseSettledResult<unknown>) {

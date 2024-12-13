@@ -19,18 +19,18 @@ export async function renewSelectedCalendarCredentialId(
     },
   });
 
-  if (selectedCalendars.length > 0) {
-    await prisma.selectedCalendar.updateMany({
-      where: {
-        id: {
-          in: selectedCalendars.map((selectedCalendar) => selectedCalendar.id),
-        },
+  if (!selectedCalendars.length) return false;
+
+  await prisma.selectedCalendar.updateMany({
+    where: {
+      id: {
+        in: selectedCalendars.map((selectedCalendar) => selectedCalendar.id),
       },
-      data: {
-        credentialId: credentialId,
-      },
-    });
-    return true;
-  }
-  return false;
+    },
+    data: {
+      credentialId: credentialId,
+    },
+  });
+
+  return true;
 }

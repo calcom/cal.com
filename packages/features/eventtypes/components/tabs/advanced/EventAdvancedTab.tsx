@@ -370,10 +370,6 @@ const calendarComponents = {
                           shouldDirty: true,
                         });
                       }}
-                      onChanged={() => {
-                        // Refresh calendar data when calendars are changed
-                        // calendarsQueryData?.refetch();
-                      }}
                     />
                   </Suspense>
                 </div>

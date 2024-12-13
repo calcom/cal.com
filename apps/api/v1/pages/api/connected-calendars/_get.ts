@@ -105,7 +105,9 @@ async function getHandler(req: NextApiRequest) {
 
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 
-  const usersWithCalendars = await UserRepository.findManyByIdsIncludeCalendars({ ids: userIds });
+  const usersWithCalendars = await UserRepository.findManyByIdsIncludeDestinationAndSelectedCalendars({
+    ids: userIds,
+  });
 
   return await getConnectedCalendars(usersWithCalendars);
 }

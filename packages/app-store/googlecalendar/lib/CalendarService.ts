@@ -50,8 +50,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-const GOOGLE_WEBHOOK_URL = `https://d467-2401-4900-8842-74a5-b99f-1c-a5c6-c184.ngrok-free.app/api/integrations/googlecalendar/webhook`;
-
+const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;

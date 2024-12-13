@@ -30,7 +30,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository, enrichWithSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
@@ -192,7 +192,7 @@ export async function getDynamicEventType(
       },
     },
   });
-  const usersWithSelectedCalendars = users.map((user) => enrichWithSelectedCalendars(user));
+  const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
   const isDynamicAllowed = !usersWithSelectedCalendars.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({

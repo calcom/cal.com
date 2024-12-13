@@ -83,7 +83,7 @@ type UserWithSelectedCalendars<TCalendar, TUser> = Omit<TUser, "selectedCalendar
   userLevelSelectedCalendars: TCalendar[];
 };
 
-export function enrichWithSelectedCalendars<
+export function withSelectedCalendars<
   TCalendar extends {
     eventTypeId: number | null;
   },
@@ -788,7 +788,7 @@ export class UserRepository {
       return null;
     }
 
-    return enrichWithSelectedCalendars(user);
+    return withSelectedCalendars(user);
   }
 
   static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
@@ -807,7 +807,7 @@ export class UserRepository {
       return null;
     }
 
-    const userWithSelectedCalendars = enrichWithSelectedCalendars(user);
+    const userWithSelectedCalendars = withSelectedCalendars(user);
     return userWithSelectedCalendars;
   }
 
@@ -868,7 +868,7 @@ export class UserRepository {
       return null;
     }
 
-    return enrichWithSelectedCalendars(user);
+    return withSelectedCalendars(user);
   }
 
   static async getUserStats({ userId }: { userId: number }) {
@@ -921,7 +921,7 @@ export class UserRepository {
     };
   }
 
-  static async findManyByIdsIncludeCalendars({ ids }: { ids: number[] }) {
+  static async findManyByIdsIncludeDestinationAndSelectedCalendars({ ids }: { ids: number[] }) {
     const users = await prisma.user.findMany({
       where: { id: { in: ids } },
       include: {
@@ -929,6 +929,6 @@ export class UserRepository {
         destinationCalendar: true,
       },
     });
-    return users.map(enrichWithSelectedCalendars);
+    return users.map(withSelectedCalendars);
   }
 }

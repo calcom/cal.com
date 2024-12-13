@@ -3,7 +3,7 @@ import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBoo
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
-import { enrichWithSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -72,7 +72,7 @@ async function getTeamHostsFromDB({
 
   const hosts = _hosts.map((host) => ({
     ...host,
-    user: enrichWithSelectedCalendars(host.user),
+    user: withSelectedCalendars(host.user),
   }));
 
   const hasNextPage = hosts.length > limit;
