@@ -677,7 +677,7 @@ export class BookingsController {
 
     const eventManager = new EventManager({ ...user, credentials });
 
-    // await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+    await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
     const webhookTriggerPromises = [] as Promise<unknown>[];
     const workflowReminderPromises = [] as Promise<unknown>[];
