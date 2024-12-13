@@ -178,13 +178,32 @@ export function UserListTable() {
             );
             if (attributeValues.length === 0) return null;
             return (
-              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
+              <div
+                className={classNames(
+                  attribute.type === "NUMBER" ? "flex w-full justify-center" : "flex flex-wrap"
+                )}>
                 {attributeValues.map((attributeValue, index) => {
                   const isAGroupOption = attributeValue.contains?.length > 0;
+                  const suffix = attribute.isWeightsEnabled ? `${attributeValue.weight || 100}%` : undefined;
                   return (
-                    <Badge key={index} variant={isAGroupOption ? "orange" : "gray"} className="mr-1">
-                      {attributeValue.value}
-                    </Badge>
+                    <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                      <Badge
+                        variant={isAGroupOption ? "orange" : "gray"}
+                        className={classNames(suffix && "rounded-r-none")}>
+                        {attributeValue.value}
+                      </Badge>
+
+                      {suffix ? (
+                        <Badge
+                          variant={isAGroupOption ? "orange" : "gray"}
+                          style={{
+                            backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                          }}
+                          className="rounded-l-none">
+                          {suffix}
+                        </Badge>
+                      ) : null}
+                    </div>
                   );
                 })}
               </div>
