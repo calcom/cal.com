@@ -5,7 +5,11 @@ import { useState } from "react";
 import superjson from "superjson";
 
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@calcom/trpc/client";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+
+type Maybe<T> = T | null | undefined;
 
 export type Endpoint = (typeof ENDPOINTS)[number];
 
@@ -39,9 +43,31 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
   const [queryClient] = useState(
     () =>
       new QueryClient({
-        defaultOptions: { queries: { staleTime: 5000 } },
+        defaultOptions: {
+          queries: {
+            /**
+             * 1s should be enough to just keep identical query waterfalls low
+             * @example if one page components uses a query that is also used further down the tree
+             */
+            staleTime: 1000,
+            /**
+             * Retry `useQuery()` calls depending on this function
+             */
+            retry(failureCount, _err) {
+              const err = _err as never as Maybe<TRPCClientErrorLike<AppRouter>>;
+              const code = err?.data?.code;
+              if (code === "BAD_REQUEST" || code === "FORBIDDEN" || code === "UNAUTHORIZED") {
+                // if input data is wrong or you're not authorized there's no point retrying a query
+                return false;
+              }
+              const MAX_QUERY_RETRIES = 3;
+              return failureCount < MAX_QUERY_RETRIES;
+            },
+          },
+        },
       })
   );
+
   const url =
     typeof window !== "undefined"
       ? "/api/trpc"
