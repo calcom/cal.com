@@ -117,7 +117,7 @@ export function UserListTable() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, fetchNextPage, isFetching } =
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 30,
@@ -178,13 +178,32 @@ export function UserListTable() {
             );
             if (attributeValues.length === 0) return null;
             return (
-              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
+              <div
+                className={classNames(
+                  attribute.type === "NUMBER" ? "flex w-full justify-center" : "flex flex-wrap"
+                )}>
                 {attributeValues.map((attributeValue, index) => {
                   const isAGroupOption = attributeValue.contains?.length > 0;
+                  const suffix = attribute.isWeightsEnabled ? `${attributeValue.weight || 100}%` : undefined;
                   return (
-                    <Badge key={index} variant={isAGroupOption ? "orange" : "gray"} className="mr-1">
-                      {attributeValue.value}
-                    </Badge>
+                    <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                      <Badge
+                        variant={isAGroupOption ? "orange" : "gray"}
+                        className={classNames(suffix && "rounded-r-none")}>
+                        {attributeValue.value}
+                      </Badge>
+
+                      {suffix ? (
+                        <Badge
+                          variant={isAGroupOption ? "orange" : "gray"}
+                          style={{
+                            backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                          }}
+                          className="rounded-l-none">
+                          {suffix}
+                        </Badge>
+                      ) : null}
+                    </div>
                   );
                 })}
               </div>
@@ -209,6 +228,7 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         meta: {
           sticky: {
@@ -352,6 +372,8 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        enableSorting: false,
+        enableResizing: false,
         size: 80,
         meta: {
           sticky: { position: "right" },
@@ -389,6 +411,7 @@ export function UserListTable() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
+    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
@@ -424,13 +447,12 @@ export function UserListTable() {
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -490,6 +512,7 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={{ name: "UserListTable" }}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full flex-col gap-2 sm:flex-row">

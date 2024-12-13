@@ -24,6 +24,11 @@ class Attendee {
   @Expose()
   name!: string;
 
+  @ApiProperty({ type: String, example: "john@example.com" })
+  @IsString()
+  @Expose()
+  email!: string;
+
   @ApiProperty({ type: String, example: "America/New_York" })
   @IsTimeZone()
   @Expose()
