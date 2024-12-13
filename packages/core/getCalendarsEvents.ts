@@ -26,10 +26,13 @@ const getCalendarsEvents = async (
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
     const { type, appId } = calendarCredentials[i];
+    console.log({
+      selectedCalendars,
+    });
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
-    const passedSelectedCalendars = uniqueBy(selectedCalendars, "externalId")
+    const passedSelectedCalendars = uniqueBy(selectedCalendars, ["externalId", "integration"])
       .filter((sc) => sc.integration === type)
       // Needed to ensure cache keys are consistent
       .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
