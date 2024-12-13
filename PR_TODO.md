@@ -12,9 +12,7 @@ This is to be deleted before merging
   - [x] Verify that even if busy slots is allowed to be selected, during the booking it fails.
   - [x] Verify that if user settings are selected, then booking page uses that for availability check
   - Booking Page(Dynamic Group Event Type):
-    - [ ] Verify that slots shown are as per eventType setting if enabled
-    - [ ] Verify that even if busy slots is allowed to be selected, during the booking it fails.
-    - [ ] Verify that if user settings are selected, then booking page uses that for availability check
+    - [x] Verify that slots shown are as per user setting
 - apps/installed
   - [x] Verify that selected calendars are correctly shown and can be toggled on/off
 - /settings/my-account/calendars
@@ -53,3 +51,4 @@ Unit Tests
 - handleNewBooking and getSchedule tests with eventTypeId
 - SelectedCalendarRepository tests
 - More CalendarCache tests
+- useEventLevelSelectedCalendars was accidentally set to true in defaultEvents causing no busytimes for dynamic group eventType

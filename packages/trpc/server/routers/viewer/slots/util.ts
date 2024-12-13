@@ -182,7 +182,9 @@ export async function getDynamicEventType(
       ? [input.usernameList]
       : [],
   });
-  const users = await prisma.user.findMany({
+
+  // TODO: Should be moved to UserRepository
+  const usersWithOldSelectedCalendars = await prisma.user.findMany({
     where,
     select: {
       allowDynamicBooking: true,
@@ -192,8 +194,9 @@ export async function getDynamicEventType(
       },
     },
   });
-  const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
-  const isDynamicAllowed = !usersWithSelectedCalendars.some((user) => !user.allowDynamicBooking);
+  const users = usersWithOldSelectedCalendars.map((user) => withSelectedCalendars(user));
+
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({
       message: "Some of the users in this group do not allow dynamic booking",
@@ -201,7 +204,7 @@ export async function getDynamicEventType(
     });
   }
   return Object.assign({}, dynamicEventType, {
-    users: usersWithSelectedCalendars,
+    users,
   });
 }
 

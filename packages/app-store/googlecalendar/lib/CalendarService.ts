@@ -659,7 +659,7 @@ export default class GoogleCalendarService implements Calendar {
 
   private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
-    logger.info(`Watching calendar ${calendarId}`);
+    logger.debug(`Watching calendar ${calendarId}`);
 
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -676,7 +676,6 @@ export default class GoogleCalendarService implements Calendar {
         },
       },
     });
-
     return res.data;
   }
 
@@ -703,16 +702,6 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     const existingCalendarWithChannel = await SelectedCalendarRepository.findFirst({
-      where: {
-        credentialId: this.credential.id,
-        externalId: calendarId,
-        googleChannelId: {
-          not: null,
-        },
-      },
-    });
-
-    console.log("Queried existingCalendarWithChannel", existingCalendarWithChannel, {
       where: {
         credentialId: this.credential.id,
         externalId: calendarId,

@@ -53,7 +53,9 @@ import {
 async function postHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
-  const args: Prisma.SelectedCalendarCreateArgs = { data: { ...body, userId } };
+  const args = {
+    data: { ...body, userId } as Prisma.SelectedCalendarUncheckedCreateInput,
+  };
 
   if (!isSystemWideAdmin && bodyUserId)
     throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
@@ -64,7 +66,7 @@ async function postHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
-  const data = await SelectedCalendarRepository.create(args);
+  const data = await SelectedCalendarRepository.create(args.data);
 
   return {
     selected_calendar: schemaSelectedCalendarPublic.parse(data),

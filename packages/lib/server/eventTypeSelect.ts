@@ -63,34 +63,3 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   maxLeadThreshold: true,
   useEventLevelSelectedCalendars: true,
 });
-
-// I don't see any strong reason other than performance to not include all scalar fields here(and that might not be realistically impacted)
-// We could just use `eventTypeSelect`
-export const eventTypeSelectForBookingPage = Prisma.validator<Prisma.EventTypeSelect>()({
-  id: true,
-  slug: true,
-  minimumBookingNotice: true,
-  length: true,
-  offsetStart: true,
-  seatsPerTimeSlot: true,
-  timeZone: true,
-  slotInterval: true,
-  beforeEventBuffer: true,
-  afterEventBuffer: true,
-  bookingLimits: true,
-  durationLimits: true,
-  assignAllTeamMembers: true,
-  schedulingType: true,
-  periodType: true,
-  periodStartDate: true,
-  periodEndDate: true,
-  onlyShowFirstAvailableSlot: true,
-  periodCountCalendarDays: true,
-  rescheduleWithSameRoundRobinHost: true,
-  periodDays: true,
-  metadata: true,
-  assignRRMembersUsingSegment: true,
-  rrSegmentQueryValue: true,
-  maxLeadThreshold: true,
-  useEventLevelSelectedCalendars: true,
-});

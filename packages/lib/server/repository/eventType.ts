@@ -12,7 +12,7 @@ import type { Ensure } from "@calcom/types/utils";
 import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
-import { eventTypeSelect, eventTypeSelectForBookingPage } from "../eventTypeSelect";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 import { withSelectedCalendars } from "./user";
 
@@ -718,109 +718,38 @@ export class EventTypeRepository {
     });
   }
 
-  static async findForAvailabilityCheck({ id }: { id: number }) {
-    const eventType = await prisma.eventType.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        useEventLevelSelectedCalendars: true,
-        seatsPerTimeSlot: true,
-        bookingLimits: true,
-        parent: {
-          select: {
-            team: {
-              select: {
-                id: true,
-                bookingLimits: true,
-                includeManagedEventsInLimits: true,
-              },
-            },
-          },
-        },
-        team: {
-          select: {
-            id: true,
-            bookingLimits: true,
-            includeManagedEventsInLimits: true,
-          },
-        },
-        hosts: {
-          select: {
-            user: {
-              select: {
-                email: true,
-                id: true,
-                selectedCalendars: true,
-              },
-            },
-            schedule: {
-              select: {
-                availability: {
-                  select: {
-                    date: true,
-                    startTime: true,
-                    endTime: true,
-                    days: true,
-                  },
-                },
-                timeZone: true,
-                id: true,
-              },
-            },
-          },
-        },
-        durationLimits: true,
-        assignAllTeamMembers: true,
-        schedulingType: true,
-        timeZone: true,
-        length: true,
-        metadata: true,
-        schedule: {
-          select: {
-            id: true,
-            availability: {
-              select: {
-                days: true,
-                date: true,
-                startTime: true,
-                endTime: true,
-              },
-            },
-            timeZone: true,
-          },
-        },
-        availability: {
-          select: {
-            startTime: true,
-            endTime: true,
-            days: true,
-            date: true,
-          },
-        },
-      },
-    });
-
-    if (!eventType) {
-      return eventType;
-    }
-
-    return {
-      ...eventType,
-      hosts: eventType.hosts.map((host) => ({
-        ...host,
-        user: withSelectedCalendars(host.user),
-      })),
-      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-    };
-  }
-
   static async findForSlots({ id }: { id: number }) {
     const eventType = await prisma.eventType.findUnique({
       where: {
         id,
       },
       select: {
-        ...eventTypeSelectForBookingPage,
+        id: true,
+        slug: true,
+        minimumBookingNotice: true,
+        length: true,
+        offsetStart: true,
+        seatsPerTimeSlot: true,
+        timeZone: true,
+        slotInterval: true,
+        beforeEventBuffer: true,
+        afterEventBuffer: true,
+        bookingLimits: true,
+        durationLimits: true,
+        assignAllTeamMembers: true,
+        schedulingType: true,
+        periodType: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        onlyShowFirstAvailableSlot: true,
+        periodCountCalendarDays: true,
+        rescheduleWithSameRoundRobinHost: true,
+        periodDays: true,
+        metadata: true,
+        assignRRMembersUsingSegment: true,
+        rrSegmentQueryValue: true,
+        maxLeadThreshold: true,
+        useEventLevelSelectedCalendars: true,
         team: {
           select: {
             id: true,

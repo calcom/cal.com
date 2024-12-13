@@ -65,6 +65,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       log.info(
         "[handleWatchCalendar] Received invalid response from calendar.watchCalendar, skipping watching calendar"
       );
+      log.error(parsedResponse.error);
       return;
     }
 

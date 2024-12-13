@@ -119,7 +119,7 @@ const commons = {
   autoTranslateDescriptionEnabled: false,
   fieldTranslations: [],
   maxLeadThreshold: null,
-  useEventLevelSelectedCalendars: true,
+  useEventLevelSelectedCalendars: false,
 };
 
 export const dynamicEvent = {

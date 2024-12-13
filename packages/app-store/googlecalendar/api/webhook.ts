@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { uniqueBy } from "@calcom/lib/array";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -35,8 +36,9 @@ async function postHandler(req: NextApiRequest) {
       message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   const { selectedCalendars } = credential;
+  const uniqueSelectedCalendars = uniqueBy(selectedCalendars, "externalId");
   const calendar = await getCalendar(credential);
-  await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+  await calendar?.fetchAvailabilityAndSetCache?.(uniqueSelectedCalendars);
   return { message: "ok" };
 }
 

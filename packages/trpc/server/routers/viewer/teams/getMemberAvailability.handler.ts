@@ -21,7 +21,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   // verify member is in team
   const members = await MembershipRepository.findByTeamIdForAvailability({ teamId: input.teamId });
 
-  const member = members?.find((m) => m.id === input.memberId);
+  const member = members?.find((m) => m.userId === input.memberId);
   if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
   if (!member.user.username)
     throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });

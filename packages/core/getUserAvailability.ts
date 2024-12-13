@@ -24,7 +24,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { stringToDayjsZod } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
@@ -56,7 +56,92 @@ const getEventType = async (
 };
 
 const _getEventType = async (id: number) => {
-  return EventTypeRepository.findForAvailabilityCheck({ id });
+  const eventType = await prisma.eventType.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      seatsPerTimeSlot: true,
+      bookingLimits: true,
+      useEventLevelSelectedCalendars: true,
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
+        },
+      },
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              id: true,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
+            },
+          },
+        },
+      },
+      durationLimits: true,
+      assignAllTeamMembers: true,
+      schedulingType: true,
+      timeZone: true,
+      length: true,
+      metadata: true,
+      schedule: {
+        select: {
+          id: true,
+          availability: {
+            select: {
+              days: true,
+              date: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
+          timeZone: true,
+        },
+      },
+      availability: {
+        select: {
+          startTime: true,
+          endTime: true,
+          days: true,
+          date: true,
+        },
+      },
+    },
+  });
+  if (!eventType) {
+    return eventType;
+  }
+  return {
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  };
 };
 
 export type EventType = Awaited<ReturnType<typeof getEventType>>;

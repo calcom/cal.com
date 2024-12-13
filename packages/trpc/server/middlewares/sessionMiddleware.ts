@@ -15,7 +15,6 @@ import { middleware } from "../trpc";
 type Maybe<T> = T | null | undefined;
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
-  const { prisma } = ctx;
   if (!session) {
     return null;
   }
