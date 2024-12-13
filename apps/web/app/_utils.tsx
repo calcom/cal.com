@@ -78,5 +78,12 @@ export const _generateMetadata = async (
       images: [image],
     },
     metadataBase,
+    viewport: {
+      width: "device-width",
+      initialScale: 1.0,
+      maximumScale: 1.0,
+      userScalable: false,
+      viewportFit: "cover",
+    },
   };
 };
