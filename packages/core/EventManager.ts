@@ -364,7 +364,12 @@ export default class EventManager {
     } else {
       const credential =
         typeof credentialId === "number" && credentialId > 0
-          ? (await supabase.from("Credential").select("*").eq("id", credentialId).single()).data
+          ? await prisma.credential.findUnique({
+              where: {
+                id: credentialId,
+              },
+              select: credentialForCalendarServiceSelect,
+            })
           : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
             this.videoCredentials.find((cred) => cred.type === type) ||
             this.calendarCredentials.find((cred) => cred.type === type) ||
