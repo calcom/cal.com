@@ -80,21 +80,13 @@ export async function getBookings({
           OR: [
             {
               eventType: {
-                team: {
-                  id: {
-                    in: filters.teamIds,
-                  },
-                },
+                team: { id: { in: filters.teamIds } },
               },
             },
             {
               eventType: {
                 parent: {
-                  team: {
-                    id: {
-                      in: filters.teamIds,
-                    },
-                  },
+                  team: { id: { in: filters.teamIds } },
                 },
               },
             },
