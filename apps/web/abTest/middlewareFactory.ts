@@ -25,7 +25,6 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/booking/:path*", process.env.APP_ROUTER_BOOKING_ENABLED === "1"] as const,
   ["/team", process.env.APP_ROUTER_TEAM_ENABLED === "1"] as const,
   ["/teams", process.env.APP_ROUTER_TEAMS_ENABLED === "1"] as const,
-  ["/availability", process.env.APP_ROUTER_AVAILABILITY_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
