@@ -3,7 +3,7 @@
 import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import Head from "next/head";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
@@ -90,7 +90,6 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
@@ -108,8 +107,6 @@ const OnboardingPage = (props: PageProps) => {
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-  const callbackBookerUrl = searchParams?.get("callbackUrl");
-  const isOverlayUser = currentStep === "connected-calendar" && !!callbackBookerUrl;
 
   // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
   // Ability to accept other pending invites if any (low priority)
@@ -182,20 +179,14 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              {!isOverlayUser && (
-                <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
-              )}
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
                 )}
-                {currentStep === "connected-calendar" && (
-                  <ConnectedCalendars
-                    nextStep={isOverlayUser ? () => router.push(callbackBookerUrl) : goToNextStep}
-                  />
-                )}
+                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={goToNextStep} />}
 
                 {currentStep === "connected-video" && <ConnectedVideoStep nextStep={goToNextStep} />}
 
@@ -203,7 +194,7 @@ const OnboardingPage = (props: PageProps) => {
               </Suspense>
             </StepCard>
 
-            {!isOverlayUser && headers[currentStepIndex]?.skipText && (
+            {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button
                   color="minimal"

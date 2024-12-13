@@ -205,14 +205,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       onClickOverlayContinue={(provider: "google" | "calcom" = "calcom") => {
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set("overlayCalendar", "true");
-        const redirectBaseUrl = provider === "google" ? "/getting-started/connected-calendar" : "/login";
-
-        const url = new URL(redirectBaseUrl, window.location.origin);
-        url.searchParams.set("callbackUrl", currentUrl.toString());
-
-        provider === "google"
-          ? signIn("google", { callbackUrl: url.toString() })
-          : router.push(url.toString());
+        if (provider === "google") {
+          signIn("google", { callbackUrl: currentUrl.toString() });
+        } else {
+          const redirectBaseUrl = "/login";
+          const url = new URL(redirectBaseUrl, window.location.origin);
+          url.searchParams.set("callbackUrl", currentUrl.toString());
+          router.push(url.toString());
+        }
       }}
       onOverlaySwitchStateChange={onOverlaySwitchStateChange}
       sessionUsername={session?.user.username}
