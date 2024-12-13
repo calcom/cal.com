@@ -16,12 +16,14 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 type PageProps = {
-  scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  scheduleFetched: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  revalidatePage: () => Promise<void>;
   travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
 };
 
 export const AvailabilitySettingsWebWrapper = ({
-  scheduleFetched: scheduleProp,
+  scheduleFetched,
+  revalidatePage,
   travelSchedules: travelSchedulesProp,
 }: PageProps) => {
   const searchParams = useCompatSearchParams();
@@ -32,14 +34,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data: scheduleData, isPending: isFetchingPending } = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId },
-    {
-      enabled: !!scheduleId && !scheduleProp,
-    }
-  );
-  const isPending = isFetchingPending && !scheduleProp;
-  const schedule = scheduleProp ?? scheduleData;
+  const schedule = scheduleFetched;
 
   const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
     enabled: !travelSchedulesProp,
@@ -61,6 +56,7 @@ export const AvailabilitySettingsWebWrapper = ({
       {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
+          revalidatePage();
           callback();
           showToast(t("success"), "success");
         },
@@ -86,6 +82,7 @@ export const AvailabilitySettingsWebWrapper = ({
       }
       utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
       utils.viewer.availability.list.invalidate();
+      revalidatePage();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -114,20 +111,12 @@ export const AvailabilitySettingsWebWrapper = ({
     },
   });
 
-  // TODO: reimplement Skeletons for this page in here
-  if (isPending) return null;
-
-  // We wait for the schedule to be loaded before rendering the form inside AvailabilitySettings
-  // since `defaultValues` cannot be redeclared after first render and using `values` will
-  // trigger a form reset when revalidating. Introducing flaky behavior.
-  if (!schedule) return null;
-
   return (
     <AvailabilitySettings
       schedule={schedule}
       travelSchedules={isDefaultSchedule ? travelSchedules || [] : []}
       isDeleting={deleteMutation.isPending}
-      isLoading={isPending}
+      isLoading={false}
       isSaving={updateMutation.isPending}
       enableOverrides={true}
       timeFormat={timeFormat}
