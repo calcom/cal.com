@@ -17,12 +17,17 @@ export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction): s
 export const getWhen = (
   calEvent: Pick<CalendarEvent, "organizer" | "attendees" | "seatsPerTimeSlot">,
   t: TFunction
-): string => {
-  return calEvent.seatsPerTimeSlot
-    ? `${t("organizer_timezone")}:\n${calEvent.organizer.timeZone.trim()}`
-    : `${t("invitee_timezone")}:\n${calEvent.attendees[0].timeZone.trim()}`;
-};
+) => {
+  const defaultTimezone = calEvent.organizer?.timeZone ?? "UTC";
 
+  if (calEvent.seatsPerTimeSlot) {
+    return `${t("organizer_timezone")}:${defaultTimezone}`;
+  }
+
+  const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
+
+  return `${t("invitee_timezone")}:${attendeeTimezone}`;
+};
 const getAttendeesText = (t: TFunction, hideAttendees: boolean, attendees?: Person[]): string => {
   if (hideAttendees || !attendees || attendees.length === 0) return "";
 
