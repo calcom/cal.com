@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params }: PageProps) => {
 };
 
 const Page = async ({ params }: PageProps) => {
-  if (params?.schedule) {
+  if (!params?.schedule) {
     notFound();
   }
   // const scheduleId = Number(params.schedule);
