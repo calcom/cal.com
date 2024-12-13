@@ -10,8 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui";
 import { Button, Input } from "@calcom/ui";
 
-import { useColumnFilters } from "../lib/utils";
-
 interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
 }
@@ -91,8 +89,7 @@ function ClearFiltersButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const columnFilters = useColumnFilters();
-  const isFiltered = columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0;
   if (!isFiltered) return null;
   return (
     <Button

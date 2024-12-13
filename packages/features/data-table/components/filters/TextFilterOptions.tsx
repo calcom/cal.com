@@ -1,13 +1,9 @@
-"use client";
-
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
-import type { FilterableColumn, TextFilterOperator } from "../../lib/types";
-import { ZTextFilterValue } from "../../lib/types";
-import { useFilterValue, useDataTable } from "../../lib/utils";
+import type { FilterableColumn, TextFilterValue, TextFilterOperator } from "../../lib/types";
 
 export type TextFilterOperatorOption = {
   label: string;
@@ -30,14 +26,20 @@ const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
 };
 
 export type TextFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "text" }>;
+  column: FilterableColumn;
+  filterValue?: TextFilterValue;
+  setFilterValue: (value: TextFilterValue) => void;
+  removeFilter: (columnId: string) => void;
 };
 
-export function TextFilterOptions({ column }: TextFilterOptionsProps) {
+export function TextFilterOptions({
+  column,
+  filterValue,
+  setFilterValue,
+  removeFilter,
+}: TextFilterOptionsProps) {
   const { t } = useLocale();
   const textFilterOperatorOptions = useTextFilterOperatorOptions();
-  const filterValue = useFilterValue(column.id, ZTextFilterValue);
-  const { updateFilter, removeFilter } = useDataTable();
 
   const form = useForm({
     defaultValues: {
@@ -54,7 +56,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
         form={form}
         handleSubmit={({ operatorOption, operand }) => {
           if (operatorOption) {
-            updateFilter(column.id, {
+            setFilterValue({
               type: "text",
               data: {
                 operator: operatorOption.value,
