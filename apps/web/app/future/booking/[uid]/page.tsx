@@ -27,4 +27,4 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
-export default WithLayout({ getLayout: null, getData, Page: OldPage });
+export default WithLayout({ getLayout: null, getData, Page: OldPage, isBookingPage: true });
