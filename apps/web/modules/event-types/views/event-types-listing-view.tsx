@@ -946,10 +946,7 @@ const InfiniteScrollMain = ({
   );
 };
 
-const EventTypesPage: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
+const EventTypesPage: React.FC = () => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
@@ -1009,17 +1006,14 @@ const EventTypesPage: React.FC & {
   return (
     <Shell
       withoutMain={false}
-      title="Event Types"
-      description="Create events to share for people to book on your calendar."
+      title={t("event_types_page_title")}
+      description={t("event_types_page_subtitle")}
       withoutSeo
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
+      <HeadSeo title={t("event_types_page_title")} description={t("event_types_page_subtitle")} />
 
       <InfiniteScrollMain
         profiles={getUserEventGroupsData?.profiles}
