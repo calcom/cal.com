@@ -18,7 +18,12 @@ export const DatePicker = ({
   scrollToTimeSlots,
 }: {
   event: {
-    data?: { users: Pick<User, "weekStart">[] } | null;
+    data?: {
+      users: Pick<User, "weekStart">[];
+      recurringEvent: {
+        freq: number;
+      };
+    } | null;
   };
   schedule: useScheduleForEventReturnType;
   classNames?: {
@@ -32,12 +37,19 @@ export const DatePicker = ({
   scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
-  const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
+  const [month, selectedDate, occurenceCount] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.occurenceCount],
+    shallow
+  );
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
     shallow
   );
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots, {
+    occurenceCount,
+    recurringEventFreq: event?.data?.recurringEvent?.freq,
+  });
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const onMonthChange = (date: Dayjs) => {
