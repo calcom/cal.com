@@ -48,6 +48,7 @@ export default function CreateEventTypeForm({
 
 const durationOptions = [
   {
+    label: "Duration",
     options: [
       { value: 'minutes', label: 'Minutes' },
       { value: 'hours', label: 'Hours' },
@@ -55,6 +56,7 @@ const durationOptions = [
     ],
   },
 ];
+
 
   return (
     <Form
