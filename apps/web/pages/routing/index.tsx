@@ -1,14 +1,15 @@
-import { getStaticProps } from "@lib/routing/getStaticProps";
+import type { PageProps } from "@lib/routing/getServerSideProps";
+import { getServerSideProps } from "@lib/routing/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-import type { PageProps } from "~/apps/[slug]/slug-view";
-import SingleAppPage from "~/apps/[slug]/slug-view";
+import PagesView, { getLayout } from "~/routing/pages-view";
 
-const Page = (props: PageProps) => <SingleAppPage {...props} />;
-
-export { getStaticProps };
+const Page = (props: PageProps) => <PagesView {...props} />;
 
 Page.PageWrapper = PageWrapper;
+Page.getLayout = getLayout;
+
+export { getServerSideProps };
 
 export default Page;

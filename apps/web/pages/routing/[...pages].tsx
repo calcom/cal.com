@@ -1,8 +1,8 @@
-import { getServerSideProps } from "@lib/routing/getServerSideProps";
+import type { PageProps } from "@lib/routing/[pages]/getServerSideProps";
+import { getServerSideProps } from "@lib/routing/[pages]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-import type { PageProps } from "~/routing/pages-view";
 import PagesView, { getLayout } from "~/routing/pages-view";
 
 const Page = (props: PageProps) => <PagesView {...props} />;
