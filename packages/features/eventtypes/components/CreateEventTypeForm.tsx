@@ -47,7 +47,7 @@ export default function CreateEventTypeForm({
     }
   };
 
-  const durationOptions: GroupBase<{ value: string; label: string }>[] = [
+  const durationOptions: GroupBase<{ value: "minutes" | "hours" | "days"; label: string }>[] = [
     { value: "minutes", label: "Minutes" },
     { value: "hours", label: "Hours" },
     { value: "days", label: "Days" }
