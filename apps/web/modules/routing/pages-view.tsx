@@ -5,7 +5,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";
-import type { PageProps } from "@lib/routing/getServerSideProps";
+import type { PageProps } from "@lib/routing/[pages]/getServerSideProps";
 
 type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
