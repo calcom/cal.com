@@ -55,6 +55,8 @@ export async function getServerSideProps(
   context: GetServerSidePropsContext,
   ...rest: GetServerSidePropsRestArgs
 ) {
-  const component = getComponent(context.params?.pages?.[0] || "");
+  const defaultPage = "forms";
+  const page = context.params?.pages?.[0] || defaultPage;
+  const component = getComponent(page);
   return component.getServerSideProps?.(context, ...rest) || { props: {} };
 }
