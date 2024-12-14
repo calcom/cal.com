@@ -212,6 +212,7 @@ export const config = {
     "/teams",
     "/future/teams/",
     "/settings/:path*",
+    "/availability/:path*",
   ],
 };
 
