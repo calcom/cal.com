@@ -34,6 +34,10 @@ export function Navbar({ username }: { username?: string }) {
           <li>
             <Link href="/embed">Embed</Link>
           </li>
+
+          <li>
+            <Link href="/conferencing-apps">Conferencing Apps</Link>
+          </li>
         </ul>
       </div>
     </nav>

@@ -1,5 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { TrpcProvider } from "app/_trpc/trpc-provider";
+import { HydrateClient } from "app/_trpc/HydrateClient";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
+import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -264,42 +265,46 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
-
   const RemainingProviders = (
-    <TrpcProvider dehydratedState={props.dehydratedState}>
-      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-        <SessionProvider>
-          <CustomI18nextProvider i18n={props.i18n}>
-            <TooltipProvider>
-              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-              <CalcomThemeProvider
-                themeBasis={props.themeBasis}
-                nonce={props.nonce}
-                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
-                isBookingPage={props.isBookingPage || isBookingPage}>
-                <FeatureFlagsProvider>
-                  <OrgBrandProvider>
-                    {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                    <CacheProvider>
-                      <MetaProvider>{props.children}</MetaProvider>
-                    </CacheProvider>
-                  </OrgBrandProvider>
-                </FeatureFlagsProvider>
-              </CalcomThemeProvider>
-            </TooltipProvider>
-          </CustomI18nextProvider>
-        </SessionProvider>
-      </EventCollectionProvider>
-    </TrpcProvider>
+    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+      <SessionProvider>
+        <CustomI18nextProvider i18n={props.i18n}>
+          <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <CalcomThemeProvider
+              themeBasis={props.themeBasis}
+              nonce={props.nonce}
+              isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
+              isBookingPage={props.isBookingPage || isBookingPage}>
+              <FeatureFlagsProvider>
+                <OrgBrandProvider>
+                  {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+                  <CacheProvider>
+                    <MetaProvider>{props.children}</MetaProvider>
+                  </CacheProvider>
+                </OrgBrandProvider>
+              </FeatureFlagsProvider>
+            </CalcomThemeProvider>
+          </TooltipProvider>
+        </CustomI18nextProvider>
+      </SessionProvider>
+    </EventCollectionProvider>
+  );
+  const Hydrated = props.dehydratedState ? (
+    <HydrateClient state={props.dehydratedState}>{RemainingProviders}</HydrateClient>
+  ) : (
+    RemainingProviders
   );
 
   if (isBookingPage) {
-    return RemainingProviders;
+    return Hydrated;
   }
 
   return (
     <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+      <DynamicIntercomProvider>
+        <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
+      </DynamicIntercomProvider>
     </DynamicHelpscoutProvider>
   );
 };

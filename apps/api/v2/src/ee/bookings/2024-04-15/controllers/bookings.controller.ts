@@ -89,7 +89,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 @UseGuards(PermissionsGuard)
 @DocsExcludeController(true)
 export class BookingsController_2024_04_15 {
-  private readonly logger = new Logger("BookingsController");
+  private readonly logger = new Logger("BookingsController_2024_04_15");
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
@@ -111,8 +111,9 @@ export class BookingsController_2024_04_15 {
     @Query() queryParams: GetBookingsInput_2024_04_15
   ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
+    const bookingListingByStatus = filters?.status ?? Status_2024_04_15["upcoming"];
     const bookings = await getAllUserBookings({
-      bookingListingByStatus: [filters.status],
+      bookingListingByStatus: [bookingListingByStatus],
       skip: cursor ?? 0,
       take: limit ?? 10,
       filters,
@@ -332,7 +333,7 @@ export class BookingsController_2024_04_15 {
   }
 
   private async getOAuthClientsParams(clientId: string): Promise<OAuthRequestParams> {
-    const res = DEFAULT_PLATFORM_PARAMS;
+    const res = { ...DEFAULT_PLATFORM_PARAMS };
     try {
       const client = await this.oAuthClientRepository.getOAuthClient(clientId);
       // fetch oAuthClient from db and use data stored in db to set these values
@@ -355,13 +356,22 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const requestId = req.get("X-Request-Id");
+    const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
-    req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
-    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
+    Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
+    clone.body = { ...clone.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private async createNextApiRecurringBookingRequest(
@@ -369,17 +379,26 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, {
+    const requestId = req.get("X-Request-Id");
+    this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
+    Object.assign(clone, {
       userId,
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
     });
-    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private handleBookingErrors(

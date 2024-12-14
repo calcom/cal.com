@@ -1,3 +1,4 @@
+import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -74,6 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
             }}
@@ -105,12 +107,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
             }}
           />
         )}
-        {children}
+        <TrpcProvider>{children}</TrpcProvider>
       </body>
     </html>
   );

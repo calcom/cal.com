@@ -45,7 +45,7 @@ const CustomEmailTextField = ({
   return (
     <>
       <div
-        className={`border-default mt-2 flex items-center rounded-md border ${
+        className={`border-default mt-2 flex w-full items-center rounded-md border ${
           inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
         }`}>
         <TextField

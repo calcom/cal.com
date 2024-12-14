@@ -37,7 +37,7 @@ export default function MemberListItem(props: Props) {
             <UserAvatar noOrganizationIndicator size="sm" user={user} className="h-10 w-10 rounded-full" />
 
             <div className="ms-3 inline-block overflow-hidden">
-              <div className="mb-1 flex">
+              <div className="mb-1 flex items-center">
                 <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}

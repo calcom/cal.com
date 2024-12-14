@@ -66,8 +66,11 @@ const BookerComponent = ({
   isPlatform,
   orgBannerUrl,
   customClassNames,
+  areInstantMeetingParametersSet = false,
+  userLocale,
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
+
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -201,6 +204,7 @@ const BookerComponent = ({
               onGoBack={() => {
                 onGoBackInstantMeeting();
               }}
+              orgName={event.data?.entity?.name}
             />
           )}
         </>
@@ -327,46 +331,43 @@ const BookerComponent = ({
                 )}
               </BookerSection>
             )}
-            {!hideEventTypeDetails && (
-              <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
-                <BookerSection
-                  area="meta"
-                  className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                  {orgBannerUrl && !isPlatform && (
-                    <img
-                      loading="eager"
-                      className="-mb-9 ltr:rounded-tl-md rtl:rounded-tr-md"
-                      alt="org banner"
-                      src={orgBannerUrl}
-                    />
-                  )}
-                  <EventMeta
-                    classNames={{
-                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                      eventMetaTimezoneSelect:
-                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                    }}
-                    event={event.data}
-                    isPending={event.isPending}
-                    isPlatform={isPlatform}
+            <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
+              <BookerSection
+                area="meta"
+                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                {!hideEventTypeDetails && orgBannerUrl && (
+                  <img
+                    loading="eager"
+                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
+                    alt="org banner"
+                    src={orgBannerUrl}
                   />
-                  {layout !== BookerLayouts.MONTH_VIEW &&
-                    !(layout === "mobile" && bookerState === "booking") && (
-                      <div className="mt-auto px-5 py-3">
-                        <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
-                      </div>
-                    )}
-                </BookerSection>
-              </StickyOnDesktop>
-            )}
+                )}
+                <EventMeta
+                  classNames={{
+                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                    eventMetaTimezoneSelect:
+                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                  }}
+                  event={event.data}
+                  isPending={event.isPending}
+                  isPlatform={isPlatform}
+                  locale={userLocale}
+                />
+                {layout !== BookerLayouts.MONTH_VIEW &&
+                  !(layout === "mobile" && bookerState === "booking") && (
+                    <div className="mt-auto px-5 py-3">
+                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
+                    </div>
+                  )}
+              </BookerSection>
+            </StickyOnDesktop>
 
             <BookerSection
               key="book-event-form"
               area="main"
-              className={`sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] ${
-                !hideEventTypeDetails ? "md:border-l" : ""
-              }`}
+              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -378,9 +379,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className={`ml-[-1px] h-full flex-shrink px-5 py-3 lg:w-[var(--booker-main-width)] ${
-                !hideEventTypeDetails ? "md:border-subtle md:border-l" : ""
-              }`}>
+              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker
                 classNames={{
                   datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
@@ -446,21 +445,23 @@ const BookerComponent = ({
           }}
         />
 
-        {bookerState !== "booking" && event.data?.showInstantEventConnectNowModal && (
-          <div
-            className={classNames(
-              "animate-fade-in-up  z-40 my-2 opacity-0",
-              layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
-            )}
-            style={{ animationDelay: "1s" }}>
-            <InstantBooking
-              event={event.data}
-              onConnectNow={() => {
-                onConnectNowInstantMeeting();
-              }}
-            />
-          </div>
-        )}
+        {bookerState !== "booking" &&
+          event.data?.showInstantEventConnectNowModal &&
+          areInstantMeetingParametersSet && (
+            <div
+              className={classNames(
+                "animate-fade-in-up  z-40 my-2 opacity-0",
+                layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+              )}
+              style={{ animationDelay: "1s" }}>
+              <InstantBooking
+                event={event.data}
+                onConnectNow={() => {
+                  onConnectNowInstantMeeting();
+                }}
+              />
+            </div>
+          )}
         {!hideBranding && !isPlatform && (
           <m.span
             key="logo"

@@ -25,7 +25,7 @@ const CreateNewOutOfOfficeEntry = () => {
     <>
       <Button
         color="primary"
-        className="flex w-20 items-center justify-between px-4"
+        className="flex items-center justify-between px-4"
         onClick={() => setOpenModal(true)}
         data-testid="add_entry_ooo">
         <Icon name="plus" size={16} /> {t("add")}
