@@ -2,8 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import Head from "next/head";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
@@ -12,7 +11,6 @@ import { classNames } from "@calcom/lib";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { TRPCClientErrorLike } from "@calcom/trpc/react";
@@ -89,7 +87,7 @@ const stepRouteSchema = z.object({
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
-  const params = useParamsWithFallback();
+  const params = useParams();
   const router = useRouter();
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
@@ -102,7 +100,7 @@ const OnboardingPage = (props: PageProps) => {
 
   const result = stepRouteSchema.safeParse({
     ...params,
-    step: Array.isArray(params.step) ? params.step : [params.step],
+    step: Array.isArray(params?.step) ? params.step : [params?.step],
   });
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -159,11 +157,6 @@ const OnboardingPage = (props: PageProps) => {
       )}
       data-testid="onboarding"
       key={pathname}>
-      <Head>
-        <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
