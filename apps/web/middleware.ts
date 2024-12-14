@@ -42,9 +42,21 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/apps/routing-forms")) {
-    const redirectPathName = url.pathname.replace("/apps/routing-forms", "/routing");
+    let redirectPathName = "";
+
+    if (url.pathname.startsWith("/apps/routing-forms/forms")) {
+      redirectPathName = url.pathname.replace("/apps/routing-forms/forms", "/routing");
+    } else {
+      redirectPathName = url.pathname.replace("/apps/routing-forms", "/routing");
+    }
     url.pathname = redirectPathName;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { headers: requestHeaders });
+  }
+
+  if (url.pathname.startsWith("/routing/forms")) {
+    const redirectPathName = url.pathname.replace("/routing/forms", "/routing");
+    url.pathname = redirectPathName;
+    return NextResponse.redirect(url, { headers: requestHeaders });
   }
 
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
@@ -177,6 +189,7 @@ export const config = {
      */
     "/apps/routing_forms/:path*",
     "/apps/routing-forms/:path*",
+    "/routing/forms",
     "/event-types",
     "/future/event-types/",
     "/apps/installed/:category/",
