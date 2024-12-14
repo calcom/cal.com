@@ -11,7 +11,7 @@ export async function addForm(
     forTeam?: boolean;
   } = {}
 ) {
-  await page.goto(`/routing-forms/forms`);
+  await page.goto(`/routing`);
   await page.click('[data-testid="new-routing-form"]');
 
   if (forTeam) {
