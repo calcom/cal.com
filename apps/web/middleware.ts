@@ -166,22 +166,12 @@ export const config = {
     "/login",
     "/auth/login",
     "/future/auth/login",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
     "/event-types",
     "/future/event-types/",
-    "/apps/installed/:category/",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:step/",
     "/future/getting-started/:step/",
-    "/apps",
+    "/apps/:path*",
     "/bookings/:status/",
     "/future/bookings/:status/",
     "/video/:path*",
