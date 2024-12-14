@@ -9,7 +9,6 @@ import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
-import { GroupBase } from 'react-select';
 
 export default function CreateEventTypeForm({
   form,
@@ -47,7 +46,7 @@ export default function CreateEventTypeForm({
     }
   };
 
-  const durationOptions: GroupBase<{ value: "minutes" | "hours" | "days"; label: string }>[] = [
+  const durationOptions = [
     { value: "minutes", label: "Minutes" },
     { value: "hours", label: "Hours" },
     { value: "days", label: "Days" }
@@ -154,7 +153,7 @@ export default function CreateEventTypeForm({
             <Select
               value={durationUnit}
               onChange={(value) => setDurationUnit(value as "minutes" | "hours" | "days")}
-              options={durationOptions}
+              options={durationOptions as { value: "minutes" | "hours" | "days"; label: string }[]}
               className="w-24"
             />
           </div>
