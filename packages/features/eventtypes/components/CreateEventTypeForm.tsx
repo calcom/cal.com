@@ -158,7 +158,7 @@ const durationOptions = [
             <Select
               value={durationUnit}
               onChange={(value) => setDurationUnit(value as "minutes" | "hours" | "days")}
-              options={durationOptions[0].options}
+              options={durationOptions}
               className="w-24"
             />
           </div>
