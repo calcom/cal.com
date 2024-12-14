@@ -1110,6 +1110,8 @@ const DisplayLocation = ({
     <p className={className}>{locationToDisplay}</p>
   );
 
+Success.isBookingPage = true;
+
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];
   recurringBookings: PageProps["recurringBookings"];

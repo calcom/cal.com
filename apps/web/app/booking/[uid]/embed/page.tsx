@@ -9,4 +9,4 @@ const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
 const getEmbedData = withEmbedSsrAppDir(getData);
 
-export default WithLayout({ getLayout: null, getData: getEmbedData, Page: OldPage, isBookingPage: true });
+export default WithLayout({ getLayout: null, getData: getEmbedData, Page: OldPage });
