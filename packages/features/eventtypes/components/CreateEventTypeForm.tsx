@@ -11,7 +11,7 @@ import turndown from "@calcom/lib/turndownService";
 import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
 
 interface Option {
-  value: "minutes" | "hours" | "days";
+  value: string;
   label: string;
 }
 
