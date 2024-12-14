@@ -64,7 +64,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (url.pathname.startsWith("/future/apps/installed")) {
+  if (url.pathname.startsWith("/apps/installed")) {
     const returnTo = req.cookies.get("return-to")?.value;
     if (returnTo !== undefined) {
       requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
@@ -174,7 +174,6 @@ export const config = {
     "/event-types",
     "/future/event-types/",
     "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
     "/apps/:slug/",
     "/apps/:slug/setup/",
     "/apps/categories/",
