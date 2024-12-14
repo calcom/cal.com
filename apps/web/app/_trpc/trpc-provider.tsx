@@ -5,14 +5,13 @@ import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { httpBatchLink, httpLink, loggerLink, splitLink } from "@calcom/trpc/client";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
-type Maybe<T> = T | null | undefined;
-
 export type Endpoint = (typeof ENDPOINTS)[number];
+
+const MAX_QUERY_RETRIES = 3;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveEndpoint = (links: any) => {
@@ -37,7 +36,15 @@ const resolveEndpoint = (links: any) => {
   };
 };
 
-export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const isTRPCClientError = (cause: unknown): cause is TRPCClientError<AppRouter> => {
+  return cause instanceof TRPCClientError;
+};
+
+type Props = {
+  children: React.ReactNode;
+};
+
+export const TrpcProvider = ({ children }: Props) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -52,14 +59,14 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({ children
             /**
              * Retry `useQuery()` calls depending on this function
              */
-            retry(failureCount, _err) {
-              const err = _err as never as Maybe<TRPCClientErrorLike<AppRouter>>;
-              const code = err?.data?.code;
-              if (code === "BAD_REQUEST" || code === "FORBIDDEN" || code === "UNAUTHORIZED") {
-                // if input data is wrong or you're not authorized there's no point retrying a query
-                return false;
+            retry(failureCount, error) {
+              if (isTRPCClientError(error) && error.data) {
+                const { code } = error.data;
+                if (code === "BAD_REQUEST" || code === "FORBIDDEN" || code === "UNAUTHORIZED") {
+                  // if input data is wrong or you're not authorized there's no point retrying a query
+                  return false;
+                }
               }
-              const MAX_QUERY_RETRIES = 3;
               return failureCount < MAX_QUERY_RETRIES;
             },
           },
