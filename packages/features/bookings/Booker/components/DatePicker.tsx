@@ -22,7 +22,7 @@ export const DatePicker = ({
       users: Pick<User, "weekStart">[];
       recurringEvent: {
         freq: number;
-      };
+      } | null;
     } | null;
   };
   schedule: useScheduleForEventReturnType;
