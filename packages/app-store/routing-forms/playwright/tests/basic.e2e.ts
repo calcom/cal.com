@@ -614,6 +614,55 @@ test.describe("Routing Forms", () => {
       })();
     });
   });
+
+  test.describe("Routing Forms with /routing url", () => {
+    test.beforeEach(async ({ users }) => {
+      const user = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+        }
+      );
+      await user.apiLogin();
+    });
+
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
+
+    test("should redirect /apps/routing-forms/forms to url /routing", async ({ page }) => {
+      await addForm(page);
+      await page.goto(`/apps/routing-forms/forms`);
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith("/routing");
+      });
+      await page.waitForSelector('[data-testid="routing-forms-list"]');
+      await expect(page.locator('[data-testid="routing-forms-list"] > div')).toHaveCount(1);
+    });
+
+    test("should redirect /apps/routing-forms/route-builder/:formId to url /routing/route-builder/:formId", async ({
+      page,
+    }) => {
+      const formId = await addForm(page);
+      await page.goto(`/apps/routing-forms/route-builder/${formId}`);
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith(`/routing/route-builder/${formId}`);
+      });
+      await page.waitForSelector('[data-testid="select-control"]');
+      await expect(page.locator("label").getByText("Add a new Route")).toBeVisible();
+    });
+
+    test("should redirect /apps/routing-forms/form-edit/:formId to url /routing/form-edit/:formId", async ({
+      page,
+    }) => {
+      const formId = await addForm(page);
+      await page.goto(`/apps/routing-forms/form-edit/${formId}`);
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith(`/routing/form-edit/${formId}`);
+      });
+      await page.waitForSelector('[data-testid="add-field"]');
+    });
+  });
 });
 
 async function disableForm(page: Page) {
