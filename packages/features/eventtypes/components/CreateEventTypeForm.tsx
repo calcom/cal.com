@@ -47,9 +47,13 @@ export default function CreateEventTypeForm({
   };
 
 const durationOptions = [
-  { value: "minutes", label: t("minutes") },
-  { value: "hours", label:  t("hours") },
-  { value: "days", label: t("days") },
+  {
+    options: [
+      { value: 'minutes', label: 'Minutes' },
+      { value: 'hours', label: 'Hours' },
+      { value: 'days', label: 'Days' },
+    ],
+  },
 ];
 
   return (
@@ -153,7 +157,7 @@ const durationOptions = [
             <Select
               value={durationUnit}
               onChange={(value) => setDurationUnit(value as "minutes" | "hours" | "days")}
-              options={durationOptions}
+              options={durationOptions[0].options}
               className="w-24"
             />
           </div>
