@@ -10,6 +10,11 @@ import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
 
+interface Option {
+  value: "minutes" | "hours" | "days";
+  label: string;
+}
+
 export default function CreateEventTypeForm({
   form,
   isManagedEventType,
@@ -46,7 +51,7 @@ export default function CreateEventTypeForm({
     }
   };
 
-  const durationOptions = [
+  const durationOptions: Option[] = [
     { value: 'minutes', label: 'Minutes' },
     { value: 'hours', label: 'Hours' },
     { value: 'days', label: 'Days' }
