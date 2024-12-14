@@ -57,7 +57,6 @@ const durationOptions = [
   },
 ];
 
-
   return (
     <Form
       form={form}
