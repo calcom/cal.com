@@ -24,7 +24,6 @@ checkRoute "$APP_ROUTER_GETTING_STARTED_STEP_ENABLED" app/future/getting-started
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
 checkRoute "$APP_ROUTER_BOOKING_ENABLED" app/future/booking
 checkRoute "$APP_ROUTER_TEAM_ENABLED" app/future/team
-checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
 
 # These are routes that don't have and environment variable to enable or disable them
 # Will stop removing gradually as we test and confirm that they are working
