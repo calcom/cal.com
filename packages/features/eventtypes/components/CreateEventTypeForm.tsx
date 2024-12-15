@@ -60,13 +60,14 @@ export default function CreateEventTypeForm({
   const duration = watch("length");
 
   const handleDurationChange = (value: number) => {
-    console.log(value);
-    if (selectedDurationUnit === EventDurationConfig.HOURS) {
-      setValue("length", value * 60); // Convert hours to minutes
-    } else if (selectedDurationUnit === EventDurationConfig.DAYS) {
-      setValue("length", value * 1440); // Convert days to minutes
-    } else {
-      setValue("length", Math.round(value)); // Minutes
+    if (selectedDurationUnit) {
+      if (selectedDurationUnit.value === EventDurationConfig.HOURS) {
+        setValue("length", value * 60); // Convert hours to minutes
+      } else if (selectedDurationUnit.value === EventDurationConfig.DAYS) {
+        setValue("length", value * 1440); // Convert days to minutes
+      } else {
+        setValue("length", Math.round(value)); // Minutes
+      }
     }
   };
 
@@ -171,7 +172,11 @@ export default function CreateEventTypeForm({
             <Select
               options={durationOptions}
               value={selectedDurationUnit}
-              onChange={(e) => setSelectedDurationUnit(e)}
+              onChange={(e) => {
+                if (e) {
+                  setSelectedDurationUnit(e);
+                }
+              }}
               className="w-24"
             />
           </div>
