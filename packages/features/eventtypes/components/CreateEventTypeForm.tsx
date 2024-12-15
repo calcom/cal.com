@@ -46,12 +46,12 @@ export default function CreateEventTypeForm({
     }
   };
 
-  const durationOptions = [
+  const durationOptions: Array<{ value: "minutes" | "hours" | "days"; label: string }> = [
     { value: "minutes", label: "Minutes" },
     { value: "hours", label: "Hours" },
-    { value: "days", label: "Days" }
+    { value: "days", label: "Days" },
   ];
-  
+
   return (
     <Form
       form={form}
