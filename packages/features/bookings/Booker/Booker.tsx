@@ -155,6 +155,11 @@ const BookerComponent = ({
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
   const slot = getQueryParam("slot");
+
+  useEffect(() => {
+    if (hasSession) localStorage?.setItem("overlayCalendarSwitchDefault", "true");
+  }, [hasSession]);
+
   useEffect(() => {
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);

@@ -49,8 +49,8 @@ export function Header({
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
       if (layout === newLayout || !newLayout) return;
-      // If the new layout isn't monthly view, then enable calendar overlay by default for signed in users
-      if (newLayout != BookerLayouts.MONTH_VIEW && hasSession) {
+      // Enable calendar overlay by default for signed in users
+      if (hasSession) {
         localStorage?.setItem("overlayCalendarSwitchDefault", "true");
       }
       setLayout(newLayout as BookerLayout);
