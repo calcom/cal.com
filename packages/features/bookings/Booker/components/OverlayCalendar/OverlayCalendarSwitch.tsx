@@ -24,12 +24,16 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
 
   /**
    * If a user is not logged in and the overlay calendar query param is true,
-   * show the continue modal so they can login / create an account
+   * show the continue modal so they can login / create an account.
+   * If user is logged in, weenable the overlay calendar by default.
    */
   useEffect(() => {
     if (!hasSession && switchEnabled) {
       onStateChange(false);
       setContinueWithProvider(true);
+    } else if (hasSession && !switchEnabled) {
+      onStateChange(true);
+      localStorage?.setItem("overlayCalendarSwitchDefault", "true");
     }
   }, [hasSession, switchEnabled, setContinueWithProvider, onStateChange]);
 
