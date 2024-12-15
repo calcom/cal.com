@@ -8,7 +8,7 @@ import { ZodError } from "zod";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import {
   Badge,
@@ -154,7 +154,7 @@ export const FormBuilder = function FormBuilder({
             }
 
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
-              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label ?? "") };
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
             }
             const numOptions = options?.length ?? 0;
             const firstOptionInput =
@@ -736,7 +736,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
+            __html: markdownToSafeHTML(field.label || t(field.defaultLabel || "") || ""),
           }}
         />
       );
