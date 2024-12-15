@@ -210,6 +210,8 @@ checksums:
     webhook_created_successfully: a28d4b9a5427109de72d7519e6b4fdcb
     webhook_updated_successfully: 268f4f92524ec2e59868e765bfa815e5
     webhook_removed_successfully: a85ed28b09a5d30e1ab32ce74641bc03
+    subscription_needed: 1952269ff1dc34eaed2787d9a231a1df
+    subscription_needed_description: e6a256a0f665d0053f70bbf5938b3b99
     payload_template: d6b932029eeff062358604bb4990d9ea
     dismiss: c2f298165cbfc17041b795065bfeb57c
     no_data_yet: e4446716d5db8ad0e49c7e763c385af3
@@ -823,8 +825,13 @@ checksums:
     file_not_named: 42e93dfbf3037148e169df7f873bb536
     create_team: d3cba7d5fb6932d919f9dfad7a1e9d9f
     name: 9368b5a047572b6051f334af5aa76819
+    nameless_team: 44bfe8692c3839f1fd10459239409a30
+    oauth_client_deletion_message: 1683b64379f8e873199f3fe43edaa1f8
     create_new_team_description: aea7bc114f52617f8663748eec96d6a4
     create_new_team: d802300d68d2ca2d7c68b1e87d1ca620
+    booking_redirect_uri: a8eae39bf6b096d810eb231ef3e2d6f1
+    booking_cancel_redirect_uri: 491c19054f61961d32bfce9cd834ca3d
+    booking_reschedule_redirect_uri: 4e48f2686fbe3f6a020e264231c3e791
     open_invitations: 7dd1d866291bb11eea7f40ba49ff1f3c
     new_team: 77691aa0f3819d6269905fa4b97b9ec3
     create_first_team_and_invite_others: d4f0796a5cc46932dbc59651f0eb2840
@@ -845,6 +852,10 @@ checksums:
     little_something_about: 9f745426c90698e9badefd7b6b13373d
     profile_updated_successfully: 69f80a17693be64d56adb8f174edbb30
     your_user_profile_updated_successfully: 401d22b5f580fff641554b3b3ba70b67
+    your_upgrade_is_here: e61c47bfd5f6e330c1564f533170ff95
+    your_upgrade_is_here_description: b33928ec907c8c707c3c159486a85ad8
+    you_are_all_set: bccb8445be9583f8b8dd6b4f980f8ee3
+    you_are_all_set_description: efe64016068008a9e966911bcb57574e
     user_cannot_found_db: 3ffd76f18282daa426c49a04cbae9dc6
     embed_and_webhooks: 2272d6c740d1e4de30b7be846bcb2aec
     enabled: 20236664b7e62df0e767921b4450205f
