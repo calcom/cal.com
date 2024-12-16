@@ -86,7 +86,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           length: true,
           hidden: true,
           hosts: {
-            take: 5,
+            take: 3,
             select: {
               user: {
                 select: {
