@@ -86,6 +86,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           length: true,
           hidden: true,
           hosts: {
+            take: 5,
             select: {
               user: {
                 select: {
@@ -135,6 +136,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       where: { id: eventTypeId },
       select: {
         users: {
+          take: 1,
           select: {
             username: true,
             name: true,
