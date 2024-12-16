@@ -22,4 +22,4 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   return booking;
 }
 
-export default wrapApiHandlerWithSentry(defaultResponder(handler), "/api/book/event");
+export default defaultResponder(wrapApiHandlerWithSentry(handler, "/api/book/event"));
