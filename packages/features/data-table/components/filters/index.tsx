@@ -22,8 +22,9 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { useDataTable } from "../../lib/hooks";
 import type { FilterableColumn, ExternalFilter } from "../../lib/types";
-import { convertToTitleCase, useDataTable } from "../../lib/utils";
+import { convertToTitleCase } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
