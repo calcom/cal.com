@@ -21,6 +21,8 @@ export interface UserTableUser {
     attributeId: string;
     value: string;
     slug: string;
+    weight?: number | null;
+    contains: string[];
   }[];
 }
 

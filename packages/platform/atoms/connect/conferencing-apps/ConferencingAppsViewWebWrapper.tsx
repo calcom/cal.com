@@ -16,8 +16,14 @@ type ConferencingAppsViewWebWrapperProps = {
   add: string;
 };
 
-type UpdateDefaultConferencingAppParams = { appSlug: string; callback: () => void };
-type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+export type UpdateUsersDefaultConferencingAppParams = {
+  appSlug: string;
+  appLink?: string;
+  onSuccessCallback: () => void;
+  onErrorCallback: () => void;
+};
+
+export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
 const SkeletonLoader = () => {
@@ -73,6 +79,9 @@ export const ConferencingAppsViewWebWrapper = ({
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
       { id: credentialId, teamId },
@@ -91,17 +100,31 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
-  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+  const handleConnectDisconnectIntegrationMenuToggle = () => {
+    utils.viewer.integrations.invalidate();
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+  };
+
+  const handleUpdateUserDefaultConferencingApp = ({
+    appSlug,
+    appLink,
+    onSuccessCallback,
+    onErrorCallback,
+  }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(
-      { appSlug },
+      { appSlug, appLink },
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
           utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
+          onSuccessCallback();
         },
         onError: (error) => {
           showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
         },
       }
     );
@@ -167,9 +190,13 @@ export const ConferencingAppsViewWebWrapper = ({
                   data={data}
                   variant="conferencing"
                   defaultConferencingApp={defaultConferencingApp}
-                  handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+                  handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
                   handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
                   isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+                  eventTypes={eventTypesQueryData?.eventTypes}
+                  isEventTypesFetching={isEventTypesFetching}
+                  handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+                  handleBulkEditDialogToggle={handleBulkEditDialogToggle}
                 />
               );
             }}

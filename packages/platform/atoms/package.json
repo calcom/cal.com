@@ -63,6 +63,8 @@
     "@tanstack/react-query": "^5.17.15",
     "class-variance-authority": "^0.4.0",
     "clsx": "^2.0.0",
+    "dompurify": "^3.2.3",
+    "marked": "^15.0.3",
     "react-use": "^17.4.2",
     "tailwind-merge": "^1.13.2",
     "tailwindcss": "^3.3.3",

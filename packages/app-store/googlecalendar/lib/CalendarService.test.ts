@@ -1,8 +1,8 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__/OAuthManager";
-import { googleapisMock, setCredentialsMock } from "./__mocks__/googleapis";
+import { adminMock, calendarMock, setCredentialsMock } from "./__mocks__/googleapis";
 
-import { expect, test, vi } from "vitest";
+import { expect, test, beforeEach, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
@@ -22,7 +22,21 @@ vi.mock("./getGoogleAppKeys", () => ({
     redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
   }),
 }));
-googleapisMock.google;
+
+vi.mock("googleapis-common", () => ({
+  OAuth2Client: vi.fn().mockImplementation(() => ({
+    setCredentials: setCredentialsMock,
+  })),
+}));
+vi.mock("@googleapis/admin", () => adminMock);
+vi.mock("@googleapis/calendar", () => calendarMock);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  setCredentialsMock.mockClear();
+  calendarMock.calendar_v3.Calendar.mockClear();
+  adminMock.admin_directory_v1.Admin.mockClear();
+});
 
 const googleTestCredentialKey = {
   scope: "https://www.googleapis.com/auth/calendar.events",
@@ -127,6 +141,7 @@ test("Calendar can be watched and unwatched", async () => {
     integration: "google_calendar",
     externalId: "example@cal.com",
     credentialId: 1,
+    domainWideDelegationCredentialId: null,
     googleChannelId: "mock-channel-id",
     googleChannelKind: "api#channel",
     googleChannelResourceId: "mock-resource-id",
@@ -148,6 +163,7 @@ test("Calendar can be watched and unwatched", async () => {
     integration: "google_calendar",
     externalId: "example@cal.com",
     credentialId: 1,
+    domainWideDelegationCredentialId: null,
     googleChannelId: null,
     googleChannelKind: null,
     googleChannelResourceId: null,

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
-import type { calendar_v3 } from "googleapis";
-import { google } from "googleapis";
+import type { GaxiosResponse } from "googleapis-common";
+import { OAuth2Client } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
@@ -18,10 +19,9 @@ import {
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
-import { getAllCalendars } from "@calcom/lib/google";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { GoogleRepository } from "@calcom/lib/server/repository/google";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -52,6 +52,9 @@ const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
+
+const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+  typeof error === "object" && !!error && error.hasOwnProperty("config");
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -164,8 +167,7 @@ export default class GoogleCalendarService implements Calendar {
 
   public authedCalendar = async () => {
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
-    const calendar = google.calendar({
-      version: "v3",
+    const calendar = new calendar_v3.Calendar({
       auth: myGoogleAuth,
     });
     return calendar;
@@ -266,7 +268,7 @@ export default class GoogleCalendarService implements Calendar {
       "primary";
 
     try {
-      let event;
+      let event: calendar_v3.Schema$Event | undefined;
       let recurringEventId = null;
       if (formattedCalEvent.existingRecurringEvent) {
         recurringEventId = formattedCalEvent.existingRecurringEvent.recurringEventId;
@@ -352,6 +354,11 @@ export default class GoogleCalendarService implements Calendar {
         iCalUID: event?.iCalUID,
       };
     } catch (error) {
+      if (isGaxiosResponse(error)) {
+        // Prevent clogging up the logs with the body of the request
+        // Plus, we already have this data in error.data.summary
+        delete error.config.body;
+      }
       this.log.error(
         "There was an error creating event in google calendar: ",
         safeStringify({ error, selectedCalendar, credentialId })
@@ -541,12 +548,12 @@ export default class GoogleCalendarService implements Calendar {
       // Only calendars of other integrations selected
       return [];
     }
-    async function getCalIds() {
+    const getCalIds = async () => {
       if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
-      const cals = await getAllCalendars(calendar, ["id"]);
+      const cals = await this.getAllCalendars(calendar, ["id"]);
       if (!cals.length) return [];
       return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
-    }
+    };
 
     try {
       const calsIds = await getCalIds();
@@ -607,7 +614,7 @@ export default class GoogleCalendarService implements Calendar {
             status: 200,
             statusText: "OK",
             data: {
-              items: await getAllCalendars(calendar),
+              items: await this.getAllCalendars(calendar),
             },
           })
       );
@@ -652,10 +659,8 @@ export default class GoogleCalendarService implements Calendar {
       },
     });
     const response = res.data;
-    await GoogleRepository.upsertSelectedCalendar({
-      userId: this.credential.userId!,
+    await this.upsertSelectedCalendar({
       externalId: calendarId,
-      credentialId: this.credential.id,
       googleChannelId: response?.id,
       googleChannelKind: response?.kind,
       googleChannelResourceId: response?.resourceId,
@@ -686,10 +691,8 @@ export default class GoogleCalendarService implements Calendar {
       .catch((err) => {
         console.warn(JSON.stringify(err));
       });
-    await GoogleRepository.upsertSelectedCalendar({
-      userId: this.credential.userId!,
+    await this.upsertSelectedCalendar({
       externalId: calendarId,
-      credentialId: this.credential.id,
       googleChannelId: null,
       googleChannelKind: null,
       googleChannelResourceId: null,
@@ -715,9 +718,97 @@ export default class GoogleCalendarService implements Calendar {
     const data = await this.fetchAvailability(parsedArgs);
     await this.setAvailabilityInCache(parsedArgs, data);
   }
+
+  async createSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+  ) {
+    return await SelectedCalendarRepository.create({
+      ...data,
+      integration: this.integrationName,
+      credentialId: this.credential.id,
+    });
+  }
+
+  async upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+  ) {
+    if (!this.credential.userId) {
+      logger.error("upsertSelectedCalendar failed. userId is missing.");
+      return;
+    }
+    return await SelectedCalendarRepository.upsert({
+      ...data,
+      integration: this.integrationName,
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+    });
+  }
+
+  async getAllCalendars(
+    calendar: calendar_v3.Calendar,
+    fields: string[] = ["id", "summary", "primary", "accessRole"]
+  ): Promise<calendar_v3.Schema$CalendarListEntry[]> {
+    let allCalendars: calendar_v3.Schema$CalendarListEntry[] = [];
+    let pageToken: string | undefined;
+
+    try {
+      do {
+        const response: any = await calendar.calendarList.list({
+          fields: `items(${fields.join(",")}),nextPageToken`,
+          pageToken,
+          maxResults: 250, // 250 is max
+        });
+
+        allCalendars = [...allCalendars, ...(response.data.items ?? [])];
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
+
+      return allCalendars;
+    } catch (error) {
+      logger.error("Error fetching all Google Calendars", { error });
+      throw error;
+    }
+  }
+
+  async getPrimaryCalendar(
+    calendar: calendar_v3.Calendar,
+    fields: string[] = ["id", "summary", "primary", "accessRole"]
+  ): Promise<calendar_v3.Schema$CalendarListEntry | null> {
+    let pageToken: string | undefined;
+    let firstCalendar: calendar_v3.Schema$CalendarListEntry | undefined;
+
+    try {
+      do {
+        const response: any = await calendar.calendarList.list({
+          fields: `items(${fields.join(",")}),nextPageToken`,
+          pageToken,
+          maxResults: 250, // 250 is max
+        });
+
+        const cals = response.data.items ?? [];
+        const primaryCal = cals.find((cal: calendar_v3.Schema$CalendarListEntry) => cal.primary);
+        if (primaryCal) {
+          return primaryCal;
+        }
+
+        // Store the first calendar in case no primary is found
+        if (cals.length > 0 && !firstCalendar) {
+          firstCalendar = cals[0];
+        }
+
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
+
+      // should not be reached because Google Cal always has a primary cal
+      return firstCalendar ?? null;
+    } catch (error) {
+      logger.error("Error in `getPrimaryCalendar`", { error });
+      throw error;
+    }
+  }
 }
 
-class MyGoogleAuth extends google.auth.OAuth2 {
+class MyGoogleAuth extends OAuth2Client {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
     super(client_id, client_secret, redirect_uri);
   }

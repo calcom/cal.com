@@ -15,4 +15,5 @@ export type AppFlags = {
   "disable-signup": boolean;
   attributes: boolean;
   "organizer-request-email-v2": boolean;
+  "domain-wide-delegation": boolean;
 };

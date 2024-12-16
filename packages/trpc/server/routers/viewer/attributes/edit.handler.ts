@@ -23,7 +23,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const options = input.options;
+  // If an option is removed, it is to be removed from contains of corresponding group as well if any
+  const options = getOptionsWithValidContains(input.options);
 
   const foundAttribute = await prisma.attribute.findUnique({
     where: {
@@ -50,6 +51,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
       name: input.name,
       type: input.type,
       teamId: org.id,
+      isLocked: input.isLocked,
+      isWeightsEnabled: input.isWeightsEnabled,
     },
     select: {
       id: true,
@@ -62,7 +65,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   await prisma.$transaction(async (tx) => {
     const updateOptions = options.filter((option) => option.id !== undefined && option.id !== "");
     const updatedOptionsIds = updateOptions.map((option) => option.id!);
-
     // We need to delete all options that are not present in this UpdateOptions.id (as they have been deleted)
     await tx.attributeOption.deleteMany({
       where: {
@@ -87,6 +89,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
         data: {
           value: option.value,
           slug: slugify(option.value),
+          isGroup: option.isGroup,
+          contains: option.contains,
         },
       });
     });
@@ -97,6 +101,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
         data: {
           attributeId: attributes.id,
           value: option.value,
+          isGroup: option.isGroup,
+          contains: option.contains,
           slug: slugify(option.value),
         },
       });
@@ -109,6 +115,29 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   return attributes;
 };
 
+/**
+ * Ensures that contains has no non-existent sub-options
+ */
+function getOptionsWithValidContains(options: ZEditAttributeSchema["options"]) {
+  return options.map(({ contains, ...option }) => {
+    if (!contains)
+      return {
+        ...option,
+        contains: [],
+      };
+    const possibleSubOptions = options
+      .filter((option) => !option.isGroup)
+      .filter((option): option is typeof option & { id: string } => option.id !== undefined);
+
+    const possibleSubOptionsIds = possibleSubOptions.map((option) => option.id);
+
+    return {
+      ...option,
+      contains: contains.filter((subOptionId) => possibleSubOptionsIds.includes(subOptionId)),
+    };
+  });
+}
+
 async function validateOptionsBelongToAttribute(
   options: ZEditAttributeSchema["options"],
   attributeId: string
@@ -117,7 +146,6 @@ async function validateOptionsBelongToAttribute(
   const optionsWithId = options
     .filter((option) => option.id !== undefined && option.id !== "")
     .map((option) => option.id!);
-  console.log("optionsWithId", optionsWithId);
 
   // Check all ids of options passed in are owned by the attribute
   const optionsWithIdOwnedByAttribute = await prisma.attributeOption.findMany({
