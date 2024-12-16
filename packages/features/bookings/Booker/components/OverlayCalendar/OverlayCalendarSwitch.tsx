@@ -31,11 +31,15 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
     if (!hasSession && switchEnabled) {
       onStateChange(false);
       setContinueWithProvider(true);
-    } else if (hasSession && !switchEnabled) {
+    }
+  }, [hasSession, switchEnabled, setContinueWithProvider, onStateChange]);
+
+  useEffect(() => {
+    if (hasSession && !switchEnabled) {
       onStateChange(true);
       localStorage?.setItem("overlayCalendarSwitchDefault", "true");
     }
-  }, [hasSession, switchEnabled, setContinueWithProvider, onStateChange]);
+  }, [hasSession, switchEnabled, onStateChange]);
 
   return (
     <div
