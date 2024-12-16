@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "عدم إنشاء سجلات جديدة للضيوف المضافين إلى الحجز",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "فيديو MS Teams",
   "lock_attribute_for_assignment": "قفل للتعيين",
   "lock_attribute_for_assignment_description": "القفل سيسمح فقط بالتعيينات من مزامنة الدليل",
   "attribute_edited_successfully": "تم تعديل السمة بنجاح",

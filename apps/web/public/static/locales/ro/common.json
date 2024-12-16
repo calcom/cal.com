@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Nu crea înregistrări noi pentru invitații adăugați la programare",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Video MS Teams",
   "lock_attribute_for_assignment": "Blocare pentru atribuire",
   "lock_attribute_for_assignment_description": "Blocarea va permite atribuiri doar din Directory Sync",
   "attribute_edited_successfully": "Atributul a fost editat cu succes",

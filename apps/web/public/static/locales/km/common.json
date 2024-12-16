@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "កុំបង្កើតកំណត់ត្រាថ្មីសម្រាប់ភ្ញៀវដែលបានបន្ថែមទៅក្នុងការកក់",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "វីដេអូ MS Teams",
   "lock_attribute_for_assignment": "ចាក់សោសម្រាប់ការកំណត់",
   "lock_attribute_for_assignment_description": "ការចាក់សោនឹងអនុញ្ញាតឱ្យមានតែការកំណត់ពី Directory Sync ប៉ុណ្ណោះ",
   "attribute_edited_successfully": "បានកែសម្រួលលក្ខណៈដោយជោគជ័យ",

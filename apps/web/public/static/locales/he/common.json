@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "אל תיצור רשומות חדשות עבור אורחים שנוספו להזמנה",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "וידאו MS Teams",
   "lock_attribute_for_assignment": "נעילה להקצאה",
   "lock_attribute_for_assignment_description": "נעילה תאפשר הקצאות רק מסנכרון הספרייה",
   "attribute_edited_successfully": "המאפיין נערך בהצלחה",

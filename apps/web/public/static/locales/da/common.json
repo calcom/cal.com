@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Opret ikke nye poster for gæster tilføjet til bookingen",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams video",
   "lock_attribute_for_assignment": "Lås for tildeling",
   "lock_attribute_for_assignment_description": "Låsning vil kun tillade tildelinger fra Directory Sync",
   "attribute_edited_successfully": "Attribut redigeret med succes",

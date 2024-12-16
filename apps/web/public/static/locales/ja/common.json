@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "予約に追加されたゲストの新規レコードを作成しない",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams ビデオ",
   "lock_attribute_for_assignment": "割り当て用にロック",
   "lock_attribute_for_assignment_description": "ロックすると、ディレクトリ同期からの割り当てのみが許可されます",
   "attribute_edited_successfully": "属性の編集が完了しました",

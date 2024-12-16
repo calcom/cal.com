@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Nie twórz nowych rekordów dla gości dodanych do rezerwacji",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Wideo MS Teams",
   "lock_attribute_for_assignment": "Zablokuj do przypisania",
   "lock_attribute_for_assignment_description": "Blokada pozwoli na przypisania tylko z Directory Sync",
   "attribute_edited_successfully": "Atrybut został pomyślnie edytowany",

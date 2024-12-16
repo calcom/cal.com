@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Skapa inte nya poster för gäster som läggs till i bokningen",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams video",
   "lock_attribute_for_assignment": "Lås för tilldelning",
   "lock_attribute_for_assignment_description": "Låsning tillåter endast tilldelningar från katalogsynkronisering",
   "attribute_edited_successfully": "Attributet har redigerats",

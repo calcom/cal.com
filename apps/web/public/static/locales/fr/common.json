@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Ne pas créer de nouveaux enregistrements pour les invités ajoutés à la réservation",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Vidéo MS Teams",
   "lock_attribute_for_assignment": "Verrouiller pour l'attribution",
   "lock_attribute_for_assignment_description": "Le verrouillage n'autorisera que les attributions depuis la synchronisation d'annuaire",
   "attribute_edited_successfully": "Attribut modifié avec succès",
