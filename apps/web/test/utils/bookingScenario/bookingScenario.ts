@@ -112,7 +112,7 @@ type InputCredential = typeof TestData.credentials.google & {
 };
 
 type InputSelectedCalendar = (typeof TestData.selectedCalendars)[keyof typeof TestData.selectedCalendars] & {
-  eventTypeId?: number;
+  eventTypeId?: number | null;
 };
 
 type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
