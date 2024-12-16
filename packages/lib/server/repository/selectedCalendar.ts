@@ -16,6 +16,7 @@ export type FindManyArgs = {
           in: number[];
         };
     credentialId?: number | null;
+    integration?: string;
     externalId?: string;
     eventTypeId?: number | null;
   };
