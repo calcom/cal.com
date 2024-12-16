@@ -1113,7 +1113,7 @@ export default function Success(props: PageProps) {
                       )}
                     {!isEventCancelled && <RescheduleOrCancelWarning description={description} />}
                     {!isEventCancelled && (
-                      <div className="flex justify-center">
+                      <div className="flex justify-center mt-4">
                         <span className=" text-xs">
                           Confira a nossa{" "}
                           <Link

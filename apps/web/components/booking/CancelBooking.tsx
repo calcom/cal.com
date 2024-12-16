@@ -85,7 +85,7 @@ export default function CancelBooking(props: Props) {
                 className="ml-auto"
                 color="secondary"
                 onClick={() => props.setIsCancellationMode(false)}>
-                {t("nevermind")}
+                Voltar
               </Button>
               <Button
                 data-testid="confirm_cancel"
