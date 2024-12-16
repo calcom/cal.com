@@ -132,7 +132,9 @@ export const BookerPlatformWrapper = (
     setSelectedDuration(props.duration ?? null);
   }, [props.duration]);
 
-  setOrg(props.entity?.orgSlug ?? null);
+  useEffect(() => {
+    setOrg(props.entity?.orgSlug ?? null);
+  }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
