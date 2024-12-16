@@ -1,6 +1,6 @@
 "use client";
 
-import type { SortingState } from "@tanstack/react-table";
+import type { SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson } from "nuqs";
 import { createContext, useCallback, useState, type Dispatch, type SetStateAction } from "react";
 import { z } from "zod";
@@ -22,7 +22,7 @@ export type DataTableContextType = {
   removeFilter: (columnId: string) => void;
 
   sorting: SortingState;
-  setSorting: (sorting: SortingState) => void;
+  setSorting: OnChangeFn<SortingState>;
 
   displayedExternalFilters: string[];
   setDisplayedExternalFilters: Dispatch<SetStateAction<string[]>>;

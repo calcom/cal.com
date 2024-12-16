@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW "routing_form_response" AS
+CREATE OR REPLACE VIEW "RoutingFormResponse" AS
 WITH attendees_agg AS (
   SELECT 
     a."bookingId",
@@ -25,6 +25,20 @@ assignment_reasons_agg AS (
 SELECT 
   r.id,
   r.response,
+  (
+    SELECT jsonb_object_agg(
+      key,
+      CASE 
+        WHEN jsonb_typeof(value->'value') = 'string' 
+        THEN jsonb_build_object(
+          'label', value->'label',
+          'value', lower((value->>'value')::text)
+        )
+        ELSE value
+      END
+    )
+    FROM jsonb_each(r.response::jsonb)
+  ) as "responseLowercase",
   f.id as "formId",
   f.name as "formName",
   f."teamId" as "formTeamId",

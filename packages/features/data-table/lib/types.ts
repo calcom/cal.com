@@ -24,7 +24,7 @@ export type SingleSelectFilterValue = z.infer<typeof ZSingleSelectFilterValue>;
 
 export const ZMultiSelectFilterValue = z.object({
   type: z.literal("multi_select"),
-  data: z.array(z.string()),
+  data: z.union([z.array(z.string()), z.array(z.number())]),
 });
 
 export type MultiSelectFilterValue = z.infer<typeof ZMultiSelectFilterValue>;

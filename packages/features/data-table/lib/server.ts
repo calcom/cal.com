@@ -22,6 +22,15 @@ export function makeOrderBy(sorting: SortingState) {
   }));
 }
 
+export function makeRawOrderBy(sorting: SortingState) {
+  if (!sorting || !sorting.length) return undefined;
+
+  return Prisma.join(
+    sorting.map((sort) => Prisma.sql`${sort.id} ${Prisma.raw(sort.desc ? "DESC" : "ASC")}`),
+    ", "
+  );
+}
+
 export function makeRawWhereClause({
   columnName,
   filterValue,
@@ -29,8 +38,10 @@ export function makeRawWhereClause({
   columnName: string;
   filterValue: FilterValue;
 }) {
-  if (isSelectFilterValue(filterValue)) {
-    return Prisma.sql`${columnName} IN (${filterValue.join(", ")})`;
+  if (isMultiSelectFilterValue(filterValue)) {
+    return Prisma.sql`${columnName} IN (${filterValue.data.join(", ")})`;
+  } else if (isSingleSelectFilterValue(filterValue)) {
+    return Prisma.sql`${columnName} = ${filterValue.data}`;
   } else if (isTextFilterValue(filterValue)) {
     const { operator, operand } = filterValue.data;
     switch (operator) {
@@ -72,7 +83,7 @@ export function makeRawWhereClause({
         throw new Error(`Invalid operator for number filter: ${operator}`);
     }
   }
-  return Prisma.empty;
+  throw new Error(`Invalid filter type: ${JSON.stringify({ columnName, filterValue })}`);
 }
 
 export function makeWhereClause(props: makeWhereClauseProps) {

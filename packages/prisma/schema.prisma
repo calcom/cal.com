@@ -1009,6 +1009,7 @@ model App_RoutingForms_FormResponse {
 view RoutingFormResponse {
   id                       Int            @unique
   response                 Json
+  responseLowercase        Json
   formId                   String
   formName                 String
   formTeamId               Int?
@@ -1023,8 +1024,6 @@ view RoutingFormResponse {
   bookingUserAvatarUrl     String?
   bookingAssignmentReasons Json? // Array of {reasonString: string}
   createdAt                DateTime
-
-  @@map("routing_form_response")
 }
 
 model Feedback {
