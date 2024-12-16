@@ -111,7 +111,9 @@ type InputCredential = typeof TestData.credentials.google & {
   id?: number;
 };
 
-type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
+type InputSelectedCalendar = (typeof TestData.selectedCalendars)[keyof typeof TestData.selectedCalendars] & {
+  eventTypeId?: number;
+};
 
 type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
@@ -155,6 +157,7 @@ export type InputEventType = {
   slotInterval?: number;
   userId?: number;
   minimumBookingNotice?: number;
+  useEventLevelSelectedCalendars?: boolean;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
    */
@@ -1245,6 +1248,7 @@ export function getOrganizer({
   metadata,
   smsLockState,
   completedOnboarding,
+  username,
 }: {
   name: string;
   email: string;
@@ -1260,10 +1264,13 @@ export function getOrganizer({
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
   completedOnboarding?: boolean;
+  username?: string;
 }) {
+  username = username ?? TestData.users.example.username;
   return {
     ...TestData.users.example,
     name,
+    username,
     email,
     id,
     schedules,
@@ -1290,13 +1297,15 @@ export function getScenarioData(
     eventTypes,
     usersApartFromOrganizer = [],
     apps = [],
+    users: _users,
     webhooks,
     workflows,
     bookings,
   }: {
-    organizer: ReturnType<typeof getOrganizer>;
+    organizer?: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
+    users?: ScenarioData["users"];
     usersApartFromOrganizer?: ScenarioData["users"];
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
@@ -1304,7 +1313,13 @@ export function getScenarioData(
   },
   org?: { id: number | null } | undefined | null
 ) {
-  const users = [organizer, ...usersApartFromOrganizer];
+  if (_users && (usersApartFromOrganizer.length || organizer)) {
+    throw new Error("When users are provided, usersApartFromOrganizer and organizer should not be provided");
+  }
+  const users = _users ? _users : organizer ? [organizer, ...usersApartFromOrganizer] : [];
+  if (!users.length) {
+    throw new Error("No users are specified in any way");
+  }
   if (org) {
     const orgId = org.id;
     if (!orgId) {
