@@ -70,9 +70,32 @@ export async function addSubscription({
           },
           status: BookingStatus.ACCEPTED,
         },
+        include: {
+          eventType: {
+            select: {
+              bookingFields: true,
+            },
+          },
+          attendees: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
       });
 
-      for (const booking of bookings) {
+      const bookingsWithCalEventResponses = bookings.map((booking) => {
+        return {
+          ...booking,
+          ...getCalEventResponses({
+            bookingFields: booking.eventType?.bookingFields ?? null,
+            booking,
+          }),
+        };
+      });
+
+      for (const booking of bookingsWithCalEventResponses) {
         scheduleTrigger({
           booking,
           subscriberUrl: createSubscription.subscriberUrl,
