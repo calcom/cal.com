@@ -266,8 +266,17 @@ export function RoutingFormResponsesTableContent({
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const { copyToClipboard } = useCopy();
 
-  const { dateRange, selectedTeamId, isAll, initialConfig, selectedRoutingFormId, selectedMemberUserId } =
-    filter;
+  const {
+    dateRange,
+    selectedTeamId,
+    isAll,
+    initialConfig,
+    selectedRoutingFormId,
+    selectedMemberUserId,
+    selectedUserId,
+    selectedBookingStatus,
+    selectedRoutingFormFilter,
+  } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
@@ -276,6 +285,7 @@ export function RoutingFormResponsesTableContent({
   const { data: headers, isLoading: isHeadersLoading } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
       {
+        userId: selectedUserId ?? undefined,
         teamId: selectedTeamId ?? undefined,
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
@@ -291,7 +301,8 @@ export function RoutingFormResponsesTableContent({
         teamId: selectedTeamId,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        userId: selectedMemberUserId ?? undefined,
+        userId: selectedUserId ?? undefined,
+        memberUserId: selectedMemberUserId ?? undefined,
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
         columnFilters,

@@ -20,11 +20,12 @@ export const RoutingFormFilterList = memo(
   ({ showOnlyWhenSelectedInContext = true }: { showOnlyWhenSelectedInContext?: boolean }) => {
     const { t } = useLocale();
     const { filter, setConfigFilters } = useFilterContext();
-    const { selectedTeamId, selectedRoutingFormId, isAll } = filter;
+    const { selectedTeamId, selectedUserId, selectedRoutingFormId, isAll } = filter;
     const { selectedFilter } = filter;
 
     const { data: allForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
       {
+        userId: selectedUserId ?? undefined,
         teamId: selectedTeamId ?? undefined,
         isAll: isAll ?? false,
       },
