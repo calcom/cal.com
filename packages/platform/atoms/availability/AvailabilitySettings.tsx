@@ -144,6 +144,7 @@ const DeleteDialogButton = ({
           className={buttonClassName}
           disabled={disabled}
           tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+          tooltipSide="bottom"
         />
       </DialogTrigger>
 
