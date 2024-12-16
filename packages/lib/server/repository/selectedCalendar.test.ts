@@ -188,7 +188,7 @@ describe("SelectedCalendarRepository", () => {
     });
   });
 
-  describe.only("upsert", () => {
+  describe("upsert", () => {
     describe("User Level Calendar", () => {
       const eventTypeId = null;
       it("should update existing calendar as long as a record with same userId_integration_externalId is present for eventTypeId=null", async () => {

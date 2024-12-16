@@ -50,6 +50,6 @@ Unit Tests
 - eventTypeId in CalendarSwitch was passed as NaN and no error was thrown by TS. We need some tests for this
 - [x] handleNewBooking
 - [x] getSchedule tests with eventTypeId
-- [ ] SelectedCalendarRepository tests
-- [ ] More CalendarCache tests
-- [ ] useEventLevelSelectedCalendars was accidentally set to true in defaultEvents causing no busytimes for dynamic group eventType
+- [x] SelectedCalendarRepository tests
+- [x] More CalendarCache tests
+- [x] useEventLevelSelectedCalendars was accidentally set to true in defaultEvents causing no busytimes for dynamic group eventType

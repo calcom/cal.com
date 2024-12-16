@@ -19,6 +19,12 @@ export type FindManyArgs = {
     integration?: string;
     externalId?: string;
     eventTypeId?: number | null;
+    googleChannelId?:
+      | string
+      | null
+      | {
+          not: null;
+        };
   };
   orderBy?: {
     userId?: "asc" | "desc";

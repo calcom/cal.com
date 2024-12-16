@@ -716,6 +716,7 @@ export default class GoogleCalendarService implements Calendar {
         `Calendar ${calendarId} is already being watched for event type ${existingCalendarWithChannel.eventTypeId}. So, not watching again and instead reusing the existing channel`
       );
 
+      // FIXME: We shouldn't create SelectedCalendar, we should only update if exists
       await this.upsertSelectedCalendarsForEventTypeIds(
         {
           externalId: calendarId,
@@ -731,6 +732,8 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     const response = await this.startWatchingCalendarsInGoogle({ calendarId });
+
+    // FIXME: We shouldn't create SelectedCalendar, we should only update if exists
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
         externalId: calendarId,
@@ -760,20 +763,24 @@ export default class GoogleCalendarService implements Calendar {
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
 
-    const calendarsWithSameExternalId = await SelectedCalendarRepository.findMany({
+    const calendarsWithSameExternalIdThatHaveChannelId = await SelectedCalendarRepository.findMany({
       where: {
         credentialId,
         externalId: calendarId,
+        googleChannelId: {
+          not: null,
+        },
       },
     });
 
-    const calendarsToBeStillWatched = calendarsWithSameExternalId.filter(
+    // Except those requested to be un-watched, other calendars are still being watched
+    const calendarsToBeStillWatched = calendarsWithSameExternalIdThatHaveChannelId.filter(
       (sc) => !eventTypeIdsToBeUnwatched.includes(sc.eventTypeId)
     );
 
     if (calendarsToBeStillWatched.length) {
       logger.info(
-        `There are still ${calendarsToBeStillWatched.length} calendars using the same channelId. Not unwatching. Just removing the channelId from this selected calendar`
+        `There are other ${calendarsToBeStillWatched.length} calendars with the same externalId_credentialId. Not unwatching. Just removing the channelId from this selected calendar`
       );
 
       // CalendarCache still need to exist
@@ -796,15 +803,10 @@ export default class GoogleCalendarService implements Calendar {
 
     // All selected calendars with same credentialId and externalId should have same channelId and resourceId. So, use the first one
     // TODO: It is possible that the channelId is not the same for all calendars with the same externalId. We should stop all
-    const allChannels = calendarsWithSameExternalId.map((sc) => ({
+    const allChannels = calendarsWithSameExternalIdThatHaveChannelId.map((sc) => ({
       googleChannelResourceId: sc.googleChannelResourceId,
       googleChannelId: sc.googleChannelId,
     }));
-    logger.info(
-      `There are no other calendars using the same channelId. Unwatching the channels ${allChannels
-        .map((c) => c.googleChannelId)
-        .join(", ")} with resourceId ${allChannels.map((c) => c.googleChannelResourceId).join(", ")}`
-    );
 
     // Delete the calendar cache to force a fresh cache
     await prisma.calendarCache.deleteMany({ where: { credentialId } });
