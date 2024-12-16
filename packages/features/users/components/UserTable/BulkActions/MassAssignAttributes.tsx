@@ -251,6 +251,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
           expand: ["attributes"],
           filters,
         },
+        // @ts-expect-error i really dont know how to type this
         (oldData) => {
           if (!oldData) {
             return {
