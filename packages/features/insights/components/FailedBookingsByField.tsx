@@ -56,11 +56,12 @@ function FormCard({ formName, fields }: FormCardProps) {
 
 export function FailedBookingsByField() {
   const { filter } = useFilterContext();
-  const { selectedTeamId, isAll, initialConfig, selectedRoutingFormId } = filter;
+  const { selectedTeamId, selectedUserId, isAll, initialConfig, selectedRoutingFormId } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
 
   const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(
     {
+      userId: selectedUserId ?? undefined,
       teamId: selectedTeamId ?? undefined,
       isAll: !!isAll,
       routingFormId: selectedRoutingFormId ?? undefined,

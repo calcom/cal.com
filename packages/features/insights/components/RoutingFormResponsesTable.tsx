@@ -232,6 +232,7 @@ export function RoutingFormResponsesTable({
     initialConfig,
     selectedRoutingFormId,
     selectedMemberUserId,
+    selectedUserId,
     selectedBookingStatus,
     selectedRoutingFormFilter,
   } = filter;
@@ -241,6 +242,7 @@ export function RoutingFormResponsesTable({
   const { data: headers, isLoading: isHeadersLoading } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
       {
+        userId: selectedUserId ?? undefined,
         teamId: selectedTeamId ?? undefined,
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
@@ -256,7 +258,8 @@ export function RoutingFormResponsesTable({
         teamId: selectedTeamId,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        userId: selectedMemberUserId ?? undefined,
+        userId: selectedUserId ?? undefined,
+        memberUserId: selectedMemberUserId ?? undefined,
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
         bookingStatus: selectedBookingStatus ?? undefined,
