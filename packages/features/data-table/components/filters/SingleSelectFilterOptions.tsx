@@ -15,16 +15,16 @@ import {
 } from "@calcom/ui";
 
 import type { FilterableColumn } from "../../lib/types";
-import { ZMultiSelectFilterValue } from "../../lib/types";
+import { ZSingleSelectFilterValue } from "../../lib/types";
 import { useDataTable, useFilterValue } from "../../lib/utils";
 
-export type MultiSelectFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "multi_select" }>;
+export type SingleSelectFilterOptionsProps = {
+  column: Extract<FilterableColumn, { type: "single_select" }>;
 };
 
-export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsProps) {
+export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsProps) {
   const { t } = useLocale();
-  const filterValue = useFilterValue(column.id, ZMultiSelectFilterValue);
+  const filterValue = useFilterValue(column.id, ZSingleSelectFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
 
   return (
@@ -41,17 +41,14 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
             <CommandItem
               key={optionValue}
               onSelect={() => {
-                const newFilterValue = filterValue?.data.includes(optionValue)
-                  ? filterValue?.data.filter((value) => value !== optionValue)
-                  : [...(filterValue?.data || []), optionValue];
-                updateFilter(column.id, { type: "multi_select", data: newFilterValue });
+                updateFilter(column.id, { type: "single_select", data: optionValue });
               }}>
               <div
                 className={classNames(
                   "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                  filterValue?.data.includes(optionValue) ? "bg-primary" : "opacity-50"
+                  filterValue?.data === optionValue ? "bg-primary" : "opacity-50"
                 )}>
-                {filterValue?.data.includes(optionValue) && (
+                {filterValue?.data === optionValue && (
                   <Icon name="check" className="text-primary-foreground h-4 w-4" />
                 )}
               </div>
