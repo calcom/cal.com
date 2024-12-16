@@ -185,6 +185,7 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
@@ -209,7 +210,6 @@
             "platform/guides/booking-redirects"
           ]
         },
-        "platform/quickstart",
         "platform/faq"
       ]
     },

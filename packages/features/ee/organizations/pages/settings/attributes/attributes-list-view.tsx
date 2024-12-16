@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   Icon,
   showToast,
+  Badge,
 } from "@calcom/ui";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
@@ -73,6 +74,12 @@ function AttributeItem({
             <>
               <span className="text-muted">•</span>
               <span>{t("number_of_options", { count: attribute.options.length })}</span>
+            </>
+          )}
+          {attribute.isWeightsEnabled && (
+            <>
+              <span className="text-muted">•</span>
+              <Badge>{t("attribute_weight_enabled")}</Badge>
             </>
           )}
         </p>

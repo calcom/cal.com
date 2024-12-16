@@ -1,6 +1,5 @@
-import { _generateMetadata, getFixedT } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import LegacyPage, {
   TeamMembersCTA,
 } from "@calcom/features/ee/organizations/pages/settings/other-team-members-view";
@@ -13,8 +12,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslate();
 
   return (
     <SettingsHeader
