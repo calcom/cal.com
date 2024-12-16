@@ -2,23 +2,27 @@
 
 import { useCallback, useEffect } from "react";
 
-export const useFetchMoreOnBottomReached = (
-  tableContainerRef: React.RefObject<HTMLDivElement>,
-  fetchNextPage: () => void,
-  isFetching: boolean,
-  totalFetched: number,
-  totalDBRowCount: number
-) => {
+export const useFetchMoreOnBottomReached = ({
+  tableContainerRef,
+  hasNextPage,
+  fetchNextPage,
+  isFetching,
+}: {
+  tableContainerRef: React.RefObject<HTMLDivElement>;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetching: boolean;
+}) => {
   const fetchMoreOnBottomReached = useCallback(
     (containerRefElement?: HTMLDivElement | null) => {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && hasNextPage) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching]
   );
 
   useEffect(() => {

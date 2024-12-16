@@ -185,6 +185,7 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
@@ -196,7 +197,8 @@
             "platform/atoms/booker",
             "platform/atoms/event-type",
             "platform/atoms/calendar-settings",
-            "platform/atoms/payment-form"
+            "platform/atoms/payment-form",
+            "platform/atoms/conferencing-apps"
           ]
         },
         {
@@ -208,7 +210,6 @@
             "platform/guides/booking-redirects"
           ]
         },
-        "platform/quickstart",
         "platform/faq"
       ]
     },

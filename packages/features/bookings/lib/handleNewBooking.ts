@@ -46,6 +46,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -464,7 +465,18 @@ async function handler(
   });
 
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
-  const skipContactOwner = reqBody.skipContactOwner ?? false;
+
+  const isReroutingCase = isRerouting({
+    rescheduleUid: reqBody.rescheduleUid ?? null,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+  });
+
+  const skipContactOwner = shouldIgnoreContactOwner({
+    skipContactOwner: reqBody.skipContactOwner ?? null,
+    rescheduleUid: reqBody.rescheduleUid ?? null,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+  });
+
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
   const allHostUsers = await loadAndValidateUsers({
@@ -620,15 +632,13 @@ async function handler(
         const originalRescheduledBookingUserId =
           originalRescheduledBooking && originalRescheduledBooking.userId;
 
-        const isRouting = !!routedTeamMemberIds;
-        const isRerouting = originalRescheduledBookingUserId && isRouting;
         const shouldUseSameRRHost =
           !!originalRescheduledBookingUserId &&
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
           eventType.rescheduleWithSameRoundRobinHost &&
           // If it is rerouting, we should not force reschedule with same host.
           // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
-          !isRerouting;
+          !isReroutingCase;
 
         const userIdsSet = new Set(users.map((user) => user.id));
 
