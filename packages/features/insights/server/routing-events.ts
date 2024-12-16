@@ -1,3 +1,4 @@
+import type { RoutingFormResponse } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import {
@@ -5,8 +6,8 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
-import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import type { ColumnFilter, TypedColumnFilter, SortingState } from "@calcom/features/data-table";
+import { makeWhereClause, makeRawWhereClause } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
@@ -31,6 +32,8 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   columnFilters: ColumnFilter[];
 };
 
+type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
+
 class RoutingEventsInsights {
   private static async getWhereForTeamOrAllTeams({
     userId,
@@ -38,7 +41,7 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-  }: RoutingFormInsightsTeamFilter) {
+  }: RoutingFormInsightsTeamFilter): Promise<WhereForTeamOrAllTeams> {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
     if (isAll && organizationId) {
@@ -56,7 +59,7 @@ class RoutingEventsInsights {
     }
 
     // Base where condition for forms
-    const formsWhereCondition: Prisma.App_RoutingForms_FormWhereInput = {
+    const formsWhereCondition: WhereForTeamOrAllTeams = {
       ...(teamIds.length > 0
         ? {
             teamId: {
@@ -211,7 +214,12 @@ class RoutingEventsInsights {
     userId,
     memberUserId,
     columnFilters,
-  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & { cursor?: number; limit?: number }) {
+    sorting,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
+    sorting: SortingState;
+    cursor?: number;
+    limit?: number;
+  }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
       teamId,
@@ -271,7 +279,7 @@ class RoutingEventsInsights {
 
     if (fieldFilters.length > 0) {
       responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => {
-        // NOTE: We cannot perform case-insensitive search on `response` column,
+        // NOTE: We cannot perform case-insensitive search on the `response` column (jsonb),
         // until we normalize this table, use raw sql, or filter at the application level.
         return makeWhereClause({
           columnName: "response",
@@ -284,6 +292,30 @@ class RoutingEventsInsights {
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,
     });
+
+    const getOrder = (desc?: boolean) => (desc ? ("desc" as const) : ("asc" as const));
+
+    const orderBy = sorting
+      .map((sort) => {
+        if (sort.id === "bookingStatus") {
+          return {
+            routedToBooking: {
+              status: getOrder(sort.desc),
+            },
+          };
+        } else if (sort.id === "bookingAt") {
+          return {
+            routedToBooking: {
+              createdAt: getOrder(sort.desc),
+            },
+          };
+        } else if (sort.id === "createdAt") {
+          return {
+            createdAt: getOrder(sort.desc),
+          };
+        }
+      })
+      .filter((item) => item !== undefined);
 
     const responsesPromise = prisma.app_RoutingForms_FormResponse.findMany({
       select: {
@@ -317,9 +349,206 @@ class RoutingEventsInsights {
         createdAt: true,
       },
       where: responsesWhereCondition,
-      orderBy: {
-        createdAt: "desc",
+      orderBy:
+        orderBy.length > 0
+          ? orderBy
+          : {
+              createdAt: "desc",
+            },
+      take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
+      cursor: cursor ? { id: cursor } : undefined,
+    });
+
+    const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
+
+    // Parse response data
+    const parsedResponses = responses.map((r) => {
+      const responseData = routingFormResponseInDbSchema.parse(r.response);
+      return { ...r, response: responseData };
+    });
+
+    return {
+      total: totalResponses,
+      data: parsedResponses,
+      nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
+    };
+  }
+
+  static async getRoutingFormPaginatedResponses2({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    cursor,
+    limit,
+    userId,
+    columnFilters,
+    sorting,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
+    sorting: SortingState;
+    cursor?: number;
+    limit?: number;
+  }) {
+    const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+    const formsTeamWhereClause = [];
+    if (typeof formsTeamWhereCondition.teamId === "number") {
+      formsTeamWhereClause.push(Prisma.sql`"formTeamId" = ${formsTeamWhereCondition.teamId}`);
+    } else if (Array.isArray(formsTeamWhereCondition.teamId?.in)) {
+      formsTeamWhereClause.push(Prisma.sql`"formTeamId" IN (${formsTeamWhereCondition.teamId.in.join(",")})`);
+    }
+    if (formsTeamWhereCondition.id) {
+      formsTeamWhereClause.push(Prisma.sql`"formId" = ${formsTeamWhereCondition.id}`);
+    }
+
+    const bookingStatus = columnFilters.find((filter) => filter.id === "bookingStatus");
+    const assignmentReason = columnFilters.find((filter) => filter.id === "assignmentReason") as
+      | TypedColumnFilter<"text">
+      | undefined;
+    const fieldFilters = columnFilters.filter(
+      (filter) => filter.id !== "bookingStatus" && filter.id !== "assignmentReason"
+    );
+
+    await prisma.$queryRaw<RoutingFormResponse[]>`
+      SELECT * FROM "RoutingFormResponse"
+      WHERE
+        TRUE
+        ${formsTeamWhereClause.length > 0 ? Prisma.sql`AND ${formsTeamWhereClause.join(" AND ")}` : ""}
+        ${
+          bookingStatus
+            ? Prisma.sql`AND ${makeRawWhereClause({
+                columnName: "bookingStatus",
+                filterValue: bookingStatus.value,
+              })}`
+            : ""
+        }
+    `;
+
+    let bookingWhereInput: Prisma.BookingWhereInput = {};
+    if (userId) {
+      bookingWhereInput.userId = userId;
+    }
+    if (bookingStatus) {
+      bookingWhereInput = {
+        ...bookingWhereInput,
+        ...makeWhereClause({ columnName: "status", filterValue: bookingStatus.value }),
+      };
+    }
+    if (assignmentReason) {
+      const operator = assignmentReason.value.data.operator;
+      if (operator === "isEmpty") {
+        bookingWhereInput.assignmentReason = { none: {} };
+      } else if (operator === "isNotEmpty") {
+        bookingWhereInput.assignmentReason = {
+          some: {
+            reasonString: {
+              not: "",
+            },
+          },
+        };
+      } else {
+        bookingWhereInput.assignmentReason = {
+          some: makeWhereClause({ columnName: "reasonString", filterValue: assignmentReason.value }),
+        };
+      }
+    }
+
+    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: dayjs(startDate).startOf("day").toDate(),
+            lte: dayjs(endDate).endOf("day").toDate(),
+          },
+        }),
+      ...(Object.keys(bookingWhereInput).length > 0 ? { routedToBooking: bookingWhereInput } : {}),
+      form: formsTeamWhereCondition,
+    };
+
+    if (fieldFilters.length > 0) {
+      responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => {
+        // NOTE: We cannot perform case-insensitive search on the `response` column (jsonb),
+        // until we normalize this table, use raw sql, or filter at the application level.
+        return makeWhereClause({
+          columnName: "response",
+          filterValue: fieldFilter.value,
+          json: { path: [fieldFilter.id, "value"] },
+        });
+      });
+    }
+
+    const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
+      where: responsesWhereCondition,
+    });
+
+    const getOrder = (desc?: boolean) => (desc ? ("desc" as const) : ("asc" as const));
+
+    const orderBy = sorting
+      .map((sort) => {
+        if (sort.id === "bookingStatus") {
+          return {
+            routedToBooking: {
+              status: getOrder(sort.desc),
+            },
+          };
+        } else if (sort.id === "bookingAt") {
+          return {
+            routedToBooking: {
+              createdAt: getOrder(sort.desc),
+            },
+          };
+        } else if (sort.id === "createdAt") {
+          return {
+            createdAt: getOrder(sort.desc),
+          };
+        }
+      })
+      .filter((item) => item !== undefined);
+
+    const responsesPromise = prisma.app_RoutingForms_FormResponse.findMany({
+      select: {
+        id: true,
+        response: true,
+        form: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        routedToBooking: {
+          select: {
+            uid: true,
+            status: true,
+            createdAt: true,
+            attendees: {
+              select: {
+                timeZone: true,
+                email: true,
+              },
+            },
+            user: {
+              select: { id: true, name: true, email: true, avatarUrl: true },
+            },
+            assignmentReason: {
+              select: { reasonString: true },
+            },
+          },
+        },
+        createdAt: true,
       },
+      where: responsesWhereCondition,
+      orderBy:
+        orderBy.length > 0
+          ? orderBy
+          : {
+              createdAt: "desc",
+            },
       take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
       cursor: cursor ? { id: cursor } : undefined,
     });

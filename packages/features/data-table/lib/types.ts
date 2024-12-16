@@ -125,3 +125,10 @@ export type ExternalFilter = {
   titleKey: string;
   component: () => React.ReactNode;
 };
+
+export const ZSorting = z.object({
+  id: z.string(),
+  desc: z.boolean(),
+});
+
+export type { SortingState } from "@tanstack/react-table";

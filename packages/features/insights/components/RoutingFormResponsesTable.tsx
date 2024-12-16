@@ -295,6 +295,8 @@ export function RoutingFormResponsesTableContent({
       }
     );
 
+  const { removeDisplayedExternalFilter, sorting, setSorting } = useDataTable();
+
   const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
@@ -306,6 +308,7 @@ export function RoutingFormResponsesTableContent({
         isAll: isAll ?? false,
         routingFormId: selectedRoutingFormId ?? undefined,
         columnFilters,
+        sorting,
         limit: 30,
       },
       {
@@ -382,6 +385,7 @@ export function RoutingFormResponsesTableContent({
         header: t("routing_form_insights_booked_by"),
         size: 200,
         enableColumnFilter: false,
+        enableSorting: false,
         cell: (info) => {
           const row = info.row.original;
           return <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />;
@@ -413,6 +417,7 @@ export function RoutingFormResponsesTableContent({
           id: fieldHeader.id,
           header: convertToTitleCase(fieldHeader.label),
           size: 200,
+          enableSorting: false,
           cell: (info) => {
             const values = info.getValue();
             if (isMultiSelect) {
@@ -492,11 +497,22 @@ export function RoutingFormResponsesTableContent({
             />
           </div>
         ),
+        sortingFn: (rowA, rowB) => {
+          const dateA = rowA.original.routedToBooking?.createdAt;
+          const dateB = rowB.original.routedToBooking?.createdAt;
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return -1;
+          if (!dateB) return 1;
+          if (!(dateA instanceof Date) || !(dateB instanceof Date)) return 0;
+
+          return dateA.getTime() - dateB.getTime();
+        },
       }),
       columnHelper.accessor("routedToBooking", {
         id: "assignmentReason",
         header: t("routing_form_insights_assignment_reason"),
         size: 250,
+        enableSorting: false,
         meta: {
           filter: { type: "text" },
         },
@@ -513,7 +529,7 @@ export function RoutingFormResponsesTableContent({
         },
       }),
       columnHelper.accessor("createdAt", {
-        id: "submittedAt",
+        id: "createdAt",
         header: t("routing_form_insights_submitted_at"),
         size: 250,
         enableColumnFilter: false,
@@ -537,8 +553,10 @@ export function RoutingFormResponsesTableContent({
       size: 200,
     },
     state: {
+      sorting,
       columnFilters,
     },
+    onSortingChange: setSorting,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (!headers) {
         return new Map();
@@ -565,8 +583,6 @@ export function RoutingFormResponsesTableContent({
     fetchNextPage,
     isFetching,
   });
-
-  const { removeDisplayedExternalFilter } = useDataTable();
 
   const externalFilters = useMemo<ExternalFilter[]>(
     () => [

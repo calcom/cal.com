@@ -1,4 +1,6 @@
-import type { FilterValue } from "./types";
+import { Prisma } from "@prisma/client";
+
+import type { FilterValue, SortingState } from "./types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
@@ -11,6 +13,67 @@ type makeWhereClauseProps = {
   filterValue: FilterValue;
   json?: true | { path: string[] };
 };
+
+export function makeOrderBy(sorting: SortingState) {
+  if (!sorting || !sorting.length) return undefined;
+
+  return sorting.map((sort) => ({
+    [sort.id]: sort.desc ? ("desc" as const) : ("asc" as const),
+  }));
+}
+
+export function makeRawWhereClause({
+  columnName,
+  filterValue,
+}: {
+  columnName: string;
+  filterValue: FilterValue;
+}) {
+  if (isSelectFilterValue(filterValue)) {
+    return Prisma.sql`${columnName} IN (${filterValue.join(", ")})`;
+  } else if (isTextFilterValue(filterValue)) {
+    const { operator, operand } = filterValue.data;
+    switch (operator) {
+      case "equals":
+        return Prisma.sql`${columnName} = ${operand}`;
+      case "notEquals":
+        return Prisma.sql`${columnName} != ${operand}`;
+      case "contains":
+        return Prisma.sql`${columnName} ILIKE ${`%${operand}%`}`;
+      case "notContains":
+        return Prisma.sql`NOT (${columnName} ILIKE ${`%${operand}%`})`;
+      case "startsWith":
+        return Prisma.sql`${columnName} ILIKE ${`${operand}%`}`;
+      case "endsWith":
+        return Prisma.sql`${columnName} ILIKE ${`%${operand}`}`;
+      case "isEmpty":
+        return Prisma.sql`${columnName} = ''`;
+      case "isNotEmpty":
+        return Prisma.sql`NOT (${columnName} = '')`;
+      default:
+        throw new Error(`Invalid operator for text filter: ${operator}`);
+    }
+  } else if (isNumberFilterValue(filterValue)) {
+    const { operator, operand } = filterValue.data;
+    switch (operator) {
+      case "eq":
+        return Prisma.sql`${columnName} = ${operand}`;
+      case "neq":
+        return Prisma.sql`${columnName} != ${operand}`;
+      case "gt":
+        return Prisma.sql`${columnName} > ${operand}`;
+      case "gte":
+        return Prisma.sql`${columnName} >= ${operand}`;
+      case "lt":
+        return Prisma.sql`${columnName} < ${operand}`;
+      case "lte":
+        return Prisma.sql`${columnName} <= ${operand}`;
+      default:
+        throw new Error(`Invalid operator for number filter: ${operator}`);
+    }
+  }
+  return Prisma.empty;
+}
 
 export function makeWhereClause(props: makeWhereClauseProps) {
   const { columnName, filterValue } = props;
