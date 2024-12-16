@@ -100,6 +100,7 @@ export const TeamAndSelfList = ({
                 selectedTeamId: data[0].id,
                 selectedUserId: null,
                 selectedTeamName: null,
+                selectedRoutingFormId: null,
                 isAll: true,
               });
             }}
@@ -127,12 +128,14 @@ export const TeamAndSelfList = ({
                     selectedEventTypeId: null,
                     selectedMemberUserId: null,
                     selectedFilter: null,
+                    selectedRoutingFormId: null,
                   });
                 } else if (!e.target.checked) {
                   setConfigFilters({
                     selectedTeamId: isOrgDataAvailable ? data[0].id : null,
                     selectedTeamName: null,
-                    isAll: true,
+                    selectedRoutingFormId: null,
+                    isAll: isOrgDataAvailable,
                   });
                 }
               }}
@@ -155,7 +158,9 @@ export const TeamAndSelfList = ({
           onChange={(e) => {
             if (e.target.checked) {
               setConfigFilters({
+                selectedRoutingFormId: null,
                 selectedUserId: session.data?.user.id,
+                selectedMemberUserId: null,
                 selectedTeamId: null,
                 isAll: false,
               });
@@ -164,6 +169,7 @@ export const TeamAndSelfList = ({
                 selectedTeamId: isOrgDataAvailable ? data[0].id : null,
                 selectedUserId: null,
                 selectedTeamName: null,
+                selectedRoutingFormId: null,
                 isAll: isOrgDataAvailable,
               });
             }
