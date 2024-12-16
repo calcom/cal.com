@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -30,7 +30,7 @@ export class PlatformOAuthClientDto {
   @IsNumber()
   permissions!: number;
 
-  @ApiProperty({ example: "https://example.com/logo.png", required: false })
+  @ApiPropertyOptional({ example: "https://example.com/logo.png" })
   @IsOptional()
   @IsString()
   logo!: string | null;
@@ -54,9 +54,7 @@ export class GetOAuthClientResponseDto {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @ApiProperty({
-    type: PlatformOAuthClientDto,
-  })
+  @ApiProperty({ type: PlatformOAuthClientDto })
   @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => PlatformOAuthClientDto)
