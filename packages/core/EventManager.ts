@@ -9,7 +9,6 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
@@ -182,7 +181,7 @@ export default class EventManager {
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
-      const result = await monitorCallbackAsync(this.createVideoEvent, evt);
+      const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
         evt.videoCallData = result.createdEvent;
@@ -206,7 +205,7 @@ export default class EventManager {
     // Some calendar libraries may edit the original event so let's clone it
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
-    results.push(...(await monitorCallbackAsync(this.createAllCalendarEvents, clonedCalEvent)));
+    results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -216,7 +215,7 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    results.push(...(await monitorCallbackAsync(this.createAllCRMEvents, clonedCalEvent)));
+    results.push(...(await this.createAllCRMEvents(clonedCalEvent)));
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
