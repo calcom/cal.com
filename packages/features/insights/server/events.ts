@@ -483,7 +483,6 @@ class EventsInsights {
 
     // Obtain the where conditional
     let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
-    const teamConditional: Prisma.TeamWhereInput = {};
 
     if (startDate && endDate) {
       whereConditional.createdAt = {
