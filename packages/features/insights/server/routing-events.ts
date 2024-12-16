@@ -5,8 +5,13 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
-import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import type {
+  ColumnFilter,
+  TypedColumnFilter,
+  ColumnFilterType,
+  SortingState,
+} from "@calcom/features/data-table";
+import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
@@ -31,6 +36,8 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   columnFilters: ColumnFilter[];
 };
 
+type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
+
 class RoutingEventsInsights {
   private static async getWhereForTeamOrAllTeams({
     userId,
@@ -38,7 +45,7 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-  }: RoutingFormInsightsTeamFilter) {
+  }: RoutingFormInsightsTeamFilter): Promise<WhereForTeamOrAllTeams> {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
     if (isAll && organizationId) {
@@ -56,7 +63,7 @@ class RoutingEventsInsights {
     }
 
     // Base where condition for forms
-    const formsWhereCondition: Prisma.App_RoutingForms_FormWhereInput = {
+    const formsWhereCondition: WhereForTeamOrAllTeams = {
       ...(teamIds.length > 0
         ? {
             teamId: {
@@ -211,7 +218,12 @@ class RoutingEventsInsights {
     userId,
     memberUserId,
     columnFilters,
-  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & { cursor?: number; limit?: number }) {
+    sorting,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
+    sorting: SortingState;
+    cursor?: number;
+    limit?: number;
+  }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
       teamId,
@@ -220,44 +232,57 @@ class RoutingEventsInsights {
       routingFormId,
     });
 
-    const bookingStatusFilter = columnFilters.find((filter) => filter.id === "bookingStatus");
-    const assignmentReasonFilter = columnFilters.find((filter) => filter.id === "assignmentReason") as
-      | TypedColumnFilter<"text">
-      | undefined;
-    const fieldFilters = columnFilters.filter(
-      (filter) => filter.id !== "bookingStatus" && filter.id !== "assignmentReason"
-    );
-
-    let bookingWhereInput: Prisma.BookingWhereInput = {};
-    if (memberUserId) {
-      bookingWhereInput.userId = memberUserId;
-    }
-    if (bookingStatusFilter) {
-      bookingWhereInput = {
-        ...bookingWhereInput,
-        ...makeWhereClause({ columnName: "status", filterValue: bookingStatusFilter.value }),
-      };
-    }
-    if (assignmentReasonFilter) {
-      const operator = assignmentReasonFilter.value.data.operator;
-      if (operator === "isEmpty") {
-        bookingWhereInput.assignmentReason = { none: {} };
-      } else if (operator === "isNotEmpty") {
-        bookingWhereInput.assignmentReason = {
-          some: {
-            reasonString: {
-              not: "",
-            },
+    const getLowercasedFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
+      if (filter.value.type === "text") {
+        return {
+          ...filter.value,
+          data: {
+            ...filter.value.data,
+            operand: filter.value.data.operand.toLowerCase(),
           },
         };
-      } else {
-        bookingWhereInput.assignmentReason = {
-          some: makeWhereClause({ columnName: "reasonString", filterValue: assignmentReasonFilter.value }),
-        };
       }
-    }
+      return filter.value;
+    };
 
-    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
+    const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
+    const bookingAssignmentReason = columnFilters.find(
+      (filter) => filter.id === "bookingAssignmentReason"
+    ) as TypedColumnFilter<"text"> | undefined;
+    const assignmentReasonValue = bookingAssignmentReason
+      ? getLowercasedFilterValue(bookingAssignmentReason)
+      : undefined;
+
+    const responseFilters = columnFilters.filter(
+      (filter) => filter.id !== "bookingStatusOrder" && filter.id !== "bookingAssignmentReason"
+    );
+
+    const whereClause: Prisma.RoutingFormResponseWhereInput = {
+      ...(formsTeamWhereCondition.id !== undefined && {
+        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
+      }),
+      ...(formsTeamWhereCondition.teamId !== undefined && {
+        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
+      }),
+      ...(formsTeamWhereCondition.userId !== undefined && {
+        formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
+      }),
+
+      // bookingStatus
+      ...(bookingStatusOrder &&
+        makeWhereClause({ columnName: "bookingStatusOrder", filterValue: bookingStatusOrder.value })),
+
+      // bookingAssignmentReason
+      ...(assignmentReasonValue &&
+        makeWhereClause({
+          columnName: "bookingAssignmentReasonLowercase",
+          filterValue: assignmentReasonValue,
+        })),
+
+      // memberUserId
+      ...(memberUserId && { bookingUserId: memberUserId }),
+
+      // createdAt
       ...(startDate &&
         endDate && {
           createdAt: {
@@ -265,77 +290,56 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(Object.keys(bookingWhereInput).length > 0 ? { routedToBooking: bookingWhereInput } : {}),
-      form: formsTeamWhereCondition,
+
+      // AND clause
+      ...(responseFilters.length > 0 && {
+        AND: responseFilters.map((fieldFilter) => {
+          return makeWhereClause({
+            columnName: "responseLowercase",
+            filterValue: getLowercasedFilterValue(fieldFilter),
+            json: { path: [fieldFilter.id, "value"] },
+          });
+        }),
+      }),
     };
 
-    if (fieldFilters.length > 0) {
-      responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => {
-        // NOTE: We cannot perform case-insensitive search on `response` column,
-        // until we normalize this table, use raw sql, or filter at the application level.
-        return makeWhereClause({
-          columnName: "response",
-          filterValue: fieldFilter.value,
-          json: { path: [fieldFilter.id, "value"] },
-        });
-      });
-    }
-
-    const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
-      where: responsesWhereCondition,
+    const totalResponsePromise = prisma.routingFormResponse.count({
+      where: whereClause,
     });
 
-    const responsesPromise = prisma.app_RoutingForms_FormResponse.findMany({
+    const responsesPromise = prisma.routingFormResponse.findMany({
       select: {
         id: true,
         response: true,
-        form: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        routedToBooking: {
-          select: {
-            uid: true,
-            status: true,
-            createdAt: true,
-            attendees: {
-              select: {
-                timeZone: true,
-                email: true,
-              },
-            },
-            user: {
-              select: { id: true, name: true, email: true, avatarUrl: true },
-            },
-            assignmentReason: {
-              select: { reasonString: true },
-            },
-          },
-        },
+        formId: true,
+        formName: true,
+        bookingUid: true,
+        bookingStatus: true,
+        bookingStatusOrder: true,
+        bookingCreatedAt: true,
+        bookingAttendees: true,
+        bookingUserId: true,
+        bookingUserName: true,
+        bookingUserEmail: true,
+        bookingUserAvatarUrl: true,
+        bookingAssignmentReason: true,
         createdAt: true,
       },
-      where: responsesWhereCondition,
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: whereClause,
+      orderBy: sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
       take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
       cursor: cursor ? { id: cursor } : undefined,
     });
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    // Parse response data
-    const parsedResponses = responses.map((r) => {
-      const responseData = routingFormResponseInDbSchema.parse(r.response);
-      return { ...r, response: responseData };
-    });
+    const hasNextPage = responses.length > (limit ?? 0);
+    const responsesToReturn = responses.slice(0, limit ? limit : responses.length);
 
     return {
       total: totalResponses,
-      data: parsedResponses,
-      nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
+      data: responsesToReturn,
+      nextCursor: hasNextPage ? responsesToReturn[responsesToReturn.length - 1].id : undefined,
     };
   }
 
