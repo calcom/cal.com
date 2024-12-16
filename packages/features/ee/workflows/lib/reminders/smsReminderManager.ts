@@ -198,6 +198,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     smsMessage =
       smsReminderTemplate(
         false,
+        evt.organizer.language.locale,
         action,
         evt.organizer.timeFormat,
         evt.startTime,

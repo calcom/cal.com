@@ -276,12 +276,23 @@ export const requiredCustomInputSchema = z.union([
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
+const PlatformClientParamsSchema = z.object({
+  platformClientId: z.string().optional(),
+  platformRescheduleUrl: z.string().nullable().optional(),
+  platformCancelUrl: z.string().nullable().optional(),
+  platformBookingUrl: z.string().nullable().optional(),
+  platformBookingLocation: z.string().optional(),
+});
+
+export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
+
 export const bookingConfirmPatchBodySchema = z.object({
   bookingId: z.number(),
   confirmed: z.boolean(),
   recurringEventId: z.string().optional(),
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
+  platformClientParams: PlatformClientParamsSchema.optional(),
 });
 
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
@@ -765,5 +776,17 @@ export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
 });
+
+export const serviceAccountKeySchema = z
+  .object({
+    type: z.string(),
+    client_id: z.string(),
+    client_email: z.string(),
+    private_key: z.string(),
+  })
+  // There could be more properties available here by the Workspace platform(e.g. Google), we don't want to loose them but don't need them also at the moment
+  .passthrough();
+
+export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
