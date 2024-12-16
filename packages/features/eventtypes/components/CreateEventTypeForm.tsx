@@ -11,9 +11,9 @@ import turndown from "@calcom/lib/turndownService";
 import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
 
 enum EventDurationConfig {
-  MINUTES = "minutes",
-  HOURS = "hours",
-  DAYS = "days",
+  MINUTES = "Mins",
+  HOURS = "Hours",
+  DAYS = "Days",
 }
 
 export default function CreateEventTypeForm({
@@ -36,46 +36,44 @@ export default function CreateEventTypeForm({
   const { t } = useLocale();
   const durationOptions = [
     {
-      label: t("minutes"),
+      label: t("Mins"),
       value: EventDurationConfig.MINUTES,
     },
     {
-      label: t("hours"),
+      label: t("Hours"),
       value: EventDurationConfig.HOURS,
     },
     {
-      label: t("days"),
+      label: t("Days"),
       value: EventDurationConfig.DAYS,
     },
   ];
 
   const isPlatform = useIsPlatform();
   const [firstRender, setFirstRender] = useState(true);
-  const [selectedDurationUnit, setSelectedDurationUnit] = useState(
-    durationOptions.find((option) => option.value === EventDurationConfig.MINUTES)
-  );
+  const [selectedDurationUnit, setSelectedDurationUnit] = useState(durationOptions[0]);
+  const [displayedDuration, setDisplayedDuration] = useState<number>(15);
 
   // setValue and watch are for time format handling
-  const { register, setValue, watch } = form;
-  const duration = watch("length");
+  const { register, setValue } = form;
 
-  const handleDurationChange = (value: number) => {
-    if (selectedDurationUnit) {
-      if (selectedDurationUnit.value === EventDurationConfig.HOURS) {
-        setValue("length", value * 60); // Convert hours to minutes
-      } else if (selectedDurationUnit.value === EventDurationConfig.DAYS) {
-        setValue("length", value * 1440); // Convert days to minutes
-      } else {
-        setValue("length", Math.round(value)); // Minutes
-      }
+  const getConvertedDuration = () => {
+    if (selectedDurationUnit.value === EventDurationConfig.HOURS) {
+      return displayedDuration * 60; // Horas a minutos
     }
+    if (selectedDurationUnit.value === EventDurationConfig.DAYS) {
+      return displayedDuration * 1440; // Días a minutos
+    }
+    return displayedDuration; // Minutos
   };
 
   return (
     <Form
       form={form}
       handleSubmit={(values) => {
-        handleSubmit(values);
+        const convertedDuration = getConvertedDuration();
+        setValue("length", convertedDuration); // Asigna el valor correcto antes de enviar
+        handleSubmit({ ...values, length: convertedDuration });
       }}>
       <div className="mt-3 space-y-6 pb-11">
         <TextField
@@ -154,20 +152,17 @@ export default function CreateEventTypeForm({
               maxHeight="200px"
             />
           )}
-
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1">
             <TextField
               type="number"
               required
-              min="10"
+              min="1"
               placeholder="15"
+              value={displayedDuration}
+              onChange={(e) => setDisplayedDuration(parseFloat(e.target.value))}
               label={t("duration")}
-              className="flex-grow pr-4"
-              {...register("length", {
-                valueAsNumber: true,
-                onChange: (e) => handleDurationChange(parseFloat(e.target.value)),
-              })}
-              //addOnSuffix={t("minutes")}
+              className="h-10 w-24 flex-grow rounded border border-gray-600 "
+              style={{ lineHeight: "normal" }}
             />
             <Select
               options={durationOptions}
@@ -177,7 +172,7 @@ export default function CreateEventTypeForm({
                   setSelectedDurationUnit(e);
                 }
               }}
-              className="w-24"
+              className="h-10 w-24 self-stretch rounded border border-gray-600"
             />
           </div>
         </>
