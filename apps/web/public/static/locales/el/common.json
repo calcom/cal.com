@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Να μην δημιουργούνται νέες εγγραφές για καλεσμένους που προστίθενται στην κράτηση",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Βίντεο MS Teams",
   "lock_attribute_for_assignment": "Κλείδωμα για ανάθεση",
   "lock_attribute_for_assignment_description": "Το κλείδωμα θα επιτρέπει αναθέσεις μόνο από το Directory Sync",
   "attribute_edited_successfully": "Το χαρακτηριστικό τροποποιήθηκε με επιτυχία",

@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Ez sortu erregistro berririk erreserbara gehitutako gonbidatuentzat",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams Bideoa",
   "lock_attribute_for_assignment": "Blokeatu esleipenerako",
   "lock_attribute_for_assignment_description": "Blokeatzeak Directory Sync-etik datozen esleipenak soilik baimenduko ditu",
   "attribute_edited_successfully": "Atributua behar bezala editatu da",

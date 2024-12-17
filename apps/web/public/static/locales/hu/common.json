@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Ne hozzon létre új rekordokat a foglaláshoz hozzáadott vendégek számára",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams videó",
   "lock_attribute_for_assignment": "Zárolás hozzárendeléshez",
   "lock_attribute_for_assignment_description": "A zárolás csak a Directory Sync-ből érkező hozzárendeléseket engedélyezi",
   "attribute_edited_successfully": "Az attribútum sikeresen módosítva",

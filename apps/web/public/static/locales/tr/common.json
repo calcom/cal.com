@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Rezervasyona eklenen misafirler için yeni kayıt oluşturma",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams Video",
   "lock_attribute_for_assignment": "Atama için kilitle",
   "lock_attribute_for_assignment_description": "Kilitleme, yalnızca Dizin Senkronizasyonundan atamalara izin verecektir",
   "attribute_edited_successfully": "Öznitelik başarıyla düzenlendi",

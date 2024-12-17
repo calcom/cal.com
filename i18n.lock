@@ -2876,6 +2876,7 @@ checksums:
     salesforce_ignore_guests: f56d10682d9a637a4bec42abcd212a35
     google_meet: e30a500b4e93f691c4b2ab046b96e753
     zoom: 1029e5d2d8697381dc767ce4090aace0
+    office_365_video: df34c133a9a4c41e8f0fc35a2a4e47ce
     lock_attribute_for_assignment: 7872c700180e254fcb19a4804a130c05
     lock_attribute_for_assignment_description: 2495d63d50ed120e4fd12279d14fef69
     attribute_edited_successfully: c15632b7331a7c6a1d60282eccd3a22d

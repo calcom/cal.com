@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "不为预约中添加的访客创建新记录",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams 视频",
   "lock_attribute_for_assignment": "锁定以进行分配",
   "lock_attribute_for_assignment_description": "锁定后将仅允许通过目录同步进行分配",
   "attribute_edited_successfully": "属性编辑成功",

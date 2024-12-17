@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "예약에 추가된 게스트에 대한 새 레코드를 생성하지 않음",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams 화상",
   "lock_attribute_for_assignment": "할당을 위해 잠금",
   "lock_attribute_for_assignment_description": "잠금을 설정하면 디렉토리 동기화를 통한 할당만 허용됩니다",
   "attribute_edited_successfully": "속성이 성공적으로 수정되었습니다",

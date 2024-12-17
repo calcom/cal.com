@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "No crear nous registres per als convidats afegits a la reserva",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Vídeo de MS Teams",
   "lock_attribute_for_assignment": "Bloqueja per a l'assignació",
   "lock_attribute_for_assignment_description": "El bloqueig només permetrà assignacions des de la sincronització del directori",
   "attribute_edited_successfully": "L'atribut s'ha editat correctament",

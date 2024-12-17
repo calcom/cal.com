@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "No crear nuevos registros para invitados añadidos a la reserva",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Video de MS Teams",
   "lock_attribute_for_assignment": "Bloquear para asignación",
   "lock_attribute_for_assignment_description": "El bloqueo solo permitirá asignaciones desde la sincronización del directorio",
   "attribute_edited_successfully": "Atributo editado correctamente",

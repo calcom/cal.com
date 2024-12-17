@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Maak geen nieuwe records aan voor gasten die aan de boeking zijn toegevoegd",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams Video",
   "lock_attribute_for_assignment": "Vergrendelen voor toewijzing",
   "lock_attribute_for_assignment_description": "Vergrendeling staat alleen toewijzingen toe via Directory Sync",
   "attribute_edited_successfully": "Attribuut succesvol bewerkt",

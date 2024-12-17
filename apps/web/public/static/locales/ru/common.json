@@ -2874,6 +2874,7 @@
   "salesforce_ignore_guests": "Не создавать новые записи для гостей, добавленных в бронирование",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "Видео MS Teams",
   "lock_attribute_for_assignment": "Заблокировать для назначения",
   "lock_attribute_for_assignment_description": "Блокировка позволит назначать только через синхронизацию с директорией",
   "attribute_edited_successfully": "Атрибут успешно изменен",
